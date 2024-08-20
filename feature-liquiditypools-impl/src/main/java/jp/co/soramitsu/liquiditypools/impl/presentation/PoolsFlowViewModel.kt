@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_liquiditypools_impl.R
-import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenInterface
@@ -58,7 +57,6 @@ class PoolsFlowViewModel @Inject constructor(
     liquidityRemovePresenter: LiquidityRemovePresenter,
     liquidityRemoveConfirmPresenter: LiquidityRemoveConfirmPresenter,
     private val coroutinesStore: CoroutinesStore,
-    private val poolsInteractor: PoolsInteractor,
     private val internalPoolsRouter: InternalPoolsRouter,
     private val poolsRouter: LiquidityPoolsRouter
 ) : BaseViewModel(),
@@ -69,11 +67,6 @@ class PoolsFlowViewModel @Inject constructor(
     PoolDetailsCallbacks by poolDetailsPresenter,
     LiquidityRemoveCallbacks by liquidityRemovePresenter,
     LiquidityRemoveConfirmCallbacks by liquidityRemoveConfirmPresenter {
-
-    companion object {
-        const val ITEM_APY_ID = 1
-        const val ITEM_FEE_ID = 2
-    }
 
     val allPoolsScreenState: StateFlow<AllPoolsState> =
         allPoolsPresenter.createScreenStateFlow(coroutinesStore.uiScope)
@@ -180,6 +173,11 @@ class PoolsFlowViewModel @Inject constructor(
 
     fun exitFlow() {
         poolsRouter.back()
+    }
+
+    companion object {
+        const val ITEM_APY_ID = 1
+        const val ITEM_FEE_ID = 2
     }
 }
 

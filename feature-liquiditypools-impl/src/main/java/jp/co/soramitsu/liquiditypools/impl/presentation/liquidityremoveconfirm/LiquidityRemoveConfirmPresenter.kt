@@ -90,33 +90,6 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
             )
         }
 
-    private val stateFlow = MutableStateFlow(LiquidityRemoveConfirmState())
-
-    fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<LiquidityRemoveConfirmState> {
-        subscribeState(coroutineScope)
-        return stateFlow
-    }
-
-    private fun subscribeState(coroutineScope: CoroutineScope) {
-        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetBase, assetTarget) ->
-            stateFlow.value = stateFlow.value.copy(
-                assetBaseIconUrl = assetBase.configuration.iconUrl,
-                assetTargetIconUrl = assetTarget.configuration.iconUrl,
-                baseAmount = screenArgs.amountBase.formatCrypto(assetBase.configuration.symbol),
-                baseFiat = screenArgs.amountBase.applyFiatRate(assetBase.fiatRate)?.formatFiat(assetBase.fiatSymbol).orEmpty(),
-                targetAmount = screenArgs.amountTarget.formatCrypto(assetTarget.configuration.symbol),
-                targetFiat = screenArgs.amountTarget.applyFiatRate(assetTarget.fiatRate)?.formatFiat(assetTarget.fiatSymbol).orEmpty(),
-            )
-        }.launchIn(coroutineScope)
-
-        feeInfoViewStateFlow.onEach {
-            stateFlow.value = stateFlow.value.copy(
-                feeInfo = it,
-                buttonEnabled = it.feeAmount.isNullOrEmpty().not()
-            )
-        }.launchIn(coroutineScope)
-    }
-
     private val networkFeeFlow = combine(
         screenArgsFlow,
         tokensInPoolFlow,
@@ -153,6 +126,33 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
                 )
             }
         }
+
+    private val stateFlow = MutableStateFlow(LiquidityRemoveConfirmState())
+
+    fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<LiquidityRemoveConfirmState> {
+        subscribeState(coroutineScope)
+        return stateFlow
+    }
+
+    private fun subscribeState(coroutineScope: CoroutineScope) {
+        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetBase, assetTarget) ->
+            stateFlow.value = stateFlow.value.copy(
+                assetBaseIconUrl = assetBase.configuration.iconUrl,
+                assetTargetIconUrl = assetTarget.configuration.iconUrl,
+                baseAmount = screenArgs.amountBase.formatCrypto(assetBase.configuration.symbol),
+                baseFiat = screenArgs.amountBase.applyFiatRate(assetBase.fiatRate)?.formatFiat(assetBase.fiatSymbol).orEmpty(),
+                targetAmount = screenArgs.amountTarget.formatCrypto(assetTarget.configuration.symbol),
+                targetFiat = screenArgs.amountTarget.applyFiatRate(assetTarget.fiatRate)?.formatFiat(assetTarget.fiatSymbol).orEmpty(),
+            )
+        }.launchIn(coroutineScope)
+
+        feeInfoViewStateFlow.onEach {
+            stateFlow.value = stateFlow.value.copy(
+                feeInfo = it,
+                buttonEnabled = it.feeAmount.isNullOrEmpty().not()
+            )
+        }.launchIn(coroutineScope)
+    }
 
     private suspend fun getLiquidityNetworkFee(
         tokenBase: Asset,
@@ -221,12 +221,12 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
             }
         }.invokeOnCompletion {
             coroutinesStore.ioScope.launch {
-                delay(700)
+                delay(UPDATE_POOL_DELAY)
                 poolsInteractor.updateAccountPools()
             }
 
             coroutinesStore.uiScope.launch {
-                delay(300)
+                delay(DEBOUNCE_300)
                 setButtonLoading(false)
             }
         }
@@ -240,5 +240,10 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         stateFlow.value = stateFlow.value.copy(
             buttonLoading = loading
         )
+    }
+
+    companion object {
+        private const val UPDATE_POOL_DELAY = 700L
+        private const val DEBOUNCE_300 = 300L
     }
 }

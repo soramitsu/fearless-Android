@@ -33,7 +33,6 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
-import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -55,7 +54,6 @@ import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojoList
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.GetStorageRequest
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.shared_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -63,10 +61,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.supervisorScope
@@ -74,6 +68,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 
+@Suppress("LargeClass", "MagicNumber")
 class PoolsRepositoryImpl @Inject constructor(
     private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
@@ -111,13 +106,12 @@ class PoolsRepositoryImpl @Inject constructor(
         mapOf("code" to this.mapAssetId())
     )
 
-    fun RuntimeSnapshot.reservesKeyToken(baseTokenId: String): String =
-        this.metadata.module(Modules.POOL_XYK)
-            .storage("Reserves")
-            .storageKey(
-                this,
-                baseTokenId.mapCodeToken(),
-            )
+    fun RuntimeSnapshot.reservesKeyToken(baseTokenId: String): String = this.metadata.module(Modules.POOL_XYK)
+        .storage("Reserves")
+        .storageKey(
+            this,
+            baseTokenId.mapCodeToken(),
+        )
 
     suspend fun getStorageHex(chainId: ChainId, storageKey: String): String? =
         chainRegistry.awaitConnection(chainId).socketService.executeAsync(
@@ -170,13 +164,10 @@ class PoolsRepositoryImpl @Inject constructor(
     fun String.assetIdFromKey() = this.takeLast(64).addHexPrefix()
 
     object TotalIssuance : Schema<TotalIssuance>() {
-        val totalIssuance by uint128()
+        val value by uint128()
     }
 
-    suspend fun getPoolTotalIssuances(
-        chainId: ChainId,
-        reservesAccountId: ByteArray,
-    ): BigInteger? {
+    suspend fun getPoolTotalIssuances(chainId: ChainId, reservesAccountId: ByteArray): BigInteger? {
         val runtimeOrNull = chainRegistry.getRuntimeOrNull(chainId)
         val storageKey = runtimeOrNull?.metadata?.module(Modules.POOL_XYK)
             ?.storage("TotalIssuances")
@@ -188,7 +179,7 @@ class PoolsRepositoryImpl @Inject constructor(
         )
             .result
             ?.let { storage ->
-                storage[storage.schema.totalIssuance]
+                storage[storage.schema.value]
             }
     }
 
@@ -223,6 +214,7 @@ class PoolsRepositoryImpl @Inject constructor(
         )
     }
 
+    @Suppress("NestedBlockDepth")
     override suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData> {
         val runtimeOrNull = chainRegistry.getRuntimeOrNull(chainId)
         val storage = runtimeOrNull?.metadata
@@ -283,33 +275,6 @@ class PoolsRepositoryImpl @Inject constructor(
         }
 
         return list
-    }
-
-    private fun subscribeAccountPoolProviders(
-        chainId: ChainId,
-        address: String,
-        reservesAccount: ByteArray,
-    ): Flow<String> = flow {
-        val poolProvidersKey =
-            chainRegistry.getRuntimeOrNull(chainId)?.let {
-                it.metadata.module(Modules.POOL_XYK)
-                    .storage("TotalIssuances")
-                    .storageKey(
-                        it,
-                        reservesAccount,
-                        address.toAccountId()
-                    )
-            } ?: error("subscribeAccountPoolProviders poolProvidersKey is null")
-        val poolProvidersFlow =
-            chainRegistry.getConnection(chainId).socketService.subscriptionFlowCatching(
-                SubscribeStorageRequest(poolProvidersKey),
-                "state_unsubscribeStorage",
-            ).map {
-                it.map { it.storageChange().getSingleChange().orEmpty() }
-            }.map {
-                it.getOrNull().orEmpty()
-            }
-        emitAll(poolProvidersFlow)
     }
 
     override suspend fun getUserPoolData(
@@ -451,8 +416,7 @@ class PoolsRepositoryImpl @Inject constructor(
         }
     }
 
-    fun Struct.Instance.mapToToken(field: String) =
-        this.get<Struct.Instance>(field)?.getTokenId()?.toHexString(true)
+    fun Struct.Instance.mapToToken(field: String) = this.get<Struct.Instance>(field)?.getTokenId()?.toHexString(true)
 
     fun String.takeInt32() = uint32.fromHex(this.takeLast(8)).toInt()
 
@@ -478,7 +442,7 @@ class PoolsRepositoryImpl @Inject constructor(
     }
 
     object PoolProviders : Schema<PoolProviders>() {
-        val poolProviders by uint128()
+        val value by uint128()
     }
 
     private suspend fun getPoolProviders(
@@ -502,7 +466,7 @@ class PoolsRepositoryImpl @Inject constructor(
             )
                 .let { storage ->
                     storage.result?.let {
-                        it[it.schema.poolProviders]
+                        it[it.schema.value]
                     } ?: BigInteger.ZERO
                 }
         }.getOrElse {
@@ -543,7 +507,7 @@ class PoolsRepositoryImpl @Inject constructor(
                 tokenId.mapCodeToken(),
             )
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST", "ThrowsCount")
     fun SubscriptionChange.storageChange(): SubscribeStorageResult {
         val result = params.result as? Map<*, *>
             ?: throw IllegalArgumentException("${params.result} is not a valid storage result")
@@ -554,49 +518,6 @@ class PoolsRepositoryImpl @Inject constructor(
             ?: throw IllegalArgumentException("$result is not a valid storage result")
 
         return SubscribeStorageResult(block, changes)
-    }
-
-    private fun subscribeToPoolData(
-        chainId: ChainId,
-        baseTokenId: String,
-        tokenId: ByteArray,
-        reservesAccount: ByteArray,
-    ): Flow<String> = flow {
-        val reservesKey =
-            chainRegistry.getRuntimeOrNull(chainId)?.reservesKey(baseTokenId, tokenId)
-
-        val reservesFlow = reservesKey?.let {
-            chainRegistry.getConnection(chainId).socketService.subscriptionFlowCatching(
-                SubscribeStorageRequest(reservesKey),
-                "state_unsubscribeStorage",
-            ).map {
-                it.map { it.storageChange().getSingleChange().orEmpty() }
-            }.map {
-                it.getOrNull().orEmpty()
-            }
-        } ?: emptyFlow()
-
-        val totalIssuanceKey =
-            chainRegistry.getRuntimeOrNull(chainId)?.let {
-                it.metadata.module(Modules.POOL_XYK)
-                    .storage("TotalIssuances")
-                    .storageKey(it, reservesAccount)
-            }
-        val totalIssuanceFlow = totalIssuanceKey?.let {
-            chainRegistry.getConnection(chainId).socketService.subscriptionFlowCatching(
-                SubscribeStorageRequest(totalIssuanceKey),
-                "state_unsubscribeStorage",
-            ).map {
-                it.getOrNull()?.storageChange()?.getSingleChange().orEmpty()
-            }
-        } ?: emptyFlow()
-
-        val resultFlow = reservesFlow
-            .combine(totalIssuanceFlow) { reservesString, totalIssuanceString ->
-                (reservesString + totalIssuanceString).take(5)
-            }
-
-        emitAll(resultFlow)
     }
 
     // changes are in format [[storage key, value], [..], ..]
@@ -616,10 +537,7 @@ class PoolsRepositoryImpl @Inject constructor(
         )
     }
 
-    private suspend fun getUserPoolsTokenIds(
-        chainId: ChainId,
-        address: String
-    ): List<Pair<String, List<ByteArray>>> {
+    private suspend fun getUserPoolsTokenIds(chainId: ChainId, address: String): List<Pair<String, List<ByteArray>>> {
         val storageKeys = getUserPoolsTokenIdsKeys(chainId, address)
         return storageKeys.map { storageKey ->
             chainRegistry.awaitConnection(chainId).socketService.executeAsync(
@@ -889,15 +807,11 @@ class PoolsRepositoryImpl @Inject constructor(
         }
     }
 
-    fun RuntimeSnapshot.accountPoolsKey(address: String): String =
-        this.metadata.module(Modules.POOL_XYK)
-            .storage("AccountPools")
-            .storageKey(this, address.toAccountId())
+    fun RuntimeSnapshot.accountPoolsKey(address: String): String = this.metadata.module(Modules.POOL_XYK)
+        .storage("AccountPools")
+        .storageKey(this, address.toAccountId())
 
-    private fun mapPoolLocalToData(
-        poolLocal: UserPoolJoinedLocalNullable,
-        assets: List<Asset>
-    ): CommonPoolData? {
+    private fun mapPoolLocalToData(poolLocal: UserPoolJoinedLocalNullable, assets: List<Asset>): CommonPoolData? {
         val baseToken = assets.firstOrNull {
             it.currencyId == poolLocal.basicPoolLocal.tokenIdBase
         } ?: return null

@@ -36,6 +36,13 @@ class PoolsInteractorImpl(
 
     override val poolsChainId = poolsRepository.poolsChainId
 
+    private val soraPoolsAddressFlow = flowOf {
+        val meta = accountRepository.getSelectedMetaAccount()
+        val chain = accountRepository.getChain(poolsChainId)
+        meta.address(chain)
+    }.mapNotNull { it }
+        .distinctUntilChanged()
+
     override suspend fun getBasicPools(): List<BasicPoolData> {
         return poolsRepository.getBasicPools(poolsChainId)
     }
@@ -43,13 +50,6 @@ class PoolsInteractorImpl(
     override fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>> {
         return poolsRepository.subscribePools(address).flowOn(coroutineContext)
     }
-
-    private val soraPoolsAddressFlow = flowOf {
-        val meta = accountRepository.getSelectedMetaAccount()
-        val chain = accountRepository.getChain(poolsChainId)
-        meta.address(chain)
-    }.mapNotNull { it }
-        .distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>> {
@@ -96,10 +96,7 @@ class PoolsInteractorImpl(
         )
     }
 
-    override suspend fun calcRemoveLiquidityNetworkFee(
-        tokenBase: Asset,
-        tokenTarget: Asset,
-    ): BigDecimal? {
+    override suspend fun calcRemoveLiquidityNetworkFee(tokenBase: Asset, tokenTarget: Asset): BigDecimal? {
         return poolsRepository.calcRemoveLiquidityNetworkFee(
             poolsChainId,
             tokenBase,
@@ -118,13 +115,13 @@ class PoolsInteractorImpl(
     }
 
     override suspend fun observeRemoveLiquidity(
-    chainId: ChainId,
-    tokenBase: Asset,
-    tokenTarget: Asset,
-    markerAssetDesired: BigDecimal,
-    firstAmountMin: BigDecimal,
-    secondAmountMin: BigDecimal,
-    networkFee: BigDecimal
+        chainId: ChainId,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        markerAssetDesired: BigDecimal,
+        firstAmountMin: BigDecimal,
+        secondAmountMin: BigDecimal,
+        networkFee: BigDecimal
     ): String {
         val status = poolsRepository.observeRemoveLiquidity(
             chainId,
@@ -174,6 +171,7 @@ class PoolsInteractorImpl(
         return status?.getOrNull() ?: ""
     }
 
+    @Suppress("OptionalUnit")
     override suspend fun syncPools(): Unit = withContext(Dispatchers.Default) {
         val address = accountRepository.getSelectedAccount(poolsChainId).address
         supervisorScope {
@@ -183,6 +181,7 @@ class PoolsInteractorImpl(
         }
     }
 
+    @Suppress("OptionalUnit")
     override suspend fun updateAccountPools(): Unit = withContext(Dispatchers.Default) {
         val address = accountRepository.getSelectedAccount(poolsChainId).address
         poolsRepository.updateAccountPools(poolsChainId, address)

@@ -8,6 +8,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
+@Suppress("ComplexInterface")
 interface PoolsInteractor {
     val poolsChainId: String
 
@@ -15,10 +16,7 @@ interface PoolsInteractor {
 
     fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>>
     fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>>
-    suspend fun getPoolData(
-        baseTokenId: String,
-        targetTokenId: String,
-    ): Flow<CommonPoolData>
+    suspend fun getPoolData(baseTokenId: String, targetTokenId: String): Flow<CommonPoolData>
 
     suspend fun getUserPoolData(
         chainId: ChainId,
@@ -27,6 +25,7 @@ interface PoolsInteractor {
         tokenId: ByteArray
     ): PoolDataDto?
 
+    @Suppress("LongParameterList")
     suspend fun calcAddLiquidityNetworkFee(
         chainId: ChainId,
         address: String,
@@ -39,16 +38,11 @@ interface PoolsInteractor {
         slippageTolerance: Double
     ): BigDecimal?
 
-    suspend fun calcRemoveLiquidityNetworkFee(
-        tokenBase: Asset,
-        tokenTarget: Asset,
-    ): BigDecimal?
+    suspend fun calcRemoveLiquidityNetworkFee(tokenBase: Asset, tokenTarget: Asset): BigDecimal?
 
-    suspend fun isPairEnabled(
-        baseTokenId: String,
-        targetTokenId: String
-    ): Boolean
+    suspend fun isPairEnabled(baseTokenId: String, targetTokenId: String): Boolean
 
+    @Suppress("LongParameterList")
     suspend fun observeAddLiquidity(
         chainId: ChainId,
         tokenBase: Asset,

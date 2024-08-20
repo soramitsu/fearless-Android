@@ -36,8 +36,7 @@ class PoolsModule {
         poolsRepository: PoolsRepository,
         accountRepository: AccountRepository,
         blockExplorerManager: BlockExplorerManager
-    ): PoolsInteractor =
-        PoolsInteractorImpl(poolsRepository, accountRepository, blockExplorerManager)
+    ): PoolsInteractor = PoolsInteractorImpl(poolsRepository, accountRepository, blockExplorerManager)
 
     @Provides
     @Singleton
@@ -51,9 +50,7 @@ class PoolsModule {
 
     @Provides
     @Singleton
-    fun provideDemeterFarmingInteractor(
-        demeterFarmingRepository: DemeterFarmingRepository,
-    ): DemeterFarmingInteractor =
+    fun provideDemeterFarmingInteractor(demeterFarmingRepository: DemeterFarmingRepository): DemeterFarmingInteractor =
         DemeterFarmingInteractorImpl(demeterFarmingRepository)
 
     @Provides
@@ -64,14 +61,13 @@ class PoolsModule {
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
         poolsRepository: PoolsRepository,
-    ): DemeterFarmingRepository =
-        DemeterFarmingRepositoryImpl(
-            chainRegistry,
-            bulkRetriever,
-            accountRepository,
-            walletRepository,
-            poolsRepository
-        )
+    ): DemeterFarmingRepository = DemeterFarmingRepositoryImpl(
+        chainRegistry,
+        bulkRetriever,
+        accountRepository,
+        walletRepository,
+        poolsRepository
+    )
 
     @Provides
     @Singleton

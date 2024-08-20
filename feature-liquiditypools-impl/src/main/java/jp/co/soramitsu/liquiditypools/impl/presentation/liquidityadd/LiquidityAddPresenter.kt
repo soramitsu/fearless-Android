@@ -62,6 +62,7 @@ import javax.inject.Inject
 import kotlin.math.min
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
+@Suppress("LargeClass")
 class LiquidityAddPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
     private val internalPoolsRouter: InternalPoolsRouter,
@@ -102,20 +103,66 @@ class LiquidityAddPresenter @Inject constructor(
         }
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
-    private fun areArgsEquivalent(): (
-        old: LiquidityPoolsNavGraphRoute.LiquidityAddScreen,
-        new: LiquidityPoolsNavGraphRoute.LiquidityAddScreen
-    ) -> Boolean = { old, new ->
-        old.routeName == new.routeName &&
-                old.ids.first == new.ids.first &&
-                old.ids.second == new.ids.second
-    }
-
     private val loadingAssetsInPoolFlow = MutableStateFlow<LoadingState<Pair<Asset, Asset>>>(LoadingState.Loading())
 
     private val tokensInPoolFlow = loadingAssetsInPoolFlow.filterIsInstance<LoadingState.Loaded<Pair<Asset, Asset>>>().map {
         it.data.first.token.configuration to it.data.second.token.configuration
     }.distinctUntilChanged()
+
+    val isPoolPairEnabled =
+        screenArgsFlow.map { screenArgs ->
+            val (baseTokenId, targetTokenId) = screenArgs.ids
+            poolsInteractor.isPairEnabled(
+                baseTokenId,
+                targetTokenId
+            )
+        }
+
+    val networkFeeFlow = combine(
+        enteredBaseAmountFlow,
+        enteredTargetAmountFlow,
+        tokensInPoolFlow,
+        stateSlippage,
+        isPoolPairEnabled
+    ) { amountBase, amountTarget, (baseAsset, targetAsset), slippage, pairEnabled ->
+        getLiquidityNetworkFee(
+            tokenBase = baseAsset,
+            tokenTarget = targetAsset,
+            tokenBaseAmount = amountBase,
+            tokenToAmount = amountTarget,
+            pairEnabled = pairEnabled,
+            pairPresented = true,
+            slippageTolerance = slippage
+        )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
+        flowOf {
+            requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
+        }.flatMapLatest { utilityAssetId ->
+            combine(
+                networkFeeFlow,
+                walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
+            ) { networkFee, utilityAsset ->
+                val tokenSymbol = utilityAsset.token.configuration.symbol
+                val tokenFiatRate = utilityAsset.token.fiatRate
+                val tokenFiatSymbol = utilityAsset.token.fiatSymbol
+
+                FeeInfoViewState(
+                    feeAmount = networkFee.formatCryptoDetail(tokenSymbol),
+                    feeAmountFiat = networkFee.applyFiatRate(tokenFiatRate)?.formatFiat(tokenFiatSymbol),
+                )
+            }
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val poolFlow = screenArgsFlow.flatMapLatest { screenargs ->
+        poolsInteractor.getPoolData(
+            baseTokenId = screenargs.ids.first,
+            targetTokenId = screenargs.ids.second
+        )
+    }
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
@@ -150,7 +197,7 @@ class LiquidityAddPresenter @Inject constructor(
                 desired = WithDesired.INPUT
                 isCalculatingAmounts.value = desired
             }
-            .debounce(900)
+            .debounce(INPUT_DEBOUNCE)
             .onEach { amount ->
                 amountBase = amount
                 updateAmounts()
@@ -161,19 +208,11 @@ class LiquidityAddPresenter @Inject constructor(
                 desired = WithDesired.OUTPUT
                 isCalculatingAmounts.value = desired
             }
-            .debounce(900)
+            .debounce(INPUT_DEBOUNCE)
             .onEach { amount ->
                 amountTarget = amount
                 updateAmounts()
             }.launchIn(coroutineScope)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val poolFlow = screenArgsFlow.flatMapLatest { screenargs ->
-        poolsInteractor.getPoolData(
-            baseTokenId = screenargs.ids.first,
-            targetTokenId = screenargs.ids.second
-        )
     }
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -185,7 +224,7 @@ class LiquidityAddPresenter @Inject constructor(
             amountBase = BigDecimal.ZERO
             uiBaseAmountFlow.value = BigDecimal.ZERO
             uiTargetAmountFlow.value = BigDecimal.ZERO
-        }.debounce(200).flatMapLatest {
+        }.debounce(RESET_DEBOUNCE).flatMapLatest {
             combine(
                 poolFlow,
                 loadingAssetsInPoolFlow,
@@ -259,9 +298,10 @@ class LiquidityAddPresenter @Inject constructor(
 
     private suspend fun updateAmounts() {
         calculateAmount()?.let { targetAmount ->
-            val scaledTargetAmount = when {
-                targetAmount.isZero() -> BigDecimal.ZERO
-                else -> targetAmount.setScale(
+            val scaledTargetAmount = if (targetAmount.isZero()) {
+                BigDecimal.ZERO
+            } else {
+                targetAmount.setScale(
                     min(MAX_DECIMALS_8, targetAmount.scale()),
                     RoundingMode.DOWN
                 )
@@ -313,53 +353,6 @@ class LiquidityAddPresenter @Inject constructor(
             }
         }
     }
-
-    val isPoolPairEnabled =
-        screenArgsFlow.map { screenArgs ->
-            val (baseTokenId, targetTokenId) = screenArgs.ids
-            poolsInteractor.isPairEnabled(
-                baseTokenId,
-                targetTokenId
-            )
-        }
-
-    val networkFeeFlow = combine(
-        enteredBaseAmountFlow,
-        enteredTargetAmountFlow,
-        tokensInPoolFlow,
-        stateSlippage,
-        isPoolPairEnabled
-    ) { amountBase, amountTarget, (baseAsset, targetAsset), slippage, pairEnabled ->
-        getLiquidityNetworkFee(
-            tokenBase = baseAsset,
-            tokenTarget = targetAsset,
-            tokenBaseAmount = amountBase,
-            tokenToAmount = amountTarget,
-            pairEnabled = pairEnabled,
-            pairPresented = true,
-            slippageTolerance = slippage
-        )
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
-        flowOf {
-            requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
-        }.flatMapLatest { utilityAssetId ->
-            combine(
-                networkFeeFlow,
-                walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
-            ) { networkFee, utilityAsset ->
-                val tokenSymbol = utilityAsset.token.configuration.symbol
-                val tokenFiatRate = utilityAsset.token.fiatRate
-                val tokenFiatSymbol = utilityAsset.token.fiatSymbol
-
-                FeeInfoViewState(
-                    feeAmount = networkFee.formatCryptoDetail(tokenSymbol),
-                    feeAmountFiat = networkFee.applyFiatRate(tokenFiatRate)?.formatFiat(tokenFiatSymbol),
-                )
-            }
-        }
 
     private suspend fun getLiquidityNetworkFee(
         tokenBase: CoreAsset,
@@ -432,7 +425,7 @@ class LiquidityAddPresenter @Inject constructor(
             internalPoolsRouter.openAddLiquidityConfirmScreen(ids, amountBase, amountTarget, apy)
         }.invokeOnCompletion {
             coroutinesStore.uiScope.launch {
-                delay(300)
+                delay(DEBOUNCE_300)
                 setButtonLoading(false)
             }
         }
@@ -469,15 +462,27 @@ class LiquidityAddPresenter @Inject constructor(
     }
 
     private fun showError(throwable: Throwable) {
-        when (throwable) {
-            is ValidationException -> {
-                val (title, text) = throwable
-                internalPoolsRouter.openErrorsScreen(title, text)
-            }
-
-            else -> {
-                throwable.message?.let { internalPoolsRouter.openErrorsScreen(message = it) }
-            }
+        if (throwable is ValidationException) {
+            val (title, text) = throwable
+            internalPoolsRouter.openErrorsScreen(title, text)
+        } else {
+            throwable.message?.let { internalPoolsRouter.openErrorsScreen(message = it) }
         }
+    }
+
+    private fun areArgsEquivalent(): (
+        old: LiquidityPoolsNavGraphRoute.LiquidityAddScreen,
+        new: LiquidityPoolsNavGraphRoute.LiquidityAddScreen
+    ) -> Boolean =
+        { old, new ->
+            old.routeName == new.routeName &&
+                    old.ids.first == new.ids.first &&
+                    old.ids.second == new.ids.second
+        }
+
+    companion object {
+        private const val INPUT_DEBOUNCE = 900L
+        private const val RESET_DEBOUNCE = 200L
+        private const val DEBOUNCE_300 = 300L
     }
 }

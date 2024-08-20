@@ -63,8 +63,7 @@ fun ExtrinsicBuilder.removeLiquidity(
     markerAssetDesired: BigInteger,
     outputAMin: BigInteger,
     outputBMin: BigInteger
-) =
-    this.call(
+) = this.call(
         Modules.POOL_XYK,
         "withdraw_liquidity",
         mapOf(
@@ -77,6 +76,7 @@ fun ExtrinsicBuilder.removeLiquidity(
         )
     )
 
+@Suppress("NestedBlockDepth", "LongParameterList")
 fun ExtrinsicBuilder.liquidityAdd(
     dexId: Int,
     baseTokenId: String?,

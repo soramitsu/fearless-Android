@@ -40,10 +40,6 @@ class DemeterFarmingRepositoryImpl(
     private val poolsRepository: PoolsRepository,
 ) : DemeterFarmingRepository {
 
-    companion object {
-        private const val BLOCKS_PER_YEAR = 5256000
-    }
-
     private val cachedFarmedPools = ConcurrentHashMap<String, List<DemeterFarmingPool>>()
     private var cachedFarmedBasicPools: List<DemeterFarmingBasicPool>? = null
 
@@ -240,7 +236,7 @@ class DemeterFarmingRepositoryImpl(
         precision: Int
     ): BigDecimal {
         val tokenMultiplier =
-            ((if (basic.isFarm) reward?.farmsTotalMultiplier else reward?.stakingTotalMultiplier))?.toBigDecimal(
+            (if (basic.isFarm) reward?.farmsTotalMultiplier else reward?.stakingTotalMultiplier)?.toBigDecimal(
                 precision
             ) ?: BigDecimal.ZERO
         if (tokenMultiplier.isZero()) return BigDecimal.ZERO
@@ -300,14 +296,17 @@ class DemeterFarmingRepositoryImpl(
             mapper = pojo<String>(),
         ).result
 
-    fun Struct.Instance.mapToToken(field: String) =
-        this.get<Struct.Instance>(field)?.getTokenId()?.toHexString(true)
+    fun Struct.Instance.mapToToken(field: String) = this.get<Struct.Instance>(field)?.getTokenId()?.toHexString(true)
 
     fun Struct.Instance.getTokenId() = get<List<*>>("code")
         ?.map { (it as BigInteger).toByte() }
         ?.toByteArray()
 
-    fun String.assetIdFromKey() = this.takeLast(64).addHexPrefix()
-    fun String.assetIdFromKey(pos: Int): String =
-        this.substring(0, this.length - (64 * pos)).assetIdFromKey()
+    fun String.assetIdFromKey() = this.takeLast(ASSET_SIZE).addHexPrefix()
+    fun String.assetIdFromKey(pos: Int): String = this.substring(0, this.length - ASSET_SIZE * pos).assetIdFromKey()
+
+    companion object {
+        private const val BLOCKS_PER_YEAR = 5_256_000
+        private const val ASSET_SIZE = 64
+    }
 }

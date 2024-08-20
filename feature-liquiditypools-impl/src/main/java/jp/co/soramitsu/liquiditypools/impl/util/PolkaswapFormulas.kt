@@ -17,20 +17,15 @@ object PolkaswapFormulas {
     ): BigDecimal =
         reserves.multiply(poolProvidersBalance).divideBy(totalIssuance, precision)
 
-    private fun calculateShareOfPool(
-        poolProvidersBalance: BigDecimal,
-        totalIssuance: BigDecimal
-    ): BigDecimal =
+    private fun calculateShareOfPool(poolProvidersBalance: BigDecimal, totalIssuance: BigDecimal): BigDecimal =
         poolProvidersBalance.divideBy(totalIssuance).multiply(Big100)
 
-    fun calculateShareOfPoolFromAmount(
-        amount: BigDecimal,
-        amountPooled: BigDecimal,
-    ): Double = if (amount.equalTo(amountPooled)) {
-        100.0
-    } else {
-        calculateShareOfPool(amount, amountPooled).toDouble()
-    }
+    fun calculateShareOfPoolFromAmount(amount: BigDecimal, amountPooled: BigDecimal): Double =
+        if (amount.equalTo(amountPooled)) {
+            100.0
+        } else {
+            calculateShareOfPool(amount, amountPooled).toDouble()
+        }
 
     fun calculateAddLiquidityAmount(
         baseAmount: BigDecimal,
@@ -67,17 +62,11 @@ object PolkaswapFormulas {
         .multiply(Big100)
         .safeDivide(reserves.minus(amount))
 
-    fun calculateMinAmount(
-        amount: BigDecimal,
-        slippageTolerance: Double,
-    ): BigDecimal {
+    fun calculateMinAmount(amount: BigDecimal, slippageTolerance: Double): BigDecimal {
         return amount.minus(amount.multiply(BigDecimal.valueOf(slippageTolerance / 100)))
     }
 
-    fun calculateTokenPerTokenRate(
-        amount1: BigDecimal,
-        amount2: BigDecimal,
-    ): BigDecimal {
+    fun calculateTokenPerTokenRate(amount1: BigDecimal, amount2: BigDecimal): BigDecimal {
         return amount1.safeDivide(amount2)
     }
 
@@ -87,9 +76,7 @@ object PolkaswapFormulas {
         totalIssuance: BigDecimal,
     ): BigDecimal = fromAmount.safeDivide(firstReserves).multiply(totalIssuance)
 
-    fun calculateStrategicBonusAPY(
-        strategicBonusApy: Double?
-    ): Double? {
+    fun calculateStrategicBonusAPY(strategicBonusApy: Double?): Double? {
         return strategicBonusApy?.times(100)
     }
 
