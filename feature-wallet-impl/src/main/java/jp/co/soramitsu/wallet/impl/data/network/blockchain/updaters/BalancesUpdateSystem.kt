@@ -53,6 +53,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -110,7 +111,7 @@ class BalancesUpdateSystem(
         chain: Chain,
         metaAccount: MetaAccount
     ): Flow<Result<Any>> {
-        return trigger.map { triggeredChainId ->
+        return trigger.onStart { emit(null) }.map { triggeredChainId ->
             val specificChainTriggered = triggeredChainId != null
             val currentChainTriggered = triggeredChainId == chain.id
 
