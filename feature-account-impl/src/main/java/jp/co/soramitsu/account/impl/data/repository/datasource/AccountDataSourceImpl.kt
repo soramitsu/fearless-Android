@@ -158,7 +158,7 @@ class AccountDataSourceImpl(
     override suspend fun getSelectedMetaAccount(): MetaAccount {
         val chainsById = chainsRepository.getChainsById()
         val selectedMetaAccount = metaAccountDao.selectedMetaAccountInfo()
-        return mapMetaAccountLocalToMetaAccount(chainsById,selectedMetaAccount)
+        return mapMetaAccountLocalToMetaAccount(chainsById, selectedMetaAccount)
     }
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> = selectedMetaAccountFlow
