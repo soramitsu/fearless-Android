@@ -1,7 +1,7 @@
 [versions]
 accompanistVersion = "0.34.0"
 activityCompose = "1.8.2"
-android_plugin = "8.6.0-rc01"
+android_plugin = "8.5.2"
 appcompat = "1.6.1"
 architectureComponentVersion = "2.7.0"
 beaconVersion = "3.2.4"

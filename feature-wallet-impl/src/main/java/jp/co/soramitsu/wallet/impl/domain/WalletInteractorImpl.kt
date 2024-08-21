@@ -4,9 +4,6 @@ import android.net.Uri
 import android.util.Log
 import com.mastercard.mpqr.pushpayment.model.PushPaymentData
 import com.mastercard.mpqr.pushpayment.parser.Parser
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.net.URLDecoder
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -46,6 +43,7 @@ import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.data.repository.isSupported
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -62,7 +60,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -76,6 +73,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URLDecoder
+import kotlin.coroutines.CoroutineContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -102,6 +103,7 @@ class WalletInteractorImpl(
     private val xcmEntitiesFetcher: XcmEntitiesFetcher,
     private val chainsRepository: ChainsRepository,
     private val networkStateService: NetworkStateService,
+    private val tokenRepository: TokenRepository,
     private val coroutineContext: CoroutineContext = Dispatchers.Default
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
@@ -696,5 +698,9 @@ class WalletInteractorImpl(
                 return@withContext Result.success(Unit)
             }
         }
+    }
+
+    override suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset) = withContext(coroutineContext) {
+        tokenRepository.getToken(chainAsset)
     }
 }

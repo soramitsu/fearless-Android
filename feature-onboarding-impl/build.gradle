@@ -45,6 +45,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
+
     namespace 'jp.co.soramitsu.feature_onboarding_impl'
 }
 
@@ -82,5 +83,5 @@ dependencies {
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
-    implementation libs.sharedFeaturesBackupDep
+    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
 }

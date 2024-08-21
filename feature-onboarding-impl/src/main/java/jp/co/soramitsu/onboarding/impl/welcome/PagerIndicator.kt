@@ -17,7 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -146,7 +146,7 @@ fun lerp(start: Float, stop: Float, fraction: Float): Float {
 @Composable
 private fun PreviewSlidingPagerIndicator() {
     val ci = remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     val d: List<Int> = ArrayDeque<Int>()

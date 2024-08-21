@@ -934,6 +934,11 @@
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
     </dialog>
 
+    <dialog
+        android:id="@+id/poolsFlowFragment"
+        android:name="jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowFragment"
+        android:label="poolsFlowFragment" />
+
     <fragment
         android:id="@+id/settingsCustomValidatorsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment"

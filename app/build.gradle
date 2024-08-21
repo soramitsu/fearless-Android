@@ -1,3 +1,4 @@
+//file:noinspection GroovyImplicitNullArgumentCall
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 
 apply plugin: 'com.android.application'
@@ -129,10 +130,6 @@ android {
         resources.excludes.add("META-INF/**/*")
         resources.excludes.add("META-INF/*")
     }
-
-    configurations.configureEach {
-        exclude group: "org.bouncycastle", module: "bcprov-jdk15on"
-    }
 }
 
 play {
@@ -142,6 +139,7 @@ play {
 }
 
 dependencies {
+    implementation project(':android-foundation')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
@@ -178,6 +176,9 @@ dependencies {
 
     implementation project(':feature-nft-api')
     implementation project(':feature-nft-impl')
+
+    implementation project(':feature-liquiditypools-api')
+    implementation project(':feature-liquiditypools-impl')
 
     implementation libs.kotlin.stdlib.jdk7
 
@@ -233,8 +234,8 @@ dependencies {
     androidTestImplementation libs.ext.junit
 }
 
-task printVersion {
-  doLast {
-    println "versionName:${computeVersionName()}"
-  }
+tasks.register('printVersion') {
+    doLast {
+        println "versionName:${computeVersionName()}"
+    }
 }

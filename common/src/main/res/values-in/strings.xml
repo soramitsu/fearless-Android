@@ -92,13 +92,13 @@
   <string name="backup_wallet_show_raw_seed">Tunjukan Seed mentah</string>
   <string name="backup_wallet_warning_about_lose_phrase">Jika Anda kehilangan akses ke perangkat ini, dana Anda akan hilang, kecuali Anda membuat cadangan!</string>
   <string name="balance_locks_governance_row_title">Pemerintahan</string>
-  <string name="balance_locks_liquidity_pools_row_title">Kumpulan Likuiditas</string>
   <string name="balance_locks_nomination_pools_row_title">Kumpulan Nominasi</string>
   <string name="balance_locks_screen_title">Detail terkunci</string>
   <string name="banners_backup_description">Lindungi diri Anda dari kehilangan akses ke dana Anda</string>
   <string name="banners_buy_xor">Beli XOR</string>
   <string name="banners_buy_xor_description">Beli atau jual token XOR dengan uang tunai euro</string>
   <string name="banners_buy_xor_title">Beli token XOR</string>
+  <string name="banners_liquidity_pools_title">Kumpulan Likuiditas</string>
   <string name="beacon_connect_warning">Peringatan: Dengan mengeklik sambungkan, Anda mengizinkan dapp ini melihat alamat publik Anda. Ini adalah langkah keamanan penting untuk melindungi data Anda dari potensi risiko phishing.</string>
   <string name="beacon_connected">Terhubung ke %s</string>
   <string name="beacon_connected_to">Terhubung ke</string>

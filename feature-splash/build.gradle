@@ -28,6 +28,7 @@ android {
 
         jvmTarget = '17'
     }
+
     namespace 'jp.co.soramitsu.splash'
 }
 
