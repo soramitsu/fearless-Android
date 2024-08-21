@@ -951,6 +951,7 @@
   <string name="validators_list_empty_message">Валидаторы не найдены</string>
   <string name="view_in">Посмотреть в %s</string>
   <string name="view_wallet">Посмотреть кошелек</string>
+  <string name="wallet_all_assets_hidden">Все активы скрыты</string>
   <string name="wallet_asset_buy_with">Купить %s с</string>
   <string name="wallet_asset_receive">Получить</string>
   <string name="wallet_asset_receive_template">Получить %s</string>
