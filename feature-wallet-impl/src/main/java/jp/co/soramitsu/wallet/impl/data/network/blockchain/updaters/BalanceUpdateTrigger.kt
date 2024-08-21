@@ -5,9 +5,11 @@ import jp.co.soramitsu.core.models.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
+const val UPDATE_TIMEOUT = 30_000L
+
 object BalanceUpdateTrigger {
 
-    private var lastUpdateTime: Long? = null
+    private var lastUpdateTimeMap = mutableMapOf<ChainId, Long?>()
 
     private val flow = MutableSharedFlow<ChainId?>()
 
@@ -17,8 +19,14 @@ object BalanceUpdateTrigger {
 
     suspend operator fun invoke(chainId: ChainId? = null, force: Boolean = false) {
         val currentTime = getTimeMillis()
-        if (force.not() && lastUpdateTime != null && currentTime - lastUpdateTime!! <= 30_000L) return
+        val chainLastUpdateTime = chainId?.let { lastUpdateTimeMap[chainId] }
+
+        if (force.not() && chainLastUpdateTime != null && currentTime - chainLastUpdateTime <= UPDATE_TIMEOUT) {
+            return
+        }
         flow.emit(chainId)
-        lastUpdateTime = getTimeMillis()
+        chainId?.let {
+            lastUpdateTimeMap[chainId] = getTimeMillis()
+        }
     }
 }

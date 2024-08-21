@@ -46,6 +46,7 @@ import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
+import jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
@@ -72,6 +73,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
 import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
@@ -200,7 +202,8 @@ class Navigator :
     SuccessRouter,
     SoraCardRouter,
     WalletConnectRouter,
-    NFTRouter
+    NFTRouter,
+    LiquidityPoolsRouter
 {
 
     private var navController: NavController? = null
@@ -1510,5 +1513,13 @@ class Navigator :
 
     override fun openServiceScreen() {
         navController?.navigate(R.id.serviceFragment)
+    }
+
+    override fun openScoreDetailsScreen(metaId: Long) {
+        navController?.navigate(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
+    }
+
+    override fun openPools() {
+        navController?.navigate(R.id.poolsFlowFragment)
     }
 }

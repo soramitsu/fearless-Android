@@ -22,6 +22,7 @@ android {
 
         jvmTarget = '17'
     }
+
     namespace 'jp.co.soramitsu.feature_onboarding_api'
 }
 

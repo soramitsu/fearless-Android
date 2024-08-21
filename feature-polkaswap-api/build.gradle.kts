@@ -30,6 +30,13 @@ dependencies {
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
     implementation(project(mapOf("path" to ":common")))
+
+    implementation("javax.inject:javax.inject:1")
+
+    implementation(libs.xnetworking.basic)
+    implementation(libs.xnetworking.sorawallet) {
+        exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
+    }
 }
 
 

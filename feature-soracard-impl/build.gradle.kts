@@ -33,6 +33,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
     namespace = "jp.co.soramitsu.feature_soracard_impl"
 }
 

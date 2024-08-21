@@ -2,12 +2,10 @@ package jp.co.soramitsu.account.impl.presentation.profile
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
-import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -18,30 +16,41 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
+import jp.co.soramitsu.common.compose.component.SettingsItemAction
+import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val AVATAR_SIZE_DP = 32
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
-    private val accountDetailsInteractor: AccountDetailsInteractor,
+    accountDetailsInteractor: AccountDetailsInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     private val soraCardInteractor: SoraCardInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
@@ -49,59 +58,150 @@ class ProfileViewModel @Inject constructor(
     getTotalBalance: TotalBalanceUseCase,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
-    private val resourceManager: ResourceManager
-) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+    resourceManager: ResourceManager
+) : BaseViewModel(), ProfileScreenInterface, ExternalAccountActions by externalAccountActions {
 
-    val totalBalanceLiveData = combine(getTotalBalance.observe(), selectedFiat.flow()) { balance, fiat ->
-        val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
-        balance.balance.formatFiat(selectedFiatSymbol ?: balance.fiatSymbol)
-    }.asLiveData()
+    private val selectedAccountFlow: SharedFlow<MetaAccount> =
+        interactor.selectedMetaAccountFlow().shareIn(viewModelScope, SharingStarted.Eagerly)
 
-    val selectedAccountLiveData: LiveData<MetaAccount> = interactor.selectedMetaAccountFlow().asLiveData()
-
-    val accountIconLiveData: LiveData<AddressModel> = interactor.polkadotAddressForSelectedAccountFlow()
-        .map { createIcon(it) }
-        .asLiveData()
-
-    val selectedLanguageLiveData = liveData {
-        val language = interactor.getSelectedLanguage()
-
-        emit(mapLanguageToLanguageModel(language))
+    private val accountIconFlow = selectedAccountFlow.map {
+        addressIconGenerator.createAddressIcon(
+            it.substrateAccountId,
+            AddressIconGenerator.SIZE_BIG
+        )
     }
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
-    val selectedFiatLiveData: LiveData<String> = selectedFiat.flow().asLiveData().map { it.uppercase() }
-
-    val hasChainsWithNoAccountFlow = accountDetailsInteractor.hasChainsWithNoAccount()
-        .stateIn(this, SharingStarted.Eagerly, false)
-
-//    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
+    //    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
 //        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
 //        SoraCardItemViewState(kycStatus, it, null, true)
 //    }
     private val soraCardState = flowOf(SoraCardItemViewState())
 
-    fun aboutClicked() {
+    private val defaultWalletItemViewState = WalletItemViewState(
+        id = 0,
+        balance = null,
+        assetSymbol = null,
+        changeBalanceViewState = null,
+        title = "",
+        walletIcon = resourceManager.getDrawable(R.drawable.ic_wallet),
+        isSelected = false,
+        additionalMetadata = "",
+        score = null
+    )
+
+    val state: MutableStateFlow<ProfileScreenState> = MutableStateFlow(
+        ProfileScreenState(
+            walletState = defaultWalletItemViewState,
+            walletsItemAction = SettingsItemAction.Transition,
+            currency = selectedFiat.get(),
+            language = "",
+            nomisChecked = true
+        )
+    )
+
+    init {
+        combine(getTotalBalance.observe(), selectedFiat.flow()) { balance, fiat ->
+            val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
+            val formattedBalance =
+                balance.balance.formatFiat(selectedFiatSymbol ?: balance.fiatSymbol)
+
+            state.update { prevState ->
+                val newWalletState = prevState.walletState.copy(
+                    balance = formattedBalance,
+                    changeBalanceViewState = ChangeBalanceViewState(
+                        percentChange = balance.rateChange?.formatAsChange().orEmpty(),
+                        fiatChange = balance.balanceChange.abs().formatFiat(balance.fiatSymbol)
+                    )
+                )
+                prevState.copy(
+                    walletState = newWalletState,
+                    currency = fiat.uppercase(),
+                )
+            }
+        }.launchIn(viewModelScope)
+
+        selectedAccountFlow
+            .onEach { account ->
+                state.update { prevState ->
+                    val newWalletState = prevState.walletState.copy(
+                        id = account.id,
+                        title = account.name
+                    )
+                    prevState.copy(walletState = newWalletState)
+                }
+            }.launchIn(viewModelScope)
+
+        accountIconFlow.onEach { icon ->
+            state.update { prevState ->
+                val newWalletState = prevState.walletState.copy(
+                    walletIcon = icon
+                )
+                prevState.copy(walletState = newWalletState)
+            }
+
+        }.launchIn(viewModelScope)
+
+        nomisScoreInteractor.observeNomisMultichainScoreEnabled()
+            .onEach {
+                state.update { prev ->
+                    prev.copy(nomisChecked = it)
+                }
+            }
+            .launchIn(viewModelScope)
+
+        nomisScoreInteractor.observeCurrentAccountScore().onEach {
+            state.update { prevState ->
+                val newWalletState = prevState.walletState.copy(
+                    score = it?.score
+                )
+                prevState.copy(walletState = newWalletState)
+            }
+        }.launchIn(viewModelScope)
+
+        accountDetailsInteractor.hasChainsWithNoAccount()
+            .onEach { hasChainsWithNoAccount ->
+                state.update { prevState ->
+                    prevState.copy(
+                        walletsItemAction =
+                        if (hasChainsWithNoAccount)
+                            SettingsItemAction.TransitionWithIcon(R.drawable.ic_status_warning_16)
+                        else
+                            SettingsItemAction.Transition
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+
+        viewModelScope.launch {
+            val language = interactor.getSelectedLanguage()
+            val mapped = mapLanguageToLanguageModel(language)
+            state.update { prevState ->
+                prevState.copy(language = mapped.displayName)
+            }
+        }
+    }
+
+    override fun aboutClicked() {
         router.openAboutScreen()
     }
 
-    fun walletsClicked() {
+    override fun onWalletOptionsClick(item: WalletItemViewState) {
+        router.openAccountDetails(item.id)
+    }
+
+    override fun walletsClicked() {
         router.openSelectWallet()
     }
 
-    fun languagesClicked() {
+    override fun languagesClicked() {
         router.openLanguages()
     }
 
-    fun changePinCodeClicked() {
+    override fun changePinCodeClicked() {
         router.openChangePinCode()
-    }
-
-    fun accountActionsClicked() {
-        val account = selectedAccountLiveData.value ?: return
-        router.openAccountDetails(account.id)
     }
 
     private suspend fun createIcon(accountAddress: String): AddressModel {
@@ -112,13 +212,14 @@ class ProfileViewModel @Inject constructor(
         router.openBeacon(qrContent)
     }
 
-    fun currencyClicked() {
+    override fun currencyClicked() {
         viewModelScope.launch {
             val currencies = getAvailableFiatCurrencies()
             if (currencies.isEmpty()) return@launch
             val selected = selectedFiat.get()
             val selectedItem = currencies.first { it.id == selected }
-            _showFiatChooser.value = FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
+            _showFiatChooser.value =
+                FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
         }
     }
 
@@ -132,11 +233,11 @@ class ProfileViewModel @Inject constructor(
         router.openExperimentalFeatures()
     }
 
-    fun polkaswapDisclaimerClicked() {
+    override fun polkaswapDisclaimerClicked() {
         router.openPolkaswapDisclaimerFromProfile()
     }
 
-    fun onSoraCardClicked() {
+    override fun onSoraCardClicked() {
         launch {
             val soraCardState: SoraCardItemViewState? = soraCardState.firstOrNull()
             if (soraCardState?.kycStatus == null) {
@@ -150,7 +251,16 @@ class ProfileViewModel @Inject constructor(
     private fun onSoraCardStatusClicked() {
     }
 
-    fun onWalletConnectClick() {
+    override fun onWalletConnectClick() {
         router.openConnectionsScreen()
+    }
+
+    override fun onNomisMultichainScoreContainerClick() {
+        nomisScoreInteractor.nomisMultichainScoreEnabled =
+            !nomisScoreInteractor.nomisMultichainScoreEnabled
+    }
+
+    override fun onScoreClick(item: WalletItemViewState) {
+        router.openScoreDetailsScreen(item.id)
     }
 }

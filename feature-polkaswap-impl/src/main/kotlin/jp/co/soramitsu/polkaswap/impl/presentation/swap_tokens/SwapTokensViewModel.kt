@@ -100,13 +100,14 @@ class SwapTokensViewModel @Inject constructor(
         savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_CHAIN_ID)
 
     private val fromAmountInputViewState = MutableStateFlow(
-        AmountInputViewState.default(
-            resourceManager,
-            R.string.common_available_format
+        AmountInputViewState.defaultObj.copy(
+            totalBalance = resourceManager.getString(R.string.common_available_format, "0")
         )
     )
-    private val toAmountInputViewState =
-        MutableStateFlow(AmountInputViewState.default(resourceManager))
+    private val toAmountInputViewState = MutableStateFlow(
+        AmountInputViewState.defaultObj.copy(
+            totalBalance = resourceManager.getString(R.string.common_balance_format, "0"))
+        )
 
     private var selectedMarket = MutableStateFlow(Market.SMART)
     private var slippageTolerance = MutableStateFlow(0.5)
@@ -133,6 +134,7 @@ class SwapTokensViewModel @Inject constructor(
     )
 
     private val isLoading = MutableStateFlow(false)
+    private val isShowBannerLiquidity = MutableStateFlow(true)
     private var initialFee = BigDecimal.ZERO
     private val availableDexPathsFlow: MutableStateFlow<List<Int>?> = MutableStateFlow(null)
 
@@ -279,9 +281,10 @@ class SwapTokensViewModel @Inject constructor(
         swapDetailsViewState,
         networkFeeViewStateFlow,
         isLoading,
+        isShowBannerLiquidity,
         polkaswapInteractor.observeHasReadDisclaimer(),
         isSoftKeyboardOpenFlow
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer, isSoftKeyboardOpen ->
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, isShowBannerLiquidity, hasReadDisclaimer, isSoftKeyboardOpen ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
@@ -289,6 +292,7 @@ class SwapTokensViewModel @Inject constructor(
             swapDetailsViewState = swapDetails,
             networkFeeViewState = networkFeeState,
             isLoading = isLoading,
+            showLiquidityBanner = isShowBannerLiquidity,
             hasReadDisclaimer = hasReadDisclaimer,
             isSoftKeyboardOpen = isSoftKeyboardOpen
         )
@@ -724,5 +728,13 @@ class SwapTokensViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
+    }
+
+    override fun onPoolsClick() {
+        polkaswapRouter.openPools()
+    }
+
+    override fun onLiquidityBannerClose() {
+        isShowBannerLiquidity.value = false
     }
 }

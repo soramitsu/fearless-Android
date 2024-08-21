@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -23,12 +24,12 @@ data class NotificationState(
     @DrawableRes val iconRes: Int,
     val title: String,
     val value: String,
-    val buttonText: String,
+    val buttonText: String? = null,
     val color: Color
 )
 
 @Composable
-fun Notification(state: NotificationState, onAction: () -> Unit) {
+fun Notification(state: NotificationState, onAction: (() -> Unit)? = null) {
     BackgroundCornered {
         Row(Modifier.padding(8.dp)) {
             MarginHorizontal(margin = 8.dp)
@@ -44,14 +45,16 @@ fun Notification(state: NotificationState, onAction: () -> Unit) {
                 H6(text = state.title, color = state.color)
                 B1(text = state.value, color = white50)
             }
-            TextButtonSmall(
-                text = state.buttonText,
-                colors = customButtonColors(state.color),
-                onClick = onAction,
-                modifier = Modifier
-                    .height(24.dp)
-                    .align(Alignment.CenterVertically)
-            )
+            onAction?.let {
+                TextButtonSmall(
+                    text = state.buttonText.orEmpty(),
+                    colors = customButtonColors(state.color),
+                    onClick = onAction,
+                    modifier = Modifier
+                        .height(24.dp)
+                        .align(Alignment.CenterVertically)
+                )
+            }
             MarginHorizontal(margin = 8.dp)
         }
     }
@@ -67,7 +70,8 @@ private fun Preview() {
         stringResource(R.string.staking_unbond_v1_9_0),
         colorAccent
     )
-    FearlessTheme {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Notification(state) {}
+        Notification(state, onAction = null)
     }
 }

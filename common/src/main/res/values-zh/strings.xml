@@ -91,14 +91,15 @@
   <string name="backup_wallet_show_mnemonic_phrase">显示助记词短语</string>
   <string name="backup_wallet_show_raw_seed">展示原始种子</string>
   <string name="backup_wallet_warning_about_lose_phrase">如果你失去了对这个设备的访问权限，除非你进行备份，否则你的资金将会丢失！</string>
+  <string name="balance_locks_blocked_row_title">受阻</string>
   <string name="balance_locks_governance_row_title">治理</string>
-  <string name="balance_locks_liquidity_pools_row_title">流动性池</string>
   <string name="balance_locks_nomination_pools_row_title">提名池</string>
   <string name="balance_locks_screen_title">锁定的详细信息</string>
   <string name="banners_backup_description">保护自己避免失去对资金的访问权限。</string>
   <string name="banners_buy_xor">购买XOR</string>
   <string name="banners_buy_xor_description">使用欧元现金购买或出售XOR代币</string>
   <string name="banners_buy_xor_title">购买XOR代币</string>
+  <string name="banners_liquidity_pools_title">流动性池</string>
   <string name="beacon_connect_warning">警告：点击连接按钮，您将允许此dapp查看您的公共地址。这是一个重要的安全步骤，以保护您的数据免受潜在的网络钓鱼风险。</string>
   <string name="beacon_connected">连接到%s</string>
   <string name="beacon_connected_to">已连接至</string>
@@ -161,6 +162,7 @@
   <string name="common_assets_filters_fiat">法币余额</string>
   <string name="common_assets_filters_name">名称</string>
   <string name="common_assets_filters_popularity">人气</string>
+  <string name="common_attention">注意</string>
   <string name="common_available_format">可用：%s</string>
   <string name="common_available_networks">可用网络</string>
   <string name="common_backup_your_wallet">钱包备份</string>
@@ -244,6 +246,9 @@
   <string name="common_network">网络</string>
   <string name="common_network_fee">网络费用</string>
   <string name="common_network_management">网络管理</string>
+  <plurals name="common_networks_format">
+    <item quantity="other">%d 网络</item>
+  </plurals>
   <string name="common_next">下一个</string>
   <string name="common_no">否</string>
   <string name="common_no_screenshot_message">请勿截屏，这可能会被第三方恶意软件收集。</string>
@@ -287,6 +292,7 @@
   <string name="common_skip_process">跳过流程</string>
   <string name="common_sort_by">排序按照</string>
   <string name="common_staking">质押</string>
+  <string name="common_start">开始</string>
   <string name="common_till_date">截止到 %s</string>
   <string name="common_time_left">剩余时间</string>
   <string name="common_title_cross_chain">跨链</string>
@@ -297,6 +303,7 @@
   <string name="common_total">总共</string>
   <string name="common_transaction">交易</string>
   <string name="common_transaction_raw_data">交易原始数据</string>
+  <string name="common_transaction_sent">交易已发送</string>
   <string name="common_transaction_submitted">交易已提交</string>
   <string name="common_transferable_format">可转让：%s</string>
   <string name="common_try_again">请再试一次</string>
@@ -480,6 +487,24 @@
   <string name="label_link">链接</string>
   <string name="label_testnet">测试网</string>
   <string name="language_title">语言</string>
+  <string name="lp_apy_alert_text">提供流动性的农场奖励</string>
+  <string name="lp_apy_title">战略奖励APY</string>
+  <string name="lp_available_pools_title">可用的流动池</string>
+  <string name="lp_confirm_liquidity_screen_title">确认流动性</string>
+  <string name="lp_confirm_liquidity_warning_text">输出是估计的。如果价格变动超过0.5%，您的交易将会回滚。</string>
+  <string name="lp_network_fee_alert_text">网络费用用于确保 SORA 系统的增长和稳定性能。</string>
+  <string name="lp_pool_details_title">流动池详情</string>
+  <string name="lp_pool_remove_warning_text">移除流动性池代币会按照您在池中所占份额的比例，将您的头寸转换回当前汇率下的基础代币。已累积的费用将包含在您收到的金额中。</string>
+  <string name="lp_pool_remove_warning_title">注意</string>
+  <string name="lp_remove_button_title">移除流动性</string>
+  <string name="lp_remove_liquidity_screen_title">移除流动性</string>
+  <string name="lp_reward_token_text">赚取%s</string>
+  <string name="lp_reward_token_title">奖励支付以</string>
+  <string name="lp_slippage_title">滑点</string>
+  <string name="lp_supply_button_title">供应流动性</string>
+  <string name="lp_supply_liquidity_screen_title">供应流动性</string>
+  <string name="lp_user_pools_title">用户流动池</string>
+  <string name="lp_your_pooled_format">你提供流动性的%s</string>
   <string name="make_payout_transaction_sent">支付交易已发送</string>
   <string name="manage_assets_account_missing_text">添加一个账户...</string>
   <string name="manage_assets_search_hint">按资产搜索</string>
@@ -506,6 +531,7 @@
   <string name="network_issue_action_add_account">添加账户</string>
   <string name="network_issue_action_switch_node">切换节点</string>
   <string name="network_issue_add_an_account">添加一个账户</string>
+  <string name="network_issue_main">连接错误:无法连接到网络。请重试。</string>
   <string name="network_issue_network_unavailable">网络不可用</string>
   <string name="network_issue_node_unavailable">节点不可用</string>
   <string name="network_issue_stub">网络问题</string>
@@ -713,11 +739,11 @@
   <string name="runtime_update_not_actual_title">过时的配置</string>
   <string name="same_address_transfer_warning_message">您正在尝试向同一账户进行转账。此操作将收取费用且没有任何意义。</string>
   <string name="sanction_alert_title">此地址因与受制裁国家相关的实体有关而被标记。</string>
-  <string name="sanction_warning_message">由于与受制裁国家相关的实体，此地址已被标记。我们强烈建议您不要向此账户发送%s。</string>
+  <string name="sanction_warning_message">由于与受制裁国家相关的实体,此地址已被标记。我们强烈建议您不要向此账户发送%s。</string>
   <string name="scam_additional_stub">附加：</string>
   <string name="scam_alert_message_format">我们强烈建议您不要向此账户发送%s。</string>
   <string name="scam_alert_title">此地址因涉嫌欺诈行为已被标记。</string>
-  <string name="scam_warning_message">这个地址因涉嫌欺诈行为而被标记。我们强烈建议您不要向该账户转账%s。</string>
+  <string name="scam_warning_message">此地址已被标记存在诈骗嫌疑。我们强烈建议您不要将{asset}发送到此账户。</string>
   <string name="scan_qr_subtitle">从接收方扫描代码</string>
   <string name="scan_qr_title">二维码</string>
   <string name="scan_qr_upload_button_title">从相册上传</string>
@@ -726,6 +752,7 @@
   <string name="search_network_hint">按网络搜索</string>
   <string name="search_recipient_hint">账户地址或账户名称</string>
   <string name="search_recipient_no_results">无搜索结果</string>
+  <string name="search_textfield_placeholder">公共地址</string>
   <string name="select_another_network_description">地址与目标网络不匹配。您应该选择另一个网络。</string>
   <string name="select_collator_having_relevant_minimum_bond">具备相关的最低绑定额</string>
   <string name="select_collators_warning">免责声明：算法收集人建议并不构成金融咨询或建议。质押是一项高风险活动，算法收集人建议并不能完全减轻这种风险。由算法提供的收集人仍有可能离开候选池。由算法提供的收集人也可以在被推荐和/或选择后随时更改其参数（例如佣金率等）。您可能因此或其他原因而失去奖励。请在进行尽职调查和慎重考虑风险后，根据自己的判断谨慎使用质押代币和使用收集人建议。</string>
@@ -747,7 +774,7 @@
   <string name="social_media">社交媒体</string>
   <string name="sora_bridge_amount_less_fee">您尝试转账的金额不足以支付%s网络上的交易费用。尽管交易无法完成，您仍将在Sora网络上被收取费用。</string>
   <string name="sora_bridge_low_amount_format_alert">目前，为了确保SORA网络的稳定性和安全性，跨链桥转账的最低金额为%s。感谢您的理解。</string>
-  <string name="sora_card_annual_service_fee">0欧元年度服务费</string>
+  <string name="sora_card_annual_service_fee">0欧元年服务费</string>
   <string name="sora_card_blacklisted_countires_title">申请被排除</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[目前，来自<b>某些国家的居民<br>无法申请</b>SORA卡片。<br><a href=\"https://soracard.com/blacklist/\">查看名单</a>]]></string>
   <string name="sora_card_enable_card_title">启用卡片</string>
@@ -1028,6 +1055,7 @@
   <string name="substrate_crypto_type">Substrate密钥对加密类型</string>
   <string name="substrate_secret_derivation_path">Substrate密钥派生路径</string>
   <string name="success_message">你现在可以返回到你的浏览器了</string>
+  <string name="success_message_transaction_sent">您的交易已成功发送至区块链。</string>
   <string name="support_and_feedback">支持与反馈</string>
   <string name="switch_node">切换节点</string>
   <string name="switch_node_autoselect_title">自动选择节点</string>
@@ -1066,6 +1094,8 @@
   <string name="username_setup_hint">此名称仅会显示给您，并且仅在您的移动设备上本地存储。</string>
   <string name="username_setup_title_2_0">创建一个新的钱包</string>
   <string name="validator_info_comission_title">佣金</string>
+  <string name="validator_info_min_stake_alert_text">活跃提名人中的最低质押金额为%s。要获得奖励,您需要质押更多。</string>
+  <string name="validator_info_min_stake_among_active_nominators_text">活跃提名人的最低质押</string>
   <string name="validator_not_elected_description">此账户尚未被网络选中参与当前时间段</string>
   <string name="validators_list_empty_message">未找到验证人</string>
   <string name="vesting_claim_disclaimer_text">由于每个平行链的独特归属计划，我们的应用无法显示可认领的锁定代币数量。请注意，如果预计金额微不足道且与涉及的交易费用相当，发起认领可能是不切实际的。要全面了解您的锁定余额，请咨询Subscan区块浏览器。我们敦促您仔细评估信息，并根据自己的判断继续操作。</string>
@@ -1107,6 +1137,7 @@
   <string name="wallet_send_balance_minimal">最低余额</string>
   <string name="wallet_send_confirm_transfer">确认转账</string>
   <string name="wallet_send_dead_recipient_message">您的转账将失败，因为目标账户上的最终金额将低于最低余额。请尝试增加金额。</string>
+  <string name="wallet_send_dead_recipient_message_v2">您的转账将失败,因为目标账户的最终金额(%1$s)将低于最低余额(%2$s)。请增加%3$s的金额。</string>
   <string name="wallet_send_eth_dead_recipient_message">接收方账户中的以太币余额不足，导致无法完成ERC20代币转账。请确保接收方有足够的以太币来进行转账。</string>
   <string name="wallet_send_existential_warning_message">您的转账将从区块存储中移除该账户，因为这将使总余额低于最低余额要求。</string>
   <string name="wallet_send_existential_warning_title">转账将删除账户</string>

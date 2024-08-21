@@ -54,8 +54,7 @@ fun Context.showBrowser(link: String) {
 fun Context.createSendEmailIntent(targetEmail: String, title: String) {
     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
         putExtra(Intent.EXTRA_EMAIL, targetEmail)
-        type = "message/rfc822"
-        data = Uri.parse("mailto:$targetEmail")
+        setDataAndType(Uri.parse("mailto:$targetEmail"), "message/rfc822")
     }
     startActivity(Intent.createChooser(emailIntent, title))
 }

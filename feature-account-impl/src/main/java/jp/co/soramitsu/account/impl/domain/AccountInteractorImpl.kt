@@ -7,6 +7,7 @@ import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
@@ -21,6 +22,7 @@ import kotlinx.coroutines.withContext
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
     private val fileProvider: FileProvider,
+    private val preferences: Preferences,
     private val context: CoroutineContext = Dispatchers.Default
 ) : AccountInteractor {
 
@@ -226,7 +228,8 @@ class AccountInteractorImpl(
 
     override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
 
-    override suspend fun selectedMetaAccount() = withContext(context) { accountRepository.getSelectedMetaAccount() }
+    override suspend fun selectedMetaAccount() =
+        withContext(context) { accountRepository.getSelectedMetaAccount() }
 
     override suspend fun selectedLightMetaAccount() =
         accountRepository.getSelectedLightMetaAccount()

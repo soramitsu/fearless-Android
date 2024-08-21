@@ -5,19 +5,20 @@ apply plugin: "org.sonarqube"
 buildscript {
     ext {
         // App version
-        versionName = '3.6.1'
-        versionCode = 192
+        versionName = '3.7.1'
+        versionCode = 194
 
         // SDK and tools
         compileSdkVersion = 34
-        minSdkVersion = 24
+        minSdkVersion = 26
         targetSdkVersion = 34
 
-        composeCompilerVersion = '1.5.11'
+        composeCompilerVersion = '1.5.14'
 
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
         withoutJna = { exclude group: 'net.java.dev.jna' }
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
+        withoutAndroidFoundation = { exclude module: 'android-foundation' }
     }
 
     repositories {
@@ -61,10 +62,24 @@ allprojects {
             }
         }
     }
+
+    configurations {
+        cleanedAnnotations
+        implementation.exclude group: 'com.intellij' , module:'annotations'
+    }
+
+    configurations.configureEach {
+        resolutionStrategy {
+            // add dependency substitution rules
+            dependencySubstitution {
+                substitute module('org.bouncycastle:bcprov-jdk15on') using module('org.bouncycastle:bcprov-jdk18on:1.78')
+            }
+        }
+    }
 }
 
 tasks.register('clean', Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }
 
 tasks.register('runTest', GradleBuild) {

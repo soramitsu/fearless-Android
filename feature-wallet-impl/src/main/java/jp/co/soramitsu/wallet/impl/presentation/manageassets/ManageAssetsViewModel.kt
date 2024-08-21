@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -128,7 +129,7 @@ class ManageAssetsViewModel @Inject constructor(
             filteredChainAssets.map { chainAsset ->
                 val asset = assets.find { chainAsset.id == it.asset.token.configuration.id && chainAsset.chainId == it.asset.token.configuration.chainId }
                 chainAsset to asset
-            }.sortedWith(compareBy<Pair<jp.co.soramitsu.core.models.Asset, AssetWithStatus?>> {
+            }.sortedWith(compareBy<Pair<Asset, AssetWithStatus?>> {
                 it.second == null
             }.thenBy {
                 it.second?.asset?.enabled == false

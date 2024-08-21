@@ -27,6 +27,7 @@ android {
 
         jvmTarget = '17'
     }
+
     namespace 'jp.co.soramitsu.feature_account_api'
 }
 
@@ -45,6 +46,6 @@ dependencies {
 
     api project(':core-api')
 
-    api libs.sharedFeaturesCoreDep
-    api libs.sharedFeaturesBackupDep
+    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
+    api libs.sharedFeaturesBackupDep, withoutAndroidFoundation
 }
