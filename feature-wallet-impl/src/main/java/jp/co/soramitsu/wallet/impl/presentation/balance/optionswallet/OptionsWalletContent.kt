@@ -28,7 +28,8 @@ import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.feature_wallet_impl.R
 
 data class OptionsWalletScreenViewState(
-    val isSelected: Boolean
+    val isSelected: Boolean,
+    val showScoreButton: Boolean
 )
 
 interface OptionsWalletCallback {
@@ -106,14 +107,16 @@ fun OptionsWalletContent(
                 text = stringResource(id = R.string.change_wallet_name),
                 onClick = callback::onChangeWalletNameClick
             )
-            MarginVertical(margin = 12.dp)
-            GrayButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                text = stringResource(id = R.string.account_stats_wallet_option_title),
-                onClick = callback::onShowWalletScoreClick
-            )
+            if (state.showScoreButton) {
+                MarginVertical(margin = 12.dp)
+                GrayButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    text = stringResource(id = R.string.account_stats_wallet_option_title),
+                    onClick = callback::onShowWalletScoreClick
+                )
+            }
             if (!state.isSelected) {
                 MarginVertical(margin = 12.dp)
                 TextButton(
@@ -136,7 +139,8 @@ private fun OptionsWalletScreenPreview() {
     FearlessAppTheme() {
         OptionsWalletContent(
             state = OptionsWalletScreenViewState(
-                isSelected = false
+                isSelected = false,
+                showScoreButton = true
             ),
             callback = object : OptionsWalletCallback {
                 override fun onChangeWalletNameClick() {}
