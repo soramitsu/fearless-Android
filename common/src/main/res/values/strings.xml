@@ -1092,7 +1092,7 @@
   <string name="substrate_crypto_type">Substrate keypair crypto type</string>
   <string name="substrate_secret_derivation_path">Substrate secret derivation path\n</string>
   <string name="success_message">You can return to your browser now</string>
-  <string name="success_message_transaction_sent">Your transaction has been successfully sent to blockchain</string>
+  <string name="success_message_transaction_sent">Your transaction has been successfully sent to the blockchain</string>
   <string name="support_and_feedback">Support &amp; Feedback</string>
   <string name="switch_node">Switch node</string>
   <string name="switch_node_autoselect_title">Auto select nodes</string>
