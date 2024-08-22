@@ -5,10 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -94,6 +90,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 
 @HiltViewModel
 class SendSetupViewModel @Inject constructor(
@@ -569,6 +569,9 @@ class SendSetupViewModel @Inject constructor(
             isInputAddressValidFlow,
             addressInputTrimmedFlow
         ) { asset, amount, fee, isAddressValid, address ->
+            if (asset.token.configuration.ethereumType != null) {
+                return@combine Result.success(TransferValidationResult.Valid)
+            }
 
             if (amount.isZero()) {
                 sendAllToggleState.value = ToggleState.INITIAL
