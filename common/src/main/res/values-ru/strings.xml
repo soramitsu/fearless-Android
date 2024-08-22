@@ -239,8 +239,9 @@
   <string name="common_route">Направление</string>
   <string name="common_save">Сохранить</string>
   <string name="common_search">Поиск</string>
-  <string name="common_search_assets_alert_description">Не найдено ни одной сети или ассета :(</string>
+  <string name="common_search_assets_alert_description">Ассеты не найдены :(</string>
   <string name="common_search_assets_alert_title">Извините!</string>
+  <string name="common_search_network_and_assets_alert_description">Не найдено ни одной сети или ассета :(</string>
   <string name="common_search_no_results">Поиск не дал результатов.\nПроверьте, что вы указали полный адрес аккаунта</string>
   <string name="common_search_results_number">Результаты поиска: %d</string>
   <string name="common_search_start_title">Здесь появятся результаты поиска</string>

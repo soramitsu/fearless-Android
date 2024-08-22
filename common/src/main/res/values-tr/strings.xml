@@ -271,8 +271,9 @@
   <string name="common_route">Rota</string>
   <string name="common_save">Kaydetmek</string>
   <string name="common_search">Arama</string>
-  <string name="common_search_assets_alert_description">Hiçbir ağ veya varlık bulunamadı :(</string>
+  <string name="common_search_assets_alert_description">Hiçbir Öğe bulunamadı:(</string>
   <string name="common_search_assets_alert_title">Sumimasen!</string>
+  <string name="common_search_network_and_assets_alert_description">Hiçbir ağ veya varlık bulunamadı :(</string>
   <string name="common_search_no_results">Arama sonucu bulunamadı. \n Tam hesap adresini yazdığınızdan emin olun</string>
   <string name="common_search_results_number">Arama sonuçları: %d</string>
   <string name="common_search_start_title">Arama sonuçları burada görünecek.</string>

@@ -262,8 +262,9 @@
   <string name="common_route">Rota</string>
   <string name="common_save">Salvar</string>
   <string name="common_search">Pesquisa</string>
-  <string name="common_search_assets_alert_description">Nenhuma rede ou ativo foi encontrado :(</string>
+  <string name="common_search_assets_alert_description">Nenhum ativo foi encontrado :(</string>
   <string name="common_search_assets_alert_title">Sumimasen!</string>
+  <string name="common_search_network_and_assets_alert_description">Nenhuma rede ou ativo foi encontrado :(</string>
   <string name="common_search_no_results">Pesquisa sem resultados. \n Certifique-se que digita o endereço completo da conta</string>
   <string name="common_search_results_number">Resultados da pesquisa: %d</string>
   <string name="common_search_start_title">Os resultados da pesquisa aparecerão aqui</string>

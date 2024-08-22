@@ -298,8 +298,9 @@
   <string name="common_route">Route</string>
   <string name="common_save">Save</string>
   <string name="common_search">Search</string>
-  <string name="common_search_assets_alert_description">No networks or assets were found :(</string>
+  <string name="common_search_assets_alert_description">No assets were found :(</string>
   <string name="common_search_assets_alert_title">Sumimasen!</string>
+  <string name="common_search_network_and_assets_alert_description">No networks or assets were found :(</string>
   <string name="common_search_no_results">No search results.\nMake sure you type the full account address</string>
   <string name="common_search_results_number">Search results: %d</string>
   <string name="common_search_start_title">Search results will appear here</string>

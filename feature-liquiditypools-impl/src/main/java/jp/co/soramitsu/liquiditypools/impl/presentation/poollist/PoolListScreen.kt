@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.CorneredInput
+import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.theme.white04
@@ -60,19 +61,28 @@ fun PoolListScreen(state: PoolListState, callback: PoolListScreenInterface) {
         if (state.isLoading) {
             ShimmerPoolList(SHIMMERS_SIZE)
         } else {
-            val listState = rememberLazyListState()
+            if (state.pools.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    EmptyMessage(message = R.string.common_search_network_and_assets_alert_description)
+                }
+            } else {
+                val listState = rememberLazyListState()
 
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .wrapContentHeight()
-            ) {
-                items(state.pools) { pool ->
-                    BasicPoolListItem(
-                        modifier = Modifier.padding(vertical = Dimens.x1),
-                        state = pool,
-                        onPoolClick = callback::onPoolClicked,
-                    )
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .wrapContentHeight()
+                ) {
+                    items(state.pools) { pool ->
+                        BasicPoolListItem(
+                            modifier = Modifier.padding(vertical = Dimens.x1),
+                            state = pool,
+                            onPoolClick = callback::onPoolClicked,
+                        )
+                    }
                 }
             }
         }
@@ -99,7 +109,8 @@ private fun PreviewPoolListScreen() {
     )
     PoolListScreen(
         state = PoolListState(
-            pools = items,
+            pools = emptyList(),
+            isLoading = false
         ),
         callback = object : PoolListScreenInterface {
             override fun onPoolClicked(pair: StringPair) {}

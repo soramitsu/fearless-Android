@@ -262,8 +262,9 @@
   <string name="common_route">ルート</string>
   <string name="common_save">保存</string>
   <string name="common_search">検索</string>
-  <string name="common_search_assets_alert_description">ネットワークまたはアセットが見つかりませんでした</string>
+  <string name="common_search_assets_alert_description">アセットが見つかりませんでした</string>
   <string name="common_search_assets_alert_title">失礼しました</string>
+  <string name="common_search_network_and_assets_alert_description">ネットワークまたはアセットが見つかりませんでした</string>
   <string name="common_search_no_results">検索結果はありません。 \n完全なアカウント・アドレスを入力したことを確認してください</string>
   <string name="common_search_results_number">検索結果： %d</string>
   <string name="common_search_start_title">検索結果はここに表示されます</string>
