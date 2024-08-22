@@ -1,7 +1,7 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm
 
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.model.address
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
@@ -37,8 +36,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 class LiquidityRemoveConfirmPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -46,12 +43,8 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val chainsRepository: ChainsRepository,
     private val poolsInteractor: PoolsInteractor,
-    private val accountInteractor: AccountInteractor,
     private val resourceManager: ResourceManager,
 ) : LiquidityRemoveConfirmCallbacks {
-
-    private val _stateSlippage = MutableStateFlow(0.5)
-    val stateSlippage = _stateSlippage.asStateFlow()
 
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen>()
@@ -82,28 +75,10 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         it.first.asset.token to it.second.asset.token
     }.distinctUntilChanged()
 
-    private val isPoolPairEnabled =
-        screenArgsFlow.map { screenArgs ->
-            poolsInteractor.isPairEnabled(
-                baseTokenId = screenArgs.ids.first,
-                targetTokenId = screenArgs.ids.second
-            )
-        }
-
-    private val networkFeeFlow = combine(
-        screenArgsFlow,
-        tokensInPoolFlow,
-        stateSlippage,
-        isPoolPairEnabled
-    ) { screenArgs, (baseAsset, targetAsset), slippage, pairEnabled ->
-        getLiquidityNetworkFee(
-            tokenBase = baseAsset.configuration,
-            tokenTarget = targetAsset.configuration,
-            tokenBaseAmount = screenArgs.amountBase,
-            tokenTargetAmount = screenArgs.amountTarget,
-            pairEnabled = pairEnabled,
-            pairPresented = true,
-            slippageTolerance = slippage
+    private val networkFeeFlow = tokensInPoolFlow.map { (baseToken, targetToken) ->
+        getRemoveLiquidityNetworkFee(
+            tokenBase = baseToken.configuration,
+            tokenTarget = targetToken.configuration,
         )
     }
 
@@ -154,28 +129,10 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         }.launchIn(coroutineScope)
     }
 
-    private suspend fun getLiquidityNetworkFee(
-        tokenBase: Asset,
-        tokenTarget: Asset,
-        tokenBaseAmount: BigDecimal,
-        tokenTargetAmount: BigDecimal,
-        pairEnabled: Boolean,
-        pairPresented: Boolean,
-        slippageTolerance: Double
-    ): BigDecimal {
-        val chainId = poolsInteractor.poolsChainId
-        val soraChain = walletInteractor.getChain(chainId)
-        val user = accountInteractor.selectedMetaAccount().address(soraChain).orEmpty()
-        val result = poolsInteractor.calcAddLiquidityNetworkFee(
-            chainId,
-            user,
+    private suspend fun getRemoveLiquidityNetworkFee(tokenBase: Asset, tokenTarget: Asset): BigDecimal {
+        val result = poolsInteractor.calcRemoveLiquidityNetworkFee(
             tokenBase,
             tokenTarget,
-            tokenBaseAmount,
-            tokenTargetAmount,
-            pairEnabled,
-            pairPresented,
-            slippageTolerance,
         )
         return result ?: BigDecimal.ZERO
     }
