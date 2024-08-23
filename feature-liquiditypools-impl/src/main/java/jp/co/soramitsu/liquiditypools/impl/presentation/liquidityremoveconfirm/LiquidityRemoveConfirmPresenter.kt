@@ -1,7 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm
 
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -36,6 +34,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 class LiquidityRemoveConfirmPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
