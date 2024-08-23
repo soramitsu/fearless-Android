@@ -2,9 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.searc
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Locale
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator.Companion.SIZE_MEDIUM
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -16,6 +13,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.BlockedValidatorException
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -33,7 +31,11 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Named
 
 sealed class SearchBlockProducersState {
     object NoInput : SearchBlockProducersState()
@@ -51,7 +53,8 @@ class SearchCustomValidatorsViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     @Named("StakingTokenUseCase") tokenUseCase: TokenUseCase,
-    private val searchCustomBlockProducerInteractor: SearchCustomBlockProducerInteractor
+    private val searchCustomBlockProducerInteractor: SearchCustomBlockProducerInteractor,
+    private val interactor: StakingInteractor
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess
@@ -167,7 +170,10 @@ class SearchCustomValidatorsViewModel @Inject constructor(
                     )
                 },
                 {
-                    router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
+                    interactor.validatorDetailsCache.update { prev ->
+                        prev + (it.accountIdHex to mapValidatorToValidatorDetailsParcelModel(it))
+                    }
+                    router.openValidatorDetails(it.accountIdHex)
                 }
             )
         }

@@ -18,7 +18,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confi
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
-import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import kotlinx.coroutines.flow.Flow
 
 interface StakingRouter {
@@ -49,7 +48,7 @@ interface StakingRouter {
 
     fun openReviewCustomValidators()
 
-    fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)
+    fun openValidatorDetails(validatorIdHex: String)
 
     fun openSelectedValidators()
 

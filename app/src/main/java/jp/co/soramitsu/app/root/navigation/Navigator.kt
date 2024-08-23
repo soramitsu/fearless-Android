@@ -122,7 +122,6 @@ import jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settin
 import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
-import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.presentation.SuccessRouter
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
@@ -731,8 +730,8 @@ class Navigator :
         navController?.navigate(R.id.close_swap)
     }
 
-    override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
-        navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
+    override fun openValidatorDetails(validatorIdHex: String) {
+        navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorIdHex))
     }
 
     override fun openSelectedValidators() {
