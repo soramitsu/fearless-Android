@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.presentation.common
 
+import jp.co.soramitsu.staking.api.domain.model.PoolInfo
+import kotlinx.coroutines.flow.MutableStateFlow
+
 class StakingPoolSharedStateProvider {
     val mainState by lazy { StakingPoolSharedState<StakingPoolState>() }
     val joinFlowState by lazy { StakingPoolSharedState<StakingPoolJoinFlowState>() }
@@ -8,6 +11,7 @@ class StakingPoolSharedStateProvider {
     val selectValidatorsState by lazy { StakingPoolSharedState<SelectValidatorFlowState>() }
     val selectedValidatorsState by lazy { StakingPoolSharedState<SelectedValidatorsFlowState>() }
     val editPoolState by lazy { StakingPoolSharedState<EditPoolFlowState>() }
+    val poolsCache: MutableStateFlow<Map<Int, PoolInfo>> = MutableStateFlow(emptyMap())
 
     val requireMainState: StakingPoolState
         get() = requireNotNull(mainState.get())

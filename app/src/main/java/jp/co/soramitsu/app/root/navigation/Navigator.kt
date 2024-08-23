@@ -16,7 +16,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
@@ -170,7 +169,6 @@ import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPre
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -186,6 +184,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
 import kotlinx.parcelize.Parcelize
+import java.math.BigDecimal
+import kotlin.coroutines.coroutineContext
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -617,8 +617,8 @@ class Navigator :
         navController?.navigate(R.id.confirmJoinPoolFragment)
     }
 
-    override fun openPoolInfo(poolInfo: PoolInfo) {
-        navController?.navigate(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolInfo))
+    override fun openPoolInfo(poolId: Int) {
+        navController?.navigate(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolId))
     }
 
     override fun openManagePoolStake() {
