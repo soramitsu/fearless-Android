@@ -111,7 +111,7 @@ fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern).apply {
 
 fun fiatAbbreviatedFormatter() = CompoundNumberFormatter(
     abbreviations = listOf(
-        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", fiatSmallAmountFormatter),
+        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", fiatAmountFormatter),
         NumberAbbreviation(BigDecimal.ONE, BigDecimal.ONE, "", fiatAmountFormatter),
         NumberAbbreviation(BigDecimal("1E+3"), BigDecimal.ONE, "", fiatAmountFormatter),
         NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", fiatAmountFormatter),
