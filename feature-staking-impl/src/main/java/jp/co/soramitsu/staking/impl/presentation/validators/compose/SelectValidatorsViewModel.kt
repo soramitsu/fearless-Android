@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -18,6 +16,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.domain.model.Validator
+import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProvider
@@ -43,6 +42,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import javax.inject.Inject
 
 private val filtersSet =
     setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
@@ -56,7 +57,8 @@ class SelectValidatorsViewModel @Inject constructor(
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val resourceManager: ResourceManager,
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
-    private val settingsStorage: SettingsStorage
+    private val settingsStorage: SettingsStorage,
+    private val interactor: StakingInteractor
 ) : BaseViewModel(), SelectValidatorsScreenInterface {
 
     private val asset: Asset
@@ -195,13 +197,12 @@ class SelectValidatorsViewModel @Inject constructor(
     override fun onInfoClick(item: SelectableListItemState<String>) {
         val validator =
             recommendedValidators.value.dataOrNull()?.find { it.accountIdHex == item.id }
-        router.openValidatorDetails(
-            mapValidatorToValidatorDetailsParcelModel(
-                requireNotNull(
-                    validator
-                )
-            )
-        )
+        validator?.let {
+            interactor.validatorDetailsCache.update { prev ->
+                prev + (it.accountIdHex to mapValidatorToValidatorDetailsParcelModel(it))
+            }
+            router.openValidatorDetails(it.accountIdHex)
+        }
     }
 
     override fun onChooseClick() {

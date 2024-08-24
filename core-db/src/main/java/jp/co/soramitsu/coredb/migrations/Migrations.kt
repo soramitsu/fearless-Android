@@ -3,6 +3,64 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_68_69 = object : Migration(68, 69) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `nomis_wallet_score` (
+            `metaId` INTEGER NOT NULL,
+            `score` INTEGER NOT NULL,
+            `updated` INTEGER NOT NULL,
+            `nativeBalanceUsd` TEXT NOT NULL,
+            `holdTokensUsd` TEXT NOT NULL,
+            `walletAgeInMonths` INTEGER NOT NULL,
+            `totalTransactions` INTEGER NOT NULL,
+            `rejectedTransactions` INTEGER NOT NULL,
+            `avgTransactionTimeInHours` REAL NOT NULL,
+            `maxTransactionTimeInHours` REAL NOT NULL,
+            `minTransactionTimeInHours` REAL NOT NULL,
+            `scoredAt` TEXT NOT NULL,
+            PRIMARY KEY(`metaId`),
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `allpools` (
+            `tokenIdBase` TEXT NOT NULL, 
+            `tokenIdTarget` TEXT NOT NULL, 
+            `reserveBase` TEXT NOT NULL, 
+            `reserveTarget` TEXT NOT NULL, 
+            `totalIssuance` TEXT NOT NULL, 
+            `reservesAccount` TEXT NOT NULL, 
+            PRIMARY KEY(`tokenIdBase`, `tokenIdTarget`))
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `userpools` (
+            `userTokenIdBase` TEXT NOT NULL, 
+            `userTokenIdTarget` TEXT NOT NULL,
+            `accountAddress` TEXT NOT NULL,
+            `poolProvidersBalance` TEXT NOT NULL,
+            PRIMARY KEY(`userTokenIdBase`, `userTokenIdTarget`, `accountAddress`),
+            FOREIGN KEY(`userTokenIdBase`, `userTokenIdTarget`) REFERENCES `allpools`(`tokenIdBase`, `tokenIdTarget`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_userpools_accountAddress` ON `userpools` (`accountAddress`)")
+    }
+}
+
+val Migration_67_68 = object : Migration(67, 68) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE meta_accounts SET initialized = 0")
+        db.execSQL("UPDATE chain_accounts SET initialized = 0")
+        db.execSQL("DELETE FROM assets")
+    }
+}
+
 val Migration_66_67 = object : Migration(66, 67) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("UPDATE meta_accounts SET initialized = 0")

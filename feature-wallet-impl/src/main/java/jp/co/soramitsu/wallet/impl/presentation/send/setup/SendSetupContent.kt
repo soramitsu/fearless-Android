@@ -38,8 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
-import jp.co.soramitsu.common.compose.component.AddressInput
-import jp.co.soramitsu.common.compose.component.AddressInputState
+import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.B1
@@ -73,7 +72,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class SendSetupViewState(
     val toolbarState: ToolbarViewState,
-    val addressInputState: AddressInputState,
+    val addressInputState: AddressInputWithScore,
     val amountInputState: AmountInputViewState,
     val chainSelectorState: SelectorState,
     val feeInfoState: FeeInfoViewState,
@@ -81,7 +80,7 @@ data class SendSetupViewState(
     val buttonState: ButtonViewState,
     val isSoftKeyboardOpen: Boolean,
     val isInputLocked: Boolean,
-    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList(),
+    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.entries,
     val isHistoryAvailable: Boolean,
     val sendAllChecked: Boolean,
     val sendAllAllowed: Boolean
@@ -152,10 +151,9 @@ fun SendSetupContent(
                     onNavigationClick = callback::onNavigationClick
                 )
                 MarginVertical(margin = 16.dp)
-                AddressInput(
+                AddressInputWithScore(
                     state = state.addressInputState,
-                    onInput = callback::onAddressInput,
-                    onInputClear = callback::onAddressInputClear,
+                    onClear = callback::onAddressInputClear,
                     onPaste = callback::onPasteClick
                 )
 
@@ -297,7 +295,7 @@ private fun Badge(
 private fun SendSetupPreview() {
     val state = SendSetupViewState(
         toolbarState = ToolbarViewState("Send Fund", R.drawable.ic_arrow_left_24),
-        addressInputState = AddressInputState("Send to", "", ""),
+        addressInputState = AddressInputWithScore.Filled("Send to...", "0x23j2rf3bh8384j938", "", 100),
         amountInputState = AmountInputViewState(
             "KSM",
             "",

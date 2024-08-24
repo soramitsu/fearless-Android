@@ -92,13 +92,13 @@
   <string name="backup_wallet_show_raw_seed">Tunjukan Seed mentah</string>
   <string name="backup_wallet_warning_about_lose_phrase">Jika Anda kehilangan akses ke perangkat ini, dana Anda akan hilang, kecuali Anda membuat cadangan!</string>
   <string name="balance_locks_governance_row_title">Pemerintahan</string>
-  <string name="balance_locks_liquidity_pools_row_title">Kumpulan Likuiditas</string>
   <string name="balance_locks_nomination_pools_row_title">Kumpulan Nominasi</string>
   <string name="balance_locks_screen_title">Detail terkunci</string>
   <string name="banners_backup_description">Lindungi diri Anda dari kehilangan akses ke dana Anda</string>
   <string name="banners_buy_xor">Beli XOR</string>
   <string name="banners_buy_xor_description">Beli atau jual token XOR dengan uang tunai euro</string>
   <string name="banners_buy_xor_title">Beli token XOR</string>
+  <string name="banners_liquidity_pools_title">Kumpulan Likuiditas</string>
   <string name="beacon_connect_warning">Peringatan: Dengan mengeklik sambungkan, Anda mengizinkan dapp ini melihat alamat publik Anda. Ini adalah langkah keamanan penting untuk melindungi data Anda dari potensi risiko phishing.</string>
   <string name="beacon_connected">Terhubung ke %s</string>
   <string name="beacon_connected_to">Terhubung ke</string>
@@ -161,6 +161,7 @@
   <string name="common_assets_filters_fiat">Saldo fiat</string>
   <string name="common_assets_filters_name">Nama</string>
   <string name="common_assets_filters_popularity">Popularitas</string>
+  <string name="common_attention">Perhatian</string>
   <string name="common_available_format">Tersedia: %s</string>
   <string name="common_available_networks">Jaringan yang tersedia</string>
   <string name="common_backup_your_wallet">Dompet cadangan</string>
@@ -270,8 +271,9 @@
   <string name="common_route">Rute</string>
   <string name="common_save">Simpan</string>
   <string name="common_search">Cari</string>
-  <string name="common_search_assets_alert_description">Tidak ada jaringan atau aset yang ditemukan :(</string>
+  <string name="common_search_assets_alert_description">Tidak ada aset yang ditemukan :(</string>
   <string name="common_search_assets_alert_title">Sumimasen!</string>
+  <string name="common_search_network_and_assets_alert_description">Tidak ada jaringan atau aset yang ditemukan :(</string>
   <string name="common_search_no_results">Tidak ada hasil pencarian. \n Pastikan Anda mengetikkan alamat akun lengkap</string>
   <string name="common_search_results_number">Hasil pencarian: %d</string>
   <string name="common_search_start_title">Hasil pencarian akan muncul di sini</string>
@@ -726,6 +728,7 @@
   <string name="search_network_hint">Cari berdasarkan jaringan</string>
   <string name="search_recipient_hint">Alamat akun atau nama akun</string>
   <string name="search_recipient_no_results">Tidak ada hasil pencarian</string>
+  <string name="search_textfield_placeholder">Alamat publik</string>
   <string name="select_another_network_description">Alamatnya tidak cocok dengan jaringan tujuan. Anda harus memilih jaringan lain</string>
   <string name="select_collator_having_relevant_minimum_bond">Memiliki obligasi minimum yang relevan</string>
   <string name="select_collators_warning">PENAFIAN: Saran kolator algoritmik bukan merupakan konsultasi atau nasihat keuangan. Staking adalah aktivitas berisiko tinggi, dan saran kolator algoritmik tidak serta merta memitigasi risiko ini. Seorang pengumpul yang disarankan oleh algoritme masih dapat meninggalkan kumpulan kandidat. Pengumpul yang disarankan oleh algoritme juga dapat mengubah parameternya (misalnya, tarif komisi, dll.) kapan saja setelah disarankan dan/atau dipilih. Anda bisa kehilangan hadiah karena alasan ini atau lainnya. Hanya pertaruhkan token dan gunakan saran kolektor sesuai kebijaksanaan Anda sendiri, setelah melakukan uji tuntas dan dengan cermat mempertimbangkan risiko yang ada.</string>

@@ -10,12 +10,9 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.BuildConfig
@@ -43,7 +40,6 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
-import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -118,6 +114,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -130,6 +130,7 @@ class BalanceListViewModel @Inject constructor(
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
     private val accountInteractor: AccountInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     private val updatesMixin: UpdatesMixin,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
@@ -328,9 +329,10 @@ class BalanceListViewModel @Inject constructor(
 
                 val screenModel =
                     if (successfulCollections.isEmpty() && chainsWithFailedRequests.isNotEmpty()) {
-                        withContext(Dispatchers.Main.immediate) {
-                            showError(resourceManager.getString(R.string.nft_load_error))
-                        }
+                        // todo move error state to the ndt list screen
+//                        withContext(Dispatchers.Main.immediate) {
+//                            showError(resourceManager.getString(R.string.nft_load_error))
+//                        }
 
                         ScreenModel.ReadyToRender(
                             result = successfulCollections,
@@ -338,11 +340,12 @@ class BalanceListViewModel @Inject constructor(
                             onItemClick = {}
                         )
                     } else {
-                        if (successfulCollections.isNotEmpty() && chainsWithFailedRequests.isNotEmpty()) {
-                            withContext(Dispatchers.Main.immediate) {
-                                showError("${resourceManager.getString(R.string.nft_load_error)} (${chainsWithFailedRequests.joinToString(", ")})")
-                            }
-                        }
+                        // todo move error state to the ndt list screen
+//                        if (successfulCollections.isNotEmpty() && chainsWithFailedRequests.isNotEmpty()) {
+//                            withContext(Dispatchers.Main.immediate) {
+//                                showError("${resourceManager.getString(R.string.nft_load_error)} (${chainsWithFailedRequests.joinToString(", ")})")
+//                            }
+//                        }
 
                         ScreenModel.ReadyToRender(
                             result = successfulCollections,
@@ -414,6 +417,50 @@ class BalanceListViewModel @Inject constructor(
                 sync()
             }
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+    }
+
+    private fun observeToolbarStates() {
+        currentAddressModelFlow().onEach { addressModel ->
+            toolbarState.update { prevState ->
+                val newWalletIconState = when(prevState.homeIconState) {
+                    is ToolbarHomeIconState.Navigation -> ToolbarHomeIconState.Wallet(walletIcon = addressModel.image)
+                    is ToolbarHomeIconState.Wallet -> (prevState.homeIconState as ToolbarHomeIconState.Wallet).copy(walletIcon = addressModel.image)
+                }
+                prevState.copy(
+                    title = addressModel.nameOrAddress,
+                    homeIconState = newWalletIconState,
+                )
+            }
+        }.launchIn(viewModelScope)
+
+        combine(
+            interactor.observeSelectedAccountChainSelectFilter(),
+            selectedChainItemFlow
+        ) { filter, chain ->
+            toolbarState.update { prevState ->
+                prevState.copy(
+                    selectorViewState = ChainSelectorViewStateWithFilters(
+                        selectedChainName = chain?.title,
+                        selectedChainId = chain?.id,
+                        selectedChainImageUrl = chain?.imageUrl,
+                        filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                            it.name == filter
+                        } ?: ChainSelectorViewStateWithFilters.Filter.All
+                    )
+                )
+            }
+        }.launchIn(viewModelScope)
+
+        nomisScoreInteractor.observeCurrentAccountScore()
+            .onEach { score ->
+                toolbarState.update { prevState ->
+                    val newWalletIconState = (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
+                    newWalletIconState?.let {
+                        prevState.copy(homeIconState = newWalletIconState)
+                    } ?: prevState
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun observeNetworkIssues() {
@@ -557,33 +604,11 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(this)
     }
 
-    val toolbarState = combine(
-        currentAddressModelFlow(),
-        interactor.observeSelectedAccountChainSelectFilter(),
-        selectedChainItemFlow
-    ) { addressModel, filter, chain ->
-        LoadingState.Loaded(
-            MainToolbarViewStateWithFilters(
-                title = addressModel.nameOrAddress,
-                homeIconState = ToolbarHomeIconState(walletIcon = addressModel.image),
-                selectorViewState = ChainSelectorViewStateWithFilters(
-                    selectedChainName = chain?.title,
-                    selectedChainId = chain?.id,
-                    selectedChainImageUrl = chain?.imageUrl,
-                    filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                        it.name == filter
-                    } ?: ChainSelectorViewStateWithFilters.Filter.All
-                )
-            )
-        )
-    }.stateIn(
-        scope = this,
-        started = SharingStarted.Eagerly,
-        initialValue = LoadingState.Loading()
-    )
+    val toolbarState: MutableStateFlow<MainToolbarViewStateWithFilters> = MutableStateFlow(MainToolbarViewStateWithFilters(title = null, selectorViewState = null))
 
     init {
         subscribeScreenState()
+        observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
         sync()
@@ -592,6 +617,10 @@ class BalanceListViewModel @Inject constructor(
             val walletId = interactor.getSelectedMetaAccount().id
             interactor.saveChainId(walletId, chainId)
             selectedChainId.value = chainId
+        }.launchIn(this)
+
+        selectedChainId.onEach { chainId ->
+            BalanceUpdateTrigger.invoke(chainId = chainId)
         }.launchIn(this)
 
         interactor.selectedLightMetaAccountFlow().map { wallet ->
@@ -608,7 +637,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun onRefresh() {
-        refresh()
+        sync()
         viewModelScope.launch {
             BalanceUpdateTrigger.invoke()
         }
@@ -628,10 +657,6 @@ class BalanceListViewModel @Inject constructor(
                 networkIssueStateFlow.update { it?.copy(retryButtonLoading = false) }
             }
         }
-    }
-
-    private fun refresh() {
-        sync()
     }
 
     fun onResume() {
@@ -674,7 +699,6 @@ class BalanceListViewModel @Inject constructor(
                 interactor.syncAssetsRates().onFailure {
                     withContext(Dispatchers.Main) {
                         selectedFiat.notifySyncFailed()
-                        showError(it)
                     }
                 }
             }
@@ -938,5 +962,12 @@ class BalanceListViewModel @Inject constructor(
 
     fun onServiceButtonClick() {
         router.openServiceScreen()
+    }
+
+    fun onScoreClick() {
+        viewModelScope.launch {
+            val currentAccount = currentMetaAccountFlow.first()
+            router.openScoreDetailsScreen(currentAccount.id)
+        }
     }
 }

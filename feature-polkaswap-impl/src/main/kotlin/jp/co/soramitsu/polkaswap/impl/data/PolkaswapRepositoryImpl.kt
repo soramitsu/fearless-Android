@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.utils.poolTBC
 import jp.co.soramitsu.common.utils.poolXYK
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.models.Market
@@ -43,8 +42,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
     private val remoteStorage: StorageDataSource,
     private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
-    private val rpcCalls: RpcCalls,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
 ) : PolkaswapRepository {
 
     override suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger> {
@@ -69,35 +67,39 @@ class PolkaswapRepositoryImpl @Inject constructor(
     }
 
     override fun observePoolXYKReserves(chainId: ChainId, fromTokenId: String, toTokenId: String): Flow<String> {
-        return flow { emit(waitForChain(chainId)) }.flatMapLatest {  remoteStorage.observe(
-            chainId = chainId,
-            keyBuilder = {
-                val from = Struct.Instance(
-                    mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                val to = Struct.Instance(
-                    mapOf("code" to toTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, from, to)
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest {
+            remoteStorage.observe(
+                chainId = chainId,
+                keyBuilder = {
+                    val from = Struct.Instance(
+                        mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    val to = Struct.Instance(
+                        mapOf("code" to toTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, from, to)
+                }
+            ) { scale, _ ->
+                scale.orEmpty()
             }
-        ) { scale, _ ->
-            scale.orEmpty()
-        }}
+        }
     }
 
     override fun observePoolTBCReserves(chainId: ChainId, tokenId: String): Flow<String> {
-        return flow { emit(waitForChain(chainId)) }.flatMapLatest { remoteStorage.observe(
-            chainId = chainId,
-            keyBuilder = {
-                val token = Struct.Instance(
-                    mapOf("code" to tokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, token)
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest {
+            remoteStorage.observe(
+                chainId = chainId,
+                keyBuilder = {
+                    val token = Struct.Instance(
+                        mapOf("code" to tokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, token)
+                }
+            ) { scale, _ ->
+                scale.orEmpty()
             }
-        ) { scale, _ ->
-            scale.orEmpty()
         }
-    }}
+    }
 
     // Because if we get chain from the ChainRegistry, it will emit a chain
     // only after runtime for this chain will be ready
@@ -163,6 +165,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
         markets: List<String>,
         desired: WithDesired
     ): BigInteger {
+
         val chain = chainRegistry.getChain(chainId)
         return extrinsicService.estimateFee(chain) {
             swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)

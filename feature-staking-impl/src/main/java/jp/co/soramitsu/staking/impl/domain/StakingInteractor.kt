@@ -33,12 +33,14 @@ import jp.co.soramitsu.staking.impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
@@ -58,6 +60,8 @@ class StakingInteractor(
     private val addressIconGenerator: AddressIconGenerator,
     private val walletRepository: WalletRepository
 ) {
+    val validatorDetailsCache = MutableStateFlow<Map<String, ValidatorDetailsParcelModel>>(emptyMap())
+
     suspend fun getCurrentMetaAccount() = accountRepository.getSelectedMetaAccount()
     fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
     suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)

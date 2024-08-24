@@ -5,7 +5,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
@@ -32,6 +31,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 @HiltViewModel
 class SelectPoolViewModel @Inject constructor(
@@ -113,7 +114,11 @@ class SelectPoolViewModel @Inject constructor(
         val selectedPoolId = requireNotNull(item.id)
         val pools = (poolsFlow.value as? LoadingState.Loaded)?.data
         val pool = requireNotNull(pools?.find { it.poolId == selectedPoolId.toBigInteger() })
-        router.openPoolInfo(pool)
+
+        stakingPoolSharedStateProvider.poolsCache.update { prevState ->
+            prevState + (pool.poolId.toInt() to pool)
+        }
+        router.openPoolInfo(pool.poolId.toInt())
     }
 
     fun onNextClick() {

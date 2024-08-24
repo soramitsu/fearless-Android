@@ -934,6 +934,11 @@
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
     </dialog>
 
+    <dialog
+        android:id="@+id/poolsFlowFragment"
+        android:name="jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowFragment"
+        android:label="poolsFlowFragment" />
+
     <fragment
         android:id="@+id/settingsCustomValidatorsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment"
@@ -1361,5 +1366,10 @@
         android:id="@+id/transactionRawDataFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment"
         android:label="TransactionRawDataFragment" />
+
+    <fragment
+        android:id="@+id/scoreDetailsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
+        android:label="ScoreDetailsFragment" />
 
 </navigation>

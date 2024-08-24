@@ -41,6 +41,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -51,6 +53,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -108,7 +111,7 @@ class BalancesUpdateSystem(
         chain: Chain,
         metaAccount: MetaAccount
     ): Flow<Result<Any>> {
-        return trigger.map { triggeredChainId ->
+        return trigger.onStart { emit(null) }.map { triggeredChainId ->
             val specificChainTriggered = triggeredChainId != null
             val currentChainTriggered = triggeredChainId == chain.id
 
@@ -218,27 +221,42 @@ class BalancesUpdateSystem(
         chain: Chain,
         accounts: List<MetaAccount>
     ) {
-        accounts.forEach { account ->
-            val address = account.address(chain) ?: return@forEach
-            val accountId = account.accountId(chain) ?: return@forEach
-            chain.assets.forEach asset@{ asset ->
-                val balance =
-                    kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }
-                        .onFailure {
-                            Log.d(
-                                TAG,
-                                "fetchEthBalance error ${it.message} ${it.localizedMessage} $it"
+        coroutineScope {
+
+            val accountsDeferred = accounts.map { account ->
+                async {
+                    val address = account.address(chain) ?: return@async
+                    val accountId = account.accountId(chain) ?: return@async
+                    val accountBalancesDeferred = chain.assets.map { asset ->
+                        async assets@{
+                            val balance =
+                                kotlin.runCatching {
+                                    ethereumRemoteSource.fetchEthBalance(
+                                        asset,
+                                        address
+                                    )
+                                }
+                                    .onFailure {
+                                        Log.d(
+                                            TAG,
+                                            "fetchEthBalance error ${it.message} ${it.localizedMessage} $it"
+                                        )
+                                    }
+                                    .getOrNull() ?: return@assets
+                            val balanceData = SimpleBalanceData(balance)
+                            assetCache.updateAsset(
+                                metaId = account.id,
+                                accountId = accountId,
+                                asset = asset,
+                                balanceData = balanceData
                             )
                         }
-                        .getOrNull() ?: return@asset
-                val balanceData = SimpleBalanceData(balance)
-                assetCache.updateAsset(
-                    metaId = account.id,
-                    accountId = accountId,
-                    asset = asset,
-                    balanceData = balanceData
-                )
+                    }
+                    accountBalancesDeferred.awaitAll()
+                }
             }
+
+            accountsDeferred.awaitAll()
         }
     }
 

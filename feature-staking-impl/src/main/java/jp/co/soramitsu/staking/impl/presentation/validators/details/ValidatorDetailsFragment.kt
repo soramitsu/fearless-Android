@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentValidatorDetailsBinding
-import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 
 @AndroidEntryPoint
 class ValidatorDetailsFragment : BaseBottomSheetDialogFragment<ValidatorDetailsViewModel>(R.layout.fragment_validator_details) {
@@ -20,9 +19,9 @@ class ValidatorDetailsFragment : BaseBottomSheetDialogFragment<ValidatorDetailsV
     companion object {
         const val KEY_VALIDATOR = "validator"
 
-        fun getBundle(validator: ValidatorDetailsParcelModel): Bundle {
+        fun getBundle(validatoridHex: String): Bundle {
             return Bundle().apply {
-                putParcelable(KEY_VALIDATOR, validator)
+                putString(KEY_VALIDATOR, validatoridHex)
             }
         }
     }

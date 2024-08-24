@@ -156,6 +156,7 @@
   <string name="common_assets_filters_fiat">Saldo Fiat</string>
   <string name="common_assets_filters_name">Nome</string>
   <string name="common_assets_filters_popularity">Popularidade</string>
+  <string name="common_attention">Atenção</string>
   <string name="common_available_format">Disponível: %s</string>
   <string name="common_backup_your_wallet">Faça backup da sua carteira</string>
   <string name="common_balance">Saldo</string>
@@ -261,8 +262,9 @@
   <string name="common_route">Rota</string>
   <string name="common_save">Salvar</string>
   <string name="common_search">Pesquisa</string>
-  <string name="common_search_assets_alert_description">Nenhuma rede ou ativo foi encontrado :(</string>
+  <string name="common_search_assets_alert_description">Nenhum ativo foi encontrado :(</string>
   <string name="common_search_assets_alert_title">Sumimasen!</string>
+  <string name="common_search_network_and_assets_alert_description">Nenhuma rede ou ativo foi encontrado :(</string>
   <string name="common_search_no_results">Pesquisa sem resultados. \n Certifique-se que digita o endereço completo da conta</string>
   <string name="common_search_results_number">Resultados da pesquisa: %d</string>
   <string name="common_search_start_title">Os resultados da pesquisa aparecerão aqui</string>
@@ -709,6 +711,7 @@
   <string name="search_network_hint">Pesquisar por rede</string>
   <string name="search_recipient_hint">Endereço da conta ou nome da conta</string>
   <string name="search_recipient_no_results">Nenhum resultado da pesquisa</string>
+  <string name="search_textfield_placeholder">Endereço público</string>
   <string name="select_another_network_description">O endereço não corresponde à rede de destino. Você deve selecionar outra rede</string>
   <string name="select_collator_having_relevant_minimum_bond">Ter vínculo mínimo relevante</string>
   <string name="select_collators_warning">AVISO: Os detentores de tokens MOVR/GLMR devem realizar a cuidadosa devida diligência acerca dos validadores antes de delegar. Ser listado como um validador não representa um endosso ou recomendação da Moonbeam Network, da Moonriver Network ou da Moonbeam Foundation. A Moonbeam Network, a Moonriver Network e a Moonbeam Foundation não examinaram os validadores da lista e não assumem nenhuma responsabilidade com relação à seleção, desempenho, segurança, precisão ou uso de quaisquer ofertas de terceiros. Você é o único responsável por fazer a sua própria diligência para entender as taxas aplicáveis e todos os riscos presentes, incluindo o monitoramento ativo da atividade dos seus validadores.</string>

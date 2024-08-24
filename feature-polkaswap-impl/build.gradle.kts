@@ -30,6 +30,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
     namespace = "jp.co.soramitsu.feature_polkaswap_impl"
 }
 
@@ -39,7 +40,19 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    implementation(libs.xnetworking.basic)
+    implementation(libs.xnetworking.sorawallet) {
+        exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
+    }
 
+//    api(libs.sharedFeaturesPoolsDep) {
+//        exclude(module = "android-foundation")
+//    }
+
+    implementation(projects.androidFoundation)
+    implementation(projects.coreDb)
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featurePolkaswapApi)

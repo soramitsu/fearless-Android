@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class OptionsWalletViewModel @Inject constructor(
@@ -39,11 +39,12 @@ class OptionsWalletViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state: StateFlow<OptionsWalletScreenViewState> = selectedWallet.map {
-        OptionsWalletScreenViewState(it.id == walletId)
+
+        OptionsWalletScreenViewState(it.id == walletId, it.ethereumAddress != null)
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        OptionsWalletScreenViewState(true)
+        OptionsWalletScreenViewState(isSelected = true, showScoreButton = false)
     )
 
     override fun onChangeWalletNameClick() {
@@ -75,5 +76,9 @@ class OptionsWalletViewModel @Inject constructor(
 
     override fun onBackupWalletClick() {
         router.openBackupWalletScreen(walletId)
+    }
+
+    override fun onShowWalletScoreClick() {
+        router.openScoreDetailsScreen(walletId)
     }
 }

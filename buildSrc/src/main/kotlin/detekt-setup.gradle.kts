@@ -33,6 +33,7 @@ fun Detekt.setup(autoCorrect: Boolean) {
 
     // TODO: Remove exclude paths after merge detekt to develop
     exclude(
+        "**/androidfoundation/**",
         "**/common/**",
         "**/core-api/**",
         "**/core-db/**",

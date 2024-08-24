@@ -11,12 +11,14 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
+import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapValidatorToValidatorDetailsWithStakeFlagParcelModel
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
+import jp.co.soramitsu.staking.impl.presentation.validators.toModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.Dispatchers
@@ -26,18 +28,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 import javax.inject.Inject
-import jp.co.soramitsu.staking.impl.presentation.validators.toModel
 
 @HiltViewModel
 class SelectedValidatorsViewModel @Inject constructor(
     private val poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val poolInteractor: StakingPoolInteractor,
     private val resourceManager: ResourceManager,
-    private val router: StakingRouter
+    private val router: StakingRouter,
+    private val stakingInteractor: StakingInteractor
 ) : BaseViewModel(), SelectedValidatorsInterface {
 
     private val validatorsToShow: List<AccountId> = poolSharedStateProvider.requireSelectedValidatorsState.selectedValidators
@@ -102,7 +105,10 @@ class SelectedValidatorsViewModel @Inject constructor(
                 mapValidatorToValidatorDetailsWithStakeFlagParcelModel(requireNotNull(nominatedValidator))
             }
 
-            router.openValidatorDetails(payload)
+            stakingInteractor.validatorDetailsCache.update { prev ->
+                prev + (payload.accountIdHex to payload)
+            }
+            router.openValidatorDetails(payload.accountIdHex)
         }
     }
 

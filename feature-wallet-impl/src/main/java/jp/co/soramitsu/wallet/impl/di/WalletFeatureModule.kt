@@ -8,8 +8,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.domain.WalletSyncService
@@ -20,6 +18,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
@@ -35,6 +34,7 @@ import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -95,6 +95,8 @@ import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
+import javax.inject.Named
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -206,13 +208,17 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         remoteStorageSource: RemoteStorageSource,
         assetDao: AssetDao,
+        nomisApi: NomisApi,
+        nomisScoresDao: NomisScoresDao
     ): WalletSyncService {
         return WalletSyncService(
             metaAccountDao,
             chainsRepository,
             chainRegistry,
             remoteStorageSource,
-            assetDao
+            assetDao,
+            nomisApi,
+            nomisScoresDao
         )
     }
 
@@ -257,7 +263,8 @@ class WalletFeatureModule {
         updatesMixin: UpdatesMixin,
         xcmEntitiesFetcher: XcmEntitiesFetcher,
         chainsRepository: ChainsRepository,
-        networkStateService: NetworkStateService
+        networkStateService: NetworkStateService,
+        tokenRepository: TokenRepository
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
@@ -270,7 +277,8 @@ class WalletFeatureModule {
         updatesMixin,
         xcmEntitiesFetcher,
         chainsRepository,
-        networkStateService
+        networkStateService,
+        tokenRepository
     )
 
     @Provides
@@ -317,8 +325,8 @@ class WalletFeatureModule {
 
     @Provides
     @Singleton
-    fun provideXcmService(): XcmService {
-        return XcmService()
+    fun provideXcmService(chainRegistry: ChainRegistry): XcmService {
+        return XcmService(chainRegistry)
     }
 
     @Provides

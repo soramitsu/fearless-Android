@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -27,7 +26,6 @@ import jp.co.soramitsu.staking.impl.presentation.mappers.mapValidatorDetailsParc
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapValidatorDetailsToErrors
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment.Companion.KEY_VALIDATOR
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.NominatorParcelModel
-import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -37,6 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @HiltViewModel
 class ValidatorDetailsViewModel @Inject constructor(
@@ -51,7 +50,8 @@ class ValidatorDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
-    private val validator = savedStateHandle.get<ValidatorDetailsParcelModel>(KEY_VALIDATOR)!!
+    private val validatorIdHex = savedStateHandle.get<String>(KEY_VALIDATOR)!!
+    private val validator = requireNotNull(interactor.validatorDetailsCache.value[validatorIdHex])
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()

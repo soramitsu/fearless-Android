@@ -77,7 +77,6 @@ interface CrossChainSetupScreenInterface {
     fun onWarningInfoClick()
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CrossChainSetupContent(
     state: CrossChainSetupViewState,

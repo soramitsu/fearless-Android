@@ -26,7 +26,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.Asset.PriceProvider
-import jp.co.soramitsu.core.models.Asset.PriceProviderType.Chainlink
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -423,7 +422,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun getTotalBalance(
-        chainAsset: jp.co.soramitsu.core.models.Asset,
+        chainAsset: CoreAsset,
         chain: Chain,
         accountId: ByteArray
     ): BigInteger {
@@ -482,7 +481,7 @@ class WalletRepositoryImpl(
         senderAddress: String,
         fee: BigDecimal,
         source: OperationLocal.Source,
-        utilityAsset: jp.co.soramitsu.core.models.Asset?
+        utilityAsset: CoreAsset?
     ) =
         OperationLocal.manualTransfer(
             hash = hash,

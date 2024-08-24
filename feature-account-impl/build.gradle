@@ -34,6 +34,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
+
     namespace 'jp.co.soramitsu.feature_account_impl'
 }
 
@@ -91,8 +92,8 @@ dependencies {
 
     implementation libs.gson
 
-    api libs.sharedFeaturesCoreDep
+    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
 
-    implementation libs.sharedFeaturesBackupDep
+    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
     implementation libs.web3jDep
 }

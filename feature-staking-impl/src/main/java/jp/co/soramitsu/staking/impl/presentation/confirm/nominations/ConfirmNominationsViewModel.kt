@@ -4,8 +4,6 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -23,7 +21,10 @@ import jp.co.soramitsu.staking.impl.presentation.validators.findSelectedValidato
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ConfirmNominationsViewModel @Inject constructor(
@@ -54,7 +55,10 @@ class ConfirmNominationsViewModel @Inject constructor(
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
         viewModelScope.launch {
             validators.findSelectedValidator(validatorModel.accountIdHex)?.let {
-                router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
+                interactor.validatorDetailsCache.update { prev ->
+                    prev + (it.accountIdHex to mapValidatorToValidatorDetailsParcelModel(it))
+                }
+                router.openValidatorDetails(it.accountIdHex)
             }
         }
     }

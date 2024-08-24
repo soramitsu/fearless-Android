@@ -18,11 +18,11 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v10/chains_dev.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v11/chains_dev.json\""
         }
 
         release {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v10/chains.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v11/chains.json\""
         }
     }
 
@@ -71,7 +71,7 @@ dependencies {
     androidTestImplementation libs.rules
     androidTestImplementation libs.ext.junit
 
-    api libs.sharedFeaturesCoreDep
+    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
 
     implementation libs.web3jDep
 }

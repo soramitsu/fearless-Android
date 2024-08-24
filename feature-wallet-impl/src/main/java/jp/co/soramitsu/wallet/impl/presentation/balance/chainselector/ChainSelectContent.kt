@@ -159,7 +159,7 @@ fun EmptyResultContent() {
         MarginVertical(margin = 16.dp)
 
         B0(
-            text = stringResource(id = jp.co.soramitsu.common.R.string.common_search_assets_alert_description),
+            text = stringResource(id = jp.co.soramitsu.common.R.string.common_search_network_and_assets_alert_description),
             color = white50
         )
     }

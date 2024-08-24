@@ -16,7 +16,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
@@ -46,6 +45,7 @@ import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
+import jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
@@ -72,6 +72,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
 import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
@@ -121,7 +122,6 @@ import jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settin
 import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
-import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.presentation.SuccessRouter
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
@@ -168,7 +168,6 @@ import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPre
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -184,6 +183,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
 import kotlinx.parcelize.Parcelize
+import java.math.BigDecimal
+import kotlin.coroutines.coroutineContext
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -200,7 +201,8 @@ class Navigator :
     SuccessRouter,
     SoraCardRouter,
     WalletConnectRouter,
-    NFTRouter
+    NFTRouter,
+    LiquidityPoolsRouter
 {
 
     private var navController: NavController? = null
@@ -614,8 +616,8 @@ class Navigator :
         navController?.navigate(R.id.confirmJoinPoolFragment)
     }
 
-    override fun openPoolInfo(poolInfo: PoolInfo) {
-        navController?.navigate(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolInfo))
+    override fun openPoolInfo(poolId: Int) {
+        navController?.navigate(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolId))
     }
 
     override fun openManagePoolStake() {
@@ -728,8 +730,8 @@ class Navigator :
         navController?.navigate(R.id.close_swap)
     }
 
-    override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
-        navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
+    override fun openValidatorDetails(validatorIdHex: String) {
+        navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorIdHex))
     }
 
     override fun openSelectedValidators() {
@@ -1510,5 +1512,13 @@ class Navigator :
 
     override fun openServiceScreen() {
         navController?.navigate(R.id.serviceFragment)
+    }
+
+    override fun openScoreDetailsScreen(metaId: Long) {
+        navController?.navigate(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
+    }
+
+    override fun openPools() {
+        navController?.navigate(R.id.poolsFlowFragment)
     }
 }
