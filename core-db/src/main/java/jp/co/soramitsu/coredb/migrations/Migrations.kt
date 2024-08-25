@@ -19,12 +19,37 @@ val Migration_68_69 = object : Migration(68, 69) {
             `avgTransactionTimeInHours` REAL NOT NULL,
             `maxTransactionTimeInHours` REAL NOT NULL,
             `minTransactionTimeInHours` REAL NOT NULL,
-            `scoredAt` STRING NOT NULL,
+            `scoredAt` TEXT NOT NULL,
             PRIMARY KEY(`metaId`),
             FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
             )
             """.trimIndent()
         )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `allpools` (
+            `tokenIdBase` TEXT NOT NULL, 
+            `tokenIdTarget` TEXT NOT NULL, 
+            `reserveBase` TEXT NOT NULL, 
+            `reserveTarget` TEXT NOT NULL, 
+            `totalIssuance` TEXT NOT NULL, 
+            `reservesAccount` TEXT NOT NULL, 
+            PRIMARY KEY(`tokenIdBase`, `tokenIdTarget`))
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `userpools` (
+            `userTokenIdBase` TEXT NOT NULL, 
+            `userTokenIdTarget` TEXT NOT NULL,
+            `accountAddress` TEXT NOT NULL,
+            `poolProvidersBalance` TEXT NOT NULL,
+            PRIMARY KEY(`userTokenIdBase`, `userTokenIdTarget`, `accountAddress`),
+            FOREIGN KEY(`userTokenIdBase`, `userTokenIdTarget`) REFERENCES `allpools`(`tokenIdBase`, `tokenIdTarget`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_userpools_accountAddress` ON `userpools` (`accountAddress`)")
     }
 }
 

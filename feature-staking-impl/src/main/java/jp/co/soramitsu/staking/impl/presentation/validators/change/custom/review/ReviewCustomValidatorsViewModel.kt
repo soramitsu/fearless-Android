@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.revie
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -29,7 +27,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ReviewCustomValidatorsViewModel @Inject constructor(
@@ -114,7 +115,10 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
     }
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
-        router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(validatorModel.validator))
+        interactor.validatorDetailsCache.update { prev ->
+            prev + (validatorModel.accountIdHex to mapValidatorToValidatorDetailsParcelModel(validatorModel.validator))
+        }
+        router.openValidatorDetails(validatorModel.accountIdHex)
     }
 
     fun nextClicked() {

@@ -306,14 +306,14 @@ class LiquidityRemovePresenter @Inject constructor(
             .debounce(INPUT_DEBOUNCE)
             .onEach { amount ->
                 poolDataUsable?.let {
-                    amountBase = if (it.user.basePooled <= amount) amount else it.user.basePooled
+                    amountBase = if (amount <= it.user.basePooled) amount else it.user.basePooled
 
-                    val precisionTo = poolDataFlow.firstOrNull()?.basic?.targetToken?.precision
+                    val precisionTarget = poolDataFlow.firstOrNull()?.basic?.targetToken?.precision
                     amountTarget = PolkaswapFormulas.calculateOneAmountFromAnother(
                         amountBase,
                         it.user.basePooled,
                         it.user.targetPooled,
-                        precisionTo
+                        precisionTarget
                     )
                     percent = PolkaswapFormulas.calculateShareOfPoolFromAmount(
                         amountBase,
@@ -333,7 +333,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
                     fiatAmount = it.applyFiatRate(targetToken.fiatRate)?.formatFiat(targetToken.fiatSymbol),
                     tokenAmount = it
-                ),
+                )
             )
         }
             .debounce(INPUT_DEBOUNCE)

@@ -88,7 +88,7 @@ fun SearchAssetsScreen(
             data?.assets == null -> {}
             data.assets.isEmpty() -> {
                 MarginVertical(margin = 16.dp)
-                EmptyMessage(message = R.string.common_search_assets_alert_description)
+                EmptyMessage(message = R.string.common_search_network_and_assets_alert_description)
             }
 
             else -> {

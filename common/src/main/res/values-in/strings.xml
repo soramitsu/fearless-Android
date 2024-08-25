@@ -271,8 +271,9 @@
   <string name="common_route">Rute</string>
   <string name="common_save">Simpan</string>
   <string name="common_search">Cari</string>
-  <string name="common_search_assets_alert_description">Tidak ada jaringan atau aset yang ditemukan :(</string>
+  <string name="common_search_assets_alert_description">Tidak ada aset yang ditemukan :(</string>
   <string name="common_search_assets_alert_title">Sumimasen!</string>
+  <string name="common_search_network_and_assets_alert_description">Tidak ada jaringan atau aset yang ditemukan :(</string>
   <string name="common_search_no_results">Tidak ada hasil pencarian. \n Pastikan Anda mengetikkan alamat akun lengkap</string>
   <string name="common_search_results_number">Hasil pencarian: %d</string>
   <string name="common_search_start_title">Hasil pencarian akan muncul di sini</string>

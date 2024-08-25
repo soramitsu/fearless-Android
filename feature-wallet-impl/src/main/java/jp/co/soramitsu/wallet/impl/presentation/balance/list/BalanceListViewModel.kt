@@ -329,9 +329,10 @@ class BalanceListViewModel @Inject constructor(
 
                 val screenModel =
                     if (successfulCollections.isEmpty() && chainsWithFailedRequests.isNotEmpty()) {
-                        withContext(Dispatchers.Main.immediate) {
-                            showError(resourceManager.getString(R.string.nft_load_error))
-                        }
+                        // todo move error state to the ndt list screen
+//                        withContext(Dispatchers.Main.immediate) {
+//                            showError(resourceManager.getString(R.string.nft_load_error))
+//                        }
 
                         ScreenModel.ReadyToRender(
                             result = successfulCollections,
@@ -339,11 +340,12 @@ class BalanceListViewModel @Inject constructor(
                             onItemClick = {}
                         )
                     } else {
-                        if (successfulCollections.isNotEmpty() && chainsWithFailedRequests.isNotEmpty()) {
-                            withContext(Dispatchers.Main.immediate) {
-                                showError("${resourceManager.getString(R.string.nft_load_error)} (${chainsWithFailedRequests.joinToString(", ")})")
-                            }
-                        }
+                        // todo move error state to the ndt list screen
+//                        if (successfulCollections.isNotEmpty() && chainsWithFailedRequests.isNotEmpty()) {
+//                            withContext(Dispatchers.Main.immediate) {
+//                                showError("${resourceManager.getString(R.string.nft_load_error)} (${chainsWithFailedRequests.joinToString(", ")})")
+//                            }
+//                        }
 
                         ScreenModel.ReadyToRender(
                             result = successfulCollections,

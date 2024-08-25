@@ -17,11 +17,17 @@ import jp.co.soramitsu.common.compose.theme.white30
 
 @Composable
 fun ScoreStar(score: Int, modifier: Modifier = Modifier) {
-    val (starRes, color) = when (score) {
-        in 0..33 -> R.drawable.ic_score_star_empty to warningOrange
-        in 33..66 -> R.drawable.ic_score_star_half to warningYellow
-        in 66..100 -> R.drawable.ic_score_star_full to greenText
-        else -> R.drawable.ic_score_star_empty to white30
+    val starRes = when (score) {
+        in 0..33 -> R.drawable.ic_score_star_empty
+        in 33..66 -> R.drawable.ic_score_star_half
+        in 66..100 -> R.drawable.ic_score_star_full
+        else -> R.drawable.ic_score_star_empty
+    }
+    val color = when (score) {
+        in 0..25 -> warningOrange
+        in 25..75 -> warningYellow
+        in 75..100 -> greenText
+        else -> white30
     }
 
     when {

@@ -22,7 +22,7 @@ android {
         }
 
         release {
-            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile%20v2.json\""
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/onboarding/mobile%20v2.json\""
         }
     }
 

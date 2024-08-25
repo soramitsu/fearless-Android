@@ -325,8 +325,8 @@ class WalletFeatureModule {
 
     @Provides
     @Singleton
-    fun provideXcmService(): XcmService {
-        return XcmService()
+    fun provideXcmService(chainRegistry: ChainRegistry): XcmService {
+        return XcmService(chainRegistry)
     }
 
     @Provides

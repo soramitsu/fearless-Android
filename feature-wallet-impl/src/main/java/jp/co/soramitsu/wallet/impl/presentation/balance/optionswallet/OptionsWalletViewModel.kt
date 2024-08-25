@@ -39,11 +39,12 @@ class OptionsWalletViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state: StateFlow<OptionsWalletScreenViewState> = selectedWallet.map {
-        OptionsWalletScreenViewState(it.id == walletId)
+
+        OptionsWalletScreenViewState(it.id == walletId, it.ethereumAddress != null)
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        OptionsWalletScreenViewState(true)
+        OptionsWalletScreenViewState(isSelected = true, showScoreButton = false)
     )
 
     override fun onChangeWalletNameClick() {
