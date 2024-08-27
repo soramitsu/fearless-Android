@@ -220,6 +220,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
                     internalPoolsRouter.back()
                     internalPoolsRouter.back()
                     internalPoolsRouter.openSuccessScreen(result, chainId, resourceManager.getString(R.string.lp_liquidity_add_complete_text))
+                    internalPoolsRouter.supplyLiquidityCompleted()
                 }
             }
         }.invokeOnCompletion {
