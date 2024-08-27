@@ -58,6 +58,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         .filterIsInstance<LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
         val ids = screenArgs.ids
         val chainId = poolsInteractor.poolsChainId
@@ -91,7 +92,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
             )
         }
 
-    val networkFeeFlow = combine(
+    private val networkFeeFlow = combine(
         screenArgsFlow,
         tokensInPoolFlow,
         stateSlippage,

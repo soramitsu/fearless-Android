@@ -112,7 +112,7 @@ class LiquidityAddPresenter @Inject constructor(
             )
         }
 
-    val networkFeeFlow = combine(
+    private val networkFeeFlow = combine(
         enteredBaseAmountFlow,
         enteredTargetAmountFlow,
         tokensInPoolFlow,
