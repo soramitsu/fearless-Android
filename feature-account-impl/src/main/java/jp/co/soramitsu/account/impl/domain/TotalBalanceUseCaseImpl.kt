@@ -18,6 +18,7 @@ import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
@@ -43,6 +44,7 @@ class TotalBalanceUseCaseImpl(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observe(metaId: Long?): Flow<TotalBalance> {
         return when (metaId) {
             null -> accountRepository.selectedLightMetaAccountFlow()
@@ -71,8 +73,10 @@ class TotalBalanceUseCaseImpl(
             runCatching { fiatSymbolsInAssets.maxBy { s -> filtered.count { it.token?.fiatSymbol == s } } }.getOrNull() ?: polkadotCurrency
 
         return filtered.fold(TotalBalance.Empty) { acc, current ->
-            val chainAsset = chainsById.getValue(current.asset.chainId).assets
-                .firstOrNull { it.id == current.asset.id }
+            val chainAsset = runCatching {
+                chainsById.getValue(current.asset.chainId).assets
+                    .firstOrNull { it.id == current.asset.id }
+            }.getOrNull()
                 ?: return@fold TotalBalance.Empty
 
             val total =
