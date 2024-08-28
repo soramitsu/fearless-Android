@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/drawable_background_image"
@@ -9,17 +8,23 @@
     android:backgroundTintMode="src_atop"
     android:orientation="vertical">
 
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/stakingBalanceToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:contentBackground="@color/blurColor"
+        app:dividerVisible="false"
+        app:titleText="@string/staking_balance_title" />
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/stakingBalanceSwipeRefresh"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <ScrollView
             android:id="@+id/stakingBalanceScrollingArea"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clipToPadding="false"
-            tools:paddingTop="56dp">
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -54,12 +59,4 @@
             </LinearLayout>
         </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/stakingBalanceToolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:contentBackground="@color/blurColor"
-        app:dividerVisible="false"
-        app:titleText="@string/staking_balance_title" />
-</FrameLayout>
+</LinearLayout>
