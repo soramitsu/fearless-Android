@@ -37,8 +37,8 @@ class AssetBalanceUseCaseImpl(
         val chainsById = chainsRepository.getChainsById()
 
         return assets.fold(AssetBalance.Empty) { acc, current ->
-            val chainAsset = chainsById.getValue(current.asset.chainId).assets
-                .firstOrNull { it.id == current.asset.id }
+            val chainAsset = chainsById.getOrDefault(current.asset.chainId, null)?.assets
+                ?.firstOrNull { it.id == current.asset.id }
                 ?: return@fold AssetBalance.Empty
 
             val currentAssetTransferable = current.asset.transferableInPlanks

@@ -243,7 +243,7 @@ class ValidatorViewState(
             .shareIn(scope, SharingStarted.Eagerly, replay = 1)
     },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
-    initialManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
+    initialManageActions = ManageStakeAction.entries.toSet() - ManageStakeAction.VALIDATORS
 ) {
     init {
         syncStakingRewards()
@@ -281,7 +281,7 @@ class StashNoneViewState(
             .shareIn(scope, SharingStarted.Eagerly, replay = 1)
     },
     statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
-    initialManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
+    initialManageActions = ManageStakeAction.entries.toSet() - ManageStakeAction.PAYOUTS
 ) {
     init {
         syncStakingRewards()
@@ -315,7 +315,7 @@ open class NominatorViewState(
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState) },
     statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
-    initialManageActions = ManageStakeAction.values().toSet()
+    initialManageActions = ManageStakeAction.entries.toSet()
 ) {
     init {
         syncStakingRewards()
