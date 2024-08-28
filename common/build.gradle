@@ -124,15 +124,15 @@ dependencies {
     implementation libs.coroutines.core
     implementation libs.lifecycle.livedata.ktx
     implementation libs.lifecycle.runtime.ktx
-
     implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.process
+    kapt libs.lifecycle.compiler
 
     implementation libs.hilt.android
     implementation libs.navigation.fragment.ktx
     kapt libs.hilt.compiler
 
-    implementation libs.lifecycle.process
-    kapt libs.lifecycle.compiler
+    implementation libs.play.services.base
 
     implementation libs.converter.gson
     implementation libs.converter.scalars

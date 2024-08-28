@@ -56,6 +56,7 @@ interface WelcomeScreenInterface {
 @Suppress("FunctionName")
 fun NavGraphBuilder.WelcomeScreen(
     welcomeStateFlow: StateFlow<WelcomeState>,
+    isGoogleAvailable: Boolean,
     callbacks: WelcomeScreenInterface
 ) {
     composable(WelcomeEvent.Onboarding.WelcomeScreen.route) {
@@ -63,6 +64,7 @@ fun NavGraphBuilder.WelcomeScreen(
 
         WelcomeScreenContent(
             state = state,
+            isGoogleAvailable = isGoogleAvailable,
             callbacks = callbacks
         )
     }
@@ -71,6 +73,7 @@ fun NavGraphBuilder.WelcomeScreen(
 @Composable
 private fun WelcomeScreenContent(
     state: WelcomeState,
+    isGoogleAvailable: Boolean,
     callbacks: WelcomeScreenInterface
 ) {
     Column(
@@ -117,12 +120,15 @@ private fun WelcomeScreenContent(
                 .height(48.dp),
             onClick = callbacks::importAccountClicked
         )
-        MarginVertical(margin = 8.dp)
-        GoogleButton(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            onClick = callbacks::googleSigninClicked
-        )
+
+        if (isGoogleAvailable) {
+            MarginVertical(margin = 8.dp)
+            GoogleButton(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp),
+                onClick = callbacks::googleSigninClicked
+            )
+        }
         if (state.preinstalledFeatureEnabled) {
             MarginVertical(margin = 8.dp)
             TransparentBorderedButton(
@@ -170,6 +176,7 @@ private fun WelcomeScreenPreview() {
     FearlessAppTheme {
         WelcomeScreenContent(
             state = WelcomeState(isBackVisible = true),
+            isGoogleAvailable = true,
             callbacks = object : WelcomeScreenInterface {
                 override fun backClicked() {}
                 override fun importAccountClicked() {}
