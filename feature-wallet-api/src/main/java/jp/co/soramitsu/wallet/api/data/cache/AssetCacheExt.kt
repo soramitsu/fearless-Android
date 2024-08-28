@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
@@ -17,6 +16,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import java.math.BigInteger
 
 suspend fun AssetCache.updateAsset(
     metaId: Long,
@@ -78,18 +78,18 @@ suspend fun AssetCache.updateAsset(
     }
 }
 
-suspend fun AssetCache.updateAsset(
-    metaId: Long,
-    accountId: AccountId,
-    chainAsset: Asset,
-    accountInfo: AccountInfo
-) = updateAsset(metaId, accountId, chainAsset, accountInfoUpdater(accountInfo))
+//suspend fun AssetCache.updateAsset(
+//    metaId: Long,
+//    accountId: AccountId,
+//    chainAsset: Asset,
+//    accountInfo: AccountInfo
+//) = updateAsset(metaId, accountId, chainAsset, accountInfoUpdater(accountInfo))
 
-suspend fun AssetCache.updateAsset(
-    accountId: AccountId,
-    chainAsset: Asset,
-    accountInfo: AccountInfo
-) = updateAsset(accountId, chainAsset, accountInfoUpdater(accountInfo))
+//suspend fun AssetCache.updateAsset(
+//    accountId: AccountId,
+//    chainAsset: Asset,
+//    accountInfo: AccountInfo
+//) = updateAsset(accountId, chainAsset, accountInfoUpdater(accountInfo))
 
 private fun accountInfoUpdater(accountInfo: AccountInfo) = { asset: AssetLocal ->
     val data = accountInfo.data

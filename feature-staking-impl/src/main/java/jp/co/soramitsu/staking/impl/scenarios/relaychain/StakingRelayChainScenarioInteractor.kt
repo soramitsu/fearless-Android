@@ -457,7 +457,7 @@ class StakingRelayChainScenarioInteractor(
         val activeEra = stakingRelayChainScenarioRepository.getActiveEraIndex(chain.id)
 
         newLedgerResult.onSuccess { stakingLedger ->
-            assetCache.updateAsset(accountId, chainAsset) { cached ->
+            assetCache.updateAsset(metaAccount.id, accountId, chainAsset) { cached ->
                 val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(activeEra) }
                 val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(activeEra) }
 
