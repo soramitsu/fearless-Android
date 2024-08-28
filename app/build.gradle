@@ -199,6 +199,7 @@ dependencies {
     kapt libs.lifecycle.compiler
 
     implementation libs.lifecycle.runtime.ktx
+    implementation libs.lifecycle.livedata.ktx
 
     implementation libs.converter.gson
 
@@ -211,8 +212,6 @@ dependencies {
     testImplementation project(':test-shared')
 
     implementation libs.insetter.widgets
-
-    implementation libs.lifecycle.livedata.ktx
 
     implementation libs.jna
     implementation libs.beacon.android.sdk, withoutJna
