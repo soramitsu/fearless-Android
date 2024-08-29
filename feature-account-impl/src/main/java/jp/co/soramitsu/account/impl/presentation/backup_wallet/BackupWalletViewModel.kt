@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -88,6 +89,7 @@ class BackupWalletViewModel @Inject constructor(
     private val refresh = MutableSharedFlow<Event<Unit>>()
     private val isAuthedToGoogle = MutableStateFlow(false)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val googleBackupType = refresh.flatMapLatest {
         googleBackupAddressFlow.map { backupAddress ->
 

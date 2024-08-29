@@ -3,6 +3,12 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_69_70 = object : Migration(69, 70) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DELETE FROM storage")
+    }
+}
+
 val Migration_68_69 = object : Migration(68, 69) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

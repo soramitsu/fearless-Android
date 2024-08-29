@@ -60,6 +60,7 @@ class StakingLedgerUpdater(
         val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
         val runtime = chainRegistry.getRuntime(chain.id)
 
+        val account = scope.getAccount()
         val currentAccountId = scope.getAccount().accountId(chain)!! // TODO ethereum
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
@@ -81,12 +82,12 @@ class StakingLedgerUpdater(
                     val stashId = it.ledger.stashId
                     val controllerId = it.controllerId
 
-                    updateAssetStaking(it.ledger.stashId, chainAsset, it.ledger, era)
+                    updateAssetStaking(account.id, it.ledger.stashId, chainAsset, it.ledger, era)
 
                     if (!stashId.contentEquals(controllerId)) {
-                        updateAssetStaking(controllerId, chainAsset, it.ledger, era)
+                        updateAssetStaking(account.id, controllerId, chainAsset, it.ledger, era)
                     }
-                } ?: updateAssetStakingForEmptyLedger(currentAccountId, chainAsset)
+                } ?: updateAssetStakingForEmptyLedger(account.id, currentAccountId, chainAsset)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
@@ -143,12 +144,13 @@ class StakingLedgerUpdater(
     }
 
     private suspend fun updateAssetStaking(
+        metaId: Long,
         accountId: AccountId,
         chainAsset: Asset,
         stakingLedger: StakingLedger,
         era: BigInteger
     ) {
-        assetCache.updateAsset(accountId, chainAsset) { cached ->
+        assetCache.updateAsset(accountId, metaId, chainAsset) { cached ->
             val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(era) }
             val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(era) }
 
@@ -161,10 +163,11 @@ class StakingLedgerUpdater(
     }
 
     private suspend fun updateAssetStakingForEmptyLedger(
+        metaId: Long,
         accountId: AccountId,
         chainAsset: Asset
     ) {
-        assetCache.updateAsset(accountId, chainAsset) { cached ->
+        assetCache.updateAsset(accountId, metaId, chainAsset) { cached ->
             cached.copy(
                 redeemableInPlanks = BigInteger.ZERO,
                 unbondingInPlanks = BigInteger.ZERO,

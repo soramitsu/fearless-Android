@@ -299,16 +299,11 @@ class WalletSyncService(
                                 }
                             }
                         }
-
+                        launch { metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id }) }
                         this
                     }.coroutineContext.job.join()
 
-                    coroutineScope {
-                        metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id })
-                        hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(
-                            metaAccounts
-                        )
-                    }
+                    hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(metaAccounts)
                 }
             }
             .launchIn(scope)

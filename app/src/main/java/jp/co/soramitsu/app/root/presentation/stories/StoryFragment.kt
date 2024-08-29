@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.presentation.stories
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -36,6 +37,7 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
 
     private var lastActionDown = 0L
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun initViews() {
         binding.storyCloseIcon.setOnClickListener { viewModel.backClicked() }
 

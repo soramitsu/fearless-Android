@@ -5,10 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -35,22 +31,20 @@ import jp.co.soramitsu.staking.impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess.SelectBlockProducersStep
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.staking.impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -58,6 +52,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class SetupStakingViewModel @Inject constructor(
@@ -82,7 +80,7 @@ class SetupStakingViewModel @Inject constructor(
 
     val isInputFocused = MutableStateFlow(false)
 
-    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.SetupStep>()
+    private val currentProcessState = setupStakingSharedState.getOrNull<SetupStakingProcess.SetupStep>()
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -167,7 +165,8 @@ class SetupStakingViewModel @Inject constructor(
 
     fun backClicked() {
         viewModelScope.launch {
-            setupStakingSharedState.set(currentProcessState.previous())
+            val previous = currentProcessState?.previous() ?: SetupStakingProcess.Initial(stakingSharedState.selectionItem.first().type)
+            setupStakingSharedState.set(previous)
 
             router.back()
         }
@@ -183,16 +182,13 @@ class SetupStakingViewModel @Inject constructor(
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
             feeConstructor = {
-                when (currentProcessState) {
-                    is SetupStakingProcess.SetupStep.Stash -> {
-                        interactor.getSelectedAccountProjection()?.address?.let { address ->
-                            setupStakingInteractor.estimateMaxSetupStakingFee(address)
-                        }.orZero()
-                    }
+                when (stakingSharedState.selectionItem.first().type) {
+                    StakingType.PARACHAIN -> setupStakingInteractor.estimateParachainFee()
+                    StakingType.RELAYCHAIN -> interactor.getSelectedAccountProjection()?.address?.let { address ->
+                        setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                    }.orZero()
 
-                    is SetupStakingProcess.SetupStep.Parachain -> {
-                        setupStakingInteractor.estimateParachainFee()
-                    }
+                    StakingType.POOL -> BigInteger.ZERO
                 }
             },
             onRetryCancelled = ::backClicked
@@ -251,12 +247,12 @@ class SetupStakingViewModel @Inject constructor(
         stakingType: Asset.StakingType
     ) {
         viewModelScope.launch {
-            val payload = when (stakingType) {
-                Asset.StakingType.PARACHAIN -> SetupStakingProcess.SetupStep.Payload.Parachain(newAmount, currentAccountAddress)
-                Asset.StakingType.RELAYCHAIN -> SetupStakingProcess.SetupStep.Payload.RelayChain(newAmount, rewardDestination, currentAccountAddress)
+            val nextStep = when (stakingType) {
+                Asset.StakingType.PARACHAIN -> SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Parachain(newAmount, currentAccountAddress))
+                Asset.StakingType.RELAYCHAIN -> SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.Relaychain(newAmount, rewardDestination, currentAccountAddress))
                 else -> error("")
             }
-            setupStakingSharedState.set(currentProcessState.next(payload))
+            setupStakingSharedState.set(nextStep)
 
             when (stakingType) {
                 Asset.StakingType.PARACHAIN -> router.openStartChangeCollators()

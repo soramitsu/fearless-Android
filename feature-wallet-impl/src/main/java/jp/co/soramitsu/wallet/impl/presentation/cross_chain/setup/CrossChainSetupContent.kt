@@ -1,12 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import android.graphics.drawable.Drawable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,13 +13,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AddressInput
 import jp.co.soramitsu.common.compose.component.AddressInputState
@@ -45,6 +41,7 @@ import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.feature_wallet_impl.R
+import java.math.BigDecimal
 
 data class CrossChainSetupViewState(
     val toolbarState: ToolbarViewState,
@@ -160,7 +157,7 @@ fun CrossChainSetupContent(
             MarginVertical(margin = 12.dp)
             if (showQuickInput) {
                 QuickInput(
-                    values = QuickAmountInput.values(),
+                    values = listOf(QuickAmountInput.P75, QuickAmountInput.P50, QuickAmountInput.P25).toTypedArray(),
                     onQuickAmountInput = {
                         keyboardController?.hide()
                         callback.onQuickAmountInput(it)

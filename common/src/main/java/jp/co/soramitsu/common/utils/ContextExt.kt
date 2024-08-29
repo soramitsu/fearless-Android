@@ -9,6 +9,7 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
+import com.google.android.gms.common.GoogleApiAvailability
 import jp.co.soramitsu.common.R
 
 fun Context.getDrawableCompat(@DrawableRes drawableRes: Int) =
@@ -50,3 +51,8 @@ fun Context.getColorFromAttr(
 
 @ColorInt
 fun Context.getPrimaryColor() = getColorFromAttr(R.attr.colorPrimary)
+
+fun Context.isGooglePlayServicesAvailable(): Boolean {
+    return GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) ==
+            com.google.android.gms.common.ConnectionResult.SUCCESS
+}

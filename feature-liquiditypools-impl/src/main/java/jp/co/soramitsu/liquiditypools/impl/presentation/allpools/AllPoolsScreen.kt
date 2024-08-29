@@ -153,6 +153,7 @@ fun AllPoolsScreen(state: AllPoolsState, callback: AllPoolsScreenInterface) {
                             }
                         }
                     }
+                    MarginVertical(margin = 16.dp)
                 }
             }
         }
