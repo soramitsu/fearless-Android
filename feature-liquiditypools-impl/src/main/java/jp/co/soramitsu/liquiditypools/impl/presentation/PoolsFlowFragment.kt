@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +48,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenWithRefresh
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddScreen
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddViewModel
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemoveScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm.LiquidityRemoveConfirmScreen
@@ -195,7 +197,8 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                 }
 
                 composable(LiquidityPoolsNavGraphRoute.LiquidityAddScreen.routeName) {
-                    val liquidityAddState by viewModel.liquidityAddScreenState.collectAsStateWithLifecycle()
+                    val viewModel = hiltViewModel<LiquidityAddViewModel>()
+                    val liquidityAddState by viewModel.stateFlow.collectAsStateWithLifecycle()
                     LiquidityAddScreen(liquidityAddState, viewModel)
                 }
 

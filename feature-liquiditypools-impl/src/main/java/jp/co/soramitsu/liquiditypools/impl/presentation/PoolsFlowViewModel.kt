@@ -15,9 +15,6 @@ import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsPresent
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenInterface
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsState
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItemState
-import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddCallbacks
-import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddPresenter
-import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddState
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmCallbacks
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmState
@@ -52,7 +49,6 @@ class PoolsFlowViewModel @Inject constructor(
     allPoolsPresenter: AllPoolsPresenter,
     poolListPresenter: PoolListPresenter,
     poolDetailsPresenter: PoolDetailsPresenter,
-    private val liquidityAddPresenter: LiquidityAddPresenter,
     liquidityAddConfirmPresenter: LiquidityAddConfirmPresenter,
     liquidityRemovePresenter: LiquidityRemovePresenter,
     liquidityRemoveConfirmPresenter: LiquidityRemoveConfirmPresenter,
@@ -60,13 +56,13 @@ class PoolsFlowViewModel @Inject constructor(
     private val internalPoolsRouter: InternalPoolsRouter,
     private val poolsRouter: LiquidityPoolsRouter
 ) : BaseViewModel(),
-    LiquidityAddCallbacks by liquidityAddPresenter,
     LiquidityAddConfirmCallbacks by liquidityAddConfirmPresenter,
     AllPoolsScreenInterface by allPoolsPresenter,
     PoolListScreenInterface by poolListPresenter,
     PoolDetailsCallbacks by poolDetailsPresenter,
     LiquidityRemoveCallbacks by liquidityRemovePresenter,
-    LiquidityRemoveConfirmCallbacks by liquidityRemoveConfirmPresenter {
+    LiquidityRemoveConfirmCallbacks by liquidityRemoveConfirmPresenter
+{
 
     val allPoolsScreenState: StateFlow<AllPoolsState> =
         allPoolsPresenter.createScreenStateFlow(coroutinesStore.uiScope)
@@ -76,9 +72,6 @@ class PoolsFlowViewModel @Inject constructor(
 
     val poolDetailsScreenState: StateFlow<PoolDetailsState> =
         poolDetailsPresenter.createScreenStateFlow(coroutinesStore.uiScope)
-
-    val liquidityAddScreenState: StateFlow<LiquidityAddState> =
-        liquidityAddPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
     val liquidityRemoveScreenState: StateFlow<LiquidityRemoveState> =
         liquidityRemovePresenter.createScreenStateFlow(coroutinesStore.uiScope)
@@ -176,7 +169,7 @@ class PoolsFlowViewModel @Inject constructor(
     }
 
     fun supplyLiquidityCompleted() {
-        liquidityAddPresenter.resetInputFields()
+//        liquidityAddPresenter.resetInputFields()
     }
 
     companion object {
