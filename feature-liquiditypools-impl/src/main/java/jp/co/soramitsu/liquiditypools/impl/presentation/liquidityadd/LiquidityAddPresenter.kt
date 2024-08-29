@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
@@ -93,14 +92,9 @@ class LiquidityAddPresenter @Inject constructor(
     private val _stateSlippage = MutableStateFlow(0.5)
     private val stateSlippage = _stateSlippage.asStateFlow()
 
-    private val resetFlow = MutableStateFlow(Event(Unit))
-
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.LiquidityAddScreen>()
         .distinctUntilChanged(areArgsEquivalent())
-        .onEach {
-            resetFlow.emit(Event(Unit))
-        }
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
     private val loadingAssetsInPoolFlow = MutableStateFlow<LoadingState<Pair<Asset, Asset>>>(LoadingState.Loading())
@@ -118,7 +112,7 @@ class LiquidityAddPresenter @Inject constructor(
             )
         }
 
-    val networkFeeFlow = combine(
+    private val networkFeeFlow = combine(
         enteredBaseAmountFlow,
         enteredTargetAmountFlow,
         tokensInPoolFlow,
@@ -215,17 +209,10 @@ class LiquidityAddPresenter @Inject constructor(
             }.launchIn(coroutineScope)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<LiquidityAddState> {
         subscribeState(coroutineScope)
 
-        return resetFlow.onEach {
-            amountTarget = BigDecimal.ZERO
-            amountBase = BigDecimal.ZERO
-            uiBaseAmountFlow.value = BigDecimal.ZERO
-            uiTargetAmountFlow.value = BigDecimal.ZERO
-        }.debounce(RESET_DEBOUNCE).flatMapLatest {
-            combine(
+        return combine(
                 poolFlow,
                 loadingAssetsInPoolFlow,
                 uiBaseAmountFlow,
@@ -292,8 +279,7 @@ class LiquidityAddPresenter @Inject constructor(
                     baseAmountInputViewState = baseAmountInputViewState,
                     targetAmountInputViewState = targetAmountInputViewState
                 )
-            }
-        }.stateIn(coroutineScope, SharingStarted.Lazily, LiquidityAddState())
+            }.stateIn(coroutineScope, SharingStarted.Lazily, LiquidityAddState())
     }
 
     private suspend fun updateAmounts() {
@@ -480,9 +466,17 @@ class LiquidityAddPresenter @Inject constructor(
                     old.ids.second == new.ids.second
         }
 
+    fun resetInputFields() {
+        coroutinesStore.uiScope.launch {
+            amountTarget = BigDecimal.ZERO
+            amountBase = BigDecimal.ZERO
+            uiBaseAmountFlow.value = BigDecimal.ZERO
+            uiTargetAmountFlow.value = BigDecimal.ZERO
+        }
+    }
+
     companion object {
         private const val INPUT_DEBOUNCE = 900L
-        private const val RESET_DEBOUNCE = 200L
         private const val DEBOUNCE_300 = 300L
     }
 }

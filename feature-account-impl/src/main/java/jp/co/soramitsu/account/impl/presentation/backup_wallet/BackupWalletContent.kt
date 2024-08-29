@@ -66,6 +66,7 @@ interface BackupWalletCallback {
 @Composable
 internal fun BackupWalletContent(
     state: BackupWalletState,
+    isGoogleAvailable: Boolean,
     callback: BackupWalletCallback
 ) {
 
@@ -115,7 +116,7 @@ internal fun BackupWalletContent(
                 )
                 SettingsDivider()
             }
-            if (state.isAuthedToGoogle) {
+            if (isGoogleAvailable && state.isAuthedToGoogle) {
                 if (state.isWalletSavedInGoogle) {
                     SettingsItem(
                         icon = painterResource(R.drawable.ic_google_24),
@@ -160,6 +161,7 @@ private fun PreviewBackupWalletContent() {
     FearlessAppTheme {
         BackupWalletContent(
             state = BackupWalletState.Empty,
+            isGoogleAvailable = true,
             callback = object : BackupWalletCallback {
                 override fun onBackClick() {}
                 override fun onShowMnemonicPhraseClick() {}

@@ -87,14 +87,12 @@ class AssetCache(
 
     suspend fun updateAsset(
         accountId: AccountId,
+        metaId: Long,
         chainAsset: Asset,
         builder: (local: AssetLocal) -> AssetLocal
     ) = withContext(dispatcher) {
-        val applicableMetaAccount = accountRepository.findMetaAccount(accountId)
+            updateAsset(metaId, accountId, chainAsset, builder)
 
-        applicableMetaAccount?.let {
-            updateAsset(it.id, accountId, chainAsset, builder)
-        }
     }
 
     suspend fun updateTokensPrice(

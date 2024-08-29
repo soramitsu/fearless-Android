@@ -24,6 +24,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
@@ -80,6 +81,7 @@ class AccountDataSourceImpl(
     /**
      * Fast lookup table for accessing account based on accountId
      */
+    @OptIn(DelicateCoroutinesApi::class)
     override val selectedAccountMapping = selectedMetaAccountFlow.map { metaAccount ->
         val mapping =
             metaAccount.chainAccounts.mapValuesTo(mutableMapOf<String, Account?>()) { (_, chainAccount) ->

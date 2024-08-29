@@ -17,6 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -33,6 +34,11 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
             }
         }
     }
+
+    private val isGoogleAvailable: Boolean
+        get() {
+            return context?.isGooglePlayServicesAvailable() == true
+        }
 
     override val viewModel: BackupWalletViewModel by viewModels()
 
@@ -55,6 +61,7 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
         BottomSheetScreen {
             BackupWalletContent(
                 state = state,
+                isGoogleAvailable = isGoogleAvailable,
                 callback = viewModel
             )
         }
@@ -69,8 +76,10 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.requestGoogleAuth.onEach {
-            viewModel.authorizeGoogle(launcher = launcher)
-        }.launchIn(viewLifecycleOwner.lifecycleScope)
+        if (isGoogleAvailable) {
+            viewModel.requestGoogleAuth.onEach {
+                viewModel.authorizeGoogle(launcher = launcher)
+            }.launchIn(viewLifecycleOwner.lifecycleScope)
+        }
     }
 }

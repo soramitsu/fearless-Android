@@ -45,7 +45,6 @@ import jp.co.soramitsu.common.compose.models.retrieveString
 import jp.co.soramitsu.common.presentation.InfoDialog
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
-import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenWithRefresh
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmScreen
@@ -131,6 +130,10 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                             title = it.title,
                             message = it.message
                         ).show(childFragmentManager)
+
+                    NavAction.SupplyLiquidityCompleted -> {
+                        viewModel.supplyLiquidityCompleted()
+                    }
                 }
             }.launchIn(this)
         }

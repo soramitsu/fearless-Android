@@ -74,6 +74,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_65_66
 import jp.co.soramitsu.coredb.migrations.Migration_66_67
 import jp.co.soramitsu.coredb.migrations.Migration_67_68
 import jp.co.soramitsu.coredb.migrations.Migration_68_69
+import jp.co.soramitsu.coredb.migrations.Migration_69_70
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -102,7 +103,7 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 69,
+    version = 70,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
@@ -195,6 +196,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_66_67)
                     .addMigrations(Migration_67_68)
                     .addMigrations(Migration_68_69)
+                    .addMigrations(Migration_69_70)
                     .build()
             }
             return instance!!
