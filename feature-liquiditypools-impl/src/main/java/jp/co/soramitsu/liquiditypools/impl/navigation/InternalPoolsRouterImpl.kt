@@ -26,7 +26,7 @@ class InternalPoolsRouterImpl(
         MutableSharedFlow<NavAction>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private val mutableRoutesFlow =
-        MutableSharedFlow<LiquidityPoolsNavGraphRoute>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<LiquidityPoolsNavGraphRoute>(onBufferOverflow = BufferOverflow.DROP_OLDEST, replay = 1)
 
     override fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute> = mutableRoutesFlow.onEach {
         routesStack.push(it)
