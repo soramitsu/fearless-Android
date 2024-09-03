@@ -59,6 +59,11 @@ android {
         buildConfigField "String", "OPMAINNET_API_KEY", readSecretInQuotes("FL_ANDROID_OPMAINNET_API_KEY")
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
+
+        buildConfigField "String", "OKX_PROJECT_ID", readSecretInQuotes("FL_ANDROID_OKX_PROJECT_ID")
+        buildConfigField "String", "OKX_API_KEY", readSecretInQuotes("FL_ANDROID_OKX_API_KEY")
+        buildConfigField "String", "OKX_SECRET", readSecretInQuotes("FL_ANDROID_OKX_SECRET")
+        buildConfigField "String", "OKX_PASSPHRASE", readSecretInQuotes("FL_ANDROID_OKX_PASSPHRASE")
     }
 
     buildTypes {

@@ -72,4 +72,8 @@ class RootInteractor(
     suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default) { pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
 
     suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default){ Web3Wallet.getPendingListOfSessionRequests(topic) }
+
+    suspend fun syncOkxAssets() {
+        walletRepository.getOkxSupportedAssets()
+    }
 }

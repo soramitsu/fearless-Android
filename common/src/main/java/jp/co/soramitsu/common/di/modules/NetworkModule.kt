@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.ktor.util.date.getTimeMillis
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -16,8 +17,12 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
+import jp.co.soramitsu.common.data.network.okx.OkxApi
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.formatTimeIso8601
+import jp.co.soramitsu.common.utils.hmacSHA256
+import jp.co.soramitsu.common.utils.toBase64
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.shared_utils.wsrpc.recovery.Reconnector
@@ -109,6 +114,42 @@ class NetworkModule {
             .build()
 
         return retrofit.create(NomisApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkxHttpClient(context: Context): OkxApi {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
+            .addInterceptor {
+                val timestamp = getTimeMillis().formatTimeIso8601()
+                val url = it.request().url.run { toString().removePrefix("$scheme://$host") }
+                val method = it.request().method
+                val signature = "$timestamp$method$url".hmacSHA256(BuildConfig.OKX_SECRET).toBase64()
+
+                val request = it.request().newBuilder().apply {
+                    addHeader("OK-ACCESS-PROJECT", BuildConfig.OKX_PROJECT_ID)
+                    addHeader("OK-ACCESS-KEY", BuildConfig.OKX_API_KEY)
+                    addHeader("OK-ACCESS-PASSPHRASE", BuildConfig.OKX_PASSPHRASE)
+                    addHeader("OK-ACCESS-TIMESTAMP", timestamp)
+                    addHeader("OK-ACCESS-SIGN", signature)
+                }.build()
+                it.proceed(request)
+            }
+            .retryOnConnectionFailure(true)
+
+        val gson = Gson()
+
+        val retrofit = Retrofit.Builder()
+            .client(builder.build())
+            .baseUrl("https://www.okx.com/api/v5/dex/aggregator/")
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        return retrofit.create(OkxApi::class.java)
     }
 
     @Provides

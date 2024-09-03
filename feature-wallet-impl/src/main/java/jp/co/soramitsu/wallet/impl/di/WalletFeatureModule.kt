@@ -100,6 +100,8 @@ import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
 import javax.inject.Named
 import javax.inject.Singleton
+import jp.co.soramitsu.common.data.network.okx.OkxApi
+import jp.co.soramitsu.coredb.dao.OkxDao
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -182,7 +184,9 @@ class WalletFeatureModule {
         extrinsicService: ExtrinsicService,
         @Named(REMOTE_STORAGE_SOURCE)
         remoteStorageSource: StorageDataSource,
-        pricesSyncService: PricesSyncService
+        pricesSyncService: PricesSyncService,
+        okxApi: OkxApi,
+        okxDao: OkxDao
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -200,7 +204,9 @@ class WalletFeatureModule {
         chainsRepository,
         extrinsicService,
         remoteStorageSource,
-        pricesSyncService
+        pricesSyncService,
+        okxApi,
+        okxDao
     )
 
     @Provides

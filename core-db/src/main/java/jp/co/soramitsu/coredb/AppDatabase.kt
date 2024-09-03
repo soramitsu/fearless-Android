@@ -17,6 +17,7 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
+import jp.co.soramitsu.coredb.dao.OkxDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.PoolDao
@@ -86,6 +87,8 @@ import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.BasicPoolLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
+import jp.co.soramitsu.coredb.model.OkxChainLocal
+import jp.co.soramitsu.coredb.model.OkxTokenLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
@@ -128,7 +131,9 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
         ChainTypesLocal::class,
         NomisWalletScoreLocal::class,
         BasicPoolLocal::class,
-        UserPoolLocal::class
+        UserPoolLocal::class,
+        OkxChainLocal::class,
+        OkxTokenLocal::class
     ]
 )
 @TypeConverters(
@@ -232,4 +237,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun nomisScoresDao(): NomisScoresDao
 
     abstract fun poolDao(): PoolDao
+
+    abstract fun okxDao(): OkxDao
 }

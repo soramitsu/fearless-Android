@@ -22,6 +22,7 @@ import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import javax.inject.Singleton
+import jp.co.soramitsu.coredb.dao.OkxDao
 import jp.co.soramitsu.coredb.dao.PoolDao
 
 @InstallIn(SingletonComponent::class)
@@ -120,5 +121,11 @@ class DbModule {
     @Singleton
     fun providePoolsDao(appDatabase: AppDatabase): PoolDao {
         return appDatabase.poolDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkxDao(appDatabase: AppDatabase): OkxDao {
+        return appDatabase.okxDao()
     }
 }

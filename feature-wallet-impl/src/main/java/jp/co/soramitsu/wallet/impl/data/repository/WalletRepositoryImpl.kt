@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.okx.OkxApi
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.bindString
@@ -25,11 +26,14 @@ import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.coredb.dao.OkxDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
+import jp.co.soramitsu.coredb.model.OkxChainLocal
+import jp.co.soramitsu.coredb.model.OkxTokenLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -95,7 +99,9 @@ class WalletRepositoryImpl(
     private val chainsRepository: ChainsRepository,
     private val extrinsicService: ExtrinsicService,
     private val remoteStorageSource: StorageDataSource,
-    private val pricesSyncService: PricesSyncService
+    private val pricesSyncService: PricesSyncService,
+    private val okxApi: OkxApi,
+    private val okxDao: OkxDao
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -424,6 +430,53 @@ class WalletRepositoryImpl(
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
+
+    override suspend fun getOkxSupportedAssets() {
+        try {
+            val okxResponse = okxApi.getSupportedChains()
+            val supportedByApp = chainsRepository.getChains().map { it.id }
+
+            val chains = okxResponse.data.filter {
+                it.chainId in supportedByApp
+            }.map {
+                OkxChainLocal(
+                    it.chainId,
+                    it.dexTokenApproveAddress
+                )
+            }
+
+            val current = okxDao.getSupportedChains()
+            val removed = current.minus(chains.toSet())
+
+            okxDao.deleteOkxChains(removed)
+            okxDao.insertOkxChains(chains)
+
+            getOkxTokens(chains)
+
+        } catch (e: Exception) {
+            println("!!! error ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun getOkxTokens(chains: List<OkxChainLocal>): List<OkxTokenLocal> {
+        val okxTokens = chains.map { chain ->
+            val response = okxApi.getAllTokens(chain.id)
+            response.data.map { item ->
+                OkxTokenLocal(
+                    chainId = chain.id,
+                    tokenContractAddress = item.tokenContractAddress
+                )
+            }
+        }.flatten()
+
+        val current = okxDao.getSupportedTokens()
+        val removed = current.minus(okxTokens.toSet())
+        okxDao.deleteOkxTokens(removed)
+        okxDao.insertOkxTokens(okxTokens)
+
+        return okxTokens
+    }
 
     override suspend fun getRemoteConfig(): Result<AppConfigRemote> {
         return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }

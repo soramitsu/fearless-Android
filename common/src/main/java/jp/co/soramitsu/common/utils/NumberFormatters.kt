@@ -105,6 +105,8 @@ fun Long.formatDateTime(): String = SimpleDateFormat.getDateInstance().format(Da
 
 fun Long.formatTime(): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(this))
 
+fun Long.formatTimeIso8601(): String = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(Date(this))
+
 fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern).apply {
     roundingMode = RoundingMode.FLOOR
 }

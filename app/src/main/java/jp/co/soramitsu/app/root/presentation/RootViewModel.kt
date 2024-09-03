@@ -76,6 +76,7 @@ class RootViewModel @Inject constructor(
             interactor.syncChainsConfigs().onFailure {
                 _showNoInternetConnectionAlert.value = Event(Unit)
             }
+            interactor.syncOkxAssets()
         }
     }
 
