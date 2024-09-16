@@ -61,6 +61,7 @@ wsVersion = "2.14"
 xNetworking = "0.2.5-temp7"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
+jnr-x86asm = "1.0.2"
 
 [libraries]
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
