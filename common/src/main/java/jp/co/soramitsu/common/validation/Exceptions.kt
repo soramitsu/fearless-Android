@@ -99,7 +99,10 @@ class NotEnoughResultedAmountToPayFeeException(resourceManager: ResourceManager)
     explanation = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_message)
 )
 
-class DeadRecipientEthereumException(resourceManager: ResourceManager) : ValidationException(
+class DeadRecipientEthereumException(resourceManager: ResourceManager) : ValidationWarning(
     resourceManager.getString(R.string.common_warning),
-    resourceManager.getString(R.string.wallet_send_eth_dead_recipient_message)
+    resourceManager.getString(R.string.wallet_send_eth_dead_recipient_message),
+    resourceManager.getString(R.string.common_proceed),
+    resourceManager.getString(R.string.common_cancel),
+    null
 )

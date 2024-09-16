@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.domain
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.common.utils.sumByBigDecimal
@@ -182,12 +183,15 @@ class ValidateTransferUseCaseImpl(
                     )
                 }
                 val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+                val destinationChainUtilityAsset = destinationChain.utilityAsset
+                val totalDestinationUtilityAssetBalanceInPlanks = kotlin.runCatching { destinationChainUtilityAsset?.let { walletRepository.getTotalBalance(it, destinationChain, destinationAccountId) } }.getOrNull().orZero()
                 val resultedBalance = (originAsset.freeInPlanks.positiveOrNull() ?: originTransferable) - (amountInPlanks + originFee + tip)
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + originFee + tip > originAvailable),
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (resultedBalance < originExistentialDeposit),
-                    TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance)
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
+                    TransferValidationResult.DeadRecipientEthereum to (!originAsset.token.configuration.isUtility && totalDestinationUtilityAssetBalanceInPlanks.isZero())
                 )
             }
 
