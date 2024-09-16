@@ -179,6 +179,8 @@ walletconnectBomDep = { module = "com.walletconnect:android-bom", version.ref = 
 walletconnectCoreDep = { module = "com.walletconnect:android-core" }
 walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
 
+jnr-x86asm = { module = "com.github.jnr:jnr-x86asm" }
+
 [bundles]
 compose = [
     "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
