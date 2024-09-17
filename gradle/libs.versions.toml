@@ -61,6 +61,7 @@ wsVersion = "2.14"
 xNetworking = "0.2.5-temp7"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
+jnrVersion = "1.0.2"
 
 [libraries]
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -178,6 +179,8 @@ web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 walletconnectBomDep = { module = "com.walletconnect:android-bom", version.ref = "walletconnectBom" }
 walletconnectCoreDep = { module = "com.walletconnect:android-core" }
 walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
+
+jnr-x86asm = { module = "com.github.jnr:jnr-x86asm", version.ref = "jnrVersion" }
 
 [bundles]
 compose = [

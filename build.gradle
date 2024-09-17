@@ -5,8 +5,8 @@ apply plugin: "org.sonarqube"
 buildscript {
     ext {
         // App version
-        versionName = '3.7.2'
-        versionCode = 201
+        versionName = '3.7.3'
+        versionCode = 204
 
         // SDK and tools
         compileSdkVersion = 34
@@ -51,8 +51,8 @@ allprojects {
         google()
         mavenLocal()
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
-        maven { url "https://jitpack.io" }
         mavenCentral()
+        maven { url "https://jitpack.io" }
 
         maven {
             url = readSecret("PAY_WINGS_REPOSITORY_URL")
