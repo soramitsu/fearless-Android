@@ -868,7 +868,9 @@ class SendSetupViewModel @Inject constructor(
         confirmedValidations.add(validationResult)
         if (validationResult.isExistentialDepositWarning) {
             sendAllToggleState.value = ToggleState.CONFIRMED
+            return
         }
+        onNextStep()
     }
 
     fun warningConfirmedSecond(validationResult: TransferValidationResult) {
