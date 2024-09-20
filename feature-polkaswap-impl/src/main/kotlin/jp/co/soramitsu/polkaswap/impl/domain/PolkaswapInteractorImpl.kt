@@ -7,15 +7,18 @@ import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.androidfoundation.format.isZero
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
-import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
+import jp.co.soramitsu.polkaswap.api.domain.models.OkxCrossChainSwapDetails
+import jp.co.soramitsu.polkaswap.api.domain.models.OkxCrossChainSwapDetailsRemote
+import jp.co.soramitsu.polkaswap.api.domain.models.OkxSwapDetails
+import jp.co.soramitsu.polkaswap.api.domain.models.PolkaswapSwapDetails
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.models.backStrings
@@ -28,6 +31,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.OkxTokenModel
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlin.coroutines.CoroutineContext
@@ -130,7 +134,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         desired: WithDesired,
         slippageTolerance: Double,
         market: Market
-    ): Result<SwapDetails?> = withContext(coroutineContext) {
+    ): Result<PolkaswapSwapDetails?> = withContext(coroutineContext) {
         val polkaswapUtilityAssetId = chainsRepository.getChain(polkaswapChainId).utilityAsset?.id
         val feeAsset = requireNotNull(polkaswapUtilityAssetId?.let { getAsset(it) })
 
@@ -184,7 +188,7 @@ class PolkaswapInteractorImpl @Inject constructor(
             polkaswapAssets.firstOrNull { it.currencyId == routeId }?.symbol ?: "?"
         }?.uppercase()
 
-        val details = SwapDetails(
+        val details = PolkaswapSwapDetails(
             amount = swapQuote.amount,
             minMax = minMax,
             fromTokenOnToToken = fromTokenOnToToken,
@@ -299,5 +303,147 @@ class PolkaswapInteractorImpl @Inject constructor(
             WithDesired.INPUT
         )
         return@withContext feeAsset.token.configuration.amountFromPlanks(fee)
+    }
+
+    override suspend fun getOkxSwap(
+        fromOkxToken: OkxTokenModel,
+        toOkxToken: OkxTokenModel,
+        amount: String,
+        slippage: String,
+        userWalletAddress: String,
+    ): Result<OkxSwapDetails?> {
+        val fromAsset = walletRepository.getOkxChains().firstOrNull {
+            it.id == fromOkxToken.chainId
+        }?.assets?.firstOrNull {
+            it.id == fromOkxToken.assetId
+        } ?: return Result.success(null)
+
+        val toAsset = walletRepository.getOkxChains().firstOrNull {
+            it.id == toOkxToken.chainId
+        }?.assets?.firstOrNull {
+            it.id == toOkxToken.assetId
+        } ?: return Result.success(null)
+
+        val okxSwapResponse = walletRepository.getOkxSwap(
+            chainId = fromOkxToken.chainId,
+            amount = amount,
+            fromTokenAddress = fromOkxToken.address,
+            toTokenAddress = toOkxToken.address,
+            slippage = slippage,
+            userWalletAddress = userWalletAddress,
+        )
+
+        val details = okxSwapResponse.data.firstOrNull() ?: return Result.success(null)
+
+        val fromAmountDecimal = fromAsset.amountFromPlanks(details.routerResult.fromTokenAmount.toBigInteger())
+        val toAmountDecimal = toAsset.amountFromPlanks(details.routerResult.toTokenAmount.toBigInteger())
+
+        val fromTokenOnToToken = if (fromAmountDecimal.isZero()) {
+            BigDecimal.ZERO
+        } else {
+            toAmountDecimal.divide(fromAmountDecimal, fromAsset.precision, RoundingMode.HALF_EVEN)
+        }
+        val toTokenOnFromToken = if (toAmountDecimal.isZero()) {
+            BigDecimal.ZERO
+        } else {
+            fromAmountDecimal.divide(toAmountDecimal, toAsset.precision, RoundingMode.HALF_EVEN)
+        }
+
+        val metaId = accountRepository.getSelectedMetaAccount().id
+        val okxFeeAsset = walletRepository.getAssets(metaId).firstOrNull {
+            it.token.configuration.chainId == toAsset.chainId && it.token.configuration.symbol.lowercase() == "eth"
+        } ?: return Result.success(null)
+
+        return Result.success(
+            OkxSwapDetails(
+                fromTokenAmount = details.routerResult.fromTokenAmount,
+                toTokenAmount = details.routerResult.toTokenAmount,
+                minmumReceive = details.routerResult.fromTokenAmount,
+                routerList = details.routerResult.dexRouterList,
+                tx = details.tx,
+                fromTokenOnToToken = fromTokenOnToToken,
+                toTokenOnFromToken = toTokenOnFromToken,
+                feeAsset = okxFeeAsset
+            )
+        )
+    }
+
+    override suspend fun crossChainBuildTx(
+        fromOkxToken: OkxTokenModel,
+        toOkxToken: OkxTokenModel,
+        amount: String,
+        sort: Int?, // 0 - default
+        slippage: String,  // 0.002 - 0.5
+        userWalletAddress: String,
+    ): Result<OkxCrossChainSwapDetails?> {
+        val fromAsset = walletRepository.getOkxChains().firstOrNull {
+            it.id == fromOkxToken.chainId
+        }?.assets?.firstOrNull {
+            it.id == fromOkxToken.assetId
+        } ?: return Result.success(null)
+
+        val toAsset = walletRepository.getOkxChains().firstOrNull {
+            it.id == toOkxToken.chainId
+        }?.assets?.firstOrNull {
+            it.id == toOkxToken.assetId
+        } ?: return Result.success(null)
+
+        val crossChainBuildTx = walletRepository.crossChainBuildTx(
+            fromChainId = fromOkxToken.chainId,
+            toChainId = toOkxToken.chainId,
+            fromTokenAddress = fromOkxToken.address,
+            toTokenAddress = toOkxToken.address,
+            amount = amount,
+            sort = sort,
+            slippage = slippage,
+            userWalletAddress = userWalletAddress,
+        )
+
+        val details = crossChainBuildTx.data.firstOrNull()?.let {
+            OkxCrossChainSwapDetailsRemote(
+                it.fromTokenAmount,
+                it.toTokenAmount,
+                it.minmumReceive,
+                it.router,
+                it.tx
+            )
+        } ?: return Result.success(null)
+
+//        details.router.crossChainFee
+//
+//        walletRepository.
+
+
+        val fromAmountDecimal = fromAsset.amountFromPlanks(details.fromTokenAmount.toBigInteger())
+        val toAmountDecimal = toAsset.amountFromPlanks(details.toTokenAmount.toBigInteger())
+
+        val fromTokenOnToToken = if (fromAmountDecimal.isZero()) {
+            BigDecimal.ZERO
+        } else {
+            toAmountDecimal.divide(fromAmountDecimal, fromAsset.precision, RoundingMode.HALF_EVEN)
+        }
+        val toTokenOnFromToken = if (toAmountDecimal.isZero()) {
+            BigDecimal.ZERO
+        } else {
+            fromAmountDecimal.divide(toAmountDecimal, toAsset.precision, RoundingMode.HALF_EVEN)
+        }
+
+        val metaId = accountRepository.getSelectedMetaAccount().id
+        val okxFeeAsset = walletRepository.getAssets(metaId).firstOrNull {
+            it.token.configuration.chainId == toAsset.chainId && it.token.configuration.symbol.lowercase() == "eth"
+        } ?: return Result.success(null)
+
+        return Result.success(
+            OkxCrossChainSwapDetails(
+                fromTokenAmount = details.fromTokenAmount,
+                toTokenAmount = details.toTokenAmount,
+                minmumReceive = details.minmumReceive,
+                router = details.router,
+                tx = details.tx,
+                fromTokenOnToToken = fromTokenOnToToken,
+                toTokenOnFromToken = toTokenOnFromToken,
+                feeAsset = okxFeeAsset
+            )
+        )
     }
 }

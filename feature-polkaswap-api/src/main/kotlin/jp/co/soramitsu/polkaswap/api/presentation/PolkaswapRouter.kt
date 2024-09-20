@@ -9,9 +9,16 @@ import kotlinx.coroutines.flow.Flow
 interface PolkaswapRouter {
 
     fun openSelectAsset(
-        chainId: ChainId,
+        chainId: ChainId?,
         selectedAssetId: String?,
         excludeAssetId: String?
+    )
+
+    fun openSelectAsset(
+        chainId: ChainId?,
+        selectedAssetId: String?,
+        excludeAssetId: String?,
+        swapQuickChains: List<ChainId>
     )
 
     fun <T> observeResult(key: String): Flow<T>

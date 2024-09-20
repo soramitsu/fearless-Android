@@ -236,6 +236,7 @@ class LiquidityAddPresenter @Inject constructor(
                     val totalBaseBalance = resourceManager.getString(R.string.common_available_format, argsBase)
 
                     AmountInputViewState(
+                        chainName = assetBase.token.configuration.chainName,
                         tokenName = assetBase.token.configuration.symbol,
                         tokenImage = assetBase.token.configuration.iconUrl,
                         totalBalance = totalBaseBalance,
@@ -255,6 +256,7 @@ class LiquidityAddPresenter @Inject constructor(
                     val totalTargetBalance = resourceManager.getString(R.string.common_available_format, argsTarget)
 
                     AmountInputViewState(
+                        chainName = assetTarget.token.configuration.chainName,
                         tokenName = assetTarget.token.configuration.symbol,
                         tokenImage = assetTarget.token.configuration.iconUrl,
                         totalBalance = totalTargetBalance,

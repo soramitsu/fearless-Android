@@ -189,12 +189,12 @@ class BalanceDetailViewModel @Inject constructor(
         transactionHistoryProvider.state()
 
     private val defaultState = BalanceDetailsState(
-        LoadingState.Loading(),
-        LoadingState.Loading(),
-        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
-        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
-        TransactionHistoryUi.State.EmptyProgress,
-        false
+        actionBarViewState = LoadingState.Loading(),
+        balance = LoadingState.Loading(),
+        transferableViewState = TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
+        lockedViewState = TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
+        transactionHistory = TransactionHistoryUi.State.EmptyProgress,
+        filtersEnabled = false
     )
 
     val state: MutableStateFlow<BalanceDetailsState>  = MutableStateFlow(defaultState)
@@ -383,7 +383,13 @@ class BalanceDetailViewModel @Inject constructor(
         if (isBuyEnabled()) {
             actionItems += ActionItemType.BUY
         }
-        if (selectedChainId in listOf(soraMainChainId, soraTestChainId)) {
+        val okxAssetsIdPairs = interactor.getOkxAssets().map {
+            it.chainId to it.id
+        }
+
+        val isSupportedByOkx = asset.token.configuration.run { chainId to id } in okxAssetsIdPairs
+
+        if (isSupportedByOkx || selectedChainId in listOf(soraMainChainId, soraTestChainId)) {
             actionItems += ActionItemType.SWAP
         }
         return actionItems

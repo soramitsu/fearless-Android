@@ -145,7 +145,7 @@ class NetworkModule {
 
         val retrofit = Retrofit.Builder()
             .client(builder.build())
-            .baseUrl("https://www.okx.com/api/v5/dex/aggregator/")
+            .baseUrl("https://www.okx.com/api/v5/dex/")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 

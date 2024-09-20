@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +75,6 @@ class RootInteractor(
     suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default){ Web3Wallet.getPendingListOfSessionRequests(topic) }
 
     suspend fun syncOkxAssets() {
-        walletRepository.getOkxSupportedAssets()
+        walletRepository.fetchOkxSupportedAssets()
     }
 }

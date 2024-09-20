@@ -135,6 +135,7 @@ private fun CBDCSendSetupPreview() {
         toolbarState = ToolbarViewState("Send Fund", R.drawable.ic_arrow_left_24),
         addressInputState = AddressInputState("Send to", "", ""),
         amountInputState = AmountInputViewState(
+            "CBDC chain",
             "KSM",
             "",
             "1003 KSM",

@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -57,27 +60,30 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.warningOrange
+import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
+import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensViewModel.SwapType.OKX_CROSS_CHAIN
+import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensViewModel.SwapType.OKX_SWAP
+import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensViewModel.SwapType.POLKASWAP
 import kotlinx.coroutines.delay
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
     val toAmountInputViewState: AmountInputViewState,
     val selectedMarket: Market,
-    val swapDetailsViewState: SwapDetailsViewState?,
+    val detailInfosViewStates: List<FeeInfoViewState>?,
     val isLoading: Boolean,
     val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
     val showLiquidityBanner: Boolean,
     val hasReadDisclaimer: Boolean,
-    val isSoftKeyboardOpen: Boolean
+    val isSoftKeyboardOpen: Boolean,
+    val swapType: SwapTokensViewModel.SwapType?
 ) {
     companion object {
 
@@ -86,12 +92,13 @@ data class SwapTokensContentViewState(
                 fromAmountInputViewState = AmountInputViewState.defaultObj.copy(totalBalance = resourceManager.getString(R.string.common_available_format, "0")),
                 toAmountInputViewState = AmountInputViewState.defaultObj.copy(totalBalance = resourceManager.getString(R.string.common_balance_format, "0")),
                 selectedMarket = Market.SMART,
-                swapDetailsViewState = null,
+                detailInfosViewStates = null,
                 isLoading = false,
                 networkFeeViewState = LoadingState.Loaded(null),
                 showLiquidityBanner = true,
                 hasReadDisclaimer = false,
-                isSoftKeyboardOpen = false
+                isSoftKeyboardOpen = false,
+                swapType = null
             )
         }
     }
@@ -119,9 +126,11 @@ interface SwapTokensCallbacks {
 
     fun onToAmountFocusChange(isFocused: Boolean)
 
-    fun minMaxToolTopClick()
+    fun minMaxToolTipClick()
 
     fun networkFeeTooltipClick()
+
+    fun minReceivedTooltipClick()
 
     fun onQuickAmountInput(value: Double)
 
@@ -160,38 +169,17 @@ fun SwapTokensContent(
         callbacks.onChangeTokensClick()
     }
 
-    val isFromFocused = state.fromAmountInputViewState.isFocused && !state.fromAmountInputViewState.tokenName.isNullOrEmpty()
+    val isFromFocused = state.fromAmountInputViewState.isFocused && !state.fromAmountInputViewState.undefined
     val showQuickInput = isFromFocused && state.isSoftKeyboardOpen
 
     Column(
         modifier = modifier
     ) {
-        Row(
-            modifier = Modifier.padding(bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            NavigationIconButton(
-                modifier = Modifier.padding(start = 16.dp),
-                onNavigationClick = callbacks::onBackClick
-            )
-
-            Image(
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .size(
-                        width = 100.dp,
-                        height = 28.dp
-                    ),
-                painter = painterResource(R.drawable.logo_polkaswap_big),
-                contentDescription = null
-            )
-            Spacer(modifier = Modifier.weight(1f))
-
-            MarketLabel(
-                modifier = Modifier.padding(end = 16.dp),
-                market = state.selectedMarket,
-                onClick = { runCallback(callbacks::onMarketSettingsClick) }
-            )
+        when (state.swapType) {
+            POLKASWAP -> PolkaswapToolbar(callbacks, state, runCallback)
+            OKX_SWAP -> OKXToolbar(callbacks)
+            OKX_CROSS_CHAIN -> OKXToolbar(callbacks)
+            null -> {}
         }
         FullScreenLoading(isLoading = state.isLoading) {
             Column {
@@ -229,27 +217,37 @@ fun SwapTokensContent(
                             )
                         }
 
-                        Icon(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(grayButtonBackground)
-                                .border(width = 1.dp, color = white08, shape = CircleShape)
-                                .clickable { runCallback(::onChangeTokensClick) }
-                                .padding(8.dp),
-                            painter = painterResource(R.drawable.ic_exchange),
-                            contentDescription = null,
-                            tint = colorAccentDark
-                        )
+                        Column {
+                            if (state.toAmountInputViewState.undefined) {
+                                MarginVertical(margin = 26.dp)
+                            }
+                            Icon(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(colorAccentDark)
+                                    .border(width = 1.dp, color = white08, shape = CircleShape)
+                                    .clickable { runCallback(::onChangeTokensClick) }
+                                    .padding(7.dp),
+                                painter = painterResource(R.drawable.ic_exchange_swap),
+                                contentDescription = null,
+                                tint = white
+                            )
+                            if (state.fromAmountInputViewState.undefined) {
+                                MarginVertical(margin = 26.dp)
+                            }
+                        }
                     }
 
-                    if (state.swapDetailsViewState != null) {
-                        TransactionDescription(
-                            swapDetailsViewState = state.swapDetailsViewState,
-                            networkFeeViewState = state.networkFeeViewState,
-                            callbacks = callbacks
-                        )
+                    if (state.detailInfosViewStates != null) {
+                        state.detailInfosViewStates.map {
+                            FeeInfo(
+                                state = it,
+                                tooltipClick = it.onToolTip
+                            )
+                        }
                     }
-                    if (state.showLiquidityBanner && state.isSoftKeyboardOpen.not()) {
+
+                    if (state.swapType == POLKASWAP && state.showLiquidityBanner && state.isSoftKeyboardOpen.not()) {
                         Spacer(modifier = Modifier.weight(1f))
 
                         Banners(
@@ -258,7 +256,7 @@ fun SwapTokensContent(
                             callback = callbacks
                         )
                     }                }
-                if (state.hasReadDisclaimer.not()) {
+                if (state.swapType == POLKASWAP && state.hasReadDisclaimer.not()) {
                     Box(modifier = modifier.padding(horizontal = 16.dp)) {
                         Notification(
                             state = NotificationState(
@@ -280,7 +278,7 @@ fun SwapTokensContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     text = stringResource(R.string.common_preview),
-                    enabled = state.swapDetailsViewState != null,
+                    enabled = state.detailInfosViewStates != null,
                     onClick = { runCallback(callbacks::onPreviewClick) }
                 )
                 MarginVertical(margin = 8.dp)
@@ -300,70 +298,57 @@ fun SwapTokensContent(
 }
 
 @Composable
-private fun TransactionDescription(
-    swapDetailsViewState: SwapDetailsViewState,
-    networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
-    modifier: Modifier = Modifier,
-    callbacks: SwapTokensCallbacks
-) {
-    Column(
-        modifier = modifier
+private fun OKXToolbar(callbacks: SwapTokensCallbacks) {
+    Row(
+        modifier = Modifier.padding(bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        FeeInfo(
-            modifier = Modifier.padding(top = 8.dp),
-            state = FeeInfoViewState(
-                caption = swapDetailsViewState.minmaxTitle,
-                feeAmount = swapDetailsViewState.toTokenMinReceived,
-                feeAmountFiat = swapDetailsViewState.toFiatMinReceived,
-                tooltip = true
-            ),
-            tooltipClick = callbacks::minMaxToolTopClick
+        NavigationIconButton(
+            modifier = Modifier.padding(start = 16.dp),
+            onNavigationClick = callbacks::onBackClick
         )
 
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = stringResource(R.string.common_route),
-                feeAmount = swapDetailsViewState.route,
-                feeAmountFiat = null
-            )
-        )
-
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = "${swapDetailsViewState.fromTokenName} / ${swapDetailsViewState.toTokenName}",
-                feeAmount = swapDetailsViewState.fromTokenOnToToken,
-                feeAmountFiat = null
-            )
-        )
-
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = "${swapDetailsViewState.toTokenName} / ${swapDetailsViewState.fromTokenName}",
-                feeAmount = swapDetailsViewState.toTokenOnFromToken,
-                feeAmountFiat = null
-            )
-        )
-
-        when {
-            networkFeeViewState is LoadingState.Loading -> FeeInfo(
-                state = FeeInfoViewState(
-                    caption = stringResource(R.string.common_network_fee),
-                    feeAmount = null,
-                    feeAmountFiat = null,
-                    tooltip = true
+        Image(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .size(
+                    width = 66.dp,
+                    height = 29.dp
                 ),
-                tooltipClick = callbacks::networkFeeTooltipClick
-            )
-            networkFeeViewState is LoadingState.Loaded && networkFeeViewState.dataOrNull() != null -> FeeInfo(
-                state = FeeInfoViewState(
-                    caption = stringResource(R.string.common_network_fee),
-                    feeAmount = networkFeeViewState.dataOrNull()?.tokenAmount,
-                    feeAmountFiat = networkFeeViewState.dataOrNull()?.fiatAmount,
-                    tooltip = true
+            painter = painterResource(R.drawable.logo_okx),
+            contentDescription = null
+        )
+    }
+}
+
+@Composable
+private fun PolkaswapToolbar(callbacks: SwapTokensCallbacks, state: SwapTokensContentViewState, runCallback: (() -> Unit) -> Unit) {
+    Row(
+        modifier = Modifier.padding(bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        NavigationIconButton(
+            modifier = Modifier.padding(start = 16.dp),
+            onNavigationClick = callbacks::onBackClick
+        )
+
+        Image(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .size(
+                    width = 100.dp,
+                    height = 28.dp
                 ),
-                tooltipClick = callbacks::networkFeeTooltipClick
-            )
-        }
+            painter = painterResource(R.drawable.logo_polkaswap_big),
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.weight(1f))
+
+        MarketLabel(
+            modifier = Modifier.padding(end = 16.dp),
+            market = state.selectedMarket,
+            onClick = { runCallback(callbacks::onMarketSettingsClick) }
+        )
     }
 }
 
@@ -485,20 +470,22 @@ fun SwapTokensContentPreview() {
         val amountInputViewState = AmountInputViewState(
             tokenAmount = BigDecimal.ZERO,
             title = "title",
+            chainName = "chainName",
             tokenName = "tokenName",
-            fiatAmount = "fialtAmount",
+            fiatAmount = "fiatAmount",
             totalBalance = "totalBalance"
         )
         val state = SwapTokensContentViewState(
             fromAmountInputViewState = amountInputViewState.copy(title = "From title"),
-            toAmountInputViewState = amountInputViewState.copy(title = "To title"),
+            toAmountInputViewState = amountInputViewState.copy(title = "To title", tokenName = null),
             selectedMarket = Market.SMART,
-            swapDetailsViewState = null,
+            detailInfosViewStates = null,
             isLoading = false,
             networkFeeViewState = LoadingState.Loading(),
             showLiquidityBanner = true,
             hasReadDisclaimer = false,
-            isSoftKeyboardOpen = false
+            isSoftKeyboardOpen = false,
+            swapType = POLKASWAP
         )
         val callbacks = object : SwapTokensCallbacks {
             override fun onChangeTokensClick() {}
@@ -511,8 +498,9 @@ fun SwapTokensContentPreview() {
             override fun onToTokenSelect() {}
             override fun onFromAmountFocusChange(isFocused: Boolean) {}
             override fun onToAmountFocusChange(isFocused: Boolean) {}
-            override fun minMaxToolTopClick() {}
+            override fun minMaxToolTipClick() {}
             override fun networkFeeTooltipClick() {}
+            override fun minReceivedTooltipClick() {}
             override fun onQuickAmountInput(value: Double) {}
             override fun onDisclaimerClick() {}
             override fun onPoolsClick() {}

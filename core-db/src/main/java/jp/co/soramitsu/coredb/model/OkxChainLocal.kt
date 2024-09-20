@@ -17,5 +17,9 @@ data class OkxChainLocal(
 )
 data class OkxTokenLocal(
     val chainId: String,
-    val tokenContractAddress: String
+    val symbol: String,
+    val tokenLogoUrl: String,
+    val tokenName: String,
+    val tokenContractAddress: String,
+    val decimals: String
 )

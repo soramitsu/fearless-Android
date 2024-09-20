@@ -15,6 +15,9 @@ val Migration_71_72 = object : Migration(71, 72) {
         db.execSQL("""
             CREATE TABLE IF NOT EXISTS `okx_tokens` (
             `chainId` TEXT NOT NULL, 
+            `symbol` TEXT NOT NULL, 
+            `tokenLogoUrl` TEXT NOT NULL, 
+            `tokenName` TEXT NOT NULL, 
             `tokenContractAddress` TEXT NOT NULL, 
             PRIMARY KEY(`chainId`, `tokenContractAddress`))
         """.trimIndent())

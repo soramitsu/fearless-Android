@@ -297,6 +297,7 @@ private fun SendSetupPreview() {
         toolbarState = ToolbarViewState("Send Fund", R.drawable.ic_arrow_left_24),
         addressInputState = AddressInputWithScore.Filled("Send to...", "0x23j2rf3bh8384j938", "", 100),
         amountInputState = AmountInputViewState(
+            "Chain name",
             "KSM",
             "",
             "1003 KSM",

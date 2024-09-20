@@ -2,29 +2,38 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.assetselector
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.CorneredInput
@@ -33,28 +42,34 @@ import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.Shimmer
+import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.gray2
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 data class AssetSelectScreenViewState(
+    val chains: List<ChainItemState>,
     val assets: List<AssetItemState>,
     val selectedAssetId: String? = null,
     val searchQuery: String? = null,
     val showAllChains: Boolean = true
 ) {
     companion object {
-        val default = AssetSelectScreenViewState(emptyList())
+        val default = AssetSelectScreenViewState(emptyList(), emptyList())
     }
 }
 
 interface AssetSelectContentInterface {
     fun onAssetSelected(assetItemState: AssetItemState)
     fun onSearchInput(input: String)
+    fun onChainSelected(chainId: ChainId)
+    fun onCloseClick()
 }
 
 @Composable
@@ -64,27 +79,60 @@ fun AssetSelectContent(
 ) {
     Column(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
+            .nestedScroll(rememberNestedScrollInteropConnection())
             .fillMaxWidth()
     ) {
-        H3(
-            text = stringResource(id = R.string.common_select_asset),
-            modifier = Modifier.align(CenterHorizontally)
+        MarginVertical(margin = 8.dp)
+        ToolbarBottomSheet(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            title = stringResource(id = R.string.common_select_token),
+            onCloseClick = callback::onCloseClick
         )
-        MarginVertical(margin = 16.dp)
-        CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(id = R.string.assets_search_hint))
+        MarginVertical(margin = 12.dp)
+
+        if (state.chains.size > 1) {
+            LazyRow(
+                modifier = Modifier.padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp)
+            ) {
+                items(state.chains) { chain ->
+                    SubcomposeAsyncImage(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clickableWithNoIndication {
+                                callback.onChainSelected(chain.id)
+                            },
+                        model = getImageRequest(LocalContext.current, chain.imageUrl),
+                        contentDescription = null,
+                        loading = { Shimmer(Modifier.size(40.dp)) },
+                        colorFilter = ColorFilter.tint(white50).takeIf { chain.selected.not() }
+                    )
+                }
+            }
+        }
+
+        CorneredInput(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            state = state.searchQuery,
+            onInput = callback::onSearchInput,
+            hintLabel = stringResource(id = R.string.assets_search_hint)
+        )
         if (state.assets.isEmpty()) {
             MarginVertical(margin = 16.dp)
-            Column(
-                horizontalAlignment = CenterHorizontally,
-                modifier = Modifier
-                    .weight(1f)
-                    .align(CenterHorizontally)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Center
             ) {
                 EmptyResultContent()
             }
         } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
+            MarginVertical(margin = 4.dp)
+            LazyColumn(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .weight(1f)
+            ) {
                 items(state.assets.map { it.copy(isSelected = it.id == state.selectedAssetId) }) { chain ->
                     AssetItem(
                         state = chain,
@@ -100,6 +148,7 @@ fun AssetSelectContent(
 @Composable
 fun EmptyResultContent() {
     Column(
+        modifier = Modifier.padding(bottom = 112.dp),
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -110,11 +159,18 @@ fun EmptyResultContent() {
         )
         H3(text = stringResource(id = R.string.common_search_assets_alert_title))
         B0(
-            text = stringResource(id = R.string.common_search_network_and_assets_alert_description),
+            text = stringResource(id = R.string.common_search_assets_alert_description),
             color = gray2
         )
     }
 }
+
+data class ChainItemState(
+    val id: String,
+    val imageUrl: String,
+    val rank: Int?,
+    val selected: Boolean = false
+)
 
 data class AssetItemState(
     val id: String,
@@ -208,7 +264,15 @@ private fun SelectAssetScreenPreview() {
             chainId = ""
         )
     )
+    val chains = listOf(
+        ChainItemState("1", "", 1, false),
+        ChainItemState("2", "", 2, false),
+        ChainItemState("3", "", 3, true),
+        ChainItemState("4", "", 4, false),
+    )
+
     val state = AssetSelectScreenViewState(
+        chains = chains,
         assets = items,
         searchQuery = null
     )
@@ -220,6 +284,8 @@ private fun SelectAssetScreenPreview() {
             callback = object : AssetSelectContentInterface {
                 override fun onAssetSelected(assetItemState: AssetItemState) {}
                 override fun onSearchInput(input: String) {}
+                override fun onChainSelected(chainId: ChainId) {}
+                override fun onCloseClick() {}
             }
         )
     }

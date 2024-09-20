@@ -113,6 +113,7 @@ class ReceiveViewModel @Inject constructor(
             }
 
             AmountInputViewState(
+                chainName = asset.token.configuration.chainName,
                 tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),

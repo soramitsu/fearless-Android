@@ -22,20 +22,24 @@ fun ToolbarBottomSheet(
     modifier: Modifier = Modifier,
     title: String?,
     @DrawableRes navigationIconResId: Int = R.drawable.ic_arrow_left_24,
-    onNavigationClick: () -> Unit
+    onNavigationClick: (() -> Unit)? = null,
+    @DrawableRes closeIconResId: Int = R.drawable.ic_close,
+    onCloseClick: (() -> Unit)? = null
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(32.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.CenterStart
-        ) {
-            NavigationIconButton(
-                navigationIconResId = navigationIconResId,
-                onNavigationClick = onNavigationClick
-            )
+        onNavigationClick?.let {
+            Box(
+                contentAlignment = Alignment.CenterStart
+            ) {
+                NavigationIconButton(
+                    navigationIconResId = navigationIconResId,
+                    onNavigationClick = onNavigationClick
+                )
+            }
         }
         Box(
             contentAlignment = Alignment.Center,
@@ -43,6 +47,17 @@ fun ToolbarBottomSheet(
         ) {
             title?.let {
                 H4(text = title)
+            }
+        }
+
+        onCloseClick?.let {
+            Box(
+                modifier = Modifier.align(Alignment.CenterEnd),
+            ) {
+                NavigationIconButton(
+                    navigationIconResId = closeIconResId,
+                    onNavigationClick = onCloseClick
+                )
             }
         }
     }
@@ -59,7 +74,8 @@ private fun ToolbarBottomSheetPreview() {
         ) {
             ToolbarBottomSheet(
                 title = "title",
-                onNavigationClick = {}
+                onNavigationClick = {},
+                onCloseClick = { }
             )
         }
     }

@@ -84,7 +84,6 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.disclaimer.PolkaswapDisclaimerFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
-import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -184,6 +183,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
+import jp.co.soramitsu.polkaswap.impl.presentation.SwapFlowFragment
 import kotlin.coroutines.coroutineContext
 
 @Parcelize
@@ -806,12 +806,12 @@ class Navigator :
     }
 
     override fun openSwapTokensScreen(chainId: String?, assetIdFrom: String?, assetIdTo: String?) {
-        if (navController?.currentDestination?.id == R.id.swapTokensFragment)
+        if (navController?.currentDestination?.id == R.id.swapFragment)
             return
 
-        val bundle = SwapTokensFragment.getBundle(chainId, assetIdFrom, assetIdTo)
+        val bundle = SwapFlowFragment.getBundle(chainId, assetIdFrom, assetIdTo)
 
-        navController?.navigate(R.id.swapTokensFragment, bundle)
+        navController?.navigate(R.id.swapFragment, bundle)
     }
 
     override fun openPolkaswapDisclaimerFromSwapTokensFragment() {
@@ -931,8 +931,13 @@ class Navigator :
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
-    override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, excludeAssetId: String?) {
+    override fun openSelectAsset(chainId: ChainId?, selectedAssetId: String?, excludeAssetId: String?) {
         val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId, excludeAssetId)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
+    override fun openSelectAsset(chainId: ChainId?, selectedAssetId: String?, excludeAssetId: String?, swapQuickChains: List<ChainId>) {
+        val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId, excludeAssetId, swapQuickChains)
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 

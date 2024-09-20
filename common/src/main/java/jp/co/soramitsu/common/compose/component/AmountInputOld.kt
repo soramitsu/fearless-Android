@@ -30,6 +30,7 @@ import coil.compose.SubcomposeAsyncImage
 import com.valentinilk.shimmer.shimmer
 import java.math.BigDecimal
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -40,8 +41,7 @@ import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
 import jp.co.soramitsu.ui_core.theme.customTypography
 
-data class AmountInputViewState(
-    val chainName: String? = null,
+data class AmountInputViewStateOld(
     val tokenName: String? = null,
     val tokenImage: String? = null,
     val totalBalance: String,
@@ -55,10 +55,9 @@ data class AmountInputViewState(
     val inputEnabled: Boolean = true,
     val isShimmerAmounts: Boolean = false
 ) {
-    val undefined = tokenName.isNullOrEmpty()
 
     companion object {
-        val defaultObj = AmountInputViewState(
+        val defaultObj = AmountInputViewStateOld(
             tokenName = null,
             tokenImage = null,
             totalBalance = "0",
@@ -70,7 +69,7 @@ data class AmountInputViewState(
 
 @Composable
 fun AmountInput(
-    state: AmountInputViewState,
+    state: AmountInputViewStateOld,
     modifier: Modifier = Modifier,
     backgroundColor: Color = black05,
     borderColor: Color = white24,
@@ -85,11 +84,9 @@ fun AmountInput(
         state.tokenAmount.isZero() -> {
             black2
         }
-
         state.isActive -> {
             white
         }
-
         else -> {
             black2
         }
@@ -99,7 +96,6 @@ fun AmountInput(
         state.isActive -> {
             white
         }
-
         else -> {
             black2
         }
@@ -121,70 +117,51 @@ fun AmountInput(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            if (state.undefined) {
-                AmountInputEmpty(state, onTokenClick)
-            } else {
-                AmountInputWithData(state, onTokenClick, assetColorState, onInputFocusChange, textColorState, onInput, focusRequester, onKeyboardDone)
-            }
-        }
-    }
-}
-
-@Composable
-private fun AmountInputWithData(
-    state: AmountInputViewState,
-    onTokenClick: () -> Unit,
-    assetColorState: Color,
-    onInputFocusChange: (Boolean) -> Unit,
-    textColorState: Color,
-    onInput: (BigDecimal) -> Unit,
-    focusRequester: FocusRequester?,
-    onKeyboardDone: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        val title = state.title ?: stringResource(id = R.string.common_amount)
-        H5(text = title, modifier = Modifier.weight(1f), color = black2)
-        Image(res = R.drawable.ic_wallet_filled)
-        MarginHorizontal(margin = 4.dp)
-        B1(
-            text = state.totalBalance,
-            modifier = Modifier
-                .then(
-                    if (state.isShimmerAmounts) Modifier.shimmer() else Modifier
-                ),
-            textAlign = TextAlign.End,
-            color = black2
-        )
-    }
-
-    MarginVertical(margin = 4.dp)
-    Row(modifier = Modifier.fillMaxWidth()) {
-        TokenIcon(url = state.tokenImage)
-        MarginHorizontal(margin = 8.dp)
-        Column(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = if (state.allowAssetChoose) {
-                    Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .clickable(onClick = onTokenClick)
-                } else {
-                    Modifier
-                }
+                modifier = Modifier.fillMaxWidth()
             ) {
-                val tokenName = state.tokenName?.uppercase() ?: stringResource(R.string.common_select_asset)
-                H3(text = tokenName, modifier = Modifier.align(CenterVertically), color = assetColorState)
-                MarginHorizontal(margin = 8.dp)
-                if (state.allowAssetChoose) {
-                    Image(
-                        res = R.drawable.ic_arrow_down,
+                val title = state.title ?: stringResource(id = R.string.common_amount)
+                H5(text = title, modifier = Modifier.weight(1f), color = black2)
+                state.fiatAmount?.let {
+                    B1(
+                        text = it,
                         modifier = Modifier
-                            .align(CenterVertically)
-                            .padding(top = 4.dp, end = 4.dp)
+                            .weight(1f)
+                            .then(
+                                if (state.isShimmerAmounts) Modifier.shimmer() else Modifier
+                            ),
+                        textAlign = TextAlign.End,
+                        color = black2
                     )
                 }
+            }
 
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = if (state.allowAssetChoose) {
+                        Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable(onClick = onTokenClick)
+                    } else {
+                        Modifier
+                    }
+                ) {
+                    TokenIcon(url = state.tokenImage)
+                    MarginHorizontal(margin = 4.dp)
+                    val tokenName = state.tokenName?.uppercase() ?: stringResource(R.string.common_select_asset)
+                    H3(text = tokenName, modifier = Modifier.align(CenterVertically), color = assetColorState)
+                    MarginHorizontal(margin = 8.dp)
+                    if (state.allowAssetChoose) {
+                        Image(
+                            res = R.drawable.ic_arrow_down,
+                            modifier = Modifier
+                                .align(CenterVertically)
+                                .padding(top = 4.dp, end = 4.dp)
+                        )
+                    }
+                }
                 val usePrecision = maxOf(state.precision, state.tokenAmount.precision())
                 BasicNumberInput(
                     modifier = Modifier
@@ -221,65 +198,7 @@ private fun AmountInputWithData(
                 )
             }
             MarginVertical(margin = 4.dp)
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                B1(text = state.chainName.orEmpty(), color = black2)
-                state.fiatAmount?.let {
-                    B1(
-                        text = it,
-                        modifier = Modifier
-                            .weight(1f)
-                            .then(
-                                if (state.isShimmerAmounts) Modifier.shimmer() else Modifier
-                            ),
-                        textAlign = TextAlign.End,
-                        color = black2
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AmountInputEmpty(
-    state: AmountInputViewState,
-    onTokenClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_token_undefined),
-            contentDescription = null,
-            modifier = Modifier
-                .size(32.dp)
-                .align(CenterVertically),
-            tint = Color.Unspecified
-        )
-        MarginHorizontal(margin = 8.dp)
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            val title = state.title ?: stringResource(id = R.string.common_amount)
-            H5(text = title, color = black2)
-            MarginVertical(margin = 4.dp)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(4.dp))
-                    .clickable(onClick = onTokenClick)
-            ) {
-                B1(text = "Select token", color = black2)
-                Icon(
-                    painter = painterResource(R.drawable.ic_chevron_down_16_small),
-                    contentDescription = null,
-                    modifier = Modifier.align(CenterVertically),
-                    tint = black2
-                )
-            }
+            B1(text = state.totalBalance, color = black2)
         }
     }
 }
@@ -290,7 +209,8 @@ private fun RowScope.TokenIcon(
     modifier: Modifier = Modifier
 ) {
     val imageModifier = modifier
-        .size(40.dp)
+        .size(28.dp)
+        .padding(2.dp)
         .align(CenterVertically)
     if (url != null) {
         SubcomposeAsyncImage(
@@ -312,18 +232,15 @@ private fun RowScope.TokenIcon(
 @Composable
 @Preview
 private fun AmountInputPreview() {
-    val state = AmountInputViewState(
-        chainName = "Sora",
+    val state = AmountInputViewStateOld(
         tokenName = "KSM",
         tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-        totalBalance = "120.045 XOR",
+        totalBalance = "Balance: 20.0",
         fiatAmount = "$120.0",
         tokenAmount = BigDecimal.ONE,
         allowAssetChoose = true
     )
-    Column {
+    FearlessTheme {
         AmountInput(state)
-        MarginVertical(margin = 6.dp)
-        AmountInput(state.copy(tokenName = null))
     }
 }

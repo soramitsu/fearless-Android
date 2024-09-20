@@ -304,6 +304,7 @@ class AccountRepositoryImpl(
         googleBackupAddress: String?
     ) {
         return withContext(dispatcher) {
+
             val substrateSeedBytes = Hex.decode(seed.removePrefix("0x"))
             val ethSeedBytes = ethSeed?.let { Hex.decode(it.removePrefix("0x")) }
 
@@ -716,10 +717,13 @@ class AccountRepositoryImpl(
                     mnemonicWords,
                     password = decodedEthereumDerivationPath.password
                 ).seed
+
                 val ethereumKeypair = EthereumKeypairFactory.generate(
                     ethereumSeed,
                     junctions = decodedEthereumDerivationPath.junctions
                 )
+
+
 
                 ethereumKeypair to ethereumDerivationPath
             } else {
@@ -739,10 +743,16 @@ class AccountRepositoryImpl(
 
             val metaAccount = MetaAccountLocal(
                 substratePublicKey = keys.publicKey,
-                substrateAccountId = keys.publicKey.substrateAccountId(),
+
+                substrateAccountId =
+                keys.publicKey.substrateAccountId(),
+
                 substrateCryptoType = cryptoType,
                 ethereumPublicKey = ethereumKeypair?.publicKey,
-                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
+
+                ethereumAddress =
+                ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
+
                 name = accountName,
                 isSelected = true,
                 position = position,

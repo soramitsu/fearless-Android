@@ -22,13 +22,14 @@ class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectView
         const val KEY_EXCLUDE_ASSET_ID = "KEY_EXCLUDE_ASSET_ID"
         const val KEY_FILTER_CHAIN_ID = "KEY_FILTER_CHAIN_ID"
         const val KEY_IS_FILTER_XCM_ASSETS = "KEY_IS_FILTER_XCM_ASSETS"
+        const val KEY_SWAP_QUICK_CHAIN_IDS = "KEY_SWAP_QUICK_CHAIN_IDS"
 
         fun getBundle(assetId: String) = bundleOf(KEY_SELECTED_ASSET_ID to assetId)
 
         fun getBundleFilterByChain(chainId: ChainId) = bundleOf(KEY_FILTER_CHAIN_ID to chainId)
 
         fun getBundle(
-            chainId: ChainId,
+            chainId: ChainId?,
             assetId: String?,
             excludeAssetId: String?
         ) = bundleOf(
@@ -45,6 +46,18 @@ class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectView
             KEY_FILTER_CHAIN_ID to chainId,
             KEY_SELECTED_ASSET_ID to assetId,
             KEY_IS_FILTER_XCM_ASSETS to isFilterXcmAssets
+        )
+
+        fun getBundle(
+            chainId: ChainId?,
+            assetId: String?,
+            excludeAssetId: String?,
+            swapQuickChains: List<ChainId>
+        ) = bundleOf(
+            KEY_FILTER_CHAIN_ID to chainId,
+            KEY_SELECTED_ASSET_ID to assetId,
+            KEY_EXCLUDE_ASSET_ID to excludeAssetId,
+            KEY_SWAP_QUICK_CHAIN_IDS to swapQuickChains
         )
     }
 

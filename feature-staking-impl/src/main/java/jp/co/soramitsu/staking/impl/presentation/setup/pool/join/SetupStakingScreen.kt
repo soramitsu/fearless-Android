@@ -107,6 +107,7 @@ private fun SetupStakingScreenPreview() {
             caption = "Join pool from"
         ),
         AmountInputViewState(
+            chainName = "Chain",
             tokenName = "KSM",
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",

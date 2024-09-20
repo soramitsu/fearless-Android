@@ -308,6 +308,7 @@
   <string name="common_select">Select</string>
   <string name="common_select_all">Select all</string>
   <string name="common_select_asset">Select Asset</string>
+  <string name="common_select_token">Select token</string>
   <string name="common_select_network">Select Network</string>
   <string name="common_selected">Selected</string>
   <string name="common_share">Share</string>

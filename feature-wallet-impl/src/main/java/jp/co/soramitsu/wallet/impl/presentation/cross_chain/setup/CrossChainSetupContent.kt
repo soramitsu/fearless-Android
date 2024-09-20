@@ -210,6 +210,7 @@ private fun CrossChainPreview() {
         toolbarState = ToolbarViewState("Send Fund", R.drawable.ic_arrow_left_24),
         addressInputState = AddressInputState("Send to", "", ""),
         amountInputState = AmountInputViewState(
+            "Chain name",
             "KSM",
             "",
             "1003 KSM",

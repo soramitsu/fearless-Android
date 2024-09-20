@@ -151,6 +151,7 @@ private fun CreatePoolSetupScreenPreview() {
     val viewState = CreatePoolSetupViewState(
         TextInputViewState("entering pool name", "Pool name"),
         AmountInputViewState(
+            chainName = "Chain",
             tokenName = "KSM",
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",

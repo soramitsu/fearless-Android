@@ -25,7 +25,8 @@ data class FeeInfoViewState(
     val caption: String? = null,
     val feeAmount: String?,
     val feeAmountFiat: String?,
-    val tooltip: Boolean = false
+    val tooltip: Boolean = false,
+    val onToolTip: () -> Unit = {}
 ) {
     companion object {
         val default = FeeInfoViewState(null, null, null)

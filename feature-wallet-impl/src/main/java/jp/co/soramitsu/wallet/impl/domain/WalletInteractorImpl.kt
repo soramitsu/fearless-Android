@@ -76,7 +76,12 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.URLDecoder
+import jp.co.soramitsu.common.data.network.okx.OkxCrossChainResponse
+import jp.co.soramitsu.common.data.network.okx.OkxResponse
+import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.polkaswap.api.domain.models.OkxCrossChainSwapDetails
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.flow.mapNotNull
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -153,6 +158,7 @@ class WalletInteractorImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset> {
+        println("!!! assetFlow chainId = $chainId; chainAssetId = $chainAssetId")
         return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
 
             val (chain, chainAsset) = chainsRepository.chainWithAsset(chainId, chainAssetId)
@@ -703,4 +709,10 @@ class WalletInteractorImpl(
     override suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset) = withContext(coroutineContext) {
         tokenRepository.getToken(chainAsset)
     }
+
+    override fun observeOkxChains() = walletRepository.observeOkxChains()
+    override suspend fun getOkxChains() = walletRepository.getOkxChains()
+    override suspend fun getOkxCrossChains(chainId: ChainId?) = walletRepository.getOkxCrossChains(chainId)
+    override suspend fun getOkxAssets(chainId: ChainId?) = walletRepository.getOkxAssets(chainId)
+    override suspend fun getOkxTokens(chainId: ChainId?) = walletRepository.getOkxTokens(chainId)
 }

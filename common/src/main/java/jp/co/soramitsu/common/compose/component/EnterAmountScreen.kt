@@ -76,6 +76,7 @@ private fun EnterAmountScreenPreview() {
     val state = EnterAmountViewState(
         ToolbarViewState("Stake more", R.drawable.ic_arrow_back_24dp),
         AmountInputViewState(
+            "Chain",
             "KSM",
             "",
             "1003 KSM",

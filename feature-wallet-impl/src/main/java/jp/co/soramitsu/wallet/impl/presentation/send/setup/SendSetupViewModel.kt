@@ -214,7 +214,6 @@ class SendSetupViewModel @Inject constructor(
 
     private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
 
-//    private val maxAmountFlow = MutableStateFlow(BigDecimal.ZERO)
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
     private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
@@ -256,6 +255,7 @@ class SendSetupViewModel @Inject constructor(
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
+                chainName = asset.token.configuration.chainName,
                 tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(

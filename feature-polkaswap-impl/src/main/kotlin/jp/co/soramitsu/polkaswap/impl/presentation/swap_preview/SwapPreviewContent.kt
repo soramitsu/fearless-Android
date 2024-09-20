@@ -159,7 +159,11 @@ fun SwapPreviewContentPreview() {
                 fromTokenOnToToken = "0.1234",
                 toTokenOnFromToken = "12345,0",
                 minmaxTitle = stringResource(id = R.string.common_min_received),
-                route = "USD -> XOR -> DOT -> VAL"
+                route = "USD -> XOR -> DOT -> VAL",
+                fromChainId = "fromChainId",
+                fromChainIdImage = null,
+                toChainId = "toChainId",
+                toChainIdImage = null
             ),
             networkFee = SwapDetailsViewState.NetworkFee(
                 tokenAmount = "0.0007",
