@@ -53,7 +53,8 @@ data class Chain(
     val chainlinkProvider: Boolean,
     val supportNft: Boolean,
     val isUsesAppId: Boolean,
-    val identityChain: String?
+    val identityChain: String?,
+    val remoteAssetsSource: RemoteAssetsSource?
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -85,6 +86,10 @@ data class Chain(
                     name.lowercase().replaceFirstChar { it.titlecase() }
                 }
         }
+    }
+
+    enum class RemoteAssetsSource {
+        OnChain, OKX
     }
 
     override fun equals(other: Any?): Boolean {
