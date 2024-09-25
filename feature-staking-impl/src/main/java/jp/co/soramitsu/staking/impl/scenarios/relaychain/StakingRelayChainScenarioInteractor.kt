@@ -1,14 +1,12 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -16,11 +14,18 @@ import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.GetStorageRequest
+import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -31,8 +36,11 @@ import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.api.domain.model.ValidatorExposure
+import jp.co.soramitsu.staking.api.domain.model.isRedeemableIn
 import jp.co.soramitsu.staking.api.domain.model.isUnbondingIn
+import jp.co.soramitsu.staking.api.domain.model.sumStaking
 import jp.co.soramitsu.staking.impl.data.model.Payout
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bondMore
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.chill
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.rebond
@@ -87,6 +95,7 @@ import jp.co.soramitsu.staking.impl.domain.validations.unbond.UnbondValidationSy
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -95,6 +104,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -111,6 +121,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 val ERA_OFFSET = 1.toBigInteger()
@@ -127,7 +140,9 @@ class StakingRelayChainScenarioInteractor(
     private val stakingSharedState: StakingSharedState,
     private val identityRepository: IdentityRepository,
     private val payoutRepository: PayoutRepository,
-    private val walletConstants: WalletConstants
+    private val walletConstants: WalletConstants,
+    private val chainRegistry: ChainRegistry,
+    private val assetCache: AssetCache
 ) : StakingScenarioInteractor {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -389,7 +404,7 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun getSelectedAccountStakingState() =
         selectedAccountStakingStateFlow().first()
 
-    override suspend fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
+    override fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
         return stakingInteractor.currentAssetFlow().map { asset ->
             StakingBalanceModel(
                 staked = mapAmountToAmountModel(
@@ -409,6 +424,49 @@ class StakingRelayChainScenarioInteractor(
                     R.string.wallet_balance_redeemable
                 )
             )
+        }
+            .onStart { updateCurrentAccountLedger() }
+    }
+
+    private suspend fun updateCurrentAccountLedger() = withContext(Dispatchers.Default) {
+        val metaAccountDeferred = async { accountRepository.getSelectedMetaAccount() }
+        val selectionDeferred = async {
+            val selection = stakingSharedState.selectionItem.first()
+            require(selection is StakingAssetSelection.RelayChainStaking)
+            selection
+        }
+        val (chainId, chainAssetId) = selectionDeferred.await()
+        val chain = chainRegistry.getChain(chainId)
+        val chainAsset = chain.assetsById[chainAssetId] ?: return@withContext
+        val metaAccount = metaAccountDeferred.await()
+        val accountId = metaAccount.accountId(chain) ?: return@withContext
+
+        val runtimeDeferred = async { chainRegistry.awaitRuntimeProvider(chainId).get() }
+        val connectionDeferred = async { chainRegistry.awaitConnection(chainId) }
+
+        val runtime = runtimeDeferred.await()
+        val connection = connectionDeferred.await()
+
+        val key = runtime.metadata.staking().storage("Ledger").storageKey(runtime, accountId)
+        val ledgerDeferred = async {
+            val response = connection.socketService.executeAsync(request = GetStorageRequest(listOf(key)), mapper = pojo<String>()).result!!
+            bindStakingLedger(response, runtime)
+        }
+
+        val newLedgerResult = kotlin.runCatching { ledgerDeferred.await() }
+        val activeEra = stakingRelayChainScenarioRepository.getActiveEraIndex(chain.id)
+
+        newLedgerResult.onSuccess { stakingLedger ->
+            assetCache.updateAsset(metaAccount.id, accountId, chainAsset) { cached ->
+                val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(activeEra) }
+                val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(activeEra) }
+
+                cached.copy(
+                    redeemableInPlanks = redeemable,
+                    unbondingInPlanks = unbonding,
+                    bondedInPlanks = stakingLedger.active
+                )
+            }
         }
     }
 

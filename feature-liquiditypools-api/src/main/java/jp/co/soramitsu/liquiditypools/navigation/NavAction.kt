@@ -12,4 +12,6 @@ sealed interface NavAction {
         val title: String,
         val message: String
     ) : NavAction
+
+    data object SupplyLiquidityCompleted : NavAction
 }

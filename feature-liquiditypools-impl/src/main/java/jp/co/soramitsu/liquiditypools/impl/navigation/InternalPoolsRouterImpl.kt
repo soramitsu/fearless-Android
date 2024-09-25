@@ -116,4 +116,8 @@ class InternalPoolsRouterImpl(
     override fun <T : LiquidityPoolsNavGraphRoute> destination(clazz: Class<T>): T? {
         return routesStack.filterIsInstance(clazz).lastOrNull()
     }
+
+    override fun supplyLiquidityCompleted() {
+        mutableActionsFlow.tryEmit(NavAction.SupplyLiquidityCompleted)
+    }
 }

@@ -88,7 +88,7 @@ fun mapMetaAccountLocalToMetaAccount(
         valueTransform = {
             MetaAccount.ChainAccount(
                 metaId = joinedMetaAccountInfo.metaAccount.id,
-                chain = chainsById[it.chainId],
+                chain = chainsById.getOrDefault(it.chainId, null),
                 publicKey = it.publicKey,
                 accountId = it.accountId,
                 cryptoType = it.cryptoType,
@@ -101,7 +101,7 @@ fun mapMetaAccountLocalToMetaAccount(
         keySelector = FavoriteChainLocal::chainId,
         valueTransform = {
             MetaAccount.FavoriteChain(
-                chain = chainsById[it.chainId],
+                chain = chainsById.getOrDefault(it.chainId, null),
                 isFavorite = it.isFavorite
             )
         }

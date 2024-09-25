@@ -14,6 +14,7 @@ import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
+import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
@@ -82,7 +83,8 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                     launcher
                 )
             }
-            googleBackupLayout.isVisible = viewModel.isShowBackupWithGoogle
+            val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+            googleBackupLayout.isVisible = isGoogleAvailable && viewModel.isShowBackupWithGoogle
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),

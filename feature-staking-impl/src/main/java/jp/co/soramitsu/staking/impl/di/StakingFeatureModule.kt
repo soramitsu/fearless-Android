@@ -5,8 +5,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -80,6 +78,7 @@ import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenario
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
@@ -92,6 +91,8 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import javax.inject.Named
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -262,7 +263,9 @@ class StakingFeatureModule {
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
-        walletConstants: WalletConstants
+        walletConstants: WalletConstants,
+        chainRegistry: ChainRegistry,
+        assetCache: AssetCache
     ): StakingRelayChainScenarioInteractor {
         return StakingRelayChainScenarioInteractor(
             interactor,
@@ -275,7 +278,9 @@ class StakingFeatureModule {
             stakingSharedState,
             identityRepository,
             payoutRepository,
-            walletConstants
+            walletConstants,
+            chainRegistry,
+            assetCache
         )
     }
 

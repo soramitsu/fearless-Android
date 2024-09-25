@@ -52,7 +52,7 @@ class PoolsFlowViewModel @Inject constructor(
     allPoolsPresenter: AllPoolsPresenter,
     poolListPresenter: PoolListPresenter,
     poolDetailsPresenter: PoolDetailsPresenter,
-    liquidityAddPresenter: LiquidityAddPresenter,
+    private val liquidityAddPresenter: LiquidityAddPresenter,
     liquidityAddConfirmPresenter: LiquidityAddConfirmPresenter,
     liquidityRemovePresenter: LiquidityRemovePresenter,
     liquidityRemoveConfirmPresenter: LiquidityRemoveConfirmPresenter,
@@ -173,6 +173,10 @@ class PoolsFlowViewModel @Inject constructor(
 
     fun exitFlow() {
         poolsRouter.back()
+    }
+
+    fun supplyLiquidityCompleted() {
+        liquidityAddPresenter.resetInputFields()
     }
 
     companion object {

@@ -937,6 +937,7 @@ class Navigator :
     }
 
     override fun <T> observeResult(key: String): Flow<T> {
+        @Suppress("UNCHECKED_CAST")
         return observeResultInternal<T>(key)
             .onStart { removeSavedStateHandle(key) }
             .onCompletion { removeSavedStateHandle(key) }

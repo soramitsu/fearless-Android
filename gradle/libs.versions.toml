@@ -23,6 +23,7 @@ dagger = "2.49"
 detekt = "1.23.6"
 firebaseAppdistributionGradle = "4.2.0"
 fragmentKtx = "1.6.2"
+gmsPlayServices = "18.5.0"
 googleServices = "4.4.1"
 gson = "2.10.1"
 hiltNavComposeVersion = "1.2.0"
@@ -60,6 +61,7 @@ wsVersion = "2.14"
 xNetworking = "0.2.5-temp7"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
+jnrVersion = "1.0.2"
 
 [libraries]
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -160,6 +162,7 @@ customview-poolingcontainer = { module = "androidx.customview:customview-pooling
 
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
+play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "gmsPlayServices" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
@@ -176,6 +179,8 @@ web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 walletconnectBomDep = { module = "com.walletconnect:android-bom", version.ref = "walletconnectBom" }
 walletconnectCoreDep = { module = "com.walletconnect:android-core" }
 walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
+
+jnr-x86asm = { module = "com.github.jnr:jnr-x86asm", version.ref = "jnrVersion" }
 
 [bundles]
 compose = [

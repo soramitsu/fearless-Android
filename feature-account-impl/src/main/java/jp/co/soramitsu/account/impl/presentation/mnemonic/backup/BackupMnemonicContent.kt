@@ -82,6 +82,7 @@ interface BackupMnemonicCallback {
 @Composable
 internal fun BackupMnemonicContent(
     state: BackupMnemonicState,
+    isGoogleAvailable: Boolean,
     callback: BackupMnemonicCallback
 ) {
     Column {
@@ -195,7 +196,8 @@ internal fun BackupMnemonicContent(
                 callback.onNextClick(launcher)
             }
         )
-        if (state.isFromGoogleBackup.not()) {
+
+        if (isGoogleAvailable && state.isFromGoogleBackup.not()) {
             MarginVertical(8.dp)
             GoogleButton(
                 modifier = Modifier
@@ -223,6 +225,7 @@ private fun PreviewBackupMnemonicContent() {
                 ethereumDerivationPath = "",
                 isFromGoogleBackup = false
             ),
+            isGoogleAvailable = true,
             callback = object : BackupMnemonicCallback {
                 override fun onNextClick(launcher: ActivityResultLauncher<Intent>) {}
                 override fun onBackClick() {}

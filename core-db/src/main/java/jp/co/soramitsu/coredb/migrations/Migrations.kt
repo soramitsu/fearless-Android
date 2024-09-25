@@ -3,6 +3,18 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_70_71 = object : Migration(70, 71) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `remoteAssetsSource` TEXT NULL DEFAULT NULL")
+    }
+}
+
+val Migration_69_70 = object : Migration(69, 70) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DELETE FROM storage")
+    }
+}
+
 val Migration_68_69 = object : Migration(68, 69) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

@@ -45,4 +45,6 @@ interface InternalPoolsRouter {
     )
 
     fun <T : LiquidityPoolsNavGraphRoute> destination(clazz: Class<T>): T?
+
+    fun supplyLiquidityCompleted()
 }

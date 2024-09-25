@@ -24,7 +24,8 @@ data class ChainLocal(
     val isChainlinkProvider: Boolean,
     val supportNft: Boolean,
     val isUsesAppId: Boolean,
-    val identityChain: String?
+    val identityChain: String?,
+    val remoteAssetsSource: String?
 ) {
 
     class ExternalApi(

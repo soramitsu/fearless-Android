@@ -4,8 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Provider
-import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.NetworkStateService
@@ -20,6 +18,7 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsSyncServiceProvider
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
@@ -32,6 +31,8 @@ import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
+import javax.inject.Provider
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -49,7 +50,8 @@ class ChainRegistryModule {
         chainFetcher: ChainFetcher,
         metaAccountDao: MetaAccountDao,
         assetDao: AssetDao,
-    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao)
+        remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
+    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao, remoteAssetsSyncServiceProvider)
 
     @Provides
     @Singleton
