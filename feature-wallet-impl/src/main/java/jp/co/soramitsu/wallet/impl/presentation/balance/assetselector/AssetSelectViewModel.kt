@@ -48,53 +48,38 @@ class AssetSelectViewModel @Inject constructor(
     private val selectedAssetIdFlow = MutableStateFlow(initialSelectedAssetId)
     private val selectedChainIdFlow = MutableStateFlow(filterChainId)
 
-    private val okxChainItems = walletInteractor.observeOkxChains().mapList {
-        ChainItemState(it.id, it.icon, it.rank)
-    }
-
-    private val polkaswapChainItemFlow = flowOf {
-        walletInteractor.getChain(polkaswapInteractor.polkaswapChainId)
-    }.map {
-        ChainItemState(it.id, it.icon, it.rank)
-    }
-
     private val enteredTokenQueryFlow = MutableStateFlow("")
 
-    private val chainQuickSelectIdsFlow = if (swapQuickChainsIds.isEmpty()) {
-        flowOf { emptyList() }
-    } else {
-        combine(
-            polkaswapChainItemFlow,
-            okxChainItems,
-            selectedChainIdFlow
-        ) { polkaswapChain, okxChains, selectedChainId ->
-            val chainsToShow = okxChains
-                .plus(polkaswapChain)
-                .filter { it.id in swapQuickChainsIds }
-                .filter {
-                    it.rank != null || it.id == selectedChainId
-                }.sortedBy {
-                    it.rank ?: 0
-                }.map {
-                    if (it.id == selectedChainId) {
-                        it.copy(selected = true)
-                    } else {
-                        it
-                    }
-                }
-
-            if (selectedChainIdFlow.value == null) {
-                selectedChainIdFlow.value = chainsToShow.firstOrNull()?.id
-            }
-            chainsToShow
-        }
+    private val chainItemsFlow = flowOf { swapQuickChainsIds }.mapList {
+        val chain = walletInteractor.getChain(it)
+        ChainItemState(chain.id, chain.icon, chain.rank)
     }
+
+    private val chainQuickSelectItemsFlow = combine(
+        chainItemsFlow,
+        selectedChainIdFlow
+    ) { chainItems, selectedChainId ->
+        val chainsToShow = chainItems
+            .filter {
+                it.rank != null || it.id == selectedChainId
+            }.sortedBy {
+                it.rank ?: 0
+            }.map {
+                if (it.id == selectedChainId) {
+                    it.copy(selected = true)
+                } else {
+                    it
+                }
+            }
+
+        if (selectedChainIdFlow.value == null) {
+            selectedChainIdFlow.value = chainsToShow.firstOrNull()?.id
+        }
+        chainsToShow
+    }
+
 
     private val isSwap = swapQuickChainsIds.isNotEmpty()
-
-    private val okxAssetsFlow = flowOf {
-        walletInteractor.getOkxTokens()
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val assetModelsFlow: Flow<List<AssetModel>> =
@@ -102,8 +87,7 @@ class AssetSelectViewModel @Inject constructor(
             selectedChainIdFlow.flatMapLatest { selectedChainId ->
                 xcmInteractor.getAvailableAssetsFlow(originChainId = selectedChainId)
             }
-        }
-        else {
+        } else {
             println("!!! ELSE assetModelsFlow")
             walletInteractor.assetsFlow()
         }
@@ -116,49 +100,31 @@ class AssetSelectViewModel @Inject constructor(
             .map { it.filterNotNull().filter { asset -> asset.enabled == true } }
             .mapList { mapAssetToAssetModel(it) }
 
-    val assetItemsState: Flow<List<AssetItemState>> = combine(
+    private val assetItemsState: Flow<List<AssetItemState>> = combine(
         assetModelsFlow,
-        okxAssetsFlow,
         selectedChainIdFlow,
-        selectedAssetIdFlow,
         enteredTokenQueryFlow
-    ) { assets, okxAssets, selectedChainId, selectedAssetId, searchQuery ->
-        if (isSwap && selectedChainId != polkaswapInteractor.polkaswapChainId) {
-            val chain = selectedChainId?.let { walletInteractor.getChain(it) }
-            okxAssets.filter {
-                it.chainId == selectedChainId
-            }.map {
-                AssetItemState(
-                    id = it.address,
-                    imageUrl = it.logoUrl,
-                    chainName = chain?.name,
-                    symbol = it.symbol,
-                    amount = "",
-                    fiatAmount = "",
-                    isSelected = it.address == selectedAssetId,
-                    chainId = it.chainId
-                )
-            }
-        } else {
-            assets.filter {
-                selectedChainId == null || it.token.configuration.chainId == selectedChainId
-            }
-                .filter {
-                    searchQuery.isEmpty() ||
-                            it.token.configuration.symbol.contains(searchQuery, true) ||
-                            it.token.configuration.name.orEmpty().contains(searchQuery, true)
-                }
-                .filter { it.token.configuration.id != excludeAssetId }
-                .sortedWith(compareByDescending<AssetModel> { it.fiatAmount.orZero() }.thenBy { it.token.configuration.chainName })
-                .map {
-                    it.toAssetItemState(isChainNameVisible = !isFilterXcmAssets)
-                }
-                .toList()
+    ) { assets, selectedChainId, searchQuery ->
+        assets.filter {
+            selectedChainId == null || it.token.configuration.chainId == selectedChainId
         }
+            .filter {
+                searchQuery.isEmpty() ||
+                        it.token.configuration.symbol.contains(searchQuery, true) ||
+                        it.token.configuration.name.orEmpty().contains(searchQuery, true)
+            }
+            .filter { it.token.configuration.id != excludeAssetId }
+            .sortedWith(compareByDescending<AssetModel> { it.fiatAmount.orZero() }
+                .thenBy { it.token.configuration.chainName }
+                .thenBy { it.token.configuration.symbol })
+            .map {
+                it.toAssetItemState(isChainNameVisible = !isFilterXcmAssets)
+            }
+            .toList()
     }
 
     val state = combine(
-        chainQuickSelectIdsFlow,
+        chainQuickSelectItemsFlow,
         assetItemsState,
         selectedAssetIdFlow,
         enteredTokenQueryFlow

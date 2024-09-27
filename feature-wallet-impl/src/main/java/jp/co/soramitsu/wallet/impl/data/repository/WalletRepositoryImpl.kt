@@ -439,33 +439,33 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 
-    override suspend fun fetchOkxSupportedAssets() {
-        try {
-            val okxResponse = okxApi.getSupportedChains()
-            val supportedByApp = chainsRepository.getChains().map { it.id }
-
-            val chains = okxResponse.data.filter {
-                it.chainId in supportedByApp
-            }.map {
-                OkxChainLocal(
-                    it.chainId,
-                    it.dexTokenApproveAddress
-                )
-            }
-
-            val current = okxDao.getSupportedChains()
-            val removed = current.minus(chains.toSet())
-
-            okxDao.deleteOkxChains(removed)
-            okxDao.insertOkxChains(chains)
-
-            fetchOkxTokens(chains)
-
-        } catch (e: Exception) {
-            println("!!! error ${e.message}")
-            e.printStackTrace()
-        }
-    }
+//    override suspend fun fetchOkxSupportedAssets() {
+//        try {
+//            val okxResponse = okxApi.getSupportedChains()
+//            val supportedByApp = chainsRepository.getChains().map { it.id }
+//
+//            val chains = okxResponse.data.filter {
+//                it.chainId in supportedByApp
+//            }.map {
+//                OkxChainLocal(
+//                    it.chainId,
+//                    it.dexTokenApproveAddress
+//                )
+//            }
+//
+//            val current = okxDao.getSupportedChains()
+//            val removed = current.minus(chains.toSet())
+//
+//            okxDao.deleteOkxChains(removed)
+//            okxDao.insertOkxChains(chains)
+//
+//            fetchOkxTokens(chains)
+//
+//        } catch (e: Exception) {
+//            println("!!! error ${e.message}")
+//            e.printStackTrace()
+//        }
+//    }
 
     override fun observeOkxChains(): Flow<List<Chain>> {
         return okxDao.observeSupportedChains().mapList {
@@ -540,28 +540,28 @@ class WalletRepositoryImpl(
         )
     }
 
-    private suspend fun fetchOkxTokens(chains: List<OkxChainLocal>) {
-        val okxTokens = chains.map { chain ->
-            val response = okxApi.getAllTokens(chain.id)
-            response.data.map { item ->
-                OkxTokenLocal(
-                    chainId = chain.id,
-                    symbol = item.tokenSymbol,
-                    tokenLogoUrl = item.tokenLogoUrl,
-                    tokenName = item.tokenName,
-                    tokenContractAddress = item.tokenContractAddress,
-                    decimals = item.decimals
-                )
-            }
-        }.flatten()
-
-        val current = okxDao.getSupportedTokens()
-        val removed = current.minus(okxTokens.toSet())
-        db.withTransaction {
-            okxDao.deleteOkxTokens(removed)
-            okxDao.insertOkxTokens(okxTokens)
-        }
-    }
+//    private suspend fun fetchOkxTokens(chains: List<OkxChainLocal>) {
+//        val okxTokens = chains.map { chain ->
+//            val response = okxApi.getAllTokens(chain.id)
+//            response.data.map { item ->
+//                OkxTokenLocal(
+//                    chainId = chain.id,
+//                    symbol = item.tokenSymbol,
+//                    tokenLogoUrl = item.tokenLogoUrl,
+//                    tokenName = item.tokenName,
+//                    tokenContractAddress = item.tokenContractAddress,
+//                    decimals = item.decimals
+//                )
+//            }
+//        }.flatten()
+//
+//        val current = okxDao.getSupportedTokens()
+//        val removed = current.minus(okxTokens.toSet())
+//        db.withTransaction {
+//            okxDao.deleteOkxTokens(removed)
+//            okxDao.insertOkxTokens(okxTokens)
+//        }
+//    }
 
     override suspend fun getOkxTokens(chainId: ChainId?): List<OkxTokenModel> {
         return okxDao.getSupportedTokens(chainId)

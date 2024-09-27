@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -30,7 +28,6 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.isNotZero
-import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -245,8 +242,8 @@ class CBDCSendSetupViewModel @Inject constructor(
         } else {
             val swapDetails = polkaswapInteractor.calcDetails(
                 availableDexPaths = listOf(0),
-                tokenFrom = asset,
-                tokenTo = utilityAsset,
+                fromAsset = asset.token.configuration,
+                toAsset = utilityAsset.token.configuration,
                 amount = feeAmount,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,

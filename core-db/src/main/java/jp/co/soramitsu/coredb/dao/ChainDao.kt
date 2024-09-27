@@ -123,7 +123,7 @@ abstract class ChainDao {
     )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
+    abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
 
     @Update
     protected abstract suspend fun updateChainAssets(assets: List<ChainAssetLocal>)
@@ -147,6 +147,10 @@ abstract class ChainDao {
     @Query("SELECT * FROM chains")
     @Transaction
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
+
+    @Query("SELECT id FROM chains WHERE remoteAssetsSource == 'OKX'")
+    @Transaction
+    abstract suspend fun getOkxChainsIds(): List<String>
 
     @Query("SELECT * FROM chains WHERE id = :chainId")
     @Transaction

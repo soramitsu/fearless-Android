@@ -71,7 +71,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -172,11 +171,9 @@ class SwapTokensViewModel @AssistedInject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val fromAssetFlow: StateFlow<Asset?> = fromPayloadFlow
         .flatMapLatest {
-            it?.let {
-//                if (isSwap)
-                walletInteractor.assetFlow(it.chainId, it.assetId)
-            } ?: flowOf { null }
-        }.stateIn(this, SharingStarted.Eagerly, null)
+            it?.let { walletInteractor.assetFlow(it.chainId, it.assetId) } ?: flowOf { null }
+        }
+        .stateIn(this, SharingStarted.Eagerly, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val toAssetFlow = toPayloadFlow
@@ -198,21 +195,6 @@ class SwapTokensViewModel @AssistedInject constructor(
     private var initialFee = BigDecimal.ZERO
     private val availableDexPathsFlow: MutableStateFlow<List<Int>?> = MutableStateFlow(null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val poolReservesFlow =
-        combine(fromAssetFlow, toAssetFlow, selectedMarket) { fromAsset, toAsset, selectedMarket ->
-            val tokenFromId = fromAsset?.token?.configuration?.currencyId
-            val tokenToId = toAsset?.token?.configuration?.currencyId
-            if (tokenFromId == null || tokenToId == null) return@combine null
-
-            (tokenFromId to tokenToId) to selectedMarket
-        }.flatMapConcat {
-            it ?: return@flatMapConcat kotlinx.coroutines.flow.flowOf(Unit)
-            val (assets, market) = it
-            val (fromAsset, toAsset) = assets
-            polkaswapInteractor.observePoolReserves(fromAsset, toAsset, market)
-        }
-
     private val amountInput =
         combine(enteredFromAmountFlow, enteredToAmountFlow) { fromInput, toInput ->
             when (desired) {
@@ -230,7 +212,6 @@ class SwapTokensViewModel @AssistedInject constructor(
         selectedMarket,
         slippageTolerance,
         availableDexPathsFlow,
-        poolReservesFlow,
         transform = ::getSwapDetails
     ).catch {
         emit(Result.failure(it))
@@ -522,22 +503,21 @@ class SwapTokensViewModel @AssistedInject constructor(
         }.launchIn(viewModelScope)
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private suspend fun getSwapDetails(
         swapType: SwapType,
         amount: BigDecimal,
         selectedMarket: Market,
         slippageTolerance: Double,
-        availableDexPaths: List<Int>?,
-        reserves: Any
+        availableDexPaths: List<Int>?
     ): Result<SwapDetails?> {
         val emptyResult = Result.success(null)
         println("!!! getSwapDetails swapType = $swapType")
+        val fromAsset = fromAssetFlow.value?.token?.configuration ?: return emptyResult
+        val toAsset = toAssetFlow.value?.token?.configuration ?: return emptyResult
+
         when (swapType) {
             SwapType.POLKASWAP -> {
-                fromAssetFlow.value ?: return emptyResult
-                toAssetFlow.value ?: return emptyResult
-                desired ?: return emptyResult
+                val desiredValue = desired ?: return emptyResult
                 if (availableDexPaths == null) return emptyResult
                 if (availableDexPaths.isEmpty()) return emptyResult
                 if (amount.isZero()) return emptyResult
@@ -545,30 +525,22 @@ class SwapTokensViewModel @AssistedInject constructor(
 
                 return polkaswapInteractor.calcDetails(
                     availableDexPaths,
-                    fromAssetFlow.value!!,
-                    toAssetFlow.value!!,
+                    fromAsset,
+                    toAsset,
                     amount,
-                    desired!!,
+                    desiredValue,
                     slippageTolerance,
                     selectedMarket
                 )
             }
 
             SwapType.OKX_CROSS_CHAIN -> {
-                val fromPayload = fromPayloadFlow.value
-                val toPayload = toPayloadFlow.value
+                val amountInPlanks = fromAsset.planksFromAmount(amount).orZero()
 
-                val amountInPlanks = fromAssetFlow.value?.token?.planksFromAmount(amount).orZero()
-
-                val fromOkxToken = walletInteractor.getOkxTokens(fromPayload?.chainId).firstOrNull { it.address == fromPayload?.assetId }
-                val toOkxToken = walletInteractor.getOkxTokens(toPayload?.chainId).firstOrNull { it.address == toPayload?.assetId }
-
-                if (fromOkxToken == null || toOkxToken == null) return emptyResult
-                val userAddress = walletInteractor.getChainAddressForSelectedMetaAccount(fromOkxToken.chainId) ?: return emptyResult
-
+                val userAddress = walletInteractor.getChainAddressForSelectedMetaAccount(fromAsset.chainId) ?: return emptyResult
                 return polkaswapInteractor.crossChainBuildTx(
-                    fromOkxToken = fromOkxToken,
-                    toOkxToken = toOkxToken,
+                    fromAsset = fromAsset,
+                    toAsset = toAsset,
                     amount = amountInPlanks.toString(),
                     slippage = slippageTolerance.toString(),
                     userWalletAddress = userAddress
@@ -576,19 +548,12 @@ class SwapTokensViewModel @AssistedInject constructor(
             }
 
             SwapType.OKX_SWAP -> {
-                val fromPayload = fromPayloadFlow.value
-                val toPayload = toPayloadFlow.value
-                val amountInPlanks = fromAssetFlow.value?.token?.planksFromAmount(amount).orZero()
+                val amountInPlanks = fromAsset.planksFromAmount(amount).orZero()
 
-                val fromOkxToken = walletInteractor.getOkxTokens(fromPayload?.chainId).firstOrNull { it.assetId == fromPayload?.assetId }
-                val toOkxToken = walletInteractor.getOkxTokens(toPayload?.chainId).firstOrNull { it.assetId == toPayload?.assetId }
-
-                if (fromOkxToken == null || toOkxToken == null) return emptyResult
-
-                val userAddress = walletInteractor.getChainAddressForSelectedMetaAccount(fromOkxToken.chainId) ?: return emptyResult
+                val userAddress = walletInteractor.getChainAddressForSelectedMetaAccount(fromAsset.chainId) ?: return emptyResult
                 return polkaswapInteractor.getOkxSwap(
-                    fromOkxToken = fromOkxToken,
-                    toOkxToken = toOkxToken,
+                    fromAsset = fromAsset,
+                    toAsset = toAsset,
                     amount = amountInPlanks.toString(),
                     slippage = slippageTolerance.toString(),
                     userWalletAddress = userAddress
@@ -797,8 +762,8 @@ class SwapTokensViewModel @AssistedInject constructor(
 
     override fun onFromTokenSelect() {
         launch {
-            val okxChainsIds = walletInteractor.getOkxChains().filter { it.rank != null }.map { it.id }
-            val swapQuickChainIds = okxChainsIds.toSet().plus(polkaswapInteractor.polkaswapChainId).toList()
+            val okxChainsIds = walletInteractor.getOkxChainsIds()
+            val swapQuickChainIds = okxChainsIds.plus(polkaswapInteractor.polkaswapChainId)
 
             observeResultFor(fromPayloadFlow)
             polkaswapRouter.openSelectAsset(
@@ -819,7 +784,7 @@ class SwapTokensViewModel @AssistedInject constructor(
 
                 SwapType.OKX_SWAP,
                 SwapType.OKX_CROSS_CHAIN -> {
-                    walletInteractor.getOkxCrossChains(fromPayloadFlow.value?.chainId).filter { it.rank != null }.map { it.id }
+                    walletInteractor.getOkxChainsIds()
                 }
             }
 

@@ -31,6 +31,7 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
 import okhttp3.Cache
 import okhttp3.CacheControl
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -71,7 +72,7 @@ class NetworkModule {
             .retryOnConnectionFailure(true)
 
         if (BuildConfig.DEBUG) {
-//            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         }
 
         return builder.build()

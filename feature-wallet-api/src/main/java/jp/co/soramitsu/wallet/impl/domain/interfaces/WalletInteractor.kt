@@ -172,6 +172,7 @@ interface WalletInteractor {
     suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
 
     fun observeOkxChains(): Flow<List<Chain>>
+    suspend fun getOkxChainsIds(): List<ChainId>
     suspend fun getOkxChains(): List<Chain>
     suspend fun getOkxCrossChains(chainId: ChainId? = null): List<Chain>
     suspend fun getOkxAssets(chainId: ChainId? = null): List<CoreAsset>

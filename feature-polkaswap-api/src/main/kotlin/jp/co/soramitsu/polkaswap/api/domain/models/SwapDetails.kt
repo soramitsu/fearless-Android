@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.okx.OkxDexRouter
 import jp.co.soramitsu.common.data.network.okx.OkxSwapTransaction
 import jp.co.soramitsu.common.data.network.okx.OkxTransactionInfo
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.core.models.Asset as ChainAsset
 
 abstract class SwapDetails
 

@@ -31,7 +31,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.OkxTokenModel
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlin.coroutines.CoroutineContext
@@ -47,6 +46,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.withContext
+import jp.co.soramitsu.core.models.Asset as ChainAsset
 
 class PolkaswapInteractorImpl @Inject constructor(
     private val chainRegistry: ChainRegistry,
@@ -128,30 +128,33 @@ class PolkaswapInteractorImpl @Inject constructor(
 
     override suspend fun calcDetails(
         availableDexPaths: List<Int>,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        amount: BigDecimal,
+        fromAsset: ChainAsset,
+        toAsset: ChainAsset,
+        amount: BigDecimal, // todo handle FROM / TO
         desired: WithDesired,
         slippageTolerance: Double,
         market: Market
     ): Result<PolkaswapSwapDetails?> = withContext(coroutineContext) {
+        val fromTokenId = fromAsset.currencyId ?: return@withContext Result.success(null)
+        val toTokenId = toAsset.currencyId ?: return@withContext Result.success(null)
+
         val polkaswapUtilityAssetId = chainsRepository.getChain(polkaswapChainId).utilityAsset?.id
         val feeAsset = requireNotNull(polkaswapUtilityAssetId?.let { getAsset(it) })
 
         val curMarkets = if (market == Market.SMART) emptyList() else listOf(market)
 
-        val amountInPlanks = feeAsset.token.configuration.planksFromAmount(amount)
-
-        val tokenFromId = requireNotNull(tokenFrom.token.configuration.currencyId)
-        val tokenToId = requireNotNull(tokenTo.token.configuration.currencyId)
+        val amountInPlanks = when (desired) {
+            WithDesired.INPUT -> fromAsset
+            WithDesired.OUTPUT -> toAsset
+        }.planksFromAmount(amount)
 
         val previousBestDex = bestDexIdFlow.value
         if (market !in availableMarkets.values.flatten().toSet()) return@withContext Result.success(null)
         bestDexIdFlow.emit(LoadingState.Loading())
         val (bestDex, swapQuote) = getBestSwapQuote(
             dexes = availableDexPaths,
-            tokenFromId = tokenFromId,
-            tokenToId = tokenToId,
+            tokenFromId = fromTokenId,
+            tokenToId = toTokenId,
             amount = amountInPlanks,
             desired = desired,
             curMarkets = curMarkets
@@ -306,29 +309,21 @@ class PolkaswapInteractorImpl @Inject constructor(
     }
 
     override suspend fun getOkxSwap(
-        fromOkxToken: OkxTokenModel,
-        toOkxToken: OkxTokenModel,
+        fromAsset: ChainAsset,
+        toAsset: ChainAsset,
         amount: String,
         slippage: String,
         userWalletAddress: String,
     ): Result<OkxSwapDetails?> {
-        val fromAsset = walletRepository.getOkxChains().firstOrNull {
-            it.id == fromOkxToken.chainId
-        }?.assets?.firstOrNull {
-            it.id == fromOkxToken.assetId
-        } ?: return Result.success(null)
 
-        val toAsset = walletRepository.getOkxChains().firstOrNull {
-            it.id == toOkxToken.chainId
-        }?.assets?.firstOrNull {
-            it.id == toOkxToken.assetId
-        } ?: return Result.success(null)
+        val fromTokenAddress = fromAsset.currencyId ?: return Result.success(null)
+        val toTokenAddress = toAsset.currencyId ?: return Result.success(null)
 
         val okxSwapResponse = walletRepository.getOkxSwap(
-            chainId = fromOkxToken.chainId,
+            chainId = fromAsset.chainId,
             amount = amount,
-            fromTokenAddress = fromOkxToken.address,
-            toTokenAddress = toOkxToken.address,
+            fromTokenAddress = fromTokenAddress,
+            toTokenAddress = toTokenAddress,
             slippage = slippage,
             userWalletAddress = userWalletAddress,
         )
@@ -351,7 +346,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val metaId = accountRepository.getSelectedMetaAccount().id
         val okxFeeAsset = walletRepository.getAssets(metaId).firstOrNull {
-            it.token.configuration.chainId == toAsset.chainId && it.token.configuration.symbol.lowercase() == "eth"
+            it.token.configuration.chainId == fromAsset.chainId && it.token.configuration.symbol.lowercase() == "eth"
         } ?: return Result.success(null)
 
         return Result.success(
@@ -369,30 +364,22 @@ class PolkaswapInteractorImpl @Inject constructor(
     }
 
     override suspend fun crossChainBuildTx(
-        fromOkxToken: OkxTokenModel,
-        toOkxToken: OkxTokenModel,
+        fromAsset: ChainAsset,
+        toAsset: ChainAsset,
         amount: String,
         sort: Int?, // 0 - default
         slippage: String,  // 0.002 - 0.5
         userWalletAddress: String,
     ): Result<OkxCrossChainSwapDetails?> {
-        val fromAsset = walletRepository.getOkxChains().firstOrNull {
-            it.id == fromOkxToken.chainId
-        }?.assets?.firstOrNull {
-            it.id == fromOkxToken.assetId
-        } ?: return Result.success(null)
 
-        val toAsset = walletRepository.getOkxChains().firstOrNull {
-            it.id == toOkxToken.chainId
-        }?.assets?.firstOrNull {
-            it.id == toOkxToken.assetId
-        } ?: return Result.success(null)
+        val fromTokenAddress = fromAsset.currencyId ?: return Result.success(null)
+        val toTokenAddress = toAsset.currencyId ?: return Result.success(null)
 
         val crossChainBuildTx = walletRepository.crossChainBuildTx(
-            fromChainId = fromOkxToken.chainId,
-            toChainId = toOkxToken.chainId,
-            fromTokenAddress = fromOkxToken.address,
-            toTokenAddress = toOkxToken.address,
+            fromChainId = fromAsset.chainId,
+            toChainId = toAsset.chainId,
+            fromTokenAddress = fromTokenAddress,
+            toTokenAddress = toTokenAddress,
             amount = amount,
             sort = sort,
             slippage = slippage,
@@ -409,11 +396,6 @@ class PolkaswapInteractorImpl @Inject constructor(
             )
         } ?: return Result.success(null)
 
-//        details.router.crossChainFee
-//
-//        walletRepository.
-
-
         val fromAmountDecimal = fromAsset.amountFromPlanks(details.fromTokenAmount.toBigInteger())
         val toAmountDecimal = toAsset.amountFromPlanks(details.toTokenAmount.toBigInteger())
 
@@ -429,8 +411,13 @@ class PolkaswapInteractorImpl @Inject constructor(
         }
 
         val metaId = accountRepository.getSelectedMetaAccount().id
+
+        val feeInPlanks = details.router.crossChainFee.toBigInteger()
+        val feeTokenAddress = details.router.crossChainFeeTokenAddress
+
         val okxFeeAsset = walletRepository.getAssets(metaId).firstOrNull {
-            it.token.configuration.chainId == toAsset.chainId && it.token.configuration.symbol.lowercase() == "eth"
+            it.token.configuration.chainId == fromAsset.chainId
+                    && it.token.configuration.currencyId == feeTokenAddress
         } ?: return Result.success(null)
 
         return Result.success(

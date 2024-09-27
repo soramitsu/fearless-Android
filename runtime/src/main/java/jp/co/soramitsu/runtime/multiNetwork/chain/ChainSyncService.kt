@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -13,6 +14,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -33,6 +35,7 @@ class ChainSyncService(
 
         supervisorScope {
             chainsWithRemoteAssets.forEach { chain ->
+                delay(1000)
                 launch {
                     val service = remoteAssetsSyncServiceProvider.provide(chain)
                     service?.sync()

@@ -207,8 +207,8 @@ class ConfirmSendViewModel @Inject constructor(
         val assetFeeAmount = if (isSendBokoloCash && utilityAsset.transferable < fee) {
             val swapDetails = polkaswapInteractor.calcDetails(
                 availableDexPaths = listOf(0),
-                tokenFrom = asset,
-                tokenTo = utilityAsset,
+                fromAsset = asset.token.configuration,
+                toAsset = utilityAsset.token.configuration,
                 amount = fee,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,
@@ -401,8 +401,8 @@ class ConfirmSendViewModel @Inject constructor(
         val feeRequiredTokens = if (isSendBokoloCash && utilityAsset.transferable < fee.orZero()) {
             val swapDetails = polkaswapInteractor.calcDetails(
                 availableDexPaths = listOf(0),
-                tokenFrom = asset,
-                tokenTo = utilityAsset,
+                fromAsset = asset.token.configuration,
+                toAsset = utilityAsset.token.configuration,
                 amount = fee,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,

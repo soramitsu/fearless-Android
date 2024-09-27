@@ -74,7 +74,7 @@ class RootInteractor(
 
     suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default){ Web3Wallet.getPendingListOfSessionRequests(topic) }
 
-    suspend fun syncOkxAssets() {
-        walletRepository.fetchOkxSupportedAssets()
-    }
+//    suspend fun syncOkxAssets() {
+//        walletRepository.fetchOkxSupportedAssets()
+//    }
 }

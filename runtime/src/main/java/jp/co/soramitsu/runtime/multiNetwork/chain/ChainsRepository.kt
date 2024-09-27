@@ -48,4 +48,6 @@ class ChainsRepository(private val chainDao: ChainDao) {
     fun observeChainsPerAssetFlow(accountMetaId: Long, assetId: String): Flow<Map<JoinedChainInfo, AssetWithToken>> {
         return chainDao.observeChainsWithBalance(accountMetaId, assetId)
     }
+
+    suspend fun getOkxChainsIds() = chainDao.getOkxChainsIds()
 }

@@ -219,8 +219,8 @@ class ValidateTransferUseCaseImpl(
                     val swapDetails = utilityAsset?.let {
                         polkaswapInteractor.calcDetails(
                             availableDexPaths = listOf(0),
-                            tokenFrom = originAsset,
-                            tokenTo = utilityAsset,
+                            fromAsset = originAsset.token.configuration,
+                            toAsset = utilityAsset.token.configuration,
                             amount = originAssetConfig.amountFromPlanks(originFee),
                             desired = WithDesired.OUTPUT,
                             slippageTolerance = 1.5,

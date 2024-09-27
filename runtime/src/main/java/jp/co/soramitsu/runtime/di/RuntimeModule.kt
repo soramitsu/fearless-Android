@@ -21,6 +21,7 @@ import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 import javax.inject.Singleton
+import jp.co.soramitsu.common.data.network.okx.OkxApi
 
 const val LOCAL_STORAGE_SOURCE = "LOCAL_STORAGE_SOURCE"
 const val REMOTE_STORAGE_SOURCE = "REMOTE_STORAGE_SOURCE"
@@ -92,9 +93,9 @@ class RuntimeModule {
     @Provides
     @Singleton
     fun provideRemoteAssetsSyncServiceProvider(
-        //okxApiService: OkxApiService,
+        okxApiService: OkxApi,
         chainDao: ChainDao
     ): RemoteAssetsSyncServiceProvider {
-        return RemoteAssetsSyncServiceProvider(/* okxApiService, */chainDao)
+        return RemoteAssetsSyncServiceProvider(okxApiService, chainDao)
     }
 }

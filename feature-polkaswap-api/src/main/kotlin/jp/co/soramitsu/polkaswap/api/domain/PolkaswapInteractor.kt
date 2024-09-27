@@ -10,9 +10,9 @@ import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.OkxTokenModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import jp.co.soramitsu.core.models.Asset as ChainAsset
 
 interface PolkaswapInteractor {
     companion object {
@@ -29,8 +29,8 @@ interface PolkaswapInteractor {
 
     suspend fun calcDetails(
         availableDexPaths: List<Int>,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        fromAsset: ChainAsset,
+        toAsset: ChainAsset,
         amount: BigDecimal,
         desired: WithDesired,
         slippageTolerance: Double,
@@ -68,8 +68,8 @@ interface PolkaswapInteractor {
     fun observeHasReadDisclaimer(): Flow<Boolean>
 
     suspend fun crossChainBuildTx(
-        fromOkxToken: OkxTokenModel,
-        toOkxToken: OkxTokenModel,
+        fromAsset: ChainAsset,
+        toAsset: ChainAsset,
         amount: String,
         sort: Int? = null, // 0 - default
         slippage: String,  // 0.002 - 0.5
@@ -77,8 +77,8 @@ interface PolkaswapInteractor {
     ): Result<OkxCrossChainSwapDetails?>
 
     suspend fun getOkxSwap(
-        fromOkxToken: OkxTokenModel,
-        toOkxToken: OkxTokenModel,
+        fromAsset: ChainAsset,
+        toAsset: ChainAsset,
         amount: String,
         slippage: String,
         userWalletAddress: String,

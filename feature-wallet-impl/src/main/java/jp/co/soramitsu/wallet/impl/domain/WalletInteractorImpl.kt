@@ -710,6 +710,7 @@ class WalletInteractorImpl(
         tokenRepository.getToken(chainAsset)
     }
 
+    override suspend fun getOkxChainsIds() = chainsRepository.getOkxChainsIds()
     override fun observeOkxChains() = walletRepository.observeOkxChains()
     override suspend fun getOkxChains() = walletRepository.getOkxChains()
     override suspend fun getOkxCrossChains(chainId: ChainId?) = walletRepository.getOkxCrossChains(chainId)

@@ -332,8 +332,8 @@ class SendSetupViewModel @Inject constructor(
         val assetFeeAmount = if (isSendBokoloCash && utilityAsset.transferable < feeAmount) {
             val swapDetails = polkaswapInteractor.calcDetails(
                 availableDexPaths = listOf(0),
-                tokenFrom = asset,
-                tokenTo = utilityAsset,
+                fromAsset = asset.token.configuration,
+                toAsset = utilityAsset.token.configuration,
                 amount = feeAmount,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,

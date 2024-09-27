@@ -47,7 +47,8 @@ fun chainOf(
     isChainlinkProvider = false,
     supportNft = false,
     isUsesAppId = false,
-    identityChain = null
+    identityChain = null,
+    remoteAssetsSource = null
 )
 
 fun ChainLocal.nodeOf(

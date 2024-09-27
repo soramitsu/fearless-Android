@@ -97,7 +97,7 @@ interface WalletRepository {
 
     suspend fun getRemoteConfig(): Result<AppConfigRemote>
 
-    suspend fun fetchOkxSupportedAssets()
+//    suspend fun fetchOkxSupportedAssets()
     suspend fun getOkxAssets(chainId: ChainId? = null): List<CoreAsset>
     suspend fun getOkxTokens(chainId: ChainId? = null): List<OkxTokenModel>
 

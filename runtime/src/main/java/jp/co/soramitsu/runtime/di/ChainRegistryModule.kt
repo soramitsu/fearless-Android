@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 import javax.inject.Provider
 import javax.inject.Singleton
+import jp.co.soramitsu.common.resources.ContextManager
 
 @InstallIn(SingletonComponent::class)
 @Module

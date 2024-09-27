@@ -12,6 +12,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
@@ -24,6 +25,7 @@ private const val NOMINATION_POOL_OPTION = "poolStaking"
 private const val NFT_OPTION = "nft"
 private const val USES_APP_ID_OPTION = "checkAppId"
 private const val REMOTE_ASSETS_OPTION = "remoteAssets"
+private const val OKX_REMOTE_ASSETS_OPTION = "okxAssets"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
@@ -83,7 +85,9 @@ private fun mapEthereumTypeStringToEthereumType(ethereumTypeString: String?): As
 
 private fun mapStakingTypeToLocal(stakingType: Asset.StakingType): String = stakingType.name
 private fun mapEthereumTypeToLocal(ethereumType: Asset.EthereumType?): String? = ethereumType?.name?.lowercase()
-private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = enumValueOf(stakingTypeLocal)
+private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = runCatching {
+    Asset.StakingType.valueOf(stakingTypeLocal)
+}.getOrDefault(Asset.StakingType.UNSUPPORTED)
 
 private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
     type = mapExplorerTypeRemoteToExplorerType(type),
@@ -166,6 +170,7 @@ fun ChainRemote.toChain(): Chain {
         identityChain = identityChain,
         remoteAssetsSource = when {
             REMOTE_ASSETS_OPTION in optionsOrEmpty -> Chain.RemoteAssetsSource.OnChain
+            OKX_REMOTE_ASSETS_OPTION in optionsOrEmpty -> Chain.RemoteAssetsSource.OKX
             else -> null
         }
     )
@@ -278,10 +283,32 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             supportNft = supportNft,
             isUsesAppId = isUsesAppId,
             identityChain = identityChain,
-            remoteAssetsSource = remoteAssetsSource?.let { Chain.RemoteAssetsSource.valueOf(it) }
+            remoteAssetsSource = runCatching {
+                remoteAssetsSource?.let { Chain.RemoteAssetsSource.valueOf(it) }
+            }.getOrNull()
         )
     }
 }
+
+fun Asset.toLocal(chainId: ChainId) = ChainAssetLocal(
+        id = id,
+        name = name,
+        symbol = symbol,
+        icon = iconUrl,
+        precision = precision,
+        chainId = chainId,
+        priceId = priceId,
+        staking = mapStakingTypeToLocal(staking),
+        purchaseProviders = purchaseProviders?.let { Gson().toJson(it) },
+        isUtility = isUtility,
+        type = type?.name,
+        currencyId = currencyId,
+        existentialDeposit = existentialDeposit,
+        color = color,
+        isNative = isNative,
+        ethereumType = mapEthereumTypeToLocal(ethereumType),
+        priceProvider = priceProvider?.let { Gson().toJson(it) }
+    )
 
 fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     val nodes = chain.nodes.map {
@@ -295,25 +322,7 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     }
 
     val assets = chain.assets.map {
-        ChainAssetLocal(
-            id = it.id,
-            name = it.name,
-            symbol = it.symbol,
-            icon = it.iconUrl,
-            precision = it.precision,
-            chainId = chain.id,
-            priceId = it.priceId,
-            staking = mapStakingTypeToLocal(it.staking),
-            purchaseProviders = it.purchaseProviders?.let { Gson().toJson(it) },
-            isUtility = it.isUtility,
-            type = it.type?.name,
-            currencyId = it.currencyId,
-            existentialDeposit = it.existentialDeposit,
-            color = it.color,
-            isNative = it.isNative,
-            ethereumType = mapEthereumTypeToLocal(it.ethereumType),
-            priceProvider = it.priceProvider?.let { Gson().toJson(it) }
-        )
+        it.toLocal(chain.id)
     }
 
     val externalApi = chain.externalApi?.let { externalApi ->
