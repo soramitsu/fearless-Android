@@ -383,13 +383,11 @@ class BalanceDetailViewModel @Inject constructor(
         if (isBuyEnabled()) {
             actionItems += ActionItemType.BUY
         }
-        val okxAssetsIdPairs = interactor.getOkxAssets().map {
-            it.chainId to it.id
-        }
 
-        val isSupportedByOkx = asset.token.configuration.run { chainId to id } in okxAssetsIdPairs
+        val isOkxSupported = interactor.isOkxSupported(selectedChainId)
+        val isPolkaswapSupported = selectedChainId in listOf(soraMainChainId, soraTestChainId)
 
-        if (isSupportedByOkx || selectedChainId in listOf(soraMainChainId, soraTestChainId)) {
+        if (isOkxSupported || isPolkaswapSupported) {
             actionItems += ActionItemType.SWAP
         }
         return actionItems

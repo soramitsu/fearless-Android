@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
-import androidx.room.withTransaction
 import com.opencsv.CSVReaderHeaderAware
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -23,7 +22,6 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.balances
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.tokens
@@ -31,15 +29,11 @@ import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
-import jp.co.soramitsu.coredb.AppDatabase
-import jp.co.soramitsu.coredb.dao.OkxDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
-import jp.co.soramitsu.coredb.model.OkxChainLocal
-import jp.co.soramitsu.coredb.model.OkxTokenLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -70,7 +64,6 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
-import jp.co.soramitsu.wallet.impl.domain.model.OkxTokenModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -107,9 +100,7 @@ class WalletRepositoryImpl(
     private val extrinsicService: ExtrinsicService,
     private val remoteStorageSource: StorageDataSource,
     private val pricesSyncService: PricesSyncService,
-    private val okxApi: OkxApi,
-    private val okxDao: OkxDao,
-    private val db: AppDatabase
+    private val okxApi: OkxApi
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -439,67 +430,6 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 
-//    override suspend fun fetchOkxSupportedAssets() {
-//        try {
-//            val okxResponse = okxApi.getSupportedChains()
-//            val supportedByApp = chainsRepository.getChains().map { it.id }
-//
-//            val chains = okxResponse.data.filter {
-//                it.chainId in supportedByApp
-//            }.map {
-//                OkxChainLocal(
-//                    it.chainId,
-//                    it.dexTokenApproveAddress
-//                )
-//            }
-//
-//            val current = okxDao.getSupportedChains()
-//            val removed = current.minus(chains.toSet())
-//
-//            okxDao.deleteOkxChains(removed)
-//            okxDao.insertOkxChains(chains)
-//
-//            fetchOkxTokens(chains)
-//
-//        } catch (e: Exception) {
-//            println("!!! error ${e.message}")
-//            e.printStackTrace()
-//        }
-//    }
-
-    override fun observeOkxChains(): Flow<List<Chain>> {
-        return okxDao.observeSupportedChains().mapList {
-            chainsRepository.getChain(it.id)
-        }
-    }
-
-    override suspend fun getOkxChains(): List<Chain> {
-        return okxDao.getSupportedChains().map {
-            chainsRepository.getChain(it.id)
-        }
-    }
-
-    private val okxCrossChainInfoCache = mutableMapOf<ChainId?, List<Chain>>()
-
-    override suspend fun getOkxCrossChains(chainId: ChainId?): List<Chain> {
-        val cached = okxCrossChainInfoCache[chainId]
-
-        if (cached.isNullOrEmpty()) {
-            val response = okxApi.getCrossChainSupportedChains(chainId)
-            val responseChainIds = response.data.map { it.chainId }
-
-            val list = chainsRepository.getChainsById().filter {
-                it.key in responseChainIds
-            }.map { item ->
-                item.value
-            }
-            okxCrossChainInfoCache[chainId] = list
-            return list
-        } else {
-            return cached
-        }
-    }
-
     override suspend fun crossChainBuildTx(
         fromChainId: String,
         toChainId: String,
@@ -538,56 +468,6 @@ class WalletRepositoryImpl(
             slippage = slippage,
             userWalletAddress = userWalletAddress
         )
-    }
-
-//    private suspend fun fetchOkxTokens(chains: List<OkxChainLocal>) {
-//        val okxTokens = chains.map { chain ->
-//            val response = okxApi.getAllTokens(chain.id)
-//            response.data.map { item ->
-//                OkxTokenLocal(
-//                    chainId = chain.id,
-//                    symbol = item.tokenSymbol,
-//                    tokenLogoUrl = item.tokenLogoUrl,
-//                    tokenName = item.tokenName,
-//                    tokenContractAddress = item.tokenContractAddress,
-//                    decimals = item.decimals
-//                )
-//            }
-//        }.flatten()
-//
-//        val current = okxDao.getSupportedTokens()
-//        val removed = current.minus(okxTokens.toSet())
-//        db.withTransaction {
-//            okxDao.deleteOkxTokens(removed)
-//            okxDao.insertOkxTokens(okxTokens)
-//        }
-//    }
-
-    override suspend fun getOkxTokens(chainId: ChainId?): List<OkxTokenModel> {
-        return okxDao.getSupportedTokens(chainId)
-            .map { token ->
-                val assetId = chainsRepository.getChain(token.chainId).assets.firstOrNull { asset ->
-                    asset.symbol.equals(token.symbol, ignoreCase = true)
-                }?.id
-
-                OkxTokenModel(
-                    chainId = token.chainId,
-                    assetId = assetId,
-                    symbol = token.symbol,
-                    logoUrl = token.tokenLogoUrl,
-                    tokenName = token.tokenName,
-                    address = token.tokenContractAddress,
-                    precision = token.decimals
-                )
-            }
-    }
-
-    override suspend fun getOkxAssets(chainId: ChainId?): List<CoreAsset> {
-        return okxDao.getSupportedTokens(chainId).mapNotNull { token ->
-            chainsRepository.getChain(token.chainId).assets.firstOrNull { asset ->
-                asset.symbol.equals(token.symbol, ignoreCase = true)
-            }
-        }
     }
 
     override suspend fun getRemoteConfig(): Result<AppConfigRemote> {

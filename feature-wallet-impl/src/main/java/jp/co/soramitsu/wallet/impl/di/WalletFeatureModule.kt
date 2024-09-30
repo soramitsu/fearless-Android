@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
+import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.domain.WalletSyncService
@@ -19,6 +21,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
+import jp.co.soramitsu.common.data.network.okx.OkxApi
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
@@ -98,11 +101,6 @@ import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
-import javax.inject.Named
-import javax.inject.Singleton
-import jp.co.soramitsu.common.data.network.okx.OkxApi
-import jp.co.soramitsu.coredb.AppDatabase
-import jp.co.soramitsu.coredb.dao.OkxDao
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -187,8 +185,6 @@ class WalletFeatureModule {
         remoteStorageSource: StorageDataSource,
         pricesSyncService: PricesSyncService,
         okxApi: OkxApi,
-        okxDao: OkxDao,
-        db: AppDatabase
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -207,9 +203,7 @@ class WalletFeatureModule {
         extrinsicService,
         remoteStorageSource,
         pricesSyncService,
-        okxApi,
-        okxDao,
-        db
+        okxApi
     )
 
     @Provides

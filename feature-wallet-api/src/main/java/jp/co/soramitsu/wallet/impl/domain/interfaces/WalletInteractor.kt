@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
@@ -28,13 +31,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.okx.OkxCrossChainResponse
-import jp.co.soramitsu.common.data.network.okx.OkxResponse
-import jp.co.soramitsu.coredb.model.OkxChainLocal
-import jp.co.soramitsu.wallet.impl.domain.model.OkxTokenModel
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
@@ -169,12 +165,8 @@ interface WalletInteractor {
 
     fun observeCurrentAccountChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
     suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String>
-    suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
+    suspend fun getToken(chainAsset: CoreAsset): Token
 
-    fun observeOkxChains(): Flow<List<Chain>>
     suspend fun getOkxChainsIds(): List<ChainId>
-    suspend fun getOkxChains(): List<Chain>
-    suspend fun getOkxCrossChains(chainId: ChainId? = null): List<Chain>
-    suspend fun getOkxAssets(chainId: ChainId? = null): List<CoreAsset>
-    suspend fun getOkxTokens(chainId: ChainId? = null): List<OkxTokenModel>
+    suspend fun isOkxSupported(chainId: String): Boolean
 }

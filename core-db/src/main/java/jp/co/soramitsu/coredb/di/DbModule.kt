@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.coredb.AppDatabase
@@ -17,13 +18,11 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
+import jp.co.soramitsu.coredb.dao.PoolDao
 import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
-import javax.inject.Singleton
-import jp.co.soramitsu.coredb.dao.OkxDao
-import jp.co.soramitsu.coredb.dao.PoolDao
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -121,11 +120,5 @@ class DbModule {
     @Singleton
     fun providePoolsDao(appDatabase: AppDatabase): PoolDao {
         return appDatabase.poolDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideOkxDao(appDatabase: AppDatabase): OkxDao {
-        return appDatabase.okxDao()
     }
 }

@@ -17,7 +17,6 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
-import jp.co.soramitsu.coredb.dao.OkxDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.PoolDao
@@ -77,7 +76,6 @@ import jp.co.soramitsu.coredb.migrations.Migration_67_68
 import jp.co.soramitsu.coredb.migrations.Migration_68_69
 import jp.co.soramitsu.coredb.migrations.Migration_69_70
 import jp.co.soramitsu.coredb.migrations.Migration_70_71
-import jp.co.soramitsu.coredb.migrations.Migration_71_72
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -88,8 +86,6 @@ import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.BasicPoolLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
-import jp.co.soramitsu.coredb.model.OkxChainLocal
-import jp.co.soramitsu.coredb.model.OkxTokenLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
@@ -132,9 +128,7 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
         ChainTypesLocal::class,
         NomisWalletScoreLocal::class,
         BasicPoolLocal::class,
-        UserPoolLocal::class,
-        OkxChainLocal::class,
-        OkxTokenLocal::class
+        UserPoolLocal::class
     ]
 )
 @TypeConverters(
@@ -205,7 +199,6 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_68_69)
                     .addMigrations(Migration_69_70)
                     .addMigrations(Migration_70_71)
-                    .addMigrations(Migration_71_72)
                     .build()
             }
             return instance!!
@@ -239,6 +232,4 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun nomisScoresDao(): NomisScoresDao
 
     abstract fun poolDao(): PoolDao
-
-    abstract fun okxDao(): OkxDao
 }

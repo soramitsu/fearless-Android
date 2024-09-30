@@ -711,9 +711,7 @@ class WalletInteractorImpl(
     }
 
     override suspend fun getOkxChainsIds() = chainsRepository.getOkxChainsIds()
-    override fun observeOkxChains() = walletRepository.observeOkxChains()
-    override suspend fun getOkxChains() = walletRepository.getOkxChains()
-    override suspend fun getOkxCrossChains(chainId: ChainId?) = walletRepository.getOkxCrossChains(chainId)
-    override suspend fun getOkxAssets(chainId: ChainId?) = walletRepository.getOkxAssets(chainId)
-    override suspend fun getOkxTokens(chainId: ChainId?) = walletRepository.getOkxTokens(chainId)
+    override suspend fun isOkxSupported(chainId: String): Boolean {
+        return chainsRepository.getChain(chainId).remoteAssetsSource == Chain.RemoteAssetsSource.OKX
+    }
 }
