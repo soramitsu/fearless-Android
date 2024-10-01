@@ -107,7 +107,7 @@ data class OkxSwapTransaction(
 data class OkxCrossChainResponse(
     val fromTokenAmount: String,
     val toTokenAmount: String,
-    val minmumReceive: String,
+    val minimumReceived: String,
     val router: OkxBridgeInfo,
     val tx: OkxTransactionInfo,
 ) {

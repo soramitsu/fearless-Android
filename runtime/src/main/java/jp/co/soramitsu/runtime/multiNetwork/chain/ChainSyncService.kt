@@ -1,5 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -11,6 +13,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -82,20 +85,22 @@ class ChainSyncService(
             chainsSyncDeferred.join()
             launch {
                 val localAssets =
-                    localChainsJoinedInfo.map { it.assets }.flatten()
+                    localChainsJoinedInfo.filter {
+                        it.chain.remoteAssetsSource == null
+                    }.map { it.assets }.flatten()
                 val remoteAssets =
                     mappedRemoteChains.map { it.assets }.flatten()
 
                 val assetsToAdd: MutableList<ChainAssetLocal> = mutableListOf()
                 val assetsToUpdate: MutableList<ChainAssetLocal> = mutableListOf()
-                val assetsToRemove =
-                    localAssets.filter { local ->
-                        val remoteAssetsIds = remoteAssets.map { it.id to it.chainId }
-                        local.id to local.chainId !in remoteAssetsIds
-                    }.toList()
+
+                val remoteAssetsIds = remoteAssets.map { it.id to it.chainId }
+                val assetsToRemove = localAssets.filter { local ->
+                    local.id to local.chainId !in remoteAssetsIds
+                }
 
                 remoteAssets.forEach { remoteAsset ->
-                    val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId}
+                    val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId }
 
                     when {
                         localAsset == null -> {
@@ -109,7 +114,7 @@ class ChainSyncService(
                 dao.updateAssets(assetsToAdd, assetsToUpdate, assetsToRemove)
 
                 val metaAccounts = metaAccountDao.getMetaAccounts()
-                if(metaAccounts.isEmpty()) return@launch
+                if (metaAccounts.isEmpty()) return@launch
                 val newLocalAssets = metaAccounts.map { metaAccount ->
                     assetsToAdd.mapNotNull {
                         val chain = remoteMapping[it.chainId]
@@ -129,8 +134,7 @@ class ChainSyncService(
                     }
                 }.flatten()
 
-                assetsDao.insertAssets(newLocalAssets)
-                assetsDao.deleteAssets(assetsToRemove.map { it.id})
+                assetsDao.updateAssets(newLocalAssets, assetsToRemove.map { it.id })
             }
             launch {
                 val remoteNodes = mappedRemoteChains.map { it.nodes }.flatten()

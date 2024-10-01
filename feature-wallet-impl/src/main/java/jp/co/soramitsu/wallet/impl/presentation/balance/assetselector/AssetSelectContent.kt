@@ -133,9 +133,9 @@ fun AssetSelectContent(
                     .padding(horizontal = 16.dp)
                     .weight(1f)
             ) {
-                items(state.assets.map { it.copy(isSelected = it.id == state.selectedAssetId) }) { chain ->
+                items(state.assets.map { it.copy(isSelected = it.id == state.selectedAssetId) }) { assetState ->
                     AssetItem(
-                        state = chain,
+                        state = assetState,
                         onSelected = callback::onAssetSelected
                     )
                 }

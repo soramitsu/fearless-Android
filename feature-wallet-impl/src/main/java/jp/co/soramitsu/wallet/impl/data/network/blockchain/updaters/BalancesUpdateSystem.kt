@@ -239,7 +239,7 @@ class BalancesUpdateSystem(
                                     .onFailure {
                                         Log.d(
                                             TAG,
-                                            "fetchEthBalance error ${it.message} ${it.localizedMessage} $it"
+                                            "fetchEthBalance error for asset ${asset.symbol}:${asset.chainName}:${asset.currencyId} ${it.message} ${it.localizedMessage} $it"
                                         )
                                     }
                                     .getOrNull() ?: return@assets

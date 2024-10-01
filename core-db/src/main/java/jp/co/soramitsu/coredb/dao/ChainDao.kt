@@ -123,7 +123,7 @@ abstract class ChainDao {
     )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
+    protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
 
     @Update
     protected abstract suspend fun updateChainAssets(assets: List<ChainAssetLocal>)
@@ -201,6 +201,9 @@ abstract class ChainDao {
 
     @Query("SELECT * FROM chain_assets")
     abstract suspend fun getAssetsConfigs(): List<ChainAssetLocal>
+
+    @Query("SELECT * FROM chain_assets WHERE chainId = :chainId")
+    abstract suspend fun getAssetsConfigs(chainId: String): List<ChainAssetLocal>
 
     open fun observeChainsWithBalance(
         accountMetaId: Long,

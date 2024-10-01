@@ -387,13 +387,13 @@ class PolkaswapInteractorImpl @Inject constructor(
         )
 
         val details = crossChainBuildTx.data.firstOrNull()?.let {
-            OkxCrossChainSwapDetailsRemote(
-                it.fromTokenAmount,
-                it.toTokenAmount,
-                it.minmumReceive,
-                it.router,
-                it.tx
-            )
+                OkxCrossChainSwapDetailsRemote(
+                    it.fromTokenAmount,
+                    it.toTokenAmount,
+                    it.minimumReceived,
+                    it.router,
+                    it.tx
+                )
         } ?: return Result.success(null)
 
         val fromAmountDecimal = fromAsset.amountFromPlanks(details.fromTokenAmount.toBigInteger())
@@ -412,7 +412,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val metaId = accountRepository.getSelectedMetaAccount().id
 
-        val feeInPlanks = details.router.crossChainFee.toBigInteger()
+        val feeDecimal = details.router.crossChainFee.toBigDecimal()
         val feeTokenAddress = details.router.crossChainFeeTokenAddress
 
         val okxFeeAsset = walletRepository.getAssets(metaId).firstOrNull {
@@ -424,7 +424,7 @@ class PolkaswapInteractorImpl @Inject constructor(
             OkxCrossChainSwapDetails(
                 fromTokenAmount = details.fromTokenAmount,
                 toTokenAmount = details.toTokenAmount,
-                minmumReceive = details.minmumReceive,
+                minimumReceived = details.minimumReceived,
                 router = details.router,
                 tx = details.tx,
                 fromTokenOnToToken = fromTokenOnToToken,

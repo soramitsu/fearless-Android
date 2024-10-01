@@ -63,6 +63,14 @@ interface AssetReadOnlyCache {
 @Dao
 abstract class AssetDao : AssetReadOnlyCache {
 
+    @Transaction
+    open suspend fun updateAssets(assetsToAdd: List<AssetLocal>, assetsToRemoveIds: List<String>) {
+        insertAssets(assetsToAdd)
+        assetsToRemoveIds.chunked(900).forEach { chunk ->
+            deleteAssets(chunk)
+        }
+    }
+
     @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
     abstract override fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
 

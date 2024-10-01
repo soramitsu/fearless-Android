@@ -264,6 +264,10 @@ class SwapTokensViewModel @AssistedInject constructor(
             }
 
             is OkxCrossChainSwapDetails -> {
+                val crossChainFee = details.router.crossChainFee //decimal
+                println("!!! networkFeeFlow crossChainFee = $crossChainFee")
+                println("!!! networkFeeFlow otherNativeFee = ${details.router.otherNativeFee}")
+
                 val feeInPlanks = details.tx.gasLimit.toBigInteger() * (details.tx.maxPriorityFeePerGas.toBigInteger() + details.tx.gasPrice.toBigInteger())
                 val fee = details.feeAsset.token.amountFromPlanks(feeInPlanks)
                 println("!!! GOT CROSS_CHAIN SWAP FEE: $fee")
@@ -322,7 +326,9 @@ class SwapTokensViewModel @AssistedInject constructor(
                     }
 
                     is OkxCrossChainSwapDetails -> {
-                        enteredFromAmountFlow.value = fromAsset.token.amountFromPlanks(details.fromTokenAmount.toBigInteger())
+                        val toAmountDecimal = toAsset.token.amountFromPlanks(details.toTokenAmount.toBigInteger())
+                        val toAmountScaled = toAmountDecimal.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+                        enteredToAmountFlow.value = toAmountScaled
                         details.detailsToViewState(
                             resourceManager,
                             amountInput.value,
@@ -332,7 +338,9 @@ class SwapTokensViewModel @AssistedInject constructor(
                     }
 
                     is OkxSwapDetails -> {
-                        enteredFromAmountFlow.value = fromAsset.token.amountFromPlanks(details.fromTokenAmount.toBigInteger())
+                        val toAmountDecimal = toAsset.token.amountFromPlanks(details.toTokenAmount.toBigInteger())
+                        val toAmountScaled = toAmountDecimal.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+                        enteredToAmountFlow.value = toAmountScaled
                         details.detailsToViewState(
                             resourceManager,
                             amountInput.value,
@@ -420,7 +428,7 @@ class SwapTokensViewModel @AssistedInject constructor(
                 .launchIn(viewModelScope)
 
         viewModelScope.launch {
-            observeAvailableSources()
+            observePolkaswapAvailableSources()
             initialFee = polkaswapInteractor.calcFakeFee()
         }
 
@@ -460,13 +468,15 @@ class SwapTokensViewModel @AssistedInject constructor(
         combine(
             enteredToAmountFlow,
             toAssetFlow,
-            isToAmountFocused
-        ) { enteredAmount, asset, isToAmountFocused ->
+            isToAmountFocused,
+            swapTypeFlow
+        ) { enteredAmount, asset, isToAmountFocused, swapType ->
             toAmountInputViewState.value = getAmountInputViewState(
                 title = resourceManager.getString(R.string.polkaswap_to),
                 amount = enteredAmount,
                 asset = asset,
-                isFocused = isToAmountFocused
+                isFocused = isToAmountFocused,
+                inputEnabled = swapType == SwapType.POLKASWAP
             )
             if (isToAmountFocused) {
                 desired = WithDesired.OUTPUT
@@ -475,13 +485,18 @@ class SwapTokensViewModel @AssistedInject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun observeAvailableSources() {
+    private fun observePolkaswapAvailableSources() {
         combine(
             fromAssetFlow.filterNotNull(),
             toAssetFlow.filterNotNull(),
             dexes
         ) { fromAsset, toAsset, dexes ->
             availableDexPathsFlow.value = null
+
+            if (fromAsset.token.configuration.chainId != polkaswapInteractor.polkaswapChainId ||
+                toAsset.token.configuration.chainId != polkaswapInteractor.polkaswapChainId
+            ) return@combine
+
             val fromCurrencyId = fromAsset.token.configuration.currencyId ?: return@combine
             val toCurrencyId = toAsset.token.configuration.currencyId ?: return@combine
             if (fromCurrencyId == toCurrencyId) return@combine
@@ -535,6 +550,7 @@ class SwapTokensViewModel @AssistedInject constructor(
             }
 
             SwapType.OKX_CROSS_CHAIN -> {
+                if (desired == WithDesired.OUTPUT) return emptyResult
                 val amountInPlanks = fromAsset.planksFromAmount(amount).orZero()
 
                 val userAddress = walletInteractor.getChainAddressForSelectedMetaAccount(fromAsset.chainId) ?: return emptyResult
@@ -548,6 +564,7 @@ class SwapTokensViewModel @AssistedInject constructor(
             }
 
             SwapType.OKX_SWAP -> {
+                if (desired == WithDesired.OUTPUT) return emptyResult
                 val amountInPlanks = fromAsset.planksFromAmount(amount).orZero()
 
                 val userAddress = walletInteractor.getChainAddressForSelectedMetaAccount(fromAsset.chainId) ?: return emptyResult
@@ -581,6 +598,7 @@ class SwapTokensViewModel @AssistedInject constructor(
         amount: BigDecimal,
         asset: Asset?,
         isFocused: Boolean,
+        inputEnabled: Boolean = true,
         @StringRes totalFormatRes: Int = R.string.common_balance_format
     ): AmountInputViewState {
         if (asset == null) {
@@ -592,7 +610,8 @@ class SwapTokensViewModel @AssistedInject constructor(
                 tokenAmount = amount,
                 title = title,
                 isFocused = isFocused,
-                allowAssetChoose = true
+                allowAssetChoose = true,
+                inputEnabled = inputEnabled
             )
         }
 
@@ -610,7 +629,8 @@ class SwapTokensViewModel @AssistedInject constructor(
             title = title,
             isFocused = isFocused,
             allowAssetChoose = true,
-            precision = asset.token.configuration.precision
+            precision = asset.token.configuration.precision,
+            inputEnabled = inputEnabled
         )
     }
 
@@ -931,7 +951,7 @@ class SwapTokensViewModel @AssistedInject constructor(
         val details = this
         val fromAmount = amount.formatCryptoDetail(fromAsset.token.configuration.symbol)
         val toAmount = details.toTokenAmount.toBigInteger().formatCryptoDetailFromPlanks(toAsset.token.configuration)
-        val minMaxTitle = resourceManager.getString(jp.co.soramitsu.feature_polkaswap_api.R.string.common_min_received)
+        val minMaxTitle = resourceManager.getString(R.string.common_min_received)
         val minMaxAmount = details.minmumReceive.toBigInteger().formatCryptoDetailFromPlanks(toAsset.token.configuration)
         val minMaxFiat = toAsset.token.fiatAmount(toAsset.token.configuration.amountFromPlanks(details.minmumReceive.toBigInteger()))?.formatFiat(toAsset.token.fiatSymbol)
 
@@ -970,9 +990,9 @@ class SwapTokensViewModel @AssistedInject constructor(
         val details = this
         val fromAmount = amount.formatCryptoDetail(fromAsset.token.configuration.symbol)
         val toAmount = details.toTokenAmount.toBigInteger().formatCryptoDetailFromPlanks(toAsset.token.configuration)
-        val minMaxTitle = resourceManager.getString(jp.co.soramitsu.feature_polkaswap_api.R.string.common_min_received)
-        val minMaxAmount = details.minmumReceive.toBigInteger().formatCryptoDetailFromPlanks(toAsset.token.configuration)
-        val minMaxFiat = toAsset.token.fiatAmount(toAsset.token.configuration.amountFromPlanks(details.minmumReceive.toBigInteger()))?.formatFiat(toAsset.token.fiatSymbol)
+        val minMaxTitle = resourceManager.getString(R.string.common_min_received)
+        val minMaxAmount = details.minimumReceived.toBigInteger().formatCryptoDetailFromPlanks(toAsset.token.configuration)
+        val minMaxFiat = toAsset.token.fiatAmount(toAsset.token.configuration.amountFromPlanks(details.minimumReceived.toBigInteger()))?.formatFiat(toAsset.token.fiatSymbol)
 
         val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
         val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
@@ -1019,7 +1039,7 @@ class SwapTokensViewModel @AssistedInject constructor(
                 fromAmount = amount.formatCryptoDetail(fromAsset.token.configuration.symbol)
                 toAmount = details.amount.formatCryptoDetail(toAsset.token.configuration.symbol)
 
-                minMaxTitle = resourceManager.getString(jp.co.soramitsu.feature_polkaswap_api.R.string.common_min_received)
+                minMaxTitle = resourceManager.getString(R.string.common_min_received)
                 minMaxAmount = details.minMax.formatCryptoDetail(toAsset.token.configuration.symbol)
                 minMaxFiat = toAsset.token.fiatAmount(details.minMax)?.formatFiat(toAsset.token.fiatSymbol)
             }
@@ -1028,7 +1048,7 @@ class SwapTokensViewModel @AssistedInject constructor(
                 fromAmount = details.amount.formatCryptoDetail(fromAsset.token.configuration.symbol)
                 toAmount = amount.formatCryptoDetail(toAsset.token.configuration.symbol)
 
-                minMaxTitle = resourceManager.getString(jp.co.soramitsu.feature_polkaswap_api.R.string.polkaswap_maximum_sold)
+                minMaxTitle = resourceManager.getString(R.string.polkaswap_maximum_sold)
                 minMaxAmount = details.minMax.formatCryptoDetail(fromAsset.token.configuration.symbol)
                 minMaxFiat = fromAsset.token.fiatAmount(details.minMax)?.formatFiat(fromAsset.token.fiatSymbol)
             }
