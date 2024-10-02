@@ -62,8 +62,10 @@ xNetworking = "0.2.5-temp7"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
+soramitsuAndroidFoundation = "0.0.1"
 
 [libraries]
+soramitsu-android-foundation = { module = "jp.co.soramitsu:android-foundation", version.ref = "soramitsuAndroidFoundation" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastleVersion" }
 biometric = { module = "androidx.biometric:biometric", version.ref = "biometricVersion" }

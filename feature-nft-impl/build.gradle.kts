@@ -30,8 +30,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     composeOptions {
@@ -39,7 +39,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }
 
@@ -51,9 +51,7 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
-    implementation(libs.sharedFeaturesCoreDep) {
-        exclude(module = "android-foundation")
-    }
+    implementation(libs.sharedFeaturesCoreDep)
     implementation(libs.retrofit)
     implementation(libs.gson)
     implementation(libs.web3jDep) {

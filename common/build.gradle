@@ -94,14 +94,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -168,5 +168,5 @@ dependencies {
     testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
 
-    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
+    api libs.sharedFeaturesCoreDep
 }

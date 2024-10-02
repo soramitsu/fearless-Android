@@ -24,7 +24,7 @@ android {
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
 
     composeOptions {
@@ -32,8 +32,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     namespace 'jp.co.soramitsu.feature_staking_impl'

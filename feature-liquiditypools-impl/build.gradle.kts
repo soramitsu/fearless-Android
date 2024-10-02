@@ -20,8 +20,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     composeOptions {
@@ -29,12 +29,11 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }
 
 dependencies {
-    implementation(projects.androidFoundation)
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featurePolkaswapApi)
@@ -51,4 +50,5 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.sora.ui)
     implementation(libs.room.ktx)
+    implementation(libs.soramitsu.android.foundation)
 }

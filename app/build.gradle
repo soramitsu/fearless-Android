@@ -109,14 +109,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -139,7 +139,6 @@ play {
 }
 
 dependencies {
-    implementation project(':android-foundation')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
@@ -227,6 +226,8 @@ dependencies {
     implementation platform(libs.walletconnectBomDep)
     implementation libs.walletconnectCoreDep
     implementation libs.walletconnectWeb3WalletDep
+
+    implementation(libs.soramitsu.android.foundation)
 
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules
