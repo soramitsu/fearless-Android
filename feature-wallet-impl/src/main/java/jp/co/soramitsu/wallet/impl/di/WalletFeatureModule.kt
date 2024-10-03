@@ -96,11 +96,8 @@ import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
-import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
-import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
-import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.HistoryInfoRemoteLoader
-import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.impl.domain.adapters.HistoryInfoRemoteLoaderFacade
-import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -246,23 +243,14 @@ class WalletFeatureModule {
     fun provideHistorySourceProvider(
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
-        txHistoryRepository: TxHistoryRepository,
+        soramitsuNetworkClient: SoramitsuNetworkClient,
+        txHistoryClientForFearlessWalletFactory: TxHistoryClientForFearlessWalletFactory
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
-        txHistoryRepository,
+        soramitsuNetworkClient,
+        txHistoryClientForFearlessWalletFactory
     )
-
-    @Provides
-    fun provideHistoryInfoRemoteLoader(
-        configDao: ConfigDAO,
-        restClient: RestClient,
-    ): HistoryInfoRemoteLoader {
-        return HistoryInfoRemoteLoaderFacade(
-            configDAO = configDao,
-            restClient = restClient,
-        )
-    }
 
     @Provides
     @Singleton
@@ -493,6 +481,17 @@ class WalletFeatureModule {
     fun provideAddressBookRepository(
         addressBookDao: AddressBookDao
     ): AddressBookRepository = AddressBookRepositoryImpl(addressBookDao)
+
+    @Singleton
+    @Provides
+    fun provideSoramitsuNetworkClient(): SoramitsuNetworkClient =
+        SoramitsuNetworkClient(logging = BuildConfig.DEBUG)
+
+    @Singleton
+    @Provides
+    fun provideTxHistoryClientForFearlessWalletFactory(
+        @ApplicationContext context: Context
+    ): TxHistoryClientForFearlessWalletFactory = TxHistoryClientForFearlessWalletFactory(context)
 
     @Provides
     fun provideAccountListingMixin(
