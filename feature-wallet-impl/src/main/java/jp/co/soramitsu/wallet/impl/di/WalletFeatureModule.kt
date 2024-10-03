@@ -64,7 +64,10 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpda
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
+import jp.co.soramitsu.wallet.impl.data.repository.ChainlinkPricesService
+import jp.co.soramitsu.wallet.impl.data.repository.CoingeckoPricesService
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
+import jp.co.soramitsu.wallet.impl.data.repository.PricesSyncService
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
@@ -172,14 +175,14 @@ class WalletFeatureModule {
         assetCache: AssetCache,
         coingeckoApi: CoingeckoApi,
         chainRegistry: ChainRegistry,
-        availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
         extrinsicService: ExtrinsicService,
         @Named(REMOTE_STORAGE_SOURCE)
-        remoteStorageSource: StorageDataSource
+        remoteStorageSource: StorageDataSource,
+        pricesSyncService: PricesSyncService
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -191,13 +194,13 @@ class WalletFeatureModule {
         phishingDao,
         coingeckoApi,
         chainRegistry,
-        availableFiatCurrencies,
         updatesMixin,
         remoteConfigFetcher,
         accountRepository,
         chainsRepository,
         extrinsicService,
-        remoteStorageSource
+        remoteStorageSource,
+        pricesSyncService
     )
 
     @Provides
@@ -495,4 +498,43 @@ class WalletFeatureModule {
         interactor: AccountInteractor,
         addressIconGenerator: AddressIconGenerator
     ): AccountListingMixin = AccountListingProvider(interactor, addressIconGenerator)
+
+    @Provides
+    @Singleton
+    fun provideCoingeckoPricesService(
+        coingeckoApi: CoingeckoApi,
+        chainsRepository: ChainsRepository
+    ): CoingeckoPricesService {
+        return CoingeckoPricesService(
+            coingeckoApi,
+            chainsRepository
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideChainlinkPricesService(
+        ethereumSource: EthereumRemoteSource,
+        chainsRepository: ChainsRepository
+    ): ChainlinkPricesService {
+        return ChainlinkPricesService(ethereumSource, chainsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun providePricesSyncService(
+        tokenPriceDao: TokenPriceDao,
+        coingeckoPricesService: CoingeckoPricesService,
+        chainlinkPricesService: ChainlinkPricesService,
+        selectedFiat: SelectedFiat,
+        availableFiatCurrencies: GetAvailableFiatCurrencies,
+    ): PricesSyncService {
+        return PricesSyncService(
+            tokenPriceDao,
+            coingeckoPricesService,
+            chainlinkPricesService,
+            selectedFiat,
+            availableFiatCurrencies
+        )
+    }
 }
