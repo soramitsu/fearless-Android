@@ -1,7 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
 import android.util.Log
-import javax.inject.Inject
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
@@ -51,6 +50,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 data class ChainService(
     val runtimeProvider: RuntimeProvider,
@@ -118,7 +118,7 @@ class ChainRegistry @Inject constructor(
         configsSyncDeferred.add(chainSyncDeferred)
         configsSyncDeferred.add(typesResultDeferred)
 
-        val chainsSyncResult = chainSyncDeferred.await()
+        val chainsSyncResult = kotlin.runCatching { chainSyncDeferred.await() }
         val typesResult = typesResultDeferred.await()
 
         return@withContext if(chainsSyncResult.isSuccess && typesResult.isSuccess) {

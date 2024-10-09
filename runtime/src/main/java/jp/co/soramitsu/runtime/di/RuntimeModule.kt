@@ -10,8 +10,10 @@ import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsSyncServiceProvider
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.DbStorageCache
 import jp.co.soramitsu.runtime.storage.source.LocalStorageSource
@@ -86,4 +88,13 @@ class RuntimeModule {
     fun provideSubstrateCalls(
         chainRegistry: ChainRegistry
     ) = RpcCalls(chainRegistry)
+
+    @Provides
+    @Singleton
+    fun provideRemoteAssetsSyncServiceProvider(
+        //okxApiService: OkxApiService,
+        chainDao: ChainDao
+    ): RemoteAssetsSyncServiceProvider {
+        return RemoteAssetsSyncServiceProvider(/* okxApiService, */chainDao)
+    }
 }
