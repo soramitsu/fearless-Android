@@ -130,4 +130,15 @@ interface WalletRepository {
         slippage: String,
         userWalletAddress: String
     ): OkxResponse<OkxSwapResponse>
+
+    suspend fun getOkxAllowance(
+        chainId: ChainId,
+        tokenAddress: String
+    ): BigInteger
+
+    suspend fun approve(
+        chainId: ChainId,
+        tokenAddress: String,
+        amount: BigInteger
+    ): Boolean
 }

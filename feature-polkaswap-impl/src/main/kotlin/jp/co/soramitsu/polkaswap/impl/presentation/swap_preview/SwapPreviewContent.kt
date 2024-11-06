@@ -40,6 +40,8 @@ interface SwapPreviewCallbacks {
     fun onBackClick()
 
     fun onConfirmClick()
+
+    fun onApproveClick()
 }
 
 @Composable
@@ -130,6 +132,17 @@ fun SwapPreviewContent(
                         .height(48.dp)
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth(),
+                    text = stringResource(R.string.connection_approve),
+                    onClick = callbacks::onApproveClick
+                )
+
+                MarginVertical(margin = 8.dp)
+
+                AccentButton(
+                    modifier = Modifier
+                        .height(48.dp)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
                     text = stringResource(R.string.common_confirm),
                     onClick = callbacks::onConfirmClick
                 )
@@ -173,11 +186,9 @@ fun SwapPreviewContentPreview() {
             false
         ),
         callbacks = object : SwapPreviewCallbacks {
-            override fun onBackClick() {
-            }
-
-            override fun onConfirmClick() {
-            }
+            override fun onBackClick() {}
+            override fun onConfirmClick() {}
+            override fun onApproveClick() {}
         }
     )
 }

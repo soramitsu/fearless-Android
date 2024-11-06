@@ -91,4 +91,7 @@ interface OkxApi {
     ): OkxResponse<OkxCrossChainResponse>
 
 
+    fun getAllowance()
+
+
 }

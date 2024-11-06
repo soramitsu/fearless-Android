@@ -433,4 +433,14 @@ class PolkaswapInteractorImpl @Inject constructor(
             )
         )
     }
+
+    override suspend fun getOkxAllowance(chainId: ChainId, tokenAddress: String): BigInteger {
+        return walletRepository.getOkxAllowance(chainId, tokenAddress)
+    }
+
+    override suspend fun approve(
+        chainId: ChainId,
+        tokenAddress: String,
+        amount: BigInteger
+    ): Boolean = walletRepository.approve(chainId, tokenAddress, amount)
 }

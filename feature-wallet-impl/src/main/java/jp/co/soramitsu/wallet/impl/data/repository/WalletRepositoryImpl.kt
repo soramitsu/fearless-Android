@@ -4,6 +4,7 @@ import com.opencsv.CSVReaderHeaderAware
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
@@ -54,6 +55,7 @@ import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.shared_utils.scale.dataType.boolean
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
@@ -156,6 +158,27 @@ class WalletRepositoryImpl(
 
     override suspend fun syncAssetsRates(currencyId: String) {
         pricesSyncService.sync()
+    }
+
+    override suspend fun getOkxAllowance(
+        chainId: ChainId,
+        tokenAddress: String,
+    ): BigInteger {
+        val okxChain = okxApi.getSupportedChains(chainId = chainId).data[0]
+        val chain = chainsRepository.getChain(chainId)
+        val userAddress = accountRepository.getSelectedMetaAccount().address(chain) ?: return BigInteger.ZERO
+
+        return ethereumSource.checkAllowance(chainId, userAddress, okxChain.dexTokenApproveAddress, tokenAddress)
+    }
+
+    override suspend fun approve(
+        chainId: ChainId,
+        tokenAddress: String,
+        amount: BigInteger
+    ): Boolean {
+        val okxChain = okxApi.getSupportedChains(chainId = chainId).data[0]
+        println("!!! call approve with: chainId = $chainId; tokenAddress = $tokenAddress; spender = ${okxChain.dexTokenApproveAddress}; amount = $amount")
+        return ethereumSource.approve(chainId, tokenAddress, okxChain.dexTokenApproveAddress, amount)
     }
 
     override fun assetFlow(

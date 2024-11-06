@@ -1,6 +1,9 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
-import android.util.Log
+import com.google.gson.Gson
+import io.reactivex.Single
+import it.airgap.beaconsdk.core.internal.utils.app
+import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -10,8 +13,8 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.response.NewHeadsNotificationExtended
@@ -20,20 +23,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.web3j.abi.DefaultFunctionReturnDecoder
 import org.web3j.abi.FunctionEncoder
+import org.web3j.abi.FunctionReturnDecoder
 import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
+import org.web3j.abi.datatypes.Bool
 import org.web3j.abi.datatypes.Function
+import org.web3j.abi.datatypes.Uint
 import org.web3j.abi.datatypes.generated.Int256
+import org.web3j.abi.datatypes.generated.Uint256
 import org.web3j.abi.datatypes.generated.Uint80
 import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
@@ -144,6 +149,59 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         return web3.fetchEthBalance(asset, address)
     }
 
+    suspend fun checkAllowance(
+        chainId: ChainId,
+        owner: String,
+        spender: String,
+        tokenAddress: String
+    ): BigInteger {
+        val connection = ethereumConnectionPool.await(chainId)
+        val web3 = connection?.web3j
+            ?: throw RuntimeException("There is no connection created for chain $chainId")
+        return web3.checkAllowance(owner, spender, tokenAddress)
+    }
+
+    suspend fun approve(
+        chainId: ChainId,
+        tokenAddress: String,
+        spender: String,
+        amount: BigInteger
+    ): Boolean {
+        val connection = ethereumConnectionPool.await(chainId)
+        val web3 = connection?.web3j
+            ?: throw RuntimeException("There is no connection created for chain $chainId")
+
+        val function = Function(
+            "approve",
+            listOf(
+                Address(spender),
+                Uint(amount)
+            ),
+            listOf(object : TypeReference<Bool?>() {})
+        )
+
+        val approveResult = withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+                web3.ethCall(
+                    Transaction.createEthCallTransaction(
+                        null,
+                        Address(tokenAddress).value,
+                        function.encode()
+                    ),
+                    DefaultBlockParameterName.LATEST
+                ).send().value
+            }.getOrNull()
+        }
+
+        println("!!! approveResult = $approveResult")
+
+        val decodeResult = DefaultFunctionReturnDecoder.decode(
+            approveResult, function.outputParameters
+        )
+
+        return decodeResult.getOrNull(1)?.value as? Boolean == true
+    }
+
     suspend fun fetchPriceFeed(
         chainId: ChainId,
         receiverAddress: String
@@ -155,6 +213,41 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
         return web3.fetchPriceFeed(receiverAddress)
     }
+
+    private suspend fun Ethereum.checkAllowance(
+        owner: String,
+        spender: String,
+        tokenAddress: String
+    ): BigInteger {
+        val function = Function(
+            "allowance",
+            listOf(
+                Address(owner),
+                Address(spender)
+            ),
+            listOf(object : TypeReference<Uint256?>() {})
+        )
+        val transaction =
+            Transaction.createEthCallTransaction(
+                owner,
+                tokenAddress,
+                FunctionEncoder.encode(function)
+            )
+
+        val response = withContext(Dispatchers.IO) {
+            ethCall(transaction, DefaultBlockParameterName.LATEST).send().value
+        }
+
+        val allowance = FunctionReturnDecoder.decode(
+            response, function.outputParameters
+        )
+
+        println("!!! allowance is $allowance")
+        println("!!! allowance Gson is ${Gson().toJson(allowance)}")
+
+        return BigInteger.ZERO
+    }
+
 
     private suspend fun Ethereum.fetchEthBalance(asset: Asset, address: String): BigInteger {
         return if (asset.isUtility) {

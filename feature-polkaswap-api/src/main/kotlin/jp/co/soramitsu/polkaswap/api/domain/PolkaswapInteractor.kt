@@ -83,4 +83,12 @@ interface PolkaswapInteractor {
         slippage: String,
         userWalletAddress: String,
     ): Result<OkxSwapDetails?>
+
+    suspend fun getOkxAllowance(chainId: ChainId, tokenAddress: String): BigInteger
+
+    suspend fun approve(
+        chainId: ChainId,
+        tokenAddress: String,
+        amount: BigInteger
+    ): Boolean
 }

@@ -1,18 +1,9 @@
 package jp.co.soramitsu.polkaswap.api.presentation.models
 
-import android.media.Image
 import android.os.Parcelable
 import java.math.BigDecimal
-import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.GradientIconState
-import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
-import jp.co.soramitsu.feature_polkaswap_api.R
-import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
-import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.parcelize.Parcelize
 import jp.co.soramitsu.core.models.Asset as CoreAsset

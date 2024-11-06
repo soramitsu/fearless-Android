@@ -144,7 +144,7 @@ class SwapTokensViewModel @AssistedInject constructor(
     )
 
     private var selectedMarket = MutableStateFlow(Market.SMART)
-    private var slippageTolerance = MutableStateFlow(0.5)
+    private var slippageTolerance = MutableStateFlow(0.01)
 
     private val fromPayloadFlow = MutableStateFlow(
         if (chainId != null && assetFromId != null) {
@@ -653,64 +653,115 @@ class SwapTokensViewModel @AssistedInject constructor(
     }
 
     override fun onPreviewClick() {
+        isLoading.value = true
+        val swapType = swapTypeFlow.value
+
         viewModelScope.launch {
-            isLoading.value = true
-            val bestDexId = (polkaswapInteractor.bestDexIdFlow.value as? LoadingState.Loaded)?.data
+            when (swapType) {
+                SwapType.POLKASWAP -> {
+                    val bestDexId = (polkaswapInteractor.bestDexIdFlow.value as? LoadingState.Loaded)?.data
 
-            val swapDetailsViewStateReady = swapDetailsViewState.value != null
-            val swapDetailsReady = swapDetails.value.getOrNull() != null
-            val bestDexIdReady = bestDexId != null
-            val networkFeeReady = networkFeeViewStateFlow.value.dataOrNull() != null
-            val isAllDataReady =
-                swapDetailsViewStateReady && swapDetailsReady && bestDexIdReady && networkFeeReady
+                    val swapDetailsViewStateReady = swapDetailsViewState.value != null
+                    val swapDetailsReady = swapDetails.value.getOrNull() != null
+                    val bestDexIdReady = bestDexId != null
+                    val networkFeeReady = networkFeeViewStateFlow.value.dataOrNull() != null
+                    val isAllDataReady =
+                        swapDetailsViewStateReady && swapDetailsReady && bestDexIdReady && networkFeeReady
 
-            if (!isAllDataReady) {
-                isLoading.value = false
-                showError(WaitForFeeCalculationException(resourceManager))
-                return@launch
-            }
+                    if (!isAllDataReady) {
+                        isLoading.value = false
+                        showError(WaitForFeeCalculationException(resourceManager))
+                        return@launch
+                    }
 
-            val swapDetails = requireNotNull(swapDetails.value.getOrNull() as? PolkaswapSwapDetails)
+                    val swapDetails = requireNotNull(swapDetails.value.getOrNull() as? PolkaswapSwapDetails)
 
-            validate()?.let {
-                isLoading.value = false
-                showError(it)
-                return@launch
-            }
+                    validate()?.let {
+                        isLoading.value = false
+                        showError(it)
+                        return@launch
+                    }
 
-            val amountInPlanks: BigInteger
-            val minMaxInPlanks: BigInteger?
+                    val amountInPlanks: BigInteger
+                    val minMaxInPlanks: BigInteger?
 
-            when (desired) {
-                WithDesired.INPUT -> {
-                    amountInPlanks =
+                    when (desired) {
+                        WithDesired.INPUT -> {
+                            amountInPlanks =
+                                fromAssetFlow.value?.token?.planksFromAmount(enteredFromAmountFlow.value).orZero()
+                            minMaxInPlanks =
+                                toAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
+                        }
+
+                        WithDesired.OUTPUT -> {
+                            amountInPlanks =
+                                toAssetFlow.value?.token?.planksFromAmount(enteredToAmountFlow.value).orZero()
+                            minMaxInPlanks =
+                                fromAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
+                        }
+
+                        else -> return@launch
+                    }
+
+                    val detailsParcelModel = SwapDetailsParcelModel(
+                        amountInPlanks,
+                        selectedMarket.value,
+                        requireNotNull(desired),
+                        requireNotNull(bestDexId),
+                        minMaxInPlanks,
+                        requireNotNull(networkFeeViewStateFlow.value.dataOrNull())
+                    )
+                    isLoading.value = false
+                    polkaswapRouter.openSwapPreviewForResult(requireNotNull(swapDetailsViewState.value), detailsParcelModel)
+                        .onEach(::handleSwapPreviewResult)
+                        .launchIn(viewModelScope)
+                }
+                SwapType.OKX_SWAP -> {
+                    println("!!! onPreviewClick OKX_SWAP")
+
+                    val swapDetails = requireNotNull(swapDetails.value.getOrNull() as? OkxSwapDetails)
+
+                    val amountInPlanks =
                         fromAssetFlow.value?.token?.planksFromAmount(enteredFromAmountFlow.value).orZero()
-                    minMaxInPlanks =
-                        toAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
-                }
+                    val minMaxInPlanks =
+                        toAssetFlow.value?.token?.planksFromAmount(swapDetails.minmumReceive.toBigDecimal())
+                    val detailsParcelModel = SwapDetailsParcelModel(
+                        amountInPlanks,
+                        selectedMarket.value,
+                        WithDesired.INPUT,
+                        0,
+                        minMaxInPlanks,
+                        requireNotNull(networkFeeViewStateFlow.value.dataOrNull())
+                    )
 
-                WithDesired.OUTPUT -> {
-                    amountInPlanks =
-                        toAssetFlow.value?.token?.planksFromAmount(enteredToAmountFlow.value).orZero()
-                    minMaxInPlanks =
-                        fromAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
+                    isLoading.value = false
+                    polkaswapRouter.openSwapPreviewForResult(requireNotNull(swapDetailsViewState.value), detailsParcelModel)
+                        .onEach(::handleSwapPreviewResult)
+                        .launchIn(viewModelScope)
                 }
+                SwapType.OKX_CROSS_CHAIN -> {
+                    println("!!! onPreviewClick OKX_CROSS_CHAIN")
+                    val swapDetails = requireNotNull(swapDetails.value.getOrNull() as? OkxCrossChainSwapDetails)
+                    println("!!! swapDetails = ${swapDetails}")
+                    val amountInPlanks =
+                        fromAssetFlow.value?.token?.planksFromAmount(enteredFromAmountFlow.value).orZero()
+                    val minMaxInPlanks =
+                        toAssetFlow.value?.token?.planksFromAmount(swapDetails.minimumReceived.toBigDecimal())
+                    val detailsParcelModel = SwapDetailsParcelModel(
+                        amountInPlanks,
+                        selectedMarket.value,
+                        WithDesired.INPUT,
+                        0,
+                        minMaxInPlanks,
+                        requireNotNull(networkFeeViewStateFlow.value.dataOrNull())
+                    )
 
-                else -> return@launch
+                    isLoading.value = false
+                    polkaswapRouter.openSwapPreviewForResult(requireNotNull(swapDetailsViewState.value), detailsParcelModel)
+                        .onEach(::handleSwapPreviewResult)
+                        .launchIn(viewModelScope)
+                }
             }
-
-            val detailsParcelModel = SwapDetailsParcelModel(
-                amountInPlanks,
-                selectedMarket.value,
-                requireNotNull(desired),
-                requireNotNull(bestDexId),
-                minMaxInPlanks,
-                requireNotNull(networkFeeViewStateFlow.value.dataOrNull())
-            )
-            isLoading.value = false
-            polkaswapRouter.openSwapPreviewForResult(requireNotNull(swapDetailsViewState.value), detailsParcelModel)
-                .onEach(::handleSwapPreviewResult)
-                .launchIn(viewModelScope)
         }
     }
 
