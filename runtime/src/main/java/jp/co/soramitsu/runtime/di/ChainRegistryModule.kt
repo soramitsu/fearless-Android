@@ -51,8 +51,9 @@ class ChainRegistryModule {
         chainFetcher: ChainFetcher,
         metaAccountDao: MetaAccountDao,
         assetDao: AssetDao,
-        remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
-    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao, remoteAssetsSyncServiceProvider)
+        remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider,
+        contextManager: ContextManager
+    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao, remoteAssetsSyncServiceProvider, contextManager)
 
     @Provides
     @Singleton
