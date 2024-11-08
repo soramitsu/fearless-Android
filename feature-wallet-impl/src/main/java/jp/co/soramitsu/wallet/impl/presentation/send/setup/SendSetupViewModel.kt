@@ -299,7 +299,6 @@ class SendSetupViewModel @Inject constructor(
             }
             println("Error: $it")
             it.printStackTrace()
-
             emit(null)
         }
         .flowOn(Dispatchers.Main)

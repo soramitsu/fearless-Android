@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import androidx.room.Upsert
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetLocal

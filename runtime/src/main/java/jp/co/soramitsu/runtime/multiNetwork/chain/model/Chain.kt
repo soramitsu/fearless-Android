@@ -83,7 +83,7 @@ data class Chain(
 
     data class Explorer(val type: Type, val types: List<String>, val url: String) {
         enum class Type {
-            SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, TONVIEWER, UNKNOWN;
+            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, TONVIEWER, UNKNOWN;
 
             val capitalizedName: String
                 get() = if (this == OKLINK) {
@@ -194,6 +194,7 @@ fun List<Chain.Explorer>.getSupportedAddressExplorers(address: String) = mapNotN
 
 fun List<Chain.Explorer>.getSupportedTransactionExplorers(value: String) = mapNotNull {
     val type = when (it.type) {
+        Chain.Explorer.Type.POLKASCAN,
         Chain.Explorer.Type.SUBSCAN,
         Chain.Explorer.Type.REEF -> {
             BlockExplorerUrlBuilder.Type.EXTRINSIC
