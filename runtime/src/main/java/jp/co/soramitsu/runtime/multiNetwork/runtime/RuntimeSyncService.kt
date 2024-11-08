@@ -2,9 +2,6 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
 import io.ktor.util.collections.ConcurrentSet
-import java.util.concurrent.ConcurrentHashMap
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.common.utils.newLimitedThreadPoolExecutor
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -33,6 +30,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.util.concurrent.ConcurrentHashMap
 
 class SyncResult(
     val chainId: String,
@@ -47,9 +45,8 @@ class RuntimeSyncService(
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
     maxConcurrentUpdates: Int = 15,
-    private val updatesMixin: UpdatesMixin,
     private val connectionPool: ConnectionPool
-) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
+) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val syncDispatcher =
         newLimitedThreadPoolExecutor(maxConcurrentUpdates).asCoroutineDispatcher()
@@ -98,8 +95,6 @@ class RuntimeSyncService(
     }
 
     private suspend fun sync(chainId: String, force: Boolean) {
-        updatesMixin.startChainSyncUp(chainId)
-
         if (knownChains.contains(chainId).not()) {
             Log.w(LOG_TAG, "Unknown chain with id $chainId requested to be synced")
             return
@@ -161,7 +156,6 @@ class RuntimeSyncService(
     }
 
     private suspend fun syncFinished(chainId: String) {
-        updatesMixin.finishChainSyncUp(chainId)
         syncingChains.remove(chainId)
     }
 

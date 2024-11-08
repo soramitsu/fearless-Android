@@ -7,6 +7,7 @@ import java.util.Locale
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -31,13 +32,14 @@ class BlockscoutHistorySource(
         val responseResult =
             runCatching {
                 val urlBuilder = StringBuilder(historyUrl).append("addresses/").append(accountId.toHexString(true)).apply {
-                    when (chainAsset.ethereumType) {
-                        Asset.EthereumType.NORMAL -> {
+                    when (chainAsset.type) {
+                        ChainAssetType.Normal -> {
                             this.append("/transactions").toString()
                         }
-                        else -> {
+                        ChainAssetType.ERC20, ChainAssetType.BEP20 -> {
                             this.append("/token-transfers?token=${chainAsset.id}").toString()
                         }
+                        else -> throw IllegalStateException("BlockscoutHistorySource. Unsupported asset type: ${chainAsset.type}")
                     }
                 }
 

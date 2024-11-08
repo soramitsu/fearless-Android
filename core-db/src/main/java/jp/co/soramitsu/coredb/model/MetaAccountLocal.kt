@@ -1,4 +1,4 @@
-package jp.co.soramitsu.coredb.model.chain
+package jp.co.soramitsu.coredb.model
 
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -6,14 +6,16 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import jp.co.soramitsu.core.models.Chain
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.model.chain.ChainLocal
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 
 @Entity(
     tableName = MetaAccountLocal.TABLE_NAME,
     indices = [
         Index(value = ["substrateAccountId"]),
-        Index(value = ["ethereumAddress"])
+        Index(value = ["ethereumAddress"]),
+        Index(value = ["tonPublicKey"])
     ]
 )
 class MetaAccountLocal(
@@ -22,6 +24,7 @@ class MetaAccountLocal(
     val substrateAccountId: ByteArray,
     val ethereumPublicKey: ByteArray?,
     val ethereumAddress: ByteArray?,
+    val tonPublicKey: ByteArray?,
     val name: String,
     val isSelected: Boolean,
     val position: Int,
@@ -40,6 +43,7 @@ class MetaAccountLocal(
 
             const val ETHEREUM_PUBKEY = "ethereumPublicKey"
             const val ETHEREUM_ADDRESS = "ethereumAddress"
+            const val TON_PUBKEY = "tonPublicKey"
 
             const val NAME = "name"
             const val IS_SELECTED = "isSelected"

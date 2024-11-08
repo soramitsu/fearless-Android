@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.models.Asset
@@ -53,9 +51,8 @@ class StakingLedgerUpdater(
     private val accountStakingDao: AccountStakingDao,
     private val storageCache: StorageCache,
     private val assetCache: AssetCache,
-    private val updatesMixin: UpdatesMixin,
     override val scope: AccountUpdateScope
-) : StakingUpdater, UpdatesProviderUi by updatesMixin {
+) : StakingUpdater {
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
         val runtime = chainRegistry.getRuntime(chain.id)
@@ -64,8 +61,6 @@ class StakingLedgerUpdater(
         val currentAccountId = scope.getAccount().accountId(chain)!! // TODO ethereum
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
-
-        updatesMixin.startUpdateAsset(scope.getAccount().id, chain.id, currentAccountId, chainAsset.id)
 
         return storageSubscriptionBuilder.subscribe(key)
             .flatMapLatest { change ->

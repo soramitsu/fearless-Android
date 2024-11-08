@@ -20,8 +20,8 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
+import jp.co.soramitsu.coredb.model.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountPositionUpdate
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.DelicateCoroutinesApi

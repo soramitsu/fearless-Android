@@ -47,11 +47,7 @@ dependencies {
         exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
     }
 
-//    api(libs.sharedFeaturesPoolsDep) {
-//        exclude(module = "android-foundation")
-//    }
-
-    implementation(projects.androidFoundation)
+    implementation(libs.soramitsu.android.foundation)
     implementation(projects.coreDb)
     implementation(projects.common)
     implementation(projects.runtime)

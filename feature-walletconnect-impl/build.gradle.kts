@@ -38,9 +38,7 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
-    implementation(libs.sharedFeaturesCoreDep) {
-        exclude(module = "android-foundation")
-    }
+    implementation(libs.sharedFeaturesCoreDep)
 
     implementation(libs.web3jDep)
 

@@ -4,8 +4,8 @@ import android.database.sqlite.SQLiteConstraintException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.AppDatabase
-import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -72,6 +72,7 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
     }
 
     private fun testMetaAccount() = MetaAccountLocal(
+        tonPublicKey = null,
         substratePublicKey = byteArrayOf(),
         substrateCryptoType = CryptoType.SR25519,
         ethereumPublicKey = null,

@@ -38,8 +38,6 @@ import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -131,7 +129,6 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val accountInteractor: AccountInteractor,
     private val nomisScoreInteractor: NomisScoreInteractor,
-    private val updatesMixin: UpdatesMixin,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
@@ -139,8 +136,7 @@ class BalanceListViewModel @Inject constructor(
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val nftInteractor: NFTInteractor,
     private val walletConnectInteractor: WalletConnectInteractor
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin,
-    WalletScreenInterface {
+) : BaseViewModel(), WalletScreenInterface {
 
     private var awaitAssetsJob: Job? = null
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
@@ -206,10 +202,10 @@ class BalanceListViewModel @Inject constructor(
         interactor.selectedMetaAccountFlow(),
         interactor.observeSelectedAccountChainSelectFilter()
     ) { (walletId: Long, assets: List<AssetWithStatus>),
-            chains: List<Chain>,
-            selectedChainId: ChainId?,
-            currentMetaAccountFlow: MetaAccount,
-            appliedFilterAsString: String ->
+        chains: List<Chain>,
+        selectedChainId: ChainId?,
+        currentMetaAccountFlow: MetaAccount,
+        appliedFilterAsString: String ->
 
         val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
             it.name == appliedFilterAsString
@@ -250,7 +246,8 @@ class BalanceListViewModel @Inject constructor(
 
         currentAssetsFlow.update { filteredAssets }
 
-        val filteredAssetsWithoutBrokenAssets = filteredAssets.filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
+        val filteredAssetsWithoutBrokenAssets =
+            filteredAssets.filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = filteredAssetsWithoutBrokenAssets,
@@ -282,24 +279,25 @@ class BalanceListViewModel @Inject constructor(
             val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
                 .map { PaginationRequest.Start(100) }
 
-            val paginationRequestHelperFlow = merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
-                .onStart { emit(PaginationRequest.Start(100)) }
-                .onEach { request ->
-                    val screenModel = when (request) {
-                        is PaginationRequest.Start -> ScreenModel.Reloading
+            val paginationRequestHelperFlow =
+                merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
+                    .onStart { emit(PaginationRequest.Start(100)) }
+                    .onEach { request ->
+                        val screenModel = when (request) {
+                            is PaginationRequest.Start -> ScreenModel.Reloading
 
-                        is PaginationRequest.Prev -> ScreenModel.PreviousPageLoading
+                            is PaginationRequest.Prev -> ScreenModel.PreviousPageLoading
 
-                        is PaginationRequest.Next -> ScreenModel.NextPageLoading
+                            is PaginationRequest.Next -> ScreenModel.NextPageLoading
 
-                        is PaginationRequest.ProceedFromLastPage -> ScreenModel.NextPageLoading
-                    }
+                            is PaginationRequest.ProceedFromLastPage -> ScreenModel.NextPageLoading
+                        }
 
-                    send(screenModel to mutableScreenLayoutFlow.value)
-                }.debounce(300L)
-                .filter { isLoadingCompleted.get() }
-                .onEach { isLoadingCompleted.set(false) }
-                .shareIn(this, SharingStarted.Eagerly, 1)
+                        send(screenModel to mutableScreenLayoutFlow.value)
+                    }.debounce(300L)
+                    .filter { isLoadingCompleted.get() }
+                    .onEach { isLoadingCompleted.set(false) }
+                    .shareIn(this, SharingStarted.Eagerly, 1)
 
             nftInteractor.collectionsFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,
@@ -422,9 +420,11 @@ class BalanceListViewModel @Inject constructor(
     private fun observeToolbarStates() {
         currentAddressModelFlow().onEach { addressModel ->
             toolbarState.update { prevState ->
-                val newWalletIconState = when(prevState.homeIconState) {
+                val newWalletIconState = when (prevState.homeIconState) {
                     is ToolbarHomeIconState.Navigation -> ToolbarHomeIconState.Wallet(walletIcon = addressModel.image)
-                    is ToolbarHomeIconState.Wallet -> (prevState.homeIconState as ToolbarHomeIconState.Wallet).copy(walletIcon = addressModel.image)
+                    is ToolbarHomeIconState.Wallet -> (prevState.homeIconState as ToolbarHomeIconState.Wallet).copy(
+                        walletIcon = addressModel.image
+                    )
                 }
                 prevState.copy(
                     title = addressModel.nameOrAddress,
@@ -454,7 +454,8 @@ class BalanceListViewModel @Inject constructor(
         nomisScoreInteractor.observeCurrentAccountScore()
             .onEach { score ->
                 toolbarState.update { prevState ->
-                    val newWalletIconState = (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
+                    val newWalletIconState =
+                        (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
                     newWalletIconState?.let {
                         prevState.copy(homeIconState = newWalletIconState)
                     } ?: prevState
@@ -473,7 +474,11 @@ class BalanceListViewModel @Inject constructor(
 
             val isAllAssetsWithProblems =
                 currentAssets.isNotEmpty() && currentAssets.filter { it.asset.token.configuration.chainId == selectedChainId }
-                    .all { it.asset.freeInPlanks == null || it.asset.freeInPlanks.lessThan(BigInteger.ZERO) }
+                    .all {
+                        it.asset.freeInPlanks == null || it.asset.freeInPlanks.lessThan(
+                            BigInteger.ZERO
+                        )
+                    }
             if (isAllAssetsWithProblems.not()) return@combine null
 
             val selectedChainIssue = networkIssues[selectedChainId] ?: NetworkIssueType.Network
@@ -604,14 +609,15 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(this)
     }
 
-    val toolbarState: MutableStateFlow<MainToolbarViewStateWithFilters> = MutableStateFlow(MainToolbarViewStateWithFilters(title = null, selectorViewState = null))
+    val toolbarState: MutableStateFlow<MainToolbarViewStateWithFilters> =
+        MutableStateFlow(MainToolbarViewStateWithFilters(title = null, selectorViewState = null))
 
     init {
         subscribeScreenState()
         observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
-        sync()
+//        sync()
 
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
@@ -763,8 +769,15 @@ class BalanceListViewModel @Inject constructor(
                 _showUnsupportedChainAlert.value = Event(Unit)
                 return@launch
             }
-
-            router.openAssetIntermediateDetails(state.chainAssetId)
+            if (state.assetChainUrls.size > 1) {
+                router.openAssetIntermediateDetails(state.chainAssetId)
+            } else {
+                val payload = AssetPayload(
+                    chainId = state.chainId,
+                    chainAssetId = state.chainAssetId
+                )
+                router.openAssetDetails(payload)
+            }
         }
     }
 
@@ -801,10 +814,6 @@ class BalanceListViewModel @Inject constructor(
             _showFiatChooser.value =
                 FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
         }
-    }
-
-    override fun onNetworkIssuesClicked() {
-        router.openNetworkIssues()
     }
 
     override fun onBackupClicked() {

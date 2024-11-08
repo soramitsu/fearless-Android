@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -54,6 +55,8 @@ import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
+import jp.co.soramitsu.common.compose.component.TextInput
+import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfo
@@ -83,7 +86,8 @@ data class SendSetupViewState(
     val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.entries,
     val isHistoryAvailable: Boolean,
     val sendAllChecked: Boolean,
-    val sendAllAllowed: Boolean
+    val sendAllAllowed: Boolean,
+    val commentState: TextInputViewState?
 )
 
 interface SendSetupScreenInterface {
@@ -101,6 +105,7 @@ interface SendSetupScreenInterface {
     fun onQuickAmountInput(input: Double)
     fun onWarningInfoClick()
     fun onSendAllChecked(checked: Boolean)
+    fun onCommentInput(value: String)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -144,6 +149,7 @@ fun SendSetupContent(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .padding(bottom = bottomPadding.dp)
+                    .imePadding()
                     .fillMaxWidth()
             ) {
                 ToolbarBottomSheet(
@@ -172,6 +178,10 @@ fun SendSetupContent(
                     state = state.chainSelectorState,
                     onClick = callback::onChainClick
                 )
+                MarginVertical(12.dp)
+                if(state.commentState != null) {
+                    TextInput(state = state.commentState, onInput = callback::onCommentInput)
+                }
                 state.warningInfoState?.let {
                     MarginVertical(margin = 8.dp)
                     WarningInfo(state = it, onClick = callback::onWarningInfoClick)
@@ -313,7 +323,8 @@ private fun SendSetupPreview() {
         isInputLocked = false,
         isHistoryAvailable = false,
         sendAllChecked = true,
-        sendAllAllowed = true
+        sendAllAllowed = true,
+        commentState = TextInputViewState("Some text", "Comment")
     )
 
     val emptyCallback = object : SendSetupScreenInterface {
@@ -331,6 +342,7 @@ private fun SendSetupPreview() {
         override fun onQuickAmountInput(input: Double) {}
         override fun onWarningInfoClick() {}
         override fun onSendAllChecked(checked: Boolean) {}
+        override fun onCommentInput(value: String) {}
     }
 
     FearlessTheme {

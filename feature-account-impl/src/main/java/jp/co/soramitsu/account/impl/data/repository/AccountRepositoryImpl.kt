@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
+import android.util.Log
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.Account
@@ -21,6 +22,12 @@ import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
@@ -37,9 +44,9 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
-import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -64,6 +71,7 @@ import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -75,17 +83,21 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
+import org.ton.api.pk.PrivateKeyEd25519
 
 class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
     private val accountDao: AccountDao,
     private val metaAccountDao: MetaAccountDao,
-    private val storeV2: SecretStoreV2,
+    private val legacyStoreV2: SecretStoreV2,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
     private val chainsRepository: ChainsRepository,
     private val nomisScoresDao: NomisScoresDao,
+    private val substrateSecretStore: SubstrateSecretStore,
+    private val ethereumSecretStore: EthereumSecretStore,
+    private val tonSecretStore: TonSecretStore,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AccountRepository {
 
@@ -323,14 +335,6 @@ class AccountRepositoryImpl(
 
             val position = metaAccountDao.getNextPosition()
 
-            val secretsV2 = MetaAccountSecrets(
-                substrateKeyPair = keys,
-                substrateDerivationPath = derivationPath,
-                seed = substrateSeedBytes,
-                ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH,
-                ethereumKeypair = ethereumKeypair
-            )
-
             val metaAccount = MetaAccountLocal(
                 substratePublicKey = keys.publicKey,
                 substrateAccountId = keys.publicKey.substrateAccountId(),
@@ -340,20 +344,40 @@ class AccountRepositoryImpl(
                 position = position,
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
+                tonPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = googleBackupAddress,
                 initialized = false
             )
 
-            val metaAccountId = insertAccount(metaAccount)
+            val metaAccountId = async { insertAccount(metaAccount) }
 
             coroutineScope {
-                launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
-                launch { selectAccount(metaAccountId) }
+                launch {
+                    val substrateSecrets = SubstrateSecrets(
+                        substrateKeyPair = keys,
+                        substrateDerivationPath = derivationPath,
+                        seed = substrateSeedBytes
+                    )
+                    substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
+                }
+                if(ethereumKeypair != null) {
+                    launch {
+                        val ethereumSecrets = EthereumSecrets(
+                            ethereumKeypair = ethereumKeypair,
+                            seed = ethSeedBytes,
+                            ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                        )
+
+                        ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
+                    }
+                }
+                launch { selectAccount(metaAccountId.await()) }
             }.join()
         }
     }
 
+    @Deprecated("We don't import chain accounts anymore. Only ecosystem account import is allowed")
     override suspend fun importChainFromSeed(
         metaId: Long,
         chainId: ChainId,
@@ -386,7 +410,7 @@ class AccountRepositoryImpl(
                 ethereumBased -> BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
                 else -> substrateDerivationPath
             }
-
+            // todo refactor on ecosystem-oriented secrets
             val secretsV2 = ChainAccountSecrets(
                 keyPair = keyPair,
                 seed = seedBytes,
@@ -416,7 +440,7 @@ class AccountRepositoryImpl(
             )
 
             insertChainAccount(chainAccount)
-            storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
+            // todo refactor on ecosystem-oriented secrets
         }
     }
 
@@ -443,12 +467,6 @@ class AccountRepositoryImpl(
             val ethereumKeypair =
                 ethKeys?.let { EthereumKeypairFactory.createWithPrivateKey(it.privateKey) }
 
-            val secretsV2 = MetaAccountSecrets(
-                substrateKeyPair = substrateKeys,
-                seed = substrateImportData.seed,
-                ethereumKeypair = ethereumKeypair
-            )
-
             val metaAccount = MetaAccountLocal(
                 substratePublicKey = substrateKeys.publicKey,
                 substrateAccountId = substrateKeys.publicKey.substrateAccountId(),
@@ -458,16 +476,32 @@ class AccountRepositoryImpl(
                 position = position,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 ethereumPublicKey = ethereumKeypair?.publicKey,
+                tonPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = googleBackupAddress,
                 initialized = false
             )
 
-            val metaAccountId = insertAccount(metaAccount)
+            val metaAccountId = async { insertAccount(metaAccount) }
 
             coroutineScope {
-                launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
-                launch { selectAccount(metaAccountId) }
+                launch {
+                    val substrateSecrets = SubstrateSecrets(
+                        substrateKeyPair = substrateKeys,
+                        seed = substrateImportData.seed
+                    )
+                    substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
+                }
+                if(ethereumKeypair != null) {
+                    launch {
+                        val ethereumSecrets = EthereumSecrets(
+                            ethereumKeypair = ethereumKeypair
+                        )
+
+                        ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
+                    }
+                }
+                launch { selectAccount(metaAccountId.await()) }
             }.join()
         }
     }
@@ -487,7 +521,7 @@ class AccountRepositoryImpl(
                 ethereumBased -> EthereumKeypairFactory.createWithPrivateKey(importData.keypair.privateKey)
                 else -> importData.keypair
             }
-
+            // todo refactor on ecosystem-oriented secrets
             val secretsV2 = ChainAccountSecrets(
                 keyPair = keyPair,
                 seed = importData.seed
@@ -516,7 +550,8 @@ class AccountRepositoryImpl(
             )
 
             insertChainAccount(chainAccount)
-            storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
+            // todo refactor on ecosystem-oriented secrets
+//            storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
         }
     }
 
@@ -579,7 +614,7 @@ class AccountRepositoryImpl(
         return (metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()).let { metaAccount ->
             if (metaAccount.hasChainAccount((chainId))) {
                 metaAccount.chainAccounts[chainId]?.accountId?.let { accountId ->
-                    storeV2.getChainAccountSecrets(metaAccount.id, accountId)
+                    legacyStoreV2.getChainAccountSecrets(metaAccount.id, accountId)
                 }
             } else {
                 null
@@ -589,7 +624,7 @@ class AccountRepositoryImpl(
 
     override suspend fun getMetaAccountSecrets(metaId: Long?): EncodableStruct<MetaAccountSecrets>? {
         val id = metaId ?: getSelectedMetaAccount().id
-        return storeV2.getMetaAccountSecrets(id)
+        return null//storeV2.getMetaAccountSecrets(id)
     }
 
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
@@ -698,8 +733,7 @@ class AccountRepositoryImpl(
                 SubstrateJunctionDecoder.decode(it)
             }
 
-            val derivationResult =
-                SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
+            val derivationResult = SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
 
             val keys = SubstrateKeypairFactory.generate(
                 encryptionType = mapCryptoTypeToEncryption(cryptoType),
@@ -707,7 +741,14 @@ class AccountRepositoryImpl(
                 junctions = decodedDerivationPath?.junctions.orEmpty()
             )
 
-            val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
+            //todo just for tests
+            val wl = "smooth final eagle apple same excite grain pizza lion earth jealous beauty easily park shove answer heavy timber record hover stamp mechanic novel account"
+            val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(mnemonicWords.split(" "))
+//            val tonMnemonic = org.ton.mnemonic.Mnemonic.generate()
+//            val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(tonMnemonic)
+            val tonPrivateKey = PrivateKeyEd25519(tonSeed)
+            val tonPublicKey = tonPrivateKey.publicKey()
+
 
             val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
                 val decodedEthereumDerivationPath =
@@ -725,17 +766,7 @@ class AccountRepositoryImpl(
             } else {
                 null to null
             }
-
             val position = metaAccountDao.getNextPosition()
-
-            val secretsV2 = MetaAccountSecrets(
-                substrateKeyPair = keys,
-                entropy = mnemonic.entropy,
-                seed = null,
-                substrateDerivationPath = substrateDerivationPath,
-                ethereumKeypair = ethereumKeypair,
-                ethereumDerivationPath = ethereumDerivationPathOrDefault
-            )
 
             val metaAccount = MetaAccountLocal(
                 substratePublicKey = keys.publicKey,
@@ -743,6 +774,7 @@ class AccountRepositoryImpl(
                 substrateCryptoType = cryptoType,
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
+                tonPublicKey = tonPublicKey.key.toByteArray(),
                 name = accountName,
                 isSelected = true,
                 position = position,
@@ -751,9 +783,41 @@ class AccountRepositoryImpl(
                 initialized = false,
             )
 
-            val metaAccountId = insertAccount(metaAccount)
-            storeV2.putMetaAccountSecrets(metaAccountId, secretsV2)
-            metaAccountId
+            val metaAccountId = async { insertAccount(metaAccount) }
+            launch {
+                val substrateSecrets = SubstrateSecrets(
+                    substrateKeyPair = keys,
+                    substrateDerivationPath = substrateDerivationPath,
+                    seed = derivationResult.seed,
+                    entropy = derivationResult.mnemonic.entropy
+                )
+                substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
+            }
+            if(ethereumKeypair != null) {
+                launch {
+                    val ethereumSecrets = EthereumSecrets(
+                        entropy = derivationResult.mnemonic.entropy,
+                        seed = ethereumKeypair.privateKey,
+                        ethereumKeypair = ethereumKeypair,
+                        ethereumDerivationPath = ethereumDerivationPathOrDefault
+                    )
+
+                    ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
+                }
+            }
+
+            launch {
+                tonSecretStore.put(
+                    metaAccountId.await(),
+                    TonSecrets(
+                        Keypair(
+                            tonPublicKey.key.toByteArray(),
+                            tonPrivateKey.key.toByteArray()
+                        )
+                    )
+                )
+            }
+            metaAccountId.await()
         }
     }
 
@@ -766,6 +830,7 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String
     ) {
+        // todo refactor on adding ecosystem accounts
         val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
         val decodedDerivationPath = substrateDerivationPathOrNull?.let {
             SubstrateJunctionDecoder.decode(it)
@@ -838,7 +903,7 @@ class AccountRepositoryImpl(
         )
 
         insertChainAccount(chainAccount)
-        storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
+//        storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
     }
 
     private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
@@ -857,7 +922,7 @@ class AccountRepositoryImpl(
         metaAccount: MetaAccountLocal
     ) = try {
         metaAccountDao.insertMetaAccount(metaAccount)
-    } catch (e: SQLiteConstraintException) {
+    } catch (e: Throwable) {
         throw AccountAlreadyExistsException()
     }
 

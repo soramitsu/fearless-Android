@@ -139,8 +139,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSelectWallet()
 
-    fun openNetworkIssues()
-
     fun openGetSoraCard()
 
     fun openOptionsAddAccount(payload: AddAccountPayload)

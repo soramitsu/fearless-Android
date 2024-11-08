@@ -2,7 +2,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.networkissues
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
@@ -11,8 +10,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.domain.NetworkStateService
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -26,6 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 @Deprecated("Seems like we don't need this anymore")
@@ -33,11 +31,10 @@ class NetworkIssuesViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
     private val walletInteractor: WalletInteractor,
     private val accountInteractor: AccountInteractor,
-    private val updatesMixin: UpdatesMixin,
     private val networkStateService: NetworkStateService,
     private val resourceManager: ResourceManager,
     private val assetNotNeedAccount: AssetNotNeedAccountUseCase
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
+) : BaseViewModel() {
 
     companion object {
         private const val KEY_ALERT_RESULT = "result"

@@ -73,6 +73,7 @@ class TotalBalanceUseCaseImpl(
             runCatching { fiatSymbolsInAssets.maxBy { s -> filtered.count { it.token?.fiatSymbol == s } } }.getOrNull() ?: polkadotCurrency
 
         return filtered.fold(TotalBalance.Empty) { acc, current ->
+
             val chainAsset = chainsById.getOrDefault(current.asset.chainId, null)?.assets
                 ?.firstOrNull { it.id == current.asset.id }
                 ?: return@fold TotalBalance.Empty

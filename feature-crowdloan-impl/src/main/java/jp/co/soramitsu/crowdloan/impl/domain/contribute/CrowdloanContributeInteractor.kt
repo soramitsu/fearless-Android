@@ -123,7 +123,6 @@ class CrowdloanContributeInteractor(
 
     suspend fun performTransfer(
         transfer: Transfer,
-        fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel,
         additional: AdditionalOnChainSubmission?,
         batchAll: Boolean = true
@@ -139,7 +138,7 @@ class CrowdloanContributeInteractor(
         }
 
         return runCatching {
-            walletRepository.performTransfer(accountId, chain, transfer, fee, null, null, additional, batchAll)
+            walletRepository.performTransfer(accountId, chain, transfer, additional, batchAll)
         }
     }
 

@@ -14,6 +14,7 @@ import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
@@ -112,6 +113,7 @@ interface AccountRepository {
         googleBackupAddress: String?
     )
 
+    @Deprecated("We don't import chain accounts anymore. Only ecosystem account import is allowed")
     suspend fun importChainFromSeed(
         metaId: Long,
         chainId: ChainId,

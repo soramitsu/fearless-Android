@@ -13,6 +13,20 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
+data class AssetBalance(
+    val metaId: Long,
+    val accountId: AccountId,
+    val freeInPlanks: BigInteger?,
+    val reservedInPlanks: BigInteger?,
+    val miscFrozenInPlanks: BigInteger?,
+    val feeFrozenInPlanks: BigInteger?,
+    val bondedInPlanks: BigInteger?,
+    val redeemableInPlanks: BigInteger?,
+    val unbondingInPlanks: BigInteger?,
+    val enabled: Boolean?,
+    val status: String?
+)
+
 data class Asset(
     val metaId: Long,
     val token: Token,

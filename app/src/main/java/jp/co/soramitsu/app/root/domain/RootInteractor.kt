@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.domain
 
+import android.util.Log
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -17,8 +18,13 @@ import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class RootInteractor(
     private val updateSystem: UpdateSystem,
@@ -40,6 +46,12 @@ class RootInteractor(
     }
 
     suspend fun runBalancesUpdate(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
+        withTimeoutOrNull(2.toDuration(DurationUnit.MINUTES)) {
+            accountRepository.allMetaAccountsFlow()
+                .filter { accounts -> accounts.all { it.initialized } }
+                .filter { it.isNotEmpty() }
+                .first()
+        }
         return@withContext updateSystem.start().inBackground()
     }
 

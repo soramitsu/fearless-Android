@@ -1,5 +1,9 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -10,9 +14,11 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -22,7 +28,8 @@ class ChainSyncService(
     private val chainFetcher: ChainFetcher,
     private val metaAccountDao: MetaAccountDao,
     private val assetsDao: AssetDao,
-    private val remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
+    private val remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider,
+    private val contextManager: ContextManager
 ) {
 
     suspend fun syncUp() = withContext(Dispatchers.Default) {
@@ -38,20 +45,35 @@ class ChainSyncService(
                     service?.sync()
                 }
             }
+            coroutineContext.job.invokeOnCompletion {
+                val errorMessage = it?.let { "with error: ${it.message}" } ?: ""
+                Log.d("ChainSyncService", "remote assets sync completed $errorMessage")
+            }
+
         }
     }
 
     private suspend fun configChainsSyncUp() = supervisorScope {
         val localChainsJoinedInfo = dao.getJoinChainInfo()
-        val localChainsJoinedInfoMap = dao.getJoinChainInfo().associateBy { it.chain.id }
+        val localChainsJoinedInfoMap = localChainsJoinedInfo.associateBy { it.chain.id }
 
-        val remoteChains = chainFetcher.getChains()
+        val remoteChains = let {
+            val localChainsJson =
+                contextManager.getContext().assets.open("local_chains.json").bufferedReader()
+                    .use { it.readText() }
+            Gson().fromJson<List<ChainRemote>>(
+                localChainsJson,
+                object : TypeToken<List<ChainRemote>>() {}.type
+            )
+        }
+//            val remoteChains = chainFetcher.getChains()
             .filter {
                 !it.disabled && (it.assets?.isNotEmpty() == true)
             }
             .map {
                 it.toChain()
             }
+
         val remoteMapping = remoteChains.associateBy(Chain::id)
 
         val mappedRemoteChains = remoteChains.map { mapChainToChainLocal(it) }
@@ -83,16 +105,19 @@ class ChainSyncService(
                 val remoteAssets =
                     mappedRemoteChains.map { it.assets }.flatten()
 
+                val chainsWithRemoteAssetsIds = remoteChains.filter { it.remoteAssetsSource != null }.map { it.id }.toSet()
+
                 val assetsToAdd: MutableList<ChainAssetLocal> = mutableListOf()
                 val assetsToUpdate: MutableList<ChainAssetLocal> = mutableListOf()
-                val assetsToRemove =
-                    localAssets.filter { local ->
+                val assetsToRemove = localAssets.asSequence()
+                    .filter { it.chainId !in chainsWithRemoteAssetsIds }.filter { local ->
                         val remoteAssetsIds = remoteAssets.map { it.id to it.chainId }
+
                         local.id to local.chainId !in remoteAssetsIds
                     }.toList()
 
                 remoteAssets.forEach { remoteAsset ->
-                    val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId}
+                    val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId }
 
                     when {
                         localAsset == null -> {

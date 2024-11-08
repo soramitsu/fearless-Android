@@ -71,7 +71,8 @@ dependencies {
     androidTestImplementation libs.rules
     androidTestImplementation libs.ext.junit
 
-    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
+    api libs.sharedFeaturesCoreDep
 
     implementation libs.web3jDep
+    implementation libs.ton
 }

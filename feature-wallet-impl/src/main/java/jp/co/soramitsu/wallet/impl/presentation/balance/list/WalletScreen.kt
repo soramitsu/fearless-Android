@@ -63,7 +63,6 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onBalanceClicked()
     fun soraCardClicked()
     fun soraCardClose()
-    fun onNetworkIssuesClicked()
     fun onBackupClicked()
     fun onBackupCloseClick()
     fun assetTypeChanged(type: AssetType)
@@ -114,10 +113,6 @@ fun WalletScreen(
             onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClicked
         )
-        if (data.hasNetworkIssues) {
-            MarginVertical(margin = 6.dp)
-            NetworkIssuesBadge(onClick = callback::onNetworkIssuesClicked)
-        }
         MarginVertical(margin = 16.dp)
         MultiToggleButton(
             state = data.multiToggleButtonState,
@@ -250,7 +245,6 @@ private fun PreviewWalletScreen() {
         override fun soraCardClose() {}
         override fun onAddressClick() {}
         override fun onBalanceClicked() {}
-        override fun onNetworkIssuesClicked() {}
         override fun onBackupClicked() {}
         override fun onBackupCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {}

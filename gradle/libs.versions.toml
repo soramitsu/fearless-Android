@@ -50,7 +50,7 @@ retrofit = "2.9.0"
 roomVersion = "2.6.1"
 rules = "1.5.0"
 runner = "1.5.2"
-sharedFeaturesVersion = "1.1.1.36-FLW"
+sharedFeaturesVersion = "1.1.1.38-FLW"
 shimmerVersion = "0.5.0"
 sonarqubeGradlePlugin = "3.3"
 soraUiCore = "0.2.32"
@@ -62,8 +62,11 @@ xNetworking = "0.2.5-temp7"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
+tonVersion = "0.2.15"
+soramitsuAndroidFoundation = "0.0.2"
 
 [libraries]
+soramitsu-android-foundation = { module = "jp.co.soramitsu:android-foundation", version.ref = "soramitsuAndroidFoundation" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastleVersion" }
 biometric = { module = "androidx.biometric:biometric", version.ref = "biometricVersion" }
@@ -181,6 +184,8 @@ walletconnectCoreDep = { module = "com.walletconnect:android-core" }
 walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
 
 jnr-x86asm = { module = "com.github.jnr:jnr-x86asm", version.ref = "jnrVersion" }
+
+ton = { module = "org.ton:ton-kotlin", version.ref = "tonVersion" }
 
 [bundles]
 compose = [

@@ -124,6 +124,10 @@ dependencies {
     implementation libs.jna
     implementation libs.beacon.android.sdk, withoutJna
 
+
+    implementation(libs.converter.gson)
+    implementation(libs.converter.scalars)
+
     implementation libs.shimmer
 
     implementation libs.bundles.compose
@@ -134,9 +138,9 @@ dependencies {
     implementation libs.navigation.fragment.ktx
     implementation libs.navigation.ui.ktx
 
-//    implementation libs.sharedFeaturesCoreDep, withoutAndroidFoundation
-    implementation libs.sharedFeaturesXcmDep, withoutAndroidFoundation
-    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
+    implementation libs.sharedFeaturesXcmDep
+    implementation libs.sharedFeaturesBackupDep
 
     implementation libs.web3jDep
+    implementation libs.ton
 }

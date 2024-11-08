@@ -62,8 +62,8 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
                     val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
                         initialValue = ModalBottomSheetValue.Hidden,
-                        skipHalfExpanded = true,
-                        confirmStateChange = ::hideKeyboardAndConfirm
+                        confirmValueChange = ::hideKeyboardAndConfirm,
+                        skipHalfExpanded = false
                     )
 
                     Background()

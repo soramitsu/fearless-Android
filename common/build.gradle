@@ -59,6 +59,7 @@ android {
         buildConfigField "String", "OPMAINNET_API_KEY", readSecretInQuotes("FL_ANDROID_OPMAINNET_API_KEY")
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
+        buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")
     }
 
     buildTypes {
@@ -141,6 +142,7 @@ dependencies {
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
+    implementation libs.ton
     implementation libs.progressbutton
 
     implementation libs.nv.websocket.client
@@ -163,5 +165,5 @@ dependencies {
     testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
 
-    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
+    api libs.sharedFeaturesCoreDep
 }

@@ -40,12 +40,13 @@ dependencies {
     implementation libs.lifecycle.livedata.ktx
     implementation libs.appcompat
     implementation libs.material
+    implementation libs.ton
 
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug
 
     api project(':core-api')
 
-    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
-    api libs.sharedFeaturesBackupDep, withoutAndroidFoundation
+    api libs.sharedFeaturesCoreDep
+    api libs.sharedFeaturesBackupDep
 }

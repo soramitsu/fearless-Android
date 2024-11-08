@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.domain
 
+import android.util.Log
 import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -146,6 +147,7 @@ class AccountInteractorImpl(
         }
     }
 
+    @Deprecated("We don't import chain accounts anymore. Only ecosystem account import is allowed")
     override suspend fun importChainFromSeed(
         metaId: Long,
         chainId: ChainId,

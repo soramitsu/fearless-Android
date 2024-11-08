@@ -47,6 +47,10 @@ android {
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
             signingConfig signingConfigs.debug
+
+            kotlinOptions {
+                freeCompilerArgs ["-Xdebug"]
+            }
         }
         release {
             minifyEnabled true
@@ -139,7 +143,6 @@ play {
 }
 
 dependencies {
-    implementation project(':android-foundation')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
@@ -223,6 +226,7 @@ dependencies {
     debugImplementation libs.bundles.composeDebug
 
     implementation libs.sora.ui
+    implementation(libs.soramitsu.android.foundation)
 
     implementation platform(libs.walletconnectBomDep)
     implementation libs.walletconnectCoreDep

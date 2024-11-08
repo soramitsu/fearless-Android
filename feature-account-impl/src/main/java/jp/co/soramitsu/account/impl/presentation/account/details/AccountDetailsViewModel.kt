@@ -92,9 +92,6 @@ class AccountDetailsViewModel @Inject constructor(
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
-    private val _showImportChainAccountChooser = MutableLiveData<Event<ImportChainAccountsPayload>>()
-    val showImportChainAccountChooser: LiveData<Event<ImportChainAccountsPayload>> = _showImportChainAccountChooser
-
     private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
 
@@ -215,25 +212,6 @@ class AccountDetailsViewModel @Inject constructor(
         }
     }
 
-    fun showImportChainAccountChooser(chainId: ChainId) {
-        viewModelScope.launch {
-            val name = chainsRepository.getChain(chainId).name
-            _showImportChainAccountChooser.postValue(Event(ImportChainAccountsPayload(chainId, walletId, name)))
-        }
-    }
-
-    fun createChainAccount(chainId: ChainId, metaId: Long) {
-        viewModelScope.launch {
-            accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = false)
-        }
-    }
-
-    fun importChainAccount(chainId: ChainId, metaId: Long) {
-        viewModelScope.launch {
-            accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
-        }
-    }
-
     fun exportTypeSelected(selected: ExportSource, chainId: ChainId) {
         val destination = when (selected) {
             is ExportSource.Json -> accountRouter.openExportJsonPasswordDestination(walletId, chainId)
@@ -251,7 +229,7 @@ class AccountDetailsViewModel @Inject constructor(
                 val supportedExplorers =
                     chain.explorers.getSupportedAddressExplorers(item.address)
 
-                externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers,
+                externalAccountActions.showExternalActions(WalletAccountActionsSheet.Payload(item.address, supportedExplorers, item.chainId, item.chainName,
                     !chain.isEthereumChain
                 ))
             } else {

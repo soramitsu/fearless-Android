@@ -24,7 +24,6 @@ android {
 }
 
 dependencies {
-    implementation(projects.androidFoundation)
     implementation(projects.featureAccountApi)
     implementation(projects.featureWalletApi)
     implementation(projects.featureWalletImpl)
@@ -34,10 +33,9 @@ dependencies {
     implementation("javax.inject:javax.inject:1")
 
     implementation(libs.bundles.coroutines)
-    implementation(libs.sharedFeaturesCoreDep) {
-        exclude(module = "android-foundation")
-    }
+    implementation(libs.sharedFeaturesCoreDep)
 
+    implementation(libs.soramitsu.android.foundation)
     implementation(libs.xnetworking.basic)
     implementation(libs.xnetworking.sorawallet) {
         exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")

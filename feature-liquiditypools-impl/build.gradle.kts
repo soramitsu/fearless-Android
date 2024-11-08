@@ -34,7 +34,6 @@ android {
 }
 
 dependencies {
-    implementation(projects.androidFoundation)
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featurePolkaswapApi)
@@ -50,5 +49,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.navigation.compose)
     implementation(libs.sora.ui)
+    implementation(libs.soramitsu.android.foundation)
     implementation(libs.room.ktx)
 }

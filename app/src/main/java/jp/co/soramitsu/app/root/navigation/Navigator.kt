@@ -1282,10 +1282,6 @@ class Navigator :
         navController?.navigate(R.id.selectWalletFragment)
     }
 
-    override fun openNetworkIssues() {
-        navController?.navigate(R.id.networkIssuesFragment)
-    }
-
     override fun openOptionsAddAccount(payload: AddAccountPayload) {
         val bundle = OptionsAddAccountFragment.getBundle(payload)
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)

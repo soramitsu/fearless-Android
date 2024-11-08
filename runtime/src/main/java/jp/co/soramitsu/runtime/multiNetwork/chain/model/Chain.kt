@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
@@ -54,6 +55,8 @@ data class Chain(
     val supportNft: Boolean,
     val isUsesAppId: Boolean,
     val identityChain: String?,
+    override val ecosystem: Ecosystem,
+    val androidMinAppVersion: String? = null,
     val remoteAssetsSource: RemoteAssetsSource?
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
@@ -68,16 +71,16 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, UNKNOWN, GITHUB;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, UNKNOWN, GITHUB, TON;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, TON)
             }
         }
     }
 
     data class Explorer(val type: Type, val types: List<String>, val url: String) {
         enum class Type {
-            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, UNKNOWN;
+            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, TONVIEWER, UNKNOWN;
 
             val capitalizedName: String
                 get() = if (this == OKLINK) {
@@ -173,12 +176,38 @@ fun List<Chain.Explorer>.getSupportedAddressExplorers(address: String) = mapNotN
         Chain.Explorer.Type.OKLINK -> {
             BlockExplorerUrlBuilder.Type.ADDRESS
         }
+        Chain.Explorer.Type.TONVIEWER -> {
+            BlockExplorerUrlBuilder.Type.TON_ACCOUNT
+        }
         else -> {
             BlockExplorerUrlBuilder.Type.ACCOUNT
         }
     }
 
     BlockExplorerUrlBuilder(it.url, it.types).build(type, address)?.let { url ->
+        it.type to url
+    }
+}.toMap()
+
+fun List<Chain.Explorer>.getSupportedTransactionExplorers(value: String) = mapNotNull {
+    val type = when (it.type) {
+        Chain.Explorer.Type.POLKASCAN,
+        Chain.Explorer.Type.SUBSCAN,
+        Chain.Explorer.Type.REEF -> {
+            BlockExplorerUrlBuilder.Type.EXTRINSIC
+        }
+        Chain.Explorer.Type.OKLINK,
+        Chain.Explorer.Type.ETHERSCAN,
+        Chain.Explorer.Type.KLAYTN,
+        Chain.Explorer.Type.ZETA -> {
+            BlockExplorerUrlBuilder.Type.TX
+        }
+
+        Chain.Explorer.Type.TONVIEWER -> BlockExplorerUrlBuilder.Type.TON_TRANSACTION
+        Chain.Explorer.Type.UNKNOWN -> null
+    } ?: return@mapNotNull null
+
+    BlockExplorerUrlBuilder(it.url, it.types).build(type, value)?.let { url ->
         it.type to url
     }
 }.toMap()

@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
@@ -26,6 +27,7 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
 import okhttp3.Cache
 import okhttp3.CacheControl
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -162,4 +164,41 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideJsonMapper() = Gson()
+
+    @Provides
+    @Singleton
+    fun provideTonApi(context: Context): TonApi {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
+            .retryOnConnectionFailure(true)
+            .addInterceptor {
+                if(it.request().url.host.contains("keeper") || it.request().url.host.contains("testnet.tonapi.io")) {
+                    val request = it.request().newBuilder().apply {
+                        addHeader(
+                            "Authorization",
+                            "Bearer ${BuildConfig.FL_ANDROID_TON_API_KEY}"
+                        )
+                        addHeader("Accept", "application/json")
+                    }.build()
+                    it.proceed(request)
+                } else {
+                    it.proceed(it.request())
+                }
+            }
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+
+        val gson = Gson()
+
+        val retrofit = Retrofit.Builder()
+            .client(builder.build())
+            .baseUrl("https://keeper.tonapi.io/")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        return retrofit.create(TonApi::class.java)
+    }
 }
