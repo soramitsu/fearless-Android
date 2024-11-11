@@ -783,41 +783,39 @@ class AccountRepositoryImpl(
                 initialized = false,
             )
 
-            val metaAccountId = async { insertAccount(metaAccount) }
-            launch {
-                val substrateSecrets = SubstrateSecrets(
-                    substrateKeyPair = keys,
-                    substrateDerivationPath = substrateDerivationPath,
-                    seed = derivationResult.seed,
-                    entropy = derivationResult.mnemonic.entropy
+            val metaAccountId = insertAccount(metaAccount)
+
+            val substrateSecrets = SubstrateSecrets(
+                substrateKeyPair = keys,
+                substrateDerivationPath = substrateDerivationPath,
+                seed = derivationResult.seed,
+                entropy = derivationResult.mnemonic.entropy
+            )
+            substrateSecretStore.put(metaAccountId, substrateSecrets)
+
+            if (ethereumKeypair != null) {
+
+                val ethereumSecrets = EthereumSecrets(
+                    entropy = derivationResult.mnemonic.entropy,
+                    seed = ethereumKeypair.privateKey,
+                    ethereumKeypair = ethereumKeypair,
+                    ethereumDerivationPath = ethereumDerivationPathOrDefault
                 )
-                substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
-            }
-            if(ethereumKeypair != null) {
-                launch {
-                    val ethereumSecrets = EthereumSecrets(
-                        entropy = derivationResult.mnemonic.entropy,
-                        seed = ethereumKeypair.privateKey,
-                        ethereumKeypair = ethereumKeypair,
-                        ethereumDerivationPath = ethereumDerivationPathOrDefault
-                    )
 
-                    ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
-                }
+                ethereumSecretStore.put(metaAccountId, ethereumSecrets)
             }
 
-            launch {
-                tonSecretStore.put(
-                    metaAccountId.await(),
-                    TonSecrets(
-                        Keypair(
-                            tonPublicKey.key.toByteArray(),
-                            tonPrivateKey.key.toByteArray()
-                        )
+            tonSecretStore.put(
+                metaAccountId,
+                TonSecrets(
+                    Keypair(
+                        tonPublicKey.key.toByteArray(),
+                        tonPrivateKey.key.toByteArray()
                     )
                 )
-            }
-            metaAccountId.await()
+            )
+
+            metaAccountId
         }
     }
 

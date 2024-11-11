@@ -90,8 +90,7 @@ class TonRemoteSource(
         return tonApi.emulateBlockchainMessage("${baseUrl}/v2/wallet/emulate", request)
     }
 
-    suspend fun getAccountEvents(historyUrl: String, accountId: String): AccountEvents {
-        val response = kotlin.runCatching { tonApi.getAccountEvents("${historyUrl}/v2/accounts/$accountId/events", limit = 100) }
-        return response.getOrThrow()
+    suspend fun getAccountEvents(historyUrl: String, accountId: String, beforeLt: Long?, limit: Int = 100): AccountEvents {
+        return  tonApi.getAccountEvents("${historyUrl}/v2/accounts/$accountId/events", limit = limit, beforeLt = beforeLt)
     }
 }

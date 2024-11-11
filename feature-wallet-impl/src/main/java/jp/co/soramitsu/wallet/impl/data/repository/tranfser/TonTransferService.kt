@@ -234,7 +234,9 @@ class TonTransferService(
 
         tonRemoteSource.sendBlockchainMessage(chain, request)
 
-        return@withContext transferMessageCell.hash().toHexString(true)
+        val hash = transferMessageCell.hash()
+        val hashHex = hash.toHexString(true)
+        return@withContext hashHex
     }
 
     private suspend fun createUnsignedBody(

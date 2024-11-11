@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
 import jp.co.soramitsu.common.data.model.CursorPage
-import jp.co.soramitsu.common.data.network.runtime.binding.bindActiveEraIndex
 import jp.co.soramitsu.common.data.network.ton.AccountEventAction
 import jp.co.soramitsu.common.utils.toUserFriendly
 import jp.co.soramitsu.core.models.Asset
@@ -33,16 +32,17 @@ class TonHistorySource(
     ): CursorPage<Operation> {
         val tonPublicKey = PublicKeyEd25519(accountId)
         val contract = V4R2WalletContract(tonPublicKey)
-
+        val beforeLt = cursor?.toLong()
         val accountEvents =
-            tonRemoteSource.getAccountEvents(historyUrl, contract.getAccountId(chain.isTestNet))
+            tonRemoteSource.getAccountEvents(historyUrl, contract.getAccountId(chain.isTestNet), beforeLt)
 
+        val nextCursor = accountEvents.events.minByOrNull { it.timestamp }?.lt.toString()
         val filteredActions = if (chainAsset.type == ChainAssetType.Normal) {
             accountEvents.events.filter { event -> event.actions.all { !it.isJetton() } }
         } else {
             accountEvents.events.filter { event -> event.actions.all { it.isJetton() } }
         }
-        val operations = filteredActions.map { event ->
+        val operations = kotlin.runCatching { filteredActions.map { event ->
             val fee = if (0 > event.extra) {
                 abs(event.extra)
             } else {
@@ -115,8 +115,8 @@ class TonHistorySource(
                     type = operation
                 )
             }
-        }.flatten()
+        }.flatten() }.getOrNull() ?: emptyList()
 
-        return CursorPage(null, operations)
+        return CursorPage(nextCursor, operations)
     }
 }
