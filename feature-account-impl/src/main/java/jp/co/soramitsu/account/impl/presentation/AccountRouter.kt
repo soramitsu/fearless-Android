@@ -108,4 +108,6 @@ interface AccountRouter : SecureRouter {
     fun openConnectionsScreen()
 
     fun openScoreDetailsScreen(metaId: Long)
+
+    fun openCrowdloansScreen()
 }

@@ -262,4 +262,8 @@ class CrowdloanViewModel @Inject constructor(
             refreshFlow.emit(Event(Unit))
         }
     }
+
+    fun backClicked() {
+        router.back()
+    }
 }

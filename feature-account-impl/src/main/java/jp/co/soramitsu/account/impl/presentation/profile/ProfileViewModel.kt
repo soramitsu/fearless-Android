@@ -230,6 +230,10 @@ class ProfileViewModel @Inject constructor(
         router.openBeacon(qrContent)
     }
 
+    override fun crowdloansClicked() {
+        router.openCrowdloansScreen()
+    }
+
     override fun currencyClicked() {
         viewModelScope.launch {
             val currencies = getAvailableFiatCurrencies()

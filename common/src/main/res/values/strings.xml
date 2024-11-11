@@ -1104,6 +1104,9 @@
   <string name="tabbar_profile_title">Profile</string>
   <string name="tabbar_staking_title">Staking</string>
   <string name="tabbar_wallet_title">Wallet</string>
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+  <string name="tc_review_dapp_info">Review dApp info</string>
+  <string name="tc_service_address">Service address</string>
   <string name="today">Today</string>
   <string name="top_up">Top Up</string>
   <string name="tranaction_history_others_tab_title">Others</string>

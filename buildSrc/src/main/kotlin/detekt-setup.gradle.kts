@@ -53,8 +53,8 @@ fun Detekt.setup(autoCorrect: Boolean) {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "17"
+    jvmTarget = JavaVersion.VERSION_21.toString()
 }
 tasks.withType<DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "17"
+    jvmTarget = JavaVersion.VERSION_21.toString()
 }

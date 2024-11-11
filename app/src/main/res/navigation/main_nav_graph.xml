@@ -1039,6 +1039,11 @@
         android:label="validatorDetailsFragment"
         tools:layout="@layout/fragment_validator_details" />
 
+    <dialog
+        android:id="@+id/tonConnectionDetails"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment"
+        android:label="tonConnectionDetailsFragment" />
+
     <fragment
         android:id="@+id/collatorDetailsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment"
@@ -1365,5 +1370,11 @@
         android:id="@+id/scoreDetailsFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
         android:label="ScoreDetailsFragment" />
+
+    <fragment
+        android:id="@+id/crowdloanFragment"
+        tools:layout="@layout/fragment_crowdloans"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
+        android:label="CrowdloanFragment" />
 
 </navigation>

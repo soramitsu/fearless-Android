@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     id("kotlin-android")
     id("kotlin-parcelize")
+    id("kotlinx-serialization")
 }
 
 android {
@@ -21,19 +22,15 @@ android {
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
-    namespace = "jp.co.soramitsu.feature_polkaswap_api"
+    namespace = "jp.co.soramitsu.feature_soracard_api"
 }
 
 dependencies {
     implementation(libs.bundles.coroutines)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
-    implementation(project(mapOf("path" to ":common")))
-
-    implementation("javax.inject:javax.inject:1")
-
-    implementation(libs.xnetworking.lib.android)
 }
 
 

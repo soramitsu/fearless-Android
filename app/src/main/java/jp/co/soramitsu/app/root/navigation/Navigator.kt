@@ -12,7 +12,9 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
+import co.jp.soramitsu.walletconnect.domain.TonConnectRouter
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
+import co.jp.soramitsu.walletconnect.model.AppEntity
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
@@ -184,6 +186,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
+import jp.co.soramitsu.walletconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment
 import kotlin.coroutines.coroutineContext
 
 @Parcelize
@@ -201,6 +204,7 @@ class Navigator :
     SuccessRouter,
     SoraCardRouter,
     WalletConnectRouter,
+    TonConnectRouter,
     NFTRouter,
     LiquidityPoolsRouter
 {
@@ -1515,7 +1519,17 @@ class Navigator :
         navController?.navigate(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
     }
 
+    override fun openCrowdloansScreen() {
+        navController?.navigate(R.id.crowdloanFragment)
+    }
+
     override fun openPools() {
         navController?.navigate(R.id.poolsFlowFragment)
+    }
+
+    override fun openTonConnectionDetails(app: AppEntity) {
+        val bundle = TonConnectionDetailsFragment.getBundle(app)
+
+        navController?.navigate(R.id.tonConnectionDetails, bundle)
     }
 }

@@ -48,4 +48,10 @@ interface TonApi {
 //                if (endDate != null) {
 //                    put("end_date", listOf(endDate.toString()))
 //                }
+
+    @GET
+    suspend fun getManifest(
+        @Url url: String,
+//        @Header("Connection") value: String = "close"
+    ): TonAppManifest
 }
