@@ -71,7 +71,6 @@ interface PoolsRepository {
     suspend fun observeAddLiquidity(
         chainId: ChainId,
         address: String,
-        keypair: Keypair,
         tokenBase: Asset,
         tokenTarget: Asset,
         amountBase: BigDecimal,

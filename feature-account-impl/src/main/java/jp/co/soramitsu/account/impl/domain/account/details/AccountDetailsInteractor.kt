@@ -100,10 +100,6 @@ class AccountDetailsInteractor(
         )
     }
 
-    suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>? {
-        return accountRepository.getMetaAccountSecrets(metaId)
-    }
-
     suspend fun getChainAccountSecret(metaId: Long, chainId: ChainId): EncodableStruct<ChainAccountSecrets>? {
         return accountRepository.getChainAccountSecrets(metaId, chainId)
     }

@@ -31,10 +31,10 @@ class TonMigration(
         runBlocking {
             db.beginTransaction()
             // 1. New fields in chain (ecosystem, androidMinAppVersion) and remove old ethereumType from chain_asset
-            // 2. New field in meta_accounts (tonPublicKey)
+            // 2. New field in meta_accounts (tonPublicKey), make substrate accounts nullable
             // 3. Change cascade delete of assets to no_action to avoid clearing user settings (enable/disable assets)
             // 4. Change TokenPriceLocal configuration
-            db.execSQL("ALTER TABLE meta_accounts ADD COLUMN `tonPublicKey` BLOB DEFAULT NULL")
+            migrateMetaAccounts(db)
 
             recreateChainsAndAssets(db)
             recreateTokenPrice(db)
@@ -44,6 +44,56 @@ class TonMigration(
             db.setTransactionSuccessful()
             db.endTransaction()
         }
+    }
+
+    private fun migrateMetaAccounts(db: SupportSQLiteDatabase){
+        db.execSQL("PRAGMA foreign_keys = OFF;")
+        db.execSQL("DROP TABLE IF EXISTS _meta_accounts")
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `_meta_accounts` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            `substratePublicKey` BLOB,
+            `substrateCryptoType` TEXT,
+            `substrateAccountId` BLOB,
+            `ethereumPublicKey` BLOB,
+            `ethereumAddress` BLOB,
+            `tonPublicKey` BLOB DEFAULT NULL,
+            `name` TEXT NOT NULL,
+            `isSelected` INTEGER NOT NULL,
+            `position` INTEGER NOT NULL,
+            `isBackedUp` INTEGER NOT NULL DEFAULT 0,
+            `googleBackupAddress` TEXT DEFAULT NULL,
+            `initialized` INTEGER NOT NULL DEFAULT 0
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            INSERT INTO _meta_accounts SELECT 
+            m.id,
+            m.substratePublicKey,
+            m.substrateCryptoType,
+            m.substrateAccountId,
+            m.ethereumPublicKey,
+            m.ethereumAddress,
+            NULL as `tonPublicKey`,
+            m.name,
+            m.isSelected,
+            m.position,
+            m.isBackedUp,
+            m.googleBackupAddress,
+            m.initialized
+            FROM meta_accounts m
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE IF EXISTS `meta_accounts`")
+        db.execSQL("ALTER TABLE _meta_accounts RENAME TO meta_accounts")
+
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
+        db.execSQL("PRAGMA foreign_keys = ON;")
     }
 
     private fun recreateChainsAndAssets(db: SupportSQLiteDatabase) {

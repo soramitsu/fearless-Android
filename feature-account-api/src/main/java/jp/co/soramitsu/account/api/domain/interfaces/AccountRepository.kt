@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
 import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -9,12 +10,14 @@ import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
@@ -53,6 +56,8 @@ interface AccountRepository {
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun isAccountSelected(): Boolean
+
+    suspend fun createAccount(payload: AddAccountPayload): Long
 
     suspend fun createAccount(
         accountName: String,
@@ -147,7 +152,7 @@ interface AccountRepository {
 
     suspend fun getPinCode(): String?
 
-    suspend fun generateMnemonic(): List<String>
+    suspend fun generateMnemonic(length: Mnemonic.Length): List<String>
 
     suspend fun isBiometricEnabled(): Boolean
 
@@ -168,8 +173,6 @@ interface AccountRepository {
     suspend fun getSecuritySource(accountAddress: String): SecuritySource
 
     suspend fun getChainAccountSecrets(metaId: Long?, chainId: ChainId): EncodableStruct<ChainAccountSecrets>?
-
-    suspend fun getMetaAccountSecrets(metaId: Long?): EncodableStruct<MetaAccountSecrets>?
 
     suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String): String
 
@@ -194,4 +197,6 @@ interface AccountRepository {
 
     fun observeNomisScores(): Flow<List<NomisScoreData>>
     fun observeNomisScore(metaId: Long): Flow<NomisScoreData?>
+    suspend fun getSubstrateSecrets(metaId: Long) : EncodableStruct<SubstrateSecrets>?
+    suspend fun getEthereumSecrets(metaId: Long) : EncodableStruct<EthereumSecrets>?
 }

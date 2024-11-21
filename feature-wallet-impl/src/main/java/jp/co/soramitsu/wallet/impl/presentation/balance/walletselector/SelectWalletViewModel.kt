@@ -44,7 +44,6 @@ class SelectWalletViewModel @Inject constructor(
     private val nomisScoreInteractor: NomisScoreInteractor,
     private val router: WalletRouter,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val backupService: BackupService,
     private val resourceManager: ResourceManager,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel() {
@@ -176,8 +175,7 @@ class SelectWalletViewModel @Inject constructor(
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         launch {
-            backupService.logout()
-            if (backupService.authorize(launcher)) {
+            if (accountInteractor.authorizeGoogleBackup(launcher)) {
                 openAddWalletThroughGoogleScreen()
             }
         }
@@ -186,7 +184,7 @@ class SelectWalletViewModel @Inject constructor(
     fun openAddWalletThroughGoogleScreen() {
         launch {
             runCatching {
-                backupService.getBackupAccounts()
+                accountInteractor.getGoogleBackupAccounts()
             }.onFailure {
                 showError(
                     title = resourceManager.getString(R.string.common_error_general_title),

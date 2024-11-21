@@ -111,7 +111,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
         }.observe { }
 
         viewModel.cryptoTypeLiveData.observe {
-            binding.exportSeedAdvanced.setSubstrateEncryption(it.name)
+            it?.name?.let { it1 -> binding.exportSeedAdvanced.setSubstrateEncryption(it1) }
         }
     }
 }

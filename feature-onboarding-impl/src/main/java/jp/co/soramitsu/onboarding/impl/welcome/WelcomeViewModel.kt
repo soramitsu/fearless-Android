@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -43,12 +44,10 @@ class WelcomeViewModel @Inject constructor(
     private val onboardingInteractor: OnboardingInteractor,
     private val accountRepository: AccountRepository
 ) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback,
-    OnboardingSplashScreenClickListener {
+    OnboardingSplashScreenClickListener, SelectEcosystemScreenCallbacks {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
-    private val _isAccountSelectedFlow = MutableStateFlow(true)
-    val isAccountSelectedFlow: StateFlow<Boolean> = _isAccountSelectedFlow
     private val _onboardingBackgroundState = MutableStateFlow<String?>(null)
     val onboardingBackground = _onboardingBackgroundState
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -69,21 +68,23 @@ class WelcomeViewModel @Inject constructor(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val events = _events.receiveAsFlow()
+    val startDestination = when (payload.route) {
+                        WelcomeEvent.Onboarding.SelectEcosystemScreen.route -> WelcomeEvent.Onboarding.SelectEcosystemScreen
+                        else -> WelcomeEvent.Onboarding.SplashScreen
+                    }.route
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
     private var currentOnboardingConfigVersion: String? = null
 
     init {
-        payload.createChainAccount?.run {
-            when (isImport) {
-                true -> router.openImportAccountSkipWelcome(this)
-                else -> router.openCreateAccountSkipWelcome(this)
-            }
-        }
-
+//        payload.createChainAccount?.run {
+//            when (isImport) {
+//                true -> router.openImportAccountSkipWelcome(this)
+//                else -> router.openCreateAccountSkipWelcome(this)
+//            }
+//        }
         viewModelScope.launch {
             val isAccountSelected = accountRepository.isAccountSelected()
-            _isAccountSelectedFlow.value = isAccountSelected
 
             val useConfig = onboardingInteractor.getAppVersionSupportedConfig()
                 .onFailure {
@@ -97,27 +98,40 @@ class WelcomeViewModel @Inject constructor(
             currentOnboardingConfigVersion = useConfig?.minVersion
 
             when {
+                payload.route != null -> {
+                    Unit // skip
+                }
                 isAccountSelected && shouldShowSlides -> {
-                    _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig!!.enEn.regular))
+                    _onboardingFlowState.value =
+                        Result.success(OnboardingFlow(useConfig!!.enEn.regular))
                     _onboardingBackgroundState.value = useConfig.background
                     _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
                 }
+
                 isAccountSelected -> {
                     moveNextToPincode()
                 }
+
                 shouldShowSlides -> {
-                    _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig!!.enEn.new))
+                    _onboardingFlowState.value =
+                        Result.success(OnboardingFlow(useConfig!!.enEn.new))
                     _onboardingBackgroundState.value = useConfig.background
                 }
+
+                !isAccountSelected -> {
+                    _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
+                }
+
                 else -> {
-                    _onboardingFlowState.value = Result.failure(IllegalStateException("Onboarding config is empty"))
+                    _onboardingFlowState.value =
+                        Result.failure(IllegalStateException("Onboarding config is empty"))
                 }
             }
         }
     }
 
-    override fun createAccountClicked() {
-        router.openCreateAccountFromOnboarding()
+    override fun createAccountClicked(accountType: AccountType) {
+        router.openCreateAccountFromOnboarding(accountType)
     }
 
     override fun googleSigninClicked() {
@@ -128,7 +142,7 @@ class WelcomeViewModel @Inject constructor(
         _events.trySend(WelcomeEvent.ScanQR)
     }
 
-    override fun importAccountClicked() {
+    override fun importAccountClicked(accountType: AccountType) {
         router.openSelectImportModeForResult()
             .onEach(::handleSelectedImportMode)
             .launchIn(viewModelScope)
@@ -161,6 +175,14 @@ class WelcomeViewModel @Inject constructor(
 
     override fun termsClicked() {
         openBrowserEvent.value = Event(appLinksProvider.termsUrl)
+    }
+
+    override fun substrateEvmClick() {
+        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.SubstrateOrEvm))
+    }
+
+    override fun tonClick() {
+        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.Ton))
     }
 
     override fun privacyClicked() {
@@ -198,7 +220,7 @@ class WelcomeViewModel @Inject constructor(
 
     override fun onStart() {
         if (_onboardingFlowState.value?.isFailure == true) {
-            _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+            _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
         } else {
             _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
         }
@@ -209,7 +231,7 @@ class WelcomeViewModel @Inject constructor(
             if (accountRepository.isAccountSelected()) {
                 moveNextToPincode()
             } else {
-                _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+                _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
             }
         }
         currentOnboardingConfigVersion?.let {

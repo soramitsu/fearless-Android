@@ -26,9 +26,10 @@ class SoraCardInteractorImpl @Inject constructor(
     override suspend fun xorAssetFlow(): Flow<Asset> {
         val chain = chainRegistry.getChain(soraCardChainId)
         val metaAccount = accountRepository.getSelectedMetaAccount()
+        val substrateAccountId = metaAccount.substrateAccountId ?: error("No keypair for substrate/evm ecosystem")
         val xorAsset = chain.assets.firstOrNull { it.isUtility } ?: error("XOR asset not found")
 
-        return walletRepository.assetFlow(metaAccount.id, metaAccount.substrateAccountId, xorAsset, chain.minSupportedVersion)
+        return walletRepository.assetFlow(metaAccount.id, substrateAccountId, xorAsset, chain.minSupportedVersion)
     }
 
     override fun subscribeSoraCardInfo(): Flow<SoraCardInfo?> =

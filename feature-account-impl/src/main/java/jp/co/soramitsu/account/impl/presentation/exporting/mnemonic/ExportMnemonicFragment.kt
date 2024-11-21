@@ -86,7 +86,7 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             }
         }
         viewModel.cryptoTypeLiveData.observe {
-            binding.exportMnemonicAdvanced.setSubstrateEncryption(it.name)
+            it?.name?.let { it1 -> binding.exportMnemonicAdvanced.setSubstrateEncryption(it1) }
         }
     }
 }

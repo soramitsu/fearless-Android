@@ -3,7 +3,9 @@ package jp.co.soramitsu.account.impl.presentation.mnemonic_agreements
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicScreenKeys
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
 import jp.co.soramitsu.feature_account_impl.R
@@ -21,6 +23,8 @@ class MnemonicAgreementsViewModel @Inject constructor(
 
     private val isFromGoogleBackup = savedStateHandle.get<Boolean>(MnemonicAgreementsDialog.IS_FROM_GOOGLE_BACKUP_KEY) ?: false
     private val walletName = savedStateHandle.get<String>(MnemonicAgreementsDialog.WALLET_NAME_KEY).orEmpty()
+    private val accountType = savedStateHandle.get<String>(BackupMnemonicScreenKeys.ACCOUNT_TYPE_KEY)
+
     private val isLosePhraseAgreementSelected = MutableStateFlow(false)
     private val isSharePhraseAgreementItemStateSelected = MutableStateFlow(false)
     private val isKeepPhraseAgreementItemStateSelected = MutableStateFlow(false)
@@ -92,9 +96,11 @@ class MnemonicAgreementsViewModel @Inject constructor(
     }
 
     override fun onShowPhrase() {
+        val accountType = accountType?.let { AccountType.valueOf(it) } ?: return
         router.openMnemonicDialog(
             isFromGoogleBackup = isFromGoogleBackup,
-            accountName = walletName
+            accountName = walletName,
+            accountType = accountType
         )
     }
 

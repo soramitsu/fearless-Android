@@ -486,7 +486,8 @@ class BalanceDetailViewModel @Inject constructor(
             val isEthereumBased = interactor
                 .getChain(assetPayload.value.chainId)
                 .isEthereumBased
-            val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
+            //todo
+            val sources = setOf(ExportSource.Seed, ExportSource.Mnemonic, ExportSource.Json)//interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
             _showExportSourceChooser.value = Event(
                 ExportSourceChooserPayload(
                     assetPayload.value.chainId,

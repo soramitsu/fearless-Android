@@ -31,7 +31,7 @@ class KeyPairRepository(
     override suspend fun getCryptoTypeFor(chain: IChain, accountId: ByteArray): CryptoType {
         val metaAccount = accountRepository.findMetaAccount(accountId)
             ?: error("No meta account found accessing ${accountId.toHexString()}")
-        return metaAccount.cryptoType(chain)
+        return metaAccount.cryptoType(chain) ?: error("The wallet doesn't support substrate or ethereum ecosystem")
     }
 
     override suspend fun getKeypairFor(chain: IChain, accountId: ByteArray): Keypair {

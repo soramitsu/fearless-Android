@@ -47,6 +47,20 @@
   <string name="account_no_chain_projection">Hiç hesap bulunamadı</string>
   <string name="account_option">Hesap seçeneği</string>
   <string name="account_shared_secret">Gizli bilgisi paylaşılan hesaplar</string>
+  <string name="account_stats_avg_transaction_time_title">Ortalama işlem süresi</string>
+  <string name="account_stats_description_text">Çoklu Zincir Puanınız 3 ekosistemdeki zincir içi yolculuğunuza dayanmaktadır: Ethereum, Polygon ve Binance Smart Chain</string>
+  <string name="account_stats_error_message">Hesap puanı bilgisi alınamıyor. Lütfen daha sonra tekrar deneyin.</string>
+  <string name="account_stats_hold_tokens_usd_title">USD jetonlarını tutun</string>
+  <string name="account_stats_max_transaction_time_title">Maksimum işlem süresi</string>
+  <string name="account_stats_min_transaction_time_title">Minimum işlem süresi</string>
+  <string name="account_stats_native_balance_usd_title">Yerel bakiye USD</string>
+  <string name="account_stats_rejected_transactions_title">Reddedilen işlemler</string>
+  <string name="account_stats_title">Puanınız</string>
+  <string name="account_stats_total_transactions_title">Toplam işlemler</string>
+  <string name="account_stats_unavailable_text">EVM uyumlu bir hesabınız yok. Puanı görmek istiyorsanız \"Cüzdanı içe aktar\" seçeneğini kullanarak ekleyin.</string>
+  <string name="account_stats_updated_title">Güncellendi</string>
+  <string name="account_stats_wallet_age_title">Cüzdan yaşı</string>
+  <string name="account_stats_wallet_option_title">Cüzdan puanını göster</string>
   <string name="account_template">%s hesabı</string>
   <string name="accounts_add_account">Hesap ekle</string>
   <string name="accounts_for_export">Dışa aktarma için hesaplar</string>
@@ -91,6 +105,7 @@
   <string name="backup_wallet_show_mnemonic_phrase">Anımsatıcı ifadeyi göster</string>
   <string name="backup_wallet_show_raw_seed">Ham Tohumu Göster</string>
   <string name="backup_wallet_warning_about_lose_phrase">Bu cihaza erişimi kaybederseniz, yedekleme yapmadığınız takdirde paranız kaybolacaktır!</string>
+  <string name="balance_locks_blocked_row_title">Engellendi</string>
   <string name="balance_locks_governance_row_title">Yönetim</string>
   <string name="balance_locks_nomination_pools_row_title">Adaylık havuzları</string>
   <string name="balance_locks_screen_title">Kilitli ayrıntılar</string>
@@ -155,6 +170,7 @@
   <string name="common_amount">Miktar</string>
   <string name="common_amount_low">Miktar çok düşük</string>
   <string name="common_and">Ve</string>
+  <string name="common_and_others_placeholder">%s ve diğerleri</string>
   <string name="common_applied">Uygulandı</string>
   <string name="common_apply">Uygulamak</string>
   <string name="common_assets_filters_fiat">Fiat dengesi</string>
@@ -186,6 +202,7 @@
   <string name="common_confirmed">Onaylandı</string>
   <string name="common_connect">Bağlamak</string>
   <string name="common_connection_problems">Bağlantı Sorunları</string>
+  <string name="common_contacts">Kişiler</string>
   <string name="common_continue">Devam etmek</string>
   <string name="common_copied">Panoya kopyalandı</string>
   <string name="common_copy">Kopyala</string>
@@ -241,10 +258,15 @@
   <string name="common_message">İleti</string>
   <string name="common_min_received">Minimum alınan miktar</string>
   <string name="common_module">Modül</string>
+  <string name="common_more">Daha Fazla</string>
   <string name="common_my_networks">Ağlarım</string>
   <string name="common_network">Ağ</string>
   <string name="common_network_fee">Ağ ücreti</string>
   <string name="common_network_management">Ağ yönetimi</string>
+  <plurals name="common_networks_format">
+    <item quantity="one">ağ</item>
+    <item quantity="other">ağlar</item>
+  </plurals>
   <string name="common_next">Sonraki</string>
   <string name="common_no">Hayır</string>
   <string name="common_no_screenshot_message">Ekran görüntüsü almayın, Kötü amaçlı yazılımlar tarafından toplanabilir</string>
@@ -284,11 +306,14 @@
   <string name="common_select_network">Ağ Seçin</string>
   <string name="common_selected">Seçildi</string>
   <string name="common_share">Paylaş</string>
+  <string name="common_show_details">Ayrıntıları göster</string>
+  <string name="common_show_more">Daha fazlasını göster</string>
   <string name="common_sign">İmza</string>
   <string name="common_skip">Atla</string>
   <string name="common_skip_process">İşlemi atla</string>
   <string name="common_sort_by">Göre sıralama</string>
   <string name="common_staking">Stake etmek</string>
+  <string name="common_start">Başlat</string>
   <string name="common_till_date">%s tarihine kadar</string>
   <string name="common_time_left">Kalan zaman</string>
   <string name="common_title_cross_chain">Çapraz zincir</string>
@@ -299,6 +324,7 @@
   <string name="common_total">Toplam</string>
   <string name="common_transaction">İşlem</string>
   <string name="common_transaction_raw_data">İşlem ham verileri</string>
+  <string name="common_transaction_sent">İşlem gönderildi</string>
   <string name="common_transaction_submitted">İşlem gönderildi</string>
   <string name="common_transferable_format">Aktarılabilir:%s</string>
   <string name="common_try_again">Tekrar deneyin</string>
@@ -347,6 +373,7 @@
   <string name="connections_search_hint">Bağlantıya göre ara</string>
   <string name="contact_address">İletişim Adresi</string>
   <string name="contact_name">Kişi Adı</string>
+  <string name="contacts_empty_message">Kişi bulunamadı</string>
   <string name="contribution_type">Katkı türü</string>
   <string name="contribution_type_direct_dot">Direkt DOT</string>
   <string name="contribution_type_lcdot">IcDOT</string>
@@ -484,8 +511,10 @@
   <string name="lp_apy_alert_text">Likidite sağlanmasına yönelik tarım ödülü</string>
   <string name="lp_apy_title">Stratejik Bonus APY</string>
   <string name="lp_available_pools_title">Mevcut havuzlar</string>
+  <string name="lp_banner_text">Paranızı Likidite\havuzlarına yatırın ve ödüller kazanın</string>
   <string name="lp_confirm_liquidity_screen_title">Likiditeyi Doğrula</string>
   <string name="lp_confirm_liquidity_warning_text">Çıktı tahminidir. Fiyatın %0,5\'ten fazla değişmesi durumunda işleminiz geri alınacaktır.</string>
+  <string name="lp_liquidity_add_complete_text">Likidite havuzlarına arzınız başarıyla tamamlandı</string>
   <string name="lp_network_fee_alert_text">Ağ ücreti, SORA sisteminin büyümesini ve istikrarlı performansını sağlamak için kullanılır.</string>
   <string name="lp_pool_details_title">Havuz detayları</string>
   <string name="lp_pool_remove_warning_text">Havuz tokenlarını kaldırmak, pozisyonunuzu havuzdaki payınızla orantılı olarak mevcut oranda temel tokenlara dönüştürür. Tahakkuk eden ücretler, aldığınız tutarlara dahildir.</string>
@@ -525,6 +554,7 @@
   <string name="network_issue_action_add_account">Hesap eklemek</string>
   <string name="network_issue_action_switch_node">Düğüm değiştir</string>
   <string name="network_issue_add_an_account">Hesap ekle</string>
+  <string name="network_issue_main">Bağlantı Hatası: Ağa bağlanılamıyor. Lütfen tekrar deneyin.</string>
   <string name="network_issue_network_unavailable">Ağ kullanılamıyor</string>
   <string name="network_issue_node_unavailable">Düğüm kullanılamıyor</string>
   <string name="network_issue_stub">Ağ Sorunları</string>
@@ -542,6 +572,7 @@
   <string name="nft_collection_title">Toplamak</string>
   <string name="nft_creator_title">Yaratıcı</string>
   <string name="nft_list_empty_message">Henüz NFT yok\nburada görmek için NFT\'leri satın alın veya bastırın</string>
+  <string name="nft_load_error">NFT\'ler yüklenemedi</string>
   <string name="nft_owner_title">Sahip olunan.</string>
   <string name="nft_stub_text">NFT\'ler yakında burada olacak</string>
   <string name="nft_stub_title">Sumimasen!</string>
@@ -693,6 +724,7 @@
   <string name="pool_your_total_stake">Toplam bahis tutarınız</string>
   <string name="pools_limit_has_reached_error_message">Bu ağdaki havuz sınırına ulaşıldı</string>
   <string name="pools_limit_has_reached_error_title">Daha fazla havuz oluşturamazsınız</string>
+  <string name="profile_account_score_title">Nomis çoklu zincir skoru</string>
   <string name="profile_accounts_title">Hesaplar</string>
   <string name="profile_experimets_subtitle">Dapp\'ler ve daha fazlası...</string>
   <string name="profile_experimets_title">Deneysel özellikler</string>
@@ -738,6 +770,10 @@
   <string name="scam_additional_stub">Ek olarak:</string>
   <string name="scam_alert_message_format">göndermemenizi şiddetle tavsiye ederiz.%sbu hesaba.</string>
   <string name="scam_alert_title">Bu adres dolandırıcılık kanıtı nedeniyle işaretlendi.</string>
+  <string name="scam_description_lowscore_text">Aktarmak üzere olduğunuz adresin zincir içi etkinliği düşük, bu da potansiyel bir dolandırıcı veya sybil saldırganının işareti olabilir</string>
+  <string name="scam_info_nomis_name">Nomis çoklu zincir skoru</string>
+  <string name="scam_info_nomis_reason_text">Düşük ağ etkinliği</string>
+  <string name="scam_info_nomis_subtype_text">Dikkatli ilerleyin</string>
   <string name="scam_warning_message">Bu adres dolandırıcılık kanıtı nedeniyle işaretlendi. göndermemenizi şiddetle tavsiye ederiz.%sbu hesaba.</string>
   <string name="scan_qr_subtitle">Alıcıdan kodu tarayın</string>
   <string name="scan_qr_title">QR Kodu Tarayın</string>
@@ -769,6 +805,7 @@
   <string name="social_media">Sosyal medya</string>
   <string name="sora_bridge_amount_less_fee">Aktarmaya çalıştığınız tutar, işlem ücretlerini karşılamaya yetmiyor. %sAğ İşlem gerçekleşmese de Sora ağındaki ücretler sizden yine de tahsil edilecektir.</string>
   <string name="sora_bridge_low_amount_format_alert">Şu anda bir dk. miktar%sSORA Ağının istikrarını ve güvenliğini sağlamak amacıyla köprü oluşturmak için. Anlayışınız için minnettarız.</string>
+  <string name="sora_bridge_low_amount_format_alert_2">Şu anda istikrar ve güvenliği sağlamak için köprüleme için minimum %s miktarı var. Anlayışınız için teşekkür ederiz.</string>
   <string name="sora_card_annual_service_fee">0 € yıllık hizmet ücreti</string>
   <string name="sora_card_blacklisted_countires_title">Uygulama dışı</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[<b>Belirli ülkelerde<br>sakinler şu anda SORA Kartına başvuramaz</b><br><a href=\"https://soracard.com/blacklist/\">Bkz. listele</a>]]></string>
@@ -1051,6 +1088,7 @@
   <string name="substrate_crypto_type">Substrat anahtar çifti kripto türü</string>
   <string name="substrate_secret_derivation_path">Gizli türetme yolu</string>
   <string name="success_message">Artık tarayıcınıza dönebilirsiniz</string>
+  <string name="success_message_transaction_sent">İşleminiz başarıyla blockchain\'e gönderildi</string>
   <string name="support_and_feedback">Destek ve ; Geri bildirim</string>
   <string name="switch_node">Düğüm değiştir</string>
   <string name="switch_node_autoselect_title">Düğümleri otamatik seçin</string>
@@ -1089,6 +1127,8 @@
   <string name="username_setup_hint">Bu hesabın adı ve adreslerinizin altında nasıl görüneceği. Zincir üzerindeki bir kimlikle başkalarının görünümüne de sunulabilir</string>
   <string name="username_setup_title_2_0">Yeni bir cüzdan oluştur</string>
   <string name="validator_info_comission_title">Komisyon</string>
+  <string name="validator_info_min_stake_alert_text">Aktif aday göstericiler arasında minimum bahis %s. Ödül almak için daha fazla bahis yapmanız gerekir.</string>
+  <string name="validator_info_min_stake_among_active_nominators_text">Aktif aday gösterenler arasında minimum hisse</string>
   <string name="validator_not_elected_description">Bu hesap mevcut döneme katılmak için ağ tarafından seçilmedi</string>
   <string name="validators_list_empty_message">Doğrulayıcı bulunamadı</string>
   <string name="vesting_claim_disclaimer_text">Her parachain\'in benzersiz hak kazanma programları nedeniyle, uygulamamız talep edilmeye uygun kilitli tokenlerin miktarını görüntüleyemiyor. Olası tutarın marjinal olması ve söz konusu işlem ücretiyle karşılaştırılabilir olması durumunda, hak talebinde bulunmanın pratik olmayabileceğini lütfen unutmayın. Kilitli bakiyelerinize ilişkin kapsamlı bilgiler için Subscan blok araştırmacısına başvurun. Bilgileri dikkatlice değerlendirmenizi ve kendi takdirinize göre ilerlemenizi öneririz.</string>
@@ -1130,6 +1170,7 @@
   <string name="wallet_send_balance_minimal">Minimum bakiye</string>
   <string name="wallet_send_confirm_transfer">Transferi onaylayın</string>
   <string name="wallet_send_dead_recipient_message">Hedef hesaptaki son tutar, yaratılış bakiyesinden daha az olacağından dolayı transferiniz başarısız olacak. Lütfen miktarı arttırın.</string>
+  <string name="wallet_send_dead_recipient_message_v2">Hedef hesaptaki son tutar (%1$s) minimum bakiyeden (%2$s) az olacağından transferiniz başarısız olacak. Lütfen tutarı %3$s artırın</string>
   <string name="wallet_send_eth_dead_recipient_message">Alıcının hesabındaki yetersiz Ethereum bakiyesi, ERC20 token transferinin tamamlanmasını engeller. Lütfen alıcının aktarıma devam etmek için yeterli Ethereum\'a sahip olduğundan emin olun.</string>
   <string name="wallet_send_existential_warning_message">Transferiniz, toplam bakiyeyi yaratılış bakiyesinden daha düşük yapacağı için hesabı blockstore\'dan kaldıracaktır</string>
   <string name="wallet_send_existential_warning_title">Transfer, hesabı silecektir</string>

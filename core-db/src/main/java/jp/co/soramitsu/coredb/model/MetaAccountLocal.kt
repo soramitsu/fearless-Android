@@ -19,9 +19,9 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
     ]
 )
 class MetaAccountLocal(
-    val substratePublicKey: ByteArray,
-    val substrateCryptoType: CryptoType,
-    val substrateAccountId: ByteArray,
+    val substratePublicKey: ByteArray?,
+    val substrateCryptoType: CryptoType?,
+    val substrateAccountId: ByteArray?,
     val ethereumPublicKey: ByteArray?,
     val ethereumAddress: ByteArray?,
     val tonPublicKey: ByteArray?,

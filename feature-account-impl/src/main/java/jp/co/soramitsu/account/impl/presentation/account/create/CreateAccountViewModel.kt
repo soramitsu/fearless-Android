@@ -1,13 +1,12 @@
 package jp.co.soramitsu.account.impl.presentation.account.create
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import android.os.Parcelable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -15,11 +14,13 @@ import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
@@ -28,6 +29,7 @@ class CreateAccountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), CreateAccountCallback {
 
+    private val accountMode = savedStateHandle.get<String>("ACCOUNT_TYPE_KEY")?.let { AccountType.valueOf(it) }?: throw IllegalStateException("ACCOUNT_TYPE_KEY can't be null")
     private val payload = savedStateHandle.getLiveData<ChainAccountCreatePayload>(CreateAccountScreenKeys.PAYLOAD_KEY)
     private val isFromGoogleBackup = savedStateHandle.get<Boolean>(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY) ?: false
 
@@ -72,7 +74,8 @@ class CreateAccountViewModel @Inject constructor(
         if (isFromGoogleBackup) {
             router.openMnemonicAgreementsDialog(
                 isFromGoogleBackup = isFromGoogleBackup,
-                accountName = walletNickname.value
+                accountName = walletNickname.value,
+                accountMode.name
             )
         } else {
             _showScreenshotsWarningEvent.value = Event(Unit)
@@ -80,7 +83,7 @@ class CreateAccountViewModel @Inject constructor(
     }
 
     fun screenshotWarningConfirmed() {
-        router.openMnemonicScreen(isFromGoogleBackup, walletNickname.value, payload.value)
+        router.openMnemonicScreen(isFromGoogleBackup, walletNickname.value, payload.value, accountMode)
     }
 
     override fun onBackClick() {

@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavBackStackEntry
@@ -16,6 +17,7 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
@@ -38,6 +40,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletDialog
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicDialog
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment
+import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicScreenKeys
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.account.impl.presentation.mnemonic_agreements.MnemonicAgreementsDialog
@@ -239,8 +242,8 @@ class Navigator :
         runCatching { navigate(resId, args) }
     }
 
-    override fun openCreateAccountFromOnboarding() {
-        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
+    override fun openCreateAccountFromOnboarding(accountType: AccountType) {
+        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment, bundleOf(BackupMnemonicScreenKeys.ACCOUNT_TYPE_KEY to accountType.name))
     }
 
     override fun openCreateWalletDialog(isFromGoogleBackup: Boolean) {
@@ -249,10 +252,11 @@ class Navigator :
     }
 
     override fun openCreateAccountFromWallet() {
-        val request = NavDeepLinkRequest.Builder
-            .fromUri("fearless://onboarding/createAccountFragment".toUri())
-            .build()
-        navController?.navigate(request)
+//        val request = NavDeepLinkRequest.Builder
+//            .fromUri("fearless://onboarding/SelectEcosystemScreen".toUri())
+//            .build()
+//        navController?.navigate(request)
+        openSelectEcosystemScreen()
     }
 
     override fun openImportAccountScreenFromWallet(blockChainType: Int) {
@@ -269,44 +273,38 @@ class Navigator :
         navController?.navigate(request)
     }
 
-    override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {
-        val bundle = BackupMnemonicFragment.getBundle(false, "", payload)
-        navController?.navigate(R.id.action_welcomeFragment_to_backupMnemonicFragment, bundle)
-    }
-
-    override fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload) {
-        val bundle = ImportAccountFragment.getBundle(payload)
-        navController?.navigate(
-            R.id.importAction,
-            bundle,
-            NavOptions.Builder().setPopUpTo(R.id.welcomeFragment, true).build()
-        )
-    }
+//    override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {
+//        val bundle = BackupMnemonicFragment.getBundle(false, "", payload, accountMode)
+//        navController?.navigate(R.id.action_welcomeFragment_to_backupMnemonicFragment, bundle)
+//    }
+//
+//    override fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload) {
+//        val bundle = ImportAccountFragment.getBundle(payload)
+//        navController?.navigate(
+//            R.id.importAction,
+//            bundle,
+//            NavOptions.Builder().setPopUpTo(R.id.welcomeFragment, true).build()
+//        )
+//    }
 
     override fun openImportRemoteWalletDialog() {
         val bundle = ImportRemoteWalletDialog.getBundle()
         navController?.navigate(R.id.importRemoteWalletDialog, bundle)
     }
 
-    override fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload) {
-        val bundle = CreateBackupPasswordDialog.getBundle(payload)
-        navController?.navigate(R.id.createBackupPasswordDialog, bundle)
-    }
-
-    override fun openCreateBackupPasswordDialogWithResult(payload: CreateBackupPasswordPayload): Flow<Int> {
-        val bundle = CreateBackupPasswordDialog.getBundle(payload)
+    override fun openCreateBackupPasswordDialogWithResult(): Flow<Int> {
         return openWithResult(
             destinationId = R.id.createBackupPasswordDialog,
-            bundle = bundle,
             resultKey = CreateBackupPasswordDialog.RESULT_BACKUP_KEY
         )
     }
 
     override fun openMnemonicAgreementsDialog(
         isFromGoogleBackup: Boolean,
-        accountName: String
+        accountName: String,
+        accountType: String
     ) {
-        val bundle = MnemonicAgreementsDialog.getBundle(isFromGoogleBackup, accountName)
+        val bundle = MnemonicAgreementsDialog.getBundle(isFromGoogleBackup, accountName, accountType)
         navController?.navigate(R.id.mnemonicAgreementsDialog, bundle)
     }
 
@@ -318,6 +316,15 @@ class Navigator :
         val bundle = WelcomeFragment.getBundle(
             displayBack = true,
             chainAccountData = ChainAccountCreatePayload(chainId, metaId, isImport)
+        )
+        navController?.navigate(R.id.action_to_onboardingNavGraph, bundle)
+    }
+
+    fun openSelectEcosystemScreen() {
+        val bundle = WelcomeFragment.getBundle(
+            displayBack = true,
+            chainAccountData = null,
+            route = "SelectEcosystemScreen"
         )
         navController?.navigate(R.id.action_to_onboardingNavGraph, bundle)
     }
@@ -365,17 +372,19 @@ class Navigator :
     override fun openMnemonicScreen(
         isFromGoogleBackup: Boolean,
         accountName: String,
-        payload: ChainAccountCreatePayload?
+        payload: ChainAccountCreatePayload?,
+        accountMode: AccountType
     ) {
-        val bundle = BackupMnemonicFragment.getBundle(isFromGoogleBackup, accountName, payload)
+        val bundle = BackupMnemonicFragment.getBundle(isFromGoogleBackup, accountName, payload, accountMode)
         navController?.navigate(R.id.backupMnemonicFragment, bundle)
     }
 
     override fun openMnemonicDialog(
         isFromGoogleBackup: Boolean,
-        accountName: String
+        accountName: String,
+        accountType: AccountType
     ) {
-        val bundle = BackupMnemonicDialog.getBundle(isFromGoogleBackup, accountName)
+        val bundle = BackupMnemonicDialog.getBundle(isFromGoogleBackup, accountName, accountType)
         navController?.navigate(R.id.backupMnemonicDialog, bundle)
     }
 
@@ -1219,7 +1228,8 @@ class Navigator :
     }
 
     override fun openConfirmMnemonicOnExport(mnemonic: List<String>, metaId: Long) {
-        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, metaId, null))
+        //TODO PROVIDE ACCOUNT TYPE
+        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, metaId, null, AccountType.SubstrateOrEvm))
 
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }

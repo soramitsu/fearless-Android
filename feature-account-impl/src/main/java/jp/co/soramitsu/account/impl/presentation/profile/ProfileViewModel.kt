@@ -66,7 +66,7 @@ class ProfileViewModel @Inject constructor(
 
     private val accountIconFlow = selectedAccountFlow.map {
         addressIconGenerator.createAddressIcon(
-            it.substrateAccountId,
+            it.substrateAccountId ?: it.tonPublicKey ?: error("Can't create an icon without the input data"),
             AddressIconGenerator.SIZE_BIG
         )
     }

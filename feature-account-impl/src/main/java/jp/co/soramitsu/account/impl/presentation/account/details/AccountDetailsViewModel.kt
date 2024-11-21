@@ -70,7 +70,7 @@ class AccountDetailsViewModel @Inject constructor(
         .map { wallet ->
 
             val icon = iconGenerator.createAddressIcon(
-                wallet.substrateAccountId,
+                wallet.substrateAccountId ?: wallet.tonPublicKey ?: error("Can't create an icon without the input data"),
                 AddressIconGenerator.SIZE_BIG
             )
 
@@ -205,7 +205,12 @@ class AccountDetailsViewModel @Inject constructor(
             val hasChainAccount = interactor.getMetaAccount(walletId).hasChainAccount(chainId)
             val sources = when {
                 hasChainAccount -> interactor.getChainAccountSecret(walletId, chainId).buildExportSourceTypes(isEthereumBased)
-                else -> interactor.getMetaAccountSecrets(walletId).buildExportSourceTypes(isEthereumBased)
+                else -> {
+                    //todo
+                    setOf(ExportSource.Mnemonic, ExportSource.Seed, ExportSource.Json)
+//                    interactor.getMetaAccountSecrets(walletId)
+//                        .buildExportSourceTypes(isEthereumBased)
+                }
             }
 
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))

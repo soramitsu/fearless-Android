@@ -78,7 +78,7 @@ class SessionRequestViewModel @Inject constructor(
         }
 
         val requestedWalletIcon = addressIconGenerator.createAddressIcon(
-            requestedWallet.substrateAccountId,
+            requestedWallet.substrateAccountId ?: byteArrayOf(),
             AddressIconGenerator.SIZE_BIG
         )
 

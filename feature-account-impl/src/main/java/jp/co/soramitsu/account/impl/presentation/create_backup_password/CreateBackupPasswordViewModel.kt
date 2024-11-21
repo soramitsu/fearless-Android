@@ -43,13 +43,12 @@ import jp.co.soramitsu.common.utils.combine as combineFlows
 @HiltViewModel
 class CreateBackupPasswordViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
-    private val backupService: BackupService,
-    private val savedStateHandle: SavedStateHandle,
-    private val interactor: AccountInteractor,
+//    private val savedStateHandle: SavedStateHandle,
+//    private val interactor: AccountInteractor,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), CreateBackupPasswordCallback {
 
-    private val payload = savedStateHandle.get<CreateBackupPasswordPayload>(CreateBackupPasswordDialog.PAYLOAD_KEY)!!
+//    private val payload = savedStateHandle.get<CreateBackupPasswordPayload>(CreateBackupPasswordDialog.PAYLOAD_KEY)!!
 
     private val originPassword = MutableStateFlow("")
     private val confirmPassword = MutableStateFlow("")
@@ -171,120 +170,123 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     override fun onApplyPasswordClick() {
-        isLoading.value = true
+
         viewModelScope.launch {
-            runCatching {
-                val walletId = if (payload.createAccount) {
-                    // only mnemonic creation in this flow
-                    importFromMnemonic()
-                } else {
-                    payload.walletId ?: error("Wallet id not specified")
-                }
-
-                backupAccountToGoogle(walletId)
-            }
-                .onSuccess {
-                    val walletId = payload.walletId ?: interactor.selectedMetaAccount().id
-                    interactor.updateWalletBackedUp(walletId)
-                    continueBasedOnCodeStatus()
-                    isLoading.value = false
-                }
-                .onFailure {
-                    isLoading.value = false
-                    handleAccountBackupError(it)
-                }
+            isLoading.value = true
+            continueBasedOnCodeStatus()
+            isLoading.value = false
+//            runCatching {
+//                val walletId = if (payload.createAccount) {
+//                    // only mnemonic creation in this flow
+//                    importFromMnemonic()
+//                } else {
+//                    payload.walletId ?: error("Wallet id not specified")
+//                }
+//
+//                backupAccountToGoogle(walletId)
+//            }
+//                .onSuccess {
+//                    val walletId = payload.walletId ?: interactor.selectedMetaAccount().id
+//                    interactor.updateWalletBackedUp(walletId)
+//                    continueBasedOnCodeStatus()
+//                    isLoading.value = false
+//                }
+//                .onFailure {
+//                    isLoading.value = false
+//                    handleAccountBackupError(it)
+//                }
         }
     }
 
-    private fun handleAccountBackupError(it: Throwable) {
-        showError(it)
-    }
+//    private fun handleAccountBackupError(it: Throwable) {
+//        showError(it)
+//    }
+//
+//    private suspend fun importFromMnemonic(): Long {
+//        val mnemonic = payload.mnemonic ?: error("No mnemonic specified")
+//        return interactor.importFromMnemonic(
+//            walletName = payload.accountName,
+//            mnemonic = mnemonic,
+//            substrateDerivationPath = payload.substrateDerivationPath,
+//            ethereumDerivationPath = payload.ethereumDerivationPath,
+//            selectedEncryptionType = payload.cryptoType,
+//            withEth = true,
+//            isBackedUp = false,
+//            googleBackupAddress = null
+//        ).getOrThrow()
+//    }
 
-    private suspend fun importFromMnemonic(): Long {
-        val mnemonic = payload.mnemonic ?: error("No mnemonic specified")
-        return interactor.importFromMnemonic(
-            walletName = payload.accountName,
-            mnemonic = mnemonic,
-            substrateDerivationPath = payload.substrateDerivationPath,
-            ethereumDerivationPath = payload.ethereumDerivationPath,
-            selectedEncryptionType = payload.cryptoType,
-            withEth = true,
-            isBackedUp = false,
-            googleBackupAddress = null
-        ).getOrThrow()
-    }
+//    private suspend fun backupAccountToGoogle(walletId: Long) {
+//        withContext(Dispatchers.IO) {
+//            val password = originPassword.value
+//
+//            val wallet = interactor.getMetaAccount(walletId)
+//            val westendChain = interactor.getChain(westendChainId)
+//            val googleBackupAddress = wallet.address(westendChain) ?: error("error obtaining google backup address")
+//
+//            val jsonResult = interactor.generateRestoreJson(
+//                metaId = walletId,
+//                chainId = polkadotChainId,
+//                password = password
+//            )
+//            val substrateJson = jsonResult.getOrNull()
+//            val ethJsonResult = interactor.generateRestoreJson(
+//                metaId = walletId,
+//                chainId = moonriverChainId,
+//                password = password
+//            )
+//            val ethJson = ethJsonResult.getOrNull()
+//
+//            val metaAccountSecrets = interactor.getMetaAccountSecrets(walletId)
+//
+//            val substrateDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.SubstrateDerivationPath).orEmpty()
+//            val ethereumDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.EthereumDerivationPath).orEmpty()
+//            val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)?.clone()
+//            val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }
+//            val substrateSeed = (
+//                    metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: mnemonic?.let {
+//                        seedFromMnemonic(
+//                            mnemonic,
+//                            substrateDerivationPath.nullIfEmpty()
+//                        )
+//                    }
+//                    )?.toHexString(withPrefix = true)
+//            val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+//
+//            val backupAccountTypes = interactor.getSupportedBackupTypes(walletId).toList()
+//
+//            backupService.saveBackupAccount(
+//                account = DecryptedBackupAccount(
+//                    name = payload.accountName,
+//                    address = googleBackupAddress,
+//                    mnemonicPhrase = mnemonic,
+//                    substrateDerivationPath = substrateDerivationPath,
+//                    ethDerivationPath = ethereumDerivationPath,
+//                    cryptoType = payload.cryptoType,
+//                    backupAccountType = backupAccountTypes,
+//                    seed = Seed(substrateSeed = substrateSeed, ethSeed),
+//                    json = Json(substrateJson = substrateJson, ethJson)
+//                ),
+//                password = password
+//            )
+//        }
+//    }
 
-    private suspend fun backupAccountToGoogle(walletId: Long) {
-        withContext(Dispatchers.IO) {
-            val password = originPassword.value
-
-            val wallet = interactor.getMetaAccount(walletId)
-            val westendChain = interactor.getChain(westendChainId)
-            val googleBackupAddress = wallet.address(westendChain) ?: error("error obtaining google backup address")
-
-            val jsonResult = interactor.generateRestoreJson(
-                metaId = walletId,
-                chainId = polkadotChainId,
-                password = password
-            )
-            val substrateJson = jsonResult.getOrNull()
-            val ethJsonResult = interactor.generateRestoreJson(
-                metaId = walletId,
-                chainId = moonriverChainId,
-                password = password
-            )
-            val ethJson = ethJsonResult.getOrNull()
-
-            val metaAccountSecrets = interactor.getMetaAccountSecrets(walletId)
-
-            val substrateDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.SubstrateDerivationPath).orEmpty()
-            val ethereumDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.EthereumDerivationPath).orEmpty()
-            val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)?.clone()
-            val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }
-            val substrateSeed = (
-                    metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: mnemonic?.let {
-                        seedFromMnemonic(
-                            mnemonic,
-                            substrateDerivationPath.nullIfEmpty()
-                        )
-                    }
-                    )?.toHexString(withPrefix = true)
-            val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
-
-            val backupAccountTypes = interactor.getSupportedBackupTypes(walletId).toList()
-
-            backupService.saveBackupAccount(
-                account = DecryptedBackupAccount(
-                    name = payload.accountName,
-                    address = googleBackupAddress,
-                    mnemonicPhrase = mnemonic,
-                    substrateDerivationPath = substrateDerivationPath,
-                    ethDerivationPath = ethereumDerivationPath,
-                    cryptoType = payload.cryptoType,
-                    backupAccountType = backupAccountTypes,
-                    seed = Seed(substrateSeed = substrateSeed, ethSeed),
-                    json = Json(substrateJson = substrateJson, ethJson)
-                ),
-                password = password
-            )
-        }
-    }
-
-    private fun seedFromMnemonic(mnemonic: String, derivationPath: String?): ByteArray {
-        val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
-        return SubstrateSeedFactory.deriveSeed32(mnemonic, password).seed
-    }
+//    private fun seedFromMnemonic(mnemonic: String, derivationPath: String?): ByteArray {
+//        val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
+//        return SubstrateSeedFactory.deriveSeed32(mnemonic, password).seed
+//    }
 
     private suspend fun continueBasedOnCodeStatus() {
-        if (payload.createAccount) {
-            if (interactor.isCodeSet()) {
-                accountRouter.openMain()
-            } else {
-                accountRouter.openCreatePincode()
-            }
-        } else {
+//        if (payload.createAccount) {
+//            if (interactor.isCodeSet()) {
+//                accountRouter.openMain()
+//            } else {
+//                accountRouter.openCreatePincode()
+//            }
+//        } else {
             accountRouter.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_OK)
-        }
+//        }
     }
 
     override fun onAgreementsClick() {

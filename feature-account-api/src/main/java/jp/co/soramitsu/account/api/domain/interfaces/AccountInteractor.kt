@@ -1,26 +1,34 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import java.io.File
 import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.AccountType
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
 
 interface AccountInteractor {
-    suspend fun generateMnemonic(): List<String>
+    suspend fun generateMnemonic(length: Mnemonic.Length): List<String>
 
     fun getCryptoTypes(): List<CryptoType>
 
     suspend fun getPreferredCryptoType(): CryptoType
+
+    suspend fun createAccount(payload: AddAccountPayload): Result<Long>
 
     suspend fun createAccount(
         accountName: String,
@@ -28,6 +36,7 @@ interface AccountInteractor {
         encryptionType: CryptoType,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
+        accountType: AccountType,
         isBackedUp: Boolean
     ): Result<Unit>
 
@@ -140,8 +149,6 @@ interface AccountInteractor {
     suspend fun getMetaAccount(metaId: Long): MetaAccount
     fun getMetaAccountsGoogleAddresses(): Flow<List<String>>
 
-    suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>?
-
     suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId): EncodableStruct<ChainAccountSecrets>?
 
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
@@ -163,4 +170,11 @@ interface AccountInteractor {
     suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean, metaId: Long)
     suspend fun selectedLightMetaAccount(): LightMetaAccount
     fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>>
+
+    suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: Int)
+    suspend fun getGoogleBackupAccounts(): List<BackupAccountMeta>
+    suspend fun getExtensionGoogleBackups(): List<BackupAccountMeta>
+    suspend fun deleteGoogleBackupAccount(walletId: Long, address: String)
+    suspend fun authorizeGoogleBackup(launcher: ActivityResultLauncher<Intent>): Boolean
+    suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>?
 }

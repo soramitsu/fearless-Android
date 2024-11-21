@@ -392,9 +392,6 @@ class WalletInteractorImpl(
 
     override suspend fun getChain(chainId: ChainId) = chainRegistry.getChain(chainId)
 
-    override suspend fun getMetaAccountSecrets(metaId: Long?) =
-        accountRepository.getMetaAccountSecrets(metaId)
-
     override suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 
     override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) =

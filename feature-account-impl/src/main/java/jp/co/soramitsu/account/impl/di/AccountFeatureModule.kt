@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.di
 
+import android.content.Context
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -15,8 +16,11 @@ import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActionsProvider
+import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryDelegate
 import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.account.impl.data.repository.KeyPairRepository
+import jp.co.soramitsu.account.impl.data.repository.SubstrateOrEvmAccountRepository
+import jp.co.soramitsu.account.impl.data.repository.TonAccountRepository
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
@@ -28,6 +32,8 @@ import jp.co.soramitsu.account.impl.domain.NomisScoreInteractorImpl
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
+import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -87,7 +93,8 @@ class AccountFeatureModule {
         nomisScoresDao: NomisScoresDao,
         substrateSecretStore: SubstrateSecretStore,
         ethereumSecretStore: EthereumSecretStore,
-        tonSecretStore: TonSecretStore
+        tonSecretStore: TonSecretStore,
+        accountRepositoryDelegate: AccountRepositoryDelegate
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -101,8 +108,41 @@ class AccountFeatureModule {
             nomisScoresDao,
             substrateSecretStore,
             ethereumSecretStore,
-            tonSecretStore
+            tonSecretStore,
+            accountRepositoryDelegate
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountRepositoryDelegate(
+        substrateOrEvmAccountRepository: SubstrateOrEvmAccountRepository,
+        tonAccountRepository: TonAccountRepository
+    ): AccountRepositoryDelegate {
+        return AccountRepositoryDelegate(substrateOrEvmAccountRepository, tonAccountRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSubstrateOrEvmAccountRepository(
+        metaAccountDao: MetaAccountDao,
+        substrateSecretStore: SubstrateSecretStore,
+        ethereumSecretStore: EthereumSecretStore
+    ): SubstrateOrEvmAccountRepository {
+        return SubstrateOrEvmAccountRepository(
+            metaAccountDao,
+            substrateSecretStore,
+            ethereumSecretStore
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun providesTonAccountRepository(
+        metaAccountDao: MetaAccountDao,
+        tonSecretStore: TonSecretStore
+    ): TonAccountRepository {
+        return TonAccountRepository(metaAccountDao, tonSecretStore)
     }
 
     @Provides
@@ -126,9 +166,19 @@ class AccountFeatureModule {
     fun provideAccountInteractor(
         accountRepository: AccountRepository,
         fileProvider: FileProvider,
-        preferences: Preferences
+        preferences: Preferences,
+        backupService: BackupService
     ): AccountInteractor {
-        return AccountInteractorImpl(accountRepository, fileProvider, preferences)
+        return AccountInteractorImpl(accountRepository, fileProvider, preferences, backupService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBackupService(context: Context): BackupService {
+        return BackupService.create(
+            context = context,
+            token = BuildConfig.WEB_CLIENT_ID
+        )
     }
 
     @Provides

@@ -10,6 +10,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicScreenKeys
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
@@ -39,11 +40,13 @@ class MnemonicAgreementsDialog : BaseComposeBottomSheetDialogFragment<MnemonicAg
 
         fun getBundle(
             isFromGoogleBackupKey: Boolean,
-            accountName: String
+            accountName: String,
+            accountType: String
         ): Bundle {
             return bundleOf(
                 IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackupKey,
-                WALLET_NAME_KEY to accountName
+                WALLET_NAME_KEY to accountName,
+                BackupMnemonicScreenKeys.ACCOUNT_TYPE_KEY to accountType
             )
         }
     }

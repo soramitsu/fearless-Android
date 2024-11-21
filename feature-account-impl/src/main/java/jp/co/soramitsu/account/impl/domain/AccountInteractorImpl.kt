@@ -1,34 +1,55 @@
 package jp.co.soramitsu.account.impl.domain
 
-import android.util.Log
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.AccountType
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
+import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
+import jp.co.soramitsu.backup.domain.models.Json
+import jp.co.soramitsu.backup.domain.models.Seed
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlin.coroutines.CoroutineContext
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
     private val fileProvider: FileProvider,
     private val preferences: Preferences,
+    private val backupService: BackupService,
     private val context: CoroutineContext = Dispatchers.Default
 ) : AccountInteractor {
 
-    override suspend fun generateMnemonic(): List<String> {
-        return accountRepository.generateMnemonic()
+    override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
+        return accountRepository.generateMnemonic(length)
     }
 
     override fun getCryptoTypes(): List<CryptoType> {
@@ -39,12 +60,17 @@ class AccountInteractorImpl(
         return accountRepository.getPreferredCryptoType()
     }
 
+    override suspend fun createAccount(payload: AddAccountPayload): Result<Long> {
+        return runCatching { accountRepository.createAccount(payload) }
+    }
+
     override suspend fun createAccount(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
+        accountType: AccountType,
         isBackedUp: Boolean
     ): Result<Unit> {
         return runCatching {
@@ -282,9 +308,6 @@ class AccountInteractorImpl(
 
     override suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
-    override suspend fun getMetaAccountSecrets(metaId: Long) =
-        accountRepository.getMetaAccountSecrets(metaId)
-
     override suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId) =
         accountRepository.getChainAccountSecrets(metaId, chainId)
 
@@ -331,5 +354,77 @@ class AccountInteractorImpl(
             .flatMapLatest {
                 accountRepository.observeFavoriteChains(it.id)
             }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: Int) {
+        withContext(Dispatchers.IO) {
+            val wallet = getMetaAccount(metaId)
+            val westendChain = getChain(westendChainId)
+            val googleBackupAddress = wallet.address(westendChain) ?: error("error obtaining google backup address")
+
+            val jsonResult = generateRestoreJson(
+                metaId = metaId,
+                chainId = polkadotChainId,
+                password = googleBackupPassword.toString()
+            )
+            val substrateJson = jsonResult.getOrNull()
+            val ethJsonResult = generateRestoreJson(
+                metaId = metaId,
+                chainId = moonriverChainId,
+                password = googleBackupPassword.toString()
+            )
+            val ethJson = ethJsonResult.getOrNull()
+
+            val substrateSecrets = accountRepository.getSubstrateSecrets(metaId)
+            val ethereumSecrets = accountRepository.getEthereumSecrets(metaId)
+
+            val substrateDerivationPath = substrateSecrets?.get(SubstrateSecrets.SubstrateDerivationPath).orEmpty()
+            val ethereumDerivationPath = ethereumSecrets?.get(EthereumSecrets.EthereumDerivationPath).orEmpty()
+            val entropy = substrateSecrets?.get(SubstrateSecrets.Entropy)?.clone()
+            val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }
+            val substrateSeed = substrateSecrets?.get(SubstrateSecrets.Seed)?.toHexString(true)
+            val ethSeed = ethereumSecrets?.get(EthereumSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+
+            val backupAccountTypes = getSupportedBackupTypes(metaId).toList()
+
+            backupService.saveBackupAccount(
+                account = DecryptedBackupAccount(
+                    name = wallet.name,
+                    address = googleBackupAddress,
+                    mnemonicPhrase = mnemonic,
+                    substrateDerivationPath = substrateDerivationPath,
+                    ethDerivationPath = ethereumDerivationPath,
+                    cryptoType = wallet.substrateCryptoType!!,
+                    backupAccountType = backupAccountTypes,
+                    seed = Seed(substrateSeed = substrateSeed, ethSeed),
+                    json = Json(substrateJson = substrateJson, ethJson)
+                ),
+                password = googleBackupPassword.toString()
+            )
+        }
+    }
+
+    override suspend fun getGoogleBackupAccounts(): List<BackupAccountMeta> {
+        return backupService.getBackupAccounts()
+    }
+
+    override suspend fun getExtensionGoogleBackups(): List<BackupAccountMeta> {
+        return backupService.getWebBackupAccounts()
+    }
+
+    override suspend fun deleteGoogleBackupAccount(walletId: Long, address: String) {
+        kotlin.runCatching { backupService.deleteBackupAccount(address) }
+            .onSuccess {
+                updateWalletOnGoogleBackupDelete(walletId)
+            }
+    }
+
+    override suspend fun authorizeGoogleBackup(launcher: ActivityResultLauncher<Intent>): Boolean {
+        backupService.logout()
+        return backupService.authorize(launcher)
+    }
+
+    override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
+        return accountRepository.getSubstrateSecrets(metaId)
     }
 }

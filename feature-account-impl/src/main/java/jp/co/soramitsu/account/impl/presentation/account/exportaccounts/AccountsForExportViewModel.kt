@@ -100,7 +100,10 @@ class AccountsForExportViewModel @Inject constructor(
 
     fun onExportClick(chainId: ChainId = polkadotChainId) {
         viewModelScope.launch {
-            val sources = interactor.getMetaAccountSecrets(payload.metaId).buildExportSourceTypes(false)
+
+//            val sources = interactor.getMetaAccountSecrets(payload.metaId).buildExportSourceTypes(false)
+            //todo
+            val sources = setOf(ExportSource.Mnemonic, ExportSource.Seed, ExportSource.Json)
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
         }
     }

@@ -785,7 +785,7 @@ class BalanceListViewModel @Inject constructor(
         return interactor.selectedLightMetaAccountFlow()
             .map {
                 val polkadotAddressPrefix = 0
-                val address = it.substrateAccountId.toAddress(polkadotAddressPrefix.toShort())
+                val address = it.substrateAccountId?.toAddress(polkadotAddressPrefix.toShort()) ?: error("There is no substrate account for this meta account")
                 WalletAccount(address, it.name)
             }
             .catch { emit(WalletAccount("", "")) }

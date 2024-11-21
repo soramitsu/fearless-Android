@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
@@ -28,10 +29,11 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         fun getBundle(
             isFromGoogleBackup: Boolean,
             accountName: String,
-            payload: ChainAccountCreatePayload?
+            payload: ChainAccountCreatePayload?,
+            accountType: AccountType
         ): Bundle {
             return bundleOf(
-                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, payload)
+                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, payload, accountType)
             )
         }
     }
@@ -45,10 +47,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
     ) { result ->
         when (result.resultCode) {
             Activity.RESULT_OK -> with(binding) {
-                viewModel.onGoogleSignInSuccess(
-                    advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
-                )
+                viewModel.onGoogleSignInSuccess()
             }
             Activity.RESULT_CANCELED -> { /* no action */ }
             else -> {
@@ -91,6 +90,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                     advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     launcher
                 )
+            }
+            confirmMnemonicSkip.isVisible = viewModel.isShowSkipButton
+            confirmMnemonicSkip.setOnClickListener {
+                viewModel.skipClicked()
             }
         }
     }

@@ -29,7 +29,7 @@ class AccountListingProvider(
         iconSizeDp: Int?
     ) = with(metaAccount) {
         val icon = iconGenerator.createAddressIcon(
-            metaAccount.substrateAccountId,
+            metaAccount.substrateAccountId ?: metaAccount.tonPublicKey ?: error("Can't create an icon without the input data"),
             iconSizeDp ?: AddressIconGenerator.SIZE_MEDIUM
         )
 

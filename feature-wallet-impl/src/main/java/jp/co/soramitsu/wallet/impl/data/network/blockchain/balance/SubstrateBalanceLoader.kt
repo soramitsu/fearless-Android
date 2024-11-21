@@ -78,9 +78,9 @@ class SubstrateBalanceLoader(
             }
 
             val allAccountsStorageKeys =
-                metaAccounts.map { metaAccount ->
+                metaAccounts.mapNotNull { metaAccount ->
                     val accountId =
-                        metaAccount.substrateAccountId
+                        metaAccount.substrateAccountId ?: return@mapNotNull null
 
                     buildSubstrateStorageKeys(
                         chain,

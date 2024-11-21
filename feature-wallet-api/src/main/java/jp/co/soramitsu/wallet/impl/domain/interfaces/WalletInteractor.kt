@@ -95,8 +95,6 @@ interface WalletInteractor {
 
     suspend fun getChain(chainId: ChainId): Chain
 
-    suspend fun getMetaAccountSecrets(metaId: Long? = null): EncodableStruct<MetaAccountSecrets>?
-
     suspend fun getSelectedMetaAccount(): MetaAccount
 
     suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId): String?

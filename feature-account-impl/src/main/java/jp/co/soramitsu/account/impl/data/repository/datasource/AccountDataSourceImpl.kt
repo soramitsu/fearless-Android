@@ -138,19 +138,8 @@ class AccountDataSourceImpl(
         return selectedAccountFlow
     }
 
-    private suspend fun getSelectedAccountSubstrateCryptoType(): CryptoType {
-        return if (anyAccountSelected()) {
-            getSelectedLightMetaAccount().substrateCryptoType // todo add etherium support
-        } else {
-            DEFAULT_CRYPTO_TYPE
-        }
-    }
-
     override suspend fun getPreferredCryptoTypeOrSelected(metaId: Long?): CryptoType {
-        return when (metaId) {
-            null -> getSelectedAccountSubstrateCryptoType()
-            else -> getMetaAccount(metaId).substrateCryptoType
-        }
+        return metaId?.let { getMetaAccount(it).substrateCryptoType } ?: DEFAULT_CRYPTO_TYPE
     }
 
     override suspend fun getSelectedAccount(): Account {

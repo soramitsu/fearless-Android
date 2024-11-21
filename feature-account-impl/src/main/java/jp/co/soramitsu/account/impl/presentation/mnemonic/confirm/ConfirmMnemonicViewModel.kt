@@ -135,7 +135,15 @@ class ConfirmMnemonicViewModel @Inject constructor(
             val mnemonicString = originMnemonic.joinToString(" ")
 
             with(extras) {
-                val result = interactor.createAccount(accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath, isBackedUp)
+                val result = interactor.createAccount(
+                    accountName,
+                    mnemonicString,
+                    cryptoType,
+                    substrateDerivationPath,
+                    ethereumDerivationPath,
+                    payload.accountType,
+                    isBackedUp
+                )
 
                 if (result.isSuccess) {
                     continueBasedOnCodeStatus()

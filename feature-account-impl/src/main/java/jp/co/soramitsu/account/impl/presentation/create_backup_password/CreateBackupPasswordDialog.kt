@@ -21,12 +21,12 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 class CreateBackupPasswordDialog : BaseComposeBottomSheetDialogFragment<CreateBackupPasswordViewModel>() {
 
     companion object {
-        const val PAYLOAD_KEY = "PAYLOAD_KEY"
+//        const val PAYLOAD_KEY = "PAYLOAD_KEY"
         const val RESULT_BACKUP_KEY = "RESULT_BACKUP_KEY"
 
-        fun getBundle(payload: CreateBackupPasswordPayload): Bundle {
-            return bundleOf(PAYLOAD_KEY to payload)
-        }
+//        fun getBundle(walletId: Long): Bundle {
+//            return bundleOf(PAYLOAD_KEY to walletId)
+//        }
     }
 
     override val viewModel: CreateBackupPasswordViewModel by viewModels()

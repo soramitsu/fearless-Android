@@ -9,12 +9,15 @@ import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.Keypair
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 
 abstract class ExportViewModel(
     protected val accountInteractor: AccountInteractor,
@@ -59,7 +62,9 @@ abstract class ExportViewModel(
 
     private suspend fun loadChain() = chainRegistry.getChain(chainId)
 
-    private suspend fun loadSecrets() = accountInteractor.getMetaAccountSecrets(metaId)
+    private suspend fun loadSecrets(): EncodableStruct<MetaAccountSecrets> {
+        return MetaAccountSecrets(Keypair(byteArrayOf(), byteArrayOf()))
+    }//accountInteractor.getMetaAccountSecrets(metaId)
 
     private suspend fun loadSecrets(chainId: ChainId) = accountInteractor.getChainAccountSecrets(metaId, chainId)
 }

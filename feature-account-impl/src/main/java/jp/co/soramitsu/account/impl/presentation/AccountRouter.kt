@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation
 
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
@@ -26,12 +27,14 @@ interface AccountRouter : SecureRouter {
     fun openMnemonicScreen(
         isFromGoogleBackup: Boolean,
         accountName: String,
-        payload: ChainAccountCreatePayload?
+        payload: ChainAccountCreatePayload?,
+        accountMode: AccountType
     )
 
     fun openMnemonicDialog(
         isFromGoogleBackup: Boolean,
-        accountName: String
+        accountName: String,
+        accountType: AccountType
     )
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
@@ -93,13 +96,12 @@ interface AccountRouter : SecureRouter {
 
     fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
-    fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload)
-
-    fun openCreateBackupPasswordDialogWithResult(payload: CreateBackupPasswordPayload): Flow<Int>
+    fun openCreateBackupPasswordDialogWithResult(): Flow<Int>
 
     fun openMnemonicAgreementsDialog(
         isFromGoogleBackup: Boolean,
-        accountName: String
+        accountName: String,
+        accountType: String
     )
 
     fun openImportRemoteWalletDialog()
