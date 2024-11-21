@@ -1,6 +1,6 @@
 package jp.co.soramitsu.app.di.app
 
-import co.jp.soramitsu.walletconnect.domain.TonConnectRouter
+import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import dagger.Module
 import dagger.Provides

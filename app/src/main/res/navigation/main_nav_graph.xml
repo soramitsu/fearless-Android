@@ -472,6 +472,11 @@
         android:label="WebViewerFragment" />
 
     <dialog
+        android:id="@+id/dappScreenFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.dappscreen.DappScreenFragment"
+        android:label="DappScreenFragment" />
+
+    <dialog
         android:id="@+id/setupStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.join.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />
@@ -1041,8 +1046,18 @@
 
     <dialog
         android:id="@+id/tonConnectionDetails"
-        android:name="jp.co.soramitsu.walletconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment"
         android:label="tonConnectionDetailsFragment" />
+
+    <dialog
+        android:id="@+id/tonSignRequestFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment"
+        android:label="tonSignRequestFragment" />
+
+    <dialog
+        android:id="@+id/tonSignPreviewFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonsignpreview.TonSignPreviewFragment"
+        android:label="tonSignPreviewFragment" />
 
     <fragment
         android:id="@+id/collatorDetailsFragment"

@@ -61,6 +61,7 @@ import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TonWalletContract
 import kotlin.math.floor
 
 private const val KEYPAIR_REQUIRED_MESSAGE = "Ton keypair is required for ton transfers"
@@ -286,7 +287,7 @@ class TonTransferService(
             putTransferParams(seqno, validUntil)
             storeUInt(0, 8)
             storeUInt(sendMode, 8)
-            val intMsg = CellRef(createIntMsg(walletTransfer))
+            val intMsg = CellRef(TonWalletContract.createIntMsg(walletTransfer))
             storeRef(MessageRelaxed.tlbCodec(AnyTlbConstructor), intMsg)
         }
     }
@@ -406,33 +407,4 @@ class TonTransferService(
 
     val CellBuilder.availableBits: Int
         get() = 1023 - bits.size
-
-    private fun createIntMsg(transfer: WalletTransfer): MessageRelaxed<Cell> {
-        val info = CommonMsgInfoRelaxed.IntMsgInfoRelaxed(
-            ihrDisabled = true,
-            bounce = transfer.bounceable,
-            bounced = false,
-            src = AddrNone,
-            dest = transfer.destination,
-            value = transfer.coins,
-            ihrFee = Coins(),
-            fwdFee = Coins(),
-            createdLt = 0u,
-            createdAt = 0u
-        )
-        val init = Maybe.of(transfer.stateInit?.let {
-            Either.of<StateInit, CellRef<StateInit>>(it, null)
-        })
-        val body = if (transfer.body == null) {
-            Either.of<Cell, CellRef<Cell>>(Cell.empty(), null)
-        } else {
-            Either.of<Cell, CellRef<Cell>>(null, CellRef(transfer.body!!))
-        }
-
-        return MessageRelaxed(
-            info = info,
-            init = init,
-            body = body,
-        )
-    }
 }

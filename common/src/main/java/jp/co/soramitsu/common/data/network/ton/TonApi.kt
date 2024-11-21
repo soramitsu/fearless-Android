@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.data.network.ton
 
+import jp.co.soramitsu.common.BuildConfig
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -54,4 +56,14 @@ interface TonApi {
         @Url url: String,
 //        @Header("Connection") value: String = "close"
     ): TonAppManifest
+
+    @POST
+    suspend fun tonconnectSend(
+        @Url url: String,
+        @Body body: RequestBody
+    ): Any
+
+    @GET(BuildConfig.DAPPS_URL)
+    suspend fun getDappsConfig(): List<DappConfigRemote>
+
 }

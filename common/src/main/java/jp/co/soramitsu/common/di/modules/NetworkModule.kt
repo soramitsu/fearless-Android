@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import java.io.File
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AndroidLogger
@@ -218,7 +219,8 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideTonApi(context: Context): TonApi {
+    @Named("tonApiHttpClient")
+    fun provideTonApiHttpClient(context: Context): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -240,11 +242,18 @@ class NetworkModule {
                 }
             }
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        return builder.build()
+    }
 
+    @Provides
+    @Singleton
+    fun provideTonApi(
+        @Named("tonApiHttpClient") tonApiHttpClient: OkHttpClient
+    ): TonApi {
         val gson = Gson()
 
         val retrofit = Retrofit.Builder()
-            .client(builder.build())
+            .client(tonApiHttpClient)
             .baseUrl("https://keeper.tonapi.io/")
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create(gson))

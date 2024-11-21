@@ -9,11 +9,12 @@
         android:title="@string/tabbar_wallet_title"
         app:showAsAction="ifRoom" />
 
+
     <item
-        android:id="@+id/crowdloanFragment"
+        android:id="@+id/discoverDappFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_nav_crowdloans"
-        android:title="@string/crowdloan_crowdloan"
+        android:icon="@drawable/ic_nav_dapp"
+        android:title="@string/tc_discover_dapp"
         app:showAsAction="ifRoom" />
 
     <item

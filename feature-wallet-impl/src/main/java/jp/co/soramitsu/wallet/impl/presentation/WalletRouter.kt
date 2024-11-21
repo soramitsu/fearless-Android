@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
 import android.graphics.drawable.Drawable
+import co.jp.soramitsu.tonconnect.model.DappModel
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
@@ -197,4 +198,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openServiceScreen()
 
     fun openScoreDetailsScreen(metaId: Long)
+
+    fun openDappScreen(dapp: DappModel)
 }

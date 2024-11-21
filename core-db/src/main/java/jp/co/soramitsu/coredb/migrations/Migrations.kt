@@ -3,6 +3,22 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_72_73 = object : Migration(72, 73) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `ton_connection` (
+            `clientId` TEXT NOT NULL, 
+            `name` TEXT NOT NULL, 
+            `icon` TEXT NOT NULL, 
+            `url` TEXT NOT NULL, 
+            PRIMARY KEY(`url`)
+            )
+            """.trimMargin()
+        )
+    }
+}
+
 val Migration_70_71 = object : Migration(70, 71) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE chains ADD COLUMN `remoteAssetsSource` TEXT NULL DEFAULT NULL")

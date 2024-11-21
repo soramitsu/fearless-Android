@@ -52,6 +52,7 @@ retrofit = "2.11.0"
 roomVersion = "2.6.1"
 rules = "1.6.1"
 runner = "1.6.2"
+securityCryptoVersion = "1.0.0"
 sharedFeaturesVersion = "1.1.1.38-FLW"
 shimmerVersion = "0.5.0"
 sonarqubeGradlePlugin = "3.3"
@@ -69,6 +70,7 @@ tonVersion = "0.2.15"
 soramitsuAndroidFoundation = "0.0.4"
 
 [libraries]
+security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
 soramitsu-android-foundation = { module = "jp.co.soramitsu:android-foundation", version.ref = "soramitsuAndroidFoundation" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastleVersion" }
@@ -98,6 +100,7 @@ lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.r
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "architectureComponentVersion" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "architectureComponentVersion" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttpVersion" }
+okhttp-sse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttpVersion" }
 middle-ellipsis-text = { module = "io.github.mataku:middle-ellipsis-text", version.ref = "middleEllipsisTextVersion" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoVersion" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInlineVersion" }

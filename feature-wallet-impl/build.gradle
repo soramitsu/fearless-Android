@@ -73,6 +73,7 @@ dependencies {
     implementation project(':runtime-permission')
     implementation project(':feature-nft-api')
     implementation project(':feature-walletconnect-api')
+    implementation project(':feature-tonconnect-api')
 
     implementation platform(libs.walletconnectBomDep)
     implementation libs.walletconnectCoreDep

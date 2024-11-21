@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
@@ -7,10 +8,16 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import co.jp.soramitsu.walletconnect.domain.TonConnectInteractor
+import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
+import co.jp.soramitsu.tonconnect.model.ConnectRequest
+import co.jp.soramitsu.tonconnect.model.TonConnectException
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -78,6 +85,7 @@ import jp.co.soramitsu.soracard.api.util.readyToStartGatehubOnboarding
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_TON_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -122,11 +130,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
-import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_TON_CONNECT
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -1024,7 +1027,7 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 content.startsWith(QR_PREFIX_TON_CONNECT) -> {
-                    sendTonConnectPair(pairingUri = content)
+                    readTonQrContent(qrContent = content)
                 }
 
                 else -> {
@@ -1051,8 +1054,24 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    private suspend fun sendTonConnectPair(pairingUri: String) {
-        tonConnectInteractor.connectRemoteApp(pairingUri)
+    private suspend fun readTonQrContent(qrContent: String) {
+        val uri = kotlin.runCatching { Uri.parse(qrContent) }.getOrNull() ?: return
+        val clientId = uri.getQueryParameter("id")
+        if (!isValidClientId(clientId)) {
+            throw TonConnectException.WrongClientId(clientId)
+        }
+        val request = ConnectRequest.parse(uri.getQueryParameter("r"))
+
+        if (request.items.isEmpty()) {
+            println("!!! Bad request")
+        }
+        val proofPayload = request.items.filterIsInstance<ConnectRequest.Item.TonProof>().firstOrNull()?.payload
+
+        tonConnectInteractor.tonConnectAppWithResult(clientId!!, request.manifestUrl, proofPayload)
+    }
+
+    private fun isValidClientId(clientId: String?): Boolean {
+        return !clientId.isNullOrBlank() && clientId.length == 64
     }
 
     private fun sendWalletConnectPair(pairingUri: String) {
