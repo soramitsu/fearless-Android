@@ -140,6 +140,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openSelectWallet()
 
     fun openGetSoraCard()
+    fun openSoraCardDetails()
 
     fun openOptionsAddAccount(payload: AddAccountPayload)
 

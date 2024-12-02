@@ -350,6 +350,10 @@
         android:id="@+id/getSoraCardFragment"
         android:name="jp.co.soramitsu.soracard.impl.presentation.get.GetSoraCardFragment"
         android:label="GetSoraCardFragment" />
+    <fragment
+        android:id="@+id/soraCardDetailsFragment"
+        android:name="jp.co.soramitsu.soracard.impl.presentation.details.SoraCardDetailsFragment"
+        android:label="SoraCardDetailsFragment" />
 
     <fragment
         android:id="@+id/exportMnemonicFragment"
@@ -456,11 +460,6 @@
         android:id="@+id/successSheetFragment"
         android:name="jp.co.soramitsu.success.presentation.SuccessFragment"
         android:label="successSheetFragment" />
-
-    <dialog
-        android:id="@+id/getMoreXorFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.getmorexor.GetMoreXorFragment"
-        android:label="getMoreXorFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"

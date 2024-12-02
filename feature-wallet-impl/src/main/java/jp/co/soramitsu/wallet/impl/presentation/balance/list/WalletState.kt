@@ -19,7 +19,7 @@ data class WalletState(
     val multiToggleButtonState: MultiToggleButtonState<AssetType>,
     val balance: AssetBalanceViewState,
     val hasNetworkIssues: Boolean,
-    val soraCardState: SoraCardItemViewState?,
+    val soraCardState: SoraCardItemViewState,
     val isBackedUp: Boolean,
     val scrollToTopEvent: Event<Unit>?,
     val scrollToBottomEvent: Event<Unit>?,
@@ -30,7 +30,7 @@ data class WalletState(
             assetsState = WalletAssetsState.Assets(emptyList(), isHideVisible = true),
             balance = AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
             hasNetworkIssues = false,
-            soraCardState = null,
+            soraCardState = SoraCardItemViewState(visible = false, success = false, iban = null),
             isBackedUp = true,
             scrollToTopEvent = null,
             scrollToBottomEvent = null

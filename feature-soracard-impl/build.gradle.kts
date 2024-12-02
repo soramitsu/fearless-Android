@@ -54,6 +54,8 @@ dependencies {
     implementation(libs.xnetworking.sorawallet, withoutBasic)
 
     implementation(libs.sora.ui)
+    implementation(libs.sora.soracard)
+    implementation(libs.soramitsu.android.foundation)
 
     implementation(projects.common)
     implementation(projects.runtime)

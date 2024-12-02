@@ -43,10 +43,10 @@ const val KEY_PAYLOAD = "KEY_PAYLOAD"
 class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     @Inject
-    protected lateinit var contributionManager: CustomContributeManager
+    lateinit var contributionManager: CustomContributeManager
 
     private lateinit var binding: FragmentCustomContributeBinding
 

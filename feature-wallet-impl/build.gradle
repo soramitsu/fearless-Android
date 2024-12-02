@@ -107,6 +107,8 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
+    testImplementation libs.arch.core.testing
 
     implementation libs.gson
     implementation libs.retrofit
@@ -140,6 +142,8 @@ dependencies {
 
     implementation libs.sharedFeaturesXcmDep
     implementation libs.sharedFeaturesBackupDep
+    implementation(libs.sora.soracard)
+    implementation(libs.soramitsu.android.foundation)
 
     implementation libs.web3jDep
     implementation libs.ton

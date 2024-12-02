@@ -31,6 +31,7 @@ dependencies {
     api libs.mockito.inline
     api libs.mockito.core
     api libs.mockito.kotlin
+    api libs.mockk
     api libs.kotlinx.coroutines.test
 
     api libs.nv.websocket.client

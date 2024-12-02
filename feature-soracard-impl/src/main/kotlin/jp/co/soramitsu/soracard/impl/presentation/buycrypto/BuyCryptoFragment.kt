@@ -6,6 +6,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeFragment
 
@@ -18,7 +19,7 @@ class BuyCryptoFragment : BaseComposeFragment<BuyCryptoViewModel>() {
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         BuyCryptoScreen(
-            state = viewModel.state,
+            state = viewModel.state.collectAsStateWithLifecycle().value,
             onPageFinished = viewModel::onPageFinished
         )
     }

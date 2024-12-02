@@ -156,6 +156,7 @@ dependencies {
     debugImplementation libs.bundles.composeDebug
 
     implementation libs.sora.ui
+    implementation libs.soramitsu.android.foundation
 
     api libs.coil
     api libs.coil.gif

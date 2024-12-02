@@ -29,7 +29,7 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 class ProfileFragment : BaseComposeFragment<ProfileViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     override val viewModel: ProfileViewModel by viewModels()
 

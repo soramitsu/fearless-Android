@@ -11,6 +11,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.CachingAddressIconGenerator
 import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
@@ -62,6 +63,12 @@ class CommonModule {
     @Provides
     @Singleton
     fun provideComputationalCache() = ComputationalCache()
+
+    @Provides
+    @Singleton
+    fun provideCoroutineManager(): CoroutineManager {
+        return CoroutineManager()
+    }
 
     @Provides
     @Singleton

@@ -74,11 +74,7 @@ class ProfileViewModel @Inject constructor(
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
-    //    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
-//        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
-//        SoraCardItemViewState(kycStatus, it, null, true)
-//    }
-    private val soraCardState = flowOf(SoraCardItemViewState())
+    private val soraCardState = flowOf(SoraCardItemViewState(visible = true, iban = null, success = false))
 
     private val defaultWalletItemViewState = WalletItemViewState(
         id = 0,

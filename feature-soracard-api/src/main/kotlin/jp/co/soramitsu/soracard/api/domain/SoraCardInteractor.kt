@@ -1,27 +1,19 @@
 package jp.co.soramitsu.soracard.api.domain
 
-import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
+import kotlinx.coroutines.flow.StateFlow
 
 interface SoraCardInteractor {
     val soraCardChainId: String
 
-    suspend fun xorAssetFlow(): Flow<Asset>
+    fun xorAssetFlow(): Flow<Asset>
 
-    fun subscribeSoraCardInfo(): Flow<SoraCardInfo?>
+    val basicStatus: StateFlow<SoraCardBasicStatus>
 
-    suspend fun getSoraCardInfo(): SoraCardInfo?
+    suspend fun initialize()
 
-    suspend fun updateSoraCardKycStatus(kycStatus: String)
-
-    suspend fun getXorEuroPrice(priceId: String? = null): BigDecimal?
-
-    suspend fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    )
+    suspend fun setStatus(status: SoraCardCommonVerification)
+    suspend fun setLogout()
 }

@@ -1379,6 +1379,10 @@ class Navigator :
         navController?.navigate(R.id.getSoraCardFragment)
     }
 
+    override fun openSoraCardDetails() {
+        navController?.navigate(R.id.soraCardDetailsFragment)
+    }
+
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
@@ -1479,10 +1483,6 @@ class Navigator :
     override fun openPoolFullUnstakeDepositorAlertFragment(amount: String) {
         val bundle = PoolFullUnstakeDepositorAlertFragment.getBundle(amount)
         navController?.navigate(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
-    }
-
-    override fun openGetMoreXor() {
-        navController?.navigate(R.id.getMoreXorFragment)
     }
 
     override fun openContactsWithResult(chainId: ChainId): Flow<String> {
