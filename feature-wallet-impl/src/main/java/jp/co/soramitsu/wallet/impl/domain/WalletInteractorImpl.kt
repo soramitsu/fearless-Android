@@ -85,6 +85,7 @@ const val QR_PREFIX_WALLET_CONNECT = "wc"
 const val QR_PREFIX_TON_CONNECT = "tc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
+private const val PREFS_SORA_CARD_BUY_XOR_VISIBILITY = "prefs_sora_card_buy_xor_visibility"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
 private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ACCOUNT_ID_MIN_TAG = 26
@@ -498,6 +499,9 @@ class WalletInteractorImpl(
         return existingChain?.id
     }
 
+    override fun isShowBuyXor(): Boolean =
+        preferences.getBoolean(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, true)
+
     override fun isShowGetSoraCard(): Boolean =
         preferences.getInt(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT, 0) <= 0
 
@@ -506,6 +510,10 @@ class WalletInteractorImpl(
 
     override fun hideSoraCard() {
         preferences.putInt(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT, SORA_CARD_HIDDEN_SESSIONS_LIMIT)
+    }
+
+    override fun hideBuyXor() {
+        preferences.putBoolean(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, false)
     }
 
     override fun decreaseSoraCardHiddenSessions() {
