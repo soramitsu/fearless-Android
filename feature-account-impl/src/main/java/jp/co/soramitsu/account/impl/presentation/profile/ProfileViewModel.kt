@@ -79,6 +79,7 @@ class ProfileViewModel @Inject constructor(
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
+    private val soraCardState = flowOf(SoraCardItemViewState(visible = true, iban = null, success = false))
     private val _launchSoraCardSignIn = SingleLiveEvent<SoraCardContractData>()
     val launchSoraCardSignIn: LiveData<SoraCardContractData> = _launchSoraCardSignIn
 

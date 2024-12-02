@@ -6,8 +6,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,9 +39,6 @@ import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.component.SoraCardFiatCard
-import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
-import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -160,17 +156,13 @@ fun WalletScreen(
 }
 
 @Composable
-private fun Banners(
-    data: WalletState,
-    callback: WalletScreenInterface,
-    autoPlay: Boolean = true
-) {
-    val soraCardFiatItem: @Composable (() -> Unit)? =
-        if (data.soraCardState.soraCardProgress == SoraCardProgress.KYC_IBAN) {
+private fun Banners(data: WalletState, callback: WalletScreenInterface) {
+    val soraCardBanner: @Composable (() -> Unit)? =
+        if (data.soraCardState.visible) {
             {
-                SoraCardFiatCard(
+                SoraCardItem(
                     state = data.soraCardState,
-                    modifier = Modifier,
+                    onClose = callback::soraCardClose,
                     onClick = callback::soraCardClicked,
                 )
             }
@@ -186,18 +178,6 @@ private fun Banners(
             )
         }
     }
-
-    val getSoraCardBanner: @Composable (() -> Unit)? =
-        if (data.soraCardState.soraCardProgress == SoraCardProgress.START && data.soraCardState.visible) {
-            {
-                BannerGetSoraCard(
-                    onClose = callback::soraCardClose,
-                    onViewDetails = callback::soraCardClicked,
-                )
-            }
-        } else {
-            null
-        }
 
     val backupBanner: @Composable (() -> Unit)? = if (!data.isBackedUp) {
         {
@@ -232,7 +212,7 @@ private fun Banners(
         null
     }
 
-    val banners = listOfNotNull(getSoraCardBanner, buyXorBanner, backupBanner, joinSubOrEvmBanner, joinTonBanner)
+    val banners = listOfNotNull(buyXorBanner, backupBanner, joinSubOrEvmBanner, joinTonBanner)
     val bannersCount = banners.size
     val pagerState = rememberPagerState { bannersCount }
 
@@ -274,10 +254,10 @@ private fun Banners(
                 }
             }
         }
-    if (soraCardFiatItem != null || bannersCarousel != null) {
+    if (soraCardBanner != null || bannersCarousel != null) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             bannersCarousel?.invoke()
-            soraCardFiatItem?.invoke()
+            soraCardBanner?.invoke()
         }
     }
 }
@@ -390,9 +370,7 @@ private fun PreviewWalletScreen() {
                         null,
                         true,
                         success = true,
-                        iban = null,
-                        soraCardProgress = SoraCardProgress.START,
-                        loading = false,
+                        iban = null
                     ),
                     isBackedUp = false,
                     hasTonAccounts = false,

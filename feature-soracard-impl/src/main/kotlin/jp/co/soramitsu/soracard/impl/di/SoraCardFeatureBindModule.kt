@@ -11,7 +11,6 @@ import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.domain.SoraCardInteractorImpl
 import jp.co.soramitsu.soracard.impl.domain.SoraCardNetworkClientImpl
 import jp.co.soramitsu.soracard.impl.domain.SoraCardRetrofitClient
-import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -29,11 +28,9 @@ class SoraCardFeatureModule {
     @Provides
     fun provideSoraCardNetworkClient(
         networkApiCreator: NetworkApiCreator,
-        json: Json,
     ): SoraCardNetworkClient {
         return SoraCardNetworkClientImpl(
-            retrofitClient = networkApiCreator.create(SoraCardRetrofitClient::class.java),
-            json = json,
+            retrofitClient = networkApiCreator.create(SoraCardRetrofitClient::class.java)
         )
     }
 }

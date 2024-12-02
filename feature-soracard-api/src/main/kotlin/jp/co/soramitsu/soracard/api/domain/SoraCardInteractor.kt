@@ -1,6 +1,5 @@
 package jp.co.soramitsu.soracard.api.domain
 
-import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.Flow
@@ -17,8 +16,4 @@ interface SoraCardInteractor {
 
     suspend fun setStatus(status: SoraCardCommonVerification)
     suspend fun setLogout()
-
-    fun isShowBuyXor(): Boolean
-    fun hideBuyXor()
-    fun getSoraCardProgress(): SoraCardProgress
 }
