@@ -70,7 +70,7 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             binding.exportMnemonicViewer.submitList(it)
         }
 
-        viewModel.derivationPathLiveData.observe { (substrateDerivationPath: String?, ethereumDerivationPath: String?) ->
+        viewModel.mnemonicDerivationPathLiveData.observe { (substrateDerivationPath: String?, ethereumDerivationPath: String?) ->
             if (substrateDerivationPath.isNullOrBlank() && ethereumDerivationPath.isNullOrBlank()) {
                 binding.exportMnemonicAdvanced.isVisible = false
                 return@observe

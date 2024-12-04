@@ -2,7 +2,9 @@ package jp.co.soramitsu.common.address
 
 import android.graphics.drawable.PictureDrawable
 import androidx.annotation.ColorRes
+import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.shared_utils.exceptions.AddressFormatException
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
@@ -12,7 +14,7 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
+
 
 interface AddressIconGenerator {
 
@@ -34,6 +36,8 @@ interface AddressIconGenerator {
         sizeInDp: Int,
         @ColorRes backgroundColorRes: Int = R.color.account_icon_light
     ): PictureDrawable
+
+    suspend fun createWalletIcon(ecosystem: WalletEcosystem, sizeInDp: Int): PictureDrawable
 }
 
 @Throws(AddressFormatException::class)
@@ -84,6 +88,44 @@ suspend fun AddressIconGenerator.createAddressModel(accountAddress: String, size
 }
 
 @Throws(AddressFormatException::class)
+suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress: Map<WalletEcosystem, String>, sizeInDp: Int, accountName: String? = null): PictureDrawable {
+    return if (supportedEcosystemWithAddress.size == 1) {
+        val ecosystem = supportedEcosystemWithAddress.toList()[0].first
+        createWalletIcon(ecosystem, sizeInDp)
+    } else {
+        val address = supportedEcosystemWithAddress.toList().sortedBy {
+            when (it.first) {
+                WalletEcosystem.Substrate -> 1
+                WalletEcosystem.Evm -> 2
+                WalletEcosystem.Ton -> 3
+            }
+        }[0].second
+
+        createAddressIcon(address, sizeInDp)
+    }
+}
+
+@Throws(AddressFormatException::class)
+suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddress: Map<WalletEcosystem, String>, sizeInDp: Int, accountName: String? = null): AddressModel {
+    if (supportedEcosystemWithAddress.size == 1) {
+        val (ecosystem, address) = supportedEcosystemWithAddress.toList()[0]
+        val icon = createWalletIcon(ecosystem, sizeInDp)
+        return AddressModel(address, icon, accountName)
+    } else {
+        val address = supportedEcosystemWithAddress.toList().sortedBy {
+            when (it.first) {
+                WalletEcosystem.Substrate -> 1
+                WalletEcosystem.Evm -> 2
+                WalletEcosystem.Ton -> 3
+            }
+        }[0].second
+
+        val icon = createAddressIcon(address, sizeInDp)
+        return AddressModel(address, icon, accountName)
+    }
+}
+
+@Throws(AddressFormatException::class)
 suspend fun AddressIconGenerator.createEthereumAddressModel(accountAddress: String, sizeInDp: Int, accountName: String? = null): AddressModel {
     val icon = createEthereumAddressIcon(accountAddress.requireHexPrefix(), sizeInDp)
     return AddressModel(accountAddress, icon, accountName)
@@ -128,6 +170,15 @@ class CachingAddressIconGenerator(
                 delegate.createEthereumAddressIcon(accountId, sizeInDp, backgroundColorRes)
             }
         }
+
+    override suspend fun createWalletIcon(ecosystem: WalletEcosystem, sizeInDp: Int): PictureDrawable =
+        withContext(Dispatchers.Default) {
+            val key = "${ecosystem.name}:$sizeInDp"
+
+            cache.getOrPut(key) {
+                delegate.createWalletIcon(ecosystem, sizeInDp)
+            }
+        }
 }
 
 class StatelessAddressIconGenerator(
@@ -150,5 +201,15 @@ class StatelessAddressIconGenerator(
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
         val backgroundColor = resourceManager.getColor(backgroundColorRes)
         iconGenerator.generateEthereumAddressIcon(accountId, sizeInPx, backgroundColor = backgroundColor)
+    }
+
+    override suspend fun createWalletIcon(ecosystem: WalletEcosystem, sizeInDp: Int): PictureDrawable = withContext(Dispatchers.Default) {
+        val sizeInPx = resourceManager.measureInPx(sizeInDp)
+        val icon = when (ecosystem) {
+            WalletEcosystem.Substrate -> iconGenerator.getSubstrateWalletIcon(sizeInPx)
+            WalletEcosystem.Evm -> iconGenerator.getEvmWalletIcon(sizeInPx)
+            WalletEcosystem.Ton -> iconGenerator.getTonWalletIcon(sizeInPx)
+        }
+        icon
     }
 }

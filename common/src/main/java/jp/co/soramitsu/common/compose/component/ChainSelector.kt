@@ -3,7 +3,9 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -41,7 +43,8 @@ data class ChainSelectorViewStateWithFilters(
     val selectedChainName: String? = null,
     val selectedChainId: String? = null,
     val selectedChainImageUrl: String? = null,
-    val filterApplied: Filter = Filter.All
+    val filterApplied: Filter = Filter.All,
+    val allowChainSelection: Boolean = false
 ) {
     enum class Filter {
         All, Popular, Favorite
@@ -51,7 +54,7 @@ data class ChainSelectorViewStateWithFilters(
 @Composable
 fun ChainSelector(
     selectorViewState: ChainSelectorViewState,
-    onChangeChainClick: (() -> Unit)?
+    onChangeChainClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -78,11 +81,12 @@ fun ChainSelector(
             style = MaterialTheme.customTypography.body1,
             maxLines = 1
         )
+        MarginHorizontal(8.dp)
         if (onChangeChainClick != null) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_down),
                 contentDescription = null,
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(end = 8.dp),
                 tint = white
             )
         }
@@ -92,17 +96,19 @@ fun ChainSelector(
 @Composable
 fun ChainSelector(
     selectorViewState: ChainSelectorViewStateWithFilters,
-    onChangeChainClick: () -> Unit
+    onChangeChainClick: (() -> Unit)?
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundBlurColor)
-            .clickable(
-                role = Role.Button,
-                onClick = onChangeChainClick
-            )
+            .applyIf(selectorViewState.allowChainSelection && onChangeChainClick != null) {
+                clickable(
+                    role = Role.Button,
+                    onClick = onChangeChainClick!!
+                )
+            }
     ) {
         Box(
             modifier = Modifier
@@ -159,25 +165,40 @@ fun ChainSelector(
             style = MaterialTheme.customTypography.body1,
             maxLines = 1
         )
-
-        Icon(
-            painter = painterResource(id = R.drawable.ic_arrow_down),
-            contentDescription = null,
-            modifier = Modifier.padding(8.dp),
-            tint = white
-        )
+        MarginHorizontal(8.dp)
+        if (selectorViewState.allowChainSelection && onChangeChainClick != null) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_arrow_down),
+                contentDescription = null,
+                modifier = Modifier.padding(end = 8.dp),
+                tint = white
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 private fun ChainSelectorPreview() {
-    ChainSelector(
-        selectorViewState = ChainSelectorViewState(
-            selectedChainId = "id",
-            selectedChainName = "Kusama",
-            selectedChainStatusColor = colorAccent
-        ),
-        onChangeChainClick = {}
-    )
+    Column(
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        ChainSelector(
+            selectorViewState = ChainSelectorViewState(
+                selectedChainId = "id",
+                selectedChainName = "Kusama",
+                selectedChainStatusColor = colorAccent
+            ),
+            onChangeChainClick = {}
+        )
+
+        ChainSelector(
+            selectorViewState = ChainSelectorViewStateWithFilters(
+                selectedChainId = "id",
+                selectedChainName = "Kusama",
+                allowChainSelection = true
+            ),
+            onChangeChainClick = {}
+        )
+    }
 }

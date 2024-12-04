@@ -9,9 +9,9 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
@@ -59,35 +59,6 @@ interface AccountRepository {
 
     suspend fun createAccount(payload: AddAccountPayload): Long
 
-    suspend fun createAccount(
-        accountName: String,
-        mnemonic: String,
-        encryptionType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        isBackedUp: Boolean
-    )
-
-    suspend fun importChainAccountFromMnemonic(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    )
-
-    suspend fun createChainAccount(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    )
-
     suspend fun deleteAccount(metaId: Long)
 
     suspend fun getAccounts(): List<Account>
@@ -95,19 +66,6 @@ interface AccountRepository {
     suspend fun getAccount(address: String): Account
 
     suspend fun getAccountOrNull(address: String): Account?
-
-    suspend fun getMyAccounts(query: String, chainId: String): Set<Account>
-
-    suspend fun importFromMnemonic(
-        mnemonic: String,
-        accountName: String,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        selectedEncryptionType: CryptoType,
-        withEth: Boolean,
-        isBackedUp: Boolean,
-        googleBackupAddress: String?
-    ): Long
 
     suspend fun importFromSeed(
         seed: String,
@@ -118,16 +76,6 @@ interface AccountRepository {
         googleBackupAddress: String?
     )
 
-    @Deprecated("We don't import chain accounts anymore. Only ecosystem account import is allowed")
-    suspend fun importChainFromSeed(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        seed: String,
-        substrateDerivationPath: String,
-        selectedEncryptionType: CryptoType
-    )
-
     fun validateJsonBackup(json: String, password: String)
 
     suspend fun importFromJson(
@@ -136,14 +84,6 @@ interface AccountRepository {
         name: String,
         ethJson: String?,
         googleBackupAddress: String?
-    )
-
-    suspend fun importChainFromJson(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        json: String,
-        password: String
     )
 
     suspend fun isCodeSet(): Boolean
@@ -199,4 +139,5 @@ interface AccountRepository {
     fun observeNomisScore(metaId: Long): Flow<NomisScoreData?>
     suspend fun getSubstrateSecrets(metaId: Long) : EncodableStruct<SubstrateSecrets>?
     suspend fun getEthereumSecrets(metaId: Long) : EncodableStruct<EthereumSecrets>?
+    suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>?
 }

@@ -37,9 +37,6 @@ interface MetaAccountDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertMetaAccount(metaAccount: MetaAccountLocal): Long
 
-    @Insert
-    suspend fun insertChainAccount(chainAccount: ChainAccountLocal)
-
     @Query("SELECT * FROM chain_accounts WHERE initialized = 0")
     fun observeNotInitializedChainAccounts(): Flow<List<ChainAccountLocal>>
 

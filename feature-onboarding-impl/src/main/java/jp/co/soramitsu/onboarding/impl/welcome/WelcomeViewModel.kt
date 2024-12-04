@@ -12,6 +12,7 @@ import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -24,7 +25,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -68,21 +68,20 @@ class WelcomeViewModel @Inject constructor(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val events = _events.receiveAsFlow()
-    val startDestination = when (payload.route) {
-                        WelcomeEvent.Onboarding.SelectEcosystemScreen.route -> WelcomeEvent.Onboarding.SelectEcosystemScreen
-                        else -> WelcomeEvent.Onboarding.SplashScreen
-                    }.route
+
+//    val startDestination = when (payload.route) {
+//        WelcomeEvent.Onboarding.SelectEcosystemScreen.route -> WelcomeEvent.Onboarding.SelectEcosystemScreen
+//        WelcomeEvent.Onboarding.WelcomeScreen.route -> WelcomeEvent.Onboarding.WelcomeScreen
+//        else -> WelcomeEvent.Onboarding.SplashScreen
+//    }.route
+
+    val startDestination = payload.route ?: WelcomeEvent.Onboarding.SplashScreen.route
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
     private var currentOnboardingConfigVersion: String? = null
 
     init {
-//        payload.createChainAccount?.run {
-//            when (isImport) {
-//                true -> router.openImportAccountSkipWelcome(this)
-//                else -> router.openCreateAccountSkipWelcome(this)
-//            }
-//        }
+        println("!!! WelcomeViewModel: payload.route = ${payload.route}")
         viewModelScope.launch {
             val isAccountSelected = accountRepository.isAccountSelected()
 
@@ -142,10 +141,21 @@ class WelcomeViewModel @Inject constructor(
         _events.trySend(WelcomeEvent.ScanQR)
     }
 
+
     override fun importAccountClicked(accountType: AccountType) {
-        router.openSelectImportModeForResult()
-            .onEach(::handleSelectedImportMode)
-            .launchIn(viewModelScope)
+        when (accountType) {
+            AccountType.SubstrateOrEvm -> {
+                router.openSelectImportModeForResult()
+                    .onEach(::handleSelectedImportMode)
+                    .launchIn(viewModelScope)
+            }
+
+//            AccountType.Ton -> handleSelectedImportMode(ImportMode.MnemonicPhrase)
+            AccountType.Ton -> router.openImportAccountScreen(
+                importAccountType = ImportAccountType.Ton,
+                importMode = ImportMode.MnemonicPhrase
+            )
+        }
     }
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
@@ -153,7 +163,7 @@ class WelcomeViewModel @Inject constructor(
             _events.trySend(WelcomeEvent.AuthorizeGoogle)
         } else {
             router.openImportAccountScreen(
-                blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
+                importAccountType = ImportAccountType.Substrate,
                 importMode = importMode
             )
         }

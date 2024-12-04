@@ -120,7 +120,7 @@ class SubstrateOrEvmAccountRepository(
 class TonAccountRepository(
     private val metaAccountDao: MetaAccountDao,
     private val tonSecretStore: TonSecretStore
-){
+) {
     suspend fun create(payload: AddAccountPayload.Ton): Long {
         val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(payload.mnemonic.split(" "))
         val tonPrivateKey = PrivateKeyEd25519(tonSeed)
@@ -152,8 +152,8 @@ class TonAccountRepository(
         tonSecretStore.put(
             metaAccountId,
             TonSecrets(
-                payload.mnemonic.encodeToByteArray(),
-                Keypair(
+                seed = payload.mnemonic.encodeToByteArray(),
+                tonKeypair = Keypair(
                     tonPublicKey.key.toByteArray(),
                     tonPrivateKey.key.toByteArray()
                 )

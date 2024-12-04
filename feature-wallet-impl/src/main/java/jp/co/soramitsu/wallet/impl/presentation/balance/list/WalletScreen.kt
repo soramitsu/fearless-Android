@@ -4,21 +4,13 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
@@ -26,7 +18,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,13 +27,13 @@ import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.BannerBackup
 import jp.co.soramitsu.common.compose.component.BannerBuyXor
+import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
 import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -65,6 +56,10 @@ interface WalletScreenInterface : AssetsListInterface {
     fun soraCardClose()
     fun onBackupClicked()
     fun onBackupCloseClick()
+    fun onJoinSubOrEvmClicked()
+    fun onJoinSubOrEvmCloseClick()
+    fun onJoinTonClicked()
+    fun onJoinTonCloseClick()
     fun assetTypeChanged(type: AssetType)
     fun onRefresh()
     fun onManageAssetClick()
@@ -140,7 +135,6 @@ fun WalletScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Banners(data: WalletState, callback: WalletScreenInterface) {
     val soraCardBanner: @Composable (() -> Unit)? =
@@ -174,7 +168,30 @@ private fun Banners(data: WalletState, callback: WalletScreenInterface) {
     } else {
         null
     }
-    val banners = listOfNotNull(buyXorBanner, backupBanner)
+
+    val joinSubOrEvmBanner: @Composable (() -> Unit)? = if (!data.hasSubOrEvmAccounts) {
+        {
+            BannerJoinSubstrateEvm(
+                onClick = callback::onJoinSubOrEvmClicked,
+                onCloseClick = callback::onJoinSubOrEvmCloseClick,
+            )
+        }
+    } else {
+        null
+    }
+
+    val joinTonBanner: @Composable (() -> Unit)? = if (!data.hasTonAccounts) {
+        {
+            BannerJoinSubstrateEvm(
+                onClick = callback::onJoinTonClicked,
+                onCloseClick = callback::onJoinTonCloseClick,
+            )
+        }
+    } else {
+        null
+    }
+
+    val banners = listOfNotNull(buyXorBanner, backupBanner, joinSubOrEvmBanner, joinTonBanner)
     val bannersCount = banners.size
     val bannersCarousel: @Composable (() -> Unit)? =
         banners.takeIf { it.isNotEmpty() }?.let {
@@ -247,6 +264,10 @@ private fun PreviewWalletScreen() {
         override fun onBalanceClicked() {}
         override fun onBackupClicked() {}
         override fun onBackupCloseClick() {}
+        override fun onJoinSubOrEvmClicked() {}
+        override fun onJoinSubOrEvmCloseClick() {}
+        override fun onJoinTonClicked() {}
+        override fun onJoinTonCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(state: AssetListItemViewState) {}
 
@@ -304,6 +325,8 @@ private fun PreviewWalletScreen() {
                     hasNetworkIssues = true,
                     soraCardState = SoraCardItemViewState(null, null, null, true),
                     isBackedUp = false,
+                    hasTonAccounts = false,
+                    hasSubOrEvmAccounts = false,
                     scrollToTopEvent = null,
                     scrollToBottomEvent = null
                 ),

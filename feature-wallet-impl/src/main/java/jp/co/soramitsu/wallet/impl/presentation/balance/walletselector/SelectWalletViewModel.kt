@@ -35,8 +35,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
-
 @HiltViewModel
 class SelectWalletViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
@@ -142,35 +140,12 @@ class SelectWalletViewModel @Inject constructor(
          router.openCreateAccountFromWallet()
     }
 
-    fun importWallet() {
-        router.openSelectImportModeForResult()
-            .onEach(::handleSelectedImportMode)
-            .launchIn(viewModelScope)
-    }
-
     fun onBackClicked() {
         router.back()
     }
 
     fun onWalletOptionsClick(item: WalletItemViewState) {
         router.openOptionsWallet(item.id)
-    }
-
-    private fun handleSelectedImportMode(importMode: ImportMode) {
-        when (importMode) {
-            ImportMode.Google -> {
-                googleAuthorizeLiveData.value = Event(Unit)
-            }
-            ImportMode.Preinstalled -> {
-                importPreInstalledWalletLiveData.value = Event(Unit)
-            }
-            else -> {
-                router.openImportAccountScreen(
-                    blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
-                    importMode = importMode
-                )
-            }
-        }
     }
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {

@@ -9,7 +9,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.domain.model.AccountType
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseFragment
@@ -29,11 +28,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         fun getBundle(
             isFromGoogleBackup: Boolean,
             accountName: String,
-            payload: ChainAccountCreatePayload?,
             accountType: AccountType
         ): Bundle {
             return bundleOf(
-                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, payload, accountType)
+                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, accountType)
             )
         }
     }
@@ -46,9 +44,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         when (result.resultCode) {
-            Activity.RESULT_OK -> with(binding) {
-                viewModel.onGoogleSignInSuccess()
-            }
+            Activity.RESULT_OK -> viewModel.onGoogleSignInSuccess()
             Activity.RESULT_CANCELED -> { /* no action */ }
             else -> {
                 val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
@@ -87,7 +83,6 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     launcher
                 )
             }
@@ -112,8 +107,6 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         viewModel.showInfoEvent.observeEvent {
             showMnemonicInfoDialog()
         }
-
-        viewModel.chainAccountImportType.observe(binding.advancedBlockView::configureForMnemonic)
     }
 
     private fun showEncryptionChooser(payload: Payload<CryptoTypeModel>) {

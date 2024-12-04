@@ -2,9 +2,11 @@ package jp.co.soramitsu.account.impl.presentation.account.mixin.impl
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.account.impl.presentation.account.model.LightMetaAccountUi
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.utils.IgnoredOnEquals
 import jp.co.soramitsu.common.utils.mapList
 
@@ -28,10 +30,8 @@ class AccountListingProvider(
         iconGenerator: AddressIconGenerator,
         iconSizeDp: Int?
     ) = with(metaAccount) {
-        val icon = iconGenerator.createAddressIcon(
-            metaAccount.substrateAccountId ?: metaAccount.tonPublicKey ?: error("Can't create an icon without the input data"),
-            iconSizeDp ?: AddressIconGenerator.SIZE_MEDIUM
-        )
+
+        val icon = iconGenerator.createAddressIcon(metaAccount.supportedEcosystemWithIconAddress(), iconSizeDp ?: AddressIconGenerator.SIZE_MEDIUM)
 
         LightMetaAccountUi(
             id = id,

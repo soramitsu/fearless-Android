@@ -62,7 +62,6 @@ class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonic
                 BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(
                     isFromGoogleBackup,
                     accountName,
-                    null,
                     accountType
                 )
             )

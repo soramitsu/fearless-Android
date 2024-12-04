@@ -155,19 +155,10 @@ class AdvancedBlockView @JvmOverloads constructor(
                 configure(FieldState.HIDDEN)
                 configure(ethereumEncryptionTypeField, FieldState.DISABLED)
             }
-        }
-    }
-
-    fun configureForMnemonic(blockchainType: ImportAccountType) {
-        when (blockchainType) {
-            ImportAccountType.Substrate -> {
-                configureSubstrate(FieldState.NORMAL)
+            ImportAccountType.Ton -> {
+                /* not applicable */
+                configureSubstrate(FieldState.HIDDEN)
                 configureEthereum(FieldState.HIDDEN)
-            }
-            ImportAccountType.Ethereum -> {
-                configure(FieldState.HIDDEN)
-                configureEthereum(FieldState.NORMAL)
-                configure(ethereumEncryptionTypeField, FieldState.DISABLED)
             }
         }
     }

@@ -10,15 +10,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.BackupOrigin
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
@@ -54,11 +57,18 @@ class BackupWalletViewModel @Inject constructor(
     private val wallet = flowOf {
         accountInteractor.getMetaAccount(walletId)
     }
+
+    val isAllowGoogleBackupFlow = wallet.map { wallet ->
+        wallet.supportedEcosystemWithIconAddress().keys.any {
+            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Evm)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     private val walletItem = wallet
         .map { wallet ->
 
             val icon = addressIconGenerator.createAddressIcon(
-                wallet.substrateAccountId ?: wallet.tonPublicKey ?: error("Can't create an icon without the input data"),
+                wallet.supportedEcosystemWithIconAddress(),
                 AddressIconGenerator.SIZE_BIG
             )
 

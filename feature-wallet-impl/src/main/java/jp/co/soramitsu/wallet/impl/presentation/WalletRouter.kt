@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation
 import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
-import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
@@ -105,8 +104,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openRenameWallet(metaAccountId: Long, name: String?)
 
-    fun openImportAccountScreen(blockChainType: Int, importMode: ImportMode)
-
     fun openImportAccountScreenFromWallet(blockChainType: Int)
 
     fun openManageControllerAccount(chainId: ChainId)
@@ -176,8 +173,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
 
-    fun openSelectImportModeForResult(): Flow<ImportMode>
-
     fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openImportRemoteWalletDialog()
@@ -196,4 +191,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openServiceScreen()
 
     fun openScoreDetailsScreen(metaId: Long)
+
+    fun openCreateSubstrateOrEvmAccountScreen()
+    fun openCreateTonAccountScreen()
 }

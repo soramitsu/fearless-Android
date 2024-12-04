@@ -48,7 +48,7 @@
 
         <argument
             android:name="ACCOUNT_TYPE_KEY"
-            app:argType="string"/>
+            app:argType="jp.co.soramitsu.account.api.domain.model.AccountType"/>
 
         <deepLink
             app:uri="fearless://onboarding/createAccountFragment/{ACCOUNT_TYPE_KEY}" />

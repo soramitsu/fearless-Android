@@ -95,7 +95,7 @@ fun WalletItem(
                     modifier = Modifier.fillMaxSize(),
                     painter = rememberAsyncImagePainter(model = state.walletIcon),
                     contentDescription = null,
-                    tint = Color.Unspecified
+                    tint = Color.Unspecified,
                 )
             }
             MarginHorizontal(margin = 12.dp)

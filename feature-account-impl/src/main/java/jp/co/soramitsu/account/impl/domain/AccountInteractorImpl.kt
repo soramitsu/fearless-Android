@@ -6,39 +6,49 @@ import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.Account
-import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.backup.domain.models.Json
 import jp.co.soramitsu.backup.domain.models.Seed
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.utils.ComponentHolder
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
+import jp.co.soramitsu.common.utils.deriveSeed32
+import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
@@ -64,95 +74,6 @@ class AccountInteractorImpl(
         return runCatching { accountRepository.createAccount(payload) }
     }
 
-    override suspend fun createAccount(
-        accountName: String,
-        mnemonic: String,
-        encryptionType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        accountType: AccountType,
-        isBackedUp: Boolean
-    ): Result<Unit> {
-        return runCatching {
-            accountRepository.createAccount(
-                accountName,
-                mnemonic,
-                encryptionType,
-                substrateDerivationPath,
-                ethereumDerivationPath,
-                isBackedUp
-            )
-        }
-    }
-
-    override suspend fun createChainAccount(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    ): Result<Unit> {
-        return runCatching {
-            accountRepository.createChainAccount(
-                metaId,
-                chainId,
-                accountName,
-                mnemonicWords,
-                cryptoType,
-                substrateDerivationPath,
-                ethereumDerivationPath
-            )
-        }
-    }
-
-    override suspend fun importFromMnemonic(
-        mnemonic: String,
-        walletName: String,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        selectedEncryptionType: CryptoType,
-        withEth: Boolean,
-        isBackedUp: Boolean,
-        googleBackupAddress: String?
-    ): Result<Long> {
-        return runCatching {
-            accountRepository.importFromMnemonic(
-                mnemonic = mnemonic,
-                accountName = walletName,
-                substrateDerivationPath = substrateDerivationPath,
-                ethereumDerivationPath = ethereumDerivationPath,
-                selectedEncryptionType = selectedEncryptionType,
-                withEth = withEth,
-                isBackedUp = isBackedUp,
-                googleBackupAddress = googleBackupAddress
-            )
-        }
-    }
-
-    override suspend fun importChainAccountFromMnemonic(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    ): Result<Unit> {
-        return runCatching {
-            accountRepository.importChainAccountFromMnemonic(
-                metaId,
-                chainId,
-                accountName,
-                mnemonicWords,
-                cryptoType,
-                substrateDerivationPath,
-                ethereumDerivationPath
-            )
-        }
-    }
-
     override suspend fun importFromSeed(
         substrateSeed: String,
         username: String,
@@ -173,27 +94,6 @@ class AccountInteractorImpl(
         }
     }
 
-    @Deprecated("We don't import chain accounts anymore. Only ecosystem account import is allowed")
-    override suspend fun importChainFromSeed(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        seed: String,
-        substrateDerivationPath: String,
-        selectedEncryptionType: CryptoType
-    ): Result<Unit> {
-        return runCatching {
-            accountRepository.importChainFromSeed(
-                metaId,
-                chainId,
-                accountName,
-                seed,
-                substrateDerivationPath,
-                selectedEncryptionType
-            )
-        }
-    }
-
     override fun validateJsonBackup(json: String, password: String) {
         accountRepository.validateJsonBackup(json, password)
     }
@@ -207,18 +107,6 @@ class AccountInteractorImpl(
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromJson(json, password, name, ethJson, googleBackupAddress)
-        }
-    }
-
-    override suspend fun importChainFromJson(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        json: String,
-        password: String
-    ): Result<Unit> {
-        return runCatching {
-            accountRepository.importChainFromJson(metaId, chainId, accountName, json, password)
         }
     }
 
@@ -262,6 +150,9 @@ class AccountInteractorImpl(
     override suspend fun selectedLightMetaAccount() =
         accountRepository.getSelectedLightMetaAccount()
 
+    override fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount> {
+        return accountRepository.selectedLightMetaAccountFlow()
+    }
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
         return accountRepository.lightMetaAccountsFlow()
     }
@@ -427,4 +318,74 @@ class AccountInteractorImpl(
     override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
         return accountRepository.getSubstrateSecrets(metaId)
     }
+
+    override fun getMnemonic(metaId: Long): Flow<Mnemonic> {
+        val result = lightMetaAccountsFlow().mapNotNull {
+            it.firstOrNull { it.id == metaId }
+        }.map {
+            it.supportedEcosystemWithIconAddress().keys.map {
+                when (it) {
+                    WalletEcosystem.Substrate -> accountRepository.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.Entropy)?.let { entropy ->
+                        MnemonicCreator.fromEntropy(entropy)
+                    }
+
+                    WalletEcosystem.Evm -> accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.Entropy)?.let { entropy ->
+                        MnemonicCreator.fromEntropy(entropy)
+                    }
+
+                    WalletEcosystem.Ton -> accountRepository.getTonSecrets(metaId)?.get(TonSecrets.Seed)?.decodeToString()?.let {
+                        MnemonicCreator.fromWords(it)
+                    }
+                }
+            }
+        }.mapNotNull {
+            it.first()
+        }
+        return result
+    }
+
+    override fun getSeedForSeedExport(metaId: Long): Flow<ComponentHolder> {
+        val result = lightMetaAccountsFlow().mapNotNull {
+            it.firstOrNull { it.id == metaId }
+        }.map {
+            val substrateSeed = accountRepository.getSubstrateSecrets(metaId)?.run {
+                get(SubstrateSecrets.Seed) ?: seedFromMnemonic()
+            }?.toHexString(true)
+            val ethSeed = accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+            ComponentHolder(
+                listOf(
+                    substrateSeed,
+                    ethSeed
+                )
+            )
+        }
+        return result
+    }
+
+
+    override fun getDerivationPathForMnemonicExport(metaId: Long): Flow<ComponentHolder> {
+        val result = lightMetaAccountsFlow().mapNotNull {
+            it.firstOrNull { it.id == metaId }
+        }.map {
+            val substrateDerivationPath = accountRepository.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.SubstrateDerivationPath)
+            val ethereumDerivationPath  = accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.EthereumDerivationPath).takeIf { path ->
+                path != BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+            }
+            ComponentHolder(
+                listOf(
+                    substrateDerivationPath,
+                    ethereumDerivationPath
+                )
+            )
+        }
+        return result
+    }
+
+    private fun EncodableStruct<SubstrateSecrets>.seedFromMnemonic() =
+        get(SubstrateSecrets.Entropy)?.let { entropy ->
+            val mnemonicWords = MnemonicCreator.fromEntropy(entropy).words
+            val derivationPath = get(SubstrateSecrets.SubstrateDerivationPath)?.nullIfEmpty()
+            val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
+            SubstrateSeedFactory.deriveSeed32(mnemonicWords, password).seed
+        }
 }

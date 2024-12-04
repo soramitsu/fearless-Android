@@ -7,7 +7,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -15,7 +14,6 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
-import jp.co.soramitsu.account.api.presentation.importing.importAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.exceptions.NotValidDerivationPath
@@ -62,7 +60,7 @@ class BackupMnemonicViewModel @Inject constructor(
     val isShowAdvancedBlock =
         !payload.isFromGoogleBackup && payload.accountType == AccountType.SubstrateOrEvm
     val isShowBackupWithGoogle =
-        !payload.isFromGoogleBackup && payload.chainAccountData == null && payload.accountType == AccountType.SubstrateOrEvm
+        !payload.isFromGoogleBackup /*&& payload.chainAccountData == null*/ && payload.accountType == AccountType.SubstrateOrEvm
     val isShowSkipButton = payload.accountType == AccountType.Ton
 
     val mnemonic = flow {
@@ -99,11 +97,11 @@ class BackupMnemonicViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, BackupMnemonicState.Empty)
 
-    val chainAccountImportType = liveData {
-        payload.chainAccountData?.chainId?.let {
-            emit(interactor.getChain(it).importAccountType)
-        }
-    }
+//    val chainAccountImportType = liveData {
+//        payload.chainAccountData?.chainId?.let {
+//            emit(interactor.getChain(it).importAccountType)
+//        }
+//    }
 
     private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")
 
@@ -182,26 +180,27 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
-        val createExtras = when (payload.chainAccountData) {
-            null -> CreateExtras(
+        val createExtras = //when (payload.chainAccountData) {
+//            null ->
+        CreateExtras(
                 payload.accountName,
                 cryptoTypeModel.cryptoType,
                 substrateDerivationPath,
                 ethereumDerivationPath
             )
 
-            else -> ConfirmMnemonicPayload.CreateChainExtras(
-                payload.accountName,
-                cryptoTypeModel.cryptoType,
-                substrateDerivationPath,
-                ethereumDerivationPath,
-                payload.chainAccountData.chainId,
-                payload.chainAccountData.metaId
-            )
-        }
+//            else -> ConfirmMnemonicPayload.CreateChainExtras(
+//                payload.accountName,
+//                cryptoTypeModel.cryptoType,
+//                substrateDerivationPath,
+//                ethereumDerivationPath,
+//                payload.chainAccountData.chainId,
+//                payload.chainAccountData.metaId
+//            )
+//        }
         val payload = ConfirmMnemonicPayload(
             mnemonic,
-            metaId = payload.chainAccountData?.metaId,
+            metaId = null, //payload.chainAccountData?.metaId,
             createExtras,
             payload.accountType
         )
@@ -211,7 +210,6 @@ class BackupMnemonicViewModel @Inject constructor(
 
     fun onGoogleBackupClick(
         substrateDerivationPath: String,
-        ethereumDerivationPath: String,
         launcher: ActivityResultLauncher<Intent>
     ) {
         viewModelScope.launch {
@@ -322,7 +320,7 @@ class BackupMnemonicViewModel @Inject constructor(
     }
 
     private suspend fun createAccount(): Result<Long> {
-        val mnemonicWords = this@BackupMnemonicViewModel.mnemonic.value
+        val mnemonicWords = this@BackupMnemonicViewModel.mnemonic.value.map(MnemonicWordModel::word)
         val mnemonicString = mnemonicWords.joinToString(" ")
 
         val addAccountPayload = when (payload.accountType) {

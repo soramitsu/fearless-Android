@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.api.domain.model
 
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
-import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.common.utils.v4r2tonAddress
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
@@ -9,7 +9,6 @@ import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 
 class MetaAccountOrdering(
@@ -167,6 +166,13 @@ fun LightMetaAccount.address(chain: Chain): String? {
         }
     }.getOrNull()
 }
+
+fun LightMetaAccount.supportedEcosystemWithIconAddress(): Map<WalletEcosystem, String> = listOfNotNull(
+    tonPublicKey?.let { WalletEcosystem.Ton to it.v4r2tonAddress(false) },
+    substratePublicKey?.let { WalletEcosystem.Substrate to it.toAddress(0.toShort()) }, // 0 = polkadotAddressPrefix
+    ethereumPublicKey?.let { WalletEcosystem.Evm to it.ethereumAddressToHex() }
+).toMap()
+
 
 fun MetaAccount.chainAddress(chain: Chain): String? {
     return when {

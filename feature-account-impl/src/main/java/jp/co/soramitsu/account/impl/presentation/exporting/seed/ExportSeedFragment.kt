@@ -70,8 +70,8 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
         mediateWith(
             viewModel.isEthereum,
-            viewModel.derivationPathLiveData,
-            viewModel.seedLiveData
+            viewModel.seedDerivationPathLiveData,
+            viewModel.exportSeedLiveData
         ) { (isEthereum: Boolean?, derivationPath: String?, seedInfo: ComponentHolder?) ->
             val substrateSeed: String? = seedInfo?.component1()
             val ethereumSeed: String? = seedInfo?.component2()

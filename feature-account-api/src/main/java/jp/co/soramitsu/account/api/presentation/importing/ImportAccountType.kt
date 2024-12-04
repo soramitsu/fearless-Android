@@ -1,14 +1,5 @@
 package jp.co.soramitsu.account.api.presentation.importing
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-
 enum class ImportAccountType {
-    Substrate, Ethereum
+    Substrate, Ethereum, Ton
 }
-
-// todo think of replace with MultiChainEncryption.Ethereum or CryptoType.ECDSA
-val Chain.importAccountType: ImportAccountType
-    get() = when {
-        isEthereumBased -> ImportAccountType.Ethereum
-        else -> ImportAccountType.Substrate
-    }

@@ -9,15 +9,14 @@ import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.Keypair
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 
 abstract class ExportViewModel(
     protected val accountInteractor: AccountInteractor,
@@ -35,7 +34,10 @@ abstract class ExportViewModel(
     val chainSecretLiveData = liveData { emit(loadSecrets(chainId)) }
     val isChainAccountLiveData = liveData { emit(accountInteractor.getMetaAccount(metaId).hasChainAccount(chainId)) }
 
-    val secretLiveData = liveData { emit(loadSecrets()) }
+    val mnemonicLiveData: LiveData<Mnemonic> = accountInteractor.getMnemonic(metaId).asLiveData()
+    val seedForSeedExportLiveData: LiveData<ComponentHolder> = accountInteractor.getSeedForSeedExport(metaId).asLiveData()
+    val derivationPathForMnemonicExportLiveData: LiveData<ComponentHolder> = accountInteractor.getDerivationPathForMnemonicExport(metaId).asLiveData()
+
     val chainLiveData = liveData { emit(loadChain()) }
     val isEthereum = chainLiveData.map { it.isEthereumBased }
 
@@ -61,10 +63,6 @@ abstract class ExportViewModel(
     private suspend fun loadAccount() = accountInteractor.getMetaAccount(metaId)
 
     private suspend fun loadChain() = chainRegistry.getChain(chainId)
-
-    private suspend fun loadSecrets(): EncodableStruct<MetaAccountSecrets> {
-        return MetaAccountSecrets(Keypair(byteArrayOf(), byteArrayOf()))
-    }//accountInteractor.getMetaAccountSecrets(metaId)
 
     private suspend fun loadSecrets(chainId: ChainId) = accountInteractor.getChainAccountSecrets(metaId, chainId)
 }
