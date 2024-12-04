@@ -42,7 +42,7 @@ fun BannerJoinSubstrateEvm(
     onCloseClick: () -> Unit
 ) = BannerCreateOrImport(
     titleResId = R.string.banner_addwallet_regular_title,
-    descriptionResId = R.string.banner_addwallet_regular_button_title,
+    descriptionResId = R.string.banner_addwallet_regular_subtitle,
     backgroundResId = R.drawable.background_banner_substrate,
     onClick = onClick,
     onCloseClick = onCloseClick
