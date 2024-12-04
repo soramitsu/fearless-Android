@@ -12,3 +12,4 @@ data class TonConnectionLocal(
     val icon: String,
     val url: String
 )
+

@@ -48,6 +48,7 @@ private const val HTTP_CACHE = "http_cache"
 private const val NOMIS_CACHE = "nomis_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
+private const val TON_SSE_TIMEOUT_SECONDS = 120L
 private const val NOMIS_TIMEOUT_MINUTES = 2L
 
 @InstallIn(SingletonComponent::class)
@@ -243,6 +244,29 @@ class NetworkModule {
             }
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         return builder.build()
+    }
+
+    @Provides
+    @Singleton
+    @Named("TonSseClient")
+    fun provideTonSseClient(context: Context): OkHttpClient {
+        val userAgent = "Fearless wallet"
+        return  OkHttpClient.Builder()
+            .connectTimeout(TON_SSE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TON_SSE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TON_SSE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .callTimeout(TON_SSE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .pingInterval(TON_SSE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .followSslRedirects(true)
+            .retryOnConnectionFailure(true)
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .addHeader("User-Agent", userAgent)
+                    .build()
+                chain.proceed(request)
+            }
+            .followRedirects(true)
+            .build()
     }
 
     @Provides

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
+import co.jp.soramitsu.tonconnect.model.BridgeMethod
 import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
@@ -203,8 +204,12 @@ class RootViewModel @Inject constructor(
 
     private fun observeTonConnectEvents() {
         tonConnectInteractor.eventsFlow().onEach {
-            println("!!! !!! RootViewModel TonConnectEvent = $it")
-        }.stateIn(this, SharingStarted.Eagerly, null)
+            when(it.method){
+                BridgeMethod.SEND_TRANSACTION -> TODO()
+                BridgeMethod.DISCONNECT -> TODO()
+                BridgeMethod.UNKNOWN -> TODO()
+            }
+        }.launchIn(this)
     }
 
     private fun observeWalletConnectEvents() {

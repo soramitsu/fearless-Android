@@ -20,3 +20,11 @@ fun JSONObject.getLongCompat(key: String): Long {
         else -> throw IllegalArgumentException("Value for key $key is not a Long")
     }
 }
+
+fun JSONObject.optStringCompatJS(vararg keys: String): String? {
+    val value = optStringCompat(*keys)
+    if (value == "null" || value == "undefined") { // Oh man... JavaScript compatibility
+        return null
+    }
+    return value
+}

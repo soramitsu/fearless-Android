@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.tonAccountId
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
 import jp.co.soramitsu.tonconnect.impl.presentation.dappscreen.base64
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,7 @@ class TonConnectionDetailsViewModel @Inject constructor(
     private val tonConnectRouter: TonConnectRouter,
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
+    private val chainsRepository: ChainsRepository,
     savedStateHandle: SavedStateHandle
 ) : TonConnectionDetailsScreenInterface, BaseViewModel() {
 

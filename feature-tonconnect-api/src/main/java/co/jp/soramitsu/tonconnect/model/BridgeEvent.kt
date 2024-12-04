@@ -6,7 +6,7 @@ import org.json.JSONObject
 data class BridgeEvent(
     val eventId: Long,
     val message: Message,
-    val connection: AppConnectEntity?,
+    val connection: TonDappConnection,
 ) {
 
     val method: BridgeMethod

@@ -63,7 +63,8 @@ fun OkHttpClient.sse(
 
         override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
             println("!!! OkHttpClient.sse listener onFailure: eventSource = $eventSource; response = $response; t = ${t?.message}")
-            this@callbackFlow.close(t)
+            t?.printStackTrace()
+//            this@callbackFlow.close(t)
         }
 
         override fun onClosed(eventSource: EventSource) {
@@ -90,4 +91,4 @@ fun OkHttpClient.sse(
 }.cancellable().retry { _ ->
     delay(1000)
     true
-}.cancellable()
+}
