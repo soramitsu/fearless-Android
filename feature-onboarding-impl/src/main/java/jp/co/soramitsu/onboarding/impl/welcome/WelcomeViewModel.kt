@@ -115,6 +115,7 @@ class WelcomeViewModel @Inject constructor(
                     _onboardingFlowState.value =
                         Result.success(OnboardingFlow(useConfig!!.enEn.new))
                     _onboardingBackgroundState.value = useConfig.background
+                    _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
                 }
 
                 !isAccountSelected -> {
