@@ -108,11 +108,13 @@ fun WalletScreen(
             onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClicked
         )
-        MarginVertical(margin = 16.dp)
-        MultiToggleButton(
-            state = data.multiToggleButtonState,
-            onToggleChange = callback::assetTypeChanged
-        )
+        if (data.hasSubOrEvmAccounts) {
+            MarginVertical(margin = 16.dp)
+            MultiToggleButton(
+                state = data.multiToggleButtonState,
+                onToggleChange = callback::assetTypeChanged
+            )
+        }
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
