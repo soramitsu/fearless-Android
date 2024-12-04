@@ -21,6 +21,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
@@ -155,6 +156,8 @@ class WalletSyncService(
                             val accountHasAssetWithPositiveBalance =
                                 accountHasAssetWithPositiveBalanceMap[balance.metaId] == true
 
+                            val isTonAsset = chain.id == tonChainId && chainAsset.symbol.equals("TON", ignoreCase = true)
+
                             AssetLocal(
                                 id = balance.id,
                                 chainId = balance.chainId,
@@ -168,7 +171,7 @@ class WalletSyncService(
                                 bondedInPlanks = balance.bondedInPlanks,
                                 redeemableInPlanks = balance.redeemableInPlanks,
                                 unbondingInPlanks = balance.unbondingInPlanks,
-                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
+                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) || isTonAsset
                             )
                         }
                         assetsLocal.groupBy { it.metaId }.forEach {
