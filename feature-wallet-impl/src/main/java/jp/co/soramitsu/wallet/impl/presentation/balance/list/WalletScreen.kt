@@ -108,7 +108,7 @@ fun WalletScreen(
             onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClicked
         )
-        if (data.hasSubOrEvmAccounts) {
+        if (data.showCurrenciesOrNftSelector) {
             MarginVertical(margin = 16.dp)
             MultiToggleButton(
                 state = data.multiToggleButtonState,
@@ -329,6 +329,7 @@ private fun PreviewWalletScreen() {
                     isBackedUp = false,
                     hasTonAccounts = false,
                     hasSubOrEvmAccounts = false,
+                    showCurrenciesOrNftSelector = false,
                     scrollToTopEvent = null,
                     scrollToBottomEvent = null
                 ),

@@ -20,6 +20,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -43,6 +44,7 @@ import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -560,10 +562,13 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(this)
 
         currentMetaAccountFlow.onEach {
+            val showCurrenciesOrNftSelector = it.supportedEcosystems().contains(WalletEcosystem.Evm) || it.supportedEcosystems().contains(WalletEcosystem.Substrate)
             state.value = state.value.copy(
                 isBackedUp = it.isBackedUp,
-                scrollToTopEvent = Event(Unit)
+                scrollToTopEvent = Event(Unit),
+                showCurrenciesOrNftSelector = showCurrenciesOrNftSelector
             )
+
             if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
                 selectedChainId.value = pendulumChainId
             } else {
