@@ -44,6 +44,7 @@ import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
+import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -519,6 +520,13 @@ private suspend fun Operation.createTransferOperationModel(
         Ecosystem.Substrate -> {
             iconGenerator.createAddressIcon(
                 operationType.displayAddress,
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+
+        Ecosystem.Ton -> {
+            iconGenerator.createWalletIcon(
+                WalletEcosystem.Ton,
                 AddressIconGenerator.SIZE_BIG
             )
         }
