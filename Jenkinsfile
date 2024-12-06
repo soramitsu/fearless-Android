@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@fix/fearless-gradle-debug-mode')
 
 // Job properties
 def jobParams = [
