@@ -43,13 +43,21 @@ android {
     buildTypes {
         debug {
             minifyEnabled shouldEnableR8D8
-            proguardFiles 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
             signingConfig signingConfigs.debug
 
             kotlinOptions {
                 freeCompilerArgs ["-Xdebug"]
+            }
+
+            //Init firebase
+            def localReleaseNotes = releaseNotes()
+            def localFirebaseGroup = firebaseGroup()
+            firebaseAppDistribution {
+                releaseNotes = localReleaseNotes
+                groups = localFirebaseGroup
             }
         }
         release {
