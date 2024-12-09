@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Switch
 import androidx.compose.material.SwitchColors
@@ -28,11 +31,12 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -108,7 +112,6 @@ interface SendSetupScreenInterface {
     fun onCommentInput(value: String)
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SendSetupContent(
     state: SendSetupViewState,
@@ -142,6 +145,7 @@ fun SendSetupContent(
     BottomSheetScreen {
         Box(
             modifier = Modifier
+                .nestedScroll(rememberNestedScrollInteropConnection())
                 .fillMaxSize()
         ) {
             val bottomPadding = 50 + if (state.isInputLocked.not()) 80 else 0 + if (state.sendAllAllowed) 40 else 0
@@ -149,6 +153,7 @@ fun SendSetupContent(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .padding(bottom = bottomPadding.dp)
+                    .verticalScroll(rememberScrollState())
                     .imePadding()
                     .fillMaxWidth()
             ) {
