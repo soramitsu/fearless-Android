@@ -13,7 +13,6 @@ import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -116,8 +115,7 @@ class BalanceDetailViewModel @Inject constructor(
     val shareUrlEvent = _shareUrlEvent
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
-    val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> =
-        _showExportSourceChooser
+    val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
@@ -483,11 +481,7 @@ class BalanceDetailViewModel @Inject constructor(
 
     fun exportClicked() {
         viewModelScope.launch {
-            val isEthereumBased = interactor
-                .getChain(assetPayload.value.chainId)
-                .isEthereumBased
-            //todo
-            val sources = setOf(ExportSource.Seed, ExportSource.Mnemonic, ExportSource.Json)//interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
+            val sources = interactor.getExportSourceTypes(assetPayload.value.chainId)
             _showExportSourceChooser.value = Event(
                 ExportSourceChooserPayload(
                     assetPayload.value.chainId,

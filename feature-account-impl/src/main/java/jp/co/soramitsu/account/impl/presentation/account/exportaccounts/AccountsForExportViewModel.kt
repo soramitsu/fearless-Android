@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
@@ -25,10 +24,12 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 
 @HiltViewModel
 class AccountsForExportViewModel @Inject constructor(
     private val interactor: AccountDetailsInteractor,
+    private val walletInteractor: WalletInteractor,
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
@@ -98,13 +99,12 @@ class AccountsForExportViewModel @Inject constructor(
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.export_wallet)
     }
 
-    fun onExportClick(chainId: ChainId = polkadotChainId) {
+    fun onExportClick() {
         viewModelScope.launch {
 
-//            val sources = interactor.getMetaAccountSecrets(payload.metaId).buildExportSourceTypes(false)
-            //todo
-            val sources = setOf(ExportSource.Mnemonic, ExportSource.Seed, ExportSource.Json)
-            _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
+            val sources = walletInteractor.getExportSourceTypes(polkadotChainId, payload.metaId)
+
+            _showExportSourceChooser.value = Event(ExportSourceChooserPayload(polkadotChainId, sources))
         }
     }
 }

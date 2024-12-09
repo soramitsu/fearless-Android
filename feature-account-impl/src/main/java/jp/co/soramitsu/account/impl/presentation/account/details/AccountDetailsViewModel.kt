@@ -13,7 +13,7 @@ import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
+import jp.co.soramitsu.account.api.presentation.exporting.buildChainAccountOptions
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
@@ -52,6 +53,7 @@ private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 @HiltViewModel
 class AccountDetailsViewModel @Inject constructor(
     private val interactor: AccountDetailsInteractor,
+    private val walletInteractor: WalletInteractor,
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
@@ -203,14 +205,10 @@ class AccountDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val isEthereumBased = chainsRepository.getChain(chainId).isEthereumBased
             val hasChainAccount = interactor.getMetaAccount(walletId).hasChainAccount(chainId)
-            val sources = when {
-                hasChainAccount -> interactor.getChainAccountSecret(walletId, chainId).buildExportSourceTypes(isEthereumBased)
-                else -> {
-                    //todo
-                    setOf(ExportSource.Mnemonic, ExportSource.Seed, ExportSource.Json)
-//                    interactor.getMetaAccountSecrets(walletId)
-//                        .buildExportSourceTypes(isEthereumBased)
-                }
+            val sources = if (hasChainAccount) {
+                interactor.getChainAccountSecret(walletId, chainId).buildChainAccountOptions(isEthereumBased)
+            } else {
+                walletInteractor.getExportSourceTypes(chainId, walletId)
             }
 
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))

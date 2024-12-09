@@ -4,6 +4,7 @@ import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -150,4 +151,5 @@ interface WalletInteractor {
     fun observeCurrentAccountChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
     suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String>
     suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
+    suspend fun getExportSourceTypes(chainId: ChainId, walletId: Long? = null): MutableSet<ExportSource>
 }
