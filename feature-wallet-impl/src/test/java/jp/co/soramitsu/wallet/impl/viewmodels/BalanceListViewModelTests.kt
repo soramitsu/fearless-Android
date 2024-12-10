@@ -23,6 +23,7 @@ import jp.co.soramitsu.androidfoundation.testing.MainCoroutineRule
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -132,6 +133,7 @@ class BalanceListViewModelTests {
         every { coroutineManager.default } returns this.coroutineContext[CoroutineDispatcher]!!
         coEvery { chainInteractor.getChainAssets() } returns listOf(createAsset())
         every { soraCardInteractor.basicStatus } returns MutableStateFlow(createSoraCard())
+        every { soraCardInteractor.getSoraCardProgress() } returns SoraCardProgress.START
         every { walletInteractor.assetsFlowAndAccount() } returns flowOf(123L to emptyList())
         every { chainInteractor.getChainsFlow() } returns flowOf(emptyList())
         every { walletInteractor.selectedMetaAccountFlow() } returns flowOf(createMetaAccount())
@@ -154,7 +156,7 @@ class BalanceListViewModelTests {
         )
         every { nomisScoreInteractor.observeCurrentAccountScore() } returns flowOf(createNomis())
         every { walletInteractor.isShowGetSoraCard() } returns true
-        every { walletInteractor.isShowBuyXor() } returns true
+        every { soraCardInteractor.isShowBuyXor() } returns true
         coEvery { soraCardInteractor.initialize() } just runs
         every { walletInteractor.networkIssuesFlow() } returns flowOf(emptyMap())
         every { selectedFiat.flow() } returns flowOf("selected fiat")
@@ -256,7 +258,7 @@ class BalanceListViewModelTests {
         initError = null,
         availabilityInfo = null,
         verification = SoraCardCommonVerification.Started,
-        needInstallUpdate = true,
+        needInstallUpdate = false,
         applicationFee = null,
         ibanInfo = null,
         phone = "+123",

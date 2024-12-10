@@ -95,6 +95,7 @@ dependencies {
 
     api libs.sharedFeaturesCoreDep
     implementation(libs.sora.soracard)
+    implementation libs.soramitsu.android.foundation
 
     implementation libs.sharedFeaturesBackupDep
     implementation libs.web3jDep

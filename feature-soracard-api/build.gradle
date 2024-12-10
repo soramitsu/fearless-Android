@@ -63,6 +63,7 @@ dependencies {
     implementation libs.kotlinx.serialization.json
 
     implementation project(":runtime")
+    implementation project(":common")
     implementation project(":feature-wallet-api")
 
     implementation libs.sora.soracard

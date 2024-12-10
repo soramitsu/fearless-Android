@@ -28,6 +28,8 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.SoraCardBuyXorState
+import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
@@ -72,7 +74,6 @@ import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.soracard.api.util.createSoraCardGateHubContract
 import jp.co.soramitsu.soracard.api.util.readyToStartGatehubOnboarding
-import jp.co.soramitsu.soracard.impl.presentation.SoraCardBuyXorState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -558,17 +559,27 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(multiToggleButtonState = it)
         }.launchIn(viewModelScope)
 
+        state.update { prevState ->
+            prevState.copy(
+                soraCardState = prevState.soraCardState.copy(
+                    soraCardProgress = soraCardInteractor.getSoraCardProgress()
+                )
+            )
+        }
+
         soraCardInteractor.basicStatus
             .onEach { soraCardStatus ->
                 val mapped = mapKycStatus(soraCardStatus.verification)
                 state.update {
                     it.copy(
                         soraCardState = it.soraCardState.copy(
-                            visible = interactor.isShowGetSoraCard(),
+                            visible = interactor.isShowGetSoraCard() && soraCardStatus.needInstallUpdate.not(),
+                            soraCardProgress = soraCardInteractor.getSoraCardProgress(),
                             kycStatus = mapped.first,
+                            loading = false,
                             success = mapped.second,
                             iban = soraCardStatus.ibanInfo,
-                            buyXor = interactor.isShowBuyXor().let { vis ->
+                            buyXor = soraCardInteractor.isShowBuyXor().let { vis ->
                                 if (vis) SoraCardBuyXorState(
                                     soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
                                         ?: false
@@ -729,7 +740,8 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private suspend fun checkControllerDeprecations() {
-        val warnings = withContext(coroutineManager.default) { interactor.checkControllerDeprecations() }
+        val warnings =
+            withContext(coroutineManager.default) { interactor.checkControllerDeprecations() }
         warnings.firstOrNull()?.let { warning ->
             val model = warning.toModel(resourceManager)
             showError(
@@ -934,7 +946,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun buyXorClose() {
-        interactor.hideBuyXor()
+        soraCardInteractor.hideBuyXor()
     }
 
     override fun buyXorClick() {
@@ -947,7 +959,8 @@ class BalanceListViewModel @Inject constructor(
         when (soraCardResult) {
             is SoraCardResult.NavigateTo -> {
                 when (soraCardResult.screen) {
-                    OutwardsScreen.DEPOSIT -> { /*do nothing*/ }
+                    OutwardsScreen.DEPOSIT -> { /*do nothing*/
+                    }
 
                     OutwardsScreen.SWAP -> {
                         soraCardRouter.openSwapTokensScreen(
@@ -975,7 +988,8 @@ class BalanceListViewModel @Inject constructor(
                 }
             }
 
-            is SoraCardResult.Canceled -> { /*do nothing*/ }
+            is SoraCardResult.Canceled -> { /*do nothing*/
+            }
 
             is SoraCardResult.Logout -> {
                 viewModelScope.launch {
