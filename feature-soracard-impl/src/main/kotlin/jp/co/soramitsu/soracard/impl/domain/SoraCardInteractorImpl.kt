@@ -2,6 +2,8 @@ package jp.co.soramitsu.soracard.impl.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.compose.component.SoraCardProgress
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.splitVersions
 import jp.co.soramitsu.oauth.base.sdk.contract.IbanInfo
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
@@ -41,7 +43,14 @@ class SoraCardInteractorImpl @Inject constructor(
     private val accountRepository: AccountRepository,
     private val walletRepository: WalletRepository,
     private val soraCardClientProxy: SoraCardClientProxy,
+    private val preferences: Preferences,
 ) : SoraCardInteractor {
+
+    companion object {
+        private const val PREFS_SORA_CARD_BUY_XOR_VISIBILITY = "prefs_sora_card_buy_xor_visibility"
+        private const val PREFS_SORA_CARD_PROGRESS = "prefs_sora_card_progress"
+        private const val POLLING_PERIOD_IN_MILLIS = 90_000L
+    }
 
     private val _soraCardBasicStatus = MutableStateFlow(
         SoraCardBasicStatus(
@@ -59,6 +68,23 @@ class SoraCardInteractorImpl @Inject constructor(
     private val _ibanFlow = MutableStateFlow<IbanInfo?>(null)
     private val _phoneFlow = MutableStateFlow("")
     private val _verStatus = MutableStateFlow(SoraCardCommonVerification.NotFound)
+
+    override fun isShowBuyXor(): Boolean =
+        preferences.getBoolean(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, true)
+
+    override fun hideBuyXor() {
+        preferences.putBoolean(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, false)
+    }
+
+    override fun getSoraCardProgress(): SoraCardProgress =
+        SoraCardProgress.entries[preferences.getInt(PREFS_SORA_CARD_PROGRESS, 0)]
+
+    private fun setSoraCardProgress(p: SoraCardProgress) {
+        val cur = preferences.getInt(PREFS_SORA_CARD_PROGRESS, 0)
+        if (p.ordinal > cur) {
+            preferences.putInt(PREFS_SORA_CARD_PROGRESS, p.ordinal)
+        }
+    }
 
     override val soraCardChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
 
@@ -121,12 +147,27 @@ class SoraCardInteractorImpl @Inject constructor(
             }
                 .debounce(1000)
                 .collectLatest {
+                    val next =
+                        if (it.ibanInfo == null && isKycStatus(it.verification).not()) {
+                            SoraCardProgress.START
+                        } else {
+                            SoraCardProgress.KYC_IBAN
+                        }
+                    setSoraCardProgress(next)
                     _soraCardBasicStatus.value = it
                 }
         }
     }
 
+    private fun isKycStatus(status: SoraCardCommonVerification): Boolean {
+        return status == SoraCardCommonVerification.Failed ||
+                status == SoraCardCommonVerification.Rejected ||
+                status == SoraCardCommonVerification.Pending ||
+                status == SoraCardCommonVerification.Successful
+    }
+
     override suspend fun setLogout() {
+        preferences.putInt(PREFS_SORA_CARD_PROGRESS, SoraCardProgress.START.ordinal)
         soraCardClientProxy.logout()
         _verStatus.value = SoraCardCommonVerification.NotFound
         _ibanFlow.value = null
@@ -203,10 +244,5 @@ class SoraCardInteractorImpl @Inject constructor(
     }
 
     private fun fetchApplicationFee() = flow { emit(soraCardClientProxy.getApplicationFee()) }
-
-    private companion object {
-        const val POLLING_PERIOD_IN_MILLIS = 90_000L
-    }
-
     //endregion
 }

@@ -124,12 +124,10 @@ interface WalletInteractor {
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 
-    fun isShowBuyXor(): Boolean
     fun isShowGetSoraCard(): Boolean
     fun observeIsShowSoraCard(): Flow<Boolean>
     fun decreaseSoraCardHiddenSessions()
     fun hideSoraCard()
-    fun hideBuyXor()
 
     suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
     suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean
