@@ -36,6 +36,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.EnglishWordList
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
@@ -333,8 +334,13 @@ class AccountInteractorImpl(
                         MnemonicCreator.fromEntropy(entropy)
                     }
 
-                    WalletEcosystem.Ton -> accountRepository.getTonSecrets(metaId)?.get(TonSecrets.Seed)?.decodeToString()?.let {
-                        MnemonicCreator.fromWords(it)
+                    WalletEcosystem.Ton -> accountRepository.getTonSecrets(metaId)?.get(TonSecrets.Seed)?.decodeToString()?.let { words ->
+                        //MnemonicCreator.fromWords(words) // error entropy creation
+                        Mnemonic(
+                            words = words,
+                            wordList = words.split(EnglishWordList.INSTANCE.space.toString()),
+                            entropy = byteArrayOf()
+                        )
                     }
                 }
             }
