@@ -81,7 +81,6 @@ class WelcomeViewModel @Inject constructor(
     private var currentOnboardingConfigVersion: String? = null
 
     init {
-        println("!!! WelcomeViewModel: payload.route = ${payload.route}")
         viewModelScope.launch {
             val isAccountSelected = accountRepository.isAccountSelected()
 
@@ -209,7 +208,7 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun backClicked() {
-        router.back()
+        _events.trySend(WelcomeEvent.Back)
     }
 
     fun onQrScanResult(result: String?) {

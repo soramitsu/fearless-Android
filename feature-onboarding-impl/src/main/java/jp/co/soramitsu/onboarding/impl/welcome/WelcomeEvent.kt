@@ -6,6 +6,7 @@ sealed interface WelcomeEvent {
 
     object AuthorizeGoogle : WelcomeEvent
     object ScanQR : WelcomeEvent
+    object Back : WelcomeEvent
 
     sealed interface Onboarding: WelcomeEvent {
         val route: String

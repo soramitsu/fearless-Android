@@ -93,8 +93,6 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
         val navController = rememberNavController()
 
-//        val sr = arguments?.let { it.getParcelable(KEY_PAYLOAD, WelcomeFragmentPayload::class.java)?.route }
-
         LaunchedEffect(Unit) {
             viewModel.events
                 .onEach { event ->
@@ -112,6 +110,8 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                                 }
                                 else -> navController.navigate(event.route)
                             }
+
+                        WelcomeEvent.Back -> navController.popBackStack()
                     }
                 }.launchIn(this)
         }
