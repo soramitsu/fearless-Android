@@ -29,6 +29,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class WalletItemViewState(
@@ -40,8 +41,14 @@ data class WalletItemViewState(
     val walletIcon: Any,
     val isSelected: Boolean,
     val additionalMetadata: String = "",
-    val score: Int? = null
-)
+    val score: Int? = null,
+    val supportedEcosystems: Set<WalletEcosystem> = emptySet()
+) {
+    val onlyTonSupported: Boolean
+        get() {
+            return supportedEcosystems.size == 1 && supportedEcosystems.contains(WalletEcosystem.Ton)
+        }
+}
 
 @Composable
 fun WalletItem(
@@ -123,7 +130,9 @@ fun WalletItem(
             }
             Spacer(modifier = Modifier.weight(1f))
             state.score?.let { score ->
-                Box(modifier = Modifier.padding(9.dp).clickableWithNoIndication { onScoreClick(state) }) {
+                Box(modifier = Modifier
+                    .padding(9.dp)
+                    .clickableWithNoIndication { onScoreClick(state) }) {
                     ScoreStar(score = score)
                 }
             }

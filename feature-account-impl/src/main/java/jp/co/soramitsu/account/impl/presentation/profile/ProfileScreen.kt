@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.feature_account_impl.R
 
 data class ProfileScreenState(
@@ -51,7 +52,13 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             H1(text = stringResource(R.string.profile_settings_title))
             MarginVertical(margin = 16.dp)
-            WalletItem(state = state.walletState, onOptionsClick = callback::onWalletOptionsClick, onScoreClick = callback::onScoreClick)
+            WalletItem(
+                state = state.walletState,
+                onOptionsClick = callback::onWalletOptionsClick.takeIf {
+                    state.walletState.onlyTonSupported.not()
+                },
+                onScoreClick = callback::onScoreClick
+            )
         }
         MarginVertical(margin = 16.dp)
         SettingsItem(icon = painterResource(R.drawable.ic_settings_wallets), text = stringResource(R.string.profile_wallets_title), action = state.walletsItemAction, onClick = callback::walletsClicked)
@@ -88,7 +95,8 @@ fun ProfileScreenPreview() {
                 percentChange = "+5.67%",
                 fiatChange = "$2345.32"
             ),
-            score = 50
+            score = 50,
+//            supportedEcosystems = setOf(WalletEcosystem.Ton)
         ),
         currency = "USD",
         language = "ENG",
