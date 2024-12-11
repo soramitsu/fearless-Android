@@ -128,7 +128,6 @@ class ConfirmMnemonicViewModel @Inject constructor(
     }
 
     private fun createAccount(payload: ConfirmMnemonicPayload, isBackedUp: Boolean) {
-        println("!!! ConfirmMnemonic createAccount payload = $payload; isBackedUp = $isBackedUp")
         val payloadExtras = payload.createExtras ?: return
         val mnemonicString = originMnemonic.joinToString(" ")
 

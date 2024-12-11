@@ -189,7 +189,6 @@ class AccountRepositoryImpl(
     override suspend fun createAccount(payload: AddAccountPayload): Long {
         val metaAccountId = accountRepositoryDelegate.create(payload)
         selectAccount(metaAccountId)
-        println("!!! createAccount id = $metaAccountId; payload = $payload")
         return metaAccountId
     }
 

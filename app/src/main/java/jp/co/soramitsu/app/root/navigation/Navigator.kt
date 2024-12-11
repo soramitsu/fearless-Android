@@ -352,7 +352,6 @@ class Navigator :
     }
 
     override fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload) {
-        println("!!! Navigator openConfirmMnemonicOnCreate payload = $confirmMnemonicPayload")
         val bundle = ConfirmMnemonicFragment.getBundle(confirmMnemonicPayload)
 
         navController?.navigate(R.id.confirmExportMnemonicFragment, bundle)

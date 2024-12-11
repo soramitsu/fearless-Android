@@ -574,7 +574,6 @@ class BalanceListViewModel @Inject constructor(
             } else {
                 if (it.tonPublicKey == null) {
                     allowSelectChain.value = true
-                    println("!!! selectedChainId.value = getSavedChainId = ${interactor.getSavedChainId(it.id)}")
                     selectedChainId.value = interactor.getSavedChainId(it.id)
                 } else {
                     allowSelectChain.value = false
@@ -582,7 +581,6 @@ class BalanceListViewModel @Inject constructor(
                     interactor.getSavedChainId(it.id)?.let { savedChainId ->
                         if (savedChainId != tonChainId) interactor.saveChainId(it.id, tonChainId)
                     }
-                    println("!!! selectedChainId.value = tonChainId = $tonChainId")
                     selectedChainId.value = tonChainId
                 }
             }
@@ -660,7 +658,6 @@ class BalanceListViewModel @Inject constructor(
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
             interactor.saveChainId(walletId, chainId)
-            println("!!! selectedChainId.value = router.chainSelectorPayloadFlow.map { chainId = $chainId")
 
             selectedChainId.value = chainId
         }.launchIn(this)
