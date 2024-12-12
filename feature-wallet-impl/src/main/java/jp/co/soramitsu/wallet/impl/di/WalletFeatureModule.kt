@@ -127,12 +127,10 @@ class WalletFeatureModule {
 
     @Provides
     fun provideAssetCache(
-        tokenPriceDao: TokenPriceDao,
         assetDao: AssetDao,
-        accountRepository: AccountRepository,
         selectedFiat: SelectedFiat
     ): AssetCache {
-        return AssetCache(tokenPriceDao, accountRepository, assetDao, selectedFiat)
+        return AssetCache( assetDao, selectedFiat)
     }
 
     @Provides
