@@ -1,11 +1,14 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -97,10 +100,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 
 @HiltViewModel
 class SendSetupViewModel @Inject constructor(
@@ -499,10 +498,16 @@ class SendSetupViewModel @Inject constructor(
         }.launchIn(this)
 
         assetFlow.onEach { asset ->
-            val quickAmountInputValues = if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
-                emptyList()
-            } else {
-                QuickAmountInput.entries
+            val quickAmountInputValues = when {
+                asset?.token?.configuration?.currencyId == bokoloCashTokenId -> {
+                    emptyList()
+                }
+                selectedChain.first()?.ecosystem == Ecosystem.Ton -> {
+                    listOf(QuickAmountInput.MAX)
+                }
+                else -> {
+                    QuickAmountInput.entries
+                }
             }
 
             val existentialDeposit = asset?.token?.configuration?.let { existentialDepositUseCase(it) }.orZero()
