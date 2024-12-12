@@ -4,10 +4,12 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import jp.co.soramitsu.common.resources.ContextManager
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.coredb.model.accountId
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -134,12 +136,9 @@ class ChainSyncService(
                 if(metaAccounts.isEmpty()) return@launch
                 val newLocalAssets = metaAccounts.map { metaAccount ->
                     assetsToAdd.mapNotNull {
-                        val chain = remoteMapping[it.chainId]
-                        val accountId = if (chain?.isEthereumBased == true) {
-                            metaAccount.ethereumAddress
-                        } else {
-                            metaAccount.substrateAccountId
-                        } ?: return@mapNotNull null
+                        val chain = remoteMapping[it.chainId] ?: return@mapNotNull null
+                        val accountId = metaAccount.accountId(chain) ?: return@mapNotNull null
+
                         AssetLocal(
                             accountId = accountId,
                             id = it.id,

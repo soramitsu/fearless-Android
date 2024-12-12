@@ -38,8 +38,7 @@ class AssetCache(
         val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, assetId)?.asset
         when {
             cachedAsset == null -> {
-                val emptyAsset =
-                    AssetLocal.createEmpty(accountId, assetId, chainId, metaId, priceId)
+                val emptyAsset = AssetLocal.createEmpty(accountId, assetId, chainId, metaId, priceId)
                 val newAsset = builder.invoke(emptyAsset)
                 assetDao.insertAsset(newAsset.copy(enabled = newAsset.freeInPlanks == null || newAsset.freeInPlanks.isZero()))
             }
