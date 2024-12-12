@@ -76,7 +76,6 @@ import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
-import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -84,7 +83,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainIte
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
-import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toUiModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
@@ -256,8 +254,7 @@ class BalanceListViewModel @Inject constructor(
         val balanceListItems = AssetListHelper.processAssets(
             assets = filteredAssetsWithoutBrokenAssets,
             filteredChains = filteredChains,
-            selectedChainId = selectedChainId,
-            networkIssues = emptySet()
+            selectedChainId = selectedChainId
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
@@ -491,7 +488,7 @@ class BalanceListViewModel @Inject constructor(
 
             WalletAssetsState.NetworkIssue(
                 selectedChainId,
-                selectedChainIssue.toUiModel(),
+                selectedChainIssue,
                 false
             )
         }.onEach { newState ->
@@ -685,7 +682,7 @@ class BalanceListViewModel @Inject constructor(
     override fun onRetry() {
         val (chainId, issueType, _) = networkIssueStateFlow.value ?: return
 
-        if (issueType != jp.co.soramitsu.common.compose.component.NetworkIssueType.Account) {
+        if (issueType != NetworkIssueType.Account) {
             viewModelScope.launch {
                 networkIssueStateFlow.update { it?.copy(retryButtonLoading = true) }
                 interactor.retryChainSync(chainId)

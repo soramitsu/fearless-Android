@@ -16,8 +16,8 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -187,15 +187,7 @@ class AssetDetailsViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private val networkIssuesFlow = interactor.networkIssuesFlow().map { issuesMap ->
-        issuesMap.mapValues {
-            when(it.value) {
-                jp.co.soramitsu.common.domain.model.NetworkIssueType.Node -> NetworkIssueType.Node
-                jp.co.soramitsu.common.domain.model.NetworkIssueType.Network -> NetworkIssueType.Network
-                jp.co.soramitsu.common.domain.model.NetworkIssueType.Account -> NetworkIssueType.Account
-            }
-        }
-    }
+    private val networkIssuesFlow = interactor.networkIssuesFlow()
 
     private fun subscribeAssets() {
         val assetSortingFlow = interactor.observeAssetSorting()
