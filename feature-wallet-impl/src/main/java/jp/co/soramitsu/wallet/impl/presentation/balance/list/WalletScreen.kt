@@ -28,6 +28,7 @@ import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.BannerBackup
 import jp.co.soramitsu.common.compose.component.BannerBuyXor
 import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
+import jp.co.soramitsu.common.compose.component.BannerJoinTon
 import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
@@ -184,7 +185,7 @@ private fun Banners(data: WalletState, callback: WalletScreenInterface) {
 
     val joinTonBanner: @Composable (() -> Unit)? = if (!data.hasTonAccounts) {
         {
-            BannerJoinSubstrateEvm(
+            BannerJoinTon(
                 onClick = callback::onJoinTonClicked,
                 onCloseClick = callback::onJoinTonCloseClick,
             )
