@@ -58,13 +58,13 @@ class TonMigration(
             `substrateAccountId` BLOB,
             `ethereumPublicKey` BLOB,
             `ethereumAddress` BLOB,
-            `tonPublicKey` BLOB DEFAULT NULL,
+            `tonPublicKey` BLOB,
             `name` TEXT NOT NULL,
             `isSelected` INTEGER NOT NULL,
             `position` INTEGER NOT NULL,
-            `isBackedUp` INTEGER NOT NULL DEFAULT 0,
-            `googleBackupAddress` TEXT DEFAULT NULL,
-            `initialized` INTEGER NOT NULL DEFAULT 0
+            `isBackedUp` INTEGER NOT NULL,
+            `googleBackupAddress` TEXT,
+            `initialized` INTEGER NOT NULL
             )
             """.trimIndent()
         )
@@ -93,6 +93,7 @@ class TonMigration(
 
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_tonPublicKey` ON `meta_accounts` (`tonPublicKey`)")
         db.execSQL("PRAGMA foreign_keys = ON;")
     }
 
@@ -269,7 +270,7 @@ class TonMigration(
     }
 
     private fun recreateTokenPrice(db: SupportSQLiteDatabase) {
-        db.execSQL("DROP TABLE IF EXISTS `chains`")
+        db.execSQL("DROP TABLE IF EXISTS `token_price`")
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `token_price` (
