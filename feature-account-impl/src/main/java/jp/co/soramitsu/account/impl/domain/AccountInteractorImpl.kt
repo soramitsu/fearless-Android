@@ -137,12 +137,6 @@ class AccountInteractorImpl(
         return accountRepository.setBiometricOff()
     }
 
-    override suspend fun getAccount(address: String): Account {
-        return accountRepository.getAccount(address)
-    }
-
-    override fun selectedAccountFlow() = accountRepository.selectedAccountFlow()
-
     override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
 
     override suspend fun selectedMetaAccount() =

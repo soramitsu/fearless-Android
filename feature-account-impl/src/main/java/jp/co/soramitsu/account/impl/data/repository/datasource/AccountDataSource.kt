@@ -25,12 +25,6 @@ interface AccountDataSource : SecretStoreV1 {
 
     suspend fun anyAccountSelected(): Boolean
 
-    suspend fun saveSelectedAccount(account: Account)
-
-    fun selectedAccountFlow(): Flow<Account>
-
-    suspend fun getSelectedAccount(): Account
-
     // TODO for compatibility only
     val selectedAccountMapping: Flow<Map<ChainId, Account?>>
 

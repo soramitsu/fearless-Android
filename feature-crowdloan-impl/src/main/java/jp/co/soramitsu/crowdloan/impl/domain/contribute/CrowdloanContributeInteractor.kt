@@ -1,5 +1,8 @@
 package jp.co.soramitsu.crowdloan.impl.domain.contribute
 
+import java.io.IOException
+import java.math.BigDecimal
+import java.net.HttpURLConnection
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.R
@@ -31,9 +34,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import java.io.IOException
-import java.math.BigDecimal
-import java.net.HttpURLConnection
 
 typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
 
@@ -93,7 +93,7 @@ class CrowdloanContributeInteractor(
     ) = withContext(Dispatchers.Default) {
         val (chain, chainAsset) = crowdloanSharedState.chainAndAsset()
 
-        val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
+        val encryption = accountRepository.getSelectedMetaAccount().substrateCryptoType?.let { mapCryptoTypeToEncryption(it) }
         val contributionInPlanks = chainAsset.planksFromAmount(contribution)
         extrinsicService.estimateFee(chain, batchAll) {
             contribute(parachainId, contributionInPlanks, signature, encryption)
@@ -113,7 +113,7 @@ class CrowdloanContributeInteractor(
 
         val accountId = selectedMetaAccount.accountId(chain)!!
         val contributionInPlanks = chainAsset.planksFromAmount(contribution)
-        val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
+        val encryption = accountRepository.getSelectedMetaAccount().substrateCryptoType?.let { mapCryptoTypeToEncryption(it) }
 
         extrinsicService.submitExtrinsic(chain, accountId, batchAll) {
             contribute(parachainId, contributionInPlanks, signature, encryption)

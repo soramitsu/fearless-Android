@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
@@ -46,6 +46,7 @@ import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.selectedChainFlow
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
@@ -74,7 +75,7 @@ class CrowdloanViewModel @Inject constructor(
     private val sharedState: CrowdloanSharedState,
     @Named("CrowdloanChainUpdateSystem") private val crowdloanUpdateSystem: UpdateSystem,
     @Named("CrowdloanAssetSelector") assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
-    private val accountUseCase: SelectedAccountUseCase,
+    private val accountInteractor: AccountInteractor,
     private val clipboardManager: ClipboardManager
 ) : BaseViewModel(), WithAssetSelector, Browserable {
 
@@ -187,7 +188,7 @@ class CrowdloanViewModel @Inject constructor(
             myContribution = myContributionDisplay,
             state = stateFormatted,
             referral = when (crowdloan.parachainMetadata?.isInterlay) {
-                true -> accountUseCase.selectedAccountFlow().firstOrNull()?.address?.toByteArray()?.blake2b256()?.toHexString(true)
+                true -> accountInteractor.selectedMetaAccountFlow().firstOrNull()?.substrateAccountId?.toAddress(0.toShort())?.toByteArray()?.blake2b256()?.toHexString(true)
                 else -> null
             }
         )

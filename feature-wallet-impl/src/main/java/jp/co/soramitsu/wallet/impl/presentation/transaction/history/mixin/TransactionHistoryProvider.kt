@@ -230,10 +230,8 @@ class TransactionHistoryProvider(
         data: Collection<Operation>,
         ecosystem: Ecosystem
     ): List<Any> {
-        val accountIdentifier = addressDisplayUseCase.createIdentifier()
-
         val operations = data.map {
-            mapOperationToOperationModel(it, accountIdentifier, resourceManager, iconGenerator, ecosystem)
+            mapOperationToOperationModel(it, resourceManager, iconGenerator, ecosystem)
         }.sortedByDescending { it.time }
 
         return regroup(operations)

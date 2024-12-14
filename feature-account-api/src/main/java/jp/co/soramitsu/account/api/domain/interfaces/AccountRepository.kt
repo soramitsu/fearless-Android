@@ -31,10 +31,6 @@ interface AccountRepository {
 
     suspend fun selectAccount(metaAccountId: Long)
 
-    fun selectedAccountFlow(): Flow<Account>
-
-    suspend fun getSelectedAccount(): Account
-
     suspend fun getSelectedAccount(chainId: ChainId): Account
     suspend fun getSelectedMetaAccount(): MetaAccount
     suspend fun getMetaAccount(metaId: Long): MetaAccount
@@ -60,12 +56,6 @@ interface AccountRepository {
     suspend fun createAccount(payload: AddAccountPayload): Long
 
     suspend fun deleteAccount(metaId: Long)
-
-    suspend fun getAccounts(): List<Account>
-
-    suspend fun getAccount(address: String): Account
-
-    suspend fun getAccountOrNull(address: String): Account?
 
     suspend fun importFromSeed(
         seed: String,

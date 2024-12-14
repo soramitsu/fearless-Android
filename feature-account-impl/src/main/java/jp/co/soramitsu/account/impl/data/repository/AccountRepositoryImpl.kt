@@ -38,10 +38,8 @@ import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
-import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
@@ -81,7 +79,6 @@ import org.bouncycastle.util.encoders.Hex
 
 class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
-    private val accountDao: AccountDao,
     private val metaAccountDao: MetaAccountDao,
     private val legacyStoreV2: SecretStoreV2,
     private val jsonSeedDecoder: JsonSeedDecoder,
@@ -102,18 +99,6 @@ class AccountRepositoryImpl(
 
     override suspend fun selectAccount(metaAccountId: Long) {
         metaAccountDao.selectMetaAccount(metaAccountId)
-    }
-
-    // TODO remove
-    override fun selectedAccountFlow(): Flow<Account> {
-        return accountDataSource.selectedAccountMapping.map {
-            it.getValue(polkadotChainId)!!
-        }
-    }
-
-    // TODO remove
-    override suspend fun getSelectedAccount(): Account {
-        return getSelectedAccount(polkadotChainId)
     }
 
     override suspend fun getSelectedAccount(chainId: String): Account {
@@ -194,21 +179,6 @@ class AccountRepositoryImpl(
 
     override suspend fun deleteAccount(metaId: Long) {
         accountDataSource.deleteMetaAccount(metaId)
-    }
-
-    override suspend fun getAccounts(): List<Account> {
-        return accountDao.getAccounts()
-            .map { mapAccountLocalToAccount(it) }
-    }
-
-    override suspend fun getAccount(address: String): Account {
-        val account = accountDao.getAccount(address)
-            ?: throw NoSuchElementException("No account found for address $address")
-        return mapAccountLocalToAccount(account)
-    }
-
-    override suspend fun getAccountOrNull(address: String): Account? {
-        return accountDao.getAccount(address)?.let { mapAccountLocalToAccount(it) }
     }
 
     override suspend fun importFromSeed(
@@ -500,18 +470,6 @@ class AccountRepositoryImpl(
 
     override suspend fun changeLanguage(language: Language) {
         return accountDataSource.changeSelectedLanguage(language)
-    }
-
-    private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
-        return with(accountLocal) {
-            Account(
-                address = address,
-                name = username,
-                accountIdHex = publicKey,
-                cryptoType = CryptoType.entries[accountLocal.cryptoType],
-                position = position
-            )
-        }
     }
 
     private suspend fun insertAccount(

@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -61,8 +60,7 @@ class ConfirmContributeViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
-    private val accountUseCase: SelectedAccountUseCase,
-    private val accountInteractor: AccountInteractor,
+    accountInteractor: AccountInteractor,
     addressModelGenerator: AddressIconGenerator,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: ContributeValidationSystem,

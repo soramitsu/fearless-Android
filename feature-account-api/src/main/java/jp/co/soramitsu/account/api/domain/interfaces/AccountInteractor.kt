@@ -61,10 +61,6 @@ interface AccountInteractor {
 
     suspend fun setBiometricOff()
 
-    suspend fun getAccount(address: String): Account
-
-    fun selectedAccountFlow(): Flow<Account>
-
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
 
     suspend fun selectedMetaAccount(): MetaAccount
