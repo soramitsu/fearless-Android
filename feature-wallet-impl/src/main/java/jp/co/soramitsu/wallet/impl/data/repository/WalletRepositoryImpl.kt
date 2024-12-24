@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -104,8 +105,17 @@ class WalletRepositoryImpl(
             chainsRepository.chainsByIdFlow(),
             assetDao.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
+            val filteredAssets = assetsLocal.filter {
+                val isTonAsset = chainsById[it.asset.chainId]?.ecosystem == Ecosystem.Ton
+                if (meta.hasTon) {
+                    isTonAsset
+                } else {
+                    isTonAsset.not()
+                }
+            }
+
             val chainAccounts = meta.chainAccounts.values.toList()
-            val updatedAssets = assetsLocal.mapNotNull { asset ->
+            val updatedAssets = filteredAssets.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
                     val hasChainAccount =
                         asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }

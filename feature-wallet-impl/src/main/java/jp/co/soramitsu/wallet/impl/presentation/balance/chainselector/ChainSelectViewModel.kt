@@ -4,9 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.hasEthereum
+import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -95,13 +99,13 @@ class ChainSelectViewModel @Inject constructor(
         }
     }.map { chains ->
         val meta = accountInteractor.selectedMetaAccount()
-        val ethBasedChainAccounts = meta.chainAccounts.filter { it.value.chain?.isEthereumBased == true }
-        val ethBasedChains = chains?.filter { it.isEthereumBased }.orEmpty()
-        val filtered = if (meta.ethereumPublicKey == null && ethBasedChains.size != ethBasedChainAccounts.size) {
-            val ethChainsWithNoAccounts = ethBasedChains.filter { it.id !in ethBasedChainAccounts.keys }
-            chains?.filter { it !in ethChainsWithNoAccounts }
-        } else {
-            chains
+        val filtered = chains.filter {
+            when (it.ecosystem) {
+                Ecosystem.Substrate -> meta.hasSubstrate
+                Ecosystem.Ton -> meta.hasTon
+                Ecosystem.EthereumBased,
+                Ecosystem.Ethereum -> meta.hasEthereum
+            }
         }
         filtered
     }.stateIn(this, SharingStarted.Eagerly, null)
