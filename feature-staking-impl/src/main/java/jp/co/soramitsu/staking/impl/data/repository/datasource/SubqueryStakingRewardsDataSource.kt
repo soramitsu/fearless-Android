@@ -3,9 +3,7 @@ package jp.co.soramitsu.staking.impl.data.repository.datasource
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.utils.sumByBigInteger
-import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
@@ -24,9 +22,7 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.request.ReefStakingRew
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingSumRewardRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidEthRewardAmountRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidRelayRewardAmountRequest
-import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidSoraStakingRewardsRequest
 import jp.co.soramitsu.staking.impl.domain.model.TotalReward
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
@@ -57,7 +53,7 @@ class SubqueryStakingRewardsDataSource(
             stakingUrl == null -> throw RewardsNotSupportedWarning()
 
             syntheticStakingType == SyntheticStakingType.SORA -> {
-                syncSoraRewards(stakingUrl,accountAddress, requireNotNull(chain.utilityAsset))
+
             }
             stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
                 syncSubquery(stakingUrl, accountAddress)
@@ -99,17 +95,6 @@ class SubqueryStakingRewardsDataSource(
         val rewards = stakingApi.getRelayRewardAmounts(stakingUrl, GiantsquidRewardAmountRequest(accountAddress.toAccountId().toHexString(true)))
         val totalReward = rewards.data.stakingRewards.sumByBigInteger { it.amount }
         stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, totalReward))
-    }
-
-    private suspend fun syncSoraRewards(
-        stakingUrl: String,
-        accountAddress: String,
-        chainAsset: Asset
-    ) = withContext(Dispatchers.IO) {
-        val rewards = stakingApi.getSoraRewards(stakingUrl, SubsquidSoraStakingRewardsRequest(accountAddress))
-        val totalReward = rewards.data.stakingRewards.sumByBigDecimal { it.amount }
-        val totalInPlanks = chainAsset.planksFromAmount(totalReward)
-        stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, totalInPlanks))
     }
 
     private suspend fun syncReefRewards(stakingUrl: String, accountAddress: String) {

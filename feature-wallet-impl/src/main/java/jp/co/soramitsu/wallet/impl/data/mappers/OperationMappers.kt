@@ -28,7 +28,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
-import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistoryItem
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -509,7 +509,7 @@ fun mapOperationToParcel(
     with(operation) {
         return when (val operationType = operation.type) {
             is Operation.Type.Transfer -> {
-                val operationFee = operationType.fee ?: BigInteger.ZERO 
+                val operationFee = operationType.fee ?: BigInteger.ZERO
                 val feeFormatted = if (utilityAsset == null) {
                     resourceManager.getString(R.string.common_unknown)
                 } else {

@@ -58,7 +58,7 @@ storiesVersion = "3.0.1"
 walletconnectBom = "1.31.4"
 web3j = "4.8.8-android"
 wsVersion = "2.14"
-xNetworking = "0.2.5-temp7"
+xNetworking = "1.0.12"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
@@ -123,9 +123,7 @@ gradleplugins-hiltAndroid = { module = "com.google.dagger:hilt-android-gradle-pl
 
 sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUiCore" }
 
-xnetworking-fearless = { module = "jp.co.soramitsu.xnetworking:fearlesswallet-android", version.ref = "xNetworking" }
-xnetworking-basic = { module = "jp.co.soramitsu.xnetworking:basic-android", version.ref = "xNetworking" }
-xnetworking-sorawallet = { module = "jp.co.soramitsu.xnetworking:sorawallet-android", version.ref = "xNetworking" }
+xnetworking-lib-android = { module = "jp.co.soramitsu.xnetworking:lib-android", version.ref = "xNetworking" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationjson" }

@@ -42,10 +42,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    implementation(libs.xnetworking.basic)
-    implementation(libs.xnetworking.sorawallet) {
-        exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
-    }
+    implementation(libs.xnetworking.lib.android)
 
 //    api(libs.sharedFeaturesPoolsDep) {
 //        exclude(module = "android-foundation")
