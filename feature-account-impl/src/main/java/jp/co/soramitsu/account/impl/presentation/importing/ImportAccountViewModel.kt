@@ -20,6 +20,7 @@ import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.IMPORT_ACCOUNT_TYPE_KEY
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.IMPORT_MODE_KEY
+import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.IMPORT_WALLET_ID_KEY
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
@@ -54,6 +55,7 @@ class ImportAccountViewModel @Inject constructor(
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
+    val walletId = savedStateHandle.get<Long?>(IMPORT_WALLET_ID_KEY)
     val initialImportAccountType = savedStateHandle.get<ImportAccountType>(IMPORT_ACCOUNT_TYPE_KEY)
     private val initialImportMode = savedStateHandle[IMPORT_MODE_KEY] ?: MnemonicPhrase
 
@@ -253,31 +255,43 @@ class ImportAccountViewModel @Inject constructor(
                         isBackedUp = true,
                     )
                 } else {
-                    AddAccountPayload.SubstrateOrEvm(
-                        accountName = name,
-                        mnemonic = sourceType.mnemonicContentLiveData.value!!,
-                        encryptionType = cryptoType,
-                        substrateDerivationPath = substrateDerivationPath,
-                        ethereumDerivationPath = ethereumDerivationPath,
-                        googleBackupAddress = null,
-                        isBackedUp = true
-                    )
+                    if (walletId == null) {
+                        AddAccountPayload.SubstrateOrEvm(
+                            accountName = name,
+                            mnemonic = sourceType.mnemonicContentLiveData.value!!,
+                            encryptionType = cryptoType,
+                            substrateDerivationPath = substrateDerivationPath,
+                            ethereumDerivationPath = ethereumDerivationPath,
+                            googleBackupAddress = null,
+                            isBackedUp = true
+                        )
+                    } else {
+                        AddAccountPayload.AdditionalEvm(
+                            walletId = walletId,
+                            accountName = name,
+                            mnemonic = sourceType.mnemonicContentLiveData.value!!,
+                            ethereumDerivationPath = ethereumDerivationPath,
+                            isBackedUp = true
+                        )
+                    }
                 }
                 interactor.createAccount(payload)
             }
             is RawSeedImportSource -> interactor.importFromSeed(
-                substrateSeed!!,
-                name,
-                substrateDerivationPath,
-                cryptoType,
-                ethSeed,
+                walletId = walletId,
+                substrateSeed = substrateSeed,
+                username = name,
+                derivationPath = substrateDerivationPath,
+                selectedEncryptionType = cryptoType,
+                ethSeed = ethSeed,
                 googleBackupAddress = null
             )
             is JsonImportSource -> interactor.importFromJson(
-                substrateJson!!,
-                sourceType.passwordLiveData.value!!,
-                name,
-                ethJson,
+                walletId = walletId,
+                json = substrateJson!!,
+                password = sourceType.passwordLiveData.value!!,
+                name = name,
+                ethJson = ethJson,
                 googleBackupAddress = null
             )
         }

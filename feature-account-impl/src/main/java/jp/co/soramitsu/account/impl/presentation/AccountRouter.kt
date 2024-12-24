@@ -1,8 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation
 
-import jp.co.soramitsu.account.api.domain.model.AccountType
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
-import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
+import jp.co.soramitsu.account.api.domain.model.ImportMode
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
@@ -23,15 +22,19 @@ interface AccountRouter : SecureRouter {
     fun openCreatePincode()
 
     fun openMnemonicScreen(
-        isFromGoogleBackup: Boolean,
         accountName: String,
-        accountMode: AccountType
+        accountTypes: List<ImportAccountType>
     )
 
-    fun openMnemonicDialog(
-        isFromGoogleBackup: Boolean,
+    fun openMnemonicScreenAddAccount(
+        walletId: Long,
         accountName: String,
-        accountType: AccountType
+        type: ImportAccountType
+    )
+
+    fun openMnemonicDialogGoogleBackup(
+        accountName: String,
+        accountTypes: List<ImportAccountType>
     )
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
@@ -53,8 +56,6 @@ interface AccountRouter : SecureRouter {
     fun openLanguages()
 
     fun openAccountDetails(metaAccountId: Long)
-
-    fun openAccountsForExport(metaId: Long, from: AccountInChain.From)
 
     fun openNodeDetails(payload: NodeDetailsPayload)
 
@@ -85,20 +86,19 @@ interface AccountRouter : SecureRouter {
 
     fun openExperimentalFeatures()
 
-    fun openOptionsAddAccount(payload: AddAccountPayload)
+    fun openOptionsAddAccount(metaId: Long, type: ImportAccountType)
 
     fun openPolkaswapDisclaimerFromProfile()
 
     fun openGetSoraCard()
 
-    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
+    fun openCreateWalletDialogFromGoogleBackup()
 
     fun openCreateBackupPasswordDialogWithResult(): Flow<Int>
 
-    fun openMnemonicAgreementsDialog(
-        isFromGoogleBackup: Boolean,
+    fun openMnemonicAgreementsDialogForGoogleBackup(
         accountName: String,
-        accountType: AccountType
+        accountTypes: List<ImportAccountType>
     )
 
     fun openImportRemoteWalletDialog()
@@ -106,4 +106,14 @@ interface AccountRouter : SecureRouter {
     fun openConnectionsScreen()
 
     fun openScoreDetailsScreen(metaId: Long)
+
+    fun openEcosystemAccountsOptions(walletId: Long, type: ImportAccountType)
+
+    fun openEcosystemAccountsFragment(walletId: Long, type: ImportAccountType)
+
+    fun openSelectImportModeForResult(): Flow<ImportMode>
+
+    fun openImportAddAccountScreen(walletId: Long, importAccountType: ImportAccountType, importMode: ImportMode)
+
+    fun openOptionsWallet(walletId: Long, allowDetails: Boolean)
 }

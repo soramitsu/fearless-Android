@@ -150,7 +150,6 @@ class WelcomeViewModel @Inject constructor(
                     .launchIn(viewModelScope)
             }
 
-//            AccountType.Ton -> handleSelectedImportMode(ImportMode.MnemonicPhrase)
             AccountType.Ton -> router.openImportAccountScreen(
                 importAccountType = ImportAccountType.Ton,
                 importMode = ImportMode.MnemonicPhrase

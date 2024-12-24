@@ -8,7 +8,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AssetBalanceUseCase
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
+import jp.co.soramitsu.account.api.presentation.importing.toAccountType
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
@@ -327,16 +327,10 @@ class AssetDetailsViewModel @Inject constructor(
             NetworkIssueType.Account -> {
                 launch {
                     val meta = accountInteractor.selectedMetaAccountFlow().first()
-                    itemState.assetId?.let {
-                        val payload = AddAccountPayload(
-                            metaId = meta.id,
-                            chainId = itemState.chainId,
-                            chainName = itemState.chainName.orEmpty(),
-                            assetId = it,
-                            markedAsNotNeed = false
-                        )
-                        walletRouter.openOptionsAddAccount(payload)
-                    }
+                    val chainEcosystem = accountInteractor.getChain(itemState.chainId).ecosystem
+                    val type = chainEcosystem.toAccountType()
+
+                    walletRouter.openOptionsAddAccount(meta.id, type)
                 }
             }
 

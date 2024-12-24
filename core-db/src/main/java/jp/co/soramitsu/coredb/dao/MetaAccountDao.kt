@@ -37,6 +37,9 @@ interface MetaAccountDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertMetaAccount(metaAccount: MetaAccountLocal): Long
 
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateMetaAccount(metaAccount: MetaAccountLocal)
+
     @Query("SELECT * FROM chain_accounts WHERE initialized = 0")
     fun observeNotInitializedChainAccounts(): Flow<List<ChainAccountLocal>>
 
@@ -45,6 +48,9 @@ interface MetaAccountDao {
 
     @Query("SELECT * FROM meta_accounts")
     fun getMetaAccounts(): List<MetaAccountLocal>
+
+    @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
+    suspend fun getMetaAccount(metaId: Long): MetaAccountLocal?
 
     @Query("SELECT * FROM meta_accounts")
     @Transaction

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.AccountType
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
@@ -68,10 +69,9 @@ class CreateAccountViewModel @Inject constructor(
 
     override fun nextClicked() {
         if (isFromGoogleBackup) {
-            router.openMnemonicAgreementsDialog(
-                isFromGoogleBackup = isFromGoogleBackup,
+            router.openMnemonicAgreementsDialogForGoogleBackup(
                 accountName = walletNickname.value,
-                accountType = accountMode
+                accountTypes = listOf(ImportAccountType.Substrate, ImportAccountType.Ethereum)
             )
         } else {
             _showScreenshotsWarningEvent.value = Event(Unit)
@@ -79,7 +79,11 @@ class CreateAccountViewModel @Inject constructor(
     }
 
     fun screenshotWarningConfirmed() {
-        router.openMnemonicScreen(isFromGoogleBackup, walletNickname.value, accountMode)
+        val accountTypes = when (accountMode) {
+            AccountType.SubstrateOrEvm -> listOf(ImportAccountType.Substrate, ImportAccountType.Ethereum)
+            AccountType.Ton -> listOf(ImportAccountType.Ton)
+        }
+        router.openMnemonicScreen(walletNickname.value, accountTypes)
     }
 
     override fun onBackClick() {

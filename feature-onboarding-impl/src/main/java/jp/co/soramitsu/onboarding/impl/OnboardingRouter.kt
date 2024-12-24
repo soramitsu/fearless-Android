@@ -13,8 +13,6 @@ interface OnboardingRouter {
 
     fun openImportAccountScreen(importAccountType: ImportAccountType, importMode: ImportMode)
 
-    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
-
     fun openImportRemoteWalletDialog()
 
     fun back()

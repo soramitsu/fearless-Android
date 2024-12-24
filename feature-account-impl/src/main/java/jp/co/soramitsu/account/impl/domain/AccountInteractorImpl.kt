@@ -5,15 +5,16 @@ import androidx.activity.result.ActivityResultLauncher
 import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.backup.domain.models.Json
 import jp.co.soramitsu.backup.domain.models.Seed
@@ -76,7 +77,8 @@ class AccountInteractorImpl(
     }
 
     override suspend fun importFromSeed(
-        substrateSeed: String,
+        walletId: Long?,
+        substrateSeed: String?,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
@@ -85,6 +87,7 @@ class AccountInteractorImpl(
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromSeed(
+                walletId,
                 substrateSeed,
                 username,
                 derivationPath,
@@ -100,6 +103,7 @@ class AccountInteractorImpl(
     }
 
     override suspend fun importFromJson(
+        walletId: Long?,
         json: String,
         password: String,
         name: String,
@@ -107,7 +111,13 @@ class AccountInteractorImpl(
         googleBackupAddress: String?
     ): Result<Unit> {
         return runCatching {
-            accountRepository.importFromJson(json, password, name, ethJson, googleBackupAddress)
+            if (walletId == null) {
+                accountRepository.importFromJson(json, password, name, ethJson, googleBackupAddress)
+            } else {
+                ethJson?.let {
+                    accountRepository.importAdditionalFromJson(walletId, ethJson, password)
+                }
+            }
         }
     }
 
@@ -211,6 +221,9 @@ class AccountInteractorImpl(
 
     override suspend fun getSupportedBackupTypes(walletId: Long) =
         accountRepository.getSupportedBackupTypes(walletId)
+
+    override suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType? =
+        accountRepository.getBestBackupType(walletId, type)
 
     override suspend fun getChain(chainId: ChainId) = accountRepository.getChain(chainId)
 
@@ -318,7 +331,7 @@ class AccountInteractorImpl(
         val result = lightMetaAccountsFlow().mapNotNull {
             it.firstOrNull { it.id == metaId }
         }.map {
-            it.supportedEcosystemWithIconAddress().keys.map {
+            it.supportedEcosystems().mapNotNull {
                 when (it) {
                     WalletEcosystem.Substrate -> accountRepository.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.Entropy)?.let { entropy ->
                         MnemonicCreator.fromEntropy(entropy)
@@ -338,7 +351,8 @@ class AccountInteractorImpl(
                     }
                 }
             }
-        }.mapNotNull {
+        }.map {
+            // substrate mnemonic for a wallet or ethereum mnemonic for added ethereum account; or ton
             it.first()
         }
         return result

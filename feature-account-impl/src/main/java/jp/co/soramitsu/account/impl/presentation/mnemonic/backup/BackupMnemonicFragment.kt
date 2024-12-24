@@ -8,7 +8,8 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.domain.model.AccountType
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseFragment
@@ -26,12 +27,17 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
 
     companion object {
         fun getBundle(
-            isFromGoogleBackup: Boolean,
             accountName: String,
-            accountType: AccountType
+            walletId: Long?,
+            accountTypes: List<ImportAccountType>
         ): Bundle {
             return bundleOf(
-                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, accountType)
+                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(
+                    isFromGoogleBackup = false,
+                    accountName = accountName,
+                    walletId = walletId,
+                    accountTypes = accountTypes
+                )
             )
         }
     }
@@ -64,6 +70,23 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             }
 
             advancedBlockView.isVisible = viewModel.isShowAdvancedBlock
+            if (viewModel.walletId != null) {
+                when {
+                    viewModel.isSubstrateAndEthereumAccount -> {
+                        advancedBlockView.configure(FieldState.NORMAL)
+                    }
+
+                    viewModel.isSubstrateAccount -> {
+                        advancedBlockView.configureSubstrate(FieldState.NORMAL)
+                        advancedBlockView.configureEthereum(FieldState.HIDDEN)
+                    }
+
+                    viewModel.isEthereumAccount -> {
+                        advancedBlockView.configureSubstrate(FieldState.HIDDEN)
+                        advancedBlockView.configureEthereum(FieldState.NORMAL)
+                    }
+                }
+            }
             advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
                 viewModel.chooseEncryptionClicked()
             }

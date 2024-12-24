@@ -42,14 +42,17 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         const val IMPORT_ACCOUNT_TYPE_KEY = "IMPORT_ACCOUNT_TYPE_KEY"
         const val IMPORT_MODE_KEY = "IMPORT_MODE_KEY"
+        const val IMPORT_WALLET_ID_KEY = "IMPORT_WALLET_ID_KEY"
 
         fun getBundle(
+            walletId: Long?,
             accountType: ImportAccountType = ImportAccountType.Substrate,
             importMode: ImportMode = ImportMode.MnemonicPhrase
         ): Bundle {
             return bundleOf(
                 IMPORT_ACCOUNT_TYPE_KEY to accountType,
-                IMPORT_MODE_KEY to importMode
+                IMPORT_MODE_KEY to importMode,
+                IMPORT_WALLET_ID_KEY to walletId
             )
         }
     }
@@ -160,7 +163,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                     FieldState.DISABLED.applyTo(ethereumEncryptionTypeField)
                 }
                 sourceType is RawSeedImportSource -> {
-                    configureForSeed(blockchainType)
+                    configureForAccountType(blockchainType)
                 }
                 sourceType is JsonImportSource -> {
                     binding.advancedBlockView.makeGone()

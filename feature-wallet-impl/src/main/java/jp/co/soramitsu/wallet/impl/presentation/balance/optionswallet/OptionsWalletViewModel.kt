@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment.Companion.KEY_ALLOW_WALLET_DETAILS
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment.Companion.KEY_WALLET_ID
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ class OptionsWalletViewModel @Inject constructor(
     private val router: WalletRouter
 ) : BaseViewModel(), OptionsWalletCallback {
     private val walletId: Long = savedStateHandle[KEY_WALLET_ID] ?: error("No walletId provided")
+    private val allowWalletDetails: Boolean = savedStateHandle[KEY_ALLOW_WALLET_DETAILS] ?: true
 
     private val _deleteWalletConfirmation = MutableLiveData<Event<Long>>()
     val deleteWalletConfirmation: LiveData<Event<Long>> = _deleteWalletConfirmation
@@ -49,7 +51,7 @@ class OptionsWalletViewModel @Inject constructor(
         OptionsWalletScreenViewState(
             isSelected = selectedWallet.id == walletId,
             showScoreButton = chosenWallet.ethereumAddress != null,
-            showDetailsButton = chosenWallet.tonPublicKey == null
+            showDetailsButton = chosenWallet.tonPublicKey == null && allowWalletDetails
         )
     }.stateIn(
         viewModelScope,

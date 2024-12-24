@@ -7,6 +7,7 @@ import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
@@ -58,7 +59,8 @@ interface AccountRepository {
     suspend fun deleteAccount(metaId: Long)
 
     suspend fun importFromSeed(
-        seed: String,
+        walletId: Long?,
+        seed: String?,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
@@ -74,6 +76,12 @@ interface AccountRepository {
         name: String,
         ethJson: String?,
         googleBackupAddress: String?
+    )
+
+    suspend fun importAdditionalFromJson(
+        walletId: Long,
+        ethJson: String,
+        password: String
     )
 
     suspend fun isCodeSet(): Boolean
@@ -115,6 +123,7 @@ interface AccountRepository {
     suspend fun googleBackupAddressForWallet(walletId: Long): String
     suspend fun isGoogleBackupSupported(walletId: Long): Boolean
     suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
+    suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType?
     suspend fun getChain(chainId: ChainId): Chain
 
     suspend fun updateFavoriteChain(metaAccountId: Long, chainId: ChainId, isFavorite: Boolean)

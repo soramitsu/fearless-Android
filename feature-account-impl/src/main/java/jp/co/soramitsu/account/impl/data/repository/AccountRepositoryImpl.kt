@@ -15,6 +15,7 @@ import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
@@ -173,7 +174,9 @@ class AccountRepositoryImpl(
 
     override suspend fun createAccount(payload: AddAccountPayload): Long {
         val metaAccountId = accountRepositoryDelegate.create(payload)
-        selectAccount(metaAccountId)
+        if (payload !is AddAccountPayload.AdditionalEvm) {
+            selectAccount(metaAccountId)
+        }
         return metaAccountId
     }
 
@@ -182,14 +185,63 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun importFromSeed(
-        seed: String,
+        walletId: Long?,
+        seed: String?,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         ethSeed: String?,
         googleBackupAddress: String?
     ) {
-        return withContext(dispatcher) {
+        if (walletId == null) {
+            importNewAccount(seed!!, ethSeed, derivationPath, selectedEncryptionType, username, googleBackupAddress)
+        } else {
+            ethSeed?.let {
+                importAdditionalAccount(walletId, ethSeed)
+            }
+        }
+    }
+
+    // only Eth for now
+    private suspend fun importAdditionalAccount(walletId: Long, ethSeed: String) {
+        withContext(dispatcher) {
+            val ethSeedBytes = Hex.decode(ethSeed.removePrefix("0x"))
+            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(ethSeedBytes)
+            val localMetaAccount = metaAccountDao.getMetaAccount(walletId) ?: error("Account not found")
+            val metaAccount = MetaAccountLocal(
+                substratePublicKey = localMetaAccount.substratePublicKey,
+                substrateAccountId = localMetaAccount.substrateAccountId,
+                substrateCryptoType = localMetaAccount.substrateCryptoType,
+                name = localMetaAccount.name,
+                isSelected = true,
+                position = localMetaAccount.position,
+                ethereumPublicKey = ethereumKeypair.publicKey,
+                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                tonPublicKey = null,
+                isBackedUp = true,
+                googleBackupAddress = localMetaAccount.googleBackupAddress,
+                initialized = false
+            )
+            metaAccount.id = walletId
+
+            metaAccountDao.updateMetaAccount(metaAccount)
+
+            coroutineScope {
+                launch {
+                    val ethereumSecrets = EthereumSecrets(
+                        ethereumKeypair = ethereumKeypair,
+                        seed = ethSeedBytes,
+                        ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                    )
+
+                    ethereumSecretStore.put(walletId, ethereumSecrets)
+                }
+            }.join()
+        }
+    }
+
+    private suspend fun importNewAccount(seed: String, ethSeed: String?, derivationPath: String, selectedEncryptionType: CryptoType, username: String, googleBackupAddress: String?) {
+        withContext(dispatcher) {
             val substrateSeedBytes = Hex.decode(seed.removePrefix("0x"))
             val ethSeedBytes = ethSeed?.let { Hex.decode(it.removePrefix("0x")) }
 
@@ -235,7 +287,7 @@ class AccountRepositoryImpl(
                     )
                     substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
                 }
-                if(ethereumKeypair != null) {
+                if (ethereumKeypair != null) {
                     launch {
                         val ethereumSecrets = EthereumSecrets(
                             ethereumKeypair = ethereumKeypair,
@@ -309,6 +361,49 @@ class AccountRepositoryImpl(
                     }
                 }
                 launch { selectAccount(metaAccountId.await()) }
+            }.join()
+        }
+    }
+
+    override suspend fun importAdditionalFromJson(
+        walletId: Long,
+        ethJson: String,
+        password: String
+    ) {
+        return withContext(dispatcher) {
+            val ethImportData = jsonSeedDecoder.decode(ethJson, password)
+            val ethKeys = ethImportData.keypair
+
+            val localMetaAccount = metaAccountDao.getMetaAccount(walletId) ?: error("Account not found")
+
+            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(ethKeys.privateKey)
+
+            val metaAccount = MetaAccountLocal(
+                substratePublicKey = localMetaAccount.substratePublicKey,
+                substrateAccountId = localMetaAccount.substrateAccountId,
+                substrateCryptoType = localMetaAccount.substrateCryptoType,
+                name = localMetaAccount.name,
+                isSelected = localMetaAccount.isSelected,
+                position = localMetaAccount.position,
+                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                ethereumPublicKey = ethereumKeypair.publicKey,
+                tonPublicKey = null,
+                isBackedUp = true,
+                googleBackupAddress = localMetaAccount.googleBackupAddress,
+                initialized = false
+            )
+            metaAccount.id = walletId
+
+            metaAccountDao.updateMetaAccount(metaAccount)
+
+            coroutineScope {
+                    launch {
+                        val ethereumSecrets = EthereumSecrets(
+                            ethereumKeypair = ethereumKeypair
+                        )
+
+                        ethereumSecretStore.put(walletId, ethereumSecrets)
+                    }
             }.join()
         }
     }
@@ -492,6 +587,38 @@ class AccountRepositoryImpl(
         return substrateSecrets?.get(SubstrateSecrets.Entropy) != null
     }
 
+    override suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType? {
+        when (type) {
+            ImportAccountType.Substrate -> {
+                val substrateSecrets = substrateSecretStore.get(walletId)
+                if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null) {
+                    return BackupAccountType.PASSPHRASE
+                }
+                if (substrateSecrets?.get(SubstrateSecrets.Seed) != null) {
+                    return BackupAccountType.SEED
+                }
+            }
+
+            ImportAccountType.Ethereum -> {
+                val ethereumSecrets = ethereumSecretStore.get(walletId)
+                if (ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
+                    return BackupAccountType.PASSPHRASE
+                }
+                if (ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
+                    return BackupAccountType.SEED
+                }
+            }
+
+            ImportAccountType.Ton -> {
+                val tonSecrets = tonSecretStore.get(walletId)
+                if (tonSecrets != null) {
+                    return BackupAccountType.PASSPHRASE
+                }
+            }
+        }
+        return null
+    }
+
     override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> {
         val substrateSecrets = substrateSecretStore.get(walletId)
         val ethereumSecrets = ethereumSecretStore.get(walletId)
@@ -499,13 +626,13 @@ class AccountRepositoryImpl(
 
         val types = mutableSetOf<BackupAccountType>()
 
-        if (substrateSecrets != null && ethereumSecrets != null) {
-            if (substrateSecrets[SubstrateSecrets.Entropy] != null || ethereumSecrets[EthereumSecrets.Entropy] != null) {
+        if (substrateSecrets != null || ethereumSecrets != null) {
+            if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null || ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
                 types.add(BackupAccountType.PASSPHRASE)
                 types.add(BackupAccountType.SEED)
             }
 
-            if (substrateSecrets[SubstrateSecrets.Seed] != null || ethereumSecrets[EthereumSecrets.Seed] != null) {
+            if (substrateSecrets?.get(SubstrateSecrets.Seed) != null || ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
                 types.add(BackupAccountType.SEED)
             }
 

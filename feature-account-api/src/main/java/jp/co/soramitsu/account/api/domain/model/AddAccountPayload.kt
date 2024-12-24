@@ -21,4 +21,12 @@ sealed interface AddAccountPayload {
         val mnemonic: String,
         override val isBackedUp: Boolean
     ): AddAccountPayload
+
+    data class AdditionalEvm(
+        val walletId: Long,
+        override val accountName: String,
+        val mnemonic: String,
+        val ethereumDerivationPath: String,
+        override val isBackedUp: Boolean
+    ) : AddAccountPayload
 }

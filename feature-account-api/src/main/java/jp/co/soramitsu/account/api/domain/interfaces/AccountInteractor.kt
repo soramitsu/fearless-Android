@@ -3,11 +3,11 @@ package jp.co.soramitsu.account.api.domain.interfaces
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import java.io.File
-import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
@@ -31,7 +31,8 @@ interface AccountInteractor {
     suspend fun createAccount(payload: AddAccountPayload): Result<Long>
 
     suspend fun importFromSeed(
-        substrateSeed: String,
+        walletId: Long?,
+        substrateSeed: String?,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
@@ -42,6 +43,7 @@ interface AccountInteractor {
     fun validateJsonBackup(json: String, password: String)
 
     suspend fun importFromJson(
+        walletId: Long?,
         json: String,
         password: String,
         name: String,
@@ -93,6 +95,7 @@ interface AccountInteractor {
     suspend fun googleBackupAddressForWallet(walletId: Long): String
     suspend fun isGoogleBackupSupported(walletId: Long): Boolean
     suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
+    suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType?
 
     suspend fun getChain(chainId: ChainId): Chain
 

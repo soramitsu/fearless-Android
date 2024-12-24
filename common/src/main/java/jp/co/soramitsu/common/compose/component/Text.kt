@@ -354,26 +354,6 @@ fun H5(
 }
 
 @Composable
-fun H5Bold(
-    modifier: Modifier = Modifier,
-    text: String,
-    textAlign: TextAlign? = null,
-    color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip,
-    maxLines: Int = Int.MAX_VALUE
-) {
-    Text(
-        textAlign = textAlign,
-        text = text,
-        style = MaterialTheme.customTypography.header5.bold(),
-        modifier = modifier,
-        color = color,
-        overflow = overflow,
-        maxLines = maxLines
-    )
-}
-
-@Composable
 fun H5(
     modifier: Modifier = Modifier,
     text: AnnotatedString,

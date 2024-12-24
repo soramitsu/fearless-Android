@@ -7,8 +7,8 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -131,9 +131,22 @@ class ConfirmMnemonicViewModel @Inject constructor(
         val payloadExtras = payload.createExtras ?: return
         val mnemonicString = originMnemonic.joinToString(" ")
 
+        val isSubstrateOrEthereumAccount = payload.accountTypes.contains(ImportAccountType.Substrate) || payload.accountTypes.contains(ImportAccountType.Ethereum)
+        val isTonAccount = payload.accountTypes.contains(ImportAccountType.Ton)
+
         launch {
-            val addAccountPayload = when (payload.accountType) {
-                AccountType.SubstrateOrEvm -> {
+            val addAccountPayload = when  {
+                payload.metaId != null -> {
+                    AddAccountPayload.AdditionalEvm(
+                        payload.metaId,
+                        payloadExtras.accountName,
+                        mnemonicString,
+                        payloadExtras.ethereumDerivationPath,
+                        isBackedUp
+                    )
+                }
+
+                isSubstrateOrEthereumAccount -> {
                     AddAccountPayload.SubstrateOrEvm(
                         payloadExtras.accountName,
                         mnemonicString,
@@ -145,11 +158,16 @@ class ConfirmMnemonicViewModel @Inject constructor(
                     )
                 }
 
-                AccountType.Ton -> AddAccountPayload.Ton(
+                isTonAccount -> AddAccountPayload.Ton(
                     payloadExtras.accountName,
                     mnemonicString,
                     isBackedUp
                 )
+
+                else -> {
+                    showError(IllegalStateException("AccountType not specified"))
+                    return@launch
+                }
             }
             val result = interactor.createAccount(addAccountPayload)
             if (result.isSuccess) {

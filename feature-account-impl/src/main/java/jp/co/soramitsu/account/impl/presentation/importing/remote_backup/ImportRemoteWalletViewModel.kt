@@ -202,7 +202,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     override fun onCreateNewWallet() {
-        accountRouter.openCreateWalletDialog(true)
+        accountRouter.openCreateWalletDialogFromGoogleBackup()
     }
 
     fun backClicked() {
@@ -295,6 +295,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
         decryptedBackupAccount.seed?.let { seed ->
             interactor.importFromSeed(
+                walletId = null,
                 substrateSeed = seed.substrateSeed.orEmpty(),
                 username = decryptedBackupAccount.name,
                 derivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
@@ -307,6 +308,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
         decryptedBackupAccount.json?.let { json ->
             interactor.importFromJson(
+                walletId = null,
                 json = json.substrateJson.orEmpty(),
                 password = passwordText.value,
                 name = decryptedBackupAccount.name,

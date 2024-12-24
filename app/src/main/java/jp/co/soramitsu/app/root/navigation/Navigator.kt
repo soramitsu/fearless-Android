@@ -20,14 +20,12 @@ import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
-import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.account.chainaccounts.ChainAccountsDialog
 import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog
 import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsDialog
-import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.rename.RenameAccountDialog
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog
 import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
@@ -49,6 +47,7 @@ import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragmen
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
 import jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment
+import jp.co.soramitsu.account.impl.presentation.options_ecosystem_accounts.OptionsEcosystemAccountsFragment
 import jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
@@ -246,8 +245,8 @@ class Navigator :
         navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment, bundle)
     }
 
-    override fun openCreateWalletDialog(isFromGoogleBackup: Boolean) {
-        val bundle = CreateAccountDialog.getBundle(isFromGoogleBackup = isFromGoogleBackup)
+    override fun openCreateWalletDialogFromGoogleBackup() {
+        val bundle = CreateAccountDialog.getBundle()
         navController?.navigate(R.id.createAccountDialog, bundle)
     }
 
@@ -281,12 +280,11 @@ class Navigator :
         )
     }
 
-    override fun openMnemonicAgreementsDialog(
-        isFromGoogleBackup: Boolean,
+    override fun openMnemonicAgreementsDialogForGoogleBackup(
         accountName: String,
-        accountType: AccountType
+        accountTypes: List<ImportAccountType>
     ) {
-        val bundle = MnemonicAgreementsDialog.getBundle(isFromGoogleBackup, accountName, accountType)
+        val bundle = MnemonicAgreementsDialog.getBundle(accountName, accountTypes)
         navController?.navigate(R.id.mnemonicAgreementsDialog, bundle)
     }
 
@@ -369,29 +367,38 @@ class Navigator :
 //        navController?.navigate(R.id.importAccountFragment, arguments)
 //    }
 
-    override fun openImportAccountScreen(
+    override fun openImportAddAccountScreen(
+        walletId: Long,
         importAccountType: ImportAccountType,
         importMode: ImportMode
     ) {
-        val arguments = ImportAccountFragment.getBundle(importAccountType, importMode)
+        val arguments = ImportAccountFragment.getBundle(walletId, importAccountType, importMode)
         navController?.navigate(R.id.importAccountFragment, arguments)
     }
 
-    override fun openMnemonicScreen(
-        isFromGoogleBackup: Boolean,
-        accountName: String,
-        accountMode: AccountType
-    ) {
-        val bundle = BackupMnemonicFragment.getBundle(isFromGoogleBackup, accountName, accountMode)
+    override fun openImportAccountScreen(importAccountType: ImportAccountType, importMode: ImportMode) {
+        val arguments = ImportAccountFragment.getBundle(null, importAccountType, importMode)
+        navController?.navigate(R.id.importAccountFragment, arguments)
+    }
+
+    override fun openMnemonicScreenAddAccount(walletId: Long, accountName: String, type: ImportAccountType) {
+        val bundle = BackupMnemonicFragment.getBundle(accountName, walletId, listOf(type))
         navController?.navigate(R.id.backupMnemonicFragment, bundle)
     }
 
-    override fun openMnemonicDialog(
-        isFromGoogleBackup: Boolean,
+    override fun openMnemonicScreen(
         accountName: String,
-        accountType: AccountType
+        accountTypes: List<ImportAccountType>
     ) {
-        val bundle = BackupMnemonicDialog.getBundle(isFromGoogleBackup, accountName, accountType)
+        val bundle = BackupMnemonicFragment.getBundle(accountName, null, accountTypes)
+        navController?.navigate(R.id.backupMnemonicFragment, bundle)
+    }
+
+    override fun openMnemonicDialogGoogleBackup(
+        accountName: String,
+        accountTypes: List<ImportAccountType>
+    ) {
+        val bundle = BackupMnemonicDialog.getBundle(accountName, accountTypes)
         navController?.navigate(R.id.backupMnemonicDialog, bundle)
     }
 
@@ -1129,6 +1136,11 @@ class Navigator :
         navController?.navigate(R.id.accountDetailsDialog, extras)
     }
 
+    override fun openEcosystemAccountsFragment(walletId: Long, type: ImportAccountType) {
+        val bundle = ChainAccountsDialog.getBundle(walletId, type)
+        navController?.navigate(R.id.chainAccountsDialog, bundle)
+    }
+
     override fun openBackupWalletScreen(metaAccountId: Long) {
         val extras = BackupWalletDialog.getBundle(metaAccountId)
 
@@ -1139,12 +1151,6 @@ class Navigator :
         val extras = RenameAccountDialog.getBundle(metaAccountId, name)
 
         navController?.navigate(R.id.renameAccountDialog, extras)
-    }
-
-    override fun openAccountsForExport(metaId: Long, from: AccountInChain.From) {
-        val extras = AccountsForExportFragment.getBundle(metaId, from)
-
-        navController?.navigate(R.id.action_open_accountsForExportFragment, extras)
     }
 
     override fun openNodeDetails(payload: NodeDetailsPayload) {
@@ -1235,9 +1241,13 @@ class Navigator :
     }
 
     override fun openConfirmMnemonicOnExport(mnemonic: List<String>, metaId: Long) {
-        println("!!! Navogator openConfirmMnemonicOnExport ")
-        //TODO PROVIDE ACCOUNT TYPE
-        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, metaId, null, AccountType.SubstrateOrEvm))
+        val payload = ConfirmMnemonicPayload(
+            mnemonic = mnemonic,
+            metaId = metaId,
+            createExtras = null,
+            accountTypes = listOf(ImportAccountType.Substrate)
+        )
+        val extras = ConfirmMnemonicFragment.getBundle(payload)
 
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }
@@ -1300,9 +1310,14 @@ class Navigator :
         navController?.navigate(R.id.selectWalletFragment)
     }
 
-    override fun openOptionsAddAccount(payload: AddAccountPayload) {
-        val bundle = OptionsAddAccountFragment.getBundle(payload)
+    override fun openOptionsAddAccount(metaId: Long, type: ImportAccountType) {
+        val bundle = OptionsAddAccountFragment.getBundle(metaId, type)
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
+    }
+
+    override fun openEcosystemAccountsOptions(walletId: Long, type: ImportAccountType) {
+        val bundle = OptionsEcosystemAccountsFragment.getBundle(walletId, type)
+        navController?.navigate(R.id.optionsEcosystemAccountsFragment, bundle)
     }
 
     override fun openOptionsSwitchNode(
@@ -1332,8 +1347,8 @@ class Navigator :
         navController?.navigate(R.id.searchAssetsFragment)
     }
 
-    override fun openOptionsWallet(walletId: Long) {
-        val bundle = OptionsWalletFragment.getBundle(walletId)
+    override fun openOptionsWallet(walletId: Long, allowDetails: Boolean) {
+        val bundle = OptionsWalletFragment.getBundle(walletId, allowDetails)
         navController?.navigate(R.id.optionsWalletFragment, bundle)
     }
 

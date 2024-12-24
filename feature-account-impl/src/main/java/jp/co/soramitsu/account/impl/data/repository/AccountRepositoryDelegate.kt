@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
-import jp.co.soramitsu.common.utils.base64
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.nullIfEmpty
@@ -17,9 +16,6 @@ import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
-import jp.co.soramitsu.shared_utils.encrypt.json.coders.type.JsonTypeEncoder
-import jp.co.soramitsu.shared_utils.encrypt.json.coders.type.cryptor.XSalsa20Poly1305Cryptor
-import jp.co.soramitsu.shared_utils.encrypt.json.coders.type.keyGenerator.ScryptKeyGenerator
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
@@ -36,6 +32,7 @@ class AccountRepositoryDelegate(
         return when (payload) {
             is AddAccountPayload.SubstrateOrEvm -> substrateOrEvmAccountRepository.create(payload)
             is AddAccountPayload.Ton -> tonAccountRepository.create(payload)
+            is AddAccountPayload.AdditionalEvm -> substrateOrEvmAccountRepository.createAdditional(payload)
         }
     }
 }
@@ -45,6 +42,50 @@ class SubstrateOrEvmAccountRepository(
     private val substrateSecretStore: SubstrateSecretStore,
     private val ethereumSecretStore: EthereumSecretStore
 ) {
+    suspend fun createAdditional(payload: AddAccountPayload.AdditionalEvm): Long {
+        val decodedEthereumDerivationPath =
+            BIP32JunctionDecoder.decode(payload.ethereumDerivationPath)
+        val ethereumSeedResult = EthereumSeedFactory.deriveSeed32(
+            payload.mnemonic,
+            password = decodedEthereumDerivationPath.password
+        )
+        val ethereumKeypair = EthereumKeypairFactory.generate(
+            ethereumSeedResult.seed,
+            junctions = decodedEthereumDerivationPath.junctions
+        )
+        val localMetaAccount = metaAccountDao.getMetaAccount(payload.walletId) ?: error("Account not exist")
+
+        val metaAccount = MetaAccountLocal(
+            substratePublicKey = localMetaAccount.substratePublicKey,
+            substrateAccountId = localMetaAccount.substrateAccountId,
+            substrateCryptoType = localMetaAccount.substrateCryptoType,
+            ethereumPublicKey = ethereumKeypair.publicKey,
+            ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+            tonPublicKey = null,
+            name = localMetaAccount.name,
+            isSelected = localMetaAccount.isSelected,
+            position = localMetaAccount.position,
+            isBackedUp = payload.isBackedUp,
+            googleBackupAddress = localMetaAccount.googleBackupAddress,
+            initialized = false,
+        )
+
+        metaAccount.id = payload.walletId
+
+        metaAccountDao.updateMetaAccount(metaAccount)
+
+        val ethereumSecrets = EthereumSecrets(
+            entropy = ethereumSeedResult.mnemonic.entropy,
+            seed = ethereumKeypair.privateKey,
+            ethereumKeypair = ethereumKeypair,
+            ethereumDerivationPath = payload.ethereumDerivationPath
+        )
+
+        ethereumSecretStore.put(payload.walletId, ethereumSecrets)
+
+        return payload.walletId
+    }
+
     suspend fun create(payload: AddAccountPayload.SubstrateOrEvm): Long {
         val substrateDerivationPathOrNull = payload.substrateDerivationPath.nullIfEmpty()
         val decodedDerivationPath = substrateDerivationPathOrNull?.let {

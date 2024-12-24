@@ -41,7 +41,7 @@ import jp.co.soramitsu.shared_utils.encrypt.EncryptionType
 data class BackupMnemonicState(
     val mnemonicWords: List<MnemonicWordModel>,
     val selectedEncryptionType: String,
-    val accountType: ImportAccountType,
+    val accountTypes: List<ImportAccountType>,
     val substrateDerivationPath: String,
     val ethereumDerivationPath: String,
     val isFromGoogleBackup: Boolean
@@ -50,7 +50,7 @@ data class BackupMnemonicState(
         val Empty = BackupMnemonicState(
             mnemonicWords = emptyList(),
             selectedEncryptionType = "",
-            accountType = ImportAccountType.Substrate,
+            accountTypes = emptyList(),
             substrateDerivationPath = "",
             ethereumDerivationPath = "",
             isFromGoogleBackup = false
@@ -220,7 +220,7 @@ private fun PreviewBackupMnemonicContent() {
             state = BackupMnemonicState(
                 mnemonicWords = listOf(MnemonicWordModel("1", "one"), MnemonicWordModel("2", "two"), MnemonicWordModel("3", "three")),
                 selectedEncryptionType = EncryptionType.ECDSA.rawName,
-                accountType = ImportAccountType.Substrate,
+                accountTypes = listOf(ImportAccountType.Substrate),
                 substrateDerivationPath = "",
                 ethereumDerivationPath = "",
                 isFromGoogleBackup = false

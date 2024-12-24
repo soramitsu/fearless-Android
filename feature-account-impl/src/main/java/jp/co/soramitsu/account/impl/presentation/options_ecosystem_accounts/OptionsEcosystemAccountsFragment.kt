@@ -1,8 +1,10 @@
-package jp.co.soramitsu.account.impl.presentation.optionsaddaccount
+package jp.co.soramitsu.account.impl.presentation.options_ecosystem_accounts
 
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -11,25 +13,27 @@ import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
-class OptionsAddAccountFragment : BaseComposeBottomSheetDialogFragment<OptionsAddAccountViewModel>() {
+class OptionsEcosystemAccountsFragment : BaseComposeBottomSheetDialogFragment<OptionsEcosystemAccountsViewModel>() {
 
     companion object {
-        const val KEY_WALLET_ID = "KEY_WALLET_ID"
-        const val KEY_TYPE = "KEY_TYPE"
+        const val KEY_META_ID = "key_meta_id"
+        const val KEY_TYPE = "key_type"
 
-        fun getBundle(walletId: Long, type: ImportAccountType) = bundleOf(
-            KEY_WALLET_ID to walletId,
+        fun getBundle(metaId: Long, type: ImportAccountType) = bundleOf(
+            KEY_META_ID to metaId,
             KEY_TYPE to type
         )
     }
 
-    override val viewModel: OptionsAddAccountViewModel by viewModels()
+    override val viewModel: OptionsEcosystemAccountsViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {
-        OptionsAddAccountContent(
-            onCreate = viewModel::createAccount,
-            onImport = viewModel::importAccount,
+        val state by viewModel.state.collectAsState()
+        OptionsEcosystemAccountsContent(
+            state = state,
+            onBackupEcosystemAccountsClicked = viewModel::onBackupEcosystemAccountsClicked,
+            onEcosystemAccountsClicked = viewModel::onEcosystemAccountsClicked,
             onBackClicked = viewModel::onBackClicked
         )
     }

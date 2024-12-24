@@ -11,7 +11,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -57,51 +56,51 @@ class BackupMnemonicViewModel @Inject constructor(
 
     private val payload =
         savedStateHandle.get<BackupMnemonicPayload>(BackupMnemonicScreenKeys.PAYLOAD_KEY)!!
+    val walletId = payload.walletId
+
+    val isSubstrateAndEthereumAccount = payload.accountTypes.contains(ImportAccountType.Substrate) && payload.accountTypes.contains(ImportAccountType.Ethereum)
+    val isEthereumAccount = payload.accountTypes.contains(ImportAccountType.Ethereum)
+    val isSubstrateAccount = payload.accountTypes.contains(ImportAccountType.Substrate)
+    val isTonAccount = payload.accountTypes.contains(ImportAccountType.Ton)
+    val isSubstrateOrEthereumAccount = isSubstrateAccount || isEthereumAccount
+
     val isShowAdvancedBlock =
-        !payload.isFromGoogleBackup && payload.accountType == AccountType.SubstrateOrEvm
+        !payload.isFromGoogleBackup && isSubstrateOrEthereumAccount
     val isShowBackupWithGoogle =
-        !payload.isFromGoogleBackup /*&& payload.chainAccountData == null*/ && payload.accountType == AccountType.SubstrateOrEvm
-    val isShowSkipButton = payload.accountType == AccountType.Ton
+        !payload.isFromGoogleBackup && walletId == null && isSubstrateOrEthereumAccount
+    val isShowSkipButton = isTonAccount
 
     val mnemonic = flow {
-        val mnemonicLength = when (payload.accountType) {
-            AccountType.SubstrateOrEvm -> Mnemonic.Length.TWELVE
-            AccountType.Ton -> Mnemonic.Length.TWENTY_FOUR
+        val mnemonicLength = if (isSubstrateOrEthereumAccount) {
+            Mnemonic.Length.TWELVE
+        } else {
+            Mnemonic.Length.TWENTY_FOUR
         }
         emit(generateMnemonic(mnemonicLength))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val selectedEncryptionType = selectedEncryptionTypeLiveData.asFlow()
-    private val accountType = MutableStateFlow(ImportAccountType.Substrate)
     private val substrateDerivationPath = MutableStateFlow("")
     private val ethereumDerivationPath = MutableStateFlow("")
 
     val state = combine(
         mnemonic,
         selectedEncryptionType,
-        accountType,
         substrateDerivationPath,
         ethereumDerivationPath
     ) { mnemonic,
         selectedEncryptionType,
-        accountType,
         substrateDerivationPath,
         ethereumDerivationPath ->
         BackupMnemonicState(
             mnemonicWords = mnemonic,
             selectedEncryptionType = selectedEncryptionType.name,
-            accountType = accountType,
+            accountTypes = payload.accountTypes,
             substrateDerivationPath = substrateDerivationPath,
             ethereumDerivationPath = ethereumDerivationPath,
             isFromGoogleBackup = payload.isFromGoogleBackup
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, BackupMnemonicState.Empty)
-
-//    val chainAccountImportType = liveData {
-//        payload.chainAccountData?.chainId?.let {
-//            emit(interactor.getChain(it).importAccountType)
-//        }
-//    }
 
     private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")
 
@@ -180,29 +179,18 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
-        val createExtras = //when (payload.chainAccountData) {
-//            null ->
-        CreateExtras(
+        val createExtras = CreateExtras(
                 payload.accountName,
                 cryptoTypeModel.cryptoType,
                 substrateDerivationPath,
                 ethereumDerivationPath
             )
 
-//            else -> ConfirmMnemonicPayload.CreateChainExtras(
-//                payload.accountName,
-//                cryptoTypeModel.cryptoType,
-//                substrateDerivationPath,
-//                ethereumDerivationPath,
-//                payload.chainAccountData.chainId,
-//                payload.chainAccountData.metaId
-//            )
-//        }
         val payload = ConfirmMnemonicPayload(
-            mnemonic,
-            metaId = null, //payload.chainAccountData?.metaId,
-            createExtras,
-            payload.accountType
+            mnemonic = mnemonic,
+            metaId = walletId,
+            createExtras = createExtras,
+            accountTypes = payload.accountTypes
         )
 
         router.openConfirmMnemonicOnCreate(payload)
@@ -323,8 +311,8 @@ class BackupMnemonicViewModel @Inject constructor(
         val mnemonicWords = this@BackupMnemonicViewModel.mnemonic.value.map(MnemonicWordModel::word)
         val mnemonicString = mnemonicWords.joinToString(" ")
 
-        val addAccountPayload = when (payload.accountType) {
-            AccountType.SubstrateOrEvm -> {
+        val addAccountPayload = when {
+            isSubstrateOrEthereumAccount -> {
                 val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return Result.failure(
                     IllegalStateException("There must be encryption type selected for substrate ecosystem")
                 )
@@ -342,10 +330,14 @@ class BackupMnemonicViewModel @Inject constructor(
                 )
             }
 
-            AccountType.Ton -> AddAccountPayload.Ton(
+            isTonAccount -> AddAccountPayload.Ton(
                 payload.accountName,
                 mnemonicString,
                 false
+            )
+
+            else -> return Result.failure(
+                IllegalStateException("AccountType not specified")
             )
         }
         return interactor.createAccount(addAccountPayload)

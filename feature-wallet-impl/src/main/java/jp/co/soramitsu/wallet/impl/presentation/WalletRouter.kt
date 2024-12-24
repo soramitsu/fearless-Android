@@ -3,7 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation
 import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
@@ -138,7 +138,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openGetSoraCard()
 
-    fun openOptionsAddAccount(payload: AddAccountPayload)
+    fun openOptionsAddAccount(metaId: Long, type: ImportAccountType)
 
     fun openOptionsSwitchNode(
         metaId: Long,
@@ -154,7 +154,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSearchAssets()
 
-    fun openOptionsWallet(walletId: Long)
+    fun openOptionsWallet(walletId: Long, allowDetails: Boolean = true)
 
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
@@ -172,8 +172,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateContact(chainId: ChainId?, address: String?)
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
-
-    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openImportRemoteWalletDialog()
     fun openConnectionDetails(topic: String)

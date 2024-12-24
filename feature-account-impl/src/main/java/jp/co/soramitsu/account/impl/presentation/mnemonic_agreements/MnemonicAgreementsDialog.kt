@@ -10,7 +10,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.domain.model.AccountType
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
@@ -35,19 +35,16 @@ class MnemonicAgreementsDialog : BaseComposeBottomSheetDialogFragment<MnemonicAg
 
     companion object {
 
-        const val IS_FROM_GOOGLE_BACKUP_KEY = "IS_FROM_GOOGLE_BACKUP_KEY"
         const val WALLET_NAME_KEY = "ACCOUNT_NAME_KEY"
-        const val ACCOUNT_TYPE_KEY = "ACCOUNT_TYPE_KEY"
+        const val ACCOUNT_TYPES_KEY = "ACCOUNT_TYPES_KEY"
 
         fun getBundle(
-            isFromGoogleBackupKey: Boolean,
             accountName: String,
-            accountType: AccountType
+            accountTypes: List<ImportAccountType>
         ): Bundle {
             return bundleOf(
-                IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackupKey,
                 WALLET_NAME_KEY to accountName,
-                ACCOUNT_TYPE_KEY to accountType
+                ACCOUNT_TYPES_KEY to accountTypes
             )
         }
     }

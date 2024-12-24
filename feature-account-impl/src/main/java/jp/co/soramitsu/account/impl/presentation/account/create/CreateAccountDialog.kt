@@ -20,8 +20,8 @@ import jp.co.soramitsu.feature_account_impl.R
 class CreateAccountDialog : BaseComposeBottomSheetDialogFragment<CreateAccountViewModel>() {
     companion object {
 
-        fun getBundle(isFromGoogleBackup: Boolean): Bundle {
-            return bundleOf(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackup)
+        fun getBundle(): Bundle {
+            return bundleOf(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to true)
         }
     }
 

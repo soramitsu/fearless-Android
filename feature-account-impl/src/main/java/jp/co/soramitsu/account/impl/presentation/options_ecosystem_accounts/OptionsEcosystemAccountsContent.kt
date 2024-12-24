@@ -1,4 +1,4 @@
-package jp.co.soramitsu.account.impl.presentation.optionsaddaccount
+package jp.co.soramitsu.account.impl.presentation.options_ecosystem_accounts
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H3
@@ -24,10 +25,16 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.feature_account_api.R
 
+data class OptionsEcosystemAccountsScreenViewState(
+    val metaId: Long,
+    val type: ImportAccountType
+)
+
 @Composable
-fun OptionsAddAccountContent(
-    onCreate: () -> Unit,
-    onImport: () -> Unit,
+fun OptionsEcosystemAccountsContent(
+    state: OptionsEcosystemAccountsScreenViewState,
+    onBackupEcosystemAccountsClicked: () -> Unit,
+    onEcosystemAccountsClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
     BottomSheetScreen {
@@ -52,25 +59,25 @@ fun OptionsAddAccountContent(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(horizontal = 32.dp),
-                    text = stringResource(id = R.string.recovery_source_type),
+                    text = stringResource(id = R.string.ecosystem_options_title),
                     textAlign = TextAlign.Center
                 )
             }
             MarginVertical(margin = 28.dp)
             GrayButton(
-                text = stringResource(id = R.string.create_new_account),
+                text = stringResource(id = R.string.ecosystem_options_backup_title),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                onClick = onCreate
+                onClick = onBackupEcosystemAccountsClicked
             )
             MarginVertical(margin = 12.dp)
             GrayButton(
-                text = stringResource(id = R.string.already_have_account),
+                text = stringResource(id = R.string.ecosystem_options_details_title),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                onClick = onImport
+                onClick = onEcosystemAccountsClicked
             )
             MarginVertical(margin = 12.dp)
         }
@@ -79,11 +86,15 @@ fun OptionsAddAccountContent(
 
 @Preview
 @Composable
-private fun OptionsAddAccountScreenPreview() {
-    FearlessAppTheme() {
-        OptionsAddAccountContent(
-            onCreate = {},
-            onImport = {},
+private fun OptionsEcosystemAccountsScreenPreview() {
+    FearlessAppTheme {
+        OptionsEcosystemAccountsContent(
+            state = OptionsEcosystemAccountsScreenViewState(
+                metaId = 1,
+                type = ImportAccountType.Ethereum
+            ),
+            onBackupEcosystemAccountsClicked = { },
+            onEcosystemAccountsClicked = { },
             onBackClicked = {}
         )
     }

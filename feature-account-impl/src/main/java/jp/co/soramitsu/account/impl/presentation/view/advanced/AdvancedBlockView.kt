@@ -145,8 +145,8 @@ class AdvancedBlockView @JvmOverloads constructor(
         configureEthereum(fieldState)
     }
 
-    fun configureForSeed(blockchainType: ImportAccountType) {
-        when (blockchainType) {
+    fun configureForAccountType(type: ImportAccountType) {
+        when (type) {
             ImportAccountType.Substrate -> {
                 configureSubstrate(FieldState.NORMAL)
                 configureEthereum(FieldState.HIDDEN)
@@ -156,7 +156,7 @@ class AdvancedBlockView @JvmOverloads constructor(
                 configure(ethereumEncryptionTypeField, FieldState.DISABLED)
             }
             ImportAccountType.Ton -> {
-                /* not applicable */
+                /* not used */
                 configureSubstrate(FieldState.HIDDEN)
                 configureEthereum(FieldState.HIDDEN)
             }
