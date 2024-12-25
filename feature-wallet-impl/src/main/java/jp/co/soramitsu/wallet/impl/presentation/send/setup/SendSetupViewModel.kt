@@ -80,6 +80,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelec
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -285,7 +286,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private val feeAmountFlow = combine(
         addressInputTrimmedFlow,
         isInputAddressValidFlow,
@@ -322,6 +323,7 @@ class SendSetupViewModel @Inject constructor(
         asset.token.planksFromAmount(fee)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
         walletInteractor.assetFlow(chain.id, chain.utilityAsset?.id.orEmpty())
@@ -664,19 +666,7 @@ class SendSetupViewModel @Inject constructor(
 
     private fun findChainsForAddress(address: String) {
         launch {
-            val chains = walletInteractor.getChains().first()
-            val meta = walletInteractor.getSelectedMetaAccount()
-            val accountSupportedChains = chains.filter {
-                when (it.ecosystem) {
-                    Ecosystem.Substrate -> meta.hasSubstrate
-                    Ecosystem.Ton -> meta.hasTon
-                    Ecosystem.EthereumBased,
-                    Ecosystem.Ethereum -> meta.hasEthereum
-                }
-            }
-            val addressChains = accountSupportedChains.filter {
-                it.isValidAddress(address)
-            }
+            val addressChains = getAccountSupportedChains(address)
             when {
                 addressChains.size == 1 -> {
                     val chain = addressChains[0]
@@ -866,10 +856,32 @@ class SendSetupViewModel @Inject constructor(
                 if (soraQrContent != null) {
                     handleSoraQr(soraQrContent)
                 } else {
-                    fillQrContentToAddressField(content)
+                    val addressChains = getAccountSupportedChains(content)
+                    if (addressChains.isNotEmpty()) {
+                        fillQrContentToAddressField(content)
+                    } else {
+                        showInvalidAddressError()
+                    }
                 }
             }
         }
+    }
+
+    private suspend fun getAccountSupportedChains(address: String): List<Chain> {
+        val chains = walletInteractor.getChains().first()
+        val meta = walletInteractor.getSelectedMetaAccount()
+        val accountSupportedChains = chains.filter {
+            when (it.ecosystem) {
+                Ecosystem.Substrate -> meta.hasSubstrate
+                Ecosystem.Ton -> meta.hasTon
+                Ecosystem.EthereumBased,
+                Ecosystem.Ethereum -> meta.hasEthereum
+            }
+        }
+        val addressChains = accountSupportedChains.filter {
+            it.isValidAddress(address)
+        }
+        return addressChains
     }
 
     private fun fillQrContentToAddressField(content: String) {
