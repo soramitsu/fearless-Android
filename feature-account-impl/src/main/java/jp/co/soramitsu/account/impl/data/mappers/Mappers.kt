@@ -13,11 +13,12 @@ import jp.co.soramitsu.common.data.network.nomis.NomisResponse
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
-import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
-import jp.co.soramitsu.coredb.model.chain.JoinedMetaAccountInfo
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.JoinedMetaAccountInfo
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -72,6 +73,7 @@ fun mapMetaAccountLocalToLightMetaAccount(
         substrateAccountId = substrateAccountId,
         ethereumAddress = ethereumAddress,
         ethereumPublicKey = ethereumPublicKey,
+        tonPublicKey = tonPublicKey,
         isSelected = isSelected,
         name = name,
         isBackedUp = isBackedUp,
@@ -117,6 +119,7 @@ fun mapMetaAccountLocalToMetaAccount(
             substrateAccountId = substrateAccountId,
             ethereumAddress = ethereumAddress,
             ethereumPublicKey = ethereumPublicKey,
+            tonPublicKey = tonPublicKey,
             isSelected = isSelected,
             name = name,
             isBackedUp = isBackedUp,
@@ -128,17 +131,19 @@ fun mapMetaAccountLocalToMetaAccount(
 }
 
 fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account? {
+    if(chain.ecosystem != Ecosystem.Substrate) return null
     return metaAccount.address(chain)?.let { address ->
+        runCatching {
+            val accountId = chain.hexAccountIdOf(address)
 
-        val accountId = chain.hexAccountIdOf(address)
-
-        Account(
-            address = address,
-            name = metaAccount.name,
-            accountIdHex = accountId,
-            cryptoType = metaAccount.substrateCryptoType,
-            position = 0
-        )
+            Account(
+                address = address,
+                name = metaAccount.name,
+                accountIdHex = accountId,
+                cryptoType = metaAccount.substrateCryptoType,
+                position = 0
+            )
+        }.getOrNull()
     }
 }
 

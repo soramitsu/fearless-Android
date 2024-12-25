@@ -7,6 +7,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
@@ -33,9 +36,12 @@ class DbModule {
     fun provideAppDatabase(
         context: Context,
         storeV1: SecretStoreV1,
-        storeV2: SecretStoreV2
+        storeV2: SecretStoreV2,
+        encryptedPreferences: EncryptedPreferences,
+        substrateSecretStore: SubstrateSecretStore,
+        ethereumSecretStore: EthereumSecretStore
     ): AppDatabase {
-        return AppDatabase.get(context, storeV1, storeV2)
+        return AppDatabase.get(context, storeV1, storeV2, encryptedPreferences, substrateSecretStore, ethereumSecretStore)
     }
 
     @Provides

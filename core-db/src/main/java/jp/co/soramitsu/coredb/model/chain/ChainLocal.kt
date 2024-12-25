@@ -25,6 +25,8 @@ data class ChainLocal(
     val supportNft: Boolean,
     val isUsesAppId: Boolean,
     val identityChain: String?,
+    val ecosystem: String,
+    val androidMinAppVersion: String?,
     val remoteAssetsSource: String?
 ) {
 

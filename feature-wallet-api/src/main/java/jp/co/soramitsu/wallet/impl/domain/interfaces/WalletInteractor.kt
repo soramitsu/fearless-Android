@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.domain.interfaces
 
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -77,16 +78,10 @@ interface WalletInteractor {
 
     suspend fun getPhishingInfo(address: String): PhishingModel?
 
-    suspend fun getTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Fee
-
-    suspend fun observeTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Flow<Fee>
+    suspend fun observeTransferFee(transfer: Transfer): Flow<BigDecimal>
 
     suspend fun performTransfer(
-        transfer: Transfer,
-        fee: BigDecimal,
-        tipInPlanks: BigInteger?,
-        appId: BigInteger?,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
+        transfer: Transfer
     ): Result<String>
 
     suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: BigDecimal?): String

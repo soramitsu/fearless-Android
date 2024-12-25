@@ -125,6 +125,9 @@ abstract class ChainDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun insertChainAssetsIgnoringConflicts(assets: List<ChainAssetLocal>)
+
     @Update
     protected abstract suspend fun updateChainAssets(assets: List<ChainAssetLocal>)
     @Delete

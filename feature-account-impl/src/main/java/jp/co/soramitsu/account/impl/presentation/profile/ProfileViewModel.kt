@@ -12,6 +12,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
+import jp.co.soramitsu.androidfoundation.fragment.SingleLiveEvent
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -28,14 +29,17 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.IbanStatus
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
-import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
+import jp.co.soramitsu.soracard.api.util.createSoraCardContract
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -74,11 +78,10 @@ class ProfileViewModel @Inject constructor(
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
-    //    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
-//        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
-//        SoraCardItemViewState(kycStatus, it, null, true)
-//    }
-    private val soraCardState = flowOf(SoraCardItemViewState())
+    private val _launchSoraCardSignIn = SingleLiveEvent<SoraCardContractData>()
+    val launchSoraCardSignIn: LiveData<SoraCardContractData> = _launchSoraCardSignIn
+
+    private var currentSoraCardContractData: SoraCardContractData? = null
 
     private val defaultWalletItemViewState = WalletItemViewState(
         id = 0,
@@ -98,7 +101,8 @@ class ProfileViewModel @Inject constructor(
             walletsItemAction = SettingsItemAction.Transition,
             currency = selectedFiat.get(),
             language = "",
-            nomisChecked = true
+            nomisChecked = true,
+            soraCardVisible = false,
         )
     )
 
@@ -182,6 +186,20 @@ class ProfileViewModel @Inject constructor(
                 prevState.copy(language = mapped.displayName)
             }
         }
+
+        soraCardInteractor.basicStatus
+            .onEach {
+                it.availabilityInfo?.let { info ->
+                    currentSoraCardContractData = createSoraCardContract(
+                        userAvailableXorAmount = info.xorBalance.toDouble(),
+                        isEnoughXorAvailable = info.enoughXor,
+                    )
+                }
+                state.update { state ->
+                    state.copy(soraCardVisible = it.needInstallUpdate.not())
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     override fun aboutClicked() {
@@ -238,17 +256,31 @@ class ProfileViewModel @Inject constructor(
     }
 
     override fun onSoraCardClicked() {
-        launch {
-            val soraCardState: SoraCardItemViewState? = soraCardState.firstOrNull()
-            if (soraCardState?.kycStatus == null) {
-                router.openGetSoraCard()
-            } else {
-                onSoraCardStatusClicked()
+        if (soraCardInteractor.basicStatus.value.initialized) {
+            if (soraCardInteractor.basicStatus.value.ibanInfo != null && soraCardInteractor.basicStatus.value.ibanInfo?.ibanStatus != IbanStatus.OTHER)
+                router.openSoraCardDetails()
+            else when (soraCardInteractor.basicStatus.value.verification) {
+                SoraCardCommonVerification.NotFound -> {
+                    router.openGetSoraCard()
+                }
+
+                SoraCardCommonVerification.Successful -> {
+                    router.openSoraCardDetails()
+                }
+
+                else -> {
+                    currentSoraCardContractData?.let { contractData ->
+                        _launchSoraCardSignIn.value = contractData
+                    }
+                }
+            }
+        } else {
+            soraCardInteractor.basicStatus.value.initError.takeIf {
+                it.isNullOrEmpty().not()
+            }?.let {
+                showMessage(it)
             }
         }
-    }
-
-    private fun onSoraCardStatusClicked() {
     }
 
     override fun onWalletConnectClick() {
@@ -262,5 +294,36 @@ class ProfileViewModel @Inject constructor(
 
     override fun onScoreClick(item: WalletItemViewState) {
         router.openScoreDetailsScreen(item.id)
+    }
+
+    fun handleSoraCardResult(soraCardResult: SoraCardResult) {
+        when (soraCardResult) {
+            is SoraCardResult.NavigateTo -> {
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> {}
+                    OutwardsScreen.SWAP -> {}
+                    OutwardsScreen.BUY -> {}
+                }
+            }
+
+            is SoraCardResult.Success -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setStatus(soraCardResult.status)
+                }
+            }
+
+            is SoraCardResult.Failure -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setStatus(soraCardResult.status)
+                }
+            }
+
+            is SoraCardResult.Canceled -> {}
+            is SoraCardResult.Logout -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setLogout()
+                }
+            }
+        }
     }
 }

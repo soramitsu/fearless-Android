@@ -7,6 +7,9 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.coredb.converters.CryptoTypeConverters
 import jp.co.soramitsu.coredb.converters.LongMathConverters
 import jp.co.soramitsu.coredb.converters.OperationConverters
@@ -79,6 +82,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_70_71
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
+import jp.co.soramitsu.coredb.migrations.TonMigration
 import jp.co.soramitsu.coredb.migrations.V2Migration
 import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
@@ -93,7 +97,7 @@ import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.coredb.model.UserPoolLocal
-import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -101,10 +105,10 @@ import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
 
 @Database(
-    version = 71,
+    version = 72,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
@@ -146,7 +150,10 @@ abstract class AppDatabase : RoomDatabase() {
         fun get(
             context: Context,
             storeV1: SecretStoreV1,
-            storeV2: SecretStoreV2
+            storeV2: SecretStoreV2,
+            encryptedPreferences: EncryptedPreferences,
+            substrateSecretStore: SubstrateSecretStore,
+            ethereumSecretStore: EthereumSecretStore
         ): AppDatabase {
             if (instance == null) {
                 instance = Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "app.db")
@@ -199,6 +206,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_68_69)
                     .addMigrations(Migration_69_70)
                     .addMigrations(Migration_70_71)
+                    .addMigrations(TonMigration(storeV2, substrateSecretStore, ethereumSecretStore, encryptedPreferences))
                     .build()
             }
             return instance!!

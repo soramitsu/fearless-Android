@@ -30,7 +30,5 @@ dependencies {
     implementation("javax.inject:javax.inject:1")
 
     implementation(libs.bundles.coroutines)
-    implementation(libs.sharedFeaturesCoreDep) {
-        exclude(module = "android-foundation")
-    }
+    implementation(libs.sharedFeaturesCoreDep)
 }

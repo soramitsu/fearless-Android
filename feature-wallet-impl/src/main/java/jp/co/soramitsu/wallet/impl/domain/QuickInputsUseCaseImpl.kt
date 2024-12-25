@@ -229,7 +229,7 @@ class QuickInputsUseCaseImpl(
                             walletRepository.getTransferFee(
                                 chain,
                                 transfer
-                            ).feeAmount
+                            )
                         }.getOrNull().orZero()
                     } else {
                         BigDecimal.ZERO

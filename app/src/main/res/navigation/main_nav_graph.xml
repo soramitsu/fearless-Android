@@ -350,6 +350,10 @@
         android:id="@+id/getSoraCardFragment"
         android:name="jp.co.soramitsu.soracard.impl.presentation.get.GetSoraCardFragment"
         android:label="GetSoraCardFragment" />
+    <fragment
+        android:id="@+id/soraCardDetailsFragment"
+        android:name="jp.co.soramitsu.soracard.impl.presentation.details.SoraCardDetailsFragment"
+        android:label="SoraCardDetailsFragment" />
 
     <fragment
         android:id="@+id/exportMnemonicFragment"
@@ -458,11 +462,6 @@
         android:label="successSheetFragment" />
 
     <dialog
-        android:id="@+id/getMoreXorFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.getmorexor.GetMoreXorFragment"
-        android:label="getMoreXorFragment" />
-
-    <dialog
         android:id="@+id/startStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.StartStakingPoolFragment"
         android:label="startStakingPoolFragment" />
@@ -556,11 +555,6 @@
         android:id="@+id/selectWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.SelectWalletFragment"
         android:label="selectWalletFragment" />
-
-    <dialog
-        android:id="@+id/networkIssuesFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.NetworkIssuesFragment"
-        android:label="networkIssuesFragment" />
 
     <dialog
         android:id="@+id/alertFragment"

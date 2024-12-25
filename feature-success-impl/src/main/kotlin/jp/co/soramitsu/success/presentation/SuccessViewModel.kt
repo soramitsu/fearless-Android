@@ -3,6 +3,7 @@ package jp.co.soramitsu.success.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -16,11 +17,13 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatting.shortenHash
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
@@ -41,7 +44,7 @@ class SuccessViewModel @Inject constructor(
     ExternalAccountActions by externalAccountActions,
     SuccessScreenInterface {
 
-    val operationHash = savedStateHandle.get<String>(SuccessFragment.KEY_OPERATION_HASH)
+    val operationHash = savedStateHandle.get<String?>(SuccessFragment.KEY_OPERATION_HASH)
     val chainId = savedStateHandle.get<ChainId>(SuccessFragment.KEY_CHAIN_ID)
     private val customMessage: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_MESSAGE]
     private val customTitle: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_TITLE]
@@ -52,9 +55,15 @@ class SuccessViewModel @Inject constructor(
     private val _shareUrlEvent = MutableLiveData<Event<String>>()
     val shareUrlEvent = _shareUrlEvent
 
-    private val chainExplorers = flow {
+    private val chainDeferred = viewModelScope.async {
         chainId?.let {
-            emit(chainRegistry.getChain(it).explorers)
+            chainRegistry.getChain(it)
+        }
+    }
+
+    private val chainExplorers = flow {
+        chainDeferred.await()?.explorers?.let {
+            emit(it)
         }
     }.share()
 
@@ -74,6 +83,7 @@ class SuccessViewModel @Inject constructor(
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
                 }
 
+                Chain.Explorer.Type.TONVIEWER -> BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TON_TRANSACTION, operationHash)
                 Chain.Explorer.Type.UNKNOWN -> null
             }?.let { url ->
                 explorerItem.type to url
@@ -90,25 +100,44 @@ class SuccessViewModel @Inject constructor(
         )
     }.stateIn(this, SharingStarted.Eagerly, SuccessViewState.default)
 
-    private fun getInfoTableItems() = operationHash?.let {
-        listOf(
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.hash),
-                value = operationHash.shortenHash(),
-                clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
-            ),
+    private suspend fun getInfoTableItems(): List<TitleValueViewState> {
+        operationHash ?: return emptyList()
+        val items = mutableListOf<TitleValueViewState>()
+        val chain = chainDeferred.await()
+        if (chain != null && chain.ecosystem == Ecosystem.Ton) {
+            items.add(
+                TitleValueViewState(
+                    title = resourceManager.getString(R.string.hash),
+                    value = operationHash.shortenHash(),
+                    clickState = null
+                )
+            )
+        } else {
+            items.add(
+                TitleValueViewState(
+                    title = resourceManager.getString(R.string.hash),
+                    value = operationHash.shortenHash(),
+                    clickState = TitleValueViewState.ClickState.Value(
+                        R.drawable.ic_copy_filled_24,
+                        SuccessViewState.CODE_HASH_CLICK
+                    )
+                )
+            )
+        }
+        items.add(
             TitleValueViewState(
                 title = resourceManager.getString(R.string.all_done_alert_result_stub),
                 value = resourceManager.getString(R.string.all_done_alert_success_stub),
                 valueColor = greenText
             )
         )
-    }.orEmpty()
+        return items
+    }
 
     override fun onClose() {
         launch {
-            chainId?.let {
-                if (chainRegistry.getChain(chainId).isEthereumChain) {
+            chainDeferred.await()?.let {
+                if (it.isEthereumChain) {
                     BalanceUpdateTrigger.invoke(chainId, true)
                 }
             }

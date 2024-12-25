@@ -58,7 +58,6 @@ class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetails
 
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
-        viewModel.showImportChainAccountChooser.observeEvent(::showImportChainAccountChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
     }
@@ -96,11 +95,11 @@ class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetails
     }
 
     private fun showAccountActions(payload: ExternalAccountActions.Payload) {
+        require(payload is WalletAccountActionsSheet.Payload)
         WalletAccountActionsSheet(
             context = requireContext(),
             content = payload,
             onCopy = viewModel::copyAddressClicked,
-            onReplace = viewModel::showImportChainAccountChooser,
             onExternalView = viewModel::viewExternalClicked,
             onExportAccount = viewModel::exportClicked,
             onSwitchNode = viewModel::switchNode
@@ -113,15 +112,6 @@ class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetails
             context = requireActivity(),
             payload = DynamicListBottomSheet.Payload(payload.sources),
             onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }
-        ).show()
-    }
-
-    private fun showImportChainAccountChooser(payload: ImportChainAccountsPayload) {
-        ImportChainAccountActionsSheet(
-            context = requireContext(),
-            payload = payload,
-            onCreateAccount = viewModel::createChainAccount,
-            onImportAccount = viewModel::importChainAccount
         ).show()
     }
 }

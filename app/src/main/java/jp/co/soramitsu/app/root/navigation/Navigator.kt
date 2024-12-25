@@ -1282,10 +1282,6 @@ class Navigator :
         navController?.navigate(R.id.selectWalletFragment)
     }
 
-    override fun openNetworkIssues() {
-        navController?.navigate(R.id.networkIssuesFragment)
-    }
-
     override fun openOptionsAddAccount(payload: AddAccountPayload) {
         val bundle = OptionsAddAccountFragment.getBundle(payload)
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
@@ -1381,6 +1377,10 @@ class Navigator :
 
     override fun openGetSoraCard() {
         navController?.navigate(R.id.getSoraCardFragment)
+    }
+
+    override fun openSoraCardDetails() {
+        navController?.navigate(R.id.soraCardDetailsFragment)
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
@@ -1483,10 +1483,6 @@ class Navigator :
     override fun openPoolFullUnstakeDepositorAlertFragment(amount: String) {
         val bundle = PoolFullUnstakeDepositorAlertFragment.getBundle(amount)
         navController?.navigate(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
-    }
-
-    override fun openGetMoreXor() {
-        navController?.navigate(R.id.getMoreXorFragment)
     }
 
     override fun openContactsWithResult(chainId: ChainId): Flow<String> {

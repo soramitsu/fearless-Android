@@ -34,7 +34,7 @@ import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSelectUnbondBind
 class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragment_select_unbond) {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     override val viewModel: SelectUnbondViewModel by viewModels()
 

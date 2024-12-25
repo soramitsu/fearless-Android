@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -106,7 +107,7 @@ fun TextInput(
                     textState.value = it
                     onInput(it.text)
                 },
-                textStyle = MaterialTheme.customTypography.body1.copy(color = textColorState),
+                textStyle = MaterialTheme.customTypography.body1.copy(color = textColorState, textAlign = TextAlign.Left),
                 singleLine = true,
                 maxLines = 1,
                 keyboardOptions = KeyboardOptions(
@@ -162,7 +163,7 @@ fun TextInput(
 @Preview
 private fun TextInputPreview() {
     val state = TextInputViewState(
-        text = "my best pool",
+        text = "my best poolmy best poolmy best poolmy best poolmy best poolmy best poolmy best poolmy best poolmy best poolmy best poolmy best poolmy best pool",
         hint = "Pool name",
         endIcon = R.drawable.ic_close_16_circle
     )

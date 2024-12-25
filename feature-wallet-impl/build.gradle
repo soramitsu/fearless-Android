@@ -107,14 +107,14 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
+    testImplementation libs.arch.core.testing
 
     implementation libs.gson
     implementation libs.retrofit
 
     implementation libs.nv.websocket.client
-    implementation libs.xnetworking.basic
-    implementation libs.xnetworking.fearless, withoutBasic
-    implementation libs.xnetworking.sorawallet, withoutBasic
+    implementation libs.xnetworking.lib.android
 
     implementation libs.zxing.core
     implementation libs.zxing.embedded
@@ -123,6 +123,10 @@ dependencies {
 
     implementation libs.jna
     implementation libs.beacon.android.sdk, withoutJna
+
+
+    implementation(libs.converter.gson)
+    implementation(libs.converter.scalars)
 
     implementation libs.shimmer
 
@@ -134,9 +138,11 @@ dependencies {
     implementation libs.navigation.fragment.ktx
     implementation libs.navigation.ui.ktx
 
-//    implementation libs.sharedFeaturesCoreDep, withoutAndroidFoundation
-    implementation libs.sharedFeaturesXcmDep, withoutAndroidFoundation
-    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
+    implementation libs.sharedFeaturesXcmDep
+    implementation libs.sharedFeaturesBackupDep
+    implementation(libs.sora.soracard)
+    implementation(libs.soramitsu.android.foundation)
 
     implementation libs.web3jDep
+    implementation libs.ton
 }

@@ -1,12 +1,12 @@
 package jp.co.soramitsu.common.scan
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
@@ -24,16 +24,21 @@ import jp.co.soramitsu.common.utils.EventObserver
 
 @AndroidEntryPoint
 class ScannerActivity : AppCompatActivity() {
+    companion object {
+        private const val QR_CODE_IMAGE_TYPE = "image/*"
+    }
 
     @Inject
     lateinit var viewModel: ScannerViewModel
 
     private var capture: CaptureManager? = null
 
-    private val startForResultFromGallery: ActivityResultLauncher<PickVisualMediaRequest> =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { resultUri: Uri? ->
-            resultUri?.let { selectedImageUri ->
-                viewModel.qrFileChosen(selectedImageUri)
+    private val startForResultFromGallery: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.data?.let { selectedImageUri ->
+                    viewModel.qrFileChosen(selectedImageUri)
+                }
             }
         }
 
@@ -84,9 +89,11 @@ class ScannerActivity : AppCompatActivity() {
     }
 
     private fun selectQrFromGallery() {
-        val pickVisualMediaRequest =
-            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-        startForResultFromGallery.launch(pickVisualMediaRequest)
+        val intent = Intent().apply {
+            type = QR_CODE_IMAGE_TYPE
+            action = Intent.ACTION_GET_CONTENT
+        }
+        startForResultFromGallery.launch(intent)
     }
 
     inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {
@@ -113,7 +120,11 @@ class ScannerActivity : AppCompatActivity() {
         capture?.onSaveInstanceState(outState)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         capture?.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }

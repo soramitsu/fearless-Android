@@ -51,6 +51,7 @@ dependencies {
     implementation project(':feature-polkaswap-api')
     implementation libs.kotlin.stdlib.jdk7
 
+    implementation libs.ton
     implementation libs.appcompat
     implementation libs.core.ktx
     implementation libs.material
@@ -92,8 +93,10 @@ dependencies {
 
     implementation libs.gson
 
-    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
+    api libs.sharedFeaturesCoreDep
+    implementation(libs.sora.soracard)
+    implementation libs.soramitsu.android.foundation
 
-    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
+    implementation libs.sharedFeaturesBackupDep
     implementation libs.web3jDep
 }

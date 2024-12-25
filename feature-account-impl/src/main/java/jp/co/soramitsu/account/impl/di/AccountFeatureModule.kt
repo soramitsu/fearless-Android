@@ -34,6 +34,9 @@ import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
@@ -81,7 +84,10 @@ class AccountFeatureModule {
         jsonSeedEncoder: JsonSeedEncoder,
         languagesHolder: LanguagesHolder,
         chainsRepository: ChainsRepository,
-        nomisScoresDao: NomisScoresDao
+        nomisScoresDao: NomisScoresDao,
+        substrateSecretStore: SubstrateSecretStore,
+        ethereumSecretStore: EthereumSecretStore,
+        tonSecretStore: TonSecretStore
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -92,16 +98,28 @@ class AccountFeatureModule {
             jsonSeedEncoder,
             languagesHolder,
             chainsRepository,
-            nomisScoresDao
+            nomisScoresDao,
+            substrateSecretStore,
+            ethereumSecretStore,
+            tonSecretStore
         )
     }
 
     @Provides
     fun provideKeyPairRepository(
         secretStoreV2: SecretStoreV2,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        substrateSecretStore: SubstrateSecretStore,
+        ethereumSecretStore: EthereumSecretStore,
+        tonSecretStore: TonSecretStore
     ): KeypairProvider {
-        return KeyPairRepository(secretStoreV2, accountRepository)
+        return KeyPairRepository(
+            secretStoreV2,
+            ethereumSecretStore,
+            substrateSecretStore,
+            tonSecretStore,
+            accountRepository
+        )
     }
 
     @Provides

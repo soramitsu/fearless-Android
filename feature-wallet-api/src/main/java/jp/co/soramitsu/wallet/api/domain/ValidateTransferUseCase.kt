@@ -18,19 +18,6 @@ import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 
 interface ValidateTransferUseCase {
-    suspend operator fun invoke(
-        amountInPlanks: BigInteger,
-        originAsset: Asset,
-        destinationChainId: ChainId,
-        destinationAddress: String,
-        originAddress: String,
-        originFee: BigInteger?,
-        confirmedValidations: List<TransferValidationResult> = emptyList(),
-        transferMyselfAvailable: Boolean,
-        skipEdValidation: Boolean = false,
-        destinationFee: BigDecimal? = null,
-    ): Result<TransferValidationResult>
-
     suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
         originAsset: Asset,
@@ -39,6 +26,29 @@ interface ValidateTransferUseCase {
         originAddress: String,
         originFee: BigInteger,
         confirmedValidations: List<TransferValidationResult> = emptyList()
+    ): Result<TransferValidationResult>
+
+    suspend fun validateTransfer(
+        amountInPlanks: BigInteger,
+        asset: Asset,
+        destinationAddress: String,
+        senderAddress: String,
+        fee: BigInteger?,
+        confirmedValidations: List<TransferValidationResult>,
+        transferMyselfAvailable: Boolean,
+        skipEdValidation: Boolean
+    ): Result<TransferValidationResult>
+
+    suspend fun validateXcmTransfer(
+        amountInPlanks: BigInteger,
+        originAsset: Asset,
+        destinationChainId: ChainId,
+        destinationAddress: String,
+        originAddress: String,
+        originFee: BigInteger?,
+        confirmedValidations: List<TransferValidationResult>,
+        transferMyselfAvailable: Boolean,
+        destinationFee: BigDecimal?
     ): Result<TransferValidationResult>
 }
 

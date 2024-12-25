@@ -157,7 +157,7 @@ class ConfirmContributeViewModel @Inject constructor(
             val chainId = assetFlow.first().token.configuration.chainId
             val chain = chainRegistry.getChain(chainId)
             val supportedExplorers = chain.explorers.getSupportedAddressExplorers(accountAddress)
-            val payload = ExternalAccountActions.Payload(accountAddress, chainId, chain.name, supportedExplorers)
+            val payload = ExternalAccountActions.Payload(accountAddress, supportedExplorers)
             externalAccountActions.showExternalActions(payload)
         }
     }
@@ -238,9 +238,9 @@ class ConfirmContributeViewModel @Inject constructor(
                             recipient = recipient,
                             sender = currentAddress,
                             amount = payload.amount,
-                            chainAsset = assetFlow.first().token.configuration
+                            chainAsset = assetFlow.first().token.configuration,
+                            estimateFee = fee
                         ),
-                        fee = fee,
                         maxAllowedLevel = maxAllowedStatusLevel,
                         additional = additionalSubmission
                     )

@@ -20,8 +20,8 @@ import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.coredb.AppDatabase
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal.Table.Column
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountLocal.Table.Column
 import jp.co.soramitsu.shared_utils.encrypt.EncryptionType
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
@@ -236,6 +236,7 @@ class V2MigrationTest {
                 substrateAccountId = getBlob(getColumnIndex(Column.SUBSTRATE_ACCOUNT_ID)),
                 ethereumPublicKey = getBlob(getColumnIndex(Column.ETHEREUM_PUBKEY)),
                 ethereumAddress = getBlob(getColumnIndex(Column.ETHEREUM_ADDRESS)),
+                tonPublicKey = null,
                 name = getString(getColumnIndex(Column.NAME)),
                 isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1,
                 position = getInt(getColumnIndex(Column.POSITION)),

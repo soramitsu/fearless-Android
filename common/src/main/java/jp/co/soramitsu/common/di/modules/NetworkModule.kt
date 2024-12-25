@@ -15,17 +15,30 @@ import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.shared_utils.wsrpc.recovery.Reconnector
 import jp.co.soramitsu.shared_utils.wsrpc.request.CoroutinesRequestExecutor
 import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
+import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.api.BlockExplorerRepository
+import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.impl.BlockExplorerRepositoryImpl
+import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
+import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.data.ConfigParser
+import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.impl.SuperWalletConfigDAOImpl
+import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.impl.data.RemoteConfigParserImpl
+import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
+import jp.co.soramitsu.xnetworking.lib.engines.rest.api.models.AbstractRestClientConfig
+import jp.co.soramitsu.xnetworking.lib.engines.rest.impl.RestClientImpl
+import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.CacheControl
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -39,6 +52,46 @@ private const val NOMIS_TIMEOUT_MINUTES = 2L
 @InstallIn(SingletonComponent::class)
 @Module
 class NetworkModule {
+
+    @Singleton
+    @Provides
+    fun provideRestClient(
+        json: Json,
+    ): RestClient = RestClientImpl(
+        restClientConfig = object : AbstractRestClientConfig() {
+            override fun getConnectTimeoutMillis(): Long = 30_000L
+            override fun getOrCreateJsonConfig(): Json = json
+            override fun getRequestTimeoutMillis(): Long = 30_000L
+            override fun getSocketTimeoutMillis(): Long = 30_000L
+            override fun isLoggingEnabled(): Boolean = BuildConfig.DEBUG
+        }
+    )
+
+    @Singleton
+    @Provides
+    fun provideConfigDAO(configParser: ConfigParser): ConfigDAO =
+        SuperWalletConfigDAOImpl(configParser = configParser)
+
+    @Singleton
+    @Provides
+    fun provideSoraWalletBlockExplorerInfo(
+        configDAO: ConfigDAO,
+        restClient: RestClient,
+    ): BlockExplorerRepository {
+        return BlockExplorerRepositoryImpl(
+            configDAO = configDAO,
+            restClient = restClient,
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun provideConfigParser(
+        restClient: RestClient
+    ): ConfigParser = RemoteConfigParserImpl(
+        restClient = restClient,
+        chainsRequestUrl = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/MWR-819/chains/xn.json",
+    )
 
     @Provides
     @Singleton
@@ -162,4 +215,41 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideJsonMapper() = Gson()
+
+    @Provides
+    @Singleton
+    fun provideTonApi(context: Context): TonApi {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
+            .retryOnConnectionFailure(true)
+            .addInterceptor {
+                if(it.request().url.host.contains("keeper") || it.request().url.host.contains("testnet.tonapi.io")) {
+                    val request = it.request().newBuilder().apply {
+                        addHeader(
+                            "Authorization",
+                            "Bearer ${BuildConfig.FL_ANDROID_TON_API_KEY}"
+                        )
+                        addHeader("Accept", "application/json")
+                    }.build()
+                    it.proceed(request)
+                } else {
+                    it.proceed(it.request())
+                }
+            }
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+
+        val gson = Gson()
+
+        val retrofit = Retrofit.Builder()
+            .client(builder.build())
+            .baseUrl("https://keeper.tonapi.io/")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        return retrofit.create(TonApi::class.java)
+    }
 }

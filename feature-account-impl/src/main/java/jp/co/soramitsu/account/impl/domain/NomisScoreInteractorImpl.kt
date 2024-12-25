@@ -72,7 +72,7 @@ class NomisScoreInteractorImpl(
 
     override suspend fun getNomisScore(address: String): NomisScoreData?  {
         return scoresCache.getOrPut(address) {
-            withContext(coroutineContext) {runCatching { nomisApi.getNomisScore(address) }.onFailure { Log.d("&&&", "failed to load nomis score: $it") }.getOrNull()?.toDomain() }?: return null
+            withContext(coroutineContext) {runCatching { nomisApi.getNomisScore(address) }.getOrNull()?.toDomain() }?: return null
         }
     }
 

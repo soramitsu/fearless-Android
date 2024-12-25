@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -18,6 +19,7 @@ import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
+import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.warningOrange
@@ -39,6 +41,7 @@ import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
@@ -46,6 +49,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -77,6 +81,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -112,6 +119,7 @@ class SendSetupViewModel @Inject constructor(
     private val validateTransferUseCase: ValidateTransferUseCase,
     private val quickInputsUseCase: QuickInputsUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
+
     companion object {
         const val SLIPPAGE_TOLERANCE = 1.35
         const val RETRY_TIMES = 3L
@@ -195,7 +203,8 @@ class SendSetupViewModel @Inject constructor(
         isInputLocked = false,
         isHistoryAvailable = false,
         sendAllChecked = false,
-        sendAllAllowed = false
+        sendAllAllowed = false,
+        commentState = null
     )
 
     private val assetFlow: StateFlow<Asset?> = sharedState.assetIdToChainIdFlow.map {
@@ -292,14 +301,14 @@ class SendSetupViewModel @Inject constructor(
             amount = enteredAmount,
             chainAsset = asset.token.configuration
         )
-    }.flatMapLatest {
-        it?.let { transfer -> walletInteractor.observeTransferFee(transfer).map { it.feeAmount } }
-            ?: flowOf(null)
+    }.debounce(300L).flatMapLatest {
+        it?.let { transfer -> walletInteractor.observeTransferFee(transfer) } ?: flowOf(null)
     }
         .retry(RETRY_TIMES)
         .catch {
             println("Error: $it")
             it.printStackTrace()
+            showError(it.message ?: "Error calculating fee")
             emit(null)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -422,6 +431,8 @@ class SendSetupViewModel @Inject constructor(
     private val sendAllToggleState: MutableStateFlow<ToggleState> = MutableStateFlow(ToggleState.INITIAL)
     private var existentialDepositCheckJob: Job? = null
 
+    private val messageInputState = MutableStateFlow<TextInputViewState?>(null)
+
     val state = MutableStateFlow<SendSetupViewState>(defaultState)
 
     init {
@@ -478,6 +489,12 @@ class SendSetupViewModel @Inject constructor(
         lockInputFlow.onEach { isInputLocked ->
             state.value = state.value.copy(
                 isInputLocked = isInputLocked
+            )
+        }.launchIn(this)
+
+        messageInputState.onEach { messageInputState ->
+            state.value = state.value.copy(
+                commentState = messageInputState
             )
         }.launchIn(this)
 
@@ -557,6 +574,16 @@ class SendSetupViewModel @Inject constructor(
                 } else prevState
             }
         }.launchIn(viewModelScope)
+
+        selectedChain.filterNotNull().distinctUntilChanged().onEach { chain ->
+            messageInputState.update { prevState ->
+                if(chain.ecosystem == Ecosystem.Ton) {
+                    prevState ?: TextInputViewState("", resourceManager.getString(R.string.common_message))
+                } else {
+                    null
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun observeExistentialDeposit(showMaxInput: Boolean) {
@@ -569,7 +596,8 @@ class SendSetupViewModel @Inject constructor(
             isInputAddressValidFlow,
             addressInputTrimmedFlow
         ) { asset, amount, fee, isAddressValid, address ->
-            if (asset.token.configuration.ethereumType != null) {
+            val ecosystem = selectedChain.first { it != null }.cast<Chain>().ecosystem
+            if (ecosystem != Ecosystem.Substrate && ecosystem != Ecosystem.EthereumBased) {
                 return@combine Result.success(TransferValidationResult.Valid)
             }
 
@@ -677,14 +705,12 @@ class SendSetupViewModel @Inject constructor(
             val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
-            val destinationChainId = asset.token.configuration.chainId
-            val validationProcessResult = validateTransferUseCase(
+            val validationProcessResult = validateTransferUseCase.validateTransfer(
                 amountInPlanks = inPlanks,
-                originAsset = asset,
-                destinationChainId = destinationChainId,
+                asset = asset,
                 destinationAddress = recipientAddress,
-                originAddress = selfAddress,
-                originFee = fee,
+                senderAddress = selfAddress,
+                fee = fee,
                 confirmedValidations = confirmedValidations,
                 transferMyselfAvailable = false,
                 skipEdValidation = sendAllToggleState.value == ToggleState.CONFIRMED
@@ -744,7 +770,7 @@ class SendSetupViewModel @Inject constructor(
 
         val payload = AssetPayload(chainId, assetId)
 
-        return TransferDraft(amount, feeAmount, payload, recipientAddress, tip)
+        return TransferDraft(amount, feeAmount, payload, recipientAddress, tip, messageInputState.value?.text)
     }
 
     override fun onChainClick() {
@@ -891,6 +917,12 @@ class SendSetupViewModel @Inject constructor(
         } else {
             visibleAmountFlow.value = BigDecimal.ZERO
             initialAmountFlow.value = BigDecimal.ZERO
+        }
+    }
+
+    override fun onCommentInput(value: String) {
+        messageInputState.update { prevState ->
+            prevState?.copy(text = value) ?: prevState
         }
     }
 }

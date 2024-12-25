@@ -24,7 +24,8 @@ data class ProfileScreenState(
     val walletsItemAction: SettingsItemAction = SettingsItemAction.Transition,
     val currency: String,
     val language: String,
-    val nomisChecked: Boolean
+    val nomisChecked: Boolean,
+    val soraCardVisible: Boolean,
 )
 
 interface ProfileScreenInterface {
@@ -58,7 +59,14 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
         SettingsDivider()
-//        SettingsItem(icon = painterResource(R.drawable.ic_card), text = stringResource(R.string.profile_soracard_title), onClick = callback::onSoraCardClicked)
+        if (state.soraCardVisible) {
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_card),
+                text = stringResource(R.string.profile_soracard_title),
+                onClick = callback::onSoraCardClicked,
+            )
+            SettingsDivider()
+        }
         SettingsItem(icon = painterResource(R.drawable.ic_dollar_circle), text = stringResource(R.string.common_currency), action = SettingsItemAction.Selector(state.currency), onClick = callback::currencyClicked)
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_language), text = stringResource(R.string.profile_language_title), action = SettingsItemAction.Selector(state.language), onClick = callback::languagesClicked)
@@ -93,6 +101,7 @@ fun ProfileScreenPreview() {
         currency = "USD",
         language = "ENG",
         nomisChecked = true,
+        soraCardVisible = true,
     )
     FearlessAppTheme {
         ProfileScreen(state, object : ProfileScreenInterface {

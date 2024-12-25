@@ -9,7 +9,7 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.positiveOrNull
 
-/*** This table is used for storing assets in database.
+/*** This table is used for storing balances in database.
  *  freeInPlanks - has three states:
  *  null - loading is in progress
  *  -1 - error
@@ -23,7 +23,7 @@ import jp.co.soramitsu.common.utils.positiveOrNull
             entity = ChainLocal::class,
             parentColumns = ["id"],
             childColumns = ["chainId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ]
 )
@@ -82,4 +82,21 @@ data class AssetUpdateItem(
     var sortIndex: Int,
     var enabled: Boolean,
     val tokenPriceId: String?
+)
+
+data class AssetBalanceUpdateItem(
+    val metaId: Long,
+    val chainId: String,
+    val accountId: AccountId,
+    val id: String,
+
+    val freeInPlanks: BigInteger? = null,
+    val reservedInPlanks: BigInteger? = null,
+    val miscFrozenInPlanks: BigInteger? = null,
+    val feeFrozenInPlanks: BigInteger? = null,
+    val bondedInPlanks: BigInteger? = null,
+    val redeemableInPlanks: BigInteger? = null,
+    val unbondingInPlanks: BigInteger? = null,
+
+    val status: String? = null
 )

@@ -71,6 +71,7 @@ interface AccountInteractor {
         googleBackupAddress: String?
     ): Result<Unit>
 
+    @Deprecated("We don't import chain accounts anymore. Only ecosystem account import is allowed")
     suspend fun importChainFromSeed(
         metaId: Long,
         chainId: ChainId,

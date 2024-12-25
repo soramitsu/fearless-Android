@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +26,6 @@ import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -46,6 +44,8 @@ import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.oauth.base.sdk.contract.IbanInfo
+import jp.co.soramitsu.oauth.base.sdk.contract.IbanStatus
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -370,6 +370,12 @@ private fun PreviewAssetListItem() {
                         assetIconUrl,
                         assetChainUrlsMap.values.toList()
                     )
+                )
+                MarginVertical(margin = 8.dp)
+                SoraCardFiatCard(
+                    state = previewSoraCardItemViewState,
+                    modifier = Modifier,
+                    onClick = {},
                 )
             }
         }

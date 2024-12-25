@@ -5,11 +5,4 @@ object OptionsProvider {
     var CURRENT_VERSION_NAME: String = ""
     var APPLICATION_ID: String = ""
     var CURRENT_BUILD_TYPE: String = ""
-
-    val header: String by lazy {
-        "$APPLICATION_ID/$CURRENT_VERSION_NAME/$CURRENT_VERSION_CODE/$CURRENT_BUILD_TYPE"
-    }
-
-    const val soraConfigCommon = "https://config.polkaswap2.io/prod/common.json"
-    const val soraConfigMobile = "https://config.polkaswap2.io/prod/mobile.json"
 }

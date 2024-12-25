@@ -98,6 +98,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
 
     private val ethereumBalancesSubscriptionJob: MutableMap<ChainId, Job?> = mutableMapOf()
+
     suspend fun subscribeEthereumBalance(
         chain: Chain,
         account: MetaAccount
