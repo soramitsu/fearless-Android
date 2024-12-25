@@ -8,10 +8,11 @@ import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.SignRequestEntity
+import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import kotlinx.coroutines.flow.filterNotNull
 
 @AndroidEntryPoint
 class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignRequestViewModel>() {
@@ -21,9 +22,10 @@ class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignReque
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        TonSignRequestContent(
+        TonSignRequestFlow(
             state = state,
-            callback = viewModel
+            callback = viewModel,
+            previewCallback = viewModel
         )
     }
 
@@ -37,7 +39,8 @@ class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignReque
         const val DAPP_KEY = "dapp_key"
         const val METHOD_KEY = "method_key"
         const val TON_SIGN_REQUEST_KEY = "ton_sign_request_key"
-        fun getBundle(dapp: DappModel, method: String, request: SignRequestEntity) = bundleOf(
+
+        fun getBundle(dapp: DappModel, method: String, request: TonConnectSignRequest) = bundleOf(
             DAPP_KEY to dapp,
             METHOD_KEY to method,
             TON_SIGN_REQUEST_KEY to request

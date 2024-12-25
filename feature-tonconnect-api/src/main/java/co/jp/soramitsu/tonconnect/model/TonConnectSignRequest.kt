@@ -1,6 +1,7 @@
 package co.jp.soramitsu.tonconnect.model
 
 import android.os.Parcelable
+import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TonNetwork
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import org.json.JSONArray
@@ -8,10 +9,10 @@ import org.json.JSONObject
 import org.ton.block.AddrStd
 
 @Parcelize
-data class SignRequestEntity(
+data class TonConnectSignRequest(
     val fromValue: String?,
     val validUntil: Long,
-    val messages: List<RawMessageEntity>,
+    val messages: List<TonConnectRawMessage>,
     val network: TonNetwork
 ) : Parcelable {
 
@@ -32,10 +33,10 @@ data class SignRequestEntity(
 
     companion object {
 
-        fun parse(array: JSONArray): List<SignRequestEntity> {
-            val requests = mutableListOf<SignRequestEntity>()
+        fun parse(array: JSONArray): List<TonConnectSignRequest> {
+            val requests = mutableListOf<TonConnectSignRequest>()
             for (i in 0 until array.length()) {
-                requests.add(SignRequestEntity(array.get(i)))
+                requests.add(TonConnectSignRequest(array.get(i)))
             }
             return requests.toList()
         }
@@ -51,11 +52,11 @@ data class SignRequestEntity(
             return 0
         }
 
-        private fun parseMessages(array: JSONArray): List<RawMessageEntity> {
-            val messages = mutableListOf<RawMessageEntity>()
+        private fun parseMessages(array: JSONArray): List<TonConnectRawMessage> {
+            val messages = mutableListOf<TonConnectRawMessage>()
             for (i in 0 until array.length()) {
                 val json = array.getJSONObject(i)
-                messages.add(RawMessageEntity(json))
+                messages.add(TonConnectRawMessage(json))
             }
             return messages
         }

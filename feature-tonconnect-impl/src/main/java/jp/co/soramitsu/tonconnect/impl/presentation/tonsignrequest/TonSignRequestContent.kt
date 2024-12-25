@@ -40,11 +40,13 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 
+interface TonSignRequestFlowState
+
 data class TonSignRequestViewState(
     val connectionUrl: String?,
     val message: InfoItemViewState,
     val wallet: WalletItemViewState
-) {
+): TonSignRequestFlowState {
 
     companion object {
         val default = TonSignRequestViewState(
@@ -63,6 +65,18 @@ data class TonSignRequestViewState(
 interface TonSignRequestScreenInterface {
     fun onClose()
     fun onPreviewClick()
+}
+
+@Composable
+fun TonSignRequestFlow(state: TonSignRequestFlowState?, callback: TonSignRequestScreenInterface, previewCallback: TonSignPreviewScreenInterface){
+    when(state) {
+        is TonSignRequestViewState -> {
+            TonSignRequestContent(state, callback)
+        }
+        is TonSignPreviewViewState -> {
+            TonSignPreviewContent(state, previewCallback)
+        }
+    }
 }
 
 @Composable

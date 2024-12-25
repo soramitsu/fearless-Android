@@ -1,6 +1,5 @@
 package jp.co.soramitsu.tonconnect.impl.data
 
-import android.util.Log
 import co.jp.soramitsu.tonconnect.domain.TonConnectRepository
 import co.jp.soramitsu.tonconnect.model.TonDappConnection
 import jp.co.soramitsu.common.data.Keypair
@@ -10,7 +9,6 @@ import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.coredb.dao.TonConnectDao
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
-import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.scale.toHexString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -30,19 +28,16 @@ class TonConnectRepositoryImpl(
             kp[PrivateKey] = keypair.privateKey
             kp[Nonce]
         }
-        Log.d("&&&", "saving new connection, clientId: ${connection.clientId}")
+
         encryptedPreferences.putEncryptedString("${TON_CONNECT_KEYPAIR_PREFIX}_${connection.clientId}", schema.toHexString())
         tonConnectDao.insertTonConnection(connection)
     }
 
     override fun getConnectionKeypair(clientId: String): Keypair? {
-        Log.d("&&&", "reading keypair for clientId $clientId")
         val decryptedString = encryptedPreferences.getDecryptedString("${TON_CONNECT_KEYPAIR_PREFIX}_${clientId}") ?: return null
 
         val schema = KeyPairSchema.read(decryptedString)
-        val kp =  Keypair(schema[KeyPairSchema.PublicKey], schema[KeyPairSchema.PrivateKey])
-        Log.d("&&&", "got keypair for clientId ${clientId}, pubkey is ${kp.publicKey.toHexString(true)}")
-        return kp
+        return Keypair(schema[KeyPairSchema.PublicKey], schema[KeyPairSchema.PrivateKey])
     }
 
     override fun observeConnections(): Flow<List<TonDappConnection>> {
@@ -51,5 +46,10 @@ class TonConnectRepositoryImpl(
 
     override suspend fun deleteConnection(dappId: String) {
         tonConnectDao.deleteTonConnection(dappId)
+    }
+
+    override suspend fun getConnection(metaId: Long, url: String): TonConnectionLocal? {
+        val formatted = "%${url}%"
+        return tonConnectDao.getTonConnection(metaId, formatted)
     }
 }

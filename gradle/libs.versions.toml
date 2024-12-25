@@ -66,7 +66,7 @@ xNetworking = "1.0.12"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
-tonVersion = "0.2.15"
+tonVersion = "0.3.1"
 soramitsuAndroidFoundation = "0.0.4"
 
 [libraries]
@@ -192,7 +192,12 @@ walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
 
 jnr-x86asm = { module = "com.github.jnr:jnr-x86asm", version.ref = "jnrVersion" }
 
-ton = { module = "org.ton:ton-kotlin", version.ref = "tonVersion" }
+ton-tvm = { module = "org.ton:ton-kotlin-tvm", version.ref = "tonVersion" }
+ton-crypto = { module = "org.ton:ton-kotlin-crypto", version.ref = "tonVersion" }
+ton-tlb = { module = "org.ton:ton-kotlin-tlb", version.ref = "tonVersion" }
+ton-block-tlb = { module = "org.ton:ton-kotlin-block-tlb", version.ref = "tonVersion" }
+ton-tonapi = { module = "org.ton:ton-kotlin-tonapi-tl", version.ref = "tonVersion" }
+ton-contract = { module = "org.ton:ton-kotlin-contract", version.ref = "tonVersion" }
 
 [bundles]
 compose = [
@@ -206,3 +211,4 @@ composeDebug = [
     "compose-uiTooling", "customview", "customview-poolingcontainer"
 ]
 coroutines = ["coroutines-core", "coroutines-android"]
+ton = ["ton-tvm", "ton-crypto", "ton-tlb", "ton-block-tlb", "ton-tonapi", "ton-contract"]

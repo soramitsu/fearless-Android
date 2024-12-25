@@ -6,6 +6,8 @@ import co.jp.soramitsu.feature_tonconnect_impl.R
 import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
 import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
 import co.jp.soramitsu.tonconnect.model.AppEntity
+import co.jp.soramitsu.tonconnect.model.BridgeError
+import co.jp.soramitsu.tonconnect.model.JsonBuilder
 import co.jp.soramitsu.tonconnect.model.TONProof
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -43,7 +45,6 @@ class TonConnectionDetailsViewModel @Inject constructor(
     private val tonConnectRouter: TonConnectRouter,
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
-    private val chainsRepository: ChainsRepository,
     savedStateHandle: SavedStateHandle
 ) : TonConnectionDetailsScreenInterface, BaseViewModel() {
 
@@ -112,7 +113,7 @@ class TonConnectionDetailsViewModel @Inject constructor(
 
     override fun onClose() {
         viewModelScope.launch(Dispatchers.Main) {
-            tonConnectRouter.back()
+            tonConnectRouter.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to JsonBuilder.connectEventError(BridgeError.USER_DECLINED_TRANSACTION).toString())
         }
     }
 
@@ -124,77 +125,22 @@ class TonConnectionDetailsViewModel @Inject constructor(
         launch {
             val wallet = accountRepository.getMetaAccount(selectedWalletId)
             val tonPublicKey = wallet.tonPublicKey
-            val senderSmartContract = V4R2WalletContract(tonPublicKey!!)
+            if(tonPublicKey == null) {
+                showError("There is no ton account for this wallet")
+                tonConnectRouter.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to JsonBuilder.connectEventError(BridgeError.UNKNOWN).toString())
+                return@launch
+            }
 
             val proof: TONProof.Result? = proofPayload?.let {
-                tonConnectInteractor.requestProof(selectedWalletId, app, proofPayload)
+                try {
+                    tonConnectInteractor.requestProof(selectedWalletId, app, proofPayload)
+                } catch (e: Exception) {
+                    tonConnectRouter.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to JsonBuilder.connectEventError(BridgeError.BAD_REQUEST).toString())
+                    return@launch
+                }
             }
 
-
-            val stateInit = senderSmartContract.stateInitCell().base64()
-
-            val tonAddressItemReply = JSONObject()
-            tonAddressItemReply.put("name", "ton_addr")
-            val isTestnet = true // todo remove from release
-            tonAddressItemReply.put("address", tonPublicKey.tonAccountId(isTestnet))
-            val network = if (isTestnet) "-3" else "-239"
-            tonAddressItemReply.put("network", network)
-            tonAddressItemReply.put("publicKey", hex(tonPublicKey))
-            tonAddressItemReply.put("walletStateInit", stateInit)
-
-            val payloadItemsJson = JSONArray()
-            payloadItemsJson.put(tonAddressItemReply)
-
-            proof?.let {
-                val size = proof.domain.value.toByteArray().size
-                val domainJson = JSONObject()
-                domainJson.put("lengthBytes", size)
-                domainJson.put("length_bytes", size)
-                domainJson.put("value", proof.domain.value)
-
-                val proofJson = JSONObject()
-                proofJson.put("timestamp", proof.timestamp)
-                proofJson.put("domain", domainJson)
-                proofJson.put("signature", proof.signature)
-                proofJson.put("payload", proof.payload)
-
-                val tonProofItemReply = JSONObject()
-                tonProofItemReply.put("name", "ton_proof")
-                tonProofItemReply.put("proof", proofJson)
-
-                payloadItemsJson.put(tonProofItemReply)
-            }
-
-//            proofError?.let {
-//                payloadItemsJson.put(tonProofItemReplyError(it))
-//            }
-
-            val sendTransactionFeatureJson = JSONObject()
-            sendTransactionFeatureJson.put("name", "SendTransaction")
-            sendTransactionFeatureJson.put("maxMessages", senderSmartContract.maxMessages)
-
-            val featuresJsonArray = JSONArray()
-            featuresJsonArray.put("SendTransaction")
-            featuresJsonArray.put(sendTransactionFeatureJson)
-
-            val deviceJson = JSONObject()
-            deviceJson.put("platform", "android")
-            deviceJson.put("appName", "Tonkeeper")
-            deviceJson.put("appVersion", "5.0.12") //BuildConfig.VERSION_NAME)
-            deviceJson.put("maxProtocolVersion", 2)
-            deviceJson.put("features", featuresJsonArray)
-
-
-            val payloadJson = JSONObject()
-            payloadJson.put("items", payloadItemsJson)
-            payloadJson.put("device", deviceJson)
-
-            val json = JSONObject()
-            json.put("event", "connect")
-            json.put("id", System.currentTimeMillis())
-            json.put("payload", payloadJson)
-
-            println("!!! connectEventSuccess json = $json")
+            val json = JsonBuilder.connectEventSuccess(tonPublicKey, proof, null)
 
             tonConnectRouter.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to json.toString())
         }

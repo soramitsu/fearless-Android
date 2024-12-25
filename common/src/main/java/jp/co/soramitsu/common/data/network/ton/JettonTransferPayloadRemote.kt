@@ -2,7 +2,7 @@ package jp.co.soramitsu.common.data.network.ton
 
 import com.google.gson.annotations.SerializedName
 
-data class JettonTransferPayload (
+data class JettonTransferPayloadRemote (
 
     /* hex-encoded BoC */
     @SerializedName("custom_payload")
@@ -11,6 +11,5 @@ data class JettonTransferPayload (
     /* hex-encoded BoC */
     @SerializedName("state_init")
     val stateInit: String? = null
-
 )
 

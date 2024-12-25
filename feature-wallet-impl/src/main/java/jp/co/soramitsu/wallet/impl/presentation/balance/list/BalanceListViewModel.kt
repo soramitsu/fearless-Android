@@ -1027,7 +1027,9 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 content.startsWith(QR_PREFIX_TON_CONNECT) -> {
-                    readTonQrContent(qrContent = content)
+                    try { readTonQrContent(qrContent = content) } catch (e: Exception){
+                        showError(e)
+                    }
                 }
 
                 else -> {
@@ -1065,9 +1067,12 @@ class BalanceListViewModel @Inject constructor(
         if (request.items.isEmpty()) {
             println("!!! Bad request")
         }
-        val proofPayload = request.items.filterIsInstance<ConnectRequest.Item.TonProof>().firstOrNull()?.payload
 
-        tonConnectInteractor.tonConnectAppWithResult(clientId!!, request.manifestUrl, proofPayload)
+        val app = tonConnectInteractor.readManifest(request.manifestUrl)
+        val signedRequest = router.openTonConnectionAndWaitForResult(app, request.proofPayload)
+        kotlin.runCatching { tonConnectInteractor.approveDappConnection(clientId!!, request, signedRequest, app) }
+            .onFailure { showError(it) }
+
     }
 
     private fun isValidClientId(clientId: String?): Boolean {

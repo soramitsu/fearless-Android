@@ -153,8 +153,8 @@ class AccountRepositoryImpl(
         return accountDataSource.findMetaAccount(accountId)
     }
 
-    override suspend fun allMetaAccounts(): List<MetaAccount> {
-        return accountDataSource.allMetaAccounts()
+    override suspend fun allMetaAccounts(): List<MetaAccount> = withContext(Dispatchers.IO){
+        return@withContext accountDataSource.allMetaAccounts()
     }
 
     override fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>> {

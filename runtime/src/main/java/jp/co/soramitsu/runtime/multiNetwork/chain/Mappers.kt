@@ -213,7 +213,8 @@ fun ChainRemote.toChain(): Chain {
             else -> null
         },
         ecosystem = Ecosystem.valueOf(ecosystem.replaceFirstChar { if (it.isLowerCase()) it.titlecase(
-            Locale.getDefault()) else it.toString() })
+            Locale.getDefault()) else it.toString() }),
+        tonBridgeUrl = tonBridgeUrl
     )
 }
 
@@ -323,7 +324,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isUsesAppId = isUsesAppId,
             identityChain = identityChain,
             remoteAssetsSource = remoteAssetsSource?.let { Chain.RemoteAssetsSource.valueOf(it) },
-            ecosystem = Ecosystem.valueOf(ecosystem.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
+            ecosystem = Ecosystem.valueOf(ecosystem.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }),
+            tonBridgeUrl = tonBridgeUrl
         )
     }
 }
@@ -401,7 +403,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             identityChain = identityChain,
             remoteAssetsSource = remoteAssetsSource?.name,
             ecosystem = ecosystem.name,
-            androidMinAppVersion = null
+            androidMinAppVersion = null,
+            tonBridgeUrl = tonBridgeUrl
         )
     }
 

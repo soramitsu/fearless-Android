@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
 import android.graphics.drawable.Drawable
+import co.jp.soramitsu.tonconnect.model.AppEntity
 import co.jp.soramitsu.tonconnect.model.DappModel
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
@@ -26,6 +27,7 @@ import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import kotlinx.coroutines.flow.Flow
+import org.json.JSONObject
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 interface WalletRouter : SecureRouter, WalletRouterApi {
@@ -200,4 +202,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openScoreDetailsScreen(metaId: Long)
 
     fun openDappScreen(dapp: DappModel)
+
+    suspend fun openTonConnectionAndWaitForResult(app: AppEntity, proofPayload: String?): JSONObject
 }

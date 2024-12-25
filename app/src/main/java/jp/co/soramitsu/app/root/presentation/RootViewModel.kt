@@ -1,10 +1,14 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
+import co.jp.soramitsu.tonconnect.model.BridgeError
 import co.jp.soramitsu.tonconnect.model.BridgeMethod
+import co.jp.soramitsu.tonconnect.model.DappModel
+import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
@@ -41,6 +45,7 @@ class RootViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val tonConnectInteractor: TonConnectInteractor
 ) : BaseViewModel() {
+
     companion object {
         private const val IDLE_MINUTES: Long = 20
     }
@@ -203,11 +208,28 @@ class RootViewModel @Inject constructor(
     }
 
     private fun observeTonConnectEvents() {
-        tonConnectInteractor.eventsFlow().onEach {
-            when(it.method){
-                BridgeMethod.SEND_TRANSACTION -> TODO()
-                BridgeMethod.DISCONNECT -> TODO()
-                BridgeMethod.UNKNOWN -> TODO()
+        tonConnectInteractor.eventsFlow().onEach { event ->
+            try {
+                when(event.method) {
+                    BridgeMethod.SEND_TRANSACTION -> {
+                        if(event.message.params.size > 1) throw IllegalStateException("Request contains excess transactions. Required: 1, Provided: ${event.message.params.size}")
+                        val signRequest = TonConnectSignRequest(event.message.params.first())
+
+                        rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
+                            .onSuccess {
+                                Log.d("&&&", "ton sign request is successfull")
+                                tonConnectInteractor.sendDappMessage(event, it)
+                            }
+                            .onFailure {
+                                Log.d("&&&", "ton sign request is failed")
+                                tonConnectInteractor.respondDappError(event, BridgeError.UNKNOWN)
+                            }
+                    }
+                    BridgeMethod.DISCONNECT -> {}
+                    BridgeMethod.UNKNOWN -> {}
+                }
+            } catch (e: Exception){
+                showError(e)
             }
         }.launchIn(this)
     }

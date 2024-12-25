@@ -145,5 +145,5 @@ dependencies {
     implementation(libs.soramitsu.android.foundation)
 
     implementation libs.web3jDep
-    implementation libs.ton
+    implementation libs.bundles.ton
 }

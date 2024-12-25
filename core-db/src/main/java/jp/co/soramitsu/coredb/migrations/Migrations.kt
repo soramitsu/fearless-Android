@@ -8,14 +8,17 @@ val Migration_72_73 = object : Migration(72, 73) {
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `ton_connection` (
+            `metaId` INTEGER NOT NULL,
             `clientId` TEXT NOT NULL, 
             `name` TEXT NOT NULL, 
             `icon` TEXT NOT NULL, 
             `url` TEXT NOT NULL, 
-            PRIMARY KEY(`url`)
+            PRIMARY KEY(`url`, `metaId`)
             )
             """.trimMargin()
         )
+
+        db.execSQL("ALTER TABLE chains ADD COLUMN `tonBridgeUrl` TEXT NULL DEFAULT NULL")
     }
 }
 

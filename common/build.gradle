@@ -144,7 +144,7 @@ dependencies {
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
-    implementation libs.ton
+    implementation libs.bundles.ton
     implementation libs.progressbutton
 
     implementation libs.nv.websocket.client

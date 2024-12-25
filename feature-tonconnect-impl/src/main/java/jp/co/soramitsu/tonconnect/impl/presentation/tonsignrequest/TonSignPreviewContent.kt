@@ -1,4 +1,4 @@
-package jp.co.soramitsu.tonconnect.impl.presentation.tonsignpreview
+package jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -40,7 +40,7 @@ data class TonSignPreviewViewState(
     val tableItems: List<TitleValueViewState>,
     val wallet: WalletNameItemViewState,
     val loading: Boolean
-) {
+): TonSignRequestFlowState {
     companion object {
         val default = TonSignPreviewViewState(
             chainIcon = GradientIconState.Local(R.drawable.ic_fearless_logo),

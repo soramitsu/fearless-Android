@@ -57,7 +57,8 @@ data class Chain(
     val identityChain: String?,
     override val ecosystem: Ecosystem,
     val androidMinAppVersion: String? = null,
-    val remoteAssetsSource: RemoteAssetsSource?
+    val remoteAssetsSource: RemoteAssetsSource?,
+    val tonBridgeUrl: String? = null
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 

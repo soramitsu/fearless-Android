@@ -61,5 +61,5 @@ dependencies {
 
 
     implementation(libs.gson)
-    implementation(libs.ton)
+    implementation(libs.bundles.ton)
 }

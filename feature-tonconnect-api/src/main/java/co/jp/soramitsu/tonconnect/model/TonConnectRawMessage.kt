@@ -11,11 +11,11 @@ import org.ton.block.StateInit
 import org.ton.cell.Cell
 
 @Parcelize
-data class RawMessageEntity(
+data class TonConnectRawMessage(
     val addressValue: String,
     val amount: Long,
     val stateInitValue: String?,
-    val payloadValue: String
+    val payloadValue: String?
 ) : Parcelable {
 
     @IgnoredOnParcel
@@ -35,7 +35,7 @@ data class RawMessageEntity(
 
     @IgnoredOnParcel
     val payload: Cell by lazy {
-        payloadValue.safeParseCell() ?: Cell()
+        payloadValue?.safeParseCell() ?: Cell()
     }
 
     constructor(json: JSONObject) : this(

@@ -2,7 +2,6 @@ package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.view.View
 import android.webkit.WebResourceRequest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,13 +15,9 @@ import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import co.jp.soramitsu.tonconnect.model.BridgeEvent
-import co.jp.soramitsu.tonconnect.model.BridgeMethod
-import co.jp.soramitsu.tonconnect.model.ConnectRequest
 import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.SignRequestEntity
+import co.jp.soramitsu.tonconnect.model.JsonBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.concurrent.CancellationException
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
@@ -32,8 +27,6 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import okhttp3.Response
-import org.json.JSONArray
-import org.json.JSONObject
 
 @AndroidEntryPoint
 class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewModel>() {
@@ -127,9 +120,9 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
 
         webView.jsBridge = DAppBridge(
             deviceInfo = JsonBuilder.device(tonContractMaxMessages, appVersionName).toString(),
-            send = ::send,
-            connect = ::tonconnect,
-            restoreConnection = { JSONObject() }, //viewModel::restoreConnection,
+            send = viewModel::send,
+            connect = viewModel::connect,
+            restoreConnection = { viewModel.restoreConnection(webView.url) },
             disconnect = {
 //                                            viewModel.disconnect()
             },
@@ -148,62 +141,4 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
             dismiss()
         }
     }
-
-    private suspend fun send(array: JSONArray): JSONObject {
-        println("!!! DAppScreen send array = $array")
-        val messages = BridgeEvent.Message.parse(array)
-        if (messages.size == 1) {
-            val message = messages.first()
-            val id = message.id
-            if (message.method != BridgeMethod.SEND_TRANSACTION) {
-                return JsonBuilder.responseError(id, BridgeError.METHOD_NOT_SUPPORTED)
-            }
-            val signRequests = message.params.map { SignRequestEntity(it) }
-            if (signRequests.size != 1) {
-                return JsonBuilder.responseError(id, BridgeError.BAD_REQUEST)
-            }
-            val signRequest = signRequests.first()
-            return try {
-
-                val boc = "SendTransactionScreen.run(requireContext(), wallet, signRequest)"
-                viewModel.openTonSignRequest(message.method.title, signRequest)
-
-//                JsonBuilder.responseSendTransaction(id, boc)
-                JsonBuilder.responseError(id, BridgeError.UNKNOWN)
-
-            } catch (e: CancellationException) {
-                JsonBuilder.responseError(id, BridgeError.USER_DECLINED_TRANSACTION)
-            } catch (e: BridgeError.Exception) {
-                JsonBuilder.responseError(id, e.error)
-            } catch (e: Throwable) {
-                JsonBuilder.responseError(id, BridgeError.UNKNOWN)
-            }
-        } else {
-            return JsonBuilder.responseError(0, BridgeError.BAD_REQUEST)
-        }
-    }
-
-    private suspend fun tonconnect(
-        version: Int,
-        request: ConnectRequest
-    ): JSONObject {
-        println("!!! tonconnect, request = $request")
-        if (version != 2) {
-            return JsonBuilder.connectEventError(BridgeError.BAD_REQUEST)
-        }
-
-        println("!!! tonconnect, openTonConnectScreen webView.url = ${webView.url}")
-        val result = viewModel.openTonConnectScreenForResult(request.manifestUrl, request.proofPayload)
-
-        println("!!! tonconnect, TonConnectScreen result $result")
-
-        return result
-//        val activity = requireContext().activity ?: return JsonBuilder.connectEventError(BridgeError.BAD_REQUEST)
-//        return tonConnectManager.launchConnectFlow(
-//            activity = activity,
-//            tonConnect = TonConnect.fromJsInject(request, webView.url?.toUri()),
-//            wallet = wallet
-//        )
-    }
-
 }

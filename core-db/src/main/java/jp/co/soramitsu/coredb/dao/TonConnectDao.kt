@@ -17,6 +17,12 @@ abstract class TonConnectDao {
     @Query("SELECT * FROM ton_connection")
     abstract fun observeTonConnections(): Flow<List<TonConnectionLocal>>
 
+    @Query("SELECT * FROM ton_connection WHERE metaId = :metaId AND url LIKE :url")
+    abstract suspend fun getTonConnection(metaId: Long, url: String): TonConnectionLocal?
+
     @Query("DELETE FROM ton_connection WHERE clientId = :dappId")
     abstract suspend fun deleteTonConnection(dappId: String)
 }
+//https://ton-explorer.dev.sora2.tachi.soramitsu.co.jp/
+//https://ton-connect.example.fearless.soramitsu.co.jp/
+//https://ton-connect.github.io/demo-dapp/

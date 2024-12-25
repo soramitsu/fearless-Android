@@ -1,12 +1,10 @@
 package jp.co.soramitsu.coredb.model
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
-import java.math.BigDecimal
-import jp.co.soramitsu.common.data.network.ton.DappRemote
 
-@Entity(tableName = "ton_connection", primaryKeys = ["clientId", "url"])
+@Entity(tableName = "ton_connection", primaryKeys = ["metaId", "url"])
 data class TonConnectionLocal(
+    val metaId: Long,
     val clientId: String,
     val name: String,
     val icon: String,

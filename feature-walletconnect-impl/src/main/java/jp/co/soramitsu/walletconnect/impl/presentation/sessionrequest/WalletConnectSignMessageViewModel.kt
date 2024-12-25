@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SessionRequestViewModel @Inject constructor(
+class WalletConnectSignMessageViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getTotalBalance: TotalBalanceUseCase,
     private val walletConnectInteractor: WalletConnectInteractor,
@@ -42,7 +42,7 @@ class SessionRequestViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val addressIconGenerator: AddressIconGenerator
 ) : SessionRequestScreenInterface, BaseViewModel() {
-    private val topic: String = savedStateHandle[SessionRequestFragment.SESSION_REQUEST_TOPIC_KEY] ?: error("No session info provided")
+    private val topic: String = savedStateHandle[WalletConnectSignMessageFragment.SESSION_REQUEST_TOPIC_KEY] ?: error("No session info provided")
     private val sessions: List<Wallet.Model.SessionRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
         if (it.isEmpty()) {
             walletConnectRouter.back()

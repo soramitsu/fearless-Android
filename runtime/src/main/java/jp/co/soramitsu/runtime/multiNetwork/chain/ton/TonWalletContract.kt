@@ -7,6 +7,8 @@ import org.ton.block.CommonMsgInfoRelaxed
 import org.ton.block.Either
 import org.ton.block.Maybe
 import org.ton.block.MessageRelaxed
+import org.ton.block.MsgAddressExt
+import org.ton.block.MsgAddressInt
 import org.ton.block.StateInit
 import org.ton.cell.Cell
 import org.ton.cell.CellBuilder
@@ -21,25 +23,40 @@ abstract class TonWalletContract(val workchain: Int = DEFAULT_WORKCHAIN) {
         const val DEFAULT_WALLET_ID: Int = 698983191
 
         fun createIntMsg(transfer: WalletTransfer): MessageRelaxed<Cell> {
-            val info = CommonMsgInfoRelaxed.IntMsgInfoRelaxed(
-                ihrDisabled = true,
-                bounce = transfer.bounceable,
-                bounced = false,
-                src = AddrNone,
-                dest = transfer.destination,
-                value = transfer.coins,
-                ihrFee = Coins(),
-                fwdFee = Coins(),
-                createdLt = 0u,
-                createdAt = 0u
-            )
-            val init = Maybe.of(transfer.stateInit?.let {
-                Either.of<StateInit, CellRef<StateInit>>(it, null)
+            val info = when (val dest = transfer.destination) {
+                is MsgAddressInt -> {
+                    CommonMsgInfoRelaxed.IntMsgInfoRelaxed(
+                        ihrDisabled = true,
+                        bounce = transfer.bounceable,
+                        bounced = false,
+                        src = AddrNone,
+                        dest = dest,
+                        value = transfer.coins,
+                        ihrFee = Coins(),
+                        fwdFee = Coins(),
+                        createdLt = 0u,
+                        createdAt = 0u
+                    )
+                }
+                is MsgAddressExt -> {
+                    CommonMsgInfoRelaxed.ExtOutMsgInfoRelaxed(
+                        src = AddrNone,
+                        dest = dest,
+                        createdLt = 0u,
+                        createdAt = 0u
+                    )
+                }
+            }
+
+            val init = Maybe.of(transfer.messageData.stateInit?.let {
+                Either.of<StateInit, CellRef<StateInit>>(null, it)
             })
-            val body = if (transfer.body == null) {
+
+            val bodyCell = transfer.messageData.body
+            val body = if (bodyCell.isEmpty()) {
                 Either.of<Cell, CellRef<Cell>>(Cell.empty(), null)
             } else {
-                Either.of<Cell, CellRef<Cell>>(null, CellRef(transfer.body!!))
+                Either.of<Cell, CellRef<Cell>>(null, CellRef(bodyCell))
             }
 
             return MessageRelaxed(
@@ -59,7 +76,9 @@ abstract class TonWalletContract(val workchain: Int = DEFAULT_WORKCHAIN) {
     }
 
     val address: AddrStd by lazy {
-        SmartContract.address(workchain, stateInit)
+        val stateInitRef = CellRef(stateInit, StateInit)
+        val hash = stateInitRef.hash()
+        AddrStd(workchain, hash)
     }
 
     fun stateInitCell(): Cell {

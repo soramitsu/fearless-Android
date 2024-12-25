@@ -18,6 +18,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.tonconnect.impl.data.TonConnectRepositoryImpl
 import jp.co.soramitsu.tonconnect.impl.domain.TonConnectInteractorImpl
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
@@ -33,19 +34,21 @@ class TonConnectModule {
         tonApi: TonApi,
         @Named("TonSseClient") tonSseClient: OkHttpClient,
         @Named("tonApiHttpClient") tonApiClient: OkHttpClient,
-        tonConnectRouter: TonConnectRouter,
         tonConnectRepository: TonConnectRepository,
         tonRemoteSource: TonRemoteSource,
-        contextManager: ContextManager
+        walletRepository: WalletRepository,
+        contextManager: ContextManager,
+        keypairRepository: KeypairProvider
     ): TonConnectInteractor = TonConnectInteractorImpl(
         chainsRepository,
         accountRepository,
         keypairProvider,
         tonApi,
-        tonConnectRouter,
         tonConnectRepository,
         tonRemoteSource,
+        walletRepository,
         contextManager,
+        keypairRepository,
         tonSseClient,
         tonApiClient
     )

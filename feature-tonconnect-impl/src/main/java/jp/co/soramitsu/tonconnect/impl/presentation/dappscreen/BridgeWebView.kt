@@ -3,6 +3,7 @@ package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
+import android.util.Log
 import android.webkit.JavascriptInterface
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -69,6 +70,7 @@ class BridgeWebView @JvmOverloads constructor(
         val bridge = jsBridge ?: return
         try {
             val data = bridge.invokeFunction(message.name, message.args) ?: return
+            Log.d("&&&", "posting bridge message: ${data}")
             postMessage(
                 FunctionResponseBridgeMessage(
                     invocationId = message.invocationId,
@@ -77,6 +79,7 @@ class BridgeWebView @JvmOverloads constructor(
                 )
             )
         } catch (e: Throwable) {
+            Log.d("&&&", "bridge error: $e ${e.message}")
             postMessage(
                 FunctionResponseBridgeMessage(
                     invocationId = message.invocationId,

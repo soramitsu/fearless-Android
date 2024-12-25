@@ -40,7 +40,7 @@ dependencies {
     implementation libs.lifecycle.livedata.ktx
     implementation libs.appcompat
     implementation libs.material
-    implementation libs.ton
+    implementation libs.bundles.ton
 
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug

@@ -81,25 +81,25 @@ class DiscoverDappViewModel @Inject constructor(
     private val dappsFlow = flowOf {
         tonConnectInteractor.getDappsConfig()
             // todo remove
-            .map { it ->
-                if (it.type == "featured") {
-                    it.copy(
-                        apps = listOf(
-                            DappModel(
-                                identifier = "some_id",
-                                chains = listOf("-3"),
-                                name = "Blueprint testnet",
-                                url = "https://ton-explorer.dev.sora2.tachi.soramitsu.co.jp",
-                                description = "injected FW dapp test example",
-                                background = null,
-                                icon = "https://i.imgur.com/wxkIEAE.png"
-                            )
-                        ).plus(it.apps)
-                    )
-                } else {
-                    it
-                }
-            }
+//            .map { it ->
+//                if (it.type == "featured") {
+//                    it.copy(
+//                        apps = listOf(
+//                            DappModel(
+//                                identifier = "some_id",
+//                                chains = listOf("-3"),
+//                                name = "Blueprint testnet",
+//                                url = "https://ton-explorer.dev.sora2.tachi.soramitsu.co.jp",
+//                                description = "injected FW dapp test example",
+//                                background = null,
+//                                icon = "https://i.imgur.com/wxkIEAE.png"
+//                            )
+//                        ).plus(it.apps)
+//                    )
+//                } else {
+//                    it
+//                }
+//            }
     }
     private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps()
 
@@ -247,8 +247,6 @@ class DiscoverDappViewModel @Inject constructor(
                 }
             }
         }
-
-
     }
 
     fun openWalletSelector() {

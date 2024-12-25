@@ -57,16 +57,16 @@ class ChainSyncService(
         val localChainsJoinedInfo = dao.getJoinChainInfo()
         val localChainsJoinedInfoMap = localChainsJoinedInfo.associateBy { it.chain.id }
 
-        val remoteChains = let {
-            val localChainsJson =
-                contextManager.getContext().assets.open("local_chains.json").bufferedReader()
-                    .use { it.readText() }
-            Gson().fromJson<List<ChainRemote>>(
-                localChainsJson,
-                object : TypeToken<List<ChainRemote>>() {}.type
-            )
-        }
-//            val remoteChains = chainFetcher.getChains()
+//        val remoteChains = let {
+//            val localChainsJson =
+//                contextManager.getContext().assets.open("local_chains.json").bufferedReader()
+//                    .use { it.readText() }
+//            Gson().fromJson<List<ChainRemote>>(
+//                localChainsJson,
+//                object : TypeToken<List<ChainRemote>>() {}.type
+//            )
+//        }
+            val remoteChains = chainFetcher.getChains()
             .filter {
                 !it.disabled && (it.assets?.isNotEmpty() == true)
             }

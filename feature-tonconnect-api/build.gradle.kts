@@ -36,6 +36,6 @@ dependencies {
 
 
     implementation(libs.security.crypto)
-    implementation(libs.ton)
+    implementation(libs.bundles.ton)
     implementation(libs.okhttp.sse)
 }

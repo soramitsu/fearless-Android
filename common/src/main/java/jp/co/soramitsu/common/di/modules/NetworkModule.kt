@@ -229,7 +229,7 @@ class NetworkModule {
             .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
             .addInterceptor {
-                if(it.request().url.host.contains("keeper") || it.request().url.host.contains("testnet.tonapi.io")) {
+                if(it.request().url.host.contains("tonapi.io") || it.request().url.host.contains("testnet.tonapi.io")) {
                     val request = it.request().newBuilder().apply {
                         addHeader(
                             "Authorization",

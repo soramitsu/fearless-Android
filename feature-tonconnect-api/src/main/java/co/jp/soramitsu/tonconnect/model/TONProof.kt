@@ -4,9 +4,10 @@ import android.os.Parcel
 import android.os.Parcelable
 import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.block.AddrStd
-import org.ton.crypto.base64
 import org.ton.crypto.digest.sha256
 import org.ton.crypto.hex
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 object TONProof {
 
@@ -15,6 +16,7 @@ object TONProof {
     private val prefixMessage = hex("ffff") + tonConnectPrefix.toByteArray()
     private val prefixItem = tonProofPrefix.toByteArray()
 
+    @OptIn(ExperimentalEncodingApi::class)
     fun sign(
         address: AddrStd,
         secretKey: PrivateKeyEd25519,
@@ -35,7 +37,7 @@ object TONProof {
             timestamp = request.timestamp,
             domain = request.domain,
             payload = request.payload,
-            signature = base64(signature)
+            signature = Base64.encode(signature)
         )
     }
 

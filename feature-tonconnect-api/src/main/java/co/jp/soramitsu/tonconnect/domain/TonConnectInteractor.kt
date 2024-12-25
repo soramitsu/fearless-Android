@@ -1,17 +1,24 @@
 package co.jp.soramitsu.tonconnect.domain
 
 import co.jp.soramitsu.tonconnect.model.AppEntity
+import co.jp.soramitsu.tonconnect.model.BridgeError
 import co.jp.soramitsu.tonconnect.model.BridgeEvent
+import co.jp.soramitsu.tonconnect.model.ConnectRequest
 import co.jp.soramitsu.tonconnect.model.DappConfig
-import co.jp.soramitsu.tonconnect.model.SignRequestEntity
 import co.jp.soramitsu.tonconnect.model.TONProof
+import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
+import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
 
 interface TonConnectInteractor {
-    suspend fun tonConnectApp(clientId: String, manifestUrl: String, proofPayload: String?)
-    suspend fun tonConnectAppWithResult(clientId: String?, manifestUrl: String, proofPayload: String?): JSONObject
+    suspend fun approveDappConnection(
+        clientId: String?,
+        request: ConnectRequest,
+        signedRequest: JSONObject,
+        app: AppEntity
+    )
 //    suspend fun openTonSignRequest(appUrl: String, method: String, signRequest: SignRequestEntity): JSONObject
 //    suspend fun openTonSignPreview()
 
@@ -29,5 +36,12 @@ interface TonConnectInteractor {
     ): Flow<BridgeEvent>
 
     suspend fun disconnect(dappId: String)
-    suspend fun getSeqno(chain: Chain, accountId: String): Int
+
+    suspend fun signMessage(chain: Chain, method: String, signRequest: TonConnectSignRequest): String
+    suspend fun sendBlockchainMessage(chain: Chain, boc: String)
+    suspend fun sendDappMessage(event: BridgeEvent, boc: String)
+    suspend fun readManifest(url: String): AppEntity
+
+    suspend fun getConnection(url: String): TonConnectionLocal?
+    suspend fun respondDappError(event: BridgeEvent, error: BridgeError)
 }
