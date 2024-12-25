@@ -7,12 +7,12 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.mappers.toOperation
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.HistoryInfoRemoteLoader
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.ChainInfo
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxFilter
 
 class SoraHistorySource(
-    private val historyInfoRemoteLoader: HistoryInfoRemoteLoader,
+    private val txHistoryRepository: TxHistoryRepository,
 ) : HistorySource {
 
     override suspend fun getOperations(
@@ -25,27 +25,30 @@ class SoraHistorySource(
         accountAddress: String
     ): CursorPage<Operation> {
         val soraHistory = runCatching {
-            historyInfoRemoteLoader.loadHistoryInfo(
+            txHistoryRepository.getTransactionHistoryPaged(
+                address = accountAddress,
+                page = cursor?.toLong() ?: 1,
                 pageCount = pageSize,
-                cursor = cursor,
-                signAddress = accountAddress,
                 chainInfo = ChainInfo.Simple(chain.id),
-                filters = setOf(TxFilter.TRANSFER, TxFilter.REWARD, TxFilter.EXTRINSIC),
+                filters = TxFilter.entries.toSet(),
             )
         }.getOrNull()
-
         val soraOperations = soraHistory?.items.orEmpty().mapNotNull { item ->
-                runCatching {
-                    item.toOperation(
-                        chain,
-                        chainAsset,
-                        accountAddress,
-                        filters
-                    )
-                }.getOrNull()
-            }
+            runCatching {
+                item.toOperation(
+                    chain,
+                    chainAsset,
+                    accountAddress,
+                    filters,
+                )
+            }.getOrNull()
+        }
 
-        val nextCursor = if (soraHistory?.endReached == true) null else soraHistory?.endCursor
+        val nextCursor = if (soraHistory?.endReached == true) {
+            null
+        } else {
+            soraHistory?.page?.let { (it + 1).toString() }
+        }
         return CursorPage(nextCursor, soraOperations)
     }
 }

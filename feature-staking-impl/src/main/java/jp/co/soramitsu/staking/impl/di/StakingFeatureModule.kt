@@ -149,11 +149,13 @@ class StakingFeatureModule {
     fun provideStakingRewardsSubqueryDataSource(
         stakingApi: StakingApi,
         stakingTotalRewardDao: StakingTotalRewardDao,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        blockExplorerRepository: BlockExplorerRepository,
     ): StakingRewardsDataSource = SubqueryStakingRewardsDataSource(
         stakingApi = stakingApi,
         stakingTotalRewardDao = stakingTotalRewardDao,
-        chainRegistry = chainRegistry
+        chainRegistry = chainRegistry,
+        blockExplorerRepository = blockExplorerRepository,
     )
 
     @Provides
@@ -267,7 +269,6 @@ class StakingFeatureModule {
         walletConstants: WalletConstants,
         chainRegistry: ChainRegistry,
         assetCache: AssetCache,
-        stakingTotalRewardDao: StakingTotalRewardDao,
     ): StakingRelayChainScenarioInteractor {
         return StakingRelayChainScenarioInteractor(
             interactor,
@@ -282,7 +283,6 @@ class StakingFeatureModule {
             payoutRepository,
             walletConstants,
             chainRegistry,
-            stakingTotalRewardDao,
             assetCache,
         )
     }

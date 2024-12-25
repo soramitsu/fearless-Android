@@ -97,6 +97,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFilter
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.HistoryInfoRemoteLoader
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.impl.domain.adapters.HistoryInfoRemoteLoaderFacade
 import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
@@ -245,11 +246,11 @@ class WalletFeatureModule {
     fun provideHistorySourceProvider(
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
-        historyInfoRemoteLoader: HistoryInfoRemoteLoader
+        txHistoryRepository: TxHistoryRepository,
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
-        historyInfoRemoteLoader,
+        txHistoryRepository,
     )
 
     @Provides

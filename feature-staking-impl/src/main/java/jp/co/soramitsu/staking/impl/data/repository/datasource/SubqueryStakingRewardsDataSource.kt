@@ -23,6 +23,8 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingSumRewa
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidEthRewardAmountRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidRelayRewardAmountRequest
 import jp.co.soramitsu.staking.impl.domain.model.TotalReward
+import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.api.BlockExplorerRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
@@ -33,7 +35,8 @@ import kotlinx.coroutines.withContext
 class SubqueryStakingRewardsDataSource(
     private val stakingApi: StakingApi,
     private val stakingTotalRewardDao: StakingTotalRewardDao,
-    private val chainRegistry: ChainRegistry
+    private val chainRegistry: ChainRegistry,
+    private val blockExplorerRepository: BlockExplorerRepository,
 ) : StakingRewardsDataSource {
 
     override fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
@@ -53,7 +56,9 @@ class SubqueryStakingRewardsDataSource(
             stakingUrl == null -> throw RewardsNotSupportedWarning()
 
             syntheticStakingType == SyntheticStakingType.SORA -> {
-
+                val sum = blockExplorerRepository.getStakingRewarded(chainId, accountAddress).sumOf { it.toBigDecimal() }
+                val total = chain.utilityAsset?.planksFromAmount(sum) ?: BigInteger.ZERO
+                stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, total))
             }
             stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
                 syncSubquery(stakingUrl, accountAddress)

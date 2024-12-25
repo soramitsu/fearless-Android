@@ -48,7 +48,6 @@ dependencies {
 //        exclude(module = "android-foundation")
 //    }
 
-    implementation(projects.androidFoundation)
     implementation(projects.coreDb)
     implementation(projects.common)
     implementation(projects.runtime)

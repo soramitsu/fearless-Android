@@ -6,6 +6,7 @@ import com.neovisionaries.ws.client.WebSocketFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -30,6 +31,11 @@ import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.data.ConfigParser
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.impl.SuperWalletConfigDAOImpl
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.impl.data.RemoteConfigParserImpl
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.HistoryItemsFilter
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistoryItem
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.impl.TxHistoryRepositoryImpl
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.impl.builder.ExpectActualDBDriverFactory
 import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
 import jp.co.soramitsu.xnetworking.lib.engines.rest.api.models.AbstractRestClientConfig
 import jp.co.soramitsu.xnetworking.lib.engines.rest.impl.RestClientImpl
@@ -72,13 +78,37 @@ class NetworkModule {
 
     @Singleton
     @Provides
+    fun provideTxHistoryRepository(
+        @ApplicationContext cnt: Context,
+        configDAO: ConfigDAO,
+        restClient: RestClient,
+    ): TxHistoryRepository {
+        return TxHistoryRepositoryImpl(
+            historyItemsFilter = object : HistoryItemsFilter {
+                override fun List<TxHistoryItem>.filterCachedHistoryItems(): List<TxHistoryItem> = this
+
+                override fun List<TxHistoryItem>.filterPagedHistoryItems(): List<TxHistoryItem> = this
+            },
+            restClient = restClient,
+            configDAO = configDAO,
+            databaseDriverFactory = ExpectActualDBDriverFactory(
+                context = cnt,
+                name = "fearlessxndb",
+            )
+        )
+    }
+
+    @Singleton
+    @Provides
     fun provideSoraWalletBlockExplorerInfo(
         configDAO: ConfigDAO,
         restClient: RestClient,
+        repo: TxHistoryRepository,
     ): BlockExplorerRepository {
         return BlockExplorerRepositoryImpl(
             configDAO = configDAO,
             restClient = restClient,
+            txHistoryRepository = repo,
         )
     }
 
