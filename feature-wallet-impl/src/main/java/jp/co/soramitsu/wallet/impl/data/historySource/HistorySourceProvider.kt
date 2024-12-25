@@ -10,13 +10,13 @@ import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.Histor
 class HistorySourceProvider(
     private val walletOperationsApi: OperationsHistoryApi,
     private val chainRegistry: ChainRegistry,
-    private val txHistoryRepository: TxHistoryRepository,
+    private val historyInfoRemoteLoader: HistoryInfoRemoteLoader,
     private val tonRemoteSource: TonRemoteSource
 ) {
     operator fun invoke(historyUrl: String, historyType: Chain.ExternalApi.Section.Type): HistorySource? {
         return when (historyType) {
             Chain.ExternalApi.Section.Type.SUBQUERY -> SubqueryHistorySource(walletOperationsApi, chainRegistry, historyUrl)
-            Chain.ExternalApi.Section.Type.SORA -> SoraHistorySource(txHistoryRepository)
+            Chain.ExternalApi.Section.Type.SORA -> SoraHistorySource(historyInfoRemoteLoader)
             Chain.ExternalApi.Section.Type.SUBSQUID -> SubsquidHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.GIANTSQUID -> GiantsquidHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.ETHERSCAN -> EtherscanHistorySource(walletOperationsApi, historyUrl)
