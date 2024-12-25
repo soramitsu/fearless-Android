@@ -17,7 +17,6 @@ import jp.co.soramitsu.coredb.model.BasicPoolLocal
 import jp.co.soramitsu.coredb.model.UserPoolJoinedLocal
 import jp.co.soramitsu.coredb.model.UserPoolJoinedLocalNullable
 import jp.co.soramitsu.coredb.model.UserPoolLocal
-import jp.co.soramitsu.liquiditypools.blockexplorer.BlockExplorerManager
 import jp.co.soramitsu.liquiditypools.data.PoolDataDto
 import jp.co.soramitsu.liquiditypools.data.PoolsRepository
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
@@ -66,14 +65,12 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.supervisorScope
 import java.math.BigDecimal
 import java.math.BigInteger
-import javax.inject.Inject
 
 @Suppress("LargeClass", "MagicNumber")
-class PoolsRepositoryImpl @Inject constructor(
+class PoolsRepositoryImpl constructor(
     private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
     private val accountRepository: AccountRepository,
-    private val blockExplorerManager: BlockExplorerManager,
     private val poolDao: PoolDao,
     private val db: AppDatabase
 ) : PoolsRepository {
@@ -181,11 +178,6 @@ class PoolsRepositoryImpl @Inject constructor(
             ?.let { storage ->
                 storage[storage.schema.value]
             }
-    }
-
-    override suspend fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double? {
-        val tempApy = blockExplorerManager.getApy(reserveAccountOfPool)
-        return tempApy
     }
 
     override suspend fun getBasicPool(

@@ -40,7 +40,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.SwapDetailSta
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.mapToStatusAppearance
-import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistoryItem
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode

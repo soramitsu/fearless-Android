@@ -17,13 +17,8 @@ import retrofit2.http.Url
 
 class SoraCardNetworkClientImpl(
     private val retrofitClient: SoraCardRetrofitClient,
+    private val json: Json,
 ) : SoraCardNetworkClient {
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        prettyPrint = true
-        isLenient = true
-    }
 
     override suspend fun <T> get(
         header: String?,

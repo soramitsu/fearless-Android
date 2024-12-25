@@ -36,8 +36,5 @@ dependencies {
     implementation(libs.sharedFeaturesCoreDep)
 
     implementation(libs.soramitsu.android.foundation)
-    implementation(libs.xnetworking.basic)
-    implementation(libs.xnetworking.sorawallet) {
-        exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
-    }
+    implementation(libs.xnetworking.lib.android)
 }
