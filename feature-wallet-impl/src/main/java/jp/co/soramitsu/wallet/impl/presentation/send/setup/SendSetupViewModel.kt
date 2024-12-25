@@ -11,6 +11,9 @@ import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
+import jp.co.soramitsu.account.api.domain.model.hasEthereum
+import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -25,6 +28,7 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
+import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -661,7 +665,16 @@ class SendSetupViewModel @Inject constructor(
     private fun findChainsForAddress(address: String) {
         launch {
             val chains = walletInteractor.getChains().first()
-            val addressChains = chains.filter {
+            val meta = walletInteractor.getSelectedMetaAccount()
+            val accountSupportedChains = chains.filter {
+                when (it.ecosystem) {
+                    Ecosystem.Substrate -> meta.hasSubstrate
+                    Ecosystem.Ton -> meta.hasTon
+                    Ecosystem.EthereumBased,
+                    Ecosystem.Ethereum -> meta.hasEthereum
+                }
+            }
+            val addressChains = accountSupportedChains.filter {
                 it.isValidAddress(address)
             }
             when {
@@ -673,14 +686,25 @@ class SendSetupViewModel @Inject constructor(
                     }
                 }
 
-                else -> router.openSelectChain(
+                addressChains.size > 1 -> router.openSelectChain(
                     filterChainIds = addressChains.map { it.id },
                     chooserMode = false,
                     currencyId = tokenCurrencyId,
                     showAllChains = false
                 )
+
+                else -> showInvalidAddressError(onConfirm = router::back)
             }
         }
+    }
+
+    private fun showInvalidAddressError(onConfirm: () -> Unit = emptyClick) {
+        showError(
+            title = resourceManager.getString(R.string.common_warning),
+            message = resourceManager.getString(R.string.error_invalid_address),
+            negativeButtonText = resourceManager.getString(R.string.common_close),
+            negativeClick = onConfirm
+        )
     }
 
     override fun onAmountInput(input: BigDecimal?) {
@@ -820,6 +844,19 @@ class SendSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
+            val chain = sharedState.chainId?.let {
+                walletInteractor.getChain(it)
+            }
+
+            if (chain?.ecosystem == Ecosystem.Ton) {
+                if (chain.isValidAddress(content)) {
+                    fillQrContentToAddressField(content)
+                } else {
+                    showInvalidAddressError()
+                }
+                return@launch
+            }
+
             val cbdcQrContent = walletInteractor.tryReadCBDCAddressFormat(content)
             if (cbdcQrContent != null) {
                 router.back()
@@ -829,15 +866,16 @@ class SendSetupViewModel @Inject constructor(
                 if (soraQrContent != null) {
                     handleSoraQr(soraQrContent)
                 } else {
-
-                    // 3 fill QR content
-
-                    addressInputFlow.value = content
-                    lockAmountInputFlow.value = false
-                    lockInputFlow.value = false
+                    fillQrContentToAddressField(content)
                 }
             }
         }
+    }
+
+    private fun fillQrContentToAddressField(content: String) {
+        addressInputFlow.value = content
+        lockAmountInputFlow.value = false
+        lockInputFlow.value = false
     }
 
     private suspend fun handleSoraQr(qrContentSora: QrContentSora) {
