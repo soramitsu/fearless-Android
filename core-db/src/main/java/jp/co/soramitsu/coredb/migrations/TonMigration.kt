@@ -5,7 +5,6 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.EthereumDerivationPath
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
@@ -321,7 +320,7 @@ class TonMigration(
                     entropy = entropy,
                     seed = ethereumKeypair.privateKey,
                     ethereumKeypair = ethereumKeypair,
-                    ethereumDerivationPath = oldSecrets[EthereumDerivationPath]
+                    ethereumDerivationPath = oldSecrets[MetaAccountSecretsV69.EthereumDerivationPath]
                 )
                 ethereumSecretStore.put(metaId, newEthereumSecrets)
             }
