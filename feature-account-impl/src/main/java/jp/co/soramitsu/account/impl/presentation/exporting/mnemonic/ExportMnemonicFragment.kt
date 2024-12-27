@@ -35,8 +35,6 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
     }
 
     override fun initViews() {
-        configureAdvancedBlock()
-
         with(binding) {
             exportMnemonicToolbar.setHomeButtonListener { viewModel.back() }
 
@@ -47,15 +45,11 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
                 }
             )
 
+            exportMnemonicAdvanced.configure(FieldState.DISABLED)
+
             exportMnemonicConfirm.setOnClickListener { viewModel.openConfirmMnemonic() }
 
             exportMnemonicExport.setOnClickListener { viewModel.exportClicked() }
-        }
-    }
-
-    private fun configureAdvancedBlock() {
-        with(binding.exportMnemonicAdvanced) {
-            configure(FieldState.DISABLED)
         }
     }
 
@@ -70,7 +64,7 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             binding.exportMnemonicViewer.submitList(it)
         }
 
-        viewModel.mnemonicDerivationPathLiveData.observe { (substrateDerivationPath: String?, ethereumDerivationPath: String?) ->
+        viewModel.derivationPathLiveData.observe { (substrateDerivationPath: String?, ethereumDerivationPath: String?) ->
             if (substrateDerivationPath.isNullOrBlank() && ethereumDerivationPath.isNullOrBlank()) {
                 binding.exportMnemonicAdvanced.isVisible = false
                 return@observe
@@ -79,6 +73,7 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             val ethereumState = if (ethereumDerivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(binding.exportMnemonicAdvanced) {
+                expand()
                 configureSubstrate(substrateState)
                 configureEthereum(ethereumState)
                 setSubstrateDerivationPath(substrateDerivationPath)

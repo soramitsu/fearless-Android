@@ -351,9 +351,9 @@ class AccountInteractorImpl(
                     }
                 }
             }
-        }.map {
-            // substrate mnemonic for a wallet or ethereum mnemonic for added ethereum account; or ton
-            it.first()
+        }.mapNotNull {
+            // mnemonic for a wallet (substrate) or ethereum mnemonic for added ethereum account; or ton
+            it.firstOrNull()
         }
         return result
     }
@@ -377,7 +377,7 @@ class AccountInteractorImpl(
     }
 
 
-    override fun getDerivationPathForMnemonicExport(metaId: Long): Flow<ComponentHolder> {
+    override fun getDerivationPathForExport(metaId: Long): Flow<ComponentHolder> {
         val result = lightMetaAccountsFlow().mapNotNull {
             it.firstOrNull { it.id == metaId }
         }.map {

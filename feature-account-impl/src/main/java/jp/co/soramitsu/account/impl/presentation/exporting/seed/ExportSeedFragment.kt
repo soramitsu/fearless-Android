@@ -12,8 +12,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.common.BuildConfig
-import jp.co.soramitsu.common.utils.ComponentHolder
-import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportSeedBinding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -48,8 +46,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
                 }
             )
 
-            exportSeedAdvanced.configureSubstrate(FieldState.DISABLED)
-            exportSeedAdvanced.configureEthereum(FieldState.HIDDEN)
+            exportSeedAdvanced.configure(FieldState.DISABLED)
 
             exportSeedExport.setOnClickListener { viewModel.exportClicked() }
 
@@ -65,50 +62,32 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
         super.subscribe(viewModel)
 
         val typeNameRes = viewModel.exportSource.nameRes
-
         binding.exportSeedType.setMessage(typeNameRes)
 
-        mediateWith(
-            viewModel.isEthereum,
-            viewModel.seedDerivationPathLiveData,
-            viewModel.exportSeedLiveData
-        ) { (isEthereum: Boolean?, derivationPath: String?, seedInfo: ComponentHolder?) ->
-            val substrateSeed: String? = seedInfo?.component1()
-            val ethereumSeed: String? = seedInfo?.component2()
-
-            val derivationPathFieldState = if (derivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
-            val ethereumEncryptionTypeFieldState = if (ethereumSeed.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
-
+        viewModel.exportSeedLiveData.observe { (substrateSeed: String?, ethereumSeed: String?) ->
+            binding.exportSeedSubstrateLayout.isGone = substrateSeed.isNullOrEmpty()
+            binding.exportSeedEthereumLayout.isGone = ethereumSeed.isNullOrEmpty()
             substrateSeed?.let { binding.exportSeedSubstrateValue.setMessage(it) }
             ethereumSeed?.let { binding.exportSeedEthereumValue.setMessage(it) }
+        }
+
+        viewModel.derivationPathLiveData.observe { (substrateDerivationPath: String?, ethereumDerivationPath: String?) ->
+            if (substrateDerivationPath.isNullOrBlank() && ethereumDerivationPath.isNullOrBlank()) {
+                binding.exportSeedAdvanced.isVisible = false
+                return@observe
+            }
+
+            val substrateState = if (substrateDerivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
+            val ethereumState = if (ethereumDerivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(binding.exportSeedAdvanced) {
-                derivationPathFieldState.applyTo(substrateDerivationPathField)
-                setSubstrateDerivationPath(derivationPath)
+                expand()
+                configureSubstrate(substrateState)
+                configureEthereum(ethereumState)
+                setSubstrateDerivationPath(substrateDerivationPath)
+                setEthereumDerivationPath(ethereumDerivationPath)
             }
-
-            when {
-                viewModel.isExportFromWallet -> {
-                    with(binding) {
-                        exportSeedSubstrateLayout.isVisible = true
-                        exportSeedEthereumLayout.isGone = ethereumSeed.isNullOrBlank()
-                        ethereumEncryptionTypeFieldState.applyTo(exportSeedAdvanced.ethereumEncryptionTypeField)
-                    }
-                }
-                isEthereum == true -> {
-                    with(binding) {
-                        exportSeedSubstrateLayout.isVisible = false
-                        exportSeedEthereumLayout.isVisible = true
-                        exportSeedAdvanced.configureSubstrate(FieldState.HIDDEN)
-                        FieldState.DISABLED.applyTo(exportSeedAdvanced.ethereumEncryptionTypeField)
-                    }
-                }
-                isEthereum == false -> {
-                    binding.exportSeedSubstrateLayout.isVisible = true
-                    binding.exportSeedEthereumLayout.isVisible = false
-                }
-            }
-        }.observe { }
+        }
 
         viewModel.cryptoTypeLiveData.observe {
             it?.name?.let { it1 -> binding.exportSeedAdvanced.setSubstrateEncryption(it1) }

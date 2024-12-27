@@ -1,7 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.exporting.seed
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
@@ -10,7 +9,6 @@ import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.ComponentHolder
@@ -52,17 +50,6 @@ class ExportSeedViewModel @Inject constructor(
                 )
             }
             else -> seedForSeedExportLiveData
-        }
-    }
-
-    val seedDerivationPathLiveData = isChainAccountLiveData.switchMap { isChainAccount ->
-        when {
-            isChainAccount -> chainSecretLiveData.map {
-                it?.get(ChainAccountSecrets.DerivationPath)
-            }
-            else -> liveData {
-                accountInteractor.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.SubstrateDerivationPath)
-            }
         }
     }
 

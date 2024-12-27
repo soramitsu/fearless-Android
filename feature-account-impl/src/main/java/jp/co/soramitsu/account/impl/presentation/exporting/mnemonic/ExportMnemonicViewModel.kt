@@ -12,9 +12,7 @@ import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemon
 import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
@@ -37,8 +35,6 @@ class ExportMnemonicViewModel @Inject constructor(
     ExportSource.Mnemonic
 ) {
 
-    private val isChainEthereumBased = chainLiveData.map { it.isEthereumBased }
-
     private val mnemonicSourceLiveData: LiveData<Mnemonic> = isChainAccountLiveData.switchMap { isChainAccount ->
         when {
             isChainAccount -> chainSecretLiveData.map {
@@ -51,34 +47,6 @@ class ExportMnemonicViewModel @Inject constructor(
     val mnemonicWordsLiveData = mnemonicSourceLiveData.map {
         mapMnemonicToMnemonicWords(it.wordList)
     }
-
-    val mnemonicDerivationPathLiveData = mediateWith(isChainAccountLiveData, isChainEthereumBased) { (isChainAccount: Boolean?, isEthereum: Boolean?) ->
-        when {
-            isChainAccount == null || isEthereum == null -> null
-            else -> isChainAccount to isEthereum
-        }
-    }
-        .switchMap { (isChain, isEthereum) ->
-            when {
-                isChain && !isEthereum -> chainSecretLiveData.map {
-                    ComponentHolder(
-                        listOf(
-                            it?.get(ChainAccountSecrets.DerivationPath),
-                            null
-                        )
-                    )
-                }
-                isChain -> chainSecretLiveData.map {
-                    ComponentHolder(
-                        listOf(
-                            null,
-                            it?.get(ChainAccountSecrets.DerivationPath)
-                        )
-                    )
-                }
-                else -> derivationPathForMnemonicExportLiveData
-            }
-        }
 
     init {
         showSecurityWarning()
