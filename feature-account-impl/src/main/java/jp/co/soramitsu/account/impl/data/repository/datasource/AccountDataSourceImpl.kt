@@ -123,13 +123,19 @@ class AccountDataSourceImpl(
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> = selectedMetaAccountFlow
 
     override fun selectedLightMetaAccount(): Flow<LightMetaAccount> {
-        return metaAccountDao.selectedLightMetaAccountFlow().map { accountLocal ->
+        return metaAccountDao.selectedLocalMetaAccountFlow().map { accountLocal ->
             accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
         }.filterNotNull().flowOn(Dispatchers.Default)
     }
 
+    override fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount> {
+        return metaAccountDao.observeLocalMetaAccount(metaId).map { accountLocal ->
+            accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
+        }.filterNotNull().flowOn(Dispatchers.IO)
+    }
+
     override suspend fun getSelectedLightMetaAccount(): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getSelectedLightMetaAccount() }
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getSelectedLocalMetaAccount() }
         return mapMetaAccountLocalToLightMetaAccount(local)
     }
 
@@ -199,7 +205,7 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getLightMetaAccount(metaId) }
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getLocalMetaAccount(metaId) }
         return mapMetaAccountLocalToLightMetaAccount(local)
     }
 

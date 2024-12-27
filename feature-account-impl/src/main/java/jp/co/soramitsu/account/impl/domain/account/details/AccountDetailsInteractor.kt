@@ -40,9 +40,8 @@ class AccountDetailsInteractor(
         return accountRepository.getMetaAccount(metaId)
     }
 
-    suspend fun updateName(metaId: Long, newName: String) {
-        accountRepository.updateMetaAccountName(metaId, newName)
-    }
+    fun lightMetaAccountFlow(metaId: Long) =
+        accountRepository.lightMetaAccountFlow(metaId)
 
     fun getChainProjectionsFlow(metaId: Long): Flow<GroupedList<From, AccountInChain>> {
         return combine(

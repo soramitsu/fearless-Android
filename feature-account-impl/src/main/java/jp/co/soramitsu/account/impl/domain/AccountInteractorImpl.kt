@@ -203,6 +203,7 @@ class AccountInteractorImpl(
         }
 
     override suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
+    override suspend fun getLightMetaAccount(metaId: Long) = accountRepository.getLightMetaAccount(metaId)
 
     override suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId) =
         accountRepository.getChainAccountSecrets(metaId, chainId)

@@ -37,7 +37,7 @@ class OptionsWalletViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    private val chosenWallet = flowOf { accountInteractor.getMetaAccount(walletId) }
+    private val chosenWallet = flowOf { accountInteractor.getLightMetaAccount(walletId) }
         .inBackground()
         .share()
 

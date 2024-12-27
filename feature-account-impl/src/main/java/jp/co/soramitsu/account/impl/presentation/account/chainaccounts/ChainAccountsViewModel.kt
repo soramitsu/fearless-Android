@@ -40,8 +40,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
-
 @HiltViewModel
 class ChainAccountsViewModel @Inject constructor(
     private val interactor: AccountDetailsInteractor,
@@ -95,7 +93,6 @@ class ChainAccountsViewModel @Inject constructor(
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
     private val enteredQueryFlow = MutableStateFlow("")
-//    private val accountNameFlow = MutableStateFlow("")
 
     private val chainAccountProjections = combine(
         interactor.getChainProjectionsFlow(walletId, type),
@@ -110,11 +107,6 @@ class ChainAccountsViewModel @Inject constructor(
     val state = MutableStateFlow(ChainAccountsState.Empty)
 
     init {
-//        launch {
-//            accountNameFlow.emit(interactor.getMetaAccount(walletId).name)
-//        }
-//
-//        syncNameChangesWithDb()
         subscribeScreenState()
     }
 
@@ -139,15 +131,6 @@ class ChainAccountsViewModel @Inject constructor(
     override fun onSearchInput(input: String) {
         enteredQueryFlow.value = input
     }
-
-//    @OptIn(FlowPreview::class)
-//    private fun syncNameChangesWithDb() {
-//        accountNameFlow
-//            .filter { it.isNotEmpty() }
-//            .debounce(UPDATE_NAME_INTERVAL_SECONDS.toDuration(DurationUnit.SECONDS))
-//            .onEach { interactor.updateName(walletId, it) }
-//            .launchIn(viewModelScope)
-//    }
 
     private suspend fun mapChainAccountProjectionToUi(accountInChain: AccountInChain) = with(accountInChain) {
         val address = projection?.address ?: resourceManager.getString(R.string.account_no_chain_projection)

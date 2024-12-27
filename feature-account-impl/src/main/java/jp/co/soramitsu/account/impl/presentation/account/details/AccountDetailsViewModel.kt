@@ -24,7 +24,6 @@ import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
@@ -32,20 +31,13 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
 @HiltViewModel
 class AccountDetailsViewModel @Inject constructor(
@@ -61,10 +53,8 @@ class AccountDetailsViewModel @Inject constructor(
 ) : BaseViewModel(), AccountDetailsCallback, ExternalAccountActions by externalAccountActions {
 
     private val walletId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
-    private val wallet = flowOf {
-        interactor.getMetaAccount(walletId)
-    }.share()
-    private val walletItem = wallet
+
+    private val walletItem = interactor.lightMetaAccountFlow(walletId)
         .map { wallet ->
 
             val icon = iconGenerator.createAddressIcon(
@@ -90,8 +80,6 @@ class AccountDetailsViewModel @Inject constructor(
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
-    private val accountNameFlow = MutableStateFlow("")
-
     private val connectedAccountsSummaryFlow = interactor.getChainAccountsSummaryFlow(walletId)
         .mapList { (type, size) ->
             ConnectedAccountsInfoItem(
@@ -112,11 +100,6 @@ class AccountDetailsViewModel @Inject constructor(
     val state = MutableStateFlow(AccountDetailsState.Empty)
 
     init {
-        launch {
-            accountNameFlow.emit(interactor.getMetaAccount(walletId).name)
-        }
-
-        syncNameChangesWithDb()
         subscribeScreenState()
     }
 
@@ -133,15 +116,6 @@ class AccountDetailsViewModel @Inject constructor(
 
     override fun onBackClick() {
         accountRouter.back()
-    }
-
-    @OptIn(FlowPreview::class)
-    private fun syncNameChangesWithDb() {
-        accountNameFlow
-            .filter { it.isNotEmpty() }
-            .debounce(UPDATE_NAME_INTERVAL_SECONDS.toDuration(DurationUnit.SECONDS))
-            .onEach { interactor.updateName(walletId, it) }
-            .launchIn(viewModelScope)
     }
 
     private fun mapTypeToTitle(type: ImportAccountType): String {

@@ -86,6 +86,7 @@ interface AccountInteractor {
     suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String): Result<String>
 
     suspend fun getMetaAccount(metaId: Long): MetaAccount
+    suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
     fun getMetaAccountsGoogleAddresses(): Flow<List<String>>
 
     suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId): EncodableStruct<ChainAccountSecrets>?

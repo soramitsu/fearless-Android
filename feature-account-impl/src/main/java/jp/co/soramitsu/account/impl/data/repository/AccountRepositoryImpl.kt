@@ -148,6 +148,10 @@ class AccountRepositoryImpl(
         return accountDataSource.lightMetaAccountsFlow()
     }
 
+    override fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount> {
+        return accountDataSource.lightMetaAccountFlow(metaId)
+    }
+
     override suspend fun selectMetaAccount(metaId: Long) {
         return accountDataSource.selectMetaAccount(metaId)
     }
