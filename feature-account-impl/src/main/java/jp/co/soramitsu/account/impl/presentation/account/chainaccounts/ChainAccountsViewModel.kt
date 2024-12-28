@@ -22,6 +22,8 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.list.headers.TextHeader
+import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
@@ -97,9 +99,14 @@ class ChainAccountsViewModel @Inject constructor(
     private val chainAccountProjections = combine(
         interactor.getChainProjectionsFlow(walletId, type),
         enteredQueryFlow
-    ) { accounts, query ->
-        accounts.filter { it.chain.name.lowercase().contains(query.lowercase()) }
-            .map { mapChainAccountProjectionToUi(it) }
+    ) { accountsGrouped, query ->
+        accountsGrouped.mapKeys { (from, _) -> mapFromToTextHeader(from) }
+            .mapValues { (_, accounts) ->
+                accounts.filter { it.chain.name.lowercase().contains(query.lowercase()) }
+                    .map { mapChainAccountProjectionToUi(it) }
+            }
+            .filter { it.value.isNotEmpty() }
+            .toListWithHeaders()
     }
         .inBackground()
         .share()
@@ -215,5 +222,15 @@ class ChainAccountsViewModel @Inject constructor(
 
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
+    }
+
+    private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader? {
+        val resId = when (from) {
+            AccountInChain.From.META_ACCOUNT -> R.string.default_account_shared_secret
+            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_custom_secret
+            AccountInChain.From.ACCOUNT_WO_ADDRESS -> return null
+        }
+
+        return TextHeader(resourceManager.getString(resId))
     }
 }

@@ -125,7 +125,7 @@ class AccountDataSourceImpl(
     override fun selectedLightMetaAccount(): Flow<LightMetaAccount> {
         return metaAccountDao.selectedLocalMetaAccountFlow().map { accountLocal ->
             accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
-        }.filterNotNull().flowOn(Dispatchers.Default)
+        }.filterNotNull().flowOn(Dispatchers.IO)
     }
 
     override fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount> {

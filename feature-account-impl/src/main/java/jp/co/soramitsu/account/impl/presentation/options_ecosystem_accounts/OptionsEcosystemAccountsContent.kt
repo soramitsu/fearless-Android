@@ -27,7 +27,8 @@ import jp.co.soramitsu.feature_account_api.R
 
 data class OptionsEcosystemAccountsScreenViewState(
     val metaId: Long,
-    val type: ImportAccountType
+    val type: ImportAccountType,
+    val hasReplacedAccounts: Boolean
 )
 
 @Composable
@@ -63,14 +64,16 @@ fun OptionsEcosystemAccountsContent(
                     textAlign = TextAlign.Center
                 )
             }
-            MarginVertical(margin = 28.dp)
-            GrayButton(
-                text = stringResource(id = R.string.ecosystem_options_backup_title),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                onClick = onBackupEcosystemAccountsClicked
-            )
+            if (state.hasReplacedAccounts.not()) {
+                MarginVertical(margin = 28.dp)
+                GrayButton(
+                    text = stringResource(id = R.string.ecosystem_options_backup_title),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    onClick = onBackupEcosystemAccountsClicked
+                )
+            }
             MarginVertical(margin = 12.dp)
             GrayButton(
                 text = stringResource(id = R.string.ecosystem_options_details_title),
@@ -91,7 +94,8 @@ private fun OptionsEcosystemAccountsScreenPreview() {
         OptionsEcosystemAccountsContent(
             state = OptionsEcosystemAccountsScreenViewState(
                 metaId = 1,
-                type = ImportAccountType.Ethereum
+                type = ImportAccountType.Ethereum,
+                hasReplacedAccounts = false
             ),
             onBackupEcosystemAccountsClicked = { },
             onEcosystemAccountsClicked = { },

@@ -139,6 +139,7 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     private suspend fun checkIsWalletWithChainAccounts() {
+
         val chainProjections = accountDetailsInteractor.getChainProjectionsFlow(walletId).firstOrNull().orEmpty()
         val chainAccounts = chainProjections[AccountInChain.From.CHAIN_ACCOUNT].orEmpty()
 

@@ -35,10 +35,11 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.compose.theme.white50
+import jp.co.soramitsu.common.list.headers.TextHeader
 
 data class ChainAccountsState(
     val walletItem: WalletItemViewState?,
-    val chainProjections: List<AccountInChainUi>,
+    val chainProjections: List<Any?>,
     val searchQuery: String? = null
 ) {
     companion object {
@@ -105,30 +106,35 @@ internal fun ChainAccountsContent(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item {
-                    Box(
-                        modifier = Modifier.height(32.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        CapsTitle2(
-                            text = stringResource(R.string.account_shared_secret)
-                        )
-                    }
-                }
                 items(state.chainProjections) { item ->
-                    SelectorWithBorder(
-                        state = SelectorState(
-                            title = item.chainName,
-                            subTitle = item.address,
-                            iconUrl = item.chainIcon,
-                            actionIcon = R.drawable.ic_dots_horizontal_24,
-                            enabled = item.enabled,
-                            subTitleIcon = R.drawable.ic_alert_16.takeIf { item.hasAccount.not() }
-                        ),
-                        onClick = {
-                            callback.chainAccountOptionsClicked(item)
+                    when (item) {
+                        is TextHeader -> {
+                            Box(
+                                modifier = Modifier.height(32.dp),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                CapsTitle2(
+                                    text = item.content
+                                )
+                            }
                         }
-                    )
+
+                        is AccountInChainUi -> {
+                            SelectorWithBorder(
+                                state = SelectorState(
+                                    title = item.chainName,
+                                    subTitle = item.address,
+                                    iconUrl = item.chainIcon,
+                                    actionIcon = R.drawable.ic_dots_horizontal_24,
+                                    enabled = item.enabled,
+                                    subTitleIcon = R.drawable.ic_alert_16.takeIf { item.hasAccount.not() }
+                                ),
+                                onClick = {
+                                    callback.chainAccountOptionsClicked(item)
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

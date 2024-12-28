@@ -43,6 +43,17 @@ class AccountDetailsInteractor(
     fun lightMetaAccountFlow(metaId: Long) =
         accountRepository.lightMetaAccountFlow(metaId)
 
+    suspend fun hasReplacedAccounts(metaId: Long, type: ImportAccountType): Boolean {
+        val wallet = getMetaAccount(metaId)
+        return wallet.chainAccounts.values.mapNotNull { it.chain }.any {
+            if (it.isEthereumChain) {
+                type == ImportAccountType.Ethereum
+            } else {
+                type == ImportAccountType.Substrate
+            }
+        }
+    }
+
     fun getChainProjectionsFlow(metaId: Long): Flow<GroupedList<From, AccountInChain>> {
         return combine(
             flowOf { getMetaAccount(metaId) },
@@ -63,10 +74,10 @@ class AccountDetailsInteractor(
         }
     }
 
-    fun getChainProjectionsFlow(metaId: Long, type: ImportAccountType): Flow<List<AccountInChain>> {
+    fun getChainProjectionsFlow(metaId: Long, type: ImportAccountType): Flow<GroupedList<From, AccountInChain>> {
         return combine(
             flowOf { getMetaAccount(metaId) },
-            chainRegistry.currentChains.map { it.sortedWith(chainSort()) },
+            chainRegistry.currentChains,//.map { it.sortedWith(chainSort()) },
         ) { metaAccount, chains ->
             chains.filter { chain ->
                 chain.ecosystem == Ecosystem.Ton && type == ImportAccountType.Ton
@@ -75,7 +86,10 @@ class AccountDetailsInteractor(
                         || chain.ecosystem == Ecosystem.Substrate && type == ImportAccountType.Substrate
             }.map { chain ->
                 createAccountInChain(metaAccount, chain, false)
-            }
+            }.filter {
+                it.hasAccount
+            }.groupBy(AccountInChain::from)
+                .toSortedMap(compareBy { it.name })
         }
     }
 
@@ -84,12 +98,14 @@ class AccountDetailsInteractor(
             flowOf { getMetaAccount(metaId) },
             chainRegistry.currentChains,
         ) { metaAccount, chains ->
-            val isSubstrateOrEthereumSupportedByAccount = metaAccount.hasEthereum || metaAccount.hasSubstrate
-            val isTonSupportedByAccount = metaAccount.hasTon
-
             chains.filter { chain ->
-                chain.ecosystem == Ecosystem.Ton && isTonSupportedByAccount
-                        || chain.ecosystem != Ecosystem.Ton && isSubstrateOrEthereumSupportedByAccount
+                when (chain.ecosystem) {
+                    Ecosystem.Substrate -> metaAccount.hasSubstrate
+                    Ecosystem.EthereumBased,
+                    Ecosystem.Ethereum -> metaAccount.hasEthereum
+
+                    Ecosystem.Ton -> metaAccount.hasTon
+                } || metaAccount.hasChainAccount(chain.id)
             }.groupBy { chain ->
                 when (chain.ecosystem) {
                     Ecosystem.Substrate -> ImportAccountType.Substrate
@@ -99,13 +115,7 @@ class AccountDetailsInteractor(
                     Ecosystem.Ton -> ImportAccountType.Ton
                 }
             }.map { grouped ->
-                val chainsWithAccount = when (grouped.key) {
-                    ImportAccountType.Substrate -> metaAccount.hasSubstrate
-                    ImportAccountType.Ethereum -> metaAccount.hasEthereum
-                    ImportAccountType.Ton -> metaAccount.hasTon
-                }
-
-                grouped.key to (grouped.value.size.takeIf { chainsWithAccount } ?: 0)
+                grouped.key to grouped.value.size
             }
         }
     }

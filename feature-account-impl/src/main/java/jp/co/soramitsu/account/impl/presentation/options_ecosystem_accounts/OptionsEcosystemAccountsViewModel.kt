@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class OptionsEcosystemAccountsViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
+    private val accountDetailsInteractor: AccountDetailsInteractor,
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter
 ) : BaseViewModel() {
@@ -31,14 +33,16 @@ class OptionsEcosystemAccountsViewModel @Inject constructor(
     val state: StateFlow<OptionsEcosystemAccountsScreenViewState> = flowOf {
         OptionsEcosystemAccountsScreenViewState(
             metaId = walletId,
-            type = type
+            type = type,
+            hasReplacedAccounts = accountDetailsInteractor.hasReplacedAccounts(walletId, type)
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
         OptionsEcosystemAccountsScreenViewState(
             metaId = walletId,
-            type = type
+            type = type,
+            hasReplacedAccounts = true
         )
     )
 
