@@ -57,6 +57,7 @@ import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.NotInitializedTonAccountException
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
@@ -126,7 +127,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     enum class ToggleState {
-         INITIAL, CHECKED, CONFIRMED
+        INITIAL, CHECKED, CONFIRMED
     }
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
@@ -140,8 +141,10 @@ class SendSetupViewModel @Inject constructor(
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
     private val tokenCurrencyId: String? = savedStateHandle[SendSetupFragment.KEY_TOKEN_ID]
-    private val initSendToAmount: BigDecimal? = savedStateHandle[SendSetupFragment.KEY_INITIAL_AMOUNT]
-    private val lockSendToAmount: Boolean = savedStateHandle.get<Boolean>(SendSetupFragment.KEY_LOCK_AMOUNT) == true
+    private val initSendToAmount: BigDecimal? =
+        savedStateHandle[SendSetupFragment.KEY_INITIAL_AMOUNT]
+    private val lockSendToAmount: Boolean =
+        savedStateHandle.get<Boolean>(SendSetupFragment.KEY_LOCK_AMOUNT) == true
 
     val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
         error("Required data (asset or address) not specified")
@@ -170,7 +173,10 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val defaultAddressInputState = AddressInputWithScore.Empty(resourceManager.getString(R.string.send_to), resourceManager.getString(R.string.search_textfield_placeholder))
+    private val defaultAddressInputState = AddressInputWithScore.Empty(
+        resourceManager.getString(R.string.send_to),
+        resourceManager.getString(R.string.search_textfield_placeholder)
+    )
 
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
@@ -219,11 +225,12 @@ class SendSetupViewModel @Inject constructor(
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
     private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
-    override val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
+    override val isSoftKeyboardOpenFlow =
+        MutableStateFlow(lockSendToAmount && initialAmount.isZero())
 
     private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
 
-//    private val maxAmountFlow = MutableStateFlow(BigDecimal.ZERO)
+    //    private val maxAmountFlow = MutableStateFlow(BigDecimal.ZERO)
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
     private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
@@ -239,7 +246,10 @@ class SendSetupViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
-        combine(selectedChainItem, lockInputFlow) { it: ChainSelectScreenContract.State.ItemState?, isLock: Boolean ->
+        combine(
+            selectedChainItem,
+            lockInputFlow
+        ) { it: ChainSelectScreenContract.State.ItemState?, isLock: Boolean ->
             SelectorState(
                 title = resourceManager.getString(R.string.common_network),
                 subTitle = it?.title,
@@ -262,7 +272,8 @@ class SendSetupViewModel @Inject constructor(
             defaultAmountInputState
         } else {
             val tokenBalance = asset.sendAvailable.formatCrypto(asset.token.configuration.symbol)
-            val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+            val fiatAmount =
+                amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbol,
@@ -306,9 +317,14 @@ class SendSetupViewModel @Inject constructor(
     }
         .retry(RETRY_TIMES)
         .catch {
+            if (it is NotInitializedTonAccountException) {
+                showError(resourceManager.getString(R.string.fee_calculation_error_inactive_account))
+            } else {
+                showError(resourceManager.getString(R.string.fee_calculation_error))
+            }
             println("Error: $it")
             it.printStackTrace()
-            showError(it.message ?: "Error calculating fee")
+
             emit(null)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -353,8 +369,10 @@ class SendSetupViewModel @Inject constructor(
             feeAmount
         }
 
-        val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
-        val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)?.formatFiat(showFeeAsset.token.fiatSymbol)
+        val feeFormatted =
+            assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
+        val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)
+            ?.formatFiat(showFeeAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }
@@ -365,7 +383,7 @@ class SendSetupViewModel @Inject constructor(
         walletInteractor.getPhishingInfo(it)
     }
     private val nomisScore = addressInputTrimmedFlow.transform {
-        if(it.isEmpty()) {
+        if (it.isEmpty()) {
             return@transform
         }
         emit(LoadingState.Loading())
@@ -393,9 +411,13 @@ class SendSetupViewModel @Inject constructor(
             WarningInfoState(
                 message = resourceManager.getString(R.string.scam_description_lowscore_text),
                 extras = listOf(
-                    resourceManager.getString(R.string.username_setup_choose_title) to resourceManager.getString(R.string.scam_info_nomis_name),
+                    resourceManager.getString(R.string.username_setup_choose_title) to resourceManager.getString(
+                        R.string.scam_info_nomis_name
+                    ),
                     resourceManager.getString(R.string.reason) to resourceManager.getString(R.string.scam_info_nomis_reason_text),
-                     resourceManager.getString(R.string.scam_additional_stub) to resourceManager.getString(R.string.scam_info_nomis_subtype_text)
+                    resourceManager.getString(R.string.scam_additional_stub) to resourceManager.getString(
+                        R.string.scam_info_nomis_subtype_text
+                    )
                 ),
                 isExpanded = isExpanded,
                 color = warningOrange
@@ -428,7 +450,8 @@ class SendSetupViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
-    private val sendAllToggleState: MutableStateFlow<ToggleState> = MutableStateFlow(ToggleState.INITIAL)
+    private val sendAllToggleState: MutableStateFlow<ToggleState> =
+        MutableStateFlow(ToggleState.INITIAL)
     private var existentialDepositCheckJob: Job? = null
 
     private val messageInputState = MutableStateFlow<TextInputViewState?>(null)
@@ -483,7 +506,12 @@ class SendSetupViewModel @Inject constructor(
         }.launchIn(this)
 
         sendAllToggleState.onEach {
-            state.value = state.value.copy(sendAllChecked = it in listOf(ToggleState.CHECKED, ToggleState.CONFIRMED))
+            state.value = state.value.copy(
+                sendAllChecked = it in listOf(
+                    ToggleState.CHECKED,
+                    ToggleState.CONFIRMED
+                )
+            )
         }.launchIn(this)
 
         lockInputFlow.onEach { isInputLocked ->
@@ -499,13 +527,15 @@ class SendSetupViewModel @Inject constructor(
         }.launchIn(this)
 
         assetFlow.onEach { asset ->
-            val quickAmountInputValues = if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
-                emptyList()
-            } else {
-                QuickAmountInput.entries
-            }
+            val quickAmountInputValues =
+                if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
+                    emptyList()
+                } else {
+                    QuickAmountInput.entries
+                }
 
-            val existentialDeposit = asset?.token?.configuration?.let { existentialDepositUseCase(it) }.orZero()
+            val existentialDeposit =
+                asset?.token?.configuration?.let { existentialDepositUseCase(it) }.orZero()
             val sendAllAllowed = existentialDeposit > BigInteger.ZERO
 
             state.value = state.value.copy(
@@ -532,7 +562,7 @@ class SendSetupViewModel @Inject constructor(
                     AddressIconGenerator.SIZE_BIG
                 )
             }
-            val addressState = if(address.isNotEmpty()) {
+            val addressState = if (address.isNotEmpty()) {
                 (state.value.addressInputState as? AddressInputWithScore.Filled)?.copy(
                     address = address.shortenAddress(),
                     image = image
@@ -540,7 +570,9 @@ class SendSetupViewModel @Inject constructor(
                     defaultAddressInputState.title,
                     address.shortenAddress(),
                     image,
-                    nomisScore.value.dataOrNull()?.score ?: nomisScoreInteractor.getNomisScoreFromMemoryCache(address)?.score ?: NomisScoreData.LOADING_CODE
+                    nomisScore.value.dataOrNull()?.score
+                        ?: nomisScoreInteractor.getNomisScoreFromMemoryCache(address)?.score
+                        ?: NomisScoreData.LOADING_CODE
                 )
             } else {
                 defaultAddressInputState
@@ -553,21 +585,24 @@ class SendSetupViewModel @Inject constructor(
         }.launchIn(this)
 
         chainIdFlow.combine(assetFlow) { chainId, asset ->
-            if(chainId == null || asset == null) {
+            if (chainId == null || asset == null) {
                 return@combine
             }
-            val quickInputs = quickInputsUseCase.calculateTransfersQuickInputs(chainId, asset.token.configuration.id)
+            val quickInputs = quickInputsUseCase.calculateTransfersQuickInputs(
+                chainId,
+                asset.token.configuration.id
+            )
             quickInputsStateFlow.update { quickInputs }
         }.launchIn(this)
 
         nomisScore.onEach {
-            val score = if(it is LoadingState.Loading) {
+            val score = if (it is LoadingState.Loading) {
                 NomisScoreData.LOADING_CODE
             } else {
                 it.dataOrNull()?.score
             }
             state.update { prevState ->
-                if(prevState.addressInputState is AddressInputWithScore.Filled) {
+                if (prevState.addressInputState is AddressInputWithScore.Filled) {
                     prevState.copy(
                         addressInputState = prevState.addressInputState.copy(score = score)
                     )
@@ -577,8 +612,11 @@ class SendSetupViewModel @Inject constructor(
 
         selectedChain.filterNotNull().distinctUntilChanged().onEach { chain ->
             messageInputState.update { prevState ->
-                if(chain.ecosystem == Ecosystem.Ton) {
-                    prevState ?: TextInputViewState("", resourceManager.getString(R.string.common_message))
+                if (chain.ecosystem == Ecosystem.Ton) {
+                    prevState ?: TextInputViewState(
+                        "",
+                        resourceManager.getString(R.string.common_message)
+                    )
                 } else {
                     null
                 }
@@ -605,7 +643,8 @@ class SendSetupViewModel @Inject constructor(
                 sendAllToggleState.value = ToggleState.INITIAL
                 return@combine null
             }
-            val ownAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
+            val ownAddress =
+                currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
 
             val recipientAddress = when {
                 isAddressValid -> address
@@ -630,7 +669,10 @@ class SendSetupViewModel @Inject constructor(
                         }
 
                         if (validationResult.isExistentialDepositWarning && sendAllState != ToggleState.CONFIRMED) {
-                            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+                            ValidationException.fromValidationResult(
+                                validationResult,
+                                resourceManager
+                            )?.let {
                                 if (it is ExistentialDepositCrossedWarning) {
                                     val warning = ValidationWarning(
                                         it.message,
@@ -639,7 +681,8 @@ class SendSetupViewModel @Inject constructor(
                                         it.negativeButtonText,
                                         if (showMaxInput) it.secondPositiveButtonText else null
                                     )
-                                    _openValidationWarningEvent.value = Event(validationResult to warning)
+                                    _openValidationWarningEvent.value =
+                                        Event(validationResult to warning)
                                 }
                             }
                         }
@@ -682,7 +725,10 @@ class SendSetupViewModel @Inject constructor(
         visibleAmountFlow.value = input.orZero()
         enteredAmountBigDecimalFlow.value = input.orZero()
 
-        if (sendAllToggleState.value == ToggleState.CONFIRMED || sendAllToggleState.value == ToggleState.INITIAL && input?.greaterThen(BigDecimal.ZERO) == true) {
+        if (sendAllToggleState.value == ToggleState.CONFIRMED || sendAllToggleState.value == ToggleState.INITIAL && input?.greaterThen(
+                BigDecimal.ZERO
+            ) == true
+        ) {
             observeExistentialDeposit(true)
         }
     }
@@ -703,7 +749,8 @@ class SendSetupViewModel @Inject constructor(
             val amount = enteredAmountBigDecimalFlow.value
             val inPlanks = asset.token.planksFromAmount(amount).orZero()
             val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
-            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+            val selfAddress =
+                currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
             val validationProcessResult = validateTransferUseCase.validateTransfer(
                 amountInPlanks = inPlanks,
@@ -770,7 +817,14 @@ class SendSetupViewModel @Inject constructor(
 
         val payload = AssetPayload(chainId, assetId)
 
-        return TransferDraft(amount, feeAmount, payload, recipientAddress, tip, messageInputState.value?.text)
+        return TransferDraft(
+            amount,
+            feeAmount,
+            payload,
+            recipientAddress,
+            tip,
+            messageInputState.value?.text
+        )
     }
 
     override fun onChainClick() {
@@ -865,7 +919,8 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onQuickAmountInput(input: Double) {
         launch {
-            val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
+            val valuesMap =
+                quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
             val amount = valuesMap[input] ?: return@launch
 
             if (initialAmountFlow.value == amount) {

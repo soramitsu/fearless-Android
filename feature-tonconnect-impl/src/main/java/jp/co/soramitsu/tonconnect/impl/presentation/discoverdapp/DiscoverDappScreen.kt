@@ -248,8 +248,7 @@ fun DappItem(
                     }
                 )
             }
-        .padding(horizontal = 12.dp)
-        ,
+        .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(

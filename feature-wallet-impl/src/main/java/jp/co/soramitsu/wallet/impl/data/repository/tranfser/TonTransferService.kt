@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.data.repository.tranfser
 import android.annotation.SuppressLint
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.ton.AccountAddress
+import jp.co.soramitsu.common.data.network.ton.AccountStatus
 import jp.co.soramitsu.common.data.network.ton.EmulateMessageToWalletRequest
 import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
 import jp.co.soramitsu.common.data.network.ton.totalFees
@@ -82,9 +83,8 @@ class TonTransferService(
             "Can't find utility asset for ${chain.name}"
         )
 
-        val account = accountRepository.getSelectedMetaAccount()
-        val accountId = account.tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
-        val tonAsset = assetDao.getAsset(account.id, accountId, chain.id, utilityAsset.id)
+        val accountId = selectedMetaAccount.await().tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
+        val tonAsset = assetDao.getAsset(selectedMetaAccount.await().id, accountId, chain.id, utilityAsset.id)
 
         if (transfer.chainAsset.type == ChainAssetType.Jetton && tonAsset?.asset?.freeInPlanks.lessThanOrEquals(BigInteger.ZERO)) {
             throw RuntimeException("Can't calculate fee: Not enough tokens for fee")
@@ -154,7 +154,22 @@ class TonTransferService(
         val transferMessageCellBase64 = transferMessageCell.base64()
 
         val request = EmulateMessageToWalletRequest(transferMessageCellBase64, emptyList())
-        val fees = tonRemoteSource.emulateBlockchainMessageRequest(chain, request).totalFees
+        val fees = try {
+            tonRemoteSource.emulateBlockchainMessageRequest(chain, request).totalFees
+        } catch (e: Throwable) {
+            val account = tonRemoteSource.loadAccountData(
+                chain,
+                selectedMetaAccount.await().tonPublicKey!!.tonAccountId(chain.isTestNet)
+            )
+            val initializedAccount =
+                account.status != AccountStatus.uninit && account.status != AccountStatus.nonexist
+
+            if (initializedAccount.not()) {
+                throw NotInitializedTonAccountException()
+            } else {
+                throw RuntimeException("Something went wrong")
+            }
+        }
         requireNotNull(chain.utilityAsset?.amountFromPlanks(BigInteger.valueOf(fees)))
     }
 
@@ -327,3 +342,5 @@ class TonTransferService(
         }
     }
 }
+
+class NotInitializedTonAccountException: Throwable()

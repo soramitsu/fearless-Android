@@ -469,6 +469,8 @@
   <string name="export_substrate_title">Export Substrate</string>
   <string name="export_wallet">Export wallet</string>
   <string name="fearless_wallet">Fearless Wallet</string>
+  <string name="fee_calculation_error">Something went wrong while calculating the fee. Please try again later.</string>
+  <string name="fee_calculation_error_inactive_account">Your account is inactive. Top up your balance to calculate the fee.</string>
   <string name="fee_not_yet_loaded_message">Please wait until the fee is calculated</string>
   <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
   <string name="hash">Hash</string>
