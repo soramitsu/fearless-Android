@@ -1194,6 +1194,7 @@
   <string name="wallet_transaction_history_filter_title">Show</string>
   <string name="wallet_transaction_history_unsupported_message">Transaction history for this network is not supported yet</string>
   <string name="wallet_transfer_details_title">Transfer details</string>
+  <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
   <string name="what_accounts_for_export">What accounts in the wallet do you want to export?</string>
   <string name="yesterday">Yesterday</string>
   <string name="your_collator">Your collator</string>
