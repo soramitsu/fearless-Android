@@ -5,6 +5,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -131,7 +132,7 @@ interface WalletInteractor {
 
     suspend fun saveChainSelectFilter(walletId: Long, filter: String)
 
-    fun observeSelectedAccountChainSelectFilter(): Flow<String>
+    fun observeSelectedAccountChainSelectFilter(): Flow<ChainSelectorViewStateWithFilters.Filter>
 
     fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
 

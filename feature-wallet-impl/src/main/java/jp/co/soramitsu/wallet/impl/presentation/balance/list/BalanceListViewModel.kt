@@ -207,11 +207,7 @@ class BalanceListViewModel @Inject constructor(
         chains: List<Chain>,
         selectedChainId: ChainId?,
         currentMetaAccountFlow: MetaAccount,
-        appliedFilterAsString: String ->
-
-        val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
-            it.name == appliedFilterAsString
-        } ?: ChainSelectorViewStateWithFilters.Filter.All
+        filter: ChainSelectorViewStateWithFilters.Filter ->
 
         showNetworkIssues.value = false
 
@@ -445,9 +441,7 @@ class BalanceListViewModel @Inject constructor(
                         selectedChainName = chain?.title,
                         selectedChainId = chain?.id,
                         selectedChainImageUrl = chain?.imageUrl,
-                        filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                            it.name == filter
-                        } ?: ChainSelectorViewStateWithFilters.Filter.All,
+                        filterApplied = filter,
                         allowChainSelection = allowChainSelect
                     )
                 )
@@ -578,6 +572,7 @@ class BalanceListViewModel @Inject constructor(
                     interactor.getSavedChainId(it.id)?.let { savedChainId ->
                         if (savedChainId != tonChainId) interactor.saveChainId(it.id, tonChainId)
                     }
+                    interactor.saveChainSelectFilter(it.id, ChainSelectorViewStateWithFilters.Filter.All.name)
                     selectedChainId.value = tonChainId
                 }
             }

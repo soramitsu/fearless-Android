@@ -43,7 +43,7 @@ data class ChainSelectorViewStateWithFilters(
     val selectedChainName: String? = null,
     val selectedChainId: String? = null,
     val selectedChainImageUrl: String? = null,
-    val filterApplied: Filter = Filter.All,
+    val filterApplied: Filter = Filter.Popular,
     val allowChainSelection: Boolean = false
 ) {
     enum class Filter {

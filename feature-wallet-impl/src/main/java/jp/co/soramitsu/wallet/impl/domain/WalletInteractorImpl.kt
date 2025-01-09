@@ -12,6 +12,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -608,7 +609,7 @@ class WalletInteractorImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun observeSelectedAccountChainSelectFilter(): Flow<String> {
+    override fun observeSelectedAccountChainSelectFilter(): Flow<ChainSelectorViewStateWithFilters.Filter> {
         return accountRepository.selectedMetaAccountFlow().map {
             it.id
         }.distinctUntilChanged().flatMapLatest {
@@ -619,6 +620,10 @@ class WalletInteractorImpl(
                 // as opposed to null which was thrown for random reasons
                 return@stringFlow ""
             }.filterNotNull()
+        }.map { appliedFilterAsString ->
+            ChainSelectorViewStateWithFilters.Filter.entries.find {
+                it.name == appliedFilterAsString
+            } ?: ChainSelectorViewStateWithFilters.Filter.Popular
         }
     }
 
