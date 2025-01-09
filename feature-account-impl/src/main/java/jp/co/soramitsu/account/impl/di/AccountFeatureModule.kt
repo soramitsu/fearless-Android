@@ -90,7 +90,8 @@ class AccountFeatureModule {
         substrateSecretStore: SubstrateSecretStore,
         ethereumSecretStore: EthereumSecretStore,
         tonSecretStore: TonSecretStore,
-        accountRepositoryDelegate: AccountRepositoryDelegate
+        accountRepositoryDelegate: AccountRepositoryDelegate,
+        assetDao: AssetDao
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -104,7 +105,8 @@ class AccountFeatureModule {
             substrateSecretStore,
             ethereumSecretStore,
             tonSecretStore,
-            accountRepositoryDelegate
+            accountRepositoryDelegate,
+            assetDao
         )
     }
 

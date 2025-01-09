@@ -39,6 +39,7 @@ import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
@@ -91,6 +92,7 @@ class AccountRepositoryImpl(
     private val ethereumSecretStore: EthereumSecretStore,
     private val tonSecretStore: TonSecretStore,
     private val accountRepositoryDelegate: AccountRepositoryDelegate,
+    private val assetDao: AssetDao,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AccountRepository {
 
@@ -186,6 +188,7 @@ class AccountRepositoryImpl(
 
     override suspend fun deleteAccount(metaId: Long) {
         accountDataSource.deleteMetaAccount(metaId)
+        assetDao.deleteAccountAssets(metaId)
     }
 
     override suspend fun importFromSeed(

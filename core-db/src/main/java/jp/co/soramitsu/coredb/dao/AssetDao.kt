@@ -12,6 +12,7 @@ import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -136,6 +137,10 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Query("DELETE FROM assets WHERE id in (:assetIdsToDelete)")
     abstract fun deleteAssets(assetIdsToDelete: List<String>)
 
+    @Query("DELETE FROM assets WHERE metaId = :metaId")
+    abstract fun deleteAccountAssets(metaId: Long)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     open suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken> {
         return observeAssetSymbolById(id).flatMapLatest { symbol ->
             observeAssetsBySymbol(
