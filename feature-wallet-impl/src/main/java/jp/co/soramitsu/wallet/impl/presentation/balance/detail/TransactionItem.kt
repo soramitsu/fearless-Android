@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import jp.co.soramitsu.common.compose.component.B1EllipsizeMiddle
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.getImageRequest
+import jp.co.soramitsu.common.compose.theme.green
 import jp.co.soramitsu.common.utils.formatTime
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
@@ -119,15 +121,15 @@ fun TransactionItem(
                 textAlign = TextAlign.End,
                 modifier = amountModifier
             )
-            if (item.statusAppearance != OperationStatusAppearance.COMPLETED) {
-                Spacer(
-                    modifier = Modifier
-                        .width(8.dp)
-                        .constrainAs(statusSpacer) {
-                            end.linkTo(status.start)
-                        }
-                )
+            Spacer(
+                modifier = Modifier
+                    .width(8.dp)
+                    .constrainAs(statusSpacer) {
+                        end.linkTo(status.start)
+                    }
+            )
 
+            if (item.statusAppearance != OperationStatusAppearance.COMPLETED) {
                 Image(
                     res = item.statusAppearance.icon,
                     modifier = Modifier
@@ -173,7 +175,7 @@ fun TransactionItem(
 @Composable
 @Preview
 private fun PreviewTransactionItem() {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         TransactionItem(
             item = OperationModel(
                 id = "",
@@ -194,6 +196,20 @@ private fun PreviewTransactionItem() {
                 header = "cnUz6GgQd8oZDQ3wbnrJUrxGxJGYnLGDWVRzBW1U7K1mJ8nMD",
                 statusAppearance = OperationStatusAppearance.FAILED,
                 amount = "+0.00000000123 XOR",
+                operationIcon = null,
+                subHeader = "subHeadersubsubHeadersubsubHeadersubsubHeadersub",
+                type = OperationModel.Type.Transfer
+            ),
+            transactionClicked = {}
+        )
+        TransactionItem(
+            item = OperationModel(
+                id = "",
+                time = System.currentTimeMillis(),
+                header = "cnUz6GgQd8oZDQ3wbnrJUrxGxJGYnLGDWVRzBW1U7K1mJ8nMD",
+                statusAppearance = OperationStatusAppearance.COMPLETED,
+                amount = "+0.00123 XOR",
+                amountColor = green,
                 operationIcon = null,
                 subHeader = "subHeadersubsubHeadersubsubHeadersubsubHeadersub",
                 type = OperationModel.Type.Transfer

@@ -47,6 +47,20 @@
   <string name="account_no_chain_projection">未找到账户</string>
   <string name="account_option">账户选项</string>
   <string name="account_shared_secret">共享密钥的账户</string>
+  <string name="account_stats_avg_transaction_time_title">平均交易时间</string>
+  <string name="account_stats_description_text">您的多链评分基于您在三个生态系统中的链上旅程：以太坊、Polygon 和币安智能链。</string>
+  <string name="account_stats_error_message">无法获取账户评分信息。请稍后再试。</string>
+  <string name="account_stats_hold_tokens_usd_title">持有代币 USD</string>
+  <string name="account_stats_max_transaction_time_title">最长交易时间</string>
+  <string name="account_stats_min_transaction_time_title">最短交易时间</string>
+  <string name="account_stats_native_balance_usd_title">本地余额 USD</string>
+  <string name="account_stats_rejected_transactions_title">被拒绝的交易</string>
+  <string name="account_stats_title">你的分数</string>
+  <string name="account_stats_total_transactions_title">总交易量</string>
+  <string name="account_stats_unavailable_text">您没有与EVM兼容的账户。如果您想查看分数，请通过“导入钱包”选项添加。</string>
+  <string name="account_stats_updated_title">已更新</string>
+  <string name="account_stats_wallet_age_title">钱包年龄</string>
+  <string name="account_stats_wallet_option_title">显示钱包评分</string>
   <string name="account_template">%s账户</string>
   <string name="accounts_add_account">添加一个账户</string>
   <string name="accounts_for_export">要导出的账户</string>
@@ -242,6 +256,7 @@
   <string name="common_message">消息</string>
   <string name="common_min_received">最小接收量</string>
   <string name="common_module">模块</string>
+  <string name="common_more">更多</string>
   <string name="common_my_networks">我的网络</string>
   <string name="common_network">网络</string>
   <string name="common_network_fee">网络费用</string>
@@ -288,6 +303,8 @@
   <string name="common_select_network">选择网络</string>
   <string name="common_selected">已选择</string>
   <string name="common_share">分享</string>
+  <string name="common_show_details">显示详细信息</string>
+  <string name="common_show_more">显示更多</string>
   <string name="common_sign">签署</string>
   <string name="common_skip">跳过</string>
   <string name="common_skip_process">跳过流程</string>
@@ -491,8 +508,10 @@
   <string name="lp_apy_alert_text">提供流动性的农场奖励</string>
   <string name="lp_apy_title">战略奖励APY</string>
   <string name="lp_available_pools_title">可用的流动池</string>
+  <string name="lp_banner_text">将您的资金投资于流动性池，并获得奖励。</string>
   <string name="lp_confirm_liquidity_screen_title">确认流动性</string>
   <string name="lp_confirm_liquidity_warning_text">输出是估计的。如果价格变动超过0.5%，您的交易将会回滚。</string>
+  <string name="lp_liquidity_add_complete_text">您对流动性池的供给已成功完成。</string>
   <string name="lp_network_fee_alert_text">网络费用用于确保 SORA 系统的增长和稳定性能。</string>
   <string name="lp_pool_details_title">流动池详情</string>
   <string name="lp_pool_remove_warning_text">移除流动性池代币会按照您在池中所占份额的比例，将您的头寸转换回当前汇率下的基础代币。已累积的费用将包含在您收到的金额中。</string>
@@ -550,6 +569,7 @@
   <string name="nft_collection_title">收藏品</string>
   <string name="nft_creator_title">创作者</string>
   <string name="nft_list_empty_message">目前还没有任何NFT。购买或铸造NFT以在此处查看。</string>
+  <string name="nft_load_error">无法加载NFTs</string>
   <string name="nft_owner_title">拥有</string>
   <string name="nft_stub_text">NFTs 很快就会到来</string>
   <string name="nft_stub_title">对不起！</string>
@@ -700,6 +720,7 @@
   <string name="pool_your_total_stake">您的总质押</string>
   <string name="pools_limit_has_reached_error_message">这个网络的池子数量已经达到了上限。</string>
   <string name="pools_limit_has_reached_error_title">您无法创建更多的池</string>
+  <string name="profile_account_score_title">Nomis 多链评分</string>
   <string name="profile_accounts_title">账户</string>
   <string name="profile_experimets_subtitle">Dapps和更多...</string>
   <string name="profile_experimets_title">实验性功能</string>
@@ -744,6 +765,10 @@
   <string name="scam_additional_stub">附加：</string>
   <string name="scam_alert_message_format">我们强烈建议您不要向此账户发送%s。</string>
   <string name="scam_alert_title">此地址因涉嫌欺诈行为已被标记。</string>
+  <string name="scam_description_lowscore_text">您即将转账的地址在链上活动较少，这可能表明该地址存在潜在的诈骗者或女巫攻击者。</string>
+  <string name="scam_info_nomis_name">Nomis 多链评分</string>
+  <string name="scam_info_nomis_reason_text">网络活动低</string>
+  <string name="scam_info_nomis_subtype_text">请谨慎行事</string>
   <string name="scam_warning_message">此地址已被标记存在诈骗嫌疑。我们强烈建议您不要将{asset}发送到此账户。</string>
   <string name="scan_qr_subtitle">从接收方扫描代码</string>
   <string name="scan_qr_title">二维码</string>
@@ -775,6 +800,7 @@
   <string name="social_media">社交媒体</string>
   <string name="sora_bridge_amount_less_fee">您尝试转账的金额不足以支付%s网络上的交易费用。尽管交易无法完成，您仍将在Sora网络上被收取费用。</string>
   <string name="sora_bridge_low_amount_format_alert">目前，为了确保SORA网络的稳定性和安全性，跨链桥转账的最低金额为%s。感谢您的理解。</string>
+  <string name="sora_bridge_low_amount_format_alert_2">目前，为了确保稳定性和安全性，跨链的最低金额为 %s。感谢您的理解。</string>
   <string name="sora_card_annual_service_fee">0欧元年服务费</string>
   <string name="sora_card_blacklisted_countires_title">申请被排除</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[目前，来自<b>某些国家的居民<br>无法申请</b>SORA卡片。<br><a href=\"https://soracard.com/blacklist/\">查看名单</a>]]></string>
