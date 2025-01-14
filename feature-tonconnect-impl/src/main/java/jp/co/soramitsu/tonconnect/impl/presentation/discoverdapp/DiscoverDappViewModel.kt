@@ -1,11 +1,10 @@
 package jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp
 
 import androidx.lifecycle.viewModelScope
+import co.jp.soramitsu.feature_tonconnect_impl.R
 import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
 import co.jp.soramitsu.tonconnect.model.DappConfig
-import co.jp.soramitsu.tonconnect.model.DappModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -29,6 +28,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class DiscoverDappViewModel @Inject constructor(
@@ -53,6 +54,9 @@ class DiscoverDappViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val tonConnectInteractor: TonConnectInteractor,
 ) : BaseViewModel(), DiscoverDappScreenInterface {
+
+    private val _seeAllBottomSheetState: MutableStateFlow<DappsListState?> = MutableStateFlow(null)
+    val dappsListBottomSheetState: Flow<DappsListState?> = _seeAllBottomSheetState
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
@@ -110,7 +114,9 @@ class DiscoverDappViewModel @Inject constructor(
         connectedDapps
     ) { selectedChainId, selectorState, dApps, connected ->
         when (selectorState.currentSelection) {
-            DappListType.Discover -> dApps
+            DappListType.Discover -> dApps.map {
+                it.copy(apps = it.apps.take(3))
+            }
             DappListType.Connected -> listOf(connected)
         }
     }
@@ -222,7 +228,15 @@ class DiscoverDappViewModel @Inject constructor(
     }
 
     override fun onSeeAllClick(type: String) {
-        println("!!! Discover dApp See All clicked for type = $type")
+        viewModelScope.launch {
+            val dapps = dappsFlow.firstOrNull()?.find { it.type == type }?.apps ?: return@launch
+
+            _seeAllBottomSheetState.update { prevState ->
+                if (prevState != null) return@update prevState
+                DappsListState(type.replaceFirstChar { it.uppercaseChar() }, dapps)
+            }
+        }
+
     }
 
     override fun onDappLongClick(dappId: String) {
@@ -235,16 +249,15 @@ class DiscoverDappViewModel @Inject constructor(
     }
 
     override fun onDappClick(dappId: String) {
-        println("!!! Discover dApp on dApp clicked with id = $dappId")
         viewModelScope.launch {
-            dappsFlow.firstOrNull()?.let { dapps ->
-                dapps.flatMap { it.apps }.firstOrNull {
-                    it.identifier == dappId
-                }?.let { dapp ->
-                    if (dapp.name != null && dapp.url != null) {
-                        router.openDappScreen(dapp)
-                    }
-                }
+            val remoteDappGroupsDeferred = async { dappsFlow.firstOrNull() }
+            val connectedDappsDeferred =  async { connectedDapps.firstOrNull() }
+            val dapps = remoteDappGroupsDeferred.await()?.flatMap { it.apps }
+                ?.plus(connectedDappsDeferred.await()?.apps ?: emptyList()) ?: return@launch
+            val selectedDapp = dapps.firstOrNull { it.identifier == dappId }
+
+            if(selectedDapp?.name != null && selectedDapp.url != null) {
+                router.openDappScreen(selectedDapp)
             }
         }
     }
@@ -254,7 +267,14 @@ class DiscoverDappViewModel @Inject constructor(
     }
 
     fun openSearch() {
-        println("!!! Discover dApp search clicked")
+        viewModelScope.launch {
+            val dapps = dappsFlow.firstOrNull()?.flatMap { it.apps } ?: return@launch
+
+            _seeAllBottomSheetState.update { prevState ->
+                if (prevState != null) return@update prevState
+                DappsListState(resourceManager.getString(R.string.common_search), dapps)
+            }
+        }
     }
 
     fun openSelectChain() {
@@ -266,5 +286,14 @@ class DiscoverDappViewModel @Inject constructor(
             val currentAccount = currentMetaAccountFlow.first()
             router.openScoreDetailsScreen(currentAccount.id)
         }
+    }
+
+    override fun bottomSheetDappSelected(dappId: String) {
+        _seeAllBottomSheetState.update { null }
+        onDappClick(dappId)
+    }
+
+    override fun onBottomSheetDappClose() {
+        _seeAllBottomSheetState.update { null }
     }
 }

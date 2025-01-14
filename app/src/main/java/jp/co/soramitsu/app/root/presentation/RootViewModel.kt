@@ -1,6 +1,5 @@
 package jp.co.soramitsu.app.root.presentation
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -11,10 +10,6 @@ import co.jp.soramitsu.tonconnect.model.DappModel
 import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
-import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -23,9 +18,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
-import kotlin.concurrent.timerTask
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +28,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
+import javax.inject.Inject
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
@@ -217,15 +216,15 @@ class RootViewModel @Inject constructor(
 
                         rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
                             .onSuccess {
-                                Log.d("&&&", "ton sign request is successfull")
                                 tonConnectInteractor.sendDappMessage(event, it)
                             }
                             .onFailure {
-                                Log.d("&&&", "ton sign request is failed")
                                 tonConnectInteractor.respondDappError(event, BridgeError.UNKNOWN)
                             }
                     }
-                    BridgeMethod.DISCONNECT -> {}
+                    BridgeMethod.DISCONNECT -> {
+                        tonConnectInteractor.disconnect(event.connection.clientId)
+                    }
                     BridgeMethod.UNKNOWN -> {}
                 }
             } catch (e: Exception){

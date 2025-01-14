@@ -1,6 +1,7 @@
 package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
 import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
 import co.jp.soramitsu.tonconnect.model.BridgeError
@@ -15,6 +16,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.CancellationException
@@ -44,7 +46,7 @@ class DappScreenViewModel @Inject constructor(
         val signedRequest =
             tonConnectRouter.openTonConnectionAndWaitForResult(app, request.proofPayload)
         val result = kotlin.runCatching {
-            interactor.approveDappConnection(
+            interactor.respondDappConnectRequest(
                 null,
                 request,
                 signedRequest,
@@ -110,6 +112,12 @@ class DappScreenViewModel @Inject constructor(
         val tonPublicKey = wallet.tonPublicKey
             ?: throw IllegalStateException("There is no ton account for this wallet")
         return JsonBuilder.connectEventSuccess(tonPublicKey, null, null)
+    }
+
+    fun disconnect() {
+        viewModelScope.launch {
+            interactor.disconnect(dapp.identifier)
+        }
     }
 
 //    fun backButtonPressed() {

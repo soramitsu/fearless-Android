@@ -109,7 +109,7 @@ class TonConnectInteractorImpl(
         return chainsRepository.getChain(tonChainId)
     }
 
-    override suspend fun approveDappConnection(
+    override suspend fun respondDappConnectRequest(
         clientId: String?,
         request: ConnectRequest,
         signedRequest: JSONObject,
@@ -131,6 +131,9 @@ class TonConnectInteractorImpl(
 
                 sendDappMessage(encryptedMessage, publicKeyHex, clientId)
             }
+        }
+        if(signedRequest.getString("event") == "connect_error") {
+            return
         }
         if (connectResult == null) {
             val bytes = ByteArray(16)
@@ -216,8 +219,8 @@ class TonConnectInteractorImpl(
         )
     }
 
-    override suspend fun disconnect(dappId: String) {
-        tonConnectRepository.deleteConnection(dappId)
+    override suspend fun disconnect(clientId: String) = withContext(Dispatchers.IO) {
+        tonConnectRepository.deleteConnection(clientId)
     }
 
     override fun getConnectedDapps(): Flow<DappConfig> {

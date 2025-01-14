@@ -123,9 +123,7 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
             send = viewModel::send,
             connect = viewModel::connect,
             restoreConnection = { viewModel.restoreConnection(webView.url) },
-            disconnect = {
-//                                            viewModel.disconnect()
-            },
+            disconnect = viewModel::disconnect,
             tonapiFetch = { _, _ -> Response.Builder().build() }, // api::tonapiFetch,
         )
 

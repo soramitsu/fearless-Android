@@ -67,5 +67,4 @@ interface TonApi {
 
     @GET(BuildConfig.DAPPS_URL)
     suspend fun getDappsConfig(): List<DappConfigRemote>
-
 }

@@ -1070,7 +1070,7 @@ class BalanceListViewModel @Inject constructor(
 
         val app = tonConnectInteractor.readManifest(request.manifestUrl)
         val signedRequest = router.openTonConnectionAndWaitForResult(app, request.proofPayload)
-        kotlin.runCatching { tonConnectInteractor.approveDappConnection(clientId!!, request, signedRequest, app) }
+        kotlin.runCatching { tonConnectInteractor.respondDappConnectRequest(clientId!!, request, signedRequest, app) }
             .onFailure { showError(it) }
 
     }

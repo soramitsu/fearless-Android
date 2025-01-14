@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
 
 interface TonConnectInteractor {
-    suspend fun approveDappConnection(
+    suspend fun respondDappConnectRequest(
         clientId: String?,
         request: ConnectRequest,
         signedRequest: JSONObject,
@@ -35,7 +35,7 @@ interface TonConnectInteractor {
         lastEventId: Long = 0,
     ): Flow<BridgeEvent>
 
-    suspend fun disconnect(dappId: String)
+    suspend fun disconnect(clientId: String)
 
     suspend fun signMessage(chain: Chain, method: String, signRequest: TonConnectSignRequest): String
     suspend fun sendBlockchainMessage(chain: Chain, boc: String)

@@ -44,8 +44,8 @@ class TonConnectRepositoryImpl(
         return tonConnectDao.observeTonConnections().map { it.map { localModel -> TonDappConnection(localModel) } }
     }
 
-    override suspend fun deleteConnection(dappId: String) {
-        tonConnectDao.deleteTonConnection(dappId)
+    override suspend fun deleteConnection(clientId: String) {
+        tonConnectDao.deleteTonConnection(clientId)
     }
 
     override suspend fun getConnection(metaId: Long, url: String): TonConnectionLocal? {

@@ -57,25 +57,18 @@ fun OkHttpClient.sse(
 ): Flow<SSEvent> = callbackFlow {
     val listener = object : EventSourceListener() {
         override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-            println("!!! OkHttpClient.sse listener onEvent: eventSource = $eventSource; id = $id; type = $type; data = $data")
             this@callbackFlow.trySendBlocking(SSEvent(id, type, data))
         }
 
         override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-            println("!!! OkHttpClient.sse listener onFailure: eventSource = $eventSource; response = $response; t = ${t?.message}")
             t?.printStackTrace()
-//            this@callbackFlow.close(t)
+            this@callbackFlow.close(t)
         }
 
         override fun onClosed(eventSource: EventSource) {
-            println("!!! OkHttpClient.sse listener onClosed: eventSource = $eventSource")
             this@callbackFlow.close()
         }
 
-        override fun onOpen(eventSource: EventSource, response: Response) {
-            println("!!! OkHttpClient.sse listener onOpen: eventSource = $eventSource; response = $response")
-            super.onOpen(eventSource, response)
-        }
     }
     val builder = requestBuilder(url)
         .addHeader("Accept", "text/event-stream")

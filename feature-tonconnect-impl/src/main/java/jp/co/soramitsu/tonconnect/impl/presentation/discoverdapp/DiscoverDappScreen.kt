@@ -26,6 +26,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
@@ -67,6 +68,8 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @Stable
 interface DiscoverDappScreenInterface {
@@ -74,6 +77,8 @@ interface DiscoverDappScreenInterface {
     fun onSeeAllClick(type: String)
     fun onDappClick(dappId: String)
     fun onDappLongClick(dappId: String)
+    fun bottomSheetDappSelected(dappId: String)
+    fun onBottomSheetDappClose()
 }
 
 @Composable
@@ -100,7 +105,7 @@ fun DiscoverDappScreen(
                 Banners(it, callback)
             }
             val listItems = data.dapps.filter { it.type != "top" }
-            if (listItems.isEmpty()) {
+            if (listItems.isEmpty() || listItems.any { it.apps.isEmpty() }) {
                 if (data.multiToggleButtonState.currentSelection == DappListType.Connected) {
                     EmptySumimasen()
                 } else {
@@ -112,7 +117,7 @@ fun DiscoverDappScreen(
                         data = config,
                         onMoreClick = { config.type?.let { callback.onSeeAllClick(it) } },
                         onDappClick = callback::onDappClick,
-                        onDappLongClick = callback::onDappLongClick,
+                        onDappLongClick = {},
                     )
                 }
             }
@@ -248,7 +253,7 @@ fun DappItem(
                     }
                 )
             }
-        .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
@@ -316,6 +321,18 @@ private fun Banners(dapps: List<DappModel>, callback: DiscoverDappScreenInterfac
         banners.takeIf { it.isNotEmpty() }?.let {
             {
                 val pagerState = rememberPagerState { bannersCount }
+                LaunchedEffect(dapps) {
+                    while (isActive) {
+                        delay(3000)
+                        val nextPage = if (pagerState.currentPage == bannersCount - 1) {
+                            0
+                        } else {
+                            pagerState.currentPage + 1
+                        }
+                        pagerState.animateScrollToPage(nextPage)
+                    }
+                }
+
                 HorizontalPager(
                     modifier = Modifier.fillMaxWidth(),
                     state = pagerState,
@@ -346,6 +363,8 @@ private fun PreviewDiscoverDappScreen() {
         override fun onSeeAllClick(type: String) {}
         override fun onDappClick(dappId: String) {}
         override fun onDappLongClick(dappId: String) {}
+        override fun bottomSheetDappSelected(dappId: String) {}
+        override fun onBottomSheetDappClose() {}
     }
 
     val dapps: List<DappConfig> = listOf()

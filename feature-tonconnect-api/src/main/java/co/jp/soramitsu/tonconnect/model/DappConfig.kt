@@ -35,7 +35,7 @@ data class DappModel(
         chains = listOf("-239"),
         name = tonDappConnection.name,
         url = tonDappConnection.url,
-        description = null,
+        description = tonDappConnection.url,
         background = null,
         icon = tonDappConnection.icon
     )
