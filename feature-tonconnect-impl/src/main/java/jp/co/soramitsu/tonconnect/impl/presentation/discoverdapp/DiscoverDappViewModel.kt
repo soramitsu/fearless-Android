@@ -240,8 +240,6 @@ class DiscoverDappViewModel @Inject constructor(
     }
 
     override fun onDappLongClick(dappId: String) {
-        println("!!! Discover dApp onDappLongClick dappId = $dappId")
-
         viewModelScope.launch {
             tonConnectInteractor.disconnect(dappId)
             showMessage("dApp disconnected")

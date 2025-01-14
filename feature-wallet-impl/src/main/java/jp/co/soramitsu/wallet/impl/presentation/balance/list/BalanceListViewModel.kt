@@ -1065,7 +1065,7 @@ class BalanceListViewModel @Inject constructor(
         val request = ConnectRequest.parse(uri.getQueryParameter("r"))
 
         if (request.items.isEmpty()) {
-            println("!!! Bad request")
+            showError(resourceManager.getString(R.string.common_undefined_error_message))
         }
 
         val app = tonConnectInteractor.readManifest(request.manifestUrl)

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.tonconnect.impl.domain
 
-import android.net.Uri
 import android.util.Base64
 import androidx.core.net.toUri
 import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
@@ -23,7 +22,6 @@ import co.jp.soramitsu.tonconnect.model.toDomain
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.ktor.util.encodeBase64
-import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.network.ton.DappConfigRemote
@@ -88,6 +86,7 @@ import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
 import java.net.URL
+import javax.inject.Named
 
 class TonConnectInteractorImpl(
     private val chainsRepository: ChainsRepository,
@@ -161,8 +160,6 @@ class TonConnectInteractorImpl(
                 ),
                 Keypair(publicKey, privateKey)
             )
-        } else {
-            println("!!! TonConnectInteractor tonConnectAppWithResult response code = ${connectResult.code}: ${connectResult.message}")
         }
     }
 
@@ -254,7 +251,7 @@ class TonConnectInteractorImpl(
                     val keypair = tonConnectRepository.getConnectionKeypair(it.clientId)
                     keypair?.publicKey?.toHexString(false)
                 }.joinToString(",")
-                val bridgeUrl = "https://bridge.tonapi.io/bridge"//"https://fearless-ton-bridge.tachi.soramitsu.co.jp/bridge"//"https://bridge.tonapi.io/bridge" // chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
+                val bridgeUrl = chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
                 val url = "$bridgeUrl/events?client_id=$clientIdParams"
                 tonSseClient.sse(url, lastEventId).filter { it.type == "message" }
                     .mapNotNull { event ->
@@ -485,7 +482,7 @@ class TonConnectInteractorImpl(
         clientId: String
     ) = withContext(Dispatchers.Default) {
         val chain = getChain()
-        val bridgeUrl = "https://bridge.tonapi.io/bridge"//"https://fearless-ton-bridge.tachi.soramitsu.co.jp/bridge"//"https://bridge.tonapi.io/bridge" // chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
+        val bridgeUrl = chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
         val url = "$bridgeUrl/message?client_id=$publicKey&to=$clientId&ttl=300"
         val mimeType = "text/plain".toMediaType()
         val requestBody = encryptedMessage.encodeBase64().toRequestBody(mimeType)
@@ -501,7 +498,7 @@ class TonConnectInteractorImpl(
 
     override suspend fun respondDappError(event: BridgeEvent, error: BridgeError): Unit = withContext(Dispatchers.Default) {
         val chain = getChain()
-        val bridgeUrl = "https://bridge.tonapi.io/bridge"//"https://fearless-ton-bridge.tachi.soramitsu.co.jp/bridge"//"https://bridge.tonapi.io/bridge" // chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
+        val bridgeUrl = chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
         val unsignedMessage = JsonBuilder.responseError(event.eventId, error).toString()
 
         val keypair = tonConnectRepository.getConnectionKeypair(event.connection.clientId)

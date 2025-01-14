@@ -1564,8 +1564,6 @@ class Navigator :
     }
 
     override fun openTonConnectionDetails(app: AppEntity, proofPayload: String?) {
-        println("!!! openTonConnectionDetails app = $app")
-        println("!!! openTonConnectionDetails proofPayload = $proofPayload")
         val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
 
         navController?.navigate(R.id.tonConnectionDetails, bundle)

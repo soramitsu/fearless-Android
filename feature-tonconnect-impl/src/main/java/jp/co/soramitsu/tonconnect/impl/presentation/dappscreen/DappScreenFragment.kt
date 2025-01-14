@@ -114,7 +114,6 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
         webView.addCallback(webViewCallback)
 
         val appVersionName = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0).versionName
-        println("!!! DappScreenFragment webViewSetup appVersionName = $appVersionName")
 
         val tonContractMaxMessages = 4 /* for wallet v3 and v4 */
 
