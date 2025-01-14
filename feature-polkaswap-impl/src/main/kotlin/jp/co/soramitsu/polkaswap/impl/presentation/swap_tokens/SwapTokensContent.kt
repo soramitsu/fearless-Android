@@ -2,7 +2,6 @@ package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -410,7 +409,6 @@ private fun MarketLabel(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Banners(
     showLiquidity: Boolean,

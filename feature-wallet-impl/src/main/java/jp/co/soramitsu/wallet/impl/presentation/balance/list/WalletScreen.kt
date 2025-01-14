@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NFTScreen
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 import jp.co.soramitsu.wallet.impl.presentation.common.NetworkIssue
+import kotlinx.coroutines.delay
 
 @Stable
 interface WalletScreenInterface : AssetsListInterface {
@@ -139,7 +141,11 @@ fun WalletScreen(
 }
 
 @Composable
-private fun Banners(data: WalletState, callback: WalletScreenInterface) {
+private fun Banners(
+    data: WalletState,
+    callback: WalletScreenInterface,
+    autoPlay: Boolean = true
+) {
     val soraCardBanner: @Composable (() -> Unit)? =
         if (data.soraCardState?.visible == true) {
             {
@@ -196,10 +202,31 @@ private fun Banners(data: WalletState, callback: WalletScreenInterface) {
 
     val banners = listOfNotNull(buyXorBanner, backupBanner, joinSubOrEvmBanner, joinTonBanner)
     val bannersCount = banners.size
+    val pagerState = rememberPagerState { bannersCount }
+
+    if (bannersCount > 1) {
+        // Auto play
+        LaunchedEffect(key1 = autoPlay) {
+            if (autoPlay) {
+                while (true) {
+                    delay(5000L)
+                    with(pagerState) {
+                        animateScrollToPage(
+                            page = (currentPage + 1) % bannersCount,
+                            animationSpec = tween(
+                                durationMillis = 500,
+                                easing = FastOutSlowInEasing
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     val bannersCarousel: @Composable (() -> Unit)? =
         banners.takeIf { it.isNotEmpty() }?.let {
             {
-                val pagerState = rememberPagerState { bannersCount }
                 HorizontalPager(
                     modifier = Modifier.fillMaxWidth(),
                     state = pagerState,
