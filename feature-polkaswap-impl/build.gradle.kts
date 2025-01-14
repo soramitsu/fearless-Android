@@ -19,8 +19,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     composeOptions {
@@ -28,7 +28,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
+        jvmTarget = "17"
     }
 
     namespace = "jp.co.soramitsu.feature_polkaswap_impl"
@@ -44,7 +44,10 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.xnetworking.lib.android)
 
-    implementation(libs.soramitsu.android.foundation)
+//    api(libs.sharedFeaturesPoolsDep) {
+//        exclude(module = "android-foundation")
+//    }
+
     implementation(projects.coreDb)
     implementation(projects.common)
     implementation(projects.runtime)
