@@ -25,7 +25,6 @@ import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -86,6 +85,9 @@ import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.api.BlockExplorerRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -115,6 +117,10 @@ class StakingFeatureModule {
         tokenUseCase
     )
 
+    @Provides
+    fun provideStakingSharedScope(): CoroutineScope {
+        return CoroutineScope(Dispatchers.Main + SupervisorJob())
+    }
 
     @Provides
     @Singleton
@@ -123,8 +129,8 @@ class StakingFeatureModule {
         preferences: Preferences,
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
-        chainsRepository: ChainsRepository
-    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, chainsRepository)
+        scope: CoroutineScope
+    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, scope)
 
     @Provides
     @Singleton
@@ -263,7 +269,6 @@ class StakingFeatureModule {
         walletConstants: WalletConstants,
         chainRegistry: ChainRegistry,
         assetCache: AssetCache,
-        stakingTotalRewardDao: StakingTotalRewardDao,
     ): StakingRelayChainScenarioInteractor {
         return StakingRelayChainScenarioInteractor(
             interactor,
@@ -278,7 +283,6 @@ class StakingFeatureModule {
             payoutRepository,
             walletConstants,
             chainRegistry,
-            stakingTotalRewardDao,
             assetCache,
         )
     }

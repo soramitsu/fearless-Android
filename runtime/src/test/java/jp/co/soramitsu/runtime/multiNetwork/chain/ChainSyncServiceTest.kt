@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
-import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -45,8 +44,7 @@ class ChainSyncServiceTest {
                 color = null,
                 isNative = null,
                 ethereumType = null,
-                priceProvider = null,
-                tonType = null
+                priceProvider = null
             )
         ),
         nodes = listOf(
@@ -61,8 +59,7 @@ class ChainSyncServiceTest {
         parentId = null,
         externalApi = null,
         minSupportedVersion = null,
-        paraId = null,
-        ecosystem = "Substrate"
+        paraId = null
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(REMOTE_CHAIN.toChain())
@@ -79,14 +76,19 @@ class ChainSyncServiceTest {
     @Mock
     lateinit var chainFetcher: ChainFetcher
 
-    @Mock
-    lateinit var contextManager: ContextManager
+    lateinit var remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
 
     lateinit var chainSyncService: ChainSyncService
 
     @Before
     fun setup() {
-        chainSyncService = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager)
+        chainSyncService = ChainSyncService(
+            dao,
+            chainFetcher,
+            metaAccountDao,
+            assetsDao,
+            remoteAssetsSyncServiceProvider,
+        )
     }
 
     @Test

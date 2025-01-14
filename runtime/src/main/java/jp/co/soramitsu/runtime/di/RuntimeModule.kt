@@ -1,25 +1,19 @@
 package jp.co.soramitsu.runtime.di
 
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.ton.TonApi
-import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.coredb.dao.ChainDao
-import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsSyncServiceProvider
-import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.DbStorageCache
 import jp.co.soramitsu.runtime.storage.source.LocalStorageSource
@@ -97,20 +91,10 @@ class RuntimeModule {
 
     @Provides
     @Singleton
-    fun provideTonRemoteSource(tonApi: TonApi, availableFiatCurrencies: GetAvailableFiatCurrencies, gson: Gson) = TonRemoteSource(tonApi, availableFiatCurrencies, gson)
-
-    @Provides
-    @Singleton
-    fun provideTonSyncDataRepository(tonRemoteSource: TonRemoteSource) = TonSyncDataRepository(tonRemoteSource)
-
-    @Provides
-    @Singleton
     fun provideRemoteAssetsSyncServiceProvider(
         //okxApiService: OkxApiService,
-        tonSyncDataRepository: TonSyncDataRepository,
-        metaAccountDao: MetaAccountDao,
         chainDao: ChainDao
     ): RemoteAssetsSyncServiceProvider {
-        return RemoteAssetsSyncServiceProvider(/* okxApiService, */tonSyncDataRepository, metaAccountDao, chainDao)
+        return RemoteAssetsSyncServiceProvider(/* okxApiService, */chainDao)
     }
 }

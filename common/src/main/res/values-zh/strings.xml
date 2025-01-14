@@ -769,7 +769,7 @@
   <string name="scam_info_nomis_name">Nomis 多链评分</string>
   <string name="scam_info_nomis_reason_text">网络活动低</string>
   <string name="scam_info_nomis_subtype_text">请谨慎行事</string>
-  <string name="scam_warning_message">此地址已被标记存在诈骗嫌疑。我们强烈建议您不要将%s发送到此账户。</string>
+  <string name="scam_warning_message">此地址已被标记存在诈骗嫌疑。我们强烈建议您不要将{asset}发送到此账户。</string>
   <string name="scan_qr_subtitle">从接收方扫描代码</string>
   <string name="scan_qr_title">二维码</string>
   <string name="scan_qr_upload_button_title">从相册上传</string>
