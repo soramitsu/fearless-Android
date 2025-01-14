@@ -56,8 +56,6 @@ interface PoolsRepository {
 
     suspend fun getPoolBaseTokenDexId(chainId: ChainId, tokenId: String?): Int
 
-    suspend fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
-
     suspend fun observeRemoveLiquidity(
         chainId: ChainId,
         tokenBase: Asset,
