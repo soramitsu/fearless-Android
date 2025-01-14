@@ -1,20 +1,21 @@
 package jp.co.soramitsu.staking.impl.data.network.subquery
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
 import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse.EraValidatorInfo.Nodes.Node
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingEraValidatorInfosRequest
-import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingSoraEraValidatorsRequest
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.historicalEras
+import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.api.BlockExplorerRepository
+import java.math.BigInteger
 
 class SubQueryValidatorSetFetcher(
     private val stakingApi: StakingApi,
     private val stakingRepository: StakingRelayChainScenarioRepository,
-    private val chainRegistry: ChainRegistry
+    private val chainRegistry: ChainRegistry,
+    private val soraXnetworkingBlockExplorer: BlockExplorerRepository,
 ) {
 
     suspend fun fetchAllValidators(chainId: ChainId, stashAccountAddress: String): List<String> {
@@ -31,7 +32,7 @@ class SubQueryValidatorSetFetcher(
             }
 
             stakingType == Chain.ExternalApi.Section.Type.SORA -> {
-                getSoraValidators(stakingUrl, stashAccountAddress, historicalRange)
+                getSoraValidators(chainId, stashAccountAddress, historicalRange)
             }
 
             stakingType == Chain.ExternalApi.Section.Type.SUBSQUID -> {
@@ -70,19 +71,15 @@ class SubQueryValidatorSetFetcher(
     }
 
     private suspend fun getSoraValidators(
-        stakingUrl: String,
+        chainId: ChainId,
         stashAccountAddress: String,
         historicalRange: List<BigInteger>
-    ): List<String> {
-        val validatorsInfos = stakingApi.getSoraValidatorsInfo(
-            stakingUrl,
-            StakingSoraEraValidatorsRequest(
-                eraFrom = historicalRange.first(),
-                eraTo = historicalRange.last(),
-                accountAddress = stashAccountAddress
-            )
+    ): List<String> = runCatching {
+        val range = historicalRange.map { it.toString() }
+        soraXnetworkingBlockExplorer.getValidatorsList(
+            chainId = chainId,
+            stashAccountAddress = stashAccountAddress,
+            historicalRange = range,
         )
-        return validatorsInfos.data.stakingEraNominators.map { nominators -> nominators.nominations.mapNotNull { it.validator.id } }
-            .flatten().distinct()
-    }
+    }.getOrDefault(emptyList())
 }
