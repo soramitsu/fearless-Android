@@ -118,6 +118,14 @@ android {
 
         jvmTarget = '17'
     }
+    kotlin {
+        compilerOptions {
+            if (System.getProperty("idea.active") == "true") {
+                println("Enable coroutine debugging")
+                freeCompilerArgs.add("-Xdebug")
+            }
+        }
+    }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
@@ -139,7 +147,6 @@ play {
 }
 
 dependencies {
-    implementation project(':android-foundation')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')

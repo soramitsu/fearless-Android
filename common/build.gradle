@@ -144,9 +144,7 @@ dependencies {
     implementation libs.progressbutton
 
     implementation libs.nv.websocket.client
-    implementation libs.xnetworking.basic
-    implementation libs.xnetworking.fearless, withoutBasic
-    implementation libs.xnetworking.sorawallet, withoutBasic
+    implementation libs.xnetworking.lib.android
 
     implementation libs.middle.ellipsis.text
 
