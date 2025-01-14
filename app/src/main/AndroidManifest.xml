@@ -53,6 +53,18 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <category android:name="android.intent.category.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Only accept URLs that look like https://fearlesswallet.io/ton-connect/* -->
+                <data
+                    android:scheme="https"
+                    android:host="fearlesswallet.io"
+                    android:pathPrefix="/ton-connect/" />
+            </intent-filter>
         </activity>
 
         <activity

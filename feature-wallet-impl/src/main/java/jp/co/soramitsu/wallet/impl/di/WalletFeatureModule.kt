@@ -64,7 +64,10 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpda
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
+import jp.co.soramitsu.wallet.impl.data.repository.ChainlinkPricesService
+import jp.co.soramitsu.wallet.impl.data.repository.CoingeckoPricesService
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
+import jp.co.soramitsu.wallet.impl.data.repository.PricesSyncService
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
@@ -93,8 +96,11 @@ import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
-import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
-import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
+import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.HistoryInfoRemoteLoader
+import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.impl.domain.adapters.HistoryInfoRemoteLoaderFacade
+import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -172,14 +178,14 @@ class WalletFeatureModule {
         assetCache: AssetCache,
         coingeckoApi: CoingeckoApi,
         chainRegistry: ChainRegistry,
-        availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
         extrinsicService: ExtrinsicService,
         @Named(REMOTE_STORAGE_SOURCE)
-        remoteStorageSource: StorageDataSource
+        remoteStorageSource: StorageDataSource,
+        pricesSyncService: PricesSyncService
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -191,13 +197,13 @@ class WalletFeatureModule {
         phishingDao,
         coingeckoApi,
         chainRegistry,
-        availableFiatCurrencies,
         updatesMixin,
         remoteConfigFetcher,
         accountRepository,
         chainsRepository,
         extrinsicService,
-        remoteStorageSource
+        remoteStorageSource,
+        pricesSyncService
     )
 
     @Provides
@@ -240,14 +246,23 @@ class WalletFeatureModule {
     fun provideHistorySourceProvider(
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
-        soramitsuNetworkClient: SoramitsuNetworkClient,
-        txHistoryClientForFearlessWalletFactory: TxHistoryClientForFearlessWalletFactory
+        txHistoryRepository: TxHistoryRepository,
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
-        soramitsuNetworkClient,
-        txHistoryClientForFearlessWalletFactory
+        txHistoryRepository,
     )
+
+    @Provides
+    fun provideHistoryInfoRemoteLoader(
+        configDao: ConfigDAO,
+        restClient: RestClient,
+    ): HistoryInfoRemoteLoader {
+        return HistoryInfoRemoteLoaderFacade(
+            configDAO = configDao,
+            restClient = restClient,
+        )
+    }
 
     @Provides
     @Singleton
@@ -479,20 +494,48 @@ class WalletFeatureModule {
         addressBookDao: AddressBookDao
     ): AddressBookRepository = AddressBookRepositoryImpl(addressBookDao)
 
-    @Singleton
-    @Provides
-    fun provideSoramitsuNetworkClient(): SoramitsuNetworkClient =
-        SoramitsuNetworkClient(logging = BuildConfig.DEBUG)
-
-    @Singleton
-    @Provides
-    fun provideTxHistoryClientForFearlessWalletFactory(
-        @ApplicationContext context: Context
-    ): TxHistoryClientForFearlessWalletFactory = TxHistoryClientForFearlessWalletFactory(context)
-
     @Provides
     fun provideAccountListingMixin(
         interactor: AccountInteractor,
         addressIconGenerator: AddressIconGenerator
     ): AccountListingMixin = AccountListingProvider(interactor, addressIconGenerator)
+
+    @Provides
+    @Singleton
+    fun provideCoingeckoPricesService(
+        coingeckoApi: CoingeckoApi,
+        chainsRepository: ChainsRepository
+    ): CoingeckoPricesService {
+        return CoingeckoPricesService(
+            coingeckoApi,
+            chainsRepository
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideChainlinkPricesService(
+        ethereumSource: EthereumRemoteSource,
+        chainsRepository: ChainsRepository
+    ): ChainlinkPricesService {
+        return ChainlinkPricesService(ethereumSource, chainsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun providePricesSyncService(
+        tokenPriceDao: TokenPriceDao,
+        coingeckoPricesService: CoingeckoPricesService,
+        chainlinkPricesService: ChainlinkPricesService,
+        selectedFiat: SelectedFiat,
+        availableFiatCurrencies: GetAvailableFiatCurrencies,
+    ): PricesSyncService {
+        return PricesSyncService(
+            tokenPriceDao,
+            coingeckoPricesService,
+            chainlinkPricesService,
+            selectedFiat,
+            availableFiatCurrencies
+        )
+    }
 }
