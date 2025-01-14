@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.resources.ContextManager
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.network.JsonFactory
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.RuntimeFactory
@@ -18,10 +18,8 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsInitializer
 import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsSyncServiceProvider
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
-import jp.co.soramitsu.runtime.multiNetwork.configurator.ChainEnvironmentConfiguratorProvider
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
@@ -52,18 +50,8 @@ class ChainRegistryModule {
         chainFetcher: ChainFetcher,
         metaAccountDao: MetaAccountDao,
         assetDao: AssetDao,
-
-        contextManager: ContextManager
-    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao, contextManager)
-
-    @Provides
-    @Singleton
-    fun provideRemoteAssetsInitializer(
-        dao: ChainDao,
         remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
-    ): RemoteAssetsInitializer {
-        return RemoteAssetsInitializer(dao, remoteAssetsSyncServiceProvider)
-    }
+    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao, remoteAssetsSyncServiceProvider)
 
     @Provides
     @Singleton
@@ -95,11 +83,13 @@ class ChainRegistryModule {
         typesFetcher: TypesFetcher,
         runtimeFilesCache: RuntimeFilesCache,
         chainDao: ChainDao,
+        updatesMixin: UpdatesMixin,
         connectionPool: ConnectionPool
     ) = RuntimeSyncService(
         typesFetcher = typesFetcher,
         runtimeFilesCache = runtimeFilesCache,
         chainDao = chainDao,
+        updatesMixin = updatesMixin,
         connectionPool = connectionPool
     )
 
@@ -167,11 +157,11 @@ class ChainRegistryModule {
         chainDao: ChainDao,
         chainSyncService: ChainSyncService,
         runtimeSyncService: RuntimeSyncService,
+        updatesMixin: UpdatesMixin,
         networkStateService: NetworkStateService,
         ethereumConnectionPool: EthereumConnectionPool,
         assetReadOnlyCache: AssetDao,
         chainsRepository: ChainsRepository,
-        chainEnvironmentConfiguratorProvider: ChainEnvironmentConfiguratorProvider
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -179,32 +169,12 @@ class ChainRegistryModule {
         chainDao,
         chainSyncService,
         runtimeSyncService,
+        updatesMixin,
         networkStateService,
         ethereumConnectionPool,
         assetReadOnlyCache,
-        chainsRepository,
-        chainEnvironmentConfiguratorProvider
+        chainsRepository
     )
-
-    @Provides
-    @Singleton
-    fun provideChainEnvironmentConfiguratorProvider(
-        connectionPool: ConnectionPool,
-        runtimeProviderPool: RuntimeProviderPool,
-        runtimeSyncService: RuntimeSyncService,
-        runtimeSubscriptionPool: RuntimeSubscriptionPool,
-        chainsRepository: ChainsRepository,
-        ethereumConnectionPool: EthereumConnectionPool
-    ): ChainEnvironmentConfiguratorProvider {
-        return ChainEnvironmentConfiguratorProvider(
-            connectionPool,
-            runtimeProviderPool,
-            runtimeSyncService,
-            runtimeSubscriptionPool,
-            chainsRepository,
-            ethereumConnectionPool
-        )
-    }
 
     @Provides
     fun provideChainsRepository(chainDao: ChainDao): ChainsRepository = ChainsRepository(chainDao)

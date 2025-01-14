@@ -4,9 +4,12 @@ plugins {
     id("kotlin-android")
     id("kotlin-kapt")
     id("kotlin-parcelize")
+    id("kotlinx-serialization")
 }
+apply(from = "../tests.gradle")
+apply(from = "../scripts/secrets.gradle")
+
 android {
-    namespace = "jp.co.soramitsu.feature_tonconnect_impl"
     compileSdk = rootProject.ext["compileSdkVersion"] as Int
 
     defaultConfig {
@@ -14,13 +17,13 @@ android {
         targetSdk = rootProject.ext["targetSdkVersion"] as Int
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-
     buildFeatures {
         compose = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     composeOptions {
@@ -28,8 +31,10 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
+        jvmTarget = "17"
     }
+
+    namespace = "jp.co.soramitsu.feature_soracard_impl"
 }
 
 dependencies {
@@ -38,28 +43,16 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
-    implementation(libs.sharedFeaturesCoreDep)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit)
+    implementation(libs.gson)
+    implementation(libs.xnetworking.lib.android)
 
-    implementation(libs.web3jDep)
-
-    implementation(libs.zxing.core)
-    implementation(libs.zxing.embedded)
-
-    implementation(projects.featureAccountApi)
-    implementation(projects.featureAccountImpl)
+    implementation(libs.sora.ui)
 
     implementation(projects.common)
     implementation(projects.runtime)
-    implementation(projects.featureTonconnectApi)
-    implementation(projects.coreDb)
-    implementation(projects.coreApi)
     implementation(projects.featureWalletApi)
-    implementation(projects.featureWalletImpl)
-
-    testImplementation(libs.junit)
-
-
-
-    implementation(libs.gson)
-    implementation(libs.bundles.ton)
+    implementation(projects.featureAccountApi) //todo check neediness
+    implementation(projects.featureSoracardApi)
 }
