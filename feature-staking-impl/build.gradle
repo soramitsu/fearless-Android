@@ -61,6 +61,7 @@ dependencies {
     implementation libs.lifecycle.runtime.ktx
 
     implementation libs.fragmentKtx
+    implementation libs.xnetworking.lib.android
 
     implementation libs.insetter.widgets
 

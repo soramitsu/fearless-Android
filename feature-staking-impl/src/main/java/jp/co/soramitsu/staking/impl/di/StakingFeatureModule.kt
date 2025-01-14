@@ -84,6 +84,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.api.BlockExplorerRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -148,11 +149,13 @@ class StakingFeatureModule {
     fun provideStakingRewardsSubqueryDataSource(
         stakingApi: StakingApi,
         stakingTotalRewardDao: StakingTotalRewardDao,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        blockExplorerRepository: BlockExplorerRepository,
     ): StakingRewardsDataSource = SubqueryStakingRewardsDataSource(
         stakingApi = stakingApi,
         stakingTotalRewardDao = stakingTotalRewardDao,
-        chainRegistry = chainRegistry
+        chainRegistry = chainRegistry,
+        blockExplorerRepository = blockExplorerRepository,
     )
 
     @Provides
@@ -265,7 +268,7 @@ class StakingFeatureModule {
         payoutRepository: PayoutRepository,
         walletConstants: WalletConstants,
         chainRegistry: ChainRegistry,
-        assetCache: AssetCache
+        assetCache: AssetCache,
     ): StakingRelayChainScenarioInteractor {
         return StakingRelayChainScenarioInteractor(
             interactor,
@@ -280,7 +283,7 @@ class StakingFeatureModule {
             payoutRepository,
             walletConstants,
             chainRegistry,
-            assetCache
+            assetCache,
         )
     }
 
@@ -429,12 +432,14 @@ class StakingFeatureModule {
     fun provideValidatorSetFetcher(
         stakingApi: StakingApi,
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        xNetworkingBlockExplorer: BlockExplorerRepository,
     ): SubQueryValidatorSetFetcher {
         return SubQueryValidatorSetFetcher(
             stakingApi,
             stakingRelayChainScenarioRepository,
-            chainRegistry
+            chainRegistry,
+            xNetworkingBlockExplorer,
         )
     }
 

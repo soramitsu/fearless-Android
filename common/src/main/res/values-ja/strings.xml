@@ -47,6 +47,20 @@
   <string name="account_no_chain_projection">アカウントが見つかりません</string>
   <string name="account_option">アカウントオプション</string>
   <string name="account_shared_secret">共有シークレットを持つアカウント</string>
+  <string name="account_stats_avg_transaction_time_title">平均取引時間</string>
+  <string name="account_stats_description_text">あなたのマルチチェーンスコアは、Ethereum、Polygon、Binance Smart Chainの3つのエコシステムを通じたオンチェーン活動に基づいています。</string>
+  <string name="account_stats_error_message">アカウントスコア情報を取得できません。後でもう一度お試しください。</string>
+  <string name="account_stats_hold_tokens_usd_title">保有トークン(USD)</string>
+  <string name="account_stats_max_transaction_time_title">最大取引時間</string>
+  <string name="account_stats_min_transaction_time_title">最小取引時間</string>
+  <string name="account_stats_native_balance_usd_title">ネイティブバランス(USD)</string>
+  <string name="account_stats_rejected_transactions_title">拒否された取引</string>
+  <string name="account_stats_title">あなたのスコア</string>
+  <string name="account_stats_total_transactions_title">合計取引数</string>
+  <string name="account_stats_unavailable_text">EVM互換のアカウントがありません。スコアを確認するには、「ウォレットをインポート」オプションでアカウントを追加してください。</string>
+  <string name="account_stats_updated_title">更新済み</string>
+  <string name="account_stats_wallet_age_title">ウォレットの年齢</string>
+  <string name="account_stats_wallet_option_title">ウォレットスコアを表示</string>
   <string name="account_template">%sアカウント</string>
   <string name="accounts_add_account">アカウントを追加</string>
   <string name="accounts_for_export">エクスポートするアカウント</string>
@@ -91,10 +105,15 @@
   <string name="backup_wallet_show_mnemonic_phrase">ニーモニック-フレーズを表示</string>
   <string name="backup_wallet_show_raw_seed">シードを表示</string>
   <string name="backup_wallet_warning_about_lose_phrase">このデバイスへのアクセスを失くし、バックアップしていない場合、資金は失われます！</string>
+  <string name="balance_locks_blocked_row_title">ブロック済み</string>
+  <string name="balance_locks_governance_row_title">ガバナンス</string>
+  <string name="balance_locks_nomination_pools_row_title">ノミネーションプール</string>
+  <string name="balance_locks_screen_title">ロックされた詳細</string>
   <string name="banners_backup_description">デバイスを失くすと、永久に資金も失います</string>
   <string name="banners_buy_xor">XORを買う</string>
   <string name="banners_buy_xor_description">ユーロでXORトークンを売買</string>
   <string name="banners_buy_xor_title">XORトークンの購入</string>
+  <string name="banners_liquidity_pools_title">流動性プール</string>
   <string name="beacon_connect_warning">警告：「接続」をタップすると、このDappがあなたのパブリック・アドレスを参照できるようになります。これは、潜在的なフィッシングのリスクからデータを保護するための重要なセキュリティの手順です。</string>
   <string name="beacon_connected">%sに接続しました</string>
   <string name="beacon_connected_to">に接続しました</string>
@@ -151,6 +170,7 @@
   <string name="common_amount">量</string>
   <string name="common_amount_low">金額が少なすぎる</string>
   <string name="common_and">と</string>
+  <string name="common_and_others_placeholder">%sおよびその他</string>
   <string name="common_applied">適用されました</string>
   <string name="common_apply">適用する</string>
   <string name="common_assets_filters_fiat">現金残高</string>
@@ -173,6 +193,7 @@
   <string name="common_claim">請求</string>
   <string name="common_claimable">請求可能</string>
   <string name="common_close">閉じる</string>
+  <string name="common_commission">手数料</string>
   <string name="common_completed">完了</string>
   <string name="common_completed_with_count">完了しました（ %s ）</string>
   <string name="common_confirm">確認</string>
@@ -181,6 +202,7 @@
   <string name="common_confirmed">確認済み</string>
   <string name="common_connect">接続</string>
   <string name="common_connection_problems">接続の問題</string>
+  <string name="common_contacts">連絡先</string>
   <string name="common_continue">続行</string>
   <string name="common_copied">クリップボードにコピーしました</string>
   <string name="common_copy">コピー</string>
@@ -219,6 +241,7 @@
   <string name="common_friend_bonus">ご友人へのボーナス</string>
   <string name="common_got_it">了解</string>
   <string name="common_history">履歴</string>
+  <string name="common_host">ホスト</string>
   <plurals name="common_hours_format">
     <item quantity="other">%d 時間</item>
   </plurals>
@@ -230,12 +253,17 @@
   <string name="common_left">%s 残り</string>
   <string name="common_liquidity_provider_fee">流動性プロバイダー手数料</string>
   <string name="common_max">最大</string>
+  <string name="common_message">メッセージ</string>
   <string name="common_min_received">受信した最少</string>
   <string name="common_module">モジュール</string>
+  <string name="common_more">さらに</string>
   <string name="common_my_networks">私のネットワーク</string>
   <string name="common_network">ネットワーク</string>
   <string name="common_network_fee">ネットワーク手数料</string>
   <string name="common_network_management">ネットワーク管理</string>
+  <plurals name="common_networks_format" formatted="false">
+    <item quantity="other">%dネット\n%dネットワーク</item>
+  </plurals>
   <string name="common_next">次へ</string>
   <string name="common_no">いいえ</string>
   <string name="common_no_screenshot_message">スクリーンショットを撮らないでください。サードパーティのマルウェアによって収集される可能性があります</string>
@@ -275,11 +303,14 @@
   <string name="common_select_network">ネットワークの選択</string>
   <string name="common_selected">選択済み</string>
   <string name="common_share">シェア</string>
+  <string name="common_show_details">詳細を表示</string>
+  <string name="common_show_more">もっと見る</string>
   <string name="common_sign">署名</string>
   <string name="common_skip">スキップ</string>
   <string name="common_skip_process">プロセスをスキップ</string>
   <string name="common_sort_by">並び替え</string>
   <string name="common_staking">ステーキング</string>
+  <string name="common_start">開始</string>
   <string name="common_till_date">%sまで</string>
   <string name="common_time_left">残り時間</string>
   <string name="common_title_cross_chain">クロス・チェーン</string>
@@ -290,6 +321,7 @@
   <string name="common_total">合計</string>
   <string name="common_transaction">トランザクション</string>
   <string name="common_transaction_raw_data">トランザクションの生データ</string>
+  <string name="common_transaction_sent">取引が送信されました</string>
   <string name="common_transaction_submitted">送信されたトランザクション</string>
   <string name="common_transferable_format">送信可能：%s</string>
   <string name="common_try_again">もう一度やり直してください</string>
@@ -314,6 +346,7 @@
   <string name="connection_chains_not_supported_error">ウォレットに接続できません： リクエストされたブロックチェーン・ネットワークはサポートされていないか、利用できません</string>
   <string name="connection_connections">接続</string>
   <string name="connection_create_new">新しい接続の作成</string>
+  <string name="connection_details_title">接続の詳細</string>
   <string name="connection_disconnect_success_message">%s ethers との切断が正常に完了しました</string>
   <string name="connection_error_message">インターネット接続を確認して、後でもう一度お試しください</string>
   <string name="connection_events">イベント</string>
@@ -337,6 +370,7 @@
   <string name="connections_search_hint">接続から探す</string>
   <string name="contact_address">連絡先住所</string>
   <string name="contact_name">連絡先</string>
+  <string name="contacts_empty_message">連絡先が見つかりません</string>
   <string name="contribution_type">貢献の種類</string>
   <string name="contribution_type_direct_dot">DOT直接</string>
   <string name="contribution_type_lcdot">lcDOT</string>
@@ -474,8 +508,10 @@
   <string name="lp_apy_alert_text">流動性提供のためのファーミング報酬</string>
   <string name="lp_apy_title">戦略的ボーナス年利</string>
   <string name="lp_available_pools_title">利用可能なプール</string>
+  <string name="lp_banner_text">資金をLiquidity\npoolsに投資して報酬を得る</string>
   <string name="lp_confirm_liquidity_screen_title">流動性を確認</string>
   <string name="lp_confirm_liquidity_warning_text">出力は推定です。価格が0.5%以上変動した場合、取引は元に戻されます。</string>
+  <string name="lp_liquidity_add_complete_text">流動性プールへの供給が正常に完了しました</string>
   <string name="lp_network_fee_alert_text">ネットワーク手数料はSORAシステムの成長と安定したパフォーマンスを確保するために使用されます。</string>
   <string name="lp_pool_details_title">プールの詳細</string>
   <string name="lp_pool_remove_warning_text">プールトークンを削除すると、あなたのポジションが現在のレートで元のトークンに戻されます。プール内のシェアに比例します。受け取る金額には累積された手数料が含まれます。</string>
@@ -515,6 +551,7 @@
   <string name="network_issue_action_add_account">アカウントを追加</string>
   <string name="network_issue_action_switch_node">ノードの切り替え</string>
   <string name="network_issue_add_an_account">アカウントを追加</string>
+  <string name="network_issue_main">接続エラー: ネットワークに接続できません。再度お試しください。</string>
   <string name="network_issue_network_unavailable">ネットワークは利用できません</string>
   <string name="network_issue_node_unavailable">ノードは利用できません</string>
   <string name="network_issue_stub">ネットワークの問題</string>
@@ -526,13 +563,17 @@
   <string name="network_status_connected">接続済み</string>
   <string name="network_status_connecting">接続しています...</string>
   <string name="network_url_address">URLアドレス</string>
+  <string name="nft_choose_recipient_title">受信者を選択</string>
   <string name="nft_collection_available_nfts">%sコレクションで利用可能なNFT</string>
   <string name="nft_collection_my_nfts">私のNFT</string>
   <string name="nft_collection_title">コレクション</string>
   <string name="nft_creator_title">作成者</string>
+  <string name="nft_list_empty_message">まだNFTがありません。ここでNFTを購入またはミントしてください。</string>
+  <string name="nft_load_error">NFTの読み込みに失敗しました</string>
   <string name="nft_owner_title">所有</string>
   <string name="nft_stub_text">NFTがもうすぐ登場します</string>
   <string name="nft_stub_title">失礼しました</string>
+  <string name="nft_token_type_title">トークンタイプ</string>
   <string name="nft_tokenid_title">トークンID</string>
   <string name="nfts_collection_count" formatted="false">数量： %d/%d</string>
   <string name="nfts_stub">NFT</string>
@@ -679,6 +720,7 @@
   <string name="pool_your_total_stake">総ステーク</string>
   <string name="pools_limit_has_reached_error_message">このネットワーク内のプールの制限に達しました</string>
   <string name="pools_limit_has_reached_error_title">これ以上プールを作成できません</string>
+  <string name="profile_account_score_title">Nomisマルチチェーンスコア</string>
   <string name="profile_accounts_title">アカウント</string>
   <string name="profile_experimets_subtitle">Dappsなど...</string>
   <string name="profile_experimets_title">実験的な機能</string>
@@ -690,6 +732,7 @@
   <string name="profile_settings_title">設定</string>
   <string name="profile_soracard_title">SORAカード</string>
   <string name="profile_title">アカウント</string>
+  <string name="profile_walletconnect_title">ウォレットコネクト</string>
   <string name="profile_wallets_title">ウォレット</string>
   <string name="reason">理由</string>
   <string name="recent">最近</string>
@@ -722,6 +765,10 @@
   <string name="scam_additional_stub">追加：</string>
   <string name="scam_alert_message_format">このアカウントに %s を送信しないことを強くお勧めします</string>
   <string name="scam_alert_title">このアドレスは、詐欺の証拠があると喚起されています。</string>
+  <string name="scam_description_lowscore_text">送金しようとしているアドレスはオンチェーン活動が少なく、詐欺師やSybil攻撃者の可能性があります。</string>
+  <string name="scam_info_nomis_name">Nomisマルチチェーンスコア</string>
+  <string name="scam_info_nomis_reason_text">ネットワークの活動が低い</string>
+  <string name="scam_info_nomis_subtype_text">注意して進めてください</string>
   <string name="scam_warning_message">このアドレスは、詐欺の証拠があると喚起されています。このアカウントに %s を送信しないことを強くお勧めします</string>
   <string name="scan_qr_subtitle">受信者からQRコードをスキャン</string>
   <string name="scan_qr_title">QRコード</string>
@@ -743,13 +790,17 @@
   <string name="select_network_template">%sネットワークを選択</string>
   <string name="select_save_type">保存形式を選択</string>
   <string name="select_validators_disclaimer">免責事項：アルゴリズム・バリデーターの提案は、金融に関する相談や助言に該当するものではありません。ステーキングはハイリスクな活動であり、アルゴリズムによるバリデーターの提案は、必ずしもこのリスクを軽減するものではありません。アルゴリズムによって提案されたバリデーターは、切り取られる可能性があります。アルゴリズムによって提案されたバリデーターは、提案および/または選択された後、いつでもパラメーター(例：手数料率など)を変更することができます。これらの理由や他の理由でトークンや報酬を失う可能性があります。関連するリスクを注意して慎重に検討した上で、ご自身の判断でトークンをステークし、バリデーターの提案を使用するようにしてください</string>
+  <string name="send_all_and_reap_account">すべてのトークンを送信してアカウントを解約する</string>
   <string name="send_fund">資金を送る</string>
   <string name="send_to">送信先</string>
   <string name="sending">送信中</string>
+  <string name="set_max_amount">最大額を設定</string>
   <string name="settings_hide_zero_balances">残高ゼロを隠す</string>
   <string name="share_referral_code">紹介コードを共有</string>
   <string name="social_media">ソーシャル・メディア</string>
+  <string name="sora_bridge_amount_less_fee">転送しようとしている金額は、%s ネットワーク上の取引手数料をカバーするには不十分です。トランザクションは処理されませんが、それでも Sora ネットワークの手数料が請求されます。</string>
   <string name="sora_bridge_low_amount_format_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低%sが設定されています。ご理解のほどよろしくお願いいたします。</string>
+  <string name="sora_bridge_low_amount_format_alert_2">現在、安定性と安全性を確保するために、ブリッジングには最低限の額%sが必要です。ご了承ください。</string>
   <string name="sora_card_annual_service_fee">年間サービス料€0</string>
   <string name="sora_card_blacklisted_countires_title">適用除外</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[現在SORAカードは<b>特定の国</b>の居住者は<b>申請できません</b><br><a href=\"https://soracard.com/blacklist/\">特定の国を見る</a>]]></string>
@@ -1031,6 +1082,7 @@
   <string name="substrate_crypto_type">サブストレート(Substrate)キー・ペアの暗号方式</string>
   <string name="substrate_secret_derivation_path">サブストレート(Substrate)の秘密の派生パス(Derivation Path)</string>
   <string name="success_message">ブラウザに戻ることができます</string>
+  <string name="success_message_transaction_sent">取引が正常にブロックチェーンに送信されました</string>
   <string name="support_and_feedback">サポートとフィードバック</string>
   <string name="switch_node">ノードの切り替え</string>
   <string name="switch_node_autoselect_title">ノードの自動選択</string>
@@ -1043,6 +1095,7 @@
   <string name="tabbar_wallet_title">ウォレット</string>
   <string name="today">今日</string>
   <string name="top_up">補充する</string>
+  <string name="tranaction_history_others_tab_title">その他</string>
   <string name="transaction_detail_status">状態</string>
   <string name="transaction_details_copy_hash">ハッシュをコピーする</string>
   <string name="transaction_details_extrinsic_fee">手数料</string>
@@ -1051,6 +1104,7 @@
   <string name="transaction_details_title">トランザクションの詳細</string>
   <string name="transaction_details_view_etherscan">イーサスキャン(Etherscan)で見る</string>
   <string name="transaction_details_view_polkascan">ポルカスキャン(Polkascan)で見る</string>
+  <string name="transaction_details_view_reefscan">Reefscanで表示</string>
   <string name="transaction_details_view_subscan">サブスキャン(Subscan)で見る</string>
   <string name="transaction_status_completed">完了</string>
   <string name="transaction_status_failed">失敗しました</string>
@@ -1067,8 +1121,13 @@
   <string name="username_setup_hint">この名前はあなたにのみ表示され、あなたのデバイスの中に保存されます。</string>
   <string name="username_setup_title_2_0">新しいウォレットを作成</string>
   <string name="validator_info_comission_title">コミッション</string>
+  <string name="validator_info_min_stake_alert_text">アクティブな指名者の中での最低ステークは%sです。報酬を得るには、もっとステークする必要があります。</string>
+  <string name="validator_info_min_stake_among_active_nominators_text">アクティブな指名者の中での最低ステーク</string>
   <string name="validator_not_elected_description">このアカウントは、現在の時代に参加するためにネットワークによって選出されていません</string>
   <string name="validators_list_empty_message">バリデーターが見つかりません</string>
+  <string name="vesting_claim_disclaimer_text">各パラチェーンのユニークなベスティングスケジュールにより、アプリはクレーム対象のロックされたトークンの数量を表示できません。見込まれる金額が僅少で、取引手数料と同等の場合、クレームの開始は実用的でない可能性があります。ロックされた残高の詳細については、Subscanブロックエクスプローラーをご参照ください。情報を慎重に評価し、ご自身の裁量で進めてください。</string>
+  <string name="vesting_claim_disclaimer_title">トークンクレームに関する重要なお知らせ：</string>
+  <string name="vesting_locked_title">ベスティングロック</string>
   <string name="view_in">%sで見る</string>
   <string name="view_wallet">ウォレットを見る</string>
   <string name="wallet_all_assets_hidden">全アセットを非表示にしました</string>
@@ -1105,6 +1164,7 @@
   <string name="wallet_send_balance_minimal">最少限の残高</string>
   <string name="wallet_send_confirm_transfer">送信を確認</string>
   <string name="wallet_send_dead_recipient_message">宛先アカウントの最終金額が既存の預金より少ないため、送信は失敗します。量を増やしてみてください</string>
+  <string name="wallet_send_dead_recipient_message_v2">送金先の最終額（%1$s）が最低残高（%2$s）を下回るため、送金が失敗します。金額を%3$s増やしてください。</string>
   <string name="wallet_send_eth_dead_recipient_message">受信者のアカウントのイーサリアム(Ethereum)残高が不十分な場合、ERC20トークン転送が完了しません。受信者が転送を続行するのに十分なイーサリアムを持っていることを確認してください</string>
   <string name="wallet_send_existential_warning_message">送信すると、残高が最少預金よりも少なくなるため、ブロックストアからアカウントが削除されます</string>
   <string name="wallet_send_existential_warning_title">送信するとアカウントが削除されます</string>

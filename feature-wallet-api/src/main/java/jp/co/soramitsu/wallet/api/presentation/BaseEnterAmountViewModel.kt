@@ -2,9 +2,6 @@ package jp.co.soramitsu.wallet.api.presentation
 
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -15,7 +12,6 @@ import jp.co.soramitsu.common.compose.component.EnterAmountViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
@@ -32,6 +28,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
 
 open class BaseEnterAmountViewModel(
     @StringRes private val nextButtonTextRes: Int = R.string.common_continue,
@@ -185,7 +184,7 @@ open class BaseEnterAmountViewModel(
     fun onQuickAmountInput(value: Double) {
         viewModelScope.launch {
             val amount = quickInputs[value] ?: return@launch
-            enteredAmountFlow.value  = amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+            enteredAmountFlow.value  = amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)
         }
     }
 }
