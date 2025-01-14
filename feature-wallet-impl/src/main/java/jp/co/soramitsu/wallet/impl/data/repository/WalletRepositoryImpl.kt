@@ -1,8 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
 import com.opencsv.CSVReaderHeaderAware
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -16,7 +14,6 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindString
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
-import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
@@ -25,7 +22,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.core.models.Asset.PriceProvider
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -36,7 +32,6 @@ import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
-import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -70,7 +65,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -79,8 +73,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -94,13 +89,13 @@ class WalletRepositoryImpl(
     private val phishingDao: PhishingDao,
     private val coingeckoApi: CoingeckoApi,
     private val chainRegistry: ChainRegistry,
-    private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
     private val extrinsicService: ExtrinsicService,
-    private val remoteStorageSource: StorageDataSource
+    private val remoteStorageSource: StorageDataSource,
+    private val pricesSyncService: PricesSyncService
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -155,97 +150,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun syncAssetsRates(currencyId: String) {
-        val chains = chainsRepository.getChains()
-        syncAllRates(chains, currencyId)
-    }
-
-    private suspend fun syncAllRates(chains: List<Chain>, currencyId: String) {
-        val priceIdsWithChainlinkId = chains.map {
-            it.assets.mapNotNull { asset ->
-                asset.priceId?.let { priceId ->
-                    priceId to if (asset.priceProvider?.isSupported == true) {
-                        asset.priceProvider?.id
-                    } else {
-                        null
-                    }
-                }
-            }
-        }.flatten().toSet()
-
-        val priceIds = priceIdsWithChainlinkId.map { it.first }
-        val chainlinkProviderIds = priceIdsWithChainlinkId.mapNotNull { it.second }
-        val allPriceIds = (priceIds + chainlinkProviderIds).toSet()
-
-        updatesMixin.startUpdateTokens(allPriceIds)
-
-        var coingeckoPriceStats: Map<String, Map<String, BigDecimal>> = emptyMap()
-        var chainlinkPrices: Map<String, BigDecimal> = emptyMap()
-
-        coroutineScope {
-            launch {
-                coingeckoPriceStats =
-                    getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
-            }
-            launch {
-                chainlinkPrices = if (currencyId == "usd") {
-                    getChainlinkPrices(chains)
-                } else {
-                    emptyMap()
-                }
-            }
-        }.join()
-
-        val newPrices = priceIdsWithChainlinkId.mapNotNull { (priceId, chainlinkId) ->
-            val stat = coingeckoPriceStats[priceId] ?: return@mapNotNull null
-
-            val changeKey = "${currencyId}_24h_change"
-            val change = stat[changeKey]
-            val fiatCurrency = availableFiatCurrencies[currencyId]
-
-            listOf(
-                TokenPriceLocal(priceId, stat[currencyId], fiatCurrency?.symbol, change),
-                chainlinkId?.let {
-                    TokenPriceLocal(
-                        chainlinkId,
-                        chainlinkPrices[chainlinkId],
-                        fiatCurrency?.symbol,
-                        change
-                    )
-                }
-            )
-        }.flatten().filterNotNull()
-        assetCache.updateTokensPrice(newPrices)
-        updatesMixin.finishUpdateTokens(allPriceIds)
-    }
-
-    private suspend fun getChainlinkPrices(chains: List<Chain>): Map<String, BigDecimal> {
-        val chainlinkProvider = chains.firstOrNull { it.chainlinkProvider } ?: return emptyMap()
-
-        val allAssets =
-            chains.map { it.assets }.flatten().asSequence().filter { it.priceProvider?.isSupported == true }
-                .toList()
-
-        return allAssets.mapNotNull {
-            val priceProvider = it.priceProvider ?: return@mapNotNull null
-            val price =
-                getChainlinkPrices(priceProvider = priceProvider, chainId = chainlinkProvider.id)
-                    ?: return@mapNotNull null
-            priceProvider.id to price
-        }.toMap()
-    }
-
-    private suspend fun getChainlinkPrices(
-        priceProvider: PriceProvider,
-        chainId: ChainId
-    ): BigDecimal? {
-        return runCatching {
-            ethereumSource.fetchPriceFeed(
-                chainId = chainId,
-                receiverAddress = priceProvider.id
-            )?.let { price ->
-                BigDecimal(price, priceProvider.precision)
-            }
-        }.getOrNull()
+        pricesSyncService.sync()
     }
 
     override fun assetFlow(
@@ -496,23 +401,6 @@ class WalletRepositoryImpl(
             source = source
         )
 
-    private suspend fun updateAssetRates(
-        priceId: String,
-        fiatSymbol: String?,
-        price: BigDecimal?,
-        change: BigDecimal?
-    ) = assetCache.updateTokenPrice(priceId) { cached ->
-        cached.copy(
-            fiatRate = price,
-            fiatSymbol = fiatSymbol,
-            recentRateChange = change
-        )
-    }
-
-    private suspend fun updateAssetsRates(
-        items: List<TokenPriceLocal>
-    ) = assetCache.updateTokensPrice(items)
-
     override suspend fun getSingleAssetPriceCoingecko(
         priceId: String,
         currency: String
@@ -533,13 +421,6 @@ class WalletRepositoryImpl(
             coingeckoCache[priceId] = currencyMap
         }
         return apiValue
-    }
-
-    private suspend fun getAssetPriceCoingecko(
-        vararg priceId: String,
-        currencyId: String
-    ): Map<String, Map<String, BigDecimal>> {
-        return apiCall { coingeckoApi.getAssetPrice(priceId.joinToString(","), currencyId, true) }
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)

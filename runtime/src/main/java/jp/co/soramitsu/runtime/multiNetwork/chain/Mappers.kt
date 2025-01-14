@@ -23,6 +23,7 @@ private const val TESTNET_OPTION = "testnet"
 private const val NOMINATION_POOL_OPTION = "poolStaking"
 private const val NFT_OPTION = "nft"
 private const val USES_APP_ID_OPTION = "checkAppId"
+private const val REMOTE_ASSETS_OPTION = "remoteAssets"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
@@ -162,7 +163,11 @@ fun ChainRemote.toChain(): Chain {
         supportNft = NFT_OPTION in optionsOrEmpty,
         paraId = this.paraId,
         isUsesAppId = USES_APP_ID_OPTION in optionsOrEmpty,
-        identityChain = identityChain
+        identityChain = identityChain,
+        remoteAssetsSource = when {
+            REMOTE_ASSETS_OPTION in optionsOrEmpty -> Chain.RemoteAssetsSource.OnChain
+            else -> null
+        }
     )
 }
 
@@ -272,7 +277,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             chainlinkProvider = isChainlinkProvider,
             supportNft = supportNft,
             isUsesAppId = isUsesAppId,
-            identityChain = identityChain
+            identityChain = identityChain,
+            remoteAssetsSource = remoteAssetsSource?.let { Chain.RemoteAssetsSource.valueOf(it) }
         )
     }
 }
@@ -346,7 +352,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             isChainlinkProvider = chainlinkProvider,
             supportNft = supportNft,
             isUsesAppId = isUsesAppId,
-            identityChain = identityChain
+            identityChain = identityChain,
+            remoteAssetsSource = remoteAssetsSource?.name
         )
     }
 
