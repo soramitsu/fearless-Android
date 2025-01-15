@@ -452,14 +452,3 @@ class WalletSyncService(
         }
     }
 }
-
-//
-// Bajun Kusama,
-// Integritee Network (Kusama),
-// Sepolia,
-// Manta Pacific Mainnet,
-// Latest Testnet,
-// Latest Mainnet,
-// CAGA Ankara Testnet,
-// Klaytn Mainnet Cypress,
-// Kaia Kairos Testnet

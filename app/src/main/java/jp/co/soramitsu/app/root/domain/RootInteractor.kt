@@ -57,8 +57,6 @@ class RootInteractor(
 
     fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 
-    fun stakingAvailableFlow() = flowOf(true) // TODO remove this logic
-
     suspend fun updatePhishingAddresses() {
         runCatching {
             walletRepository.updatePhishingAddresses()
