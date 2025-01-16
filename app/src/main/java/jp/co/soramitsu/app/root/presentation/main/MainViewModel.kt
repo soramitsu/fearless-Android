@@ -37,9 +37,5 @@ class MainViewModel @Inject constructor(
             assetIdFrom = null,
             assetIdTo = null
         )
-
-        if (!polkaswapInteractor.hasReadDisclaimer) {
-            polkaswapRouter.openPolkaswapDisclaimerFromMainScreen()
-        }
     }
 }
