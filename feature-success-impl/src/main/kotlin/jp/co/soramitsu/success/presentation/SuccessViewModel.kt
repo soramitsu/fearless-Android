@@ -71,7 +71,6 @@ class SuccessViewModel @Inject constructor(
         operationHash ?: return@map null
         it.firstNotNullOfOrNull { explorerItem ->
             when (explorerItem.type) {
-                Chain.Explorer.Type.POLKASCAN,
                 Chain.Explorer.Type.SUBSCAN,
                 Chain.Explorer.Type.REEF -> {
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, operationHash)
