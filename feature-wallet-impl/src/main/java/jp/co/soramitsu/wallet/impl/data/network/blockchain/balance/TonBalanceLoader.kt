@@ -66,7 +66,7 @@ class TonBalanceLoader(chain: Chain, private val tonRemoteSource: TonRemoteSourc
 
                         else -> BigInteger.valueOf(-1)
                     }
-
+                    hashCode()
                     AssetBalanceUpdateItem(
                         metaId = metaAccount.id,
                         chainId = chain.id,

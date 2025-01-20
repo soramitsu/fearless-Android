@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.domain
 
+import android.util.Log
 import java.util.Calendar
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -35,7 +36,7 @@ class GetAvailableFiatCurrencies(private val coingeckoApi: CoingeckoApi) {
                 val config = coingeckoApi.getFiatConfig()
                 cache.value = config.filter { it.id in supportedCurrencies }
                 syncTimeMillis = Calendar.getInstance().timeInMillis
-            }
+            }.onFailure { Log.d("&&&", "GetAvailableFiatCurrencies sync failed: $it") }
         }
     }
 }

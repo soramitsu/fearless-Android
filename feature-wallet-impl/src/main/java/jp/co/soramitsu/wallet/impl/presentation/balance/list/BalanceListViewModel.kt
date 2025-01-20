@@ -495,7 +495,7 @@ class BalanceListViewModel @Inject constructor(
         return withContext(Dispatchers.Default) {
             val assets = chainInteractor.getChainAssets()
 
-            assets.sortedWith(defaultChainAssetListSort()).mapIndexed { index, chainAsset ->
+            assets.sortedWith(defaultChainAssetListSort()).take(10).mapIndexed { index, chainAsset ->
                 AssetListItemViewState(
                     index = index,
                     assetIconUrl = chainAsset.iconUrl,
@@ -581,7 +581,9 @@ class BalanceListViewModel @Inject constructor(
         showNetworkIssues.onEach {
             state.value = state.value.copy(hasNetworkIssues = it)
         }.launchIn(this)
+
         subscribeTotalBalance()
+
         if (interactor.getAssetManagementIntroPassed().not()) {
             startManageAssetsIntroAnimation()
         }
@@ -722,7 +724,7 @@ class BalanceListViewModel @Inject constructor(
     private fun sync() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                getAvailableFiatCurrencies.sync()
+//                getAvailableFiatCurrencies.sync()
                 interactor.syncAssetsRates().onFailure {
                     withContext(Dispatchers.Main) {
                         selectedFiat.notifySyncFailed()

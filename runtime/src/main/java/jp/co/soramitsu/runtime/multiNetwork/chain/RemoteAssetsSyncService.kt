@@ -10,6 +10,7 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -98,13 +99,14 @@ class TonRemoteAssetsSyncService(
                             }
                         }
                     }
+                    hashCode()
                     val chainAssets = chainAssetsDeferred.awaitAll().flatten()
                     chainDao.insertChainAssetsIgnoringConflicts(chainAssets)
                 }
             }
 
-        subscription.first()
-
         subscription.launchIn(coroutineScope)
+
+        subscription.first()
     }
 }

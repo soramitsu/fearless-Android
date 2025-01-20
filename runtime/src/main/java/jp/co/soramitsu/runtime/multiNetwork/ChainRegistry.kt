@@ -104,69 +104,45 @@ class ChainRegistry @Inject constructor(
         .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }
         .flowOn(dispatcher)
 
-    var configsSyncDeferred: MutableList<Deferred<Any>> = mutableListOf()
-
-    init {
-        syncUp()
-    }
-
-    suspend fun syncConfigs() = withContext(dispatcher) {
-        val chainSyncDeferred = async { chainSyncService.syncUp() }
-        val typesResultDeferred = async { runtimeSyncService.syncTypes() }
-
-        configsSyncDeferred.add(chainSyncDeferred)
-        configsSyncDeferred.add(typesResultDeferred)
-
-        val chainsSyncResult = kotlin.runCatching { chainSyncDeferred.await() }
-        val typesResult = typesResultDeferred.await()
-
-        return@withContext if(chainsSyncResult.isSuccess && typesResult.isSuccess) {
-            Result.success(Unit)
-        } else {
-            Result.failure("failed to load chains configs")
-        }
-    }
+//    init {
+//        syncUp()
+//    }
 
     fun syncUp() {
-        scope.launch {
-            configsSyncDeferred.joinAll()
+        chainsToSync.onEach { (removed, addedOrModified, all) ->
+            coroutineScope {
+                val removedDeferred = removed.map {
+                    async { connectionPool.getConnectionOrNull(it.id)?.socketService?.pause() }
+                }
 
-            chainsToSync
-                .onEach { (removed, addedOrModified, all) ->
-                    coroutineScope {
-                        val removedDeferred = removed.map {
-                            async { connectionPool.getConnectionOrNull(it.id)?.socketService?.pause() }
-                        }
-
-                        val syncDeferred = addedOrModified.map { chain ->
-                            async {
-                                runCatching {
-                                    setupChain(chain)
-                                }.onFailure {
-                                    networkStateService.notifyChainSyncProblem(chain.id)
-                                    Log.e(
-                                        "ChainRegistry",
-                                        "error while sync in chain registry $it"
-                                    )
-                                }.onSuccess {
-                                    networkStateService.notifyChainSyncSuccess(
-                                        chain.id
-                                    )
-                                }
-                            }
-                        }
-
-                        (removedDeferred + syncDeferred).awaitAll()
-                        coroutineContext.job.invokeOnCompletion {
-                            val errorMessage = it?.let { "with error: ${it.message}" } ?: ""
-                            Log.d("ChainRegistry", "chains sync completed $errorMessage")
+                val syncDeferred = addedOrModified.map { chain ->
+                    async {
+                        runCatching {
+                            setupChain(chain)
+                        }.onFailure {
+                            networkStateService.notifyChainSyncProblem(chain.id)
+                            Log.e(
+                                "ChainRegistry",
+                                "error while sync in chain registry $it"
+                            )
+                        }.onSuccess {
+                            networkStateService.notifyChainSyncSuccess(
+                                chain.id
+                            )
                         }
                     }
-                    this@ChainRegistry.syncedChains.emit(all)
-
                 }
-                .launchIn(scope)
+
+                (removedDeferred + syncDeferred).awaitAll()
+                coroutineContext.job.invokeOnCompletion {
+                    val errorMessage = it?.let { "with error: ${it.message}" } ?: ""
+                    Log.d("ChainRegistry", "chains sync completed $errorMessage")
+                }
+            }
+            this@ChainRegistry.syncedChains.emit(all)
+
         }
+            .launchIn(scope)
     }
 
     fun stopChain(chain: Chain) {

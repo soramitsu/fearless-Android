@@ -29,6 +29,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.inject.Inject
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.domain.InitializationStep
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
@@ -234,7 +235,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         viewModel.showNoInternetConnectionAlert.observe(
             this,
             EventObserver {
-                showNoInternetConnectionAlert()
+                showNoInternetConnectionAlert(it)
             }
         )
     }
@@ -250,13 +251,13 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             .show()
     }
 
-    private fun showNoInternetConnectionAlert() {
+    private fun showNoInternetConnectionAlert(initializationStep: InitializationStep) {
         AlertBottomSheet.Builder(this)
             .setTitle(R.string.common_connection_problems)
             .setMessage(R.string.connection_problems_alert_message)
             .setButtonText(R.string.common_retry)
             .setCancelable(false)
-            .callback { viewModel.retryLoadConfigClicked() }
+            .callback { viewModel.retryLoadConfigClicked(initializationStep) }
             .build()
             .show()
     }

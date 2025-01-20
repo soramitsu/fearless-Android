@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.impl.data.mappers.toLocal
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.positiveOrNull
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
@@ -89,7 +90,6 @@ class WalletSyncService(
             .onEach { localMetaAccounts ->
                 syncJob?.cancel()
                 syncJob = scope.launch {
-                    chainRegistry.configsSyncDeferred.joinAll()
                     val chains = chainsRepository.getChains()
 
                     val metaAccounts = localMetaAccounts.map { accountInfo ->
@@ -156,7 +156,7 @@ class WalletSyncService(
                             val accountHasAssetWithPositiveBalance =
                                 accountHasAssetWithPositiveBalanceMap[balance.metaId] == true
 
-                            val isTonAsset = chain.id == tonChainId && chainAsset.symbol.equals("TON", ignoreCase = true)
+                            val isTonAsset = chain.id == tonChainId //&& chainAsset.symbol.equals("TON", ignoreCase = true)
 
                             AssetLocal(
                                 id = balance.id,
@@ -171,11 +171,11 @@ class WalletSyncService(
                                 bondedInPlanks = balance.bondedInPlanks,
                                 redeemableInPlanks = balance.redeemableInPlanks,
                                 unbondingInPlanks = balance.unbondingInPlanks,
-                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) || isTonAsset
+                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) //|| isTonAsset
                             )
                         }
-                        assetsLocal.groupBy { it.metaId }.forEach {
-                            assetDao.insertAssets(it.value)
+                        assetsLocal.groupBy { it.metaId }.forEach { b ->
+                            runCatching { assetDao.insertAssets(b.value) }.onFailure { Log.d("&&&", "failed to insert ${b.value.size} assets for metaId: ${b.key}, reason: $it") }.onSuccess { Log.d("&&&", "successfully inserted ${b.value.size} assets for metaId: ${b.key} ") }
                         }
 
                         coroutineContext.job.invokeOnCompletion {

@@ -122,6 +122,14 @@ android {
 
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
+    kotlin {
+        compilerOptions {
+            if (System.getProperty("idea.active") == "true") {
+                println("Enable coroutine debugging")
+                freeCompilerArgs.add("-Xdebug")
+            }
+        }
+    }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
