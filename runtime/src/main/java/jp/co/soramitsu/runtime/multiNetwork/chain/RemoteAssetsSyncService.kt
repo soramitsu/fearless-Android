@@ -106,7 +106,8 @@ class TonRemoteAssetsSyncService(
             }
 
         subscription.launchIn(coroutineScope)
-
-        subscription.first()
+//        hashCode()
+//        val s = subscription.first()
+//        hashCode()
     }
 }
