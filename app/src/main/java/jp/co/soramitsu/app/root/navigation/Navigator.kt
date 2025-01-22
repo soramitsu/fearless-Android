@@ -338,8 +338,16 @@ class Navigator :
     override fun openAfterPinCode(delayedNavigation: DelayedNavigation) {
         require(delayedNavigation is NavComponentDelayedNavigation)
 
+        val shouldOpenMain = delayedNavigation.globalActionId == R.id.action_open_main
+
         val navOptions = NavOptions.Builder()
-            .setPopUpTo(R.id.pincodeFragment, true)
+            .apply {
+                if (shouldOpenMain) {
+                    setPopUpTo(R.id.root_nav_graph, false)
+                } else {
+                    setPopUpTo(R.id.pincodeFragment, true)
+                }
+            }
             .setEnterAnim(R.animator.fragment_open_enter)
             .setExitAnim(R.animator.fragment_open_exit)
             .setPopEnterAnim(R.animator.fragment_close_enter)
