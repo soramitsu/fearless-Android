@@ -103,7 +103,6 @@ fun TonConnectionDetailsContent(state: TonConnectionDetailsViewState, callback: 
                     }
                 }
 
-
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {

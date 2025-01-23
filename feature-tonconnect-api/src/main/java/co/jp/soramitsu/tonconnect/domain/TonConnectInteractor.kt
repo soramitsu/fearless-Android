@@ -12,6 +12,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
 
+@Suppress("ComplexInterface")
 interface TonConnectInteractor {
     suspend fun respondDappConnectRequest(
         clientId: String?,
@@ -28,7 +29,11 @@ interface TonConnectInteractor {
     suspend fun getDappsConfig(): List<DappConfig>
 
     fun getConnectedDapps(): Flow<DappConfig>
-    suspend fun requestProof(selectedWalletId: Long, app: AppEntity, proofPayload: String): TONProof.Result
+    suspend fun requestProof(
+        selectedWalletId: Long,
+        app: AppEntity,
+        proofPayload: String
+    ): TONProof.Result
 
     fun eventsFlow(
 //        connections: List<AppConnectEntity>,
@@ -37,7 +42,11 @@ interface TonConnectInteractor {
 
     suspend fun disconnect(clientId: String)
 
-    suspend fun signMessage(chain: Chain, method: String, signRequest: TonConnectSignRequest): String
+    suspend fun signMessage(
+        chain: Chain,
+        method: String,
+        signRequest: TonConnectSignRequest
+    ): String
     suspend fun sendBlockchainMessage(chain: Chain, boc: String)
     suspend fun sendDappMessage(event: BridgeEvent, boc: String)
     suspend fun readManifest(url: String): AppEntity

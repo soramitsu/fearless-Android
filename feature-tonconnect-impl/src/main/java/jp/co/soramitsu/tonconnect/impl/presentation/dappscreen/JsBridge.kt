@@ -14,26 +14,28 @@ abstract class JsBridge(
     val keys = ArrayMap<String, Any>()
 
     /**
-     * Don't use reflection because it's not safe and can be used for hacking
-     * Use direct call of functions
+     * Don't use reflection because it's not safe and can be used for hacking.
+     * Use direct call of functions.
      */
     abstract suspend fun invokeFunction(name: String, args: JSONArray): Any?
 
     open fun jsInjection(): String {
-        val funcs = availableFunctions.joinToString(",") {"""
+        val funcs = availableFunctions.joinToString(",") {
+            """
             $it: (...args) => {
-                return new Promise((resolve, reject) => window.invokeRnFunc('${it}', args, resolve, reject))
+                return new Promise((resolve, reject) => window.invokeRnFunc('$it', args, resolve, reject))
             }
-        """}
+        """
+        }
 
         return """
             (() => {
-                if (!window.${windowKey}) {
+                if (!window.$windowKey) {
                     window.rnPromises = {};
                     window.rnEventListeners = [];
                     window.invokeRnFunc = (name, args, resolve, reject) => {
                         const invocationId = btoa(Math.random()).substring(0, 12);
-                        const timeoutMs = ${timeout};
+                        const timeoutMs = $timeout;
                         const timeoutId = timeoutMs ? setTimeout(() => reject(new Error('bridge timeout for function with name: '+name+'')), timeoutMs) : null;
                         window.rnPromises[invocationId] = { resolve, reject, timeoutId }
                         window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -84,7 +86,7 @@ abstract class JsBridge(
                     };
                 };
                 
-                window.${windowKey} = Object.assign(${JSONObject(keys)},{ $funcs },{ listen });
+                window.$windowKey = Object.assign(${JSONObject(keys)},{ $funcs },{ listen });
             })();
         """
     }

@@ -7,7 +7,7 @@ data class FunctionInvokeBridgeMessage(
     val name: String,
     val args: JSONArray,
     val invocationId: String
-): BridgeMessage(Type.InvokeRnFunc) {
+) : BridgeMessage(Type.InvokeRnFunc) {
 
     constructor(json: JSONObject) : this(
         name = json.getString("name"),
@@ -22,5 +22,4 @@ data class FunctionInvokeBridgeMessage(
         json.put("invocationId", invocationId)
         return json
     }
-
 }

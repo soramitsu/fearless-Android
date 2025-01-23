@@ -6,7 +6,7 @@ data class FunctionResponseBridgeMessage(
     val invocationId: String,
     val status: String,
     val data: Any
-): BridgeMessage(Type.FunctionResponse) {
+) : BridgeMessage(Type.FunctionResponse) {
 
     constructor(invocationId: String, error: Throwable) : this(
         invocationId = invocationId,

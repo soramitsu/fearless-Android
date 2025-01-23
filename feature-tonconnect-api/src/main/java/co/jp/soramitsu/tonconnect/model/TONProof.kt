@@ -32,7 +32,6 @@ object TONProof {
         val body = sha256(prefixMessage + request.signatureMessage)
         val signature = secretKey.sign(body)
 
-
         return Result(
             timestamp = request.timestamp,
             domain = request.domain,
@@ -46,6 +45,7 @@ object TONProof {
     }
 
     data class Request(
+        @Suppress("MagicNumber")
         val timestamp: Long = System.currentTimeMillis() / 1000L,
         val payload: String,
         val domain: Domain,
@@ -61,7 +61,8 @@ object TONProof {
         }
     }
 
-    data class Address(val value: AddrStd): Serializable {
+    @Suppress("SerialVersionUIDInSerializableClass")
+    data class Address(val value: AddrStd) : Serializable {
 
         override fun toByteArray(): ByteArray {
             val addressWorkchainBuffer = value.workchainId.toByteArray()
@@ -70,7 +71,8 @@ object TONProof {
         }
     }
 
-    data class Domain(val value: String): Serializable {
+    @Suppress("SerialVersionUIDInSerializableClass")
+    data class Domain(val value: String) : Serializable {
 
         private val lengthBytes: Int = value.toByteArray().size
 
@@ -84,7 +86,7 @@ object TONProof {
         val domain: Domain,
         val payload: String?,
         val signature: String
-    ): Parcelable {
+    ) : Parcelable {
         constructor(parcel: Parcel) : this(
             parcel.readLong(),
             Domain(parcel.readString()!!),
@@ -112,6 +114,5 @@ object TONProof {
                 return arrayOfNulls(size)
             }
         }
-
     }
 }

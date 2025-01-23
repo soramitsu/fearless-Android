@@ -3,14 +3,17 @@ package co.jp.soramitsu.tonconnect.model
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+@Suppress("MagicNumber")
 fun Long.toByteArray(): ByteArray {
     return ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(this).array()
 }
 
+@Suppress("MagicNumber")
 fun Int.toByteArray(): ByteArray {
     return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(this).array()
 }
 
+@Suppress("MagicNumber")
 enum class BridgeError(val code: Int, val message: String) {
     UNKNOWN(0, "Unknown error"),
     BAD_REQUEST(1, "Bad request"),

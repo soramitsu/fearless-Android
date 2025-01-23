@@ -9,16 +9,16 @@ import org.json.JSONObject
 data class ConnectRequest(
     val manifestUrl: String,
     val items: List<Item>,
-): Parcelable {
+) : Parcelable {
 
     val proofPayload: String?
         get() = items.filterIsInstance<Item.TonProof>().firstOrNull()?.payload
 
     @Parcelize
-    sealed class Item: Parcelable {
-        data object TonAddress: Item()
+    sealed class Item : Parcelable {
+        data object TonAddress : Item()
 
-        data class TonProof(val payload: String): Item()
+        data class TonProof(val payload: String) : Item()
     }
     companion object {
         fun parse(data: String?): ConnectRequest {
@@ -26,6 +26,7 @@ data class ConnectRequest(
                 throw TonConnectException.RequestParsingError(data)
             }
 
+            @Suppress("SwallowedException")
             try {
                 val json = JSONObject(data)
                 return parse(json)

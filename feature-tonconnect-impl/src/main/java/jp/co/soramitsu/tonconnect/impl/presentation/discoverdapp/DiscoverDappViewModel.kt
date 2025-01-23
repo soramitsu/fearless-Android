@@ -5,7 +5,6 @@ import co.jp.soramitsu.feature_tonconnect_impl.R
 import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
 import co.jp.soramitsu.tonconnect.model.DappConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -23,7 +22,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
-import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -48,10 +46,8 @@ class DiscoverDappViewModel @Inject constructor(
     private val chainInteractor: ChainInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
-    private val accountInteractor: AccountInteractor,
     private val nomisScoreInteractor: NomisScoreInteractor,
     private val resourceManager: ResourceManager,
-    private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val tonConnectInteractor: TonConnectInteractor,
 ) : BaseViewModel(), DiscoverDappScreenInterface {
 
@@ -84,27 +80,8 @@ class DiscoverDappViewModel @Inject constructor(
 
     private val dappsFlow = flowOf {
         tonConnectInteractor.getDappsConfig()
-            // todo remove
-//            .map { it ->
-//                if (it.type == "featured") {
-//                    it.copy(
-//                        apps = listOf(
-//                            DappModel(
-//                                identifier = "some_id",
-//                                chains = listOf("-3"),
-//                                name = "Blueprint testnet",
-//                                url = "https://ton-explorer.dev.sora2.tachi.soramitsu.co.jp",
-//                                description = "injected FW dapp test example",
-//                                background = null,
-//                                icon = "https://i.imgur.com/wxkIEAE.png"
-//                            )
-//                        ).plus(it.apps)
-//                    )
-//                } else {
-//                    it
-//                }
-//            }
     }
+
     private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps()
 
     private val dAppsItemsFlow: Flow<List<DappConfig>> = combine(
@@ -197,6 +174,7 @@ class DiscoverDappViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    @Suppress("MagicNumber")
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedLightMetaAccountFlow()
             .map {
@@ -236,7 +214,6 @@ class DiscoverDappViewModel @Inject constructor(
                 DappsListState(type.replaceFirstChar { it.uppercaseChar() }, dapps)
             }
         }
-
     }
 
     override fun onDappLongClick(dappId: String) {
@@ -249,12 +226,12 @@ class DiscoverDappViewModel @Inject constructor(
     override fun onDappClick(dappId: String) {
         viewModelScope.launch {
             val remoteDappGroupsDeferred = async { dappsFlow.firstOrNull() }
-            val connectedDappsDeferred =  async { connectedDapps.firstOrNull() }
+            val connectedDappsDeferred = async { connectedDapps.firstOrNull() }
             val dapps = remoteDappGroupsDeferred.await()?.flatMap { it.apps }
                 ?.plus(connectedDappsDeferred.await()?.apps ?: emptyList()) ?: return@launch
             val selectedDapp = dapps.firstOrNull { it.identifier == dappId }
 
-            if(selectedDapp?.name != null && selectedDapp.url != null) {
+            if (selectedDapp?.name != null && selectedDapp.url != null) {
                 router.openDappScreen(selectedDapp)
             }
         }

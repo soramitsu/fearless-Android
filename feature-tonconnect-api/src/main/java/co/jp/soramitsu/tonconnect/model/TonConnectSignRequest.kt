@@ -41,12 +41,13 @@ data class TonConnectSignRequest(
             return requests.toList()
         }
 
+        @Suppress("MagicNumber")
         private fun parseValidUnit(json: JSONObject): Long {
             val value = json.optLong("valid_until", json.optLong("validUntil", 0))
-            if (value > 1000000000000) {
+            if (value > 1_000_000_000_000) {
                 return value / 1000
             }
-            if (value > 1000000000) {
+            if (value > 1_000_000_000) {
                 return value
             }
             return 0

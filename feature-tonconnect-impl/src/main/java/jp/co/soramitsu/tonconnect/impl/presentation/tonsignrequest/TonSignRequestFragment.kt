@@ -12,7 +12,6 @@ import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import kotlinx.coroutines.flow.filterNotNull
 
 @AndroidEntryPoint
 class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignRequestViewModel>() {
@@ -40,7 +39,11 @@ class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignReque
         const val METHOD_KEY = "method_key"
         const val TON_SIGN_REQUEST_KEY = "ton_sign_request_key"
 
-        fun getBundle(dapp: DappModel, method: String, request: TonConnectSignRequest) = bundleOf(
+        fun getBundle(
+            dapp: DappModel,
+            method: String,
+            request: TonConnectSignRequest
+        ) = bundleOf(
             DAPP_KEY to dapp,
             METHOD_KEY to method,
             TON_SIGN_REQUEST_KEY to request

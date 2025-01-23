@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,30 +30,16 @@ import okhttp3.Response
 @AndroidEntryPoint
 class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewModel>() {
 
-    companion object {
-        const val PAYLOAD_DAPP_KEY = "payload_dapp_key"
-
-        fun getBundle(dapp: DappModel) = bundleOf(PAYLOAD_DAPP_KEY to dapp)
-    }
-
     override val viewModel: DappScreenViewModel by viewModels()
 
+    @Suppress("LateinitUsage")
     private lateinit var webView: BridgeWebView
     private var isLoading = false
 
     private val webViewCallback = object : WebViewFixed.Callback() {
         override fun shouldOverrideUrlLoading(request: WebResourceRequest): Boolean {
-            val refererUri = request.requestHeaders?.get("Referer")?.toUri()
-//            val url = request.url.normalizeTONSites()
             val scheme = request.url.scheme ?: ""
-            if (scheme == "https") {
-                return false
-            }
-//            if (rootViewModel.processDeepLink(url, false, refererUri)) {
-//                return true
-//            }
-//            navigation?.openURL(url.toString())
-            return true
+            return scheme != "https"
         }
 
         override fun onPageStarted(url: String, favicon: Bitmap?) {
@@ -115,7 +100,8 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
 
         val appVersionName = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0).versionName
 
-        val tonContractMaxMessages = 4 /* for wallet v3 and v4 */
+        @Suppress("MagicNumber")
+        val tonContractMaxMessages = 4 // for wallet v3 and v4
 
         webView.jsBridge = DAppBridge(
             deviceInfo = JsonBuilder.device(tonContractMaxMessages, appVersionName).toString(),
@@ -137,5 +123,11 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
         } else {
             dismiss()
         }
+    }
+
+    companion object {
+        const val PAYLOAD_DAPP_KEY = "payload_dapp_key"
+
+        fun getBundle(dapp: DappModel) = bundleOf(PAYLOAD_DAPP_KEY to dapp)
     }
 }

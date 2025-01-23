@@ -46,7 +46,7 @@ data class TonSignRequestViewState(
     val connectionUrl: String?,
     val message: InfoItemViewState,
     val wallet: WalletItemViewState
-): TonSignRequestFlowState {
+) : TonSignRequestFlowState {
 
     companion object {
         val default = TonSignRequestViewState(
@@ -68,8 +68,12 @@ interface TonSignRequestScreenInterface {
 }
 
 @Composable
-fun TonSignRequestFlow(state: TonSignRequestFlowState?, callback: TonSignRequestScreenInterface, previewCallback: TonSignPreviewScreenInterface){
-    when(state) {
+fun TonSignRequestFlow(
+    state: TonSignRequestFlowState?,
+    callback: TonSignRequestScreenInterface,
+    previewCallback: TonSignPreviewScreenInterface
+) {
+    when (state) {
         is TonSignRequestViewState -> {
             TonSignRequestContent(state, callback)
         }

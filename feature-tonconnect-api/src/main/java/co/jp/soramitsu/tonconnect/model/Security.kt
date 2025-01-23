@@ -18,5 +18,4 @@ object Security {
             SecureRandom()
         }
     }
-
 }

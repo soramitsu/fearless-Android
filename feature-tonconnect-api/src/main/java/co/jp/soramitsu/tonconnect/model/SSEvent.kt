@@ -8,6 +8,7 @@ data class SSEvent(
     val data: String
 ) {
 
+    @Suppress("SwallowedException")
     val json: JSONObject by lazy {
         try {
             JSONObject(data)

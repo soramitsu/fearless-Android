@@ -33,6 +33,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import kotlinx.coroutines.flow.filterNotNull
 import javax.inject.Inject
 
+@Suppress("LateinitUsage")
 @AndroidEntryPoint
 class DiscoverDappFragment : BaseComposeFragment<DiscoverDappViewModel>() {
 
@@ -49,7 +50,6 @@ class DiscoverDappFragment : BaseComposeFragment<DiscoverDappViewModel>() {
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessAppTheme {
-
                     val dappsModalBottomSheetState: ModalBottomSheetState =
                         rememberModalBottomSheetState(
                             initialValue = ModalBottomSheetValue.Hidden,

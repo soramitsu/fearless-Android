@@ -8,6 +8,7 @@ enum class BridgeMethod(val title: String) {
     UNKNOWN("unknown");
 
     companion object {
+        @Suppress("FunctionMinLength")
         fun of(title: String): BridgeMethod {
             return entries.firstOrNull { it.title == title } ?: UNKNOWN
         }

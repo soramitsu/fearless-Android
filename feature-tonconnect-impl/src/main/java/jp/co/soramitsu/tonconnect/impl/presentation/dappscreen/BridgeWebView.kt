@@ -22,7 +22,7 @@ class BridgeWebView @JvmOverloads constructor(
     var jsBridge: JsBridge? = null
 
     private val scope: CoroutineScope
-        get() = findViewTreeLifecycleOwner()?.lifecycleScope ?: throw IllegalStateException("No lifecycle owner")
+        get() = findViewTreeLifecycleOwner()?.lifecycleScope ?: error("No lifecycle owner")
 
     private val webViewCallback = object : Callback() {
         override fun onPageStarted(url: String, favicon: Bitmap?) {
@@ -42,9 +42,7 @@ class BridgeWebView @JvmOverloads constructor(
         executeJS(value.jsInjection())
     }
 
-    private suspend fun postMessage(
-        message: FunctionResponseBridgeMessage
-    ) = withContext(Dispatchers.Main) {
+    private suspend fun postMessage(message: FunctionResponseBridgeMessage) = withContext(Dispatchers.Main) {
         val code = """
             (function() {
                 window.dispatchEvent(new MessageEvent('message', {
@@ -70,7 +68,7 @@ class BridgeWebView @JvmOverloads constructor(
         val bridge = jsBridge ?: return
         try {
             val data = bridge.invokeFunction(message.name, message.args) ?: return
-            Log.d("&&&", "posting bridge message: ${data}")
+            Log.d("&&&", "posting bridge message: $data")
             postMessage(
                 FunctionResponseBridgeMessage(
                     invocationId = message.invocationId,

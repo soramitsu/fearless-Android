@@ -13,13 +13,13 @@ import co.jp.soramitsu.tonconnect.model.JsonBuilder
 import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.CancellationException
+import javax.inject.Inject
 
 @HiltViewModel
 class DappScreenViewModel @Inject constructor(
@@ -34,10 +34,7 @@ class DappScreenViewModel @Inject constructor(
 
     val state = MutableStateFlow(dapp)
 
-    suspend fun connect(
-        version: Int,
-        request: ConnectRequest
-    ): JSONObject {
+    suspend fun connect(version: Int, request: ConnectRequest): JSONObject {
         if (version != 2) {
             return JsonBuilder.connectEventError(BridgeError.BAD_REQUEST)
         }
@@ -81,12 +78,14 @@ class DappScreenViewModel @Inject constructor(
                 return JsonBuilder.responseError(id, BridgeError.BAD_REQUEST)
             }
             val signRequest = signRequests.first()
+
+            @Suppress("SwallowedException")
             return try {
                 tonConnectRouter.openTonSignRequestWithResult(dapp, message.method.title, signRequest)
                     .fold(
                         { boc -> JsonBuilder.responseSendTransaction(id, boc) },
-                        { JsonBuilder.responseError(id, BridgeError.UNKNOWN) })
-
+                        { JsonBuilder.responseError(id, BridgeError.UNKNOWN) }
+                    )
             } catch (e: CancellationException) {
                 JsonBuilder.responseError(id, BridgeError.USER_DECLINED_TRANSACTION)
             } catch (e: BridgeError.Exception) {
@@ -109,8 +108,7 @@ class DappScreenViewModel @Inject constructor(
         }
 
         val wallet = accountInteractor.selectedMetaAccount()
-        val tonPublicKey = wallet.tonPublicKey
-            ?: throw IllegalStateException("There is no ton account for this wallet")
+        val tonPublicKey = wallet.tonPublicKey ?: error("There is no ton account for this wallet")
         return JsonBuilder.connectEventSuccess(tonPublicKey, null, null)
     }
 

@@ -40,7 +40,7 @@ data class TonSignPreviewViewState(
     val tableItems: List<TitleValueViewState>,
     val wallet: WalletNameItemViewState,
     val loading: Boolean
-): TonSignRequestFlowState {
+) : TonSignRequestFlowState {
     companion object {
         val default = TonSignPreviewViewState(
             chainIcon = GradientIconState.Local(R.drawable.ic_fearless_logo),

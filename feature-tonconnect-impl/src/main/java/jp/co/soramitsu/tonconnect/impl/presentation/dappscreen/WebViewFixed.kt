@@ -16,11 +16,12 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import co.jp.soramitsu.feature_tonconnect_impl.R
-import java.util.LinkedList
-import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONObject
+import java.util.LinkedList
+import kotlin.coroutines.resume
 
+@Suppress("MagicNumber")
 open class WebViewFixed @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -60,6 +61,9 @@ open class WebViewFixed @JvmOverloads constructor(
 
     private val jsExecuteQueue = LinkedList<String>()
 
+    private var onScrollRunnable: Runnable? = null
+    private var onElementFocusRunnable: Runnable? = null
+
     init {
         super.setLayerType(LAYER_TYPE_HARDWARE, null)
         isNestedScrollingEnabled = true
@@ -80,7 +84,11 @@ open class WebViewFixed @JvmOverloads constructor(
             setWebContentsDebuggingEnabled(true)
         }
         webViewClient = object : WebViewClient() {
-            override fun onPageStarted(view: WebView?, url: String, favicon: Bitmap?) {
+            override fun onPageStarted(
+                view: WebView?,
+                url: String,
+                favicon: Bitmap?
+            ) {
                 super.onPageStarted(view, url, favicon)
                 isPageLoaded = true
                 callbacks.forEach { it.onPageStarted(url, favicon) }
@@ -202,9 +210,6 @@ open class WebViewFixed @JvmOverloads constructor(
         super.destroy()
     }
 
-    private var onScrollRunnable: Runnable? = null
-    private var onElementFocusRunnable: Runnable? = null
-
     private fun onScroll(x: Int, y: Int) {
         removeCallbacks(onScrollRunnable)
         onScrollRunnable = Runnable {
@@ -249,6 +254,3 @@ open class WebViewFixed @JvmOverloads constructor(
         }
     }
 }
-
-
-

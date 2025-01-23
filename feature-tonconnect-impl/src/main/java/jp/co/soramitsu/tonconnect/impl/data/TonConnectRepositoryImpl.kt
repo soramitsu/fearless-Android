@@ -18,10 +18,6 @@ class TonConnectRepositoryImpl(
     private val encryptedPreferences: EncryptedPreferences
 ) : TonConnectRepository {
 
-    companion object {
-        private const val TON_CONNECT_KEYPAIR_PREFIX = "TON_CONNECT"
-    }
-
     override suspend fun saveConnection(connection: TonConnectionLocal, keypair: Keypair) {
         val schema = KeyPairSchema { kp ->
             kp[PublicKey] = keypair.publicKey
@@ -34,7 +30,7 @@ class TonConnectRepositoryImpl(
     }
 
     override fun getConnectionKeypair(clientId: String): Keypair? {
-        val decryptedString = encryptedPreferences.getDecryptedString("${TON_CONNECT_KEYPAIR_PREFIX}_${clientId}") ?: return null
+        val decryptedString = encryptedPreferences.getDecryptedString("${TON_CONNECT_KEYPAIR_PREFIX}_$clientId") ?: return null
 
         val schema = KeyPairSchema.read(decryptedString)
         return Keypair(schema[KeyPairSchema.PublicKey], schema[KeyPairSchema.PrivateKey])
@@ -49,7 +45,11 @@ class TonConnectRepositoryImpl(
     }
 
     override suspend fun getConnection(metaId: Long, url: String): TonConnectionLocal? {
-        val formatted = "%${url}%"
+        val formatted = "%$url%"
         return tonConnectDao.getTonConnection(metaId, formatted)
+    }
+
+    companion object {
+        private const val TON_CONNECT_KEYPAIR_PREFIX = "TON_CONNECT"
     }
 }

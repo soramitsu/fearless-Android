@@ -10,10 +10,8 @@ import co.jp.soramitsu.tonconnect.model.BridgeError
 import co.jp.soramitsu.tonconnect.model.JsonBuilder
 import co.jp.soramitsu.tonconnect.model.TONProof
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
@@ -22,10 +20,6 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.tonAccountId
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
-import jp.co.soramitsu.tonconnect.impl.presentation.dappscreen.base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -34,9 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import org.json.JSONObject
-import org.ton.crypto.hex
+import javax.inject.Inject
 
 @HiltViewModel
 class TonConnectionDetailsViewModel @Inject constructor(
@@ -125,12 +117,13 @@ class TonConnectionDetailsViewModel @Inject constructor(
         launch {
             val wallet = accountRepository.getMetaAccount(selectedWalletId)
             val tonPublicKey = wallet.tonPublicKey
-            if(tonPublicKey == null) {
+            if (tonPublicKey == null) {
                 showError("There is no ton account for this wallet")
                 tonConnectRouter.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to JsonBuilder.connectEventError(BridgeError.UNKNOWN).toString())
                 return@launch
             }
 
+            @Suppress("SwallowedException")
             val proof: TONProof.Result? = proofPayload?.let {
                 try {
                     tonConnectInteractor.requestProof(selectedWalletId, app, proofPayload)
@@ -146,57 +139,12 @@ class TonConnectionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun onApproveSessionSuccess(): () -> Unit = {
-//        viewModelScope.launch(Dispatchers.Main.immediate) {
-//            tonConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
-//                null,
-//                null,
-//                resourceManager.getString(R.string.connection_approve_success_message, app.name),
-//                resourceManager.getString(R.string.all_done)
-//            )
-//        }
-        isApproving.value = false
-    }
-
-    private fun onApproveSessionError(error: String): () -> Unit = {
-        isApproving.value = false
-        viewModelScope.launch(Dispatchers.Main.immediate) {
-            showError(
-                title = resourceManager.getString(R.string.common_error_general_title),
-                message = error,
-                positiveButtonText = resourceManager.getString(R.string.common_close),
-                positiveClick = ::onClose,
-                onBackClick = ::onClose
-            )
-        }
-    }
-
     override fun onRejectClicked() {
         if (isRejecting.value) return
         isRejecting.value = true
 
         onClose()
     }
-
-//    private fun onRejectSessionSuccess(): (Wallet.Params.SessionReject) -> Unit = {
-//        isRejecting.value = false
-//        viewModelScope.launch(Dispatchers.Main.immediate) {
-//            tonConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
-//                null,
-//                null,
-//                resourceManager.getString(R.string.common_rejected),
-//                resourceManager.getString(R.string.all_done)
-//            )
-//        }
-//    }
-
-//    private fun callSilentRejectSession() {
-//        tonConnectInteractor.silentRejectSession(
-//            proposal = proposal,
-//            onSuccess = { onClose() },
-//            onError = { onClose() }
-//        )
-//    }
 
     override fun onWalletSelected(item: WalletNameItemViewState) {
         selectedWalletId.value = item.id

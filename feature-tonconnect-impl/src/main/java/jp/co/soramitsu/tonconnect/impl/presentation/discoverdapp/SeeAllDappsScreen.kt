@@ -23,7 +23,11 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 data class DappsListState(val title: String, val dapps: List<DappModel>)
 
 @Composable
-fun SeeAllDappsBottomSheet(state: DappsListState, onDappSelected: (String) -> Unit, onCloseClick: () -> Unit) {
+fun SeeAllDappsBottomSheet(
+    state: DappsListState,
+    onDappSelected: (String) -> Unit,
+    onCloseClick: () -> Unit
+) {
     val searchQueryState = remember { mutableStateOf("") }
     val filteredDapps = if (searchQueryState.value.isEmpty()) {
         state.dapps
@@ -35,7 +39,7 @@ fun SeeAllDappsBottomSheet(state: DappsListState, onDappSelected: (String) -> Un
                         .contains(searchQueryState.value.lowercase())
         }
     }
-    BottomSheetScreen  {
+    BottomSheetScreen {
         Toolbar(ToolbarViewState(state.title, R.drawable.ic_cross_24), onNavigationClick = onCloseClick)
         MarginVertical(12.dp)
         CorneredInput(

@@ -41,10 +41,6 @@ class TonSignRequestViewModel @Inject constructor(
     private val tonConnectInteractor: TonConnectInteractor
 ) : TonSignRequestScreenInterface, TonSignPreviewScreenInterface, BaseViewModel() {
 
-    companion object {
-        private const val TRANSACTION_RAW_DATA_CLICK_ID = 1
-    }
-
     private val signRequest: TonConnectSignRequest =
         savedStateHandle[TonSignRequestFragment.TON_SIGN_REQUEST_KEY]
             ?: error("No sign request provided")
@@ -132,32 +128,6 @@ class TonSignRequestViewModel @Inject constructor(
                 IllegalStateException("User declined request")
             )
         )
-
-//        val requestId = recentSession?.request?.id
-//        val isRequestNotExist = walletConnectInteractor.getPendingListOfSessionRequests(topic).isEmpty()
-//        if (requestId == null || isRequestNotExist) {
-//            tonConnectRouter.back()
-//            isClosing = false
-//        } else {
-//            walletConnectInteractor.rejectSessionRequest(
-//                sessionTopic = topic,
-//                requestId = requestId,
-//                onSuccess = {
-//                    isClosing = false
-//
-//                    viewModelScope.launch(Dispatchers.Main.immediate) {
-//                        walletConnectRouter.back()
-//                    }
-//                },
-//                onError = {
-//                    isClosing = false
-//
-//                    viewModelScope.launch(Dispatchers.Main.immediate) {
-//                        showError(text = resourceManager.getString(R.string.common_try_again))
-//                    }
-//                }
-//            )
-//        }
     }
 
     override fun onPreviewClick() {
@@ -220,7 +190,6 @@ class TonSignRequestViewModel @Inject constructor(
         }
     }
 
-
     override fun onSignClick() {
         viewModelScope.launch {
             if ((state.value as? TonSignPreviewViewState)?.loading == true) return@launch
@@ -258,5 +227,9 @@ class TonSignRequestViewModel @Inject constructor(
         if (id == TRANSACTION_RAW_DATA_CLICK_ID) {
             tonConnectRouter.openRawData(Gson().toJson(signRequest))
         }
+    }
+
+    companion object {
+        private const val TRANSACTION_RAW_DATA_CLICK_ID = 1
     }
 }

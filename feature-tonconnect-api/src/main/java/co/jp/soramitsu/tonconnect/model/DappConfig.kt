@@ -40,7 +40,6 @@ data class DappModel(
         background = null,
         icon = tonDappConnection.icon
     )
-
 }
 
 fun DappConfigRemote.toDomain() = DappConfig(

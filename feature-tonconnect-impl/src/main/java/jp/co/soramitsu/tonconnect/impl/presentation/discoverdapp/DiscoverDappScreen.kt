@@ -46,8 +46,6 @@ import androidx.compose.ui.unit.dp
 import co.jp.soramitsu.feature_tonconnect_impl.R
 import co.jp.soramitsu.tonconnect.model.DappConfig
 import co.jp.soramitsu.tonconnect.model.DappModel
-import jp.co.soramitsu.common.data.network.ton.DappRemote
-import jp.co.soramitsu.common.data.network.ton.DappConfigRemote
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B2
@@ -63,13 +61,13 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.ProgressDialog
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
-import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
-import jp.co.soramitsu.common.utils.rememberForeverLazyListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+
+private const val BANNER_DELAY_ANIMATION_MILLIS = 3000L
 
 @Stable
 interface DiscoverDappScreenInterface {
@@ -81,11 +79,9 @@ interface DiscoverDappScreenInterface {
     fun onBottomSheetDappClose()
 }
 
+@Suppress("MagicNumber")
 @Composable
-fun DiscoverDappScreen(
-    data: DiscoverDappState,
-    callback: DiscoverDappScreenInterface
-) {
+fun DiscoverDappScreen(data: DiscoverDappState, callback: DiscoverDappScreenInterface) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         MarginVertical(margin = 16.dp)
         MultiToggleButton(
@@ -125,6 +121,7 @@ fun DiscoverDappScreen(
     }
 }
 
+@Suppress("MagicNumber")
 @Composable
 fun EmptySumimasen() {
         Box(
@@ -141,7 +138,7 @@ fun EmptySumimasen() {
                         )
                 ) {
                     Icon(
-                        painter = painterResource(id = jp.co.soramitsu.common.R.drawable.ic_screen_warning),
+                        painter = painterResource(id = R.drawable.ic_screen_warning),
                         tint = white,
                         contentDescription = null,
                         modifier = Modifier
@@ -244,11 +241,11 @@ fun DappItem(
                     onPress = { /* Called when the gesture starts */ },
                     onDoubleTap = { /* Called on Double Tap */ },
                     onLongPress = {
-                        /* Called on Long Press */
+                        // Called on Long Press
                         onDappLongClick?.invoke(dapp.identifier)
                     },
                     onTap = {
-                        /* Called on Tap */
+                        // Called on Tap
                         onDappClick?.invoke(dapp.identifier)
                     }
                 )
@@ -277,7 +274,6 @@ fun DappItem(
             MarginVertical(8.dp)
             B2(text = dapp.description.orEmpty())
         }
-
     }
 }
 
@@ -323,7 +319,7 @@ private fun Banners(dapps: List<DappModel>, callback: DiscoverDappScreenInterfac
                 val pagerState = rememberPagerState { bannersCount }
                 LaunchedEffect(dapps) {
                     while (isActive) {
-                        delay(3000)
+                        delay(BANNER_DELAY_ANIMATION_MILLIS)
                         val nextPage = if (pagerState.currentPage == bannersCount - 1) {
                             0
                         } else {

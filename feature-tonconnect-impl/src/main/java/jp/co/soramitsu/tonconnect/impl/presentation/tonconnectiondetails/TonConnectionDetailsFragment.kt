@@ -37,7 +37,6 @@ class TonConnectionDetailsFragment : BaseComposeBottomSheetDialogFragment<TonCon
         const val TON_PROOF_PAYLOAD_KEY = "ton_proof_payload_key"
         const val TON_CONNECT_RESULT_KEY = "ton_connect_result_key"
 
-
         fun getBundle(app: AppEntity?, proofPayload: String?) = bundleOf(
             TON_CONNECTION_APP_KEY to app,
             TON_PROOF_PAYLOAD_KEY to proofPayload

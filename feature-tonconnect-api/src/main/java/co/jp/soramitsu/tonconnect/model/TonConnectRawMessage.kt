@@ -54,5 +54,4 @@ data class TonConnectRawMessage(
             return value.toString().toLong()
         }
     }
-
 }

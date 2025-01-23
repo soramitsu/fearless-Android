@@ -34,10 +34,7 @@ import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 @Composable
-fun BannerDApp(
-    dApp: DappModel,
-    onClick: () -> Unit
-) {
+fun BannerDApp(dApp: DappModel, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -94,7 +91,6 @@ fun BannerDApp(
         }
     }
 }
-
 
 @Preview
 @Composable

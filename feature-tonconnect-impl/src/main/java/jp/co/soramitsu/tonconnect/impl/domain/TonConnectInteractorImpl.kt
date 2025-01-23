@@ -89,6 +89,7 @@ import org.ton.tlb.storeTlb
 import java.net.URL
 import javax.inject.Named
 
+@Suppress("LargeClass")
 class TonConnectInteractorImpl(
     private val chainsRepository: ChainsRepository,
     private val accountRepository: AccountRepository,
@@ -130,10 +131,11 @@ class TonConnectInteractorImpl(
                 sendDappMessage(encryptedMessage, publicKeyHex, clientId)
             }
         }
-        if(signedRequest.getString("event") == "connect_error") {
+        if (signedRequest.getString("event") == "connect_error") {
             return
         }
         if (connectResult == null) {
+            @Suppress("MagicNumber")
             val bytes = ByteArray(16)
             secureRandom().nextBytes(bytes)
             val dappBrowserClientId = bytes.toHexString(false)
@@ -169,9 +171,9 @@ class TonConnectInteractorImpl(
     }
 
     fun encryptMessage(
-        remotePublicKey: ByteArray,   ///clientId.hex(),
-        localPrivateKey: ByteArray,   ///keypair.privateKey,
-        body: ByteArray   ///result.toString().toByteArray()
+        remotePublicKey: ByteArray, // /clientId.hex(),
+        localPrivateKey: ByteArray, // /keypair.privateKey,
+        body: ByteArray // /result.toString().toByteArray()
     ): ByteArray {
         val secretBox = SecretBox(remotePublicKey, localPrivateKey)
         val nonce = secretBox.nonce(body)
@@ -181,7 +183,6 @@ class TonConnectInteractorImpl(
         val encrypt = nonce + secret
 
         return encrypt
-
     }
 
     override suspend fun requestProof(
@@ -240,9 +241,7 @@ class TonConnectInteractorImpl(
         return json
     }
 
-    override fun eventsFlow(
-        lastEventId: Long,
-    ): Flow<BridgeEvent> {
+    override fun eventsFlow(lastEventId: Long): Flow<BridgeEvent> {
         return tonConnectRepository.observeConnections()
             .flatMapLatest { connections ->
                 val chain = getChain()
@@ -250,7 +249,7 @@ class TonConnectInteractorImpl(
                     val keypair = tonConnectRepository.getConnectionKeypair(it.clientId)
                     keypair?.publicKey?.toHexString(false)
                 }.joinToString(",")
-                val bridgeUrl = chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
+                val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
                 val url = "$bridgeUrl/events?client_id=$clientIdParams"
                 tonSseClient.sse(url, lastEventId).filter { it.type == "message" }
                     .mapNotNull { event ->
@@ -262,9 +261,8 @@ class TonConnectInteractorImpl(
                             connections.find { it.clientId == from } ?: return@mapNotNull null
 
                         val messageJsonObject = runCatching {
-                            val keyPair =
-                                tonConnectRepository.getConnectionKeypair(connection.clientId)
-                                    ?: throw IllegalStateException("There is no keypair for clientId: ${connection.clientId}")
+                            val keyPair = tonConnectRepository.getConnectionKeypair(connection.clientId)
+                                ?: error("There is no keypair for clientId: ${connection.clientId}")
 
                             val decryptedMessage = decryptEventMessage(
                                 connection.clientId,
@@ -295,6 +293,7 @@ class TonConnectInteractorImpl(
         return result
     }
 
+    @Suppress("MagicNumber")
     private fun decryptMessage(
         clientId: String,
         privateKey: ByteArray,
@@ -307,6 +306,7 @@ class TonConnectInteractorImpl(
         return secret
     }
 
+    @Suppress("MagicNumber")
     override suspend fun signMessage(
         chain: Chain,
         method: String,
@@ -339,36 +339,38 @@ class TonConnectInteractorImpl(
             val newStateInit = jettonCustomPayload?.stateInit
             val newCustomPayload = jettonCustomPayload?.customPayload
 
-            val body = if (newCustomPayload != null) run {
-                val payload = message.payloadValue?.cellFromBase64() ?: Cell.empty()
-                val slice = payload.beginParse()
-                val opCode = slice.loadOpCode()
-                if (opCode != TONOpCode.JETTON_TRANSFER) {
-                    return@run newCustomPayload
-                }
+            val body = if (newCustomPayload != null) {
+                run {
+                    val payload = message.payloadValue?.cellFromBase64() ?: Cell.empty()
+                    val slice = payload.beginParse()
+                    val opCode = slice.loadOpCode()
+                    if (opCode != TONOpCode.JETTON_TRANSFER) {
+                        return@run newCustomPayload
+                    }
 
-                val queryId = slice.loadUInt(64)
-                val jettonAmount = slice.loadCoins()
-                val receiverAddress = slice.loadAddress()
-                val excessesAddress = slice.loadAddress()
-                val customPayload = slice.loadMaybeRef()
-                if (customPayload != null) {
-                    return@run payload
-                }
+                    val queryId = slice.loadUInt(64)
+                    val jettonAmount = slice.loadCoins()
+                    val receiverAddress = slice.loadAddress()
+                    val excessesAddress = slice.loadAddress()
+                    val customPayload = slice.loadMaybeRef()
+                    if (customPayload != null) {
+                        return@run payload
+                    }
 
-                val forwardAmount = slice.loadCoins().amount.toLong()
-                val forwardBody = slice.loadMaybeRef()
-                val forwardPayload = body(forwardBody)
+                    val forwardAmount = slice.loadCoins().amount.toLong()
+                    val forwardBody = slice.loadMaybeRef()
+                    val forwardPayload = body(forwardBody)
 
-                buildCell {
-                    storeOpCode(TONOpCode.JETTON_TRANSFER)
-                    storeQueryId(queryId)
-                    storeTlb(Coins, jettonAmount)
-                    storeTlb(MsgAddressInt, receiverAddress)
-                    storeTlb(MsgAddressInt, excessesAddress)
-                    storeBit(false) // storeMaybeRef(customPayload)
-                    storeTlb(Coins, Coins.ofNano(forwardAmount))
-                    storeMaybeRef(forwardPayload)
+                    buildCell {
+                        storeOpCode(TONOpCode.JETTON_TRANSFER)
+                        storeQueryId(queryId)
+                        storeTlb(Coins, jettonAmount)
+                        storeTlb(MsgAddressInt, receiverAddress)
+                        storeTlb(MsgAddressInt, excessesAddress)
+                        storeBit(false) // storeMaybeRef(customPayload)
+                        storeTlb(Coins, Coins.ofNano(forwardAmount))
+                        storeMaybeRef(forwardPayload)
+                    }
                 }
             } else {
                 message.payload
@@ -394,8 +396,8 @@ class TonConnectInteractorImpl(
             transfers.add(transfer)
         }
 
-        if (transfers.size > contract.maxMessages) {
-            throw IllegalArgumentException("Maximum number of messages in a single transfer is ${contract.maxMessages}")
+        require(transfers.size <= contract.maxMessages) {
+            "Maximum number of messages in a single transfer is ${contract.maxMessages}"
         }
 
         val seqNo = seqnoDeferred.await()
@@ -443,37 +445,36 @@ class TonConnectInteractorImpl(
             return null
         }
 
+        @Suppress("MagicNumber")
         return buildCell {
             storeUInt(0, 32)
             storeStringTail(text)
         }
     }
 
-    override suspend fun sendBlockchainMessage(chain: Chain, boc: String): Unit =
-        withContext(Dispatchers.Default) {
-            val request = SendBlockchainMessageRequest(boc)
-            tonRemoteSource.sendBlockchainMessage(chain, request)
-        }
+    override suspend fun sendBlockchainMessage(chain: Chain, boc: String): Unit = withContext(Dispatchers.Default) {
+        val request = SendBlockchainMessageRequest(boc)
+        tonRemoteSource.sendBlockchainMessage(chain, request)
+    }
 
-    override suspend fun sendDappMessage(event: BridgeEvent, boc: String): Unit =
-        withContext(Dispatchers.IO) {
-            val message = JSONObject().apply {
-                put("result", boc)
-                put("id", event.message.id)
-            }.toString()
-            val keypair = tonConnectRepository.getConnectionKeypair(event.connection.clientId)
-                ?: throw IllegalStateException("There is no keypair for this dapp connection")
-            val encryptedMessage = encryptMessage(
-                event.connection.clientId.hex(),
-                keypair.privateKey,
-                message.toByteArray()
-            )
-            sendDappMessage(
-                encryptedMessage,
-                keypair.publicKey.toHexString(false),
-                event.connection.clientId
-            )
-        }
+    override suspend fun sendDappMessage(event: BridgeEvent, boc: String): Unit = withContext(Dispatchers.IO) {
+        val message = JSONObject().apply {
+            put("result", boc)
+            put("id", event.message.id)
+        }.toString()
+        val keypair = tonConnectRepository.getConnectionKeypair(event.connection.clientId)
+            ?: error("There is no keypair for this dapp connection")
+        val encryptedMessage = encryptMessage(
+            event.connection.clientId.hex(),
+            keypair.privateKey,
+            message.toByteArray()
+        )
+        sendDappMessage(
+            encryptedMessage,
+            keypair.publicKey.toHexString(false),
+            event.connection.clientId
+        )
+    }
 
     private suspend fun sendDappMessage(
         encryptedMessage: ByteArray,
@@ -481,7 +482,7 @@ class TonConnectInteractorImpl(
         clientId: String
     ) = withContext(Dispatchers.Default) {
         val chain = getChain()
-        val bridgeUrl = chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
+        val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
         val url = "$bridgeUrl/message?client_id=$publicKey&to=$clientId&ttl=300"
         val mimeType = "text/plain".toMediaType()
         val requestBody = encryptedMessage.encodeBase64().toRequestBody(mimeType)
@@ -495,23 +496,24 @@ class TonConnectInteractorImpl(
         return tonConnectRepository.getConnection(metaAccount.id, formatted)
     }
 
-    override suspend fun respondDappError(event: BridgeEvent, error: BridgeError): Unit = withContext(Dispatchers.Default) {
-        val chain = getChain()
-        val bridgeUrl = chain.tonBridgeUrl ?: throw IllegalStateException("Chain ${chain.name} doesn't support Ton Connect")
-        val unsignedMessage = JsonBuilder.responseError(event.eventId, error).toString()
+    override suspend fun respondDappError(event: BridgeEvent, error: BridgeError): Unit =
+        withContext(Dispatchers.Default) {
+            val chain = getChain()
+            val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
+            val unsignedMessage = JsonBuilder.responseError(event.eventId, error).toString()
 
-        val keypair = tonConnectRepository.getConnectionKeypair(event.connection.clientId)
-            ?: throw IllegalStateException("There is no keypair for this dapp connection")
-        val encryptedMessage = encryptMessage(
-            event.connection.clientId.hex(),
-            keypair.privateKey,
-            unsignedMessage.toByteArray()
-        )
+            val keypair = tonConnectRepository.getConnectionKeypair(event.connection.clientId)
+                ?: error("There is no keypair for this dapp connection")
+            val encryptedMessage = encryptMessage(
+                event.connection.clientId.hex(),
+                keypair.privateKey,
+                unsignedMessage.toByteArray()
+            )
 
-        val mimeType = "text/plain".toMediaType()
-        val requestBody = encryptedMessage.encodeBase64().toRequestBody(mimeType)
+            val mimeType = "text/plain".toMediaType()
+            val requestBody = encryptedMessage.encodeBase64().toRequestBody(mimeType)
 
-        val url = "$bridgeUrl/message?client_id=${keypair.publicKey.toHexString(false)}&to=${event.connection.clientId}&ttl=300"
-        tonApiHttpClient.post(url, requestBody)
-    }
+            val url = "$bridgeUrl/message?client_id=${keypair.publicKey.toHexString(false)}&to=${event.connection.clientId}&ttl=300"
+            tonApiHttpClient.post(url, requestBody)
+        }
 }

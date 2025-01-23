@@ -63,9 +63,10 @@ class DAppBridge(
     }
 
     private fun webAPIResponseType(code: Int): String {
-        return when (code) {
-            0 -> "error"
-            else -> "cors"
+        return if (code == 0) {
+            "error"
+        } else {
+            "cors"
         }
     }
 
@@ -73,19 +74,19 @@ class DAppBridge(
         val funcs = availableFunctions.joinToString(",") {
             """
             $it: (...args) => {
-                return new Promise((resolve, reject) => window.invokeRnFunc('${it}', args, resolve, reject))
+                return new Promise((resolve, reject) => window.invokeRnFunc('$it', args, resolve, reject))
             }
         """
         }.replace("\n", "").replace("  ", "")
 
         return """
             (() => {
-                if (!window.${windowKey}) {
+                if (!window.$windowKey) {
                     window.rnPromises = {};
                     window.rnEventListeners = [];
                     window.invokeRnFunc = (name, args, resolve, reject) => {
                         const invocationId = btoa(Math.random()).substring(0, 12);
-                        const timeoutMs = ${timeout};
+                        const timeoutMs = $timeout;
                         const timeoutId = timeoutMs ? setTimeout(() => reject(new Error('bridge timeout for function with name: '+name+'')), timeoutMs) : null;
                         window.rnPromises[invocationId] = { resolve, reject, timeoutId }
                         window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -137,7 +138,7 @@ class DAppBridge(
                     };
                 };
                 
-                window.${windowKey} = {
+                window.$windowKey = {
                     tonconnect: Object.assign(${JSONObject(keys)},{ $funcs },{ listen })
                 };
                 
@@ -163,5 +164,4 @@ class DAppBridge(
             })();
         """
     }
-
 }
