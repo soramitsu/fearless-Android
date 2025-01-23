@@ -16,6 +16,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -83,10 +84,11 @@ class ChainSyncService(
                     localChain != remoteChain -> chainsToUpdate.add(remoteChain) // updated
                 }
             }
-            dao.updateChains(chainsToAdd, chainsToUpdate, chainsToRemove)
+            dao.updateChains(chainsToAdd, chainsToUpdate)
+            chainsToRemove
         }
 
-        chainsSyncDeferred.await()
+        val chainsToDelete = chainsSyncDeferred.await()
         coroutineScope {
             chainsSyncDeferred.join()
             launch {
@@ -177,9 +179,11 @@ class ChainSyncService(
                 }
                 dao.updateExplorers(explorersToAdd, explorersToUpdate, explorersToRemove)
             }
+            coroutineContext.job
+        }.join()
 
-            remoteChains
-        }
+        dao.deleteChains(chainsToDelete)
 
+        remoteChains
     }
 }

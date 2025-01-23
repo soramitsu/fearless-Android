@@ -23,7 +23,7 @@ import jp.co.soramitsu.common.utils.positiveOrNull
             entity = ChainLocal::class,
             parentColumns = ["id"],
             childColumns = ["chainId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ]
 )
