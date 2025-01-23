@@ -59,7 +59,10 @@ class ManageAssetsViewModel @Inject constructor(
         combine(
             savedChainFlow,
             walletInteractor.observeSelectedAccountChainSelectFilter()
-        ) { chain, filterApplied ->
+        ) { chain, filterAsText ->
+            val filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                it.name == filterAsText
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
 
             val selectedChainTitle = chain?.name ?: when (filterApplied) {
                 ChainSelectorViewStateWithFilters.Filter.All ->
@@ -82,7 +85,12 @@ class ManageAssetsViewModel @Inject constructor(
             selectedChainIdFlow,
             enteredTokenQueryFlow,
             currentAssetStates
-        ) { assets, chains, currentMetaAccount, filter, selectedChainId, searchQuery, currentStates ->
+        ) {  assets, chains, currentMetaAccount, appliedFilterAsString, selectedChainId, searchQuery, currentStates ->
+
+            val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                it.name == appliedFilterAsString
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
+
             val selectedAccountFavoriteChains = currentMetaAccount.favoriteChains
             val chainsWithFavoriteInfo = chains.map { chain ->
                 chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)

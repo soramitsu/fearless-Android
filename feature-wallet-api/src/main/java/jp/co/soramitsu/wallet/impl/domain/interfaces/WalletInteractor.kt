@@ -132,7 +132,7 @@ interface WalletInteractor {
 
     suspend fun saveChainSelectFilter(walletId: Long, filter: String)
 
-    fun observeSelectedAccountChainSelectFilter(): Flow<ChainSelectorViewStateWithFilters.Filter>
+    fun observeSelectedAccountChainSelectFilter(): Flow<String>
 
     fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
 

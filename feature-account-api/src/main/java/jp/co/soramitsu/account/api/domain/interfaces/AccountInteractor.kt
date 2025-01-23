@@ -123,4 +123,5 @@ interface AccountInteractor {
     fun getMnemonic(metaId: Long): Flow<Mnemonic>
     fun getSeedForSeedExport(metaId: Long): Flow<ComponentHolder>
     fun getDerivationPathForExport(metaId: Long): Flow<ComponentHolder>
+    suspend fun saveChainSelectFilter(metaId: Long, filterValue: String)
 }

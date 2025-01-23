@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_impl.R
@@ -171,6 +172,7 @@ class ConfirmMnemonicViewModel @Inject constructor(
             }
             val result = interactor.createAccount(addAccountPayload)
             if (result.isSuccess) {
+                interactor.saveChainSelectFilter(result.requireValue(), "Popular")
                 continueBasedOnCodeStatus()
             } else {
                 showError(result.requireException())

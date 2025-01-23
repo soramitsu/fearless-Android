@@ -10,10 +10,6 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -54,10 +50,10 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.lessThan
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
@@ -68,7 +64,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
@@ -117,6 +112,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 
 private const val CURRENT_ICON_SIZE = 40
@@ -168,8 +167,15 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    private val chainsFlow = chainInteractor.getChainsFlow().mapList {
-        it.toChainItemState()
+    private val currentMetaAccountFlow = accountInteractor.selectedLightMetaAccountFlow()
+
+    private val chainsFlow = combine(currentMetaAccountFlow, chainInteractor.getChainsFlow()) { metaAccount, chains ->
+        val filteredChains = if(metaAccount.tonPublicKey != null) {
+            chains.filter { it.ecosystem == Ecosystem.Ton }
+        } else {
+            chains.filter { it.ecosystem != Ecosystem.Ton }
+        }
+        filteredChains.map {it.toChainItemState()}
     }.inBackground()
 
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
@@ -177,14 +183,18 @@ class BalanceListViewModel @Inject constructor(
 
     private val selectedChainItemFlow =
         combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
+            hashCode()
+            if(selectedChainId == null && chains.size == 1) {
+                allowSelectChain.value = false
+                return@combine chains.first()
+            }
+            allowSelectChain.value = true
             selectedChainId?.let {
                 chains.firstOrNull { it.id == selectedChainId }
             }
         }
 
     private val networkIssueStateFlow = MutableStateFlow<WalletAssetsState.NetworkIssue?>(null)
-
-    private val currentMetaAccountFlow = accountInteractor.selectedLightMetaAccountFlow()
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -207,7 +217,11 @@ class BalanceListViewModel @Inject constructor(
         chains: List<Chain>,
         selectedChainId: ChainId?,
         currentMetaAccountFlow: MetaAccount,
-        filter: ChainSelectorViewStateWithFilters.Filter ->
+        appliedFilterAsString: String ->
+
+        val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
+            it.name == appliedFilterAsString
+        } ?: ChainSelectorViewStateWithFilters.Filter.All
 
         showNetworkIssues.value = false
 
@@ -441,7 +455,9 @@ class BalanceListViewModel @Inject constructor(
                         selectedChainName = chain?.title,
                         selectedChainId = chain?.id,
                         selectedChainImageUrl = chain?.imageUrl,
-                        filterApplied = filter,
+                        filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                            it.name == filter
+                        } ?: ChainSelectorViewStateWithFilters.Filter.All,
                         allowChainSelection = allowChainSelect
                     )
                 )
@@ -553,7 +569,10 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(this)
 
         currentMetaAccountFlow.onEach {
-            val showCurrenciesOrNftSelector = it.supportedEcosystems().contains(WalletEcosystem.Evm) || it.supportedEcosystems().contains(WalletEcosystem.Substrate)
+            val showCurrenciesOrNftSelector =
+                it.supportedEcosystems().contains(WalletEcosystem.Evm) || it.supportedEcosystems()
+                    .contains(WalletEcosystem.Substrate)
+
             state.value = state.value.copy(
                 isBackedUp = it.isBackedUp,
                 scrollToTopEvent = Event(Unit),
@@ -563,18 +582,7 @@ class BalanceListViewModel @Inject constructor(
             if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
                 selectedChainId.value = pendulumChainId
             } else {
-                if (it.tonPublicKey == null) {
-                    allowSelectChain.value = true
-                    selectedChainId.value = interactor.getSavedChainId(it.id)
-                } else {
-                    allowSelectChain.value = false
-
-                    interactor.getSavedChainId(it.id)?.let { savedChainId ->
-                        if (savedChainId != tonChainId) interactor.saveChainId(it.id, tonChainId)
-                    }
-                    interactor.saveChainSelectFilter(it.id, ChainSelectorViewStateWithFilters.Filter.All.name)
-                    selectedChainId.value = tonChainId
-                }
+                selectedChainId.value = interactor.getSavedChainId(it.id)
             }
         }.launchIn(this)
 

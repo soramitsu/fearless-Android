@@ -171,11 +171,15 @@ class ChainSelectViewModel @Inject constructor(
         favoriteChainsCacheResolverFlow
     ) {
       chainsPreFiltered,
-      savedFilter,
+      savedFilterAsString,
       userInputFilter,
       selectedChainId,
       searchQuery,
       favoriteChains ->
+        val savedFilter =
+            ChainSelectorViewStateWithFilters.Filter.entries.find {
+                it.name == savedFilterAsString
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
 
         val chainsWithFavoriteInfo = chainsPreFiltered?.map { chain ->
             chain to (favoriteChains[chain.id] ?: false)

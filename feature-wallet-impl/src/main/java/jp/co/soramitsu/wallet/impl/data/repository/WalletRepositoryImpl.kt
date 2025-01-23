@@ -105,17 +105,9 @@ class WalletRepositoryImpl(
             chainsRepository.chainsByIdFlow(),
             assetDao.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
-            val filteredAssets = assetsLocal.filter {
-                val isTonAsset = chainsById[it.asset.chainId]?.ecosystem == Ecosystem.Ton
-                if (meta.hasTon) {
-                    isTonAsset
-                } else {
-                    isTonAsset.not()
-                }
-            }
 
             val chainAccounts = meta.chainAccounts.values.toList()
-            val updatedAssets = filteredAssets.mapNotNull { asset ->
+            val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
                     val hasChainAccount =
                         asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }

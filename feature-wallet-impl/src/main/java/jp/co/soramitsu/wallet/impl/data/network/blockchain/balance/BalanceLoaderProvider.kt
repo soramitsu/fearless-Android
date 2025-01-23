@@ -5,6 +5,8 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
@@ -18,14 +20,16 @@ class BalanceLoaderProvider(
     private val ethereumRemoteSource: EthereumRemoteSource,
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
-    private val tonRemoteSource: TonRemoteSource
+    private val tonRemoteSource: TonRemoteSource,
+    private val chainsRepository: ChainsRepository,
+    private val tonSyncDataRepository: TonSyncDataRepository,
 ): BalanceLoader.Provider {
 
     override fun invoke(chain: Chain): BalanceLoader {
         val isEquilibriumTypeChain = chain.utilityAsset != null && chain.utilityAsset!!.typeExtra == ChainAssetType.Equilibrium
 
         return when {
-            chain.ecosystem == Ecosystem.Ton -> TonBalanceLoader(chain, tonRemoteSource)
+            chain.ecosystem == Ecosystem.Ton -> TonBalanceLoader(chain, tonSyncDataRepository, chainsRepository)
             chain.ecosystem == Ecosystem.Ethereum -> EthereumBalanceLoader(chain, ethereumRemoteSource)
 
             chain.ecosystem == Ecosystem.EthereumBased

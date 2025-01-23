@@ -58,6 +58,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -164,9 +165,10 @@ class AccountFeatureModule {
         accountRepository: AccountRepository,
         fileProvider: FileProvider,
         preferences: Preferences,
-        backupService: BackupService
+        backupService: BackupService,
+        walletInteractor: WalletInteractor
     ): AccountInteractor {
-        return AccountInteractorImpl(accountRepository, fileProvider, preferences, backupService)
+        return AccountInteractorImpl(accountRepository, fileProvider, preferences, backupService, walletInteractor)
     }
 
     @Provides

@@ -64,6 +64,10 @@ class TonRemoteAssetsSyncService(
     private val chainDao: ChainDao
 ): RemoteAssetsSyncService {
 
+    companion object {
+        private const val TAG = "TonRemoteAssetsSyncService"
+    }
+
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override suspend fun sync() {
@@ -76,7 +80,10 @@ class TonRemoteAssetsSyncService(
                     val chainAssetsDeferred = publicKeys.map { publicKey ->
                         async {
                             val accountId = publicKey.tonAccountId(chain.isTestNet)
-                            val jettonBalances = kotlin.runCatching { tonSyncDataRepository.getJettonBalances(chain, accountId) }.getOrNull() ?: return@async emptyList()
+                            val jettonBalances = kotlin.runCatching {
+                                tonSyncDataRepository.getJettonBalances(chain, accountId)
+                            }.onFailure { Log.d(TAG, "Failed load jetton balances: $it") }.getOrNull() ?: return@async emptyList()
+                            hashCode()
                             jettonBalances.balances.map { jettonBalance ->
                                 ChainAssetLocal(
                                     id = jettonBalance.jetton.address,
@@ -99,15 +106,11 @@ class TonRemoteAssetsSyncService(
                             }
                         }
                     }
-                    hashCode()
                     val chainAssets = chainAssetsDeferred.awaitAll().flatten()
                     chainDao.insertChainAssetsIgnoringConflicts(chainAssets)
                 }
             }
 
         subscription.launchIn(coroutineScope)
-//        hashCode()
-//        val s = subscription.first()
-//        hashCode()
     }
 }

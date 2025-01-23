@@ -427,7 +427,9 @@ class WalletFeatureModule {
         ethereumRemoteSource: EthereumRemoteSource,
         substrateSource: SubstrateRemoteSource,
         operationDao: OperationDao,
-        tonRemoteSource: TonRemoteSource
+        tonRemoteSource: TonRemoteSource,
+        chainsRepository: ChainsRepository,
+        tonSyncDataRepository: TonSyncDataRepository
     ): BalanceLoader.Provider {
         return BalanceLoaderProvider(
             chainRegistry,
@@ -435,7 +437,9 @@ class WalletFeatureModule {
             ethereumRemoteSource,
             substrateSource,
             operationDao,
-            tonRemoteSource
+            tonRemoteSource,
+            chainsRepository,
+            tonSyncDataRepository
         )
     }
 

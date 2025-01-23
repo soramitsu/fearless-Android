@@ -609,7 +609,7 @@ class WalletInteractorImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun observeSelectedAccountChainSelectFilter(): Flow<ChainSelectorViewStateWithFilters.Filter> {
+    override fun observeSelectedAccountChainSelectFilter(): Flow<String> {
         return accountRepository.selectedMetaAccountFlow().map {
             it.id
         }.distinctUntilChanged().flatMapLatest {
@@ -620,10 +620,6 @@ class WalletInteractorImpl(
                 // as opposed to null which was thrown for random reasons
                 return@stringFlow ""
             }.filterNotNull()
-        }.map { appliedFilterAsString ->
-            ChainSelectorViewStateWithFilters.Filter.entries.find {
-                it.name == appliedFilterAsString
-            } ?: ChainSelectorViewStateWithFilters.Filter.Popular
         }
     }
 

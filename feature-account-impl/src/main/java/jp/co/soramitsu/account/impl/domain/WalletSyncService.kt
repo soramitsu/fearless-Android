@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -103,13 +102,19 @@ class WalletSyncService(
                     val syncedChains = mutableSetOf<ChainId>()
                     supervisorScope {
                         val chainsBalancesDeferred = chains.map { chain ->
+                            val filteredMetaAccounts = when(chain.ecosystem) {
+                                Ecosystem.Substrate,
+                                Ecosystem.Ethereum,
+                                Ecosystem.EthereumBased -> metaAccounts.asSequence().filter { it.substratePublicKey != null || it.ethereumPublicKey != null }
+                                Ecosystem.Ton -> metaAccounts.asSequence().filter { it.tonPublicKey != null }
+                            }.toSet()
                             val chainSyncDeferred = async {
                                 val provider = balanceLoaderProvider.invoke(chain)
                                 val balances = withTimeoutOrNull(15_000) {
-                                    provider.loadBalance(metaAccounts)
+                                    provider.loadBalance(filteredMetaAccounts)
                                 } ?: let {
-                                    metaAccounts.map { meta ->
-                                        chain.assets.mapNotNull { asset ->
+                                    filteredMetaAccounts.map { meta ->
+                                        chainsRepository.getChain(chain.id).assets.mapNotNull { asset ->
                                             val accountId =
                                                 meta.accountId(chain) ?: return@mapNotNull null
 
@@ -147,7 +152,7 @@ class WalletSyncService(
                         val assetsLocal = allBalances.mapNotNull { balance ->
                             val chain =
                                 chains.find { it.id == balance.chainId } ?: return@mapNotNull null
-                            val chainAsset = chain.assetsById.getOrDefault(balance.id, null)
+                            val chainAsset = chainsRepository.getChain(chain.id).assetsById.getOrDefault(balance.id, null)
                                 ?: return@mapNotNull null
 
                             val isPopularUtilityAsset =
@@ -155,8 +160,6 @@ class WalletSyncService(
 
                             val accountHasAssetWithPositiveBalance =
                                 accountHasAssetWithPositiveBalanceMap[balance.metaId] == true
-
-                            val isTonAsset = chain.id == tonChainId //&& chainAsset.symbol.equals("TON", ignoreCase = true)
 
                             AssetLocal(
                                 id = balance.id,
@@ -171,16 +174,18 @@ class WalletSyncService(
                                 bondedInPlanks = balance.bondedInPlanks,
                                 redeemableInPlanks = balance.redeemableInPlanks,
                                 unbondingInPlanks = balance.unbondingInPlanks,
-                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) //|| isTonAsset
+                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
                             )
                         }
                         assetsLocal.groupBy { it.metaId }.forEach { b ->
-                            runCatching { assetDao.insertAssets(b.value) }.onFailure { Log.d("&&&", "failed to insert ${b.value.size} assets for metaId: ${b.key}, reason: $it") }.onSuccess { Log.d("&&&", "successfully inserted ${b.value.size} assets for metaId: ${b.key} ") }
+                            runCatching { assetDao.insertAssets(b.value) }
+                                .onFailure { Log.d(TAG, "failed to insert ${b.value.size} assets for metaId: ${b.key}, reason: $it") }
+                                .onSuccess { Log.d(TAG, "successfully inserted ${b.value.size} assets for metaId: ${b.key} ") }
                         }
 
                         coroutineContext.job.invokeOnCompletion {
                             val errorMessage = it?.let { "with error: ${it.message}" } ?: ""
-                            Log.d("WalletSyncService", "balances sync completed $errorMessage")
+                            Log.d(TAG, "balances sync completed $errorMessage")
                         }
                     }
                     coroutineScope {

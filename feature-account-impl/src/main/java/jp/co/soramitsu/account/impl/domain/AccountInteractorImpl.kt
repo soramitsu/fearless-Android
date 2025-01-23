@@ -43,6 +43,7 @@ import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -57,6 +58,7 @@ class AccountInteractorImpl(
     private val fileProvider: FileProvider,
     private val preferences: Preferences,
     private val backupService: BackupService,
+    private val walletInteractor: WalletInteractor,
     private val context: CoroutineContext = Dispatchers.Default
 ) : AccountInteractor {
 
@@ -74,6 +76,10 @@ class AccountInteractorImpl(
 
     override suspend fun createAccount(payload: AddAccountPayload): Result<Long> {
         return runCatching { accountRepository.createAccount(payload) }
+    }
+
+    override suspend fun saveChainSelectFilter(metaId: Long, filterValue: String){
+        walletInteractor.saveChainSelectFilter(metaId, filterValue)
     }
 
     override suspend fun importFromSeed(
