@@ -37,7 +37,7 @@ import javax.inject.Inject
 class DiscoverDappFragment : BaseComposeFragment<DiscoverDappViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     override val viewModel: DiscoverDappViewModel by viewModels()
 

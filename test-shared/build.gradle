@@ -19,7 +19,7 @@ android {
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
     namespace 'jp.co.soramitsu.test_shared'
 }
