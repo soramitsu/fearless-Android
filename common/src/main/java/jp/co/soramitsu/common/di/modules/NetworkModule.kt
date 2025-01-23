@@ -229,7 +229,7 @@ class NetworkModule {
             .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
             .addInterceptor {
-                if(it.request().url.host.contains("tonapi.io") || it.request().url.host.contains("testnet.tonapi.io")) {
+                if(it.request().url.host.contains("tonapi.io")) {
                     val request = it.request().newBuilder().apply {
                         addHeader(
                             "Authorization",
@@ -278,7 +278,7 @@ class NetworkModule {
 
         val retrofit = Retrofit.Builder()
             .client(tonApiHttpClient)
-            .baseUrl("https://keeper.tonapi.io/")
+            .baseUrl("https://tonapi.io/")
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()

@@ -21,6 +21,7 @@ const val soraMainChainId = "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a
 const val ternoaChainId = "6859c81ca95ef624c9dfe4dc6e3381c33e5d6509e35e147092bfbc780f777c4e"
 const val pendulumChainId = "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86"
 const val reefChainId = "7834781d38e4798d548e34ec947d19deea29df148a7bf32484b7b24dacf8d4b7"
+const val tonMainnetChainId = "-239"
 
 const val ethereumChainId = "1"
 const val BSCChainId = "56"

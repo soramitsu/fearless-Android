@@ -34,6 +34,7 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TONOpCode
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TonWalletContract.Companion.createIntMsg
@@ -103,9 +104,7 @@ class TonConnectInteractorImpl(
 ) : TonConnectInteractor {
 
     override suspend fun getChain(): Chain {
-        val tonChainId = "-3"
-//        val tonChainId = "-239"
-        return chainsRepository.getChain(tonChainId)
+        return chainsRepository.getChain(tonMainnetChainId)
     }
 
     override suspend fun respondDappConnectRequest(

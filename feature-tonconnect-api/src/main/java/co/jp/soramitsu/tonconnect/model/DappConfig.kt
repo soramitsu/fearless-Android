@@ -3,6 +3,7 @@ package co.jp.soramitsu.tonconnect.model
 import android.os.Parcelable
 import jp.co.soramitsu.common.data.network.ton.DappConfigRemote
 import jp.co.soramitsu.common.data.network.ton.DappRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import kotlinx.parcelize.Parcelize
 
 data class DappConfig(
@@ -32,7 +33,7 @@ data class DappModel(
 
     constructor(tonDappConnection: TonDappConnection) : this(
         identifier = tonDappConnection.clientId,
-        chains = listOf("-239"),
+        chains = listOf(tonMainnetChainId),
         name = tonDappConnection.name,
         url = tonDappConnection.url,
         description = tonDappConnection.url,
