@@ -85,7 +85,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         intent?.let(::processIntent)
 
-//        processJsonOpenIntent()
         subscribeNetworkStatus()
     }
 
@@ -319,8 +318,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         viewModel.noticeLanguageLanguage()
 
         recreate()
-
-//        restartAfterLanguageChange(this)
     }
 
     private fun processIntent(intent: Intent) {
@@ -328,16 +325,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         uri?.let { viewModel.externalUrlOpened(uri) }
     }
-
-//    private fun processJsonOpenIntent() {
-//        if (Intent.ACTION_VIEW == intent.action && intent.type != null) {
-//            if ("application/json" == intent.type) {
-//                val file = this.contentResolver.openInputStream(intent.data!!)
-//                val content = file?.reader(Charsets.UTF_8)?.readText()
-//                viewModel.jsonFileOpened(content)
-//            }
-//        }
-//    }
 
     private val navController: NavController by lazy {
         val navHostFragment =

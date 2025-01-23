@@ -51,7 +51,6 @@ class TonBalanceLoader(chain: Chain, private val tonSyncDataRepository: TonSyncD
                 val jettonBalances = jettonBalancesResult.getOrNull()
 
                 val assets = chainsRepository.getChain(chain.id).assets
-                Log.d("&&&", "building balances for ${assets.size} ton assets")
                 assets.map { asset ->
                     val balance = when {
                         asset.isUtility -> (accountData?.balance ?: -1).toBigInteger()

@@ -229,23 +229,7 @@ class BackupMnemonicViewModel @Inject constructor(
     }
 
     private fun openCreateBackupPasswordDialog() {
-//        val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return
-//        val mnemonicWords = mnemonic.value
-//        val mnemonic = mnemonicWords
-//            .map(MnemonicWordModel::word)
-//            .joinToString(separator = " ")
-
-        router.openCreateBackupPasswordDialogWithResult(
-//            payload = CreateBackupPasswordPayload(
-//                walletId = null,
-//                mnemonic = mnemonic,
-//                accountName = payload.accountName,
-//                cryptoType = cryptoTypeModel.cryptoType,
-//                substrateDerivationPath = substrateDerivationPath,
-//                ethereumDerivationPath = ethereumDerivationPath,
-//                createAccount = true
-//            )
-        )
+        router.openCreateBackupPasswordDialogWithResult()
             .take(1)
             .onEach {
                 onGoogleBackupPasswordReady(it)

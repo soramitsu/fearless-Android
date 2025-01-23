@@ -36,7 +36,7 @@ class GetAvailableFiatCurrencies(private val coingeckoApi: CoingeckoApi) {
                 val config = coingeckoApi.getFiatConfig()
                 cache.value = config.filter { it.id in supportedCurrencies }
                 syncTimeMillis = Calendar.getInstance().timeInMillis
-            }.onFailure { Log.d("&&&", "GetAvailableFiatCurrencies sync failed: $it") }
+            }.onFailure { Log.d("GetAvailableFiatCurrencies", "GetAvailableFiatCurrencies sync failed: $it") }
         }
     }
 }

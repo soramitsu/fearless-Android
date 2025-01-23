@@ -52,7 +52,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
             )
         }
     }
-//    private val startRoute = arguments?.let { it.getParcelable(KEY_PAYLOAD, WelcomeFragmentPayload::class.java)?.route }
+
     override val viewModel: WelcomeViewModel by viewModels()
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()

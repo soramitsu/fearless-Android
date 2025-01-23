@@ -69,12 +69,6 @@ class WelcomeViewModel @Inject constructor(
     )
     val events = _events.receiveAsFlow()
 
-//    val startDestination = when (payload.route) {
-//        WelcomeEvent.Onboarding.SelectEcosystemScreen.route -> WelcomeEvent.Onboarding.SelectEcosystemScreen
-//        WelcomeEvent.Onboarding.WelcomeScreen.route -> WelcomeEvent.Onboarding.WelcomeScreen
-//        else -> WelcomeEvent.Onboarding.SplashScreen
-//    }.route
-
     val startDestination = payload.route ?: WelcomeEvent.Onboarding.SplashScreen.route
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()

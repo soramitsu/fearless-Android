@@ -367,14 +367,6 @@ class Navigator :
         navController?.navigate(R.id.action_profileFragment_to_aboutFragment)
     }
 
-//    override fun openImportAccountScreen(
-//        blockChainType: Int,
-//        importMode: ImportMode
-//    ) {
-//        val arguments = ImportAccountFragment.getBundle(blockChainType, importMode)
-//        navController?.navigate(R.id.importAccountFragment, arguments)
-//    }
-
     override fun openImportAddAccountScreen(
         walletId: Long,
         importAccountType: ImportAccountType,

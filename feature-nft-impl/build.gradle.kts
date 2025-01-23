@@ -73,7 +73,6 @@ dependencies {
     implementation(projects.featureNftApi)
     implementation(projects.featureAccountApi)
     implementation(projects.featureWalletImpl)
-//    implementation(projects.coreDb)
     implementation(projects.coreApi)
     implementation(kotlin("script-runtime"))
 }

@@ -1,32 +1,20 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
-import android.graphics.Rect
-import android.os.Bundle
-import android.view.View
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
 class CreateBackupPasswordDialog : BaseComposeBottomSheetDialogFragment<CreateBackupPasswordViewModel>() {
 
     companion object {
-//        const val PAYLOAD_KEY = "PAYLOAD_KEY"
         const val RESULT_BACKUP_KEY = "RESULT_BACKUP_KEY"
-
-//        fun getBundle(walletId: Long): Bundle {
-//            return bundleOf(PAYLOAD_KEY to walletId)
-//        }
     }
 
     override val viewModel: CreateBackupPasswordViewModel by viewModels()

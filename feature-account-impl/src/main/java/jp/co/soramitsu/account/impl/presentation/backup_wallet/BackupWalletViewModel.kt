@@ -265,19 +265,6 @@ class BackupWalletViewModel @Inject constructor(
 
     private fun openCreateBackupPasswordDialog() {
         launch {
-//            val secrets = accountInteractor.getMetaAccountSecrets(walletId) ?: error("There are no secrets for walletId: $walletId")
-//            val entropy = secrets[MetaAccountSecrets.Entropy]
-//            val substrateDerivationPath = secrets[MetaAccountSecrets.SubstrateDerivationPath]
-//            val ethereumDerivationPath = secrets[MetaAccountSecrets.EthereumDerivationPath]
-//            val payload = CreateBackupPasswordPayload(
-//                walletId = walletId,
-//                mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
-//                accountName = wallet.first().name,
-//                cryptoType = wallet.first().substrateCryptoType,
-//                substrateDerivationPath = substrateDerivationPath.orEmpty(),
-//                ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
-//                createAccount = false
-//            )
             accountRouter.openCreateBackupPasswordDialogWithResult()
                 .onEach { resultCode ->
                     if (resultCode == Activity.RESULT_OK) {
