@@ -4,9 +4,13 @@ jacoco {
     toolVersion = "0.8.8"
 }
 
-tasks.withType(Test) {
+tasks.withType(Test.class).configureEach {
     jacoco.includeNoLocationClasses = true
-    jacoco.excludes = ['jdk.internal.*']
+    jacoco.excludes = ['*']
+//    jacoco.excludes = ['jdk.internal.*']
+//    jacoco {
+//        excludes = ["*"]
+//    }
 }
 
 afterEvaluate {
@@ -39,8 +43,14 @@ afterEvaluate {
         reports {
             xml.required = true
             html.required = true
-            html.setDestination(new File(outputFileNameHtml))
-            xml.setDestination(new File(outputFileName))
+            html {
+                enabled true
+                destination = new File(outputFileNameHtml)
+            }
+            xml {
+                enabled true
+                destination = new File(outputFileName)
+            }
         }
 
         outputs.upToDateWhen { false }
@@ -83,13 +93,13 @@ afterEvaluate {
                           '**/view/**',
         ]
 
-        javaClasses << fileTree(dir: "$buildDir/intermediates/javac/debug", excludes: fileFilter)
+        javaClasses << fileTree(dir: "${layout.buildDirectory}/intermediates/javac/debug", excludes: fileFilter)
 
-        kotlinClasses << fileTree(dir: "$buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+        kotlinClasses << fileTree(dir: "${layout.buildDirectory}/tmp/kotlin-classes/debug", excludes: fileFilter)
 
         sourceDirs << fileTree(dir: "$projectDir/src/main/java", excludes: fileFilter)
 
-        execution << fileTree(dir: buildDir,
+        execution << fileTree(dir: layout.buildDirectory,
                 includes: ["jacoco/${runTestsTask.name}.exec",
                            'outputs/code_coverage/debugAndroidTest/connected/**/*.ec'])
 
