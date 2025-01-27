@@ -238,7 +238,14 @@ class DiscoverDappViewModel @Inject constructor(
 
     fun openSearch() {
         viewModelScope.launch {
-            val dapps = dappsFlow.firstOrNull()?.flatMap { it.apps } ?: return@launch
+            val dapps = when (dappListTypeSelectorState.value.currentSelection) {
+                DappListType.Discover -> {
+                    dappsFlow.firstOrNull()?.flatMap { it.apps } ?: return@launch
+                }
+                DappListType.Connected -> {
+                    connectedDapps.firstOrNull()?.apps ?: return@launch
+                }
+            }
 
             _seeAllBottomSheetState.update { prevState ->
                 if (prevState != null) return@update prevState
