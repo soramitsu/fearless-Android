@@ -27,6 +27,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.H2
+import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -111,7 +112,7 @@ fun EcosystemCard(text: String, buttonText: String, @DrawableRes banner: Int, on
             .padding(24.dp)
             .clickableWithNoIndication { onClick() }
     ) {
-        H2(text = text)
+        H3(text = text)
         MarginVertical(11.dp)
         BackgroundCorneredWithBorder(
             modifier = Modifier
@@ -122,7 +123,7 @@ fun EcosystemCard(text: String, buttonText: String, @DrawableRes banner: Int, on
             Text(
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                 text = buttonText,
-                style = MaterialTheme.customTypography.header4
+                style = MaterialTheme.customTypography.header6
             )
         }
 
