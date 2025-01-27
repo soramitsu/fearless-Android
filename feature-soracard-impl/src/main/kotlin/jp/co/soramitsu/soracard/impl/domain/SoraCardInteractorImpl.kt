@@ -91,9 +91,9 @@ class SoraCardInteractorImpl @Inject constructor(
     override fun xorAssetFlow(): Flow<Asset> = flow {
         val chain = chainRegistry.getChain(soraCardChainId)
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        val substrateAccountId = metaAccount.substrateAccountId ?: error("No keypair for substrate/evm ecosystem")
+        val substrateAccountId = metaAccount.substrateAccountId
         val xorAsset = chain.assets.firstOrNull { it.isUtility }
-        if (xorAsset == null) {
+        if (xorAsset == null || substrateAccountId == null) {
             emitAll(emptyFlow())
         } else {
             emitAll(
