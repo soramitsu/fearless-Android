@@ -279,7 +279,7 @@ class TonConnectInteractorImpl(
                         )
                     }
             }
-            .flowOn(Dispatchers.Default).catch { println("&&& eventsFlow catch error: $it") }
+            .flowOn(Dispatchers.Default)
     }
 
     private fun decryptEventMessage(

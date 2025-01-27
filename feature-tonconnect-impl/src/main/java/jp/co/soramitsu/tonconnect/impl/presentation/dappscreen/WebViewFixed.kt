@@ -76,9 +76,7 @@ open class WebViewFixed @JvmOverloads constructor(
         settings.allowFileAccess = false
         settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            super.setRendererPriorityPolicy(RENDERER_PRIORITY_IMPORTANT, false)
-        }
+        super.setRendererPriorityPolicy(RENDERER_PRIORITY_IMPORTANT, false)
         super.setBackgroundColor(Color.TRANSPARENT)
         if (0 != context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) {
             setWebContentsDebuggingEnabled(true)

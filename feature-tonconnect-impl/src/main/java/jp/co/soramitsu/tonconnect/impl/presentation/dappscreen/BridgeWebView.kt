@@ -68,7 +68,6 @@ class BridgeWebView @JvmOverloads constructor(
         val bridge = jsBridge ?: return
         try {
             val data = bridge.invokeFunction(message.name, message.args) ?: return
-            Log.d("&&&", "posting bridge message: $data")
             postMessage(
                 FunctionResponseBridgeMessage(
                     invocationId = message.invocationId,
@@ -77,7 +76,6 @@ class BridgeWebView @JvmOverloads constructor(
                 )
             )
         } catch (e: Throwable) {
-            Log.d("&&&", "bridge error: $e ${e.message}")
             postMessage(
                 FunctionResponseBridgeMessage(
                     invocationId = message.invocationId,

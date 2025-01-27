@@ -2,6 +2,7 @@ package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -77,7 +78,12 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
                 ) {
                     AndroidView(
                         factory = { context ->
-                            webView = BridgeWebView(context)
+                            webView = BridgeWebView(context).apply {
+                                layoutParams = ViewGroup.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT
+                                )
+                            }
                             webViewSetup(webView, state)
                             webView
                         },
