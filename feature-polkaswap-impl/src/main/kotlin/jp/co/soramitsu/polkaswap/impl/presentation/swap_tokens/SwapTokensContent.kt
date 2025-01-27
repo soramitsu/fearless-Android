@@ -402,7 +402,7 @@ private fun MarketLabel(
                 .background(MaterialTheme.customColors.white08)
                 .size(32.dp)
                 .padding(4.dp),
-            painter = painterResource(R.drawable.ic_settings),
+            painter = painterResource(R.drawable.ic_settings_swap),
             contentDescription = null,
             tint = MaterialTheme.customColors.white
         )
