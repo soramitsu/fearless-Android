@@ -82,7 +82,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         viewModel.showAccountOptions.observeEvent(::showAccountOptions)
 
         viewModel.externalActionsSelector.onEach {
-            if(it != null) {
+            if (it != null) {
                 showExternalAddressActions(it)
             }
         }.launchIn(lifecycleScope)
@@ -157,7 +157,6 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         }
     }
 
-    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(
         padding: PaddingValues,

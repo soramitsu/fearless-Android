@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.coredb.converters.CryptoTypeConverters
 import jp.co.soramitsu.coredb.converters.LongMathConverters
 import jp.co.soramitsu.coredb.converters.OperationConverters
-import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -79,16 +78,18 @@ import jp.co.soramitsu.coredb.migrations.Migration_67_68
 import jp.co.soramitsu.coredb.migrations.Migration_68_69
 import jp.co.soramitsu.coredb.migrations.Migration_69_70
 import jp.co.soramitsu.coredb.migrations.Migration_70_71
+import jp.co.soramitsu.coredb.migrations.Migration_72_73
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.coredb.migrations.TonMigration
 import jp.co.soramitsu.coredb.migrations.V2Migration
-import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.BasicPoolLocal
+import jp.co.soramitsu.coredb.model.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
@@ -97,7 +98,6 @@ import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.coredb.model.UserPoolLocal
-import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -105,12 +105,10 @@ import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
-import jp.co.soramitsu.coredb.model.MetaAccountLocal
 
 @Database(
-    version = 72,
+    version = 73,
     entities = [
-        AccountLocal::class,
         AddressBookContact::class,
         AssetLocal::class,
         TokenPriceLocal::class,
@@ -207,13 +205,12 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_69_70)
                     .addMigrations(Migration_70_71)
                     .addMigrations(TonMigration(storeV2, substrateSecretStore, ethereumSecretStore, encryptedPreferences))
+                    .addMigrations(Migration_72_73)
                     .build()
             }
             return instance!!
         }
     }
-
-    abstract fun userDao(): AccountDao
 
     abstract fun assetDao(): AssetDao
 

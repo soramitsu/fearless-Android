@@ -90,14 +90,6 @@
         app:destination="@id/exportJsonPasswordFragment" />
 
     <action
-        android:id="@+id/action_open_accountsForExportFragment"
-        app:destination="@id/accountsForExportFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_mainFragment_to_balanceDetailFragment"
         app:destination="@id/balanceDetailFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -285,12 +277,6 @@
         android:name="jp.co.soramitsu.account.impl.presentation.language.LanguagesFragment"
         android:label="LanguagesFragment"
         tools:layout="@layout/fragment_languages" />
-
-    <fragment
-        android:id="@+id/accountsForExportFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment"
-        android:label="AccountsForExportFragment"
-        tools:layout="@layout/fragment_accounts_for_export" />
 
     <action
         android:id="@+id/action_open_nodesFragment"
@@ -502,6 +488,11 @@
         android:label="accountDetailsDialog" />
 
     <dialog
+        android:id="@+id/chainAccountsDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.chainaccounts.ChainAccountsDialog"
+        android:label="chainAccountsDialog" />
+
+    <dialog
         android:id="@+id/createBackupPasswordDialog"
         android:name="jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog"
         android:label="createBackupPasswordDialog"/>
@@ -516,10 +507,10 @@
         android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
         android:label="dialog_create_account" />
 
-    <dialog
+    <fragment
         android:id="@+id/backupMnemonicFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
-        android:label="dialog_create_account" />
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment"
+        android:label="fragment_backup_mnemonic" />
 
     <dialog
         android:id="@+id/mnemonicAgreementsDialog"
@@ -570,6 +561,11 @@
         android:id="@+id/optionsAddAccountFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment"
         android:label="optionsAddAccountFragment" />
+
+    <dialog
+        android:id="@+id/optionsEcosystemAccountsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.options_ecosystem_accounts.OptionsEcosystemAccountsFragment"
+        android:label="optionsEcosystemAccountsFragment" />
 
     <dialog
         android:id="@+id/optionsSwitchNodeFragment"

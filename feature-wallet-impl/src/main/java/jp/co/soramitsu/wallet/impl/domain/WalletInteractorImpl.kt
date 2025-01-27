@@ -4,14 +4,20 @@ import android.net.Uri
 import android.util.Log
 import com.mastercard.mpqr.pushpayment.model.PushPaymentData
 import com.mastercard.mpqr.pushpayment.parser.Parser
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URLDecoder
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -24,6 +30,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -56,6 +63,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -69,10 +77,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.net.URLDecoder
-import kotlin.coroutines.CoroutineContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -241,10 +245,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount> {
-        return accountRepository.selectedLightMetaAccountFlow()
-    }
-
     override fun selectedAccountFlow(chainId: ChainId): Flow<WalletAccount> {
         return accountRepository.selectedMetaAccountFlow()
             .map { metaAccount ->
@@ -391,9 +391,6 @@ class WalletInteractorImpl(
     }
 
     override suspend fun getChain(chainId: ChainId) = chainRegistry.getChain(chainId)
-
-    override suspend fun getMetaAccountSecrets(metaId: Long?) =
-        accountRepository.getMetaAccountSecrets(metaId)
 
     override suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 
@@ -683,4 +680,49 @@ class WalletInteractorImpl(
         withContext(coroutineContext) {
             tokenRepository.getToken(chainAsset)
         }
+
+    override suspend fun getExportSourceTypes(chainId: ChainId, walletId: Long?): MutableSet<ExportSource> {
+        val accountId = walletId ?: accountRepository.getSelectedLightMetaAccount().id
+        val chainEcosystem = chainsRepository.getChain(chainId).ecosystem
+
+        val options = mutableSetOf<ExportSource>()
+        when (chainEcosystem) {
+            Ecosystem.Substrate -> {
+                accountRepository.getSubstrateSecrets(accountId)?.let {
+                    it[SubstrateSecrets.Entropy]?.run {
+                        options += ExportSource.Mnemonic
+                        options += ExportSource.Seed
+                        options += ExportSource.Json
+                    }
+                    it[SubstrateSecrets.Seed]?.run {
+                        options += ExportSource.Seed
+                        options += ExportSource.Json
+                    }
+                }
+            }
+
+            Ecosystem.EthereumBased,
+            Ecosystem.Ethereum -> {
+                accountRepository.getEthereumSecrets(accountId)?.let {
+                    it[EthereumSecrets.Entropy]?.run {
+                        options += ExportSource.Mnemonic
+                        options += ExportSource.Seed
+                        options += ExportSource.Json
+                    }
+                    it[EthereumSecrets.Seed]?.run {
+                        options += ExportSource.Seed
+                        options += ExportSource.Json
+                    }
+                }
+            }
+
+            Ecosystem.Ton -> {
+                accountRepository.getTonSecrets(accountId)?.let {
+                    options += ExportSource.Mnemonic
+                }
+            }
+        }
+
+        return options.toSortedSet(compareBy { it.sort })
+    }
 }

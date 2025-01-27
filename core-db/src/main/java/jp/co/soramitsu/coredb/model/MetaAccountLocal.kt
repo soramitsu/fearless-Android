@@ -7,6 +7,8 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 
@@ -19,9 +21,9 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
     ]
 )
 class MetaAccountLocal(
-    val substratePublicKey: ByteArray,
-    val substrateCryptoType: CryptoType,
-    val substrateAccountId: ByteArray,
+    val substratePublicKey: ByteArray?,
+    val substrateCryptoType: CryptoType?,
+    val substrateAccountId: ByteArray?,
     val ethereumPublicKey: ByteArray?,
     val ethereumAddress: ByteArray?,
     val tonPublicKey: ByteArray?,
@@ -113,3 +115,13 @@ class MetaAccountPositionUpdate(
     val id: Long,
     val position: Int
 )
+
+// similar to fun MetaAccount.accountId(chain: IChain)
+fun MetaAccountLocal.accountId(chain: IChain): ByteArray? {
+    return when (chain.ecosystem) {
+        Ecosystem.Ton -> tonPublicKey
+        Ecosystem.Substrate -> substrateAccountId
+        Ecosystem.Ethereum,
+        Ecosystem.EthereumBased -> ethereumAddress
+    }
+}

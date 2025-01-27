@@ -23,6 +23,7 @@ import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.SubscribeBalanceRequest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.supervisorScope
@@ -62,13 +63,14 @@ class EquilibriumBalanceLoader(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun subscribeBalance(metaAccount: MetaAccount): Flow<AssetBalanceUpdateItem> {
+        metaAccount.substrateAccountId ?: return emptyFlow()
         return flow { emit(chainRegistry.awaitRuntimeProvider(chain.id).get()) }
             .transformLatest { runtime ->
                 val storageKey = buildEquilibriumStorageKeys(
                     chain,
                     runtime,
                     metaAccount.id,
-                    metaAccount.substrateAccountId
+                    metaAccount.substrateAccountId!!
                 )
                 val socketService =
                     runCatching { chainRegistry.awaitConnection(chain.id).socketService }
@@ -109,7 +111,7 @@ class EquilibriumBalanceLoader(
                                 AssetBalanceUpdateItem(
                                     id = asset.id,
                                     chainId = chain.id,
-                                    accountId = metaAccount.substrateAccountId,
+                                    accountId = metaAccount.substrateAccountId!!,
                                     metaId = metaAccount.id,
                                     freeInPlanks = balance,
                                 )

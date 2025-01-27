@@ -1,10 +1,9 @@
 package jp.co.soramitsu.account.impl.data.repository
 
-import android.database.sqlite.SQLiteConstraintException
-import android.util.Log
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.AuthType
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
@@ -14,13 +13,15 @@ import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
+import jp.co.soramitsu.account.api.domain.model.hasEthereum
+import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
@@ -30,7 +31,6 @@ import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
-import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.substrateAccountId
@@ -39,14 +39,12 @@ import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.coredb.dao.AccountDao
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
-import jp.co.soramitsu.coredb.model.AccountLocal
-import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
-import jp.co.soramitsu.coredb.model.ChainAccountLocal
-import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -57,13 +55,10 @@ import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.shared_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.shared_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.shared_utils.encrypt.seed.ethereum.EthereumSeedFactory
-import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
@@ -83,11 +78,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
-import org.ton.api.pk.PrivateKeyEd25519
 
 class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
-    private val accountDao: AccountDao,
     private val metaAccountDao: MetaAccountDao,
     private val legacyStoreV2: SecretStoreV2,
     private val jsonSeedDecoder: JsonSeedDecoder,
@@ -98,6 +91,8 @@ class AccountRepositoryImpl(
     private val substrateSecretStore: SubstrateSecretStore,
     private val ethereumSecretStore: EthereumSecretStore,
     private val tonSecretStore: TonSecretStore,
+    private val accountRepositoryDelegate: AccountRepositoryDelegate,
+    private val assetDao: AssetDao,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AccountRepository {
 
@@ -107,18 +102,6 @@ class AccountRepositoryImpl(
 
     override suspend fun selectAccount(metaAccountId: Long) {
         metaAccountDao.selectMetaAccount(metaAccountId)
-    }
-
-    // TODO remove
-    override fun selectedAccountFlow(): Flow<Account> {
-        return accountDataSource.selectedAccountMapping.map {
-            it.getValue(polkadotChainId)!!
-        }
-    }
-
-    // TODO remove
-    override suspend fun getSelectedAccount(): Account {
-        return getSelectedAccount(polkadotChainId)
     }
 
     override suspend fun getSelectedAccount(chainId: String): Account {
@@ -167,6 +150,10 @@ class AccountRepositoryImpl(
         return accountDataSource.lightMetaAccountsFlow()
     }
 
+    override fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount> {
+        return accountDataSource.lightMetaAccountFlow(metaId)
+    }
+
     override suspend fun selectMetaAccount(metaId: Long) {
         return accountDataSource.selectMetaAccount(metaId)
     }
@@ -191,131 +178,77 @@ class AccountRepositoryImpl(
         return accountDataSource.anyAccountSelected()
     }
 
-    override suspend fun createChainAccount(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    ) {
-        saveChainAccountFromMnemonic(
-            metaId,
-            chainId,
-            accountName,
-            mnemonicWords,
-            cryptoType,
-            substrateDerivationPath,
-            ethereumDerivationPath
-        )
-    }
-
-    override suspend fun createAccount(
-        accountName: String,
-        mnemonic: String,
-        encryptionType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        isBackedUp: Boolean
-    ) {
-        val metaAccountId = saveFromMnemonic(
-            accountName,
-            mnemonic,
-            substrateDerivationPath,
-            ethereumDerivationPath,
-            encryptionType,
-            true,
-            isBackedUp,
-            null
-        )
-
-        selectAccount(metaAccountId)
+    override suspend fun createAccount(payload: AddAccountPayload): Long {
+        val metaAccountId = accountRepositoryDelegate.create(payload)
+        if (payload !is AddAccountPayload.AdditionalEvm) {
+            selectAccount(metaAccountId)
+        }
+        return metaAccountId
     }
 
     override suspend fun deleteAccount(metaId: Long) {
         accountDataSource.deleteMetaAccount(metaId)
-    }
-
-    override suspend fun getAccounts(): List<Account> {
-        return accountDao.getAccounts()
-            .map { mapAccountLocalToAccount(it) }
-    }
-
-    override suspend fun getAccount(address: String): Account {
-        val account = accountDao.getAccount(address)
-            ?: throw NoSuchElementException("No account found for address $address")
-        return mapAccountLocalToAccount(account)
-    }
-
-    override suspend fun getAccountOrNull(address: String): Account? {
-        return accountDao.getAccount(address)?.let { mapAccountLocalToAccount(it) }
-    }
-
-    override suspend fun getMyAccounts(query: String, chainId: String): Set<Account> {
-//        return withContext(dispatcher) {
-//            accountDao.getAccounts(query, networkType)
-//                .map { mapAccountLocalToAccount(it) }
-//                .toSet()
-//        }
-
-        return emptySet() // TODO wallet
-    }
-
-    override suspend fun importFromMnemonic(
-        mnemonic: String,
-        accountName: String,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        selectedEncryptionType: CryptoType,
-        withEth: Boolean,
-        isBackedUp: Boolean,
-        googleBackupAddress: String?
-    ): Long {
-        val metaAccountId = saveFromMnemonic(
-            accountName,
-            mnemonic,
-            substrateDerivationPath,
-            ethereumDerivationPath,
-            selectedEncryptionType,
-            withEth,
-            isBackedUp,
-            googleBackupAddress
-        )
-
-        selectAccount(metaAccountId)
-        return metaAccountId
-    }
-
-    override suspend fun importChainAccountFromMnemonic(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    ) {
-        saveChainAccountFromMnemonic(
-            metaId,
-            chainId,
-            accountName,
-            mnemonicWords,
-            cryptoType,
-            substrateDerivationPath,
-            ethereumDerivationPath
-        )
+        assetDao.deleteAccountAssets(metaId)
     }
 
     override suspend fun importFromSeed(
-        seed: String,
+        walletId: Long?,
+        seed: String?,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
         ethSeed: String?,
         googleBackupAddress: String?
     ) {
-        return withContext(dispatcher) {
+        if (walletId == null) {
+            importNewAccount(seed!!, ethSeed, derivationPath, selectedEncryptionType, username, googleBackupAddress)
+        } else {
+            ethSeed?.let {
+                importAdditionalAccount(walletId, ethSeed)
+            }
+        }
+    }
+
+    // only Eth for now
+    private suspend fun importAdditionalAccount(walletId: Long, ethSeed: String) {
+        withContext(dispatcher) {
+            val ethSeedBytes = Hex.decode(ethSeed.removePrefix("0x"))
+            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(ethSeedBytes)
+            val localMetaAccount = metaAccountDao.getMetaAccount(walletId) ?: error("Account not found")
+            val metaAccount = MetaAccountLocal(
+                substratePublicKey = localMetaAccount.substratePublicKey,
+                substrateAccountId = localMetaAccount.substrateAccountId,
+                substrateCryptoType = localMetaAccount.substrateCryptoType,
+                name = localMetaAccount.name,
+                isSelected = true,
+                position = localMetaAccount.position,
+                ethereumPublicKey = ethereumKeypair.publicKey,
+                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                tonPublicKey = null,
+                isBackedUp = true,
+                googleBackupAddress = localMetaAccount.googleBackupAddress,
+                initialized = false
+            )
+            metaAccount.id = walletId
+
+            metaAccountDao.updateMetaAccount(metaAccount)
+
+            coroutineScope {
+                launch {
+                    val ethereumSecrets = EthereumSecrets(
+                        ethereumKeypair = ethereumKeypair,
+                        seed = ethSeedBytes,
+                        ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                    )
+
+                    ethereumSecretStore.put(walletId, ethereumSecrets)
+                }
+            }.join()
+        }
+    }
+
+    private suspend fun importNewAccount(seed: String, ethSeed: String?, derivationPath: String, selectedEncryptionType: CryptoType, username: String, googleBackupAddress: String?) {
+        withContext(dispatcher) {
             val substrateSeedBytes = Hex.decode(seed.removePrefix("0x"))
             val ethSeedBytes = ethSeed?.let { Hex.decode(it.removePrefix("0x")) }
 
@@ -361,7 +294,7 @@ class AccountRepositoryImpl(
                     )
                     substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
                 }
-                if(ethereumKeypair != null) {
+                if (ethereumKeypair != null) {
                     launch {
                         val ethereumSecrets = EthereumSecrets(
                             ethereumKeypair = ethereumKeypair,
@@ -374,73 +307,6 @@ class AccountRepositoryImpl(
                 }
                 launch { selectAccount(metaAccountId.await()) }
             }.join()
-        }
-    }
-
-    @Deprecated("We don't import chain accounts anymore. Only ecosystem account import is allowed")
-    override suspend fun importChainFromSeed(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        seed: String,
-        substrateDerivationPath: String,
-        selectedEncryptionType: CryptoType
-    ) {
-        return withContext(dispatcher) {
-            val seedBytes = Hex.decode(seed.removePrefix("0x"))
-
-            val ethereumBased = chainsRepository.getChain(chainId).isEthereumBased
-            val keyPair = when {
-                ethereumBased -> EthereumKeypairFactory.createWithPrivateKey(seedBytes)
-                else -> {
-                    val derivationPathOrNull = substrateDerivationPath.nullIfEmpty()
-                    val decodedDerivationPath = derivationPathOrNull?.let {
-                        SubstrateJunctionDecoder.decode(it)
-                    }
-
-                    SubstrateKeypairFactory.generate(
-                        mapCryptoTypeToEncryption(selectedEncryptionType),
-                        seedBytes,
-                        decodedDerivationPath?.junctions.orEmpty()
-                    )
-                }
-            }
-
-            val derPath = when {
-                ethereumBased -> BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-                else -> substrateDerivationPath
-            }
-            // todo refactor on ecosystem-oriented secrets
-            val secretsV2 = ChainAccountSecrets(
-                keyPair = keyPair,
-                seed = seedBytes,
-                derivationPath = derPath
-            )
-
-            val publicKey = keyPair.publicKey
-
-            val accountId = when {
-                ethereumBased -> publicKey.ethereumAddressFromPublicKey()
-                else -> publicKey.substrateAccountId()
-            }
-
-            val crypto = when {
-                ethereumBased -> CryptoType.ECDSA
-                else -> selectedEncryptionType
-            }
-
-            val chainAccount = ChainAccountLocal(
-                metaId = metaId,
-                chainId = chainId,
-                publicKey = publicKey,
-                accountId = accountId,
-                cryptoType = crypto,
-                name = accountName,
-                initialized = false
-            )
-
-            insertChainAccount(chainAccount)
-            // todo refactor on ecosystem-oriented secrets
         }
     }
 
@@ -506,52 +372,46 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun importChainFromJson(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        json: String,
+    override suspend fun importAdditionalFromJson(
+        walletId: Long,
+        ethJson: String,
         password: String
     ) {
         return withContext(dispatcher) {
-            val importData = jsonSeedDecoder.decode(json, password)
+            val ethImportData = jsonSeedDecoder.decode(ethJson, password)
+            val ethKeys = ethImportData.keypair
 
-            val ethereumBased = chainsRepository.getChain(chainId).isEthereumBased
-            val keyPair = when {
-                ethereumBased -> EthereumKeypairFactory.createWithPrivateKey(importData.keypair.privateKey)
-                else -> importData.keypair
-            }
-            // todo refactor on ecosystem-oriented secrets
-            val secretsV2 = ChainAccountSecrets(
-                keyPair = keyPair,
-                seed = importData.seed
-            )
+            val localMetaAccount = metaAccountDao.getMetaAccount(walletId) ?: error("Account not found")
 
-            val publicKey = keyPair.publicKey
+            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(ethKeys.privateKey)
 
-            val accountId = when {
-                ethereumBased -> publicKey.ethereumAddressFromPublicKey()
-                else -> publicKey.substrateAccountId()
-            }
-
-            val crypto = when {
-                ethereumBased -> CryptoType.ECDSA
-                else -> mapEncryptionToCryptoType(importData.multiChainEncryption.encryptionType)
-            }
-
-            val chainAccount = ChainAccountLocal(
-                metaId = metaId,
-                chainId = chainId,
-                publicKey = publicKey,
-                accountId = accountId,
-                cryptoType = crypto,
-                name = accountName,
+            val metaAccount = MetaAccountLocal(
+                substratePublicKey = localMetaAccount.substratePublicKey,
+                substrateAccountId = localMetaAccount.substrateAccountId,
+                substrateCryptoType = localMetaAccount.substrateCryptoType,
+                name = localMetaAccount.name,
+                isSelected = localMetaAccount.isSelected,
+                position = localMetaAccount.position,
+                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                ethereumPublicKey = ethereumKeypair.publicKey,
+                tonPublicKey = null,
+                isBackedUp = true,
+                googleBackupAddress = localMetaAccount.googleBackupAddress,
                 initialized = false
             )
+            metaAccount.id = walletId
 
-            insertChainAccount(chainAccount)
-            // todo refactor on ecosystem-oriented secrets
-//            storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
+            metaAccountDao.updateMetaAccount(metaAccount)
+
+            coroutineScope {
+                    launch {
+                        val ethereumSecrets = EthereumSecrets(
+                            ethereumKeypair = ethereumKeypair
+                        )
+
+                        ethereumSecretStore.put(walletId, ethereumSecrets)
+                    }
+            }.join()
         }
     }
 
@@ -567,9 +427,9 @@ class AccountRepositoryImpl(
         return accountDataSource.getPinCode()
     }
 
-    override suspend fun generateMnemonic(): List<String> {
+    override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
         return withContext(dispatcher) {
-            val generationResult = MnemonicCreator.randomMnemonic(Mnemonic.Length.TWELVE)
+            val generationResult = MnemonicCreator.randomMnemonic(length)
 
             generationResult.wordList
         }
@@ -622,16 +482,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getMetaAccountSecrets(metaId: Long?): EncodableStruct<MetaAccountSecrets>? {
-        val id = metaId ?: getSelectedMetaAccount().id
-        return null//storeV2.getMetaAccountSecrets(id)
-    }
-
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
         withContext(dispatcher) {
             val chain = chainsRepository.getChain(chainId)
             val metaAccount = getMetaAccount(metaId)
-
+            require(metaAccount.hasSubstrate || metaAccount.hasEthereum)
             val hasChainAccount = metaAccount.hasChainAccount(chainId)
             val (keypairSchema, seed) = if (hasChainAccount) {
                 val secrets = getChainAccountSecrets(metaId, chainId)
@@ -641,15 +496,17 @@ class AccountRepositoryImpl(
                 val seed = secrets?.get(ChainAccountSecrets.Seed)
                 keypairSchema to seed
             } else {
-                val secrets = getMetaAccountSecrets(metaId)
+                val substrateSecrets = substrateSecretStore.get(metaId)
+                val ethereumSecrets = ethereumSecretStore.get(metaId)
+
 
                 val keypairSchema = if (chain.isEthereumBased) {
-                    secrets?.get(MetaAccountSecrets.EthereumKeypair)
+                    ethereumSecrets?.get(EthereumSecrets.EthereumKeypair)
                 } else {
-                    secrets?.get(MetaAccountSecrets.SubstrateKeypair)
+                    substrateSecrets?.get(SubstrateSecrets.SubstrateKeypair)
                 }
 
-                val seed = secrets?.get(MetaAccountSecrets.Seed)
+                val seed = substrateSecrets?.get(SubstrateSecrets.Seed)
                 keypairSchema to seed
             }
 
@@ -669,7 +526,7 @@ class AccountRepositoryImpl(
             val address = metaAccount.address(chain)
                 ?: throw IllegalArgumentException("No address specified for chain ${chain.name}")
 
-            val cryptoType = mapCryptoTypeToEncryption(metaAccount.cryptoType(chain))
+            val cryptoType = requireNotNull(metaAccount.cryptoType(chain)?.let { mapCryptoTypeToEncryption(it) })
             val multiChainEncryption =
                 if (chain.isEthereumBased) MultiChainEncryption.Ethereum else MultiChainEncryption.Substrate(
                     cryptoType
@@ -717,218 +574,11 @@ class AccountRepositoryImpl(
         return accountDataSource.changeSelectedLanguage(language)
     }
 
-    private suspend fun saveFromMnemonic(
-        accountName: String,
-        mnemonicWords: String,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        cryptoType: CryptoType,
-        withEth: Boolean,
-        isBackedUp: Boolean,
-        googleBackupAddress: String?
-    ): Long {
-        return withContext(dispatcher) {
-            val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
-            val decodedDerivationPath = substrateDerivationPathOrNull?.let {
-                SubstrateJunctionDecoder.decode(it)
-            }
-
-            val derivationResult = SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
-
-            val keys = SubstrateKeypairFactory.generate(
-                encryptionType = mapCryptoTypeToEncryption(cryptoType),
-                seed = derivationResult.seed,
-                junctions = decodedDerivationPath?.junctions.orEmpty()
-            )
-
-            //todo just for tests
-            val wl = "smooth final eagle apple same excite grain pizza lion earth jealous beauty easily park shove answer heavy timber record hover stamp mechanic novel account"
-            val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(mnemonicWords.split(" "))
-//            val tonMnemonic = org.ton.mnemonic.Mnemonic.generate()
-//            val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(tonMnemonic)
-            val tonPrivateKey = PrivateKeyEd25519(tonSeed)
-            val tonPublicKey = tonPrivateKey.publicKey()
-
-
-            val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
-                val decodedEthereumDerivationPath =
-                    BIP32JunctionDecoder.decode(ethereumDerivationPath)
-                val ethereumSeed = EthereumSeedFactory.deriveSeed32(
-                    mnemonicWords,
-                    password = decodedEthereumDerivationPath.password
-                ).seed
-                val ethereumKeypair = EthereumKeypairFactory.generate(
-                    ethereumSeed,
-                    junctions = decodedEthereumDerivationPath.junctions
-                )
-
-                ethereumKeypair to ethereumDerivationPath
-            } else {
-                null to null
-            }
-            val position = metaAccountDao.getNextPosition()
-
-            val metaAccount = MetaAccountLocal(
-                substratePublicKey = keys.publicKey,
-                substrateAccountId = keys.publicKey.substrateAccountId(),
-                substrateCryptoType = cryptoType,
-                ethereumPublicKey = ethereumKeypair?.publicKey,
-                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
-                tonPublicKey = tonPublicKey.key.toByteArray(),
-                name = accountName,
-                isSelected = true,
-                position = position,
-                isBackedUp = isBackedUp,
-                googleBackupAddress = googleBackupAddress,
-                initialized = false,
-            )
-
-            val metaAccountId = insertAccount(metaAccount)
-
-            val substrateSecrets = SubstrateSecrets(
-                substrateKeyPair = keys,
-                substrateDerivationPath = substrateDerivationPath,
-                seed = derivationResult.seed,
-                entropy = derivationResult.mnemonic.entropy
-            )
-            substrateSecretStore.put(metaAccountId, substrateSecrets)
-
-            if (ethereumKeypair != null) {
-
-                val ethereumSecrets = EthereumSecrets(
-                    entropy = derivationResult.mnemonic.entropy,
-                    seed = ethereumKeypair.privateKey,
-                    ethereumKeypair = ethereumKeypair,
-                    ethereumDerivationPath = ethereumDerivationPathOrDefault
-                )
-
-                ethereumSecretStore.put(metaAccountId, ethereumSecrets)
-            }
-
-            tonSecretStore.put(
-                metaAccountId,
-                TonSecrets(
-                    Keypair(
-                        tonPublicKey.key.toByteArray(),
-                        tonPrivateKey.key.toByteArray()
-                    )
-                )
-            )
-
-            metaAccountId
-        }
-    }
-
-    private suspend fun saveChainAccountFromMnemonic(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    ) {
-        // todo refactor on adding ecosystem accounts
-        val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
-        val decodedDerivationPath = substrateDerivationPathOrNull?.let {
-            SubstrateJunctionDecoder.decode(it)
-        }
-
-        val derivationResult =
-            SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
-
-        val keys = SubstrateKeypairFactory.generate(
-            encryptionType = mapCryptoTypeToEncryption(cryptoType),
-            seed = derivationResult.seed,
-            junctions = decodedDerivationPath?.junctions.orEmpty()
-        )
-
-        val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
-
-        val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
-        val ethereumSeed = EthereumSeedFactory.deriveSeed32(
-            mnemonicWords,
-            password = decodedEthereumDerivationPath.password
-        ).seed
-        val ethereumKeypair = EthereumKeypairFactory.generate(
-            ethereumSeed,
-            junctions = decodedEthereumDerivationPath.junctions
-        )
-
-        val ethereumBased = chainsRepository.getChain(chainId).isEthereumBased
-        val keyPair = when {
-            ethereumBased -> ethereumKeypair
-            else -> keys
-        }
-
-        val seed = when {
-            ethereumBased -> ethereumSeed
-            else -> derivationResult.seed
-        }
-
-        val derPath = when {
-            ethereumBased -> ethereumDerivationPath
-            else -> substrateDerivationPath
-        }
-
-        val secretsV2 = ChainAccountSecrets(
-            keyPair = keyPair,
-            entropy = mnemonic.entropy,
-            seed = seed,
-            derivationPath = derPath
-        )
-
-        val publicKey = keyPair.publicKey
-
-        val accountId = when {
-            ethereumBased -> publicKey.ethereumAddressFromPublicKey()
-            else -> publicKey.substrateAccountId()
-        }
-
-        val crypto = when {
-            ethereumBased -> CryptoType.ECDSA
-            else -> cryptoType
-        }
-
-        val chainAccount = ChainAccountLocal(
-            metaId = metaId,
-            chainId = chainId,
-            publicKey = publicKey,
-            accountId = accountId,
-            cryptoType = crypto,
-            name = accountName,
-            initialized = false
-        )
-
-        insertChainAccount(chainAccount)
-//        storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
-    }
-
-    private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
-        return with(accountLocal) {
-            Account(
-                address = address,
-                name = username,
-                accountIdHex = publicKey,
-                cryptoType = CryptoType.values()[accountLocal.cryptoType],
-                position = position
-            )
-        }
-    }
-
     private suspend fun insertAccount(
         metaAccount: MetaAccountLocal
     ) = try {
         metaAccountDao.insertMetaAccount(metaAccount)
     } catch (e: Throwable) {
-        throw AccountAlreadyExistsException()
-    }
-
-    private suspend fun insertChainAccount(
-        chainAccount: ChainAccountLocal
-    ) = try {
-        metaAccountDao.insertChainAccount(chainAccount)
-    } catch (e: SQLiteConstraintException) {
         throw AccountAlreadyExistsException()
     }
 
@@ -940,23 +590,67 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun isGoogleBackupSupported(walletId: Long): Boolean {
-        val meta = getMetaAccountSecrets(walletId)
-        return meta?.get(MetaAccountSecrets.Entropy) != null
+        val substrateSecrets = substrateSecretStore.get(walletId)
+        return substrateSecrets?.get(SubstrateSecrets.Entropy) != null
+    }
+
+    override suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType? {
+        when (type) {
+            ImportAccountType.Substrate -> {
+                val substrateSecrets = substrateSecretStore.get(walletId)
+                if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null) {
+                    return BackupAccountType.PASSPHRASE
+                }
+                if (substrateSecrets?.get(SubstrateSecrets.Seed) != null) {
+                    return BackupAccountType.SEED
+                }
+            }
+
+            ImportAccountType.Ethereum -> {
+                val ethereumSecrets = ethereumSecretStore.get(walletId)
+                if (ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
+                    return BackupAccountType.PASSPHRASE
+                }
+                if (ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
+                    return BackupAccountType.SEED
+                }
+            }
+
+            ImportAccountType.Ton -> {
+                val tonSecrets = tonSecretStore.get(walletId)
+                if (tonSecrets != null) {
+                    return BackupAccountType.PASSPHRASE
+                }
+            }
+        }
+        return null
     }
 
     override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> {
-        val meta = getMetaAccountSecrets(walletId)
+        val substrateSecrets = substrateSecretStore.get(walletId)
+        val ethereumSecrets = ethereumSecretStore.get(walletId)
+        val tonSecrets = tonSecretStore.get(walletId)
+
         val types = mutableSetOf<BackupAccountType>()
-        if (meta?.get(MetaAccountSecrets.Entropy) != null) {
+
+        if (substrateSecrets != null || ethereumSecrets != null) {
+            if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null || ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
+                types.add(BackupAccountType.PASSPHRASE)
+                types.add(BackupAccountType.SEED)
+            }
+
+            if (substrateSecrets?.get(SubstrateSecrets.Seed) != null || ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
+                types.add(BackupAccountType.SEED)
+            }
+
+            types.add(BackupAccountType.JSON)
+            return types
+        }
+
+        if (tonSecrets != null) {
             types.add(BackupAccountType.PASSPHRASE)
-            types.add(BackupAccountType.SEED)
         }
 
-        if (meta?.get(MetaAccountSecrets.Seed) != null) {
-            types.add(BackupAccountType.SEED)
-        }
-
-        types.add(BackupAccountType.JSON)
         return types
     }
 
@@ -1001,5 +695,17 @@ class AccountRepositoryImpl(
         return nomisScoresDao.observeScore(metaId).map { score ->
             score?.toDomain()
         }
+    }
+
+    override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
+        return substrateSecretStore.get(metaId)
+    }
+
+    override suspend fun getEthereumSecrets(metaId: Long): EncodableStruct<EthereumSecrets>? {
+        return ethereumSecretStore.get(metaId)
+    }
+
+    override suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>? {
+        return tonSecretStore.get(metaId)
     }
 }

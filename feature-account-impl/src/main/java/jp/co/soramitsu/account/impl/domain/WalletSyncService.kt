@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.impl.data.mappers.toLocal
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.positiveOrNull
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
@@ -21,6 +22,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
@@ -39,7 +41,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -88,7 +89,6 @@ class WalletSyncService(
             .onEach { localMetaAccounts ->
                 syncJob?.cancel()
                 syncJob = scope.launch {
-                    chainRegistry.configsSyncDeferred.joinAll()
                     val chains = chainsRepository.getChains()
 
                     val metaAccounts = localMetaAccounts.map { accountInfo ->
@@ -102,13 +102,19 @@ class WalletSyncService(
                     val syncedChains = mutableSetOf<ChainId>()
                     supervisorScope {
                         val chainsBalancesDeferred = chains.map { chain ->
+                            val filteredMetaAccounts = when(chain.ecosystem) {
+                                Ecosystem.Substrate,
+                                Ecosystem.Ethereum,
+                                Ecosystem.EthereumBased -> metaAccounts.asSequence().filter { it.substratePublicKey != null || it.ethereumPublicKey != null }
+                                Ecosystem.Ton -> metaAccounts.asSequence().filter { it.tonPublicKey != null }
+                            }.toSet()
                             val chainSyncDeferred = async {
                                 val provider = balanceLoaderProvider.invoke(chain)
                                 val balances = withTimeoutOrNull(15_000) {
-                                    provider.loadBalance(metaAccounts)
+                                    provider.loadBalance(filteredMetaAccounts)
                                 } ?: let {
-                                    metaAccounts.map { meta ->
-                                        chain.assets.mapNotNull { asset ->
+                                    filteredMetaAccounts.map { meta ->
+                                        chainsRepository.getChain(chain.id).assets.mapNotNull { asset ->
                                             val accountId =
                                                 meta.accountId(chain) ?: return@mapNotNull null
 
@@ -146,7 +152,7 @@ class WalletSyncService(
                         val assetsLocal = allBalances.mapNotNull { balance ->
                             val chain =
                                 chains.find { it.id == balance.chainId } ?: return@mapNotNull null
-                            val chainAsset = chain.assetsById.getOrDefault(balance.id, null)
+                            val chainAsset = chainsRepository.getChain(chain.id).assetsById.getOrDefault(balance.id, null)
                                 ?: return@mapNotNull null
 
                             val isPopularUtilityAsset =
@@ -171,13 +177,15 @@ class WalletSyncService(
                                 enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
                             )
                         }
-                        assetsLocal.groupBy { it.metaId }.forEach {
-                            assetDao.insertAssets(it.value)
+                        assetsLocal.groupBy { it.metaId }.forEach { b ->
+                            runCatching { assetDao.insertAssets(b.value) }
+                                .onFailure { Log.d(TAG, "failed to insert ${b.value.size} assets for metaId: ${b.key}, reason: $it") }
+                                .onSuccess { Log.d(TAG, "successfully inserted ${b.value.size} assets for metaId: ${b.key} ") }
                         }
 
                         coroutineContext.job.invokeOnCompletion {
                             val errorMessage = it?.let { "with error: ${it.message}" } ?: ""
-                            Log.d("WalletSyncService", "balances sync completed $errorMessage")
+                            Log.d(TAG, "balances sync completed $errorMessage")
                         }
                     }
                     coroutineScope {
@@ -449,14 +457,3 @@ class WalletSyncService(
         }
     }
 }
-
-//
-// Bajun Kusama,
-// Integritee Network (Kusama),
-// Sepolia,
-// Manta Pacific Mainnet,
-// Latest Testnet,
-// Latest Mainnet,
-// CAGA Ankara Testnet,
-// Klaytn Mainnet Cypress,
-// Kaia Kairos Testnet

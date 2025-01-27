@@ -24,6 +24,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -135,20 +136,18 @@ class RuntimeSyncService(
         )
     }
 
-    suspend fun syncTypes(): Result<Unit> = withContext(Dispatchers.Default) {
-        runCatching {
-            val types = typesFetcher.getTypes(BuildConfig.TYPES_URL)
-            val defaultTypes = typesFetcher.getTypes(BuildConfig.DEFAULT_V13_TYPES_URL)
-            val array = Json.decodeFromString<JsonArray>(types)
-            val chainIdToTypes =
-                array.mapNotNull { element ->
-                    val chainId =
-                        element.jsonObject["chainId"]?.jsonPrimitive?.content
-                            ?: return@mapNotNull null
-                    ChainTypesLocal(chainId, element.toString())
-                }.toMutableList().apply { add(ChainTypesLocal("default", defaultTypes)) }
-            chainDao.insertTypes(chainIdToTypes)
-        }
+    suspend fun syncTypes()= withContext(Dispatchers.Default) {
+        val types = typesFetcher.getTypes(BuildConfig.TYPES_URL)
+        val defaultTypes = typesFetcher.getTypes(BuildConfig.DEFAULT_V13_TYPES_URL)
+        val array = Json.decodeFromString<JsonArray>(types)
+        val chainIdToTypes =
+            array.mapNotNull { element ->
+                val chainId =
+                    element.jsonObject["chainId"]?.jsonPrimitive?.content
+                        ?: return@mapNotNull null
+                ChainTypesLocal(chainId, element.toString())
+            }.toMutableList().apply { add(ChainTypesLocal("default", defaultTypes)) }
+        chainDao.insertTypes(chainIdToTypes)
     }
 
     private fun cancelExistingSync(chainId: String) {

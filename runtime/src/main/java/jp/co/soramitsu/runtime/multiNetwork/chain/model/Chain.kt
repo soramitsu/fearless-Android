@@ -30,6 +30,7 @@ const val sepoliaChainId = "11155111"
 const val goerliChainId = "5"
 const val polygonChainId = "137"
 const val polygonTestnetChainId = "80001"
+const val tonChainId = "-239"
 
 const val bokoloCashTokenId = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
 
@@ -80,7 +81,7 @@ data class Chain(
 
     data class Explorer(val type: Type, val types: List<String>, val url: String) {
         enum class Type {
-            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, TONVIEWER, UNKNOWN;
+            SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, TONVIEWER, UNKNOWN;
 
             val capitalizedName: String
                 get() = if (this == OKLINK) {
@@ -191,7 +192,6 @@ fun List<Chain.Explorer>.getSupportedAddressExplorers(address: String) = mapNotN
 
 fun List<Chain.Explorer>.getSupportedTransactionExplorers(value: String) = mapNotNull {
     val type = when (it.type) {
-        Chain.Explorer.Type.POLKASCAN,
         Chain.Explorer.Type.SUBSCAN,
         Chain.Explorer.Type.REEF -> {
             BlockExplorerUrlBuilder.Type.EXTRINSIC

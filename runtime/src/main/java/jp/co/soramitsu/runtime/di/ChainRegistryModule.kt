@@ -18,6 +18,7 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsInitializer
 import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsSyncServiceProvider
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.configurator.ChainEnvironmentConfiguratorProvider
@@ -51,10 +52,18 @@ class ChainRegistryModule {
         chainFetcher: ChainFetcher,
         metaAccountDao: MetaAccountDao,
         assetDao: AssetDao,
-        remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider,
-        contextManager: ContextManager
-    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao, remoteAssetsSyncServiceProvider, contextManager)
 
+        contextManager: ContextManager
+    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao, contextManager)
+
+    @Provides
+    @Singleton
+    fun provideRemoteAssetsInitializer(
+        dao: ChainDao,
+        remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
+    ): RemoteAssetsInitializer {
+        return RemoteAssetsInitializer(dao, remoteAssetsSyncServiceProvider)
+    }
 
     @Provides
     @Singleton

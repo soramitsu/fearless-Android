@@ -129,12 +129,10 @@ class WalletFeatureModule {
 
     @Provides
     fun provideAssetCache(
-        tokenPriceDao: TokenPriceDao,
         assetDao: AssetDao,
-        accountRepository: AccountRepository,
         selectedFiat: SelectedFiat
     ): AssetCache {
-        return AssetCache(tokenPriceDao, accountRepository, assetDao, selectedFiat)
+        return AssetCache( assetDao, selectedFiat)
     }
 
     @Provides
@@ -440,7 +438,9 @@ class WalletFeatureModule {
         ethereumRemoteSource: EthereumRemoteSource,
         substrateSource: SubstrateRemoteSource,
         operationDao: OperationDao,
-        tonRemoteSource: TonRemoteSource
+        tonRemoteSource: TonRemoteSource,
+        chainsRepository: ChainsRepository,
+        tonSyncDataRepository: TonSyncDataRepository
     ): BalanceLoader.Provider {
         return BalanceLoaderProvider(
             chainRegistry,
@@ -448,7 +448,9 @@ class WalletFeatureModule {
             ethereumRemoteSource,
             substrateSource,
             operationDao,
-            tonRemoteSource
+            tonRemoteSource,
+            chainsRepository,
+            tonSyncDataRepository
         )
     }
 

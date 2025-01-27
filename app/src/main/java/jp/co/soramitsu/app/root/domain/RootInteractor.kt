@@ -35,53 +35,9 @@ class RootInteractor(
     private val walletSyncService: WalletSyncService,
     private val chainRegistry: ChainRegistry,
 ) {
-    suspend fun syncChainsConfigs(): Result<Unit> {
-        return withContext(Dispatchers.Default) {
-            return@withContext chainRegistry.syncConfigs()
-        }
-    }
-
-    fun runWalletsSync() {
-        walletSyncService.start()
-    }
-
-    suspend fun runBalancesUpdate(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
-        withTimeoutOrNull(2.toDuration(DurationUnit.MINUTES)) {
-            accountRepository.allMetaAccountsFlow()
-                .filter { accounts -> accounts.all { it.initialized } }
-                .filter { it.isNotEmpty() }
-                .first()
-        }
-        return@withContext updateSystem.start().inBackground()
-    }
-
     fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 
-    fun stakingAvailableFlow() = flowOf(true) // TODO remove this logic
 
-    suspend fun updatePhishingAddresses() {
-        runCatching {
-            walletRepository.updatePhishingAddresses()
-        }
-    }
-
-    suspend fun getRemoteConfig(): Result<AppConfig> {
-        return withContext(Dispatchers.Default) {
-            val remoteVersion = walletRepository.getRemoteConfig()
-
-            if (remoteVersion.isSuccess) {
-                preferences.appConfig = remoteVersion.requireValue()
-                remoteVersion
-            } else {
-                val localVersion = preferences.appConfig
-                Result.success(localVersion)
-            }.map { it.toDomain() }
-        }
-    }
-
-    fun chainRegistrySyncUp() = chainRegistry.syncUp()
-
-    suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default) { pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
 
     suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default){ Web3Wallet.getPendingListOfSessionRequests(topic) }
 }

@@ -91,6 +91,7 @@ class SoraCardInteractorImpl @Inject constructor(
     override fun xorAssetFlow(): Flow<Asset> = flow {
         val chain = chainRegistry.getChain(soraCardChainId)
         val metaAccount = accountRepository.getSelectedMetaAccount()
+        val substrateAccountId = metaAccount.substrateAccountId ?: error("No keypair for substrate/evm ecosystem")
         val xorAsset = chain.assets.firstOrNull { it.isUtility }
         if (xorAsset == null) {
             emitAll(emptyFlow())
@@ -98,7 +99,7 @@ class SoraCardInteractorImpl @Inject constructor(
             emitAll(
                 walletRepository.assetFlow(
                     metaId = metaAccount.id,
-                    accountId = metaAccount.substrateAccountId,
+                    accountId = substrateAccountId,
                     chainAsset = xorAsset,
                     minSupportedVersion = chain.minSupportedVersion,
                 )
@@ -193,7 +194,6 @@ class SoraCardInteractorImpl @Inject constructor(
                 delay(POLLING_PERIOD_IN_MILLIS)
             }
         }
-    }
 
     private fun needInstallUpdate() = flow {
         emit(needInstallUpdateInternal())

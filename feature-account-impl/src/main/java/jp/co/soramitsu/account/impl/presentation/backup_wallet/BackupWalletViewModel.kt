@@ -10,18 +10,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
-import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.BackupOrigin
-import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
@@ -29,13 +29,11 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -52,19 +50,25 @@ class BackupWalletViewModel @Inject constructor(
     private val accountDetailsInteractor: AccountDetailsInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val totalBalanceUseCase: TotalBalanceUseCase,
-    private val resourceManager: ResourceManager,
-    private val backupService: BackupService
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), BackupWalletCallback {
 
     private val walletId = savedStateHandle.get<Long>(BackupWalletDialog.ACCOUNT_ID_KEY)!!
     private val wallet = flowOf {
         accountInteractor.getMetaAccount(walletId)
     }
+
+    val isAllowGoogleBackupFlow = wallet.map { wallet ->
+        wallet.supportedEcosystemWithIconAddress().keys.any {
+            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Evm)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     private val walletItem = wallet
         .map { wallet ->
 
             val icon = addressIconGenerator.createAddressIcon(
-                wallet.substrateAccountId,
+                wallet.supportedEcosystemWithIconAddress(),
                 AddressIconGenerator.SIZE_BIG
             )
 
@@ -94,14 +98,14 @@ class BackupWalletViewModel @Inject constructor(
         googleBackupAddressFlow.map { backupAddress ->
 
             val backupAccountAddresses = kotlin.runCatching {
-                backupService.getBackupAccounts().map { it.address }
+                accountInteractor.getGoogleBackupAccounts().map { it.address }
             }.onSuccess {
                 isAuthedToGoogle.value = true
             }.onFailure {
                 return@map null
             }.getOrNull().orEmpty()
 
-            val webBackupAccountAddresses = backupService.getWebBackupAccounts().map { it.address }
+            val webBackupAccountAddresses = accountInteractor.getExtensionGoogleBackups().map { it.address }
 
             when (backupAddress) {
                 in backupAccountAddresses -> BackupOrigin.APP
@@ -135,6 +139,7 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     private suspend fun checkIsWalletWithChainAccounts() {
+
         val chainProjections = accountDetailsInteractor.getChainProjectionsFlow(walletId).firstOrNull().orEmpty()
         val chainAccounts = chainProjections[AccountInChain.From.CHAIN_ACCOUNT].orEmpty()
 
@@ -215,8 +220,7 @@ class BackupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             googleBackupAddressFlow.firstOrNull()?.let { address ->
                 runCatching {
-                    backupService.deleteBackupAccount(address)
-                    accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
+                    accountInteractor.deleteGoogleBackupAccount(walletId, address)
                     refresh.emit(Event(Unit))
                 }.onFailure {
                     showError("DeleteGoogleBackup error:\n${it.message}")
@@ -249,8 +253,7 @@ class BackupWalletViewModel @Inject constructor(
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
             try {
-                backupService.logout()
-                if (backupService.authorize(launcher)) {
+                if (accountInteractor.authorizeGoogleBackup(launcher)) {
                     checkIsWalletBackedUpToGoogle()
                 }
             } catch (e: Exception) {
@@ -262,20 +265,7 @@ class BackupWalletViewModel @Inject constructor(
 
     private fun openCreateBackupPasswordDialog() {
         launch {
-            val secrets = accountInteractor.getMetaAccountSecrets(walletId) ?: error("There are no secrets for walletId: $walletId")
-            val entropy = secrets[MetaAccountSecrets.Entropy]
-            val substrateDerivationPath = secrets[MetaAccountSecrets.SubstrateDerivationPath]
-            val ethereumDerivationPath = secrets[MetaAccountSecrets.EthereumDerivationPath]
-            val payload = CreateBackupPasswordPayload(
-                walletId = walletId,
-                mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
-                accountName = wallet.first().name,
-                cryptoType = wallet.first().substrateCryptoType,
-                substrateDerivationPath = substrateDerivationPath.orEmpty(),
-                ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
-                createAccount = false
-            )
-            accountRouter.openCreateBackupPasswordDialogWithResult(payload)
+            accountRouter.openCreateBackupPasswordDialogWithResult()
                 .onEach { resultCode ->
                     if (resultCode == Activity.RESULT_OK) {
                         checkIsWalletBackedUpToGoogle()

@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.compose.component
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,7 +35,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.black
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -111,7 +114,7 @@ fun TextInput(
                 singleLine = true,
                 maxLines = 1,
                 keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
+                    autoCorrectEnabled = false,
                     keyboardType = when (state.mode) {
                         TextInputViewState.Mode.Text -> KeyboardType.Text
                         TextInputViewState.Mode.Password -> KeyboardType.Password
@@ -120,7 +123,6 @@ fun TextInput(
                 ),
                 visualTransformation = visualTransformation,
                 modifier = Modifier
-                    .background(color = transparent)
                     .onFocusChanged(onFocusChanged)
                     .fillMaxWidth(),
                 cursorBrush = SolidColor(colorAccentDark),
@@ -137,6 +139,9 @@ fun TextInput(
                                 overflow = TextOverflow.Ellipsis
                             )
                         },
+                        colors = TextFieldDefaults.textFieldColors(
+                            backgroundColor = transparent
+                        ),
                         singleLine = false,
                         enabled = true,
                         contentPadding = PaddingValues(),
@@ -167,9 +172,13 @@ private fun TextInputPreview() {
         hint = "Pool name",
         endIcon = R.drawable.ic_close_16_circle
     )
-    FearlessTheme {
-        Column {
-            TextInput(state, onInput = {})
-        }
+    Column(
+        modifier = Modifier
+            .background(black)
+            .padding(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        TextInput(state, onInput = {})
+        TextInput(state.copy(text = ""), onInput = {})
     }
 }

@@ -140,7 +140,7 @@ fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account? {
                 address = address,
                 name = metaAccount.name,
                 accountIdHex = accountId,
-                cryptoType = metaAccount.substrateCryptoType,
+                cryptoType = metaAccount.substrateCryptoType ?: CryptoType.SR25519,
                 position = 0
             )
         }.getOrNull()

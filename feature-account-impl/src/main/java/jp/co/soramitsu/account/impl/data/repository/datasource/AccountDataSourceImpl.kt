@@ -10,7 +10,6 @@ import jp.co.soramitsu.account.impl.data.mappers.mapChainAccountToAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToLightMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountToAccount
-import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -28,7 +27,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -42,8 +40,6 @@ import kotlinx.coroutines.withContext
 private const val PREFS_AUTH_TYPE = "auth_type"
 private const val PREFS_PIN_CODE = "pin_code"
 
-private const val PREFS_SELECTED_ACCOUNT = "selected_address"
-
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
 class AccountDataSourceImpl(
@@ -53,21 +49,8 @@ class AccountDataSourceImpl(
     private val metaAccountDao: MetaAccountDao,
     private val secretStoreV2: SecretStoreV2,
     secretStoreV1: SecretStoreV1,
-    accountDataMigration: AccountDataMigration,
     private val chainsRepository: ChainsRepository
 ) : AccountDataSource, SecretStoreV1 by secretStoreV1 {
-
-    init {
-        migrateIfNeeded(accountDataMigration)
-    }
-
-    private fun migrateIfNeeded(migration: AccountDataMigration) = async {
-        if (migration.migrationNeeded()) {
-            migration.migrate(::saveSecuritySource)
-        }
-    }
-
-    private val selectedAccountFlow = createAccountFlow()
 
     private val selectedMetaAccountLocal = metaAccountDao.selectedMetaAccountInfoFlow()
 
@@ -127,34 +110,8 @@ class AccountDataSourceImpl(
 
     override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.firstOrNull() != null
 
-    override suspend fun saveSelectedAccount(account: Account) = withContext(Dispatchers.Default) {
-        val raw = jsonMapper.toJson(account)
-        preferences.putString(PREFS_SELECTED_ACCOUNT, raw)
-
-        selectedAccountFlow.emit(account)
-    }
-
-    override fun selectedAccountFlow(): Flow<Account> {
-        return selectedAccountFlow
-    }
-
-    private suspend fun getSelectedAccountSubstrateCryptoType(): CryptoType {
-        return if (anyAccountSelected()) {
-            getSelectedLightMetaAccount().substrateCryptoType // todo add etherium support
-        } else {
-            DEFAULT_CRYPTO_TYPE
-        }
-    }
-
     override suspend fun getPreferredCryptoTypeOrSelected(metaId: Long?): CryptoType {
-        return when (metaId) {
-            null -> getSelectedAccountSubstrateCryptoType()
-            else -> getMetaAccount(metaId).substrateCryptoType
-        }
-    }
-
-    override suspend fun getSelectedAccount(): Account {
-        return selectedAccountFlow.replayCache.firstOrNull() ?: retrieveAccountFromStorage()
+        return metaId?.let { getMetaAccount(it).substrateCryptoType } ?: DEFAULT_CRYPTO_TYPE
     }
 
     override suspend fun getSelectedMetaAccount(): MetaAccount {
@@ -166,13 +123,19 @@ class AccountDataSourceImpl(
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> = selectedMetaAccountFlow
 
     override fun selectedLightMetaAccount(): Flow<LightMetaAccount> {
-        return metaAccountDao.selectedLightMetaAccountFlow().map { accountLocal ->
+        return metaAccountDao.selectedLocalMetaAccountFlow().map { accountLocal ->
             accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
-        }.filterNotNull().flowOn(Dispatchers.Default)
+        }.filterNotNull().flowOn(Dispatchers.IO)
+    }
+
+    override fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount> {
+        return metaAccountDao.observeLocalMetaAccount(metaId).map { accountLocal ->
+            accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
+        }.filterNotNull().flowOn(Dispatchers.IO)
     }
 
     override suspend fun getSelectedLightMetaAccount(): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getSelectedLightMetaAccount() }
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getSelectedLocalMetaAccount() }
         return mapMetaAccountLocalToLightMetaAccount(local)
     }
 
@@ -242,7 +205,7 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getLightMetaAccount(metaId) }
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getLocalMetaAccount(metaId) }
         return mapMetaAccountLocalToLightMetaAccount(local)
     }
 
@@ -265,25 +228,6 @@ class AccountDataSourceImpl(
         metaAccountDao.delete(metaId)
         metaAccountDao.deleteChainAccounts(metaId)
         secretStoreV2.clearSecrets(metaId, chainAccountIds)
-    }
-
-    private fun createAccountFlow(): MutableSharedFlow<Account> {
-        val flow = MutableSharedFlow<Account>(replay = 1)
-
-        async {
-            if (preferences.contains(PREFS_SELECTED_ACCOUNT)) {
-                flow.emit(retrieveAccountFromStorage())
-            }
-        }
-
-        return flow
-    }
-
-    private suspend fun retrieveAccountFromStorage(): Account = withContext(Dispatchers.Default) {
-        val raw = preferences.getString(PREFS_SELECTED_ACCOUNT)
-            ?: throw IllegalArgumentException("No account selected")
-
-        jsonMapper.fromJson(raw, Account::class.java)
     }
 
     private inline fun async(crossinline action: suspend () -> Unit) {

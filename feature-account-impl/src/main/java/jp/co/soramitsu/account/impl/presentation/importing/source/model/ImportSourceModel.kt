@@ -170,6 +170,8 @@ class JsonImportSource(
 
                 CryptoType.ECDSA -> return
             }
+
+            ImportAccountType.Ton -> return
         }
     }
 

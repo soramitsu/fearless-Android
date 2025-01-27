@@ -1,8 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.remote
 
-import android.util.Log
 import com.google.gson.Gson
-import jp.co.soramitsu.common.data.network.ton.AccountEvent
 import jp.co.soramitsu.common.data.network.ton.AccountEvents
 import jp.co.soramitsu.common.data.network.ton.EmulateMessageToWalletRequest
 import jp.co.soramitsu.common.data.network.ton.JettonTransferPayload
@@ -16,15 +14,6 @@ import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import java.util.concurrent.ConcurrentHashMap
 
 class TonRemoteSource(
     private val tonApi: TonApi,
@@ -46,8 +35,8 @@ class TonRemoteSource(
         val baseUrl = getActiveUrl(chain)
 
         val response = tonApi.getRequest("${baseUrl}/v2/wallet/$accountId/seqno")
-        val timeKeyResponse = gson.fromJson(response, Seqno::class.java)
-        return timeKeyResponse.seqno
+        val seqnoKeyResponse = gson.fromJson(response, Seqno::class.java)
+        return seqnoKeyResponse.seqno
     }
 
     suspend fun getRawTime(chain: Chain): Int {

@@ -2,10 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.unbond.select
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.os.bundleOf
@@ -140,7 +138,7 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
                 FearlessAppTheme {
                     if (isShowQuickInput) {
                         QuickInput(
-                            values = QuickAmountInput.values(),
+                            values = QuickAmountInput.entries.toTypedArray(),
                             onQuickAmountInput = {
                                 hideSoftKeyboard()
                                 viewModel.onQuickAmountInput(it)

@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.presentation.main
 import android.os.Bundle
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -14,7 +15,6 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.databinding.FragmentMainBinding
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.updatePadding
-import jp.co.soramitsu.common.view.viewBinding
 
 @AndroidEntryPoint
 class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
@@ -47,13 +47,20 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
             // overwrite BottomNavigation behavior and ignore insets
             insets
         }
+        binding.bottomNavigationViewWithFab.setOnApplyWindowInsetsListener { _, insets ->
+            // overwrite BottomNavigation behavior and ignore insets
+            insets
+        }
 
         binding.bottomNavHost.setOnApplyWindowInsetsListener { v, insets ->
             val systemWindowInsetBottom = insets.systemWindowInsetBottom
 
             // post to prevent bottomNavigationView.height being 0 if callback is called before view has been measured
             v.post {
-                val padding = (systemWindowInsetBottom - binding.bottomNavigationView.height).coerceAtLeast(0)
+                val bottomNavFabHeight = binding.bottomNavigationViewWithFab.height
+                val bottomNavHeight = binding.bottomNavigationView.height
+                val useHeight = maxOf(bottomNavFabHeight, bottomNavHeight)
+                val padding = (systemWindowInsetBottom - useHeight).coerceAtLeast(0)
                 v.updatePadding(bottom = padding)
             }
 
@@ -66,8 +73,12 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         navController = nestedNavHostFragment.navController
 
         binding.bottomNavigationView.setupWithNavController(navController!!)
+        binding.bottomNavigationViewWithFab.setupWithNavController(navController!!)
 
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
+            onNavDestinationSelected(item, navController!!)
+        }
+        binding.bottomNavigationViewWithFab.setOnItemSelectedListener { item ->
             onNavDestinationSelected(item, navController!!)
         }
 
@@ -83,8 +94,10 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
     }
 
     override fun subscribe(viewModel: MainViewModel) {
-        viewModel.stakingAvailableLiveData.observe {
-            binding.bottomNavigationView.menu.findItem(R.id.stakingFragment).isVisible = it
+        viewModel.isTonAccountSelectedFlow.observe { isTon ->
+            binding.fabMain.isVisible = isTon.not()
+            binding.bottomNavigationViewWithFab.isVisible = isTon.not()
+            binding.bottomNavigationView.isVisible = isTon
         }
     }
 

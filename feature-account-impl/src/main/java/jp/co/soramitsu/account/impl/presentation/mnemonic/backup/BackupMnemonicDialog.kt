@@ -10,6 +10,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
@@ -53,11 +54,16 @@ class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonic
 
     companion object {
         fun getBundle(
-            isFromGoogleBackup: Boolean,
-            accountName: String
+            accountName: String,
+            accountTypes: List<ImportAccountType>
         ): Bundle {
             return bundleOf(
-                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, null)
+                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(
+                    isFromGoogleBackup = true,
+                    accountName = accountName,
+                    walletId = null,
+                    accountTypes = accountTypes
+                )
             )
         }
     }

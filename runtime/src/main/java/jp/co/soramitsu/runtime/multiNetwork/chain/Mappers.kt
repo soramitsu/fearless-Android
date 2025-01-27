@@ -47,7 +47,6 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
 }
 
 private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explorer) {
-    "polkascan" -> Chain.Explorer.Type.POLKASCAN
     "subscan" -> Chain.Explorer.Type.SUBSCAN
     "etherscan" -> Chain.Explorer.Type.ETHERSCAN
     "oklink" -> Chain.Explorer.Type.OKLINK

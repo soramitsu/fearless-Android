@@ -22,6 +22,7 @@ import jp.co.soramitsu.liquiditypools.impl.domain.PoolsInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.navigation.InternalPoolsRouterImpl
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import javax.inject.Singleton
@@ -35,8 +36,9 @@ class PoolsModule {
     fun providesPoolInteractor(
         poolsRepository: PoolsRepository,
         accountRepository: AccountRepository,
-        blockExplorerManager: BlockExplorerManager
-    ): PoolsInteractor = PoolsInteractorImpl(poolsRepository, accountRepository, blockExplorerManager)
+        blockExplorerManager: BlockExplorerManager,
+        chainsRepository: ChainsRepository
+    ): PoolsInteractor = PoolsInteractorImpl(poolsRepository, accountRepository, blockExplorerManager, chainsRepository)
 
     @Provides
     @Singleton

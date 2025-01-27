@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.api.domain.model
 
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
-import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.common.utils.v4r2tonAddress
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
@@ -9,7 +9,6 @@ import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 
 class MetaAccountOrdering(
@@ -19,9 +18,9 @@ class MetaAccountOrdering(
 
 interface LightMetaAccount {
     val id: Long
-    val substratePublicKey: ByteArray
-    val substrateCryptoType: CryptoType
-    val substrateAccountId: ByteArray
+    val substratePublicKey: ByteArray?
+    val substrateCryptoType: CryptoType?
+    val substrateAccountId: ByteArray?
     val ethereumAddress: ByteArray?
     val ethereumPublicKey: ByteArray?
     val tonPublicKey: ByteArray?
@@ -33,9 +32,9 @@ interface LightMetaAccount {
 
 fun LightMetaAccount(
     id: Long,
-    substratePublicKey: ByteArray,
-    substrateCryptoType: CryptoType,
-    substrateAccountId: ByteArray,
+    substratePublicKey: ByteArray?,
+    substrateCryptoType: CryptoType?,
+    substrateAccountId: ByteArray?,
     ethereumAddress: ByteArray?,
     ethereumPublicKey: ByteArray?,
     tonPublicKey: ByteArray?,
@@ -45,9 +44,9 @@ fun LightMetaAccount(
     initialized: Boolean
 ) = object : LightMetaAccount {
     override val id: Long = id
-    override val substratePublicKey: ByteArray = substratePublicKey
-    override val substrateCryptoType: CryptoType = substrateCryptoType
-    override val substrateAccountId: ByteArray = substrateAccountId
+    override val substratePublicKey: ByteArray? = substratePublicKey
+    override val substrateCryptoType: CryptoType? = substrateCryptoType
+    override val substrateAccountId: ByteArray? = substrateAccountId
     override val ethereumAddress: ByteArray? = ethereumAddress
     override val ethereumPublicKey: ByteArray? = ethereumPublicKey
     override val tonPublicKey: ByteArray? = tonPublicKey
@@ -61,9 +60,9 @@ data class MetaAccount(
     override val id: Long,
     val chainAccounts: Map<ChainId, ChainAccount>,
     val favoriteChains: Map<ChainId, FavoriteChain>,
-    override val substratePublicKey: ByteArray,
-    override val substrateCryptoType: CryptoType,
-    override val substrateAccountId: ByteArray,
+    override val substratePublicKey: ByteArray?,
+    override val substrateCryptoType: CryptoType?,
+    override val substrateAccountId: ByteArray?,
     override val ethereumAddress: ByteArray?,
     override val ethereumPublicKey: ByteArray?,
     override val tonPublicKey: ByteArray?,
@@ -133,7 +132,7 @@ data class MetaAccount(
 
 fun MetaAccount.hasChainAccount(chainId: ChainId) = chainId in chainAccounts
 
-fun MetaAccount.cryptoType(chain: IChain): CryptoType {
+fun MetaAccount.cryptoType(chain: IChain): CryptoType? {
     return when {
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).cryptoType
         chain.isEthereumBased -> CryptoType.ECDSA
@@ -149,7 +148,7 @@ fun MetaAccount.address(chain: Chain): String? {
             chain.ecosystem == Ecosystem.Ton -> {
                 tonPublicKey?.v4r2tonAddress(chain.isTestNet)
             }
-            chain.ecosystem == Ecosystem.Substrate -> substrateAccountId.toAddress(chain.addressPrefix.toShort())
+            chain.ecosystem == Ecosystem.Substrate -> substrateAccountId?.toAddress(chain.addressPrefix.toShort())
             else -> null
         }
     }.getOrNull()
@@ -158,7 +157,7 @@ fun MetaAccount.address(chain: Chain): String? {
 fun LightMetaAccount.address(chain: Chain): String? {
     return kotlin.runCatching {
         when (chain.ecosystem) {
-            Ecosystem.Substrate -> substrateAccountId.toAddress(chain.addressPrefix.toShort())
+            Ecosystem.Substrate -> substrateAccountId?.toAddress(chain.addressPrefix.toShort())
             Ecosystem.EthereumBased,
             Ecosystem.Ethereum -> ethereumAddress?.ethereumAddressToHex()
             Ecosystem.Ton -> {
@@ -167,6 +166,18 @@ fun LightMetaAccount.address(chain: Chain): String? {
         }
     }.getOrNull()
 }
+
+fun LightMetaAccount.supportedEcosystemWithIconAddress(): Map<WalletEcosystem, String> = listOfNotNull(
+    tonPublicKey?.let { WalletEcosystem.Ton to it.v4r2tonAddress(false) },
+    substratePublicKey?.let { WalletEcosystem.Substrate to it.toAddress(0.toShort()) }, // 0 = polkadotAddressPrefix
+    ethereumPublicKey?.let { WalletEcosystem.Evm to it.ethereumAddressToHex() }
+).toMap()
+
+fun LightMetaAccount.supportedEcosystems(): Set<WalletEcosystem> = setOfNotNull(
+    tonPublicKey?.let { WalletEcosystem.Ton },
+    substratePublicKey?.let { WalletEcosystem.Substrate },
+    ethereumPublicKey?.let { WalletEcosystem.Evm }
+)
 
 fun MetaAccount.chainAddress(chain: Chain): String? {
     return when {
@@ -186,3 +197,11 @@ fun MetaAccount.accountId(chain: IChain): ByteArray? {
     }
 }
 
+val MetaAccount.hasSubstrate
+    get() = substrateAccountId != null
+
+val MetaAccount.hasEthereum
+    get() = ethereumPublicKey != null
+
+val MetaAccount.hasTon
+    get() = tonPublicKey != null

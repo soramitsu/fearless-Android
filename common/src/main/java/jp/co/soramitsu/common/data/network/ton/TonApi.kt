@@ -32,20 +32,4 @@ interface TonApi {
         @Query("start_date") startFate: Long? = null,
         @Query("end_date") endDate: Long? = null
     ): AccountEvents
-//    if (initiator != null) {
-//                    put("initiator", listOf(initiator.toString()))
-//                }
-//                if (subjectOnly != null) {
-//                    put("subject_only", listOf(subjectOnly.toString()))
-//                }
-//                if (beforeLt != null) {
-//                    put("before_lt", listOf(beforeLt.toString()))
-//                }
-//                put("limit", listOf(limit.toString()))
-//                if (startDate != null) {
-//                    put("start_date", listOf(startDate.toString()))
-//                }
-//                if (endDate != null) {
-//                    put("end_date", listOf(endDate.toString()))
-//                }
 }

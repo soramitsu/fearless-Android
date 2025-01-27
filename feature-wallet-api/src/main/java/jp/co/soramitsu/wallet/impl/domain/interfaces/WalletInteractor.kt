@@ -1,24 +1,24 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
-import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
-import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
@@ -29,9 +29,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
@@ -96,8 +93,6 @@ interface WalletInteractor {
 
     suspend fun getChain(chainId: ChainId): Chain
 
-    suspend fun getMetaAccountSecrets(metaId: Long? = null): EncodableStruct<MetaAccountSecrets>?
-
     suspend fun getSelectedMetaAccount(): MetaAccount
 
     suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId): String?
@@ -140,9 +135,6 @@ interface WalletInteractor {
 
     fun observeSelectedAccountChainSelectFilter(): Flow<String>
 
-
-    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
-
     fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
 
     fun applyAssetSorting(sorting: AssetSorting)
@@ -161,4 +153,5 @@ interface WalletInteractor {
     fun observeCurrentAccountChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
     suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String>
     suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
+    suspend fun getExportSourceTypes(chainId: ChainId, walletId: Long? = null): MutableSet<ExportSource>
 }

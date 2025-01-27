@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.feature_account_impl.R
 
 data class ProfileScreenState(
@@ -52,13 +53,21 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             H1(text = stringResource(R.string.profile_settings_title))
             MarginVertical(margin = 16.dp)
-            WalletItem(state = state.walletState, onOptionsClick = callback::onWalletOptionsClick, onScoreClick = callback::onScoreClick)
+            WalletItem(
+                state = state.walletState,
+                onOptionsClick = callback::onWalletOptionsClick.takeIf {
+                    state.walletState.onlyTonSupported.not()
+                },
+                onScoreClick = callback::onScoreClick
+            )
         }
         MarginVertical(margin = 16.dp)
         SettingsItem(icon = painterResource(R.drawable.ic_settings_wallets), text = stringResource(R.string.profile_wallets_title), action = state.walletsItemAction, onClick = callback::walletsClicked)
         SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
-        SettingsDivider()
+        if (state.walletState.onlyTonSupported.not()) {
+            SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
+            SettingsDivider()
+        }
         if (state.soraCardVisible) {
             SettingsItem(
                 icon = painterResource(R.drawable.ic_card),
@@ -71,10 +80,12 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_language), text = stringResource(R.string.profile_language_title), action = SettingsItemAction.Selector(state.language), onClick = callback::languagesClicked)
         SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_score_star_full_24_pink), text = stringResource(R.string.profile_account_score_title), action = SettingsItemAction.Switch(state.nomisChecked), onClick = callback::onNomisMultichainScoreContainerClick)
-        SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_polkaswap_logo), text = stringResource(R.string.polkaswap_disclaimer_settings_item), onClick = callback::polkaswapDisclaimerClicked)
-        SettingsDivider()
+        if (state.walletState.onlyTonSupported.not()) {
+            SettingsItem(icon = painterResource(R.drawable.ic_score_star_full_24_pink), text = stringResource(R.string.profile_account_score_title), action = SettingsItemAction.Switch(state.nomisChecked), onClick = callback::onNomisMultichainScoreContainerClick)
+            SettingsDivider()
+            SettingsItem(icon = painterResource(R.drawable.ic_polkaswap_logo), text = stringResource(R.string.polkaswap_disclaimer_settings_item), onClick = callback::polkaswapDisclaimerClicked)
+            SettingsDivider()
+        }
         SettingsItem(icon = painterResource(R.drawable.ic_pin_24), text = stringResource(R.string.profile_pincode_change_title), onClick = callback::changePinCodeClicked)
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_info_primary_24), text = stringResource(R.string.about_title), onClick = callback::aboutClicked)
@@ -96,7 +107,8 @@ fun ProfileScreenPreview() {
                 percentChange = "+5.67%",
                 fiatChange = "$2345.32"
             ),
-            score = 50
+            score = 50,
+//            supportedEcosystems = setOf(WalletEcosystem.Ton)
         ),
         currency = "USD",
         language = "ENG",

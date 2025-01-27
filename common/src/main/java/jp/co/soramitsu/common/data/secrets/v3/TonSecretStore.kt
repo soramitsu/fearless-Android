@@ -22,11 +22,13 @@ class TonSecretStore(private val encryptedPreferences: EncryptedPreferences): Se
 }
 
 object TonSecrets : Schema<TonSecrets>() {
+    val Seed by byteArray()
     val PrivateKey by byteArray()
     val PublicKey by byteArray()
 }
 
-fun TonSecrets(tonKeypair: Keypair): EncodableStruct<TonSecrets> = TonSecrets { secrets ->
+fun TonSecrets(seed: ByteArray, tonKeypair: Keypair): EncodableStruct<TonSecrets> = TonSecrets { secrets ->
+    secrets[Seed] = seed
     secrets[PrivateKey] = tonKeypair.privateKey
     secrets[PublicKey] = tonKeypair.publicKey
 }

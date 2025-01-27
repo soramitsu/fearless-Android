@@ -62,7 +62,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.onResume()
     }
 
-    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(
         padding: PaddingValues,

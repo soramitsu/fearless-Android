@@ -29,7 +29,7 @@ import jp.co.soramitsu.feature_account_impl.R
 const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
 @AndroidEntryPoint
-class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetailsViewModel>(), ChainAccountsAdapter.Handler {
+class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetailsViewModel>() {
 
     override val viewModel: AccountDetailsViewModel by viewModels()
 
@@ -58,40 +58,12 @@ class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetails
 
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
-        viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
-        viewModel.openPlayMarket.observeEvent { openPlayMarket() }
     }
 
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
         behavior.skipCollapsed = true
-    }
-
-    private fun showUnsupportedChainAlert() {
-        AlertBottomSheet.Builder(requireContext())
-            .setTitle(R.string.update_needed_text)
-            .setMessage(R.string.chain_unsupported_text)
-            .setButtonText(R.string.common_update)
-            .callback { viewModel.updateAppClicked() }
-            .build()
-            .show()
-    }
-
-    private fun openPlayMarket() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
-        } catch (e: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
-        }
-    }
-
-    override fun chainAccountClicked(item: AccountInChainUi) {
-        viewModel.chainAccountClicked(item)
-    }
-
-    override fun chainAccountOptionsClicked(item: AccountInChainUi) {
-        viewModel.chainAccountOptionsClicked(item)
     }
 
     private fun showAccountActions(payload: ExternalAccountActions.Payload) {

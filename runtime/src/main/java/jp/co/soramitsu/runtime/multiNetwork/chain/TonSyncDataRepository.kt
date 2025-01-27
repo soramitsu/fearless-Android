@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
-import android.util.Log
 import jp.co.soramitsu.common.data.network.ton.JettonsBalances
 import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain

@@ -67,6 +67,10 @@ class SubstrateBalanceLoader(
 
     override suspend fun loadBalance(metaAccounts: Set<MetaAccount>): List<AssetBalanceUpdateItem> {
         return supervisorScope {
+            val metaAccountsWithSubstrate = metaAccounts.filter { it.substratePublicKey != null || it.ethereumPublicKey != null }
+            if(metaAccountsWithSubstrate.isEmpty()) {
+                return@supervisorScope emptyList()
+            }
             val emptyAssets: MutableList<AssetBalanceUpdateItem> = mutableListOf()
             val runtime = withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
                 if (chainRegistry.checkChainSyncedUp(chain).not()) {
@@ -78,9 +82,9 @@ class SubstrateBalanceLoader(
             }
 
             val allAccountsStorageKeys =
-                metaAccounts.map { metaAccount ->
+                metaAccountsWithSubstrate.mapNotNull { metaAccount ->
                     val accountId =
-                        metaAccount.substrateAccountId
+                        metaAccount.substrateAccountId ?: return@mapNotNull null
 
                     buildSubstrateStorageKeys(
                         chain,

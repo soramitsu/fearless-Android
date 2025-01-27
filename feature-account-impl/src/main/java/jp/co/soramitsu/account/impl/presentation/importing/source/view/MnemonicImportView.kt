@@ -2,7 +2,6 @@ package jp.co.soramitsu.account.impl.presentation.importing.source.view
 
 import android.content.Context
 import android.util.AttributeSet
-import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
@@ -16,7 +15,6 @@ import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceMnemonicBind
 
 class MnemonicImportView @JvmOverloads constructor(
     context: Context,
-    isChainAccount: Boolean,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_mnemonic, context, attrs, defStyleAttr) {
@@ -30,9 +28,6 @@ class MnemonicImportView @JvmOverloads constructor(
         binding.importMnemonicContentContainer.background = context.getIdleDrawable()
 
         binding.importMnemonicUsernameInput.content.filters = nameInputFilters()
-
-        binding.importMnemonicUsernameInput.isVisible = !isChainAccount
-        binding.usernameHintTv.isVisible = !isChainAccount
     }
 
     override fun observeSource(source: ImportSource, blockchainType: ImportAccountType, lifecycleOwner: LifecycleOwner) {

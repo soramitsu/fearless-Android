@@ -83,7 +83,7 @@ interface WalletRepository {
 
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
 
-    suspend fun getRemoteConfig(): Result<AppConfigRemote>
+    suspend fun getRemoteConfig(): AppConfigRemote
 
     suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?

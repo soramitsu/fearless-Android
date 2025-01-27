@@ -35,8 +35,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
-
 @HiltViewModel
 class SelectWalletViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
@@ -44,7 +42,6 @@ class SelectWalletViewModel @Inject constructor(
     private val nomisScoreInteractor: NomisScoreInteractor,
     private val router: WalletRouter,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val backupService: BackupService,
     private val resourceManager: ResourceManager,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel() {
@@ -143,12 +140,6 @@ class SelectWalletViewModel @Inject constructor(
          router.openCreateAccountFromWallet()
     }
 
-    fun importWallet() {
-        router.openSelectImportModeForResult()
-            .onEach(::handleSelectedImportMode)
-            .launchIn(viewModelScope)
-    }
-
     fun onBackClicked() {
         router.back()
     }
@@ -157,27 +148,9 @@ class SelectWalletViewModel @Inject constructor(
         router.openOptionsWallet(item.id)
     }
 
-    private fun handleSelectedImportMode(importMode: ImportMode) {
-        when (importMode) {
-            ImportMode.Google -> {
-                googleAuthorizeLiveData.value = Event(Unit)
-            }
-            ImportMode.Preinstalled -> {
-                importPreInstalledWalletLiveData.value = Event(Unit)
-            }
-            else -> {
-                router.openImportAccountScreen(
-                    blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
-                    importMode = importMode
-                )
-            }
-        }
-    }
-
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         launch {
-            backupService.logout()
-            if (backupService.authorize(launcher)) {
+            if (accountInteractor.authorizeGoogleBackup(launcher)) {
                 openAddWalletThroughGoogleScreen()
             }
         }
@@ -186,7 +159,7 @@ class SelectWalletViewModel @Inject constructor(
     fun openAddWalletThroughGoogleScreen() {
         launch {
             runCatching {
-                backupService.getBackupAccounts()
+                accountInteractor.getGoogleBackupAccounts()
             }.onFailure {
                 showError(
                     title = resourceManager.getString(R.string.common_error_general_title),

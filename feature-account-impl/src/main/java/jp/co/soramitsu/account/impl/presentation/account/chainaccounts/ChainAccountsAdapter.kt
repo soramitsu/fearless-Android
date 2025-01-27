@@ -1,4 +1,4 @@
-package jp.co.soramitsu.account.impl.presentation.account.details
+package jp.co.soramitsu.account.impl.presentation.account.chainaccounts
 
 import android.view.View
 import android.view.ViewGroup

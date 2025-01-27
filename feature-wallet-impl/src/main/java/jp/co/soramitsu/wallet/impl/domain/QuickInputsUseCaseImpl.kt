@@ -1,9 +1,14 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
@@ -17,14 +22,11 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import kotlin.coroutines.CoroutineContext
 
 private const val CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER = 1.1
 
@@ -210,7 +212,11 @@ class QuickInputsUseCaseImpl(
                 if (asset.token.configuration.isUtility) tipAmount else BigDecimal.ZERO
             val allAmount = asset.transferable
 
-            val quickAmounts = inputValues.map { input ->
+            val quickAmounts = if (chain.ecosystem == Ecosystem.Ton) {
+                listOf(QuickAmountInput.MAX.value)
+            } else {
+                inputValues
+            }.map { input ->
                 async {
                     val amountToTransfer = (allAmount * input.toBigDecimal()).setScale(
                         asset.token.configuration.precision,

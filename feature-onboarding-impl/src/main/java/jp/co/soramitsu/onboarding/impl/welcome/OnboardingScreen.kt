@@ -87,7 +87,6 @@ fun NavGraphBuilder.OnboardingScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OnboardingScreenContent(
     background: String?,

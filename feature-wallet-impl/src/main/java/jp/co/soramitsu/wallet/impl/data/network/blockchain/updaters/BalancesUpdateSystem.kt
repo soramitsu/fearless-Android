@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -45,7 +46,7 @@ class BalancesUpdateSystem(
             chainRegistry.syncedChains,
             metaAccountDao.selectedMetaAccountInfoFlow().filterNotNull()
         ) { chains, accountInfo ->
-            chainRegistry.configsSyncDeferred.joinAll()
+//            chainRegistry.configsSyncDeferred.awaitAll()
             scope.coroutineContext.cancelChildren()
             val metaAccount =
                 mapMetaAccountLocalToMetaAccount(chains.associateBy { it.id }, accountInfo)

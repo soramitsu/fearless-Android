@@ -44,6 +44,7 @@ import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistor
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
+import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -421,7 +422,6 @@ private fun Operation.Type.Extrinsic.formattedAndReplaced() = listOf(module, cal
 
 suspend fun mapOperationToOperationModel(
     operation: Operation,
-    nameIdentifier: AddressDisplayUseCase.Identifier,
     resourceManager: ResourceManager,
     iconGenerator: AddressIconGenerator,
     ecosystem: Ecosystem
@@ -451,7 +451,6 @@ suspend fun mapOperationToOperationModel(
                     operationType,
                     ecosystem,
                     iconGenerator,
-                    nameIdentifier,
                     statusAppearance,
                     resourceManager
                 )
@@ -498,7 +497,6 @@ private suspend fun Operation.createTransferOperationModel(
     operationType: Operation.Type.Transfer,
     ecosystem: Ecosystem,
     iconGenerator: AddressIconGenerator,
-    nameIdentifier: AddressDisplayUseCase.Identifier,
     statusAppearance: OperationStatusAppearance,
     resourceManager: ResourceManager
 ): OperationModel {
@@ -523,6 +521,13 @@ private suspend fun Operation.createTransferOperationModel(
             )
         }
 
+        Ecosystem.Ton -> {
+            iconGenerator.createWalletIcon(
+                WalletEcosystem.Ton,
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+
         else -> null
     }
 
@@ -531,7 +536,7 @@ private suspend fun Operation.createTransferOperationModel(
         time = time,
         amount = formatDetailsAmount(chainAsset, operationType),
         amountColor = amountColor,
-        header = nameIdentifier.nameOrAddress(operationType.displayAddress),
+        header = operationType.displayAddress,
         statusAppearance = statusAppearance,
         operationIcon = operationIcon,
         subHeader = resourceManager.getString(R.string.transfer_title),

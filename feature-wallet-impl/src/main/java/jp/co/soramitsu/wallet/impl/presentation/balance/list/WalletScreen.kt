@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,8 @@ import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.BannerBackup
 import jp.co.soramitsu.common.compose.component.BannerBuyXor
+import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
+import jp.co.soramitsu.common.compose.component.BannerJoinTon
 import jp.co.soramitsu.common.compose.component.BannerGetSoraCard
 import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
@@ -48,6 +51,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NFTScreen
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 import jp.co.soramitsu.wallet.impl.presentation.common.NetworkIssue
+import kotlinx.coroutines.delay
 
 @Stable
 interface WalletScreenInterface : AssetsListInterface {
@@ -59,6 +63,10 @@ interface WalletScreenInterface : AssetsListInterface {
     fun buyXorClose()
     fun onBackupClicked()
     fun onBackupCloseClick()
+    fun onJoinSubOrEvmClicked()
+    fun onJoinSubOrEvmCloseClick()
+    fun onJoinTonClicked()
+    fun onJoinTonCloseClick()
     fun assetTypeChanged(type: AssetType)
     fun onRefresh()
     fun onManageAssetClick()
@@ -107,11 +115,13 @@ fun WalletScreen(
             onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClicked
         )
-        MarginVertical(margin = 16.dp)
-        MultiToggleButton(
-            state = data.multiToggleButtonState,
-            onToggleChange = callback::assetTypeChanged
-        )
+        if (data.showCurrenciesOrNftSelector) {
+            MarginVertical(margin = 16.dp)
+            MultiToggleButton(
+                state = data.multiToggleButtonState,
+                onToggleChange = callback::assetTypeChanged
+            )
+        }
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
@@ -138,7 +148,11 @@ fun WalletScreen(
 }
 
 @Composable
-private fun Banners(data: WalletState, callback: WalletScreenInterface) {
+private fun Banners(
+    data: WalletState,
+    callback: WalletScreenInterface,
+    autoPlay: Boolean = true
+) {
     val soraCardFiatItem: @Composable (() -> Unit)? =
         if (data.soraCardState.soraCardProgress == SoraCardProgress.KYC_IBAN) {
             {
@@ -183,12 +197,56 @@ private fun Banners(data: WalletState, callback: WalletScreenInterface) {
     } else {
         null
     }
-    val banners = listOfNotNull(getSoraCardBanner, buyXorBanner, backupBanner)
+
+    val joinSubOrEvmBanner: @Composable (() -> Unit)? = if (!data.hasSubOrEvmAccounts) {
+        {
+            BannerJoinSubstrateEvm(
+                onClick = callback::onJoinSubOrEvmClicked,
+                onCloseClick = callback::onJoinSubOrEvmCloseClick,
+            )
+        }
+    } else {
+        null
+    }
+
+    val joinTonBanner: @Composable (() -> Unit)? = if (!data.hasTonAccounts) {
+        {
+            BannerJoinTon(
+                onClick = callback::onJoinTonClicked,
+                onCloseClick = callback::onJoinTonCloseClick,
+            )
+        }
+    } else {
+        null
+    }
+
+    val banners = listOfNotNull(getSoraCardBanner, buyXorBanner, backupBanner, joinSubOrEvmBanner, joinTonBanner)
     val bannersCount = banners.size
+    val pagerState = rememberPagerState { bannersCount }
+
+    if (bannersCount > 1) {
+        // Auto play
+        LaunchedEffect(key1 = autoPlay) {
+            if (autoPlay) {
+                while (true) {
+                    delay(5000L)
+                    with(pagerState) {
+                        animateScrollToPage(
+                            page = (currentPage + 1) % bannersCount,
+                            animationSpec = tween(
+                                durationMillis = 500,
+                                easing = FastOutSlowInEasing
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     val bannersCarousel: @Composable (() -> Unit)? =
         banners.takeIf { it.isNotEmpty() }?.let {
             {
-                val pagerState = rememberPagerState { bannersCount }
                 HorizontalPager(
                     modifier = Modifier.fillMaxWidth(),
                     state = pagerState,
@@ -282,6 +340,10 @@ private fun PreviewWalletScreen() {
             TODO()
         }
 
+        override fun onJoinSubOrEvmClicked() {}
+        override fun onJoinSubOrEvmCloseClick() {}
+        override fun onJoinTonClicked() {}
+        override fun onJoinTonCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {
             TODO()
         }
@@ -360,6 +422,9 @@ private fun PreviewWalletScreen() {
                         loading = false,
                     ),
                     isBackedUp = false,
+                    hasTonAccounts = false,
+                    hasSubOrEvmAccounts = false,
+                    showCurrenciesOrNftSelector = false,
                     scrollToTopEvent = null,
                     scrollToBottomEvent = null
                 ),

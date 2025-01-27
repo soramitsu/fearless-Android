@@ -1,4 +1,4 @@
-package jp.co.soramitsu.account.impl.presentation.account.details
+package jp.co.soramitsu.account.impl.presentation.account.chainaccounts
 
 import android.graphics.drawable.Drawable
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain

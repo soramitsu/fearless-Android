@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -104,6 +105,7 @@ class WalletRepositoryImpl(
             chainsRepository.chainsByIdFlow(),
             assetDao.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
+
             val chainAccounts = meta.chainAccounts.values.toList()
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
@@ -381,8 +383,8 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 
-    override suspend fun getRemoteConfig(): Result<AppConfigRemote> {
-        return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }
+    override suspend fun getRemoteConfig(): AppConfigRemote {
+        return remoteConfigFetcher.getAppConfig()
     }
 
     override suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId? {

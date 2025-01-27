@@ -10,6 +10,10 @@ import java.util.Timer
 import java.util.TimerTask
 import javax.inject.Inject
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.domain.AppInitializer
+import jp.co.soramitsu.app.root.domain.InitializationStep
+import jp.co.soramitsu.app.root.domain.InitializeResult
+import jp.co.soramitsu.app.root.domain.NotSupportedAppVersionException
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -21,11 +25,9 @@ import kotlin.concurrent.timerTask
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -33,6 +35,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
+    private val appInitializer: AppInitializer,
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
@@ -48,8 +51,8 @@ class RootViewModel @Inject constructor(
     private val _showUnsupportedAppVersionAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedAppVersionAlert: LiveData<Event<Unit>> = _showUnsupportedAppVersionAlert
 
-    private val _showNoInternetConnectionAlert = MutableLiveData<Event<Unit>>()
-    val showNoInternetConnectionAlert: LiveData<Event<Unit>> = _showNoInternetConnectionAlert
+    private val _showNoInternetConnectionAlert = MutableLiveData<Event<InitializationStep>>()
+    val showNoInternetConnectionAlert: LiveData<Event<InitializationStep>> = _showNoInternetConnectionAlert
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
@@ -60,57 +63,35 @@ class RootViewModel @Inject constructor(
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
-    private var shouldHandleResumeInternetConnection = false
-
     init {
         viewModelScope.launch {
-            syncConfigs()
+            startAppInitializer()
         }
         observeWalletConnectEvents()
     }
 
-    private suspend fun syncConfigs() {
-        coroutineScope {
-            checkAppVersion()
-            interactor.fetchFeatureToggle()
-            interactor.syncChainsConfigs().onFailure {
-                _showNoInternetConnectionAlert.value = Event(Unit)
+    private suspend fun startAppInitializer(startFrom: InitializationStep = InitializationStep.All) {
+        val result = appInitializer.invoke()
+        when(result) {
+            is InitializeResult.ErrorCanRetry -> {
+                if(result.error is NotSupportedAppVersionException) {
+                    _showUnsupportedAppVersionAlert.value = Event(Unit)
+                } else {
+                    _showNoInternetConnectionAlert.value = Event(result.step)
+                }
+//                startAppInitializer(result.step)
+            }
+            InitializeResult.Success -> {
+
             }
         }
     }
 
-    private suspend  fun checkAppVersion() {
-            val appConfigResult = interactor.getRemoteConfig()
-            if (appConfigResult.getOrNull()?.isCurrentVersionSupported == false) {
-                _showUnsupportedAppVersionAlert.value = Event(Unit)
-            } else {
-                runBalancesUpdate()
-            }
-    }
-
-    private fun runBalancesUpdate() {
-        if (shouldHandleResumeInternetConnection) {
-            shouldHandleResumeInternetConnection = false
-            interactor.chainRegistrySyncUp()
-        }
-        viewModelScope.launch {
-            interactor.runWalletsSync()
-            interactor.runBalancesUpdate()
-                .onEach { handleUpdatesSideEffect(it) }
-                .launchIn(this)
-        }
-        updatePhishingAddresses()
-    }
-
-    private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
-        // pass
-    }
-
-    private fun updatePhishingAddresses() {
-        viewModelScope.launch {
-            interactor.updatePhishingAddresses()
-        }
-    }
+//    private suspend fun isCurrentAppVersionSupporoted(): Boolean {
+//        val appConfigResult = interactor.getRemoteConfig()
+//        return appConfigResult.getOrNull()?.isCurrentVersionSupported == true
+//
+//    }
 
     override fun onCleared() {
         super.onCleared()
@@ -178,14 +159,15 @@ class RootViewModel @Inject constructor(
         }
     }
 
-    fun retryLoadConfigClicked() {
+    fun retryLoadConfigClicked(step: InitializationStep) {
         viewModelScope.launch {
-            syncConfigs()
+            startAppInitializer(step)
         }
     }
 
     private val _showConnectingBar = MutableStateFlow<Boolean>(false)
     val showConnectingBar: StateFlow<Boolean> = _showConnectingBar
+
     fun onNetworkAvailable() {
         _showConnectingBar.update { false }
         // todo this code triggers redundant requests and balance updates. Needs research
@@ -204,16 +186,19 @@ class RootViewModel @Inject constructor(
                 is Wallet.Model.SessionProposal -> {
                     handleSessionProposal(it)
                 }
+
                 is Wallet.Model.SessionRequest -> {
                     handleSessionRequest(it)
                 }
+
                 else -> {}
             }
         }.stateIn(this, SharingStarted.Eagerly, null)
     }
 
     private suspend fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
-        val pendingListOfSessionRequests = interactor.getPendingListOfSessionRequests(sessionRequest.topic)
+        val pendingListOfSessionRequests =
+            interactor.getPendingListOfSessionRequests(sessionRequest.topic)
         if (pendingListOfSessionRequests.isEmpty()) {
             return
         }

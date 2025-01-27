@@ -5,7 +5,6 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.EthereumDerivationPath
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
@@ -31,10 +30,10 @@ class TonMigration(
         runBlocking {
             db.beginTransaction()
             // 1. New fields in chain (ecosystem, androidMinAppVersion) and remove old ethereumType from chain_asset
-            // 2. New field in meta_accounts (tonPublicKey)
+            // 2. New field in meta_accounts (tonPublicKey), make substrate accounts nullable
             // 3. Change cascade delete of assets to no_action to avoid clearing user settings (enable/disable assets)
             // 4. Change TokenPriceLocal configuration
-            db.execSQL("ALTER TABLE meta_accounts ADD COLUMN `tonPublicKey` BLOB DEFAULT NULL")
+            migrateMetaAccounts(db)
 
             recreateChainsAndAssets(db)
             recreateTokenPrice(db)
@@ -44,6 +43,57 @@ class TonMigration(
             db.setTransactionSuccessful()
             db.endTransaction()
         }
+    }
+
+    private fun migrateMetaAccounts(db: SupportSQLiteDatabase){
+        db.execSQL("PRAGMA foreign_keys = OFF;")
+        db.execSQL("DROP TABLE IF EXISTS _meta_accounts")
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `_meta_accounts` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            `substratePublicKey` BLOB,
+            `substrateCryptoType` TEXT,
+            `substrateAccountId` BLOB,
+            `ethereumPublicKey` BLOB,
+            `ethereumAddress` BLOB,
+            `tonPublicKey` BLOB,
+            `name` TEXT NOT NULL,
+            `isSelected` INTEGER NOT NULL,
+            `position` INTEGER NOT NULL,
+            `isBackedUp` INTEGER NOT NULL,
+            `googleBackupAddress` TEXT,
+            `initialized` INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            INSERT INTO _meta_accounts SELECT 
+            m.id,
+            m.substratePublicKey,
+            m.substrateCryptoType,
+            m.substrateAccountId,
+            m.ethereumPublicKey,
+            m.ethereumAddress,
+            NULL as `tonPublicKey`,
+            m.name,
+            m.isSelected,
+            m.position,
+            m.isBackedUp,
+            m.googleBackupAddress,
+            m.initialized
+            FROM meta_accounts m
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE IF EXISTS `meta_accounts`")
+        db.execSQL("ALTER TABLE _meta_accounts RENAME TO meta_accounts")
+
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_tonPublicKey` ON `meta_accounts` (`tonPublicKey`)")
+        db.execSQL("PRAGMA foreign_keys = ON;")
     }
 
     private fun recreateChainsAndAssets(db: SupportSQLiteDatabase) {
@@ -219,7 +269,7 @@ class TonMigration(
     }
 
     private fun recreateTokenPrice(db: SupportSQLiteDatabase) {
-        db.execSQL("DROP TABLE IF EXISTS `chains`")
+        db.execSQL("DROP TABLE IF EXISTS `token_price`")
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `token_price` (
@@ -270,7 +320,7 @@ class TonMigration(
                     entropy = entropy,
                     seed = ethereumKeypair.privateKey,
                     ethereumKeypair = ethereumKeypair,
-                    ethereumDerivationPath = oldSecrets[EthereumDerivationPath]
+                    ethereumDerivationPath = oldSecrets[MetaAccountSecretsV69.EthereumDerivationPath]
                 )
                 ethereumSecretStore.put(metaId, newEthereumSecrets)
             }

@@ -23,7 +23,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.GoogleButton
 import jp.co.soramitsu.common.compose.component.GrayButton
@@ -34,6 +37,7 @@ import jp.co.soramitsu.common.compose.component.TransparentBorderedButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.feature_onboarding_impl.R
 import kotlinx.coroutines.flow.StateFlow
 
@@ -45,8 +49,8 @@ data class WelcomeState(
 interface WelcomeScreenInterface {
     fun backClicked()
 
-    fun importAccountClicked()
-    fun createAccountClicked()
+    fun importAccountClicked(accountType: AccountType)
+    fun createAccountClicked(accountType: AccountType)
     fun googleSigninClicked()
     fun getPreInstalledWalletClicked()
     fun privacyClicked()
@@ -59,12 +63,24 @@ fun NavGraphBuilder.WelcomeScreen(
     isGoogleAvailable: Boolean,
     callbacks: WelcomeScreenInterface
 ) {
-    composable(WelcomeEvent.Onboarding.WelcomeScreen.route) {
+    composable(
+        WelcomeEvent.Onboarding.WelcomeScreen.route,
+        arguments = listOf(
+            navArgument("accountType") {
+                type = NavType.StringType
+                nullable = false
+            }
+        )
+    ) {
         val state by welcomeStateFlow.collectAsState()
+        val accountType = it.arguments?.getString("accountType")?.let { stringValue ->
+            AccountType.valueOf(stringValue)
+        } ?: throw IllegalStateException("accountType can't be null")
 
         WelcomeScreenContent(
             state = state,
             isGoogleAvailable = isGoogleAvailable,
+            accountType = accountType,
             callbacks = callbacks
         )
     }
@@ -74,6 +90,7 @@ fun NavGraphBuilder.WelcomeScreen(
 private fun WelcomeScreenContent(
     state: WelcomeState,
     isGoogleAvailable: Boolean,
+    accountType: AccountType,
     callbacks: WelcomeScreenInterface
 ) {
     Column(
@@ -109,7 +126,7 @@ private fun WelcomeScreenContent(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .height(48.dp),
-            onClick = callbacks::createAccountClicked
+            onClick = { callbacks.createAccountClicked(accountType) }
         )
         MarginVertical(margin = 8.dp)
         GrayButton(
@@ -118,10 +135,10 @@ private fun WelcomeScreenContent(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .height(48.dp),
-            onClick = callbacks::importAccountClicked
+            onClick = { callbacks.importAccountClicked(accountType) }
         )
 
-        if (isGoogleAvailable) {
+        if (isGoogleAvailable && accountType == AccountType.SubstrateOrEvm) {
             MarginVertical(margin = 8.dp)
             GoogleButton(
                 modifier = Modifier
@@ -129,7 +146,7 @@ private fun WelcomeScreenContent(
                 onClick = callbacks::googleSigninClicked
             )
         }
-        if (state.preinstalledFeatureEnabled) {
+        if (state.preinstalledFeatureEnabled && accountType == AccountType.SubstrateOrEvm) {
             MarginVertical(margin = 8.dp)
             TransparentBorderedButton(
                 iconRes = R.drawable.ic_common_receive,
@@ -177,10 +194,11 @@ private fun WelcomeScreenPreview() {
         WelcomeScreenContent(
             state = WelcomeState(isBackVisible = true),
             isGoogleAvailable = true,
+            accountType = AccountType.SubstrateOrEvm,
             callbacks = object : WelcomeScreenInterface {
                 override fun backClicked() {}
-                override fun importAccountClicked() {}
-                override fun createAccountClicked() {}
+                override fun importAccountClicked(accountType: AccountType) {}
+                override fun createAccountClicked(accountType: AccountType) {}
                 override fun googleSigninClicked() {}
                 override fun getPreInstalledWalletClicked() {}
                 override fun privacyClicked() {}

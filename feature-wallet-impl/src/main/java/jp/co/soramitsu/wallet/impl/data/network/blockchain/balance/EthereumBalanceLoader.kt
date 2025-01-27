@@ -31,7 +31,7 @@ class EthereumBalanceLoader(
 
     override suspend fun loadBalance(metaAccounts: Set<MetaAccount>): List<AssetBalanceUpdateItem> {
         return supervisorScope {
-            val accountsDeferred = metaAccounts.map { metaAccount ->
+            val accountsDeferred = metaAccounts.filter { it.ethereumPublicKey != null }.map { metaAccount ->
                 async {
                     val address = metaAccount.address(chain) ?: return@async emptyList()
                     val accountId = metaAccount.accountId(chain) ?: return@async emptyList()

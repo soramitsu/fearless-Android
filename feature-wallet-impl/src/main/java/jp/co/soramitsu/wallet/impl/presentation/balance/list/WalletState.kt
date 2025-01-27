@@ -9,9 +9,12 @@ import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
 import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetListState
 
 @Stable
@@ -22,6 +25,9 @@ data class WalletState(
     val hasNetworkIssues: Boolean,
     val soraCardState: SoraCardItemViewState,
     val isBackedUp: Boolean,
+    val hasTonAccounts: Boolean,
+    val hasSubOrEvmAccounts: Boolean,
+    val showCurrenciesOrNftSelector: Boolean,
     val scrollToTopEvent: Event<Unit>?,
     val scrollToBottomEvent: Event<Unit>?,
 ) {
@@ -33,6 +39,9 @@ data class WalletState(
             hasNetworkIssues = false,
             soraCardState = SoraCardItemViewState(visible = true, loading = true, success = false, iban = null, soraCardProgress = SoraCardProgress.START),
             isBackedUp = true,
+            hasTonAccounts = false,
+            hasSubOrEvmAccounts = false,
+            showCurrenciesOrNftSelector = false,
             scrollToTopEvent = null,
             scrollToBottomEvent = null
         )

@@ -1,13 +1,19 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
+import jp.co.soramitsu.account.api.domain.model.hasEthereum
+import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -22,6 +28,7 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
+import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -73,6 +80,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelec
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -97,10 +105,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 
 @HiltViewModel
 class SendSetupViewModel @Inject constructor(
@@ -282,7 +286,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private val feeAmountFlow = combine(
         addressInputTrimmedFlow,
         isInputAddressValidFlow,
@@ -319,6 +323,7 @@ class SendSetupViewModel @Inject constructor(
         asset.token.planksFromAmount(fee)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
         walletInteractor.assetFlow(chain.id, chain.utilityAsset?.id.orEmpty())
@@ -499,10 +504,16 @@ class SendSetupViewModel @Inject constructor(
         }.launchIn(this)
 
         assetFlow.onEach { asset ->
-            val quickAmountInputValues = if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
-                emptyList()
-            } else {
-                QuickAmountInput.entries
+            val quickAmountInputValues = when {
+                asset?.token?.configuration?.currencyId == bokoloCashTokenId -> {
+                    emptyList()
+                }
+                selectedChain.first()?.ecosystem == Ecosystem.Ton -> {
+                    listOf(QuickAmountInput.MAX)
+                }
+                else -> {
+                    QuickAmountInput.entries
+                }
             }
 
             val existentialDeposit = asset?.token?.configuration?.let { existentialDepositUseCase(it) }.orZero()
@@ -655,10 +666,7 @@ class SendSetupViewModel @Inject constructor(
 
     private fun findChainsForAddress(address: String) {
         launch {
-            val chains = walletInteractor.getChains().first()
-            val addressChains = chains.filter {
-                it.isValidAddress(address)
-            }
+            val addressChains = getAccountSupportedChains(address)
             when {
                 addressChains.size == 1 -> {
                     val chain = addressChains[0]
@@ -668,14 +676,25 @@ class SendSetupViewModel @Inject constructor(
                     }
                 }
 
-                else -> router.openSelectChain(
+                addressChains.size > 1 -> router.openSelectChain(
                     filterChainIds = addressChains.map { it.id },
                     chooserMode = false,
                     currencyId = tokenCurrencyId,
                     showAllChains = false
                 )
+
+                else -> showInvalidAddressError(onConfirm = router::back)
             }
         }
+    }
+
+    private fun showInvalidAddressError(onConfirm: () -> Unit = emptyClick) {
+        showError(
+            title = resourceManager.getString(R.string.common_warning),
+            message = resourceManager.getString(R.string.error_invalid_address),
+            negativeButtonText = resourceManager.getString(R.string.common_close),
+            negativeClick = onConfirm
+        )
     }
 
     override fun onAmountInput(input: BigDecimal?) {
@@ -815,6 +834,19 @@ class SendSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
+            val chain = sharedState.chainId?.let {
+                walletInteractor.getChain(it)
+            }
+
+            if (chain?.ecosystem == Ecosystem.Ton) {
+                if (chain.isValidAddress(content)) {
+                    fillQrContentToAddressField(content)
+                } else {
+                    showInvalidAddressError()
+                }
+                return@launch
+            }
+
             val cbdcQrContent = walletInteractor.tryReadCBDCAddressFormat(content)
             if (cbdcQrContent != null) {
                 router.back()
@@ -824,15 +856,38 @@ class SendSetupViewModel @Inject constructor(
                 if (soraQrContent != null) {
                     handleSoraQr(soraQrContent)
                 } else {
-
-                    // 3 fill QR content
-
-                    addressInputFlow.value = content
-                    lockAmountInputFlow.value = false
-                    lockInputFlow.value = false
+                    val addressChains = getAccountSupportedChains(content)
+                    if (addressChains.isNotEmpty()) {
+                        fillQrContentToAddressField(content)
+                    } else {
+                        showInvalidAddressError()
+                    }
                 }
             }
         }
+    }
+
+    private suspend fun getAccountSupportedChains(address: String): List<Chain> {
+        val chains = walletInteractor.getChains().first()
+        val meta = walletInteractor.getSelectedMetaAccount()
+        val accountSupportedChains = chains.filter {
+            when (it.ecosystem) {
+                Ecosystem.Substrate -> meta.hasSubstrate
+                Ecosystem.Ton -> meta.hasTon
+                Ecosystem.EthereumBased,
+                Ecosystem.Ethereum -> meta.hasEthereum
+            }
+        }
+        val addressChains = accountSupportedChains.filter {
+            it.isValidAddress(address)
+        }
+        return addressChains
+    }
+
+    private fun fillQrContentToAddressField(content: String) {
+        addressInputFlow.value = content
+        lockAmountInputFlow.value = false
+        lockInputFlow.value = false
     }
 
     private suspend fun handleSoraQr(qrContentSora: QrContentSora) {
