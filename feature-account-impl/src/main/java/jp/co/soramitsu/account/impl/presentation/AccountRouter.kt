@@ -117,4 +117,6 @@ interface AccountRouter : SecureRouter {
     fun openImportAddAccountScreen(walletId: Long, importAccountType: ImportAccountType, importMode: ImportMode)
 
     fun openOptionsWallet(walletId: Long, allowDetails: Boolean)
+
+    fun openCrowdloansScreen()
 }

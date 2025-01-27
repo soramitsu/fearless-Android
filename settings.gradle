@@ -22,6 +22,8 @@ include ':feature-soracard-api'
 include ':feature-soracard-impl'
 include ':runtime-permission'
 
+include ':feature-tonconnect-api'
+include ':feature-tonconnect-impl'
 include ':feature-walletconnect-api'
 include ':feature-walletconnect-impl'
 include ':feature-nft-api'

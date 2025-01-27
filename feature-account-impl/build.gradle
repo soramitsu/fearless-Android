@@ -51,7 +51,7 @@ dependencies {
     implementation project(':feature-polkaswap-api')
     implementation libs.kotlin.stdlib.jdk7
 
-    implementation libs.ton
+    implementation libs.bundles.ton
     implementation libs.appcompat
     implementation libs.core.ktx
     implementation libs.material

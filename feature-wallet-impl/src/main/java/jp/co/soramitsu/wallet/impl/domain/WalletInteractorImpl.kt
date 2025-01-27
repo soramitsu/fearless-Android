@@ -81,6 +81,7 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 const val QR_PREFIX_WALLET_CONNECT = "wc"
+const val QR_PREFIX_TON_CONNECT = "tc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5

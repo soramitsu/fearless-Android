@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
@@ -7,9 +8,16 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
+import co.jp.soramitsu.tonconnect.model.ConnectRequest
+import co.jp.soramitsu.tonconnect.model.TonConnectException
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -78,6 +86,7 @@ import jp.co.soramitsu.soracard.api.util.readyToStartGatehubOnboarding
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_TON_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -120,10 +129,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -147,6 +152,7 @@ class BalanceListViewModel @Inject constructor(
     private val soraCardInteractor: SoraCardInteractor,
     private val soraCardRouter: SoraCardRouter,
     private val coroutineManager: CoroutineManager,
+    private val tonConnectInteractor: TonConnectInteractor,
 ) : BaseViewModel(), WalletScreenInterface {
 
     private var awaitAssetsJob: Job? = null
@@ -1045,29 +1051,62 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            if (content.startsWith(QR_PREFIX_WALLET_CONNECT)) {
-                sendWalletConnectPair(pairingUri = content)
-            } else {
-                val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-                if (cbdcFormat != null) {
-                    router.openCBDCSend(cbdcQrInfo = cbdcFormat)
-                } else {
-                    val soraFormat =
-                        interactor.tryReadSoraFormat(content)
-                    if (soraFormat != null) {
-                        val amount =
-                            soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
-                        openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+            when {
+                content.startsWith(QR_PREFIX_WALLET_CONNECT) -> {
+                    sendWalletConnectPair(pairingUri = content)
+                }
+
+                content.startsWith(QR_PREFIX_TON_CONNECT) -> {
+                    try { readTonQrContent(qrContent = content) } catch (e: Exception){
+                        showError(e)
+                    }
+                }
+
+                else -> {
+                    val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
+                    if (cbdcFormat != null) {
+                        router.openCBDCSend(cbdcQrInfo = cbdcFormat)
                     } else {
-                        router.openSend(
-                            assetPayload = null,
-                            initialSendToAddress = content,
-                            amount = null
-                        )
+                        val soraFormat =
+                            interactor.tryReadSoraFormat(content)
+                        if (soraFormat != null) {
+                            val amount =
+                                soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
+                            openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                        } else {
+                            router.openSend(
+                                assetPayload = null,
+                                initialSendToAddress = content,
+                                amount = null
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+
+    private suspend fun readTonQrContent(qrContent: String) {
+        val uri = kotlin.runCatching { Uri.parse(qrContent) }.getOrNull() ?: return
+        val clientId = uri.getQueryParameter("id")
+        if (!isValidClientId(clientId)) {
+            throw TonConnectException.WrongClientId(clientId)
+        }
+        val request = ConnectRequest.parse(uri.getQueryParameter("r"))
+
+        if (request.items.isEmpty()) {
+            showError(resourceManager.getString(R.string.common_undefined_error_message))
+        }
+
+        val app = tonConnectInteractor.readManifest(request.manifestUrl)
+        val signedRequest = router.openTonConnectionAndWaitForResult(app, request.proofPayload)
+        kotlin.runCatching { tonConnectInteractor.respondDappConnectRequest(clientId!!, request, signedRequest, app) }
+            .onFailure { showError(it) }
+
+    }
+
+    private fun isValidClientId(clientId: String?): Boolean {
+        return !clientId.isNullOrBlank() && clientId.length == 64
     }
 
     private fun sendWalletConnectPair(pairingUri: String) {

@@ -86,12 +86,12 @@ fun BottomSheetLayout(
     )
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BottomSheetLayout(
     content: @Composable (ModalBottomSheetState) -> Unit,
     sheetContent: @Composable ColumnScope.(ModalBottomSheetState) -> Unit,
     bottomSheetState: ModalBottomSheetState,
+    sheetGesturesEnabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     ModalBottomSheetLayout(
@@ -100,6 +100,7 @@ fun BottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
         sheetBackgroundColor = backgroundBlack,
         scrimColor = black72,
+        sheetGesturesEnabled = sheetGesturesEnabled,
         sheetContent = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.fillMaxWidth()) {

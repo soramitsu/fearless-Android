@@ -31,6 +31,10 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(R.layout.fragment_cro
     }
 
     override fun initViews() {
+        binding.crowdloanToolbar.setHomeButtonListener {
+            viewModel.backClicked()
+        }
+
         binding.crowdloanContainer.applyInsetter {
             type(statusBars = true) {
                 padding()

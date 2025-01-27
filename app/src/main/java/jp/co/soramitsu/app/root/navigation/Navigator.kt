@@ -12,6 +12,10 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
+import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
+import co.jp.soramitsu.tonconnect.model.AppEntity
+import co.jp.soramitsu.tonconnect.model.DappModel
+import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
@@ -126,6 +130,9 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDet
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.tonconnect.impl.presentation.dappscreen.DappScreenFragment
+import jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment
+import jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
@@ -168,8 +175,9 @@ import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChoose
 import jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
-import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
+import kotlinx.coroutines.coroutineScope
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -179,13 +187,20 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.parcelize.Parcelize
+import org.json.JSONObject
+import java.math.BigDecimal
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -202,6 +217,7 @@ class Navigator :
     SuccessRouter,
     SoraCardRouter,
     WalletConnectRouter,
+    TonConnectRouter,
     NFTRouter,
     LiquidityPoolsRouter
 {
@@ -782,7 +798,7 @@ class Navigator :
     override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
         if (navController?.currentDestination?.id == R.id.sessionRequestFragment) return
 
-        val bundle = SessionRequestFragment.getBundle(sessionRequestTopic)
+        val bundle = WalletConnectSignMessageFragment.getBundle(sessionRequestTopic)
 
         navController?.navigate(R.id.sessionRequestFragment, bundle)
     }
@@ -826,6 +842,28 @@ class Navigator :
             }
             .mapNotNull { it }
             .onEach { removeSavedStateHandle(resultKey) }
+    }
+
+    private suspend fun <T> openAndWaitResult(
+        @IdRes destinationId: Int,
+        resultKey: String,
+        bundle: Bundle? = null
+    ): T {
+        val isCompleted = AtomicBoolean(false)
+
+        return coroutineScope {
+            suspendCancellableCoroutine { continuation ->
+                openWithResult<T>(destinationId, resultKey, bundle).onEach { result ->
+                    if (continuation.isActive && isCompleted.compareAndSet(false, true)) {
+                        continuation.resume(result)
+                    }
+                }.launchIn(this)
+
+                continuation.invokeOnCancellation {
+                    back()
+                }
+            }
+        }
     }
 
     override fun openSwapTokensScreen(chainId: String?, assetIdFrom: String?, assetIdTo: String?) {
@@ -1504,6 +1542,10 @@ class Navigator :
         navController?.navigate(R.id.webViewerFragment, WebViewerFragment.getBundle(title, url))
     }
 
+    override fun openDappScreen(dapp: DappModel) {
+        navController?.navigate(R.id.dappScreenFragment, DappScreenFragment.getBundle(dapp))
+    }
+
     override fun setChainSelectorPayload(chainId: ChainId?) {
         navController?.previousBackStackEntry?.savedStateHandle?.set(ChainSelectFragment.KEY_SELECTED_CHAIN_ID, chainId)
     }
@@ -1548,7 +1590,58 @@ class Navigator :
         navController?.navigate(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
     }
 
+    override fun openCrowdloansScreen() {
+        navController?.navigate(R.id.crowdloanFragment)
+    }
+
     override fun openPools() {
         navController?.navigate(R.id.poolsFlowFragment)
     }
+
+    override fun openTonConnectionDetails(app: AppEntity, proofPayload: String?) {
+        val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
+
+        navController?.navigate(R.id.tonConnectionDetails, bundle)
+    }
+
+    override fun openTonConnectionDetailsForResult(app: AppEntity, proofPayload: String?): Flow<String> {
+        val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
+//        navController?.navigate(R.id.tonConnectionDetails, bundle)
+
+        return openWithResult(
+            destinationId = R.id.tonConnectionDetails,
+            bundle = bundle,
+            resultKey = TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY
+        )//.map { JSONObject(it) }
+//        return flowOf { "" }
+    }
+
+    override suspend fun openTonSignRequestWithResult(
+        dapp: DappModel,
+        method: String,
+        signRequest: TonConnectSignRequest
+    ): Result<String> {
+        val bundle = TonSignRequestFragment.getBundle(dapp, method, signRequest)
+
+//        navController?.navigate(R.id.tonSignRequestFragment, bundle)
+
+        val result = openAndWaitResult<Result<String>>(
+            destinationId = R.id.tonSignRequestFragment,
+            bundle = bundle,
+            resultKey = TonSignRequestFragment.TON_SIGN_REQUEST_KEY
+        )
+        return result
+    }
+
+    override suspend fun openTonConnectionAndWaitForResult(app: AppEntity, proofPayload: String?): JSONObject {
+        val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
+
+        val result = openAndWaitResult<String>(
+            destinationId = R.id.tonConnectionDetails,
+            bundle = bundle,
+            resultKey = TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY
+        )
+        return JSONObject(result)
+    }
+
 }

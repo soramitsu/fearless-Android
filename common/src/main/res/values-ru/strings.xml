@@ -476,6 +476,8 @@
   <string name="export_substrate_title">Экспорт Substrate</string>
   <string name="export_wallet">Экспорт кошелька</string>
   <string name="fearless_wallet">Fearless Wallet</string>
+  <string name="fee_calculation_error">Ваш аккаунт неактивен. Пополните баланс, чтобы рассчитать комиссию.</string>
+  <string name="fee_calculation_error_inactive_account">Что-то пошло не так при расчете комиссии. Пожалуйста, повторите попытку позже.</string>
   <string name="fee_not_yet_loaded_message">Подождите, пока будет рассчитана комиссия</string>
   <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
   <string name="hash">Хэш</string>

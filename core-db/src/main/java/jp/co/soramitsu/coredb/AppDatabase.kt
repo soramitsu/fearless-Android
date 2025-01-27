@@ -26,6 +26,7 @@ import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
+import jp.co.soramitsu.coredb.dao.TonConnectDao
 import jp.co.soramitsu.coredb.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.coredb.migrations.AddChainExplorersTable_33_34
 import jp.co.soramitsu.coredb.migrations.AddChainRegistryTables_27_28
@@ -105,6 +106,8 @@ import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.TonConnectionLocal
 
 @Database(
     version = 73,
@@ -130,7 +133,8 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
         ChainTypesLocal::class,
         NomisWalletScoreLocal::class,
         BasicPoolLocal::class,
-        UserPoolLocal::class
+        UserPoolLocal::class,
+        TonConnectionLocal::class
     ]
 )
 @TypeConverters(
@@ -237,4 +241,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun nomisScoresDao(): NomisScoresDao
 
     abstract fun poolDao(): PoolDao
+
+    abstract fun tonConnectDao(): TonConnectDao
 }

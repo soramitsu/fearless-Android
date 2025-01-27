@@ -502,6 +502,8 @@
   <string name="export_substrate_title">Export Substrate</string>
   <string name="export_wallet">Export wallet</string>
   <string name="fearless_wallet">Fearless Wallet</string>
+  <string name="fee_calculation_error">Something went wrong while calculating the fee. Please try again later.</string>
+  <string name="fee_calculation_error_inactive_account">Your account is inactive. Top up your balance to calculate the fee.</string>
   <string name="fee_not_yet_loaded_message">Please wait until the fee is calculated</string>
   <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
   <string name="hash">Hash</string>
@@ -549,7 +551,7 @@
   <string name="lp_apy_alert_text">Farming reward for liquidity provision</string>
   <string name="lp_apy_title">Strategic Bonus APY</string>
   <string name="lp_available_pools_title">Available pools</string>
-  <string name="lp_banner_text">Invest your funds in Liquidity\npools and receive rewards</string>
+  <string name="lp_banner_text">Join Liquidity Pools\nand gain rewards</string>
   <string name="lp_confirm_liquidity_screen_title">Confirm Liquidity</string>
   <string name="lp_confirm_liquidity_warning_text">Output is estimated. If the price changes more than 0.5% your transaction will revert.</string>
   <string name="lp_liquidity_add_complete_text">Your supply to Liquidity pools has been successfully completed</string>
@@ -1141,6 +1143,12 @@
   <string name="tabbar_profile_title">Profile</string>
   <string name="tabbar_staking_title">Staking</string>
   <string name="tabbar_wallet_title">Wallet</string>
+  <string name="tc_connected_dapp">Connected</string>
+  <string name="tc_discover_dapp">Discover dApp</string>
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+  <string name="tc_review_dapp_info">Review dApp info</string>
+  <string name="tc_service_address">Service address</string>
+  <string name="tc_see_all">See all</string>
   <string name="today">Today</string>
   <string name="ton_connect_alert_description">Service address</string>
   <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>

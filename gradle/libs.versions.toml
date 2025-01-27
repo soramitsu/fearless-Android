@@ -1,7 +1,7 @@
 [versions]
 accompanistVersion = "0.34.0"
 activityCompose = "1.9.3"
-android_plugin = "8.7.3"
+android_plugin = "8.8.0"
 appcompat = "1.7.0"
 architectureComponentVersion = "2.8.7"
 beaconVersion = "3.2.4"
@@ -52,6 +52,7 @@ retrofit = "2.11.0"
 roomVersion = "2.6.1"
 rules = "1.6.1"
 runner = "1.6.2"
+securityCryptoVersion = "1.0.0"
 sharedFeaturesVersion = "1.1.1.41-FLW"
 shimmerVersion = "0.5.0"
 sonarqubeGradlePlugin = "3.3"
@@ -65,10 +66,11 @@ xNetworking = "1.0.12"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
-tonVersion = "0.2.15"
+tonVersion = "0.3.1"
 soramitsuAndroidFoundation = "0.0.4"
 
 [libraries]
+security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
 soramitsu-android-foundation = { module = "jp.co.soramitsu:android-foundation", version.ref = "soramitsuAndroidFoundation" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastleVersion" }
@@ -98,6 +100,7 @@ lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.r
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "architectureComponentVersion" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "architectureComponentVersion" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttpVersion" }
+okhttp-sse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttpVersion" }
 middle-ellipsis-text = { module = "io.github.mataku:middle-ellipsis-text", version.ref = "middleEllipsisTextVersion" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoVersion" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInlineVersion" }
@@ -189,7 +192,12 @@ walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
 
 jnr-x86asm = { module = "com.github.jnr:jnr-x86asm", version.ref = "jnrVersion" }
 
-ton = { module = "org.ton:ton-kotlin", version.ref = "tonVersion" }
+ton-tvm = { module = "org.ton:ton-kotlin-tvm", version.ref = "tonVersion" }
+ton-crypto = { module = "org.ton:ton-kotlin-crypto", version.ref = "tonVersion" }
+ton-tlb = { module = "org.ton:ton-kotlin-tlb", version.ref = "tonVersion" }
+ton-block-tlb = { module = "org.ton:ton-kotlin-block-tlb", version.ref = "tonVersion" }
+ton-tonapi = { module = "org.ton:ton-kotlin-tonapi-tl", version.ref = "tonVersion" }
+ton-contract = { module = "org.ton:ton-kotlin-contract", version.ref = "tonVersion" }
 
 [bundles]
 compose = [
@@ -203,3 +211,4 @@ composeDebug = [
     "compose-uiTooling", "customview", "customview-poolingcontainer"
 ]
 coroutines = ["coroutines-core", "coroutines-android"]
+ton = ["ton-tvm", "ton-crypto", "ton-tlb", "ton-block-tlb", "ton-tonapi", "ton-contract"]

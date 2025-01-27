@@ -12,9 +12,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
-class SessionRequestFragment : BaseComposeBottomSheetDialogFragment<SessionRequestViewModel>() {
+class WalletConnectSignMessageFragment : BaseComposeBottomSheetDialogFragment<WalletConnectSignMessageViewModel>() {
 
-    override val viewModel: SessionRequestViewModel by viewModels()
+    override val viewModel: WalletConnectSignMessageViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {

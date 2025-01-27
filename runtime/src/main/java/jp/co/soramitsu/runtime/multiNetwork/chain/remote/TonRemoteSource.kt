@@ -3,7 +3,7 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.remote
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.ton.AccountEvents
 import jp.co.soramitsu.common.data.network.ton.EmulateMessageToWalletRequest
-import jp.co.soramitsu.common.data.network.ton.JettonTransferPayload
+import jp.co.soramitsu.common.data.network.ton.JettonTransferPayloadRemote
 import jp.co.soramitsu.common.data.network.ton.JettonsBalances
 import jp.co.soramitsu.common.data.network.ton.MessageConsequences
 import jp.co.soramitsu.common.data.network.ton.PublicKeyResponse
@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.ton.model.JettonTransferPayload
 
 class TonRemoteSource(
     private val tonApi: TonApi,
@@ -63,8 +64,9 @@ class TonRemoteSource(
     suspend fun getJettonTransferPayload(chain: Chain, accountId: String, jettonId: String): JettonTransferPayload {
         val baseUrl = getActiveUrl(chain)
         val response = tonApi.getRequest("${baseUrl}/v2/jettons/$jettonId/transfer/$accountId/payload")
-        val jettonPayload = gson.fromJson(response, JettonTransferPayload::class.java)
-        return jettonPayload
+        val jettonPayload = gson.fromJson(response, JettonTransferPayloadRemote::class.java)
+
+        return JettonTransferPayload(accountId, jettonPayload)
     }
 
     suspend fun sendBlockchainMessage(chain: Chain, request: SendBlockchainMessageRequest): String {

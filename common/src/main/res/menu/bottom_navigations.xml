@@ -9,12 +9,35 @@
         android:title="@string/tabbar_wallet_title"
         app:showAsAction="ifRoom" />
 
+
+    <item
+        android:id="@+id/discoverDappFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_dapp"
+        android:title="@string/tc_discover_dapp"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/swapTokensFragmentPlaceholderForFAB"
+        android:enabled="false"
+        android:title="@string/common_action_swap"
+        app:showAsAction="ifRoom" />
+
     <item
         android:id="@+id/stakingFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_dapp_connection"
-        android:title="@string/common_dapp"
+        android:icon="@drawable/ic_nav_staking"
+        android:title="@string/tabbar_staking_title"
         app:showAsAction="ifRoom" />
+
+<!--
+    <item
+        android:id="@+id/governanceFragment"
+        android:enabled="false"
+        android:icon="@drawable/ic_nav_governance"
+        android:title="@string/tabbar_governance_title"
+        app:showAsAction="ifRoom" />
+-->
 
     <item
         android:id="@+id/profileFragment"

@@ -60,6 +60,8 @@ android {
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
         buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")
+
+        buildConfigField("String", "DAPPS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/refs/heads/develop-free/appConfigs/dapps.json\"")
     }
 
     buildTypes {
@@ -142,7 +144,7 @@ dependencies {
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
-    implementation libs.ton
+    implementation libs.bundles.ton
     implementation libs.progressbutton
 
     implementation libs.nv.websocket.client

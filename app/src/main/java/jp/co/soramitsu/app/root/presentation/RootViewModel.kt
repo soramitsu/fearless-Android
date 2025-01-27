@@ -3,12 +3,13 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
+import co.jp.soramitsu.tonconnect.model.BridgeError
+import co.jp.soramitsu.tonconnect.model.BridgeMethod
+import co.jp.soramitsu.tonconnect.model.DappModel
+import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
-import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.AppInitializer
 import jp.co.soramitsu.app.root.domain.InitializationStep
@@ -21,9 +22,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
-import kotlin.concurrent.timerTask
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +30,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
+import javax.inject.Inject
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
@@ -39,8 +44,10 @@ class RootViewModel @Inject constructor(
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val tonConnectInteractor: TonConnectInteractor
 ) : BaseViewModel() {
+
     companion object {
         private const val IDLE_MINUTES: Long = 20
     }
@@ -68,6 +75,7 @@ class RootViewModel @Inject constructor(
             startAppInitializer()
         }
         observeWalletConnectEvents()
+        observeTonConnectEvents()
     }
 
     private suspend fun startAppInitializer(startFrom: InitializationStep = InitializationStep.All) {
@@ -178,6 +186,33 @@ class RootViewModel @Inject constructor(
 
     fun onConnectionLost() {
         _showConnectingBar.update { true }
+    }
+
+    private fun observeTonConnectEvents() {
+        tonConnectInteractor.eventsFlow().onEach { event ->
+            try {
+                when(event.method) {
+                    BridgeMethod.SEND_TRANSACTION -> {
+                        if(event.message.params.size > 1) throw IllegalStateException("Request contains excess transactions. Required: 1, Provided: ${event.message.params.size}")
+                        val signRequest = TonConnectSignRequest(event.message.params.first())
+
+                        rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
+                            .onSuccess {
+                                tonConnectInteractor.sendDappMessage(event, it)
+                            }
+                            .onFailure {
+                                tonConnectInteractor.respondDappError(event, BridgeError.UNKNOWN)
+                            }
+                    }
+                    BridgeMethod.DISCONNECT -> {
+                        tonConnectInteractor.disconnect(event.connection.clientId)
+                    }
+                    BridgeMethod.UNKNOWN -> {}
+                }
+            } catch (e: Exception){
+                showError(e)
+            }
+        }.launchIn(this)
     }
 
     private fun observeWalletConnectEvents() {

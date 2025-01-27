@@ -36,6 +36,7 @@ interface ProfileScreenInterface {
     fun onWalletConnectClick()
     fun onSoraCardClicked()
     fun currencyClicked()
+    fun crowdloansClicked()
     fun languagesClicked()
 
     fun onNomisMultichainScoreContainerClick()
@@ -76,6 +77,8 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
             )
             SettingsDivider()
         }
+        SettingsItem(icon = painterResource(R.drawable.ic_nav_crowdloans), text = stringResource(R.string.crowdloan_crowdloan), onClick = callback::crowdloansClicked)
+        SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_dollar_circle), text = stringResource(R.string.common_currency), action = SettingsItemAction.Selector(state.currency), onClick = callback::currencyClicked)
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_language), text = stringResource(R.string.profile_language_title), action = SettingsItemAction.Selector(state.language), onClick = callback::languagesClicked)
@@ -122,6 +125,7 @@ fun ProfileScreenPreview() {
             override fun onWalletConnectClick() = Unit
             override fun onSoraCardClicked() = Unit
             override fun currencyClicked() = Unit
+            override fun crowdloansClicked() {}
             override fun languagesClicked() = Unit
             override fun onNomisMultichainScoreContainerClick() = Unit
             override fun polkaswapDisclaimerClicked() = Unit

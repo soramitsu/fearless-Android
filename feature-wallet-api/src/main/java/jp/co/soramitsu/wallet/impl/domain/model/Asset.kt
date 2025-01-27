@@ -114,6 +114,9 @@ data class Asset(
 
     fun getAsFiatWithCurrency(value: BigDecimal?) =
         token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatFiat(token.fiatSymbol) }
+
+    val chainId = token.configuration.chainId
+    val id = token.configuration.id
 }
 
 fun calculateTotalBalance(

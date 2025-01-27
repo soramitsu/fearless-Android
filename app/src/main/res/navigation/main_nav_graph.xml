@@ -458,6 +458,11 @@
         android:label="WebViewerFragment" />
 
     <dialog
+        android:id="@+id/dappScreenFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.dappscreen.DappScreenFragment"
+        android:label="DappScreenFragment" />
+
+    <dialog
         android:id="@+id/setupStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.join.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />
@@ -1035,6 +1040,21 @@
         android:label="validatorDetailsFragment"
         tools:layout="@layout/fragment_validator_details" />
 
+    <dialog
+        android:id="@+id/tonConnectionDetails"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment"
+        android:label="tonConnectionDetailsFragment" />
+
+    <dialog
+        android:id="@+id/tonSignRequestFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment"
+        android:label="tonSignRequestFragment" />
+
+    <dialog
+        android:id="@+id/tonSignPreviewFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonsignpreview.TonSignPreviewFragment"
+        android:label="tonSignPreviewFragment" />
+
     <fragment
         android:id="@+id/collatorDetailsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment"
@@ -1361,5 +1381,11 @@
         android:id="@+id/scoreDetailsFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
         android:label="ScoreDetailsFragment" />
+
+    <fragment
+        android:id="@+id/crowdloanFragment"
+        tools:layout="@layout/fragment_crowdloans"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
+        android:label="CrowdloanFragment" />
 
 </navigation>

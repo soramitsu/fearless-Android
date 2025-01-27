@@ -52,7 +52,11 @@ data class MainToolbarViewStateWithFilters(
     val title: String?,
     val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState.Navigation(R.drawable.ic_wallet),
     val selectorViewState: ChainSelectorViewStateWithFilters?
-)
+) {
+    companion object {
+        val default = MainToolbarViewStateWithFilters(title = null, selectorViewState = null)
+    }
+}
 
 sealed interface ToolbarHomeIconState{
     data class Wallet(

@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.viewmodels
 
 import android.graphics.drawable.PictureDrawable
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import io.mockk.coEvery
 import io.mockk.every
@@ -124,6 +125,9 @@ class BalanceListViewModelTests {
     @MockK
     private lateinit var coroutineManager: CoroutineManager
 
+    @MockK
+    private lateinit var tonConnectInteractor: TonConnectInteractor
+
     private lateinit var vm: BalanceListViewModel
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -196,6 +200,7 @@ class BalanceListViewModelTests {
             soraCardInteractor = soraCardInteractor,
             soraCardRouter = soraCardRouter,
             coroutineManager = coroutineManager,
+            tonConnectInteractor = tonConnectInteractor
         )
     }
 
