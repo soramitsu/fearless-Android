@@ -744,7 +744,7 @@
 
     <dialog
         android:id="@+id/sessionRequestFragment"
-        android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment"
         android:label="sessionRequestFragment"/>
 
     <dialog
@@ -1049,11 +1049,6 @@
         android:id="@+id/tonSignRequestFragment"
         android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment"
         android:label="tonSignRequestFragment" />
-
-    <dialog
-        android:id="@+id/tonSignPreviewFragment"
-        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonsignpreview.TonSignPreviewFragment"
-        android:label="tonSignPreviewFragment" />
 
     <fragment
         android:id="@+id/collatorDetailsFragment"
