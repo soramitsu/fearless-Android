@@ -214,8 +214,8 @@ private fun Banners(
                 )
 
                 if (bannersCount > 1) {
-                    BannerPageIndicator(bannersCount, pagerState)
                     MarginVertical(margin = 8.dp)
+                    BannerPageIndicator(bannersCount, pagerState)
                 }
             }
         }
