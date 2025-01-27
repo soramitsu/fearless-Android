@@ -88,26 +88,28 @@ fun DiscoverDappScreen(data: DiscoverDappState, callback: DiscoverDappScreenInte
             state = data.multiToggleButtonState,
             onToggleChange = callback::onButtonToggleChanged
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp, bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            data.dapps.firstOrNull {
-                it.type == "top"
-            }?.apps?.takeIf { it.isNotEmpty() }?.let {
-                Banners(it, callback)
-            }
-            val listItems = data.dapps.filter { it.type != "top" }
-            if (listItems.isEmpty() || listItems.any { it.apps.isEmpty() }) {
-                if (data.multiToggleButtonState.currentSelection == DappListType.Connected) {
-                    EmptySumimasen()
-                } else {
-                    ProgressDialog()
-                }
+        val listItems = data.dapps.filter { it.type != "top" }
+        val isEmptyList = listItems.isEmpty() || listItems.all { it.apps.isEmpty() }
+
+        if (isEmptyList) {
+            if (data.multiToggleButtonState.currentSelection == DappListType.Connected) {
+                EmptySumimasen()
             } else {
+                ProgressDialog()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 16.dp, bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                data.dapps.firstOrNull {
+                    it.type == "top"
+                }?.apps?.takeIf { it.isNotEmpty() }?.let {
+                    Banners(it, callback)
+                }
                 listItems.forEach { config ->
                     DappsGroup(
                         data = config,
@@ -128,7 +130,9 @@ fun EmptySumimasen() {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Center
         ) {
-            Column(horizontalAlignment = CenterHorizontally) {
+            Column(
+                horizontalAlignment = CenterHorizontally
+            ) {
                 Box(
                     Modifier
                         .size(56.dp)
