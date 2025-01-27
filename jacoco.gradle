@@ -7,10 +7,6 @@ jacoco {
 tasks.withType(Test.class).configureEach {
     jacoco.includeNoLocationClasses = true
     jacoco.excludes = ['*']
-//    jacoco.excludes = ['jdk.internal.*']
-//    jacoco {
-//        excludes = ["*"]
-//    }
 }
 
 afterEvaluate {
