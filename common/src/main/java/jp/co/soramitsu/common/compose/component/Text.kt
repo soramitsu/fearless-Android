@@ -254,26 +254,6 @@ fun H3(
 }
 
 @Composable
-fun H3Bold(
-    modifier: Modifier = Modifier,
-    text: String,
-    textAlign: TextAlign? = null,
-    color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip,
-    maxLines: Int = Int.MAX_VALUE
-) {
-    Text(
-        textAlign = textAlign,
-        text = text,
-        style = MaterialTheme.customTypography.header3.bold(),
-        modifier = modifier,
-        color = color,
-        overflow = overflow,
-        maxLines = maxLines
-    )
-}
-
-@Composable
 fun H4(
     modifier: Modifier = Modifier,
     text: String,
@@ -286,26 +266,6 @@ fun H4(
         textAlign = textAlign,
         text = text,
         style = MaterialTheme.customTypography.header4,
-        modifier = modifier,
-        color = color,
-        overflow = overflow,
-        maxLines = maxLines
-    )
-}
-
-@Composable
-fun H4Bold(
-    modifier: Modifier = Modifier,
-    text: String,
-    textAlign: TextAlign? = null,
-    color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip,
-    maxLines: Int = Int.MAX_VALUE
-) {
-    Text(
-        textAlign = textAlign,
-        text = text,
-        style = MaterialTheme.customTypography.header4.bold(),
         modifier = modifier,
         color = color,
         overflow = overflow,
