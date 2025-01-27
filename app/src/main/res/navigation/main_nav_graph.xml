@@ -333,15 +333,6 @@
         android:label="TransactionHistoryFilterFragment" />
 
     <fragment
-        android:id="@+id/getSoraCardFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.get.GetSoraCardFragment"
-        android:label="GetSoraCardFragment" />
-    <fragment
-        android:id="@+id/soraCardDetailsFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.details.SoraCardDetailsFragment"
-        android:label="SoraCardDetailsFragment" />
-
-    <fragment
         android:id="@+id/exportMnemonicFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment"
         android:label="ExportMnemonicFragment"
@@ -406,11 +397,6 @@
         android:id="@+id/searchAssetsFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment"
         android:label="searchAssetsFragment" />
-
-    <fragment
-        android:id="@+id/buyCryptoFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.buycrypto.BuyCryptoFragment"
-        android:label="buyCryptoFragment" />
 
     <fragment
         android:id="@+id/importAccountFragment"

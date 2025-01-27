@@ -20,6 +20,8 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import java.math.BigDecimal
+import java.util.concurrent.atomic.AtomicBoolean
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -93,7 +95,6 @@ import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragmen
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -176,8 +177,9 @@ import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPre
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
-import kotlinx.coroutines.coroutineScope
 import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -196,10 +198,6 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
-import java.math.BigDecimal
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.resume
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -214,7 +212,6 @@ class Navigator :
     CrowdloanRouter,
     PolkaswapRouter,
     SuccessRouter,
-    SoraCardRouter,
     WalletConnectRouter,
     TonConnectRouter,
     NFTRouter,
@@ -882,10 +879,6 @@ class Navigator :
         navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
-    override fun showBuyCrypto() {
-        navController?.navigate(R.id.buyCryptoFragment)
-    }
-
     override fun openSelectChain(
         assetId: String,
         chainId: ChainId?,
@@ -1443,14 +1436,6 @@ class Navigator :
 
     override fun openEditPoolConfirm() {
         navController?.navigate(R.id.editPoolConfirmFragment)
-    }
-
-    override fun openGetSoraCard() {
-        navController?.navigate(R.id.getSoraCardFragment)
-    }
-
-    override fun openSoraCardDetails() {
-        navController?.navigate(R.id.soraCardDetailsFragment)
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>

@@ -157,7 +157,6 @@ dependencies {
 
     implementation libs.sora.ui
     implementation libs.soramitsu.android.foundation
-    implementation libs.sora.soracard
 
     api libs.coil
     api libs.coil.gif

@@ -84,8 +84,6 @@ private const val QR_PREFIX_SUBSTRATE = "substrate"
 const val QR_PREFIX_WALLET_CONNECT = "wc"
 const val QR_PREFIX_TON_CONNECT = "tc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
-private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
-private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
 private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ACCOUNT_ID_MIN_TAG = 26
 private const val ACCOUNT_ID_MAX_TAG = 51
@@ -480,25 +478,6 @@ class WalletInteractorImpl(
         val savedChainId = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId)
         val existingChain = savedChainId?.let { runCatching { getChain(it) }.getOrNull() }
         return existingChain?.id
-    }
-
-    override fun isShowGetSoraCard(): Boolean =
-        preferences.getInt(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT, 0) <= 0
-
-    override fun observeIsShowSoraCard(): Flow<Boolean> =
-        preferences.intFlow(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT, 0).map { it <= 0 }
-
-    override fun hideSoraCard() {
-        preferences.putInt(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT, SORA_CARD_HIDDEN_SESSIONS_LIMIT)
-    }
-
-    override fun decreaseSoraCardHiddenSessions() {
-        val newCount = preferences.getInt(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT, 0) - 1
-        if (newCount <= 0) {
-            preferences.removeField(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT)
-        } else {
-            preferences.putInt(PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT, newCount)
-        }
     }
 
     override suspend fun getEquilibriumAccountInfo(

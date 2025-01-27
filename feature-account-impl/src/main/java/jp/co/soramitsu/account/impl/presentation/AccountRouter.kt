@@ -90,9 +90,6 @@ interface AccountRouter : SecureRouter {
 
     fun openPolkaswapDisclaimerFromProfile()
 
-    fun openGetSoraCard()
-    fun openSoraCardDetails()
-
     fun openCreateWalletDialogFromGoogleBackup()
 
     fun openCreateBackupPasswordDialogWithResult(): Flow<Int>
