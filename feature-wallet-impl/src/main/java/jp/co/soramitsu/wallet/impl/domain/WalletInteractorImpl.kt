@@ -8,6 +8,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.URLDecoder
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
@@ -725,5 +726,9 @@ class WalletInteractorImpl(
         }
 
         return options.toSortedSet(compareBy { it.sort })
+    }
+
+    override fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount> {
+        return accountRepository.selectedMetaAccountFlow()
     }
 }

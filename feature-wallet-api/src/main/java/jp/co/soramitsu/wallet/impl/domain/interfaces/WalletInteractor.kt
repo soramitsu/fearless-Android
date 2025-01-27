@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -154,4 +155,5 @@ interface WalletInteractor {
     suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String>
     suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
     suspend fun getExportSourceTypes(chainId: ChainId, walletId: Long? = null): MutableSet<ExportSource>
+    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
 }

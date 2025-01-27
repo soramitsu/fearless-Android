@@ -20,7 +20,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -1606,14 +1605,12 @@ class Navigator :
 
     override fun openTonConnectionDetailsForResult(app: AppEntity, proofPayload: String?): Flow<String> {
         val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
-//        navController?.navigate(R.id.tonConnectionDetails, bundle)
 
         return openWithResult(
             destinationId = R.id.tonConnectionDetails,
             bundle = bundle,
             resultKey = TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY
-        )//.map { JSONObject(it) }
-//        return flowOf { "" }
+        )
     }
 
     override suspend fun openTonSignRequestWithResult(
@@ -1622,8 +1619,6 @@ class Navigator :
         signRequest: TonConnectSignRequest
     ): Result<String> {
         val bundle = TonSignRequestFragment.getBundle(dapp, method, signRequest)
-
-//        navController?.navigate(R.id.tonSignRequestFragment, bundle)
 
         val result = openAndWaitResult<Result<String>>(
             destinationId = R.id.tonSignRequestFragment,
@@ -1643,5 +1638,4 @@ class Navigator :
         )
         return JSONObject(result)
     }
-
 }

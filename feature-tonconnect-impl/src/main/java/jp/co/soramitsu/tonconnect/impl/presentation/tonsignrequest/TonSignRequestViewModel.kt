@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
@@ -94,8 +95,8 @@ class TonSignRequestViewModel @Inject constructor(
             return@launch
         }
 
-        val requestedWalletIcon = addressIconGenerator.createAddressIcon(
-            selectedMetaAccount.substrateAccountId,
+        val requestedWalletIcon = addressIconGenerator.createWalletIcon(
+            WalletEcosystem.Ton,
             AddressIconGenerator.SIZE_BIG
         )
 
@@ -135,8 +136,8 @@ class TonSignRequestViewModel @Inject constructor(
             val chain = tonConnectInteractor.getChain()
             val metaAccount = accountRepository.getSelectedMetaAccount()
 
-            val requestedWalletIcon = addressIconGenerator.createAddressIcon(
-                metaAccount.substrateAccountId,
+            val requestedWalletIcon = addressIconGenerator.createWalletIcon(
+                WalletEcosystem.Ton,
                 AddressIconGenerator.SIZE_BIG
             )
 

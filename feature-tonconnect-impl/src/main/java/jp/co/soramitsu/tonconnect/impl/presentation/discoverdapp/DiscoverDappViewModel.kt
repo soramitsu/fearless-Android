@@ -6,6 +6,7 @@ import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
 import co.jp.soramitsu.tonconnect.model.DappConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -14,11 +15,13 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
@@ -131,6 +134,7 @@ class DiscoverDappViewModel @Inject constructor(
     }
 
     private fun observeToolbarStates() {
+
         currentAddressModelFlow().onEach { addressModel ->
             toolbarState.update { prevState ->
                 val newWalletIconState = when (prevState.homeIconState) {
@@ -177,26 +181,17 @@ class DiscoverDappViewModel @Inject constructor(
     @Suppress("MagicNumber")
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedLightMetaAccountFlow()
-            .map {
-                val polkadotAddressPrefix = 0
-                val address = it.substrateAccountId.toAddress(polkadotAddressPrefix.toShort())
-                WalletAccount(address, it.name)
-            }
-            .catch { emit(WalletAccount("", "")) }
             .onEach { account ->
-                if (accountAddressToChainIdMap.containsKey(account.address).not()) {
+                val tonAddress = account.tonPublicKey?.toHexString(withPrefix = false)
+                if (accountAddressToChainIdMap.containsKey(tonAddress).not()) {
                     selectedChainId.value = null
-                    accountAddressToChainIdMap[account.address] = null
+                    accountAddressToChainIdMap[tonAddress.orEmpty()] = null
                 } else {
                     selectedChainId.value =
-                        accountAddressToChainIdMap.getOrDefault(account.address, null)
+                        accountAddressToChainIdMap.getOrDefault(tonAddress, null)
                 }
             }
-            .map { generateAddressModel(it, 40) }
-    }
-
-    private suspend fun generateAddressModel(account: WalletAccount, sizeInDp: Int): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
+            .map { addressIconGenerator.createAddressModel(it.supportedEcosystemWithIconAddress(), 40, it.name) }
     }
 
     override fun onButtonToggleChanged(type: DappListType) {

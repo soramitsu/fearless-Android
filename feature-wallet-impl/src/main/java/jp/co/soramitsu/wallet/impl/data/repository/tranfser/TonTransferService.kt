@@ -62,8 +62,6 @@ import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
-import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val KEYPAIR_REQUIRED_MESSAGE = "Ton keypair is required for ton transfers"
 

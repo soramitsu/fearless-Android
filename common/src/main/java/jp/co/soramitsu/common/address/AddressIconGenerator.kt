@@ -88,6 +88,13 @@ suspend fun AddressIconGenerator.createAddressModel(accountAddress: String, size
 }
 
 @Throws(AddressFormatException::class)
+suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddress: Map<WalletEcosystem, String>, accountAddress: String, sizeInDp: Int, accountName: String? = null): AddressModel {
+    val icon = createAddressIcon(supportedEcosystemWithAddress, sizeInDp)
+
+    return AddressModel(accountAddress, icon, accountName)
+}
+
+@Throws(AddressFormatException::class)
 suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress: Map<WalletEcosystem, String>, sizeInDp: Int, accountName: String? = null): PictureDrawable {
     return if (supportedEcosystemWithAddress.size == 1) {
         val ecosystem = supportedEcosystemWithAddress.toList()[0].first
