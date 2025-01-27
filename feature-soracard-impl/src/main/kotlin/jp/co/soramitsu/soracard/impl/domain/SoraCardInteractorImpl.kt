@@ -194,6 +194,7 @@ class SoraCardInteractorImpl @Inject constructor(
                 delay(POLLING_PERIOD_IN_MILLIS)
             }
         }
+    }
 
     private fun needInstallUpdate() = flow {
         emit(needInstallUpdateInternal())
