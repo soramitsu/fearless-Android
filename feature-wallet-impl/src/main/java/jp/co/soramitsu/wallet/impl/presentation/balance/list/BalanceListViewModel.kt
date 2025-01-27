@@ -645,7 +645,7 @@ class BalanceListViewModel @Inject constructor(
                 hasTonAccounts = hasTon,
                 hasSubOrEvmAccounts = hasSubOrEvm
             )
-        }.launchIn(this)
+        }.launchIn(viewModelScope)
     }
 
     private fun mapKycStatus(kycStatus: SoraCardCommonVerification): Pair<String?, Boolean> {
