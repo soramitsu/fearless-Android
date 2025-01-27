@@ -22,7 +22,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
@@ -152,7 +151,7 @@ class WalletSyncService(
                         val assetsLocal = allBalances.mapNotNull { balance ->
                             val chain =
                                 chains.find { it.id == balance.chainId } ?: return@mapNotNull null
-                            val chainAsset = chainsRepository.getChain(chain.id).assetsById.getOrDefault(balance.id, null)
+                            val chainAsset = chain.assetsById.getOrDefault(balance.id, null)
                                 ?: return@mapNotNull null
 
                             val isPopularUtilityAsset =
@@ -160,6 +159,8 @@ class WalletSyncService(
 
                             val accountHasAssetWithPositiveBalance =
                                 accountHasAssetWithPositiveBalanceMap[balance.metaId] == true
+
+                            val isTonAsset = chain.ecosystem == Ecosystem.Ton && chainAsset.symbol.equals("TON", ignoreCase = true)
 
                             AssetLocal(
                                 id = balance.id,
@@ -174,7 +175,7 @@ class WalletSyncService(
                                 bondedInPlanks = balance.bondedInPlanks,
                                 redeemableInPlanks = balance.redeemableInPlanks,
                                 unbondingInPlanks = balance.unbondingInPlanks,
-                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
+                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) || isTonAsset
                             )
                         }
                         assetsLocal.groupBy { it.metaId }.forEach { b ->
