@@ -1,23 +1,23 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
-import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
@@ -28,9 +28,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
@@ -77,16 +74,10 @@ interface WalletInteractor {
 
     suspend fun getPhishingInfo(address: String): PhishingModel?
 
-    suspend fun getTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Fee
-
-    suspend fun observeTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Flow<Fee>
+    suspend fun observeTransferFee(transfer: Transfer): Flow<BigDecimal>
 
     suspend fun performTransfer(
-        transfer: Transfer,
-        fee: BigDecimal,
-        tipInPlanks: BigInteger?,
-        appId: BigInteger?,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
+        transfer: Transfer
     ): Result<String>
 
     suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: BigDecimal?): String
@@ -100,8 +91,6 @@ interface WalletInteractor {
     suspend fun tryReadCBDCAddressFormat(content: String): QrContentCBDC?
 
     suspend fun getChain(chainId: ChainId): Chain
-
-    suspend fun getMetaAccountSecrets(metaId: Long? = null): EncodableStruct<MetaAccountSecrets>?
 
     suspend fun getSelectedMetaAccount(): MetaAccount
 
@@ -133,20 +122,12 @@ interface WalletInteractor {
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 
-    fun isShowGetSoraCard(): Boolean
-    fun observeIsShowSoraCard(): Flow<Boolean>
-    fun decreaseSoraCardHiddenSessions()
-    fun hideSoraCard()
-
     suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
     suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean
 
     suspend fun saveChainSelectFilter(walletId: Long, filter: String)
 
     fun observeSelectedAccountChainSelectFilter(): Flow<String>
-
-
-    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
 
     fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
 
@@ -166,4 +147,6 @@ interface WalletInteractor {
     fun observeCurrentAccountChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
     suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String>
     suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
+    suspend fun getExportSourceTypes(chainId: ChainId, walletId: Long? = null): MutableSet<ExportSource>
+    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
 }

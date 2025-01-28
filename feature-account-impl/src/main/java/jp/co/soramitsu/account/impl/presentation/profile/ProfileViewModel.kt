@@ -4,17 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.SettingsItemAction
@@ -28,21 +30,16 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
-import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -51,7 +48,6 @@ class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     accountDetailsInteractor: AccountDetailsInteractor,
     private val nomisScoreInteractor: NomisScoreInteractor,
-    private val soraCardInteractor: SoraCardInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -64,21 +60,15 @@ class ProfileViewModel @Inject constructor(
     private val selectedAccountFlow: SharedFlow<MetaAccount> =
         interactor.selectedMetaAccountFlow().shareIn(viewModelScope, SharingStarted.Eagerly)
 
-    private val accountIconFlow = selectedAccountFlow.map {
+    private val accountIconFlow = selectedAccountFlow.map { wallet ->
         addressIconGenerator.createAddressIcon(
-            it.substrateAccountId,
+            wallet.supportedEcosystemWithIconAddress(),
             AddressIconGenerator.SIZE_BIG
         )
     }
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
-
-    //    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
-//        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
-//        SoraCardItemViewState(kycStatus, it, null, true)
-//    }
-    private val soraCardState = flowOf(SoraCardItemViewState())
 
     private val defaultWalletItemViewState = WalletItemViewState(
         id = 0,
@@ -98,7 +88,7 @@ class ProfileViewModel @Inject constructor(
             walletsItemAction = SettingsItemAction.Transition,
             currency = selectedFiat.get(),
             language = "",
-            nomisChecked = true
+            nomisChecked = true,
         )
     )
 
@@ -128,7 +118,8 @@ class ProfileViewModel @Inject constructor(
                 state.update { prevState ->
                     val newWalletState = prevState.walletState.copy(
                         id = account.id,
-                        title = account.name
+                        title = account.name,
+                        supportedEcosystems = account.supportedEcosystems()
                     )
                     prevState.copy(walletState = newWalletState)
                 }
@@ -204,12 +195,12 @@ class ProfileViewModel @Inject constructor(
         router.openChangePinCode()
     }
 
-    private suspend fun createIcon(accountAddress: String): AddressModel {
-        return addressIconGenerator.createAddressModel(accountAddress, AVATAR_SIZE_DP)
-    }
-
     fun beaconQrScanned(qrContent: String) {
         router.openBeacon(qrContent)
+    }
+
+    override fun crowdloansClicked() {
+        router.openCrowdloansScreen()
     }
 
     override fun currencyClicked() {
@@ -235,20 +226,6 @@ class ProfileViewModel @Inject constructor(
 
     override fun polkaswapDisclaimerClicked() {
         router.openPolkaswapDisclaimerFromProfile()
-    }
-
-    override fun onSoraCardClicked() {
-        launch {
-            val soraCardState: SoraCardItemViewState? = soraCardState.firstOrNull()
-            if (soraCardState?.kycStatus == null) {
-                router.openGetSoraCard()
-            } else {
-                onSoraCardStatusClicked()
-            }
-        }
-    }
-
-    private fun onSoraCardStatusClicked() {
     }
 
     override fun onWalletConnectClick() {

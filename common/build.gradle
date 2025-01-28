@@ -59,6 +59,9 @@ android {
         buildConfigField "String", "OPMAINNET_API_KEY", readSecretInQuotes("FL_ANDROID_OPMAINNET_API_KEY")
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
+        buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")
+
+        buildConfigField("String", "DAPPS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/refs/heads/develop-free/appConfigs/dapps.json\"")
     }
 
     buildTypes {
@@ -89,14 +92,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -141,6 +144,7 @@ dependencies {
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
+    implementation libs.bundles.ton
     implementation libs.progressbutton
 
     implementation libs.nv.websocket.client
@@ -152,6 +156,7 @@ dependencies {
     debugImplementation libs.bundles.composeDebug
 
     implementation libs.sora.ui
+    implementation libs.soramitsu.android.foundation
 
     api libs.coil
     api libs.coil.gif
@@ -161,5 +166,5 @@ dependencies {
     testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
 
-    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
+    api libs.sharedFeaturesCoreDep
 }

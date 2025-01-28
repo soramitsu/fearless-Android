@@ -6,12 +6,18 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
+import jp.co.soramitsu.account.api.domain.model.hasEthereum
+import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.domain.model.hasTon
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -34,8 +40,18 @@ class AccountDetailsInteractor(
         return accountRepository.getMetaAccount(metaId)
     }
 
-    suspend fun updateName(metaId: Long, newName: String) {
-        accountRepository.updateMetaAccountName(metaId, newName)
+    fun lightMetaAccountFlow(metaId: Long) =
+        accountRepository.lightMetaAccountFlow(metaId)
+
+    suspend fun hasReplacedAccounts(metaId: Long, type: ImportAccountType): Boolean {
+        val wallet = getMetaAccount(metaId)
+        return wallet.chainAccounts.values.mapNotNull { it.chain }.any {
+            if (it.isEthereumChain) {
+                type == ImportAccountType.Ethereum
+            } else {
+                type == ImportAccountType.Substrate
+            }
+        }
     }
 
     fun getChainProjectionsFlow(metaId: Long): Flow<GroupedList<From, AccountInChain>> {
@@ -58,11 +74,65 @@ class AccountDetailsInteractor(
         }
     }
 
+    fun getChainProjectionsFlow(metaId: Long, type: ImportAccountType): Flow<GroupedList<From, AccountInChain>> {
+        return combine(
+            flowOf { getMetaAccount(metaId) },
+            chainRegistry.currentChains,//.map { it.sortedWith(chainSort()) },
+        ) { metaAccount, chains ->
+            chains.filter { chain ->
+                chain.ecosystem == Ecosystem.Ton && type == ImportAccountType.Ton
+                        || chain.ecosystem == Ecosystem.Ethereum && type == ImportAccountType.Ethereum
+                        || chain.ecosystem == Ecosystem.EthereumBased && type == ImportAccountType.Ethereum
+                        || chain.ecosystem == Ecosystem.Substrate && type == ImportAccountType.Substrate
+            }.map { chain ->
+                createAccountInChain(metaAccount, chain, false)
+            }.filter {
+                it.hasAccount
+            }.groupBy(AccountInChain::from)
+                .toSortedMap(compareBy { it.name })
+        }
+    }
+
+    fun getChainAccountsSummaryFlow(metaId: Long): Flow<List<Pair<ImportAccountType, Int>>> {
+        return combine(
+            flowOf { getMetaAccount(metaId) },
+            chainRegistry.currentChains,
+        ) { metaAccount, chains ->
+            chains.filter { chain ->
+                when (chain.ecosystem) {
+                    Ecosystem.Substrate -> metaAccount.hasSubstrate
+                    Ecosystem.EthereumBased,
+                    Ecosystem.Ethereum -> metaAccount.hasEthereum
+
+                    Ecosystem.Ton -> metaAccount.hasTon
+                } || metaAccount.hasChainAccount(chain.id)
+            }.groupBy { chain ->
+                when (chain.ecosystem) {
+                    Ecosystem.Substrate -> ImportAccountType.Substrate
+                    Ecosystem.EthereumBased,
+                    Ecosystem.Ethereum -> ImportAccountType.Ethereum
+
+                    Ecosystem.Ton -> ImportAccountType.Ton
+                }
+            }.map { grouped ->
+                grouped.key to grouped.value.size
+            }
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun hasChainsWithNoAccount() = accountRepository.selectedMetaAccountFlow()
         .flatMapLatest { metaAccount ->
             combine(
-                chainRegistry.currentChains.map { it.sortedWith(chainSort()) },
+                chainRegistry.currentChains.map { chains ->
+                    chains.filter { chain ->
+                        if (metaAccount.supportedEcosystems().contains(WalletEcosystem.Ton)) {
+                            chain.ecosystem == Ecosystem.Ton
+                        } else {
+                            true
+                        }
+                    }
+                }.map { it.sortedWith(chainSort()) },
                 assetNotNeedAccountUseCase.getAssetsMarkedNotNeedFlow(metaAccount.id)
             ) { chains, assetsMarkedNotNeed ->
                 chains.any { chain ->
@@ -98,10 +168,6 @@ class AccountDetailsInteractor(
             hasAccount = hasAccount,
             markedAsNotNeed = markedNotNeed
         )
-    }
-
-    suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>? {
-        return accountRepository.getMetaAccountSecrets(metaId)
     }
 
     suspend fun getChainAccountSecret(metaId: Long, chainId: ChainId): EncodableStruct<ChainAccountSecrets>? {

@@ -29,7 +29,7 @@ import jp.co.soramitsu.common.compose.component.CapsTitle2
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
-import jp.co.soramitsu.common.compose.component.H4Bold
+import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -228,7 +228,7 @@ fun SegmentHeader(state: ListSegmentState) {
             }
             MarginHorizontal(margin = 8.dp)
             state.title?.let {
-                H4Bold(
+                H4(
                     text = it,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )

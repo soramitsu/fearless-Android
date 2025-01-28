@@ -10,7 +10,6 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
@@ -41,21 +40,21 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentImportAccountBin
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     companion object {
 
-        const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
+        const val IMPORT_ACCOUNT_TYPE_KEY = "IMPORT_ACCOUNT_TYPE_KEY"
         const val IMPORT_MODE_KEY = "IMPORT_MODE_KEY"
-        const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val IMPORT_WALLET_ID_KEY = "IMPORT_WALLET_ID_KEY"
 
         fun getBundle(
-            blockChainType: Int = 0,
+            walletId: Long?,
+            accountType: ImportAccountType = ImportAccountType.Substrate,
             importMode: ImportMode = ImportMode.MnemonicPhrase
         ): Bundle {
             return bundleOf(
-                BLOCKCHAIN_TYPE_KEY to blockChainType,
-                IMPORT_MODE_KEY to importMode
+                IMPORT_ACCOUNT_TYPE_KEY to accountType,
+                IMPORT_MODE_KEY to importMode,
+                IMPORT_WALLET_ID_KEY to walletId
             )
         }
-
-        fun getBundle(chainAccountData: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to chainAccountData)
     }
 
     private lateinit var binding: FragmentImportAccountBinding
@@ -75,7 +74,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         with(binding) {
             toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
-            sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
+            if (viewModel.initialImportAccountType == ImportAccountType.Ton) {
+                sourceTypeInput.isEnabled = false
+            } else {
+                sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
+            }
 
             advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
                 viewModel.chooseEncryptionClicked()
@@ -114,10 +117,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         viewModel.showEthAccountsDialog.observeEvent { showEthDialog() }
 
-        if (viewModel.isChainAccount) {
-            binding.toolbar.setTitle(R.string.onboarding_restore_account)
-        }
-
         mediateWith(
             viewModel.blockchainLiveData,
             viewModel.selectedSourceLiveData
@@ -125,8 +124,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             blockchainType?.let {
                 val sourceViews = buildSourceTypesViews(blockchainType)
                 setupSourceTypes(sourceType, sourceViews)
-                val isChainAccount = viewModel.isChainAccount
-                setupAdvancedBlock(blockchainType, sourceType, isChainAccount)
+                setupAdvancedBlock(blockchainType, sourceType)
             }
         }.observe { }
     }
@@ -153,19 +151,19 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
     }
 
-    private fun setupAdvancedBlock(blockchainType: ImportAccountType, sourceType: ImportSource, isChainAccount: Boolean) {
+    private fun setupAdvancedBlock(blockchainType: ImportAccountType, sourceType: ImportSource) {
         binding.advancedBlockView.makeVisible()
         binding.advancedBlockView.apply {
             when {
-                sourceType is MnemonicImportSource && isChainAccount -> {
-                    configureForMnemonic(blockchainType)
+                blockchainType == ImportAccountType.Ton -> {
+                    binding.advancedBlockView.makeGone()
                 }
                 sourceType is MnemonicImportSource -> {
                     configure(FieldState.NORMAL)
                     FieldState.DISABLED.applyTo(ethereumEncryptionTypeField)
                 }
                 sourceType is RawSeedImportSource -> {
-                    configureForSeed(blockchainType)
+                    configureForAccountType(blockchainType)
                 }
                 sourceType is JsonImportSource -> {
                     binding.advancedBlockView.makeGone()
@@ -205,12 +203,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     private fun createSourceView(source: ImportSource, blockchainType: ImportAccountType): ImportSourceView {
         val context = requireContext()
 
-        val isChainAccount = viewModel.isChainAccount
-
         return when (source) {
-            is JsonImportSource -> JsonImportView(context, blockchainType, isChainAccount, ::onShowImportError)
-            is MnemonicImportSource -> MnemonicImportView(context, isChainAccount)
-            is RawSeedImportSource -> SeedImportView(context, blockchainType, isChainAccount)
+            is JsonImportSource -> JsonImportView(context, blockchainType, ::onShowImportError)
+            is MnemonicImportSource -> MnemonicImportView(context)
+            is RawSeedImportSource -> SeedImportView(context, blockchainType)
         }
     }
 

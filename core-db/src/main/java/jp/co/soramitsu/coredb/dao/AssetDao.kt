@@ -6,11 +6,13 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -62,6 +64,9 @@ interface AssetReadOnlyCache {
 
 @Dao
 abstract class AssetDao : AssetReadOnlyCache {
+
+    @Query("SELECT * FROM assets where metaId = :metaId")
+    abstract fun observeBalances(metaId: Long): Flow<List<AssetLocal>>
 
     @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
     abstract override fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
@@ -123,12 +128,19 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Update(entity = AssetLocal::class)
     abstract suspend fun updateAsset(asset: AssetLocal)
 
+    @Update(entity = AssetLocal::class)
+    abstract suspend fun updateAsset(asset: AssetBalanceUpdateItem)
+
     @Query("DELETE FROM assets WHERE metaId = :metaId AND accountId = :accountId AND chainId = :chainId AND id = :assetId")
     abstract fun deleteAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String)
 
     @Query("DELETE FROM assets WHERE id in (:assetIdsToDelete)")
     abstract fun deleteAssets(assetIdsToDelete: List<String>)
 
+    @Query("DELETE FROM assets WHERE metaId = :metaId")
+    abstract fun deleteAccountAssets(metaId: Long)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     open suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken> {
         return observeAssetSymbolById(id).flatMapLatest { symbol ->
             observeAssetsBySymbol(

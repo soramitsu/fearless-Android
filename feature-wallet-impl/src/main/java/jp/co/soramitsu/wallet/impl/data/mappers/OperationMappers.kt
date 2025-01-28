@@ -1,42 +1,60 @@
 package jp.co.soramitsu.wallet.impl.data.mappers
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.address.createEthereumAddressIcon
+import jp.co.soramitsu.common.compose.component.AddressDisplayState
+import jp.co.soramitsu.common.compose.component.GradientIconState
+import jp.co.soramitsu.common.compose.component.TextInputViewState
+import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.models.toMarkets
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatSigned
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
-import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.SwapDetailState
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.mapToStatusAppearance
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistoryItem
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 // VAL
-const val SORA_REWARD_ASSET_ID = "0x0200040000000000000000000000000000000000000000000000000000000000"
+const val SORA_REWARD_ASSET_ID =
+    "0x0200040000000000000000000000000000000000000000000000000000000000"
 
 // XOR
-const val SORA_STAKING_CURRENCY_ID = "0x0200000000000000000000000000000000000000000000000000000000000000"
+const val SORA_STAKING_CURRENCY_ID =
+    "0x0200000000000000000000000000000000000000000000000000000000000000"
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -404,9 +422,9 @@ private fun Operation.Type.Extrinsic.formattedAndReplaced() = listOf(module, cal
 
 suspend fun mapOperationToOperationModel(
     operation: Operation,
-    nameIdentifier: AddressDisplayUseCase.Identifier,
     resourceManager: ResourceManager,
-    iconGenerator: AddressIconGenerator
+    iconGenerator: AddressIconGenerator,
+    ecosystem: Ecosystem
 ): OperationModel {
     val statusAppearance = mapStatusToStatusAppearance(operation.type.operationStatus)
 
@@ -429,29 +447,12 @@ suspend fun mapOperationToOperationModel(
             }
 
             is Operation.Type.Transfer -> {
-                val amountColor = when {
-                    operationType.status == Operation.Status.FAILED -> gray2
-                    operationType.isIncome -> greenText
-                    else -> white
-                }
-
-                val isEthereum = chainAsset.ethereumType != null
-                val operationIcon = if (isEthereum) {
-                    iconGenerator.createEthereumAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_MEDIUM)
-                } else {
-                    iconGenerator.createAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_BIG)
-                }
-
-                OperationModel(
-                    id = id,
-                    time = time,
-                    amount = formatDetailsAmount(chainAsset, operationType),
-                    amountColor = amountColor,
-                    header = nameIdentifier.nameOrAddress(operationType.displayAddress),
-                    statusAppearance = statusAppearance,
-                    operationIcon = operationIcon,
-                    subHeader = resourceManager.getString(R.string.transfer_title),
-                    type = operationType.toModel()
+                createTransferOperationModel(
+                    operationType,
+                    ecosystem,
+                    iconGenerator,
+                    statusAppearance,
+                    resourceManager
                 )
             }
 
@@ -492,6 +493,347 @@ suspend fun mapOperationToOperationModel(
     }
 }
 
+private suspend fun Operation.createTransferOperationModel(
+    operationType: Operation.Type.Transfer,
+    ecosystem: Ecosystem,
+    iconGenerator: AddressIconGenerator,
+    statusAppearance: OperationStatusAppearance,
+    resourceManager: ResourceManager
+): OperationModel {
+    val amountColor = when {
+        operationType.status == Operation.Status.FAILED -> gray2
+        operationType.isIncome -> greenText
+        else -> white
+    }
+
+    val operationIcon = when (ecosystem) {
+        Ecosystem.EthereumBased, Ecosystem.Ethereum -> {
+            iconGenerator.createEthereumAddressIcon(
+                operationType.displayAddress,
+                AddressIconGenerator.SIZE_MEDIUM
+            )
+        }
+
+        Ecosystem.Substrate -> {
+            iconGenerator.createAddressIcon(
+                operationType.displayAddress,
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+
+        Ecosystem.Ton -> {
+            iconGenerator.createWalletIcon(
+                WalletEcosystem.Ton,
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+
+        else -> null
+    }
+
+    return OperationModel(
+        id = id,
+        time = time,
+        amount = formatDetailsAmount(chainAsset, operationType),
+        amountColor = amountColor,
+        header = operationType.displayAddress,
+        statusAppearance = statusAppearance,
+        operationIcon = operationIcon,
+        subHeader = resourceManager.getString(R.string.transfer_title),
+        type = operationType.toModel()
+    )
+}
+
+suspend fun mapOperationToTransactionDetailsState(
+    operation: Operation,
+    resourceManager: ResourceManager,
+    iconGenerator: AddressIconGenerator,
+    chain: Chain
+): TransactionDetailsState {
+    val statusAppearance = mapStatusToStatusAppearance(operation.type.operationStatus)
+
+    return with(operation) {
+        when (val operationType = type) {
+            is Operation.Type.Reward -> {
+
+                createRewardDetailsState(
+                    resourceManager,
+                    operationType,
+                    iconGenerator,
+                    statusAppearance
+                )
+            }
+
+            is Operation.Type.Transfer -> {
+                createTransferDetailsState(
+                    operationType,
+                    chain,
+                    iconGenerator,
+                    resourceManager,
+                    statusAppearance
+                )
+            }
+
+            is Operation.Type.Extrinsic -> {
+                createExtrinsicDetailsState(
+                    chain,
+                    iconGenerator,
+                    resourceManager,
+                    statusAppearance,
+                    operationType
+                )
+            }
+
+            is Operation.Type.Swap -> {
+                createSwapDetailState(operationType, chain)
+            }
+        }
+    }
+}
+
+private fun Operation.createSwapDetailState(
+    operationType: Operation.Type.Swap,
+    chain: Chain
+): SwapDetailState {
+    val swapRate =
+        operationType.targetAsset?.amountFromPlanks(operationType.targetAssetAmount.orZero())
+            .orZero().divide(
+                chainAsset.amountFromPlanks(operationType.baseAssetAmount),
+                RoundingMode.HALF_DOWN
+            )
+
+    val hasSubscanUrl = chain.explorers.any { it.type == Chain.Explorer.Type.SUBSCAN }
+    return SwapDetailState(
+        fromTokenImage = GradientIconState.Remote(chainAsset.iconUrl, chainAsset.color),
+        toTokenImage = GradientIconState.Remote(
+            operationType.targetAsset?.iconUrl.orEmpty(),
+            operationType.targetAsset?.color.orEmpty()
+        ),
+        fromTokenAmount = operationType.baseAssetAmount.formatCryptoFromPlanks(
+            chainAsset
+        ),
+        toTokenAmount = operationType.targetAsset?.let {
+            operationType.targetAssetAmount?.formatCryptoFromPlanks(
+                it
+            )
+        } ?: "???",
+        fromTokenName = chainAsset.symbol.uppercase(),
+        toTokenName = operationType.targetAsset?.symbol?.uppercase() ?: "???",
+        statusAppearance = operationType.status.mapToStatusAppearance(),
+        address = address,
+        addressName = null,
+        hash = operationType.hash,
+        fromTokenOnToToken = swapRate.formatCryptoDetail(),
+        liquidityProviderFee = operationType.liquidityProviderFee.formatCryptoDetailFromPlanks(
+            chainAsset
+        ),
+        networkFee = operationType.networkFee.formatCryptoDetailFromPlanks(chainAsset),
+        time = time,
+        market = operationType.selectedMarket?.let {
+            listOf(it).toMarkets().firstOrNull()
+        } ?: Market.SMART,
+        isShowSubscanButtons = hasSubscanUrl
+    )
+}
+
+private suspend fun Operation.createExtrinsicDetailsState(
+    chain: Chain,
+    iconGenerator: AddressIconGenerator,
+    resourceManager: ResourceManager,
+    statusAppearance: OperationStatusAppearance,
+    operationType: Operation.Type.Extrinsic
+): TransferDetailsState {
+    val senderIcon: Any = when (chain.ecosystem) {
+        Ecosystem.EthereumBased, Ecosystem.Ethereum -> {
+            iconGenerator.createEthereumAddressIcon(
+                address,
+                AddressIconGenerator.SIZE_MEDIUM
+            )
+        }
+
+        Ecosystem.Substrate -> {
+            iconGenerator.createAddressIcon(address, AddressIconGenerator.SIZE_BIG)
+        }
+
+        Ecosystem.Ton -> {
+            chainAsset.iconUrl
+        }
+    }
+
+    val sender = when (chain.ecosystem) {
+        Ecosystem.Ton -> {
+            V4R2WalletContract(address).getAddress(chain.isTestNet)
+        }
+
+        else -> address
+    }
+    return TransferDetailsState(
+        id = TextInputViewState(
+            text = id,
+            hint = resourceManager.getString(R.string.common_details),
+            isActive = false,
+            endIcon = R.drawable.ic_more_vertical
+        ),
+        firstAddress = AddressDisplayState(
+            title = resourceManager.getString(R.string.transaction_details_from),
+            input = sender,
+            image = senderIcon,
+            endIcon = R.drawable.ic_more_vertical
+        ),
+        secondAddress = null,
+        status = statusAppearance,
+        listOf(
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_date),
+                value = time.formatDateTime()
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_module),
+                value = operationType.module
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_call),
+                value = operationType.call
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.choose_amount_fee),
+                value = operationType.fee.formatFee(chainAsset)
+            )
+        )
+    )
+}
+
+private suspend fun Operation.createTransferDetailsState(
+    operationType: Operation.Type.Transfer,
+    chain: Chain,
+    iconGenerator: AddressIconGenerator,
+    resourceManager: ResourceManager,
+    statusAppearance: OperationStatusAppearance
+): TransferDetailsState {
+    val amountColor = when {
+        operationType.status == Operation.Status.FAILED -> gray2
+        operationType.isIncome -> greenText
+        else -> white
+    }
+    val senderIcon: Any = when (chain.ecosystem) {
+        Ecosystem.EthereumBased, Ecosystem.Ethereum -> {
+            iconGenerator.createEthereumAddressIcon(
+                operationType.sender,
+                AddressIconGenerator.SIZE_MEDIUM
+            )
+        }
+
+        Ecosystem.Substrate -> {
+            iconGenerator.createAddressIcon(
+                operationType.sender,
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+
+        Ecosystem.Ton -> {
+            chainAsset.iconUrl
+        }
+    }
+    val receiverIcon: Any = when (chain.ecosystem) {
+        Ecosystem.EthereumBased, Ecosystem.Ethereum -> {
+            iconGenerator.createEthereumAddressIcon(
+                operationType.receiver,
+                AddressIconGenerator.SIZE_MEDIUM
+            )
+        }
+
+        Ecosystem.Substrate -> {
+            iconGenerator.createAddressIcon(
+                operationType.receiver,
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+
+        Ecosystem.Ton -> {
+            chainAsset.iconUrl
+        }
+    }
+    return TransferDetailsState(
+        id = TextInputViewState(
+            text = id,
+            hint = resourceManager.getString(R.string.hash),
+            isActive = false,
+            endIcon = R.drawable.ic_more_vertical
+        ),
+        firstAddress = AddressDisplayState(
+            title = resourceManager.getString(R.string.transaction_details_from),
+            input = operationType.sender,
+            image = senderIcon,
+            endIcon = R.drawable.ic_more_vertical
+        ),
+        secondAddress = AddressDisplayState(
+            title = resourceManager.getString(R.string.choose_amount_to),
+            input = operationType.receiver,
+            image = receiverIcon,
+            endIcon = R.drawable.ic_more_vertical
+        ),
+        status = statusAppearance,
+        listOf(
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_date),
+                value = time.formatDateTime()
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_amount),
+                value = formatDetailsAmount(chainAsset, operationType),
+                valueColor = amountColor
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.choose_amount_fee),
+                value = operationType.fee?.formatFee(chainAsset)
+            )
+        )
+    )
+}
+
+private suspend fun Operation.createRewardDetailsState(
+    resourceManager: ResourceManager,
+    operationType: Operation.Type.Reward,
+    iconGenerator: AddressIconGenerator,
+    statusAppearance: OperationStatusAppearance
+): TransferDetailsState {
+    val timeStr = time.formatDateTime()
+
+    return TransferDetailsState(
+        id = TextInputViewState(
+            text = id,
+            hint = resourceManager.getString(R.string.common_event),
+            isActive = false,
+            endIcon = R.drawable.ic_more_vertical
+        ),
+        firstAddress = operationType.validator?.let {
+            val validatorAddressModel = iconGenerator.createAddressModel(it, 32, null)
+            AddressDisplayState(
+                title = resourceManager.getString(R.string.staking_reward_details_validator),
+                input = it,
+                image = validatorAddressModel.image,
+                endIcon = R.drawable.ic_more_vertical
+            )
+        },
+        secondAddress = null,
+        status = statusAppearance,
+        listOf(
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_date),
+                value = timeStr
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.staking_reward_details_era),
+                value = operationType.era.toString()
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.staking_reward),
+                value = formatDetailsAmount(chainAsset, operationType)
+            ),
+        )
+    )
+}
+
 private fun Operation.Type.toModel(): OperationModel.Type {
     return when (this) {
         is Operation.Type.Extrinsic -> OperationModel.Type.Extrinsic
@@ -501,87 +843,6 @@ private fun Operation.Type.toModel(): OperationModel.Type {
     }
 }
 
-fun mapOperationToParcel(
-    operation: Operation,
-    resourceManager: ResourceManager,
-    utilityAsset: Asset?
-): OperationParcelizeModel {
-    with(operation) {
-        return when (val operationType = operation.type) {
-            is Operation.Type.Transfer -> {
-                val operationFee = operationType.fee ?: BigInteger.ZERO
-                val feeFormatted = if (utilityAsset == null) {
-                    resourceManager.getString(R.string.common_unknown)
-                } else {
-                    operationFee.formatFee(utilityAsset)
-                }
-
-                val operationHash = if (utilityAsset?.chainId == reefChainId) {
-                    val reefscanSuffix = operation.id.split("-").getOrNull(1)?.let { "-$it" }.orEmpty()
-                    val reefOperationHash = operationType.hash?.removeSuffix(reefscanSuffix)?.let { "$it$reefscanSuffix" }
-                    reefOperationHash
-                } else {
-                    operationType.hash
-                }
-
-                OperationParcelizeModel.Transfer(
-                    time = time,
-                    address = address,
-                    hash = operationHash,
-                    amount = formatDetailsAmount(operation.chainAsset, operationType),
-                    receiver = operationType.receiver,
-                    sender = operationType.sender,
-                    fee = feeFormatted,
-                    isIncome = operationType.isIncome,
-                    statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
-                )
-            }
-
-            is Operation.Type.Reward -> {
-                OperationParcelizeModel.Reward(
-                    eventId = id,
-                    address = address,
-                    time = time,
-                    amount = formatDetailsAmount(chainAsset, operationType),
-                    isReward = operationType.isReward,
-                    era = operationType.era,
-                    validator = operationType.validator
-                )
-            }
-
-            is Operation.Type.Extrinsic -> {
-                OperationParcelizeModel.Extrinsic(
-                    time = time,
-                    originAddress = address,
-                    hash = operationType.hash,
-                    module = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
-                    call = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
-                    fee = operationType.fee.formatFee(chainAsset),
-                    statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
-                )
-            }
-
-            is Operation.Type.Swap -> {
-                OperationParcelizeModel.Swap(
-                    id = id,
-                    address = address,
-                    chainAsset = chainAsset,
-                    targetAsset = operationType.targetAsset,
-                    time = time,
-                    hash = operationType.hash,
-                    module = operationType.module,
-                    baseAssetAmount = operationType.baseAssetAmount,
-                    liquidityProviderFee = operationType.liquidityProviderFee,
-                    selectedMarket = operationType.selectedMarket,
-                    targetAssetAmount = operationType.targetAssetAmount,
-                    networkFee = operationType.networkFee,
-                    status = operationType.status
-                )
-            }
-        }
-    }
-}
-
-fun String.toBigDecimalOrNull(): BigDecimal?  {
+fun String.toBigDecimalOrNull(): BigDecimal? {
     return runCatching { toBigDecimal() }.getOrNull()
 }

@@ -24,10 +24,10 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
@@ -43,10 +43,13 @@ import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -60,6 +63,7 @@ import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.BalanceLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
@@ -70,13 +74,15 @@ import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.data.repository.PricesSyncService
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
+import jp.co.soramitsu.wallet.impl.data.repository.TonPricesService
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.TransferServiceProvider
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.QuickInputsUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
-import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
+import jp.co.soramitsu.wallet.impl.domain.validation.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
@@ -104,6 +110,10 @@ import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
 import javax.inject.Named
 import javax.inject.Singleton
 
+private const val TIMEOUT_SECONDS = 60L
+private const val HTTP_CACHE = "http_cache"
+private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
+
 @InstallIn(SingletonComponent::class)
 @Module
 class WalletFeatureModule {
@@ -120,13 +130,10 @@ class WalletFeatureModule {
 
     @Provides
     fun provideAssetCache(
-        tokenPriceDao: TokenPriceDao,
         assetDao: AssetDao,
-        accountRepository: AccountRepository,
-        updatesMixin: UpdatesMixin,
         selectedFiat: SelectedFiat
     ): AssetCache {
-        return AssetCache(tokenPriceDao, accountRepository, assetDao, updatesMixin, selectedFiat)
+        return AssetCache( assetDao, selectedFiat)
     }
 
     @Provides
@@ -175,35 +182,37 @@ class WalletFeatureModule {
         phishingApi: PhishingApi,
         phishingDao: PhishingDao,
         walletConstants: WalletConstants,
-        assetCache: AssetCache,
+        assetDao: AssetDao,
         coingeckoApi: CoingeckoApi,
         chainRegistry: ChainRegistry,
-        updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
         extrinsicService: ExtrinsicService,
         @Named(REMOTE_STORAGE_SOURCE)
         remoteStorageSource: StorageDataSource,
-        pricesSyncService: PricesSyncService
+        pricesSyncService: PricesSyncService,
+        transferServiceProvider: TransferServiceProvider,
+        tonRemoteSource: TonRemoteSource
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
         operationsDao,
         httpExceptionHandler,
         phishingApi,
-        assetCache,
+        assetDao,
         walletConstants,
         phishingDao,
         coingeckoApi,
         chainRegistry,
-        updatesMixin,
         remoteConfigFetcher,
         accountRepository,
         chainsRepository,
         extrinsicService,
         remoteStorageSource,
-        pricesSyncService
+        pricesSyncService,
+        transferServiceProvider,
+        tonRemoteSource
     )
 
     @Provides
@@ -215,7 +224,8 @@ class WalletFeatureModule {
         remoteStorageSource: RemoteStorageSource,
         assetDao: AssetDao,
         nomisApi: NomisApi,
-        nomisScoresDao: NomisScoresDao
+        nomisScoresDao: NomisScoresDao,
+        balanceLoaderProvider: BalanceLoader.Provider
     ): WalletSyncService {
         return WalletSyncService(
             metaAccountDao,
@@ -224,7 +234,8 @@ class WalletFeatureModule {
             remoteStorageSource,
             assetDao,
             nomisApi,
-            nomisScoresDao
+            nomisScoresDao,
+            balanceLoaderProvider
         )
     }
 
@@ -247,10 +258,12 @@ class WalletFeatureModule {
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
         txHistoryRepository: TxHistoryRepository,
+        tonRemoteSource: TonRemoteSource
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
         txHistoryRepository,
+        tonRemoteSource,
     )
 
     @Provides
@@ -275,7 +288,6 @@ class WalletFeatureModule {
         fileProvider: FileProvider,
         preferences: Preferences,
         selectedFiat: SelectedFiat,
-        updatesMixin: UpdatesMixin,
         xcmEntitiesFetcher: XcmEntitiesFetcher,
         chainsRepository: ChainsRepository,
         networkStateService: NetworkStateService,
@@ -289,7 +301,6 @@ class WalletFeatureModule {
         fileProvider,
         preferences,
         selectedFiat,
-        updatesMixin,
         xcmEntitiesFetcher,
         chainsRepository,
         networkStateService,
@@ -411,18 +422,38 @@ class WalletFeatureModule {
     fun provideFeatureUpdaters(
         chainRegistry: ChainRegistry,
         metaAccountDao: MetaAccountDao,
-        assetCache: AssetCache,
-        substrateSource: SubstrateRemoteSource,
-        operationDao: OperationDao,
-        ethereumRemoteSource: EthereumRemoteSource
+        balanceLoaderProvider: BalanceLoader.Provider,
+        assetDao: AssetDao
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
         metaAccountDao,
-        assetCache,
-        substrateSource,
-        operationDao,
-        ethereumRemoteSource
+        balanceLoaderProvider,
+        assetDao
     )
+
+    @Provides
+    @Singleton
+    fun provideBalanceLoaderProvider(
+        chainRegistry: ChainRegistry,
+        remoteStorageSource: RemoteStorageSource,
+        ethereumRemoteSource: EthereumRemoteSource,
+        substrateSource: SubstrateRemoteSource,
+        operationDao: OperationDao,
+        tonRemoteSource: TonRemoteSource,
+        chainsRepository: ChainsRepository,
+        tonSyncDataRepository: TonSyncDataRepository
+    ): BalanceLoader.Provider {
+        return BalanceLoaderProvider(
+            chainRegistry,
+            remoteStorageSource,
+            ethereumRemoteSource,
+            substrateSource,
+            operationDao,
+            tonRemoteSource,
+            chainsRepository,
+            tonSyncDataRepository
+        )
+    }
 
     @Provides
     fun provideWalletConstants(
@@ -523,10 +554,25 @@ class WalletFeatureModule {
 
     @Provides
     @Singleton
+    fun provideTonPricesService(
+        tonSyncDataRepository: TonSyncDataRepository,
+        chainsRepository: ChainsRepository,
+        accountRepository: AccountRepository
+    ): TonPricesService {
+        return TonPricesService(
+            tonSyncDataRepository,
+            chainsRepository,
+            accountRepository
+        )
+    }
+
+    @Provides
+    @Singleton
     fun providePricesSyncService(
         tokenPriceDao: TokenPriceDao,
         coingeckoPricesService: CoingeckoPricesService,
         chainlinkPricesService: ChainlinkPricesService,
+        tonPricesService: TonPricesService,
         selectedFiat: SelectedFiat,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
     ): PricesSyncService {
@@ -534,8 +580,29 @@ class WalletFeatureModule {
             tokenPriceDao,
             coingeckoPricesService,
             chainlinkPricesService,
+            tonPricesService,
             selectedFiat,
             availableFiatCurrencies
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideTransferServiceProvider(
+        substrateSource: SubstrateRemoteSource,
+        ethereumRemoteSource: EthereumRemoteSource,
+        keyPairRepository: KeypairProvider,
+        accountRepository: AccountRepository,
+        tonRemoteSource: TonRemoteSource,
+        assetDao: AssetDao
+    ): TransferServiceProvider {
+        return TransferServiceProvider(
+            substrateSource,
+            ethereumRemoteSource,
+            keyPairRepository,
+            accountRepository,
+            tonRemoteSource,
+            assetDao
         )
     }
 }

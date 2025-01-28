@@ -6,19 +6,17 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationModel
-import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToParcel
+import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToTransactionDetailsState
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
-import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +34,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class TransactionHistoryProvider(
     private val walletInteractor: WalletInteractor,
@@ -96,6 +93,7 @@ class TransactionHistoryProvider(
         _state.emit(TransactionHistoryUi.State.EmptyProgress)
         val asset = assetPayloadStateFlow.value
 
+        val ecosystem = walletInteractor.getChain(asset.chainId).ecosystem
         syncFirstOperationsPage(asset)
         operationsObserveJob?.cancel()
         operationsObserveJob = observeOperationsFirstPage(asset).onEach { page ->
@@ -105,7 +103,7 @@ class TransactionHistoryProvider(
                 _state.emit(TransactionHistoryUi.State.Empty())
             } else {
                 currentData.addAll(page.items)
-                _state.emit(TransactionHistoryUi.State.Data(transformData(page.items)))
+                _state.emit(TransactionHistoryUi.State.Data(transformData(page.items, ecosystem)))
             }
         }.launchIn(this)
     }
@@ -201,60 +199,39 @@ class TransactionHistoryProvider(
                     return@onSuccess
                 }
                 currentData.addAll(it.items)
-                _state.emit(TransactionHistoryUi.State.Data(transformData(currentData)))
+                val ecosystem = walletInteractor.getChain(assetPayload.chainId).ecosystem
+                _state.emit(TransactionHistoryUi.State.Data(transformData(
+                    currentData,
+                    ecosystem
+                )))
             }
     }
 
-    override fun transactionClicked(
+    override suspend fun getTransactionDetailsState(
         transactionModel: OperationModel,
         assetPayload: AssetPayload
-    ) {
-        launch {
-            val operations = currentData
+    ): TransactionDetailsState {
+        val operations = currentData
 
-            val clickedOperation = operations.firstOrNull { it.id == transactionModel.id } ?: return@launch
+        val clickedOperation = operations.firstOrNull { it.id == transactionModel.id }
+            ?: throw IllegalStateException("Cannot find operation in cache")
 
-            val chain = walletInteractor.getChain(assetPayload.chainId)
-            val utilityAsset = chain.assets.firstOrNull { it.isUtility }
-            val chainExplorerType: Chain.Explorer.Type? = chain.explorers.firstOrNull()?.type
+        val chain = walletInteractor.getChain(assetPayload.chainId)
 
-            withContext(Dispatchers.Main) {
-                when (val operation = mapOperationToParcel(clickedOperation, resourceManager, utilityAsset)) {
-                    is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(operation, assetPayload, chainExplorerType)
-                    }
-
-                    is OperationParcelizeModel.Extrinsic -> {
-                        router.openExtrinsicDetail(
-                            ExtrinsicDetailsPayload(
-                                operation,
-                                assetPayload.chainId
-                            )
-                        )
-                    }
-
-                    is OperationParcelizeModel.Reward -> {
-                        router.openRewardDetail(
-                            RewardDetailsPayload(
-                                operation,
-                                assetPayload.chainId
-                            )
-                        )
-                    }
-
-                    is OperationParcelizeModel.Swap -> {
-                        router.openSwapDetail(operation)
-                    }
-                }
-            }
-        }
+        return mapOperationToTransactionDetailsState(
+            clickedOperation,
+            resourceManager,
+            iconGenerator,
+            chain
+        )
     }
 
-    private suspend fun transformData(data: Collection<Operation>): List<Any> {
-        val accountIdentifier = addressDisplayUseCase.createIdentifier()
-
+    private suspend fun transformData(
+        data: Collection<Operation>,
+        ecosystem: Ecosystem
+    ): List<Any> {
         val operations = data.map {
-            mapOperationToOperationModel(it, accountIdentifier, resourceManager, iconGenerator)
+            mapOperationToOperationModel(it, resourceManager, iconGenerator, ecosystem)
         }.sortedByDescending { it.time }
 
         return regroup(operations)

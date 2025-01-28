@@ -85,7 +85,8 @@ class ManageAssetsViewModel @Inject constructor(
             selectedChainIdFlow,
             enteredTokenQueryFlow,
             currentAssetStates
-        ) { assets, chains, currentMetaAccount, appliedFilterAsString, selectedChainId, searchQuery, currentStates ->
+        ) {  assets, chains, currentMetaAccount, appliedFilterAsString, selectedChainId, searchQuery, currentStates ->
+
             val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
                 it.name == appliedFilterAsString
             } ?: ChainSelectorViewStateWithFilters.Filter.All

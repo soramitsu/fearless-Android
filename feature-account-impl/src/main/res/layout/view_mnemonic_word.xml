@@ -7,16 +7,16 @@
 
     <TextView
         android:id="@+id/wordTv"
+        style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:background="@drawable/bg_mnemonic_word_light"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:textColor="@color/white"
         android:layout_gravity="center"
-        android:paddingStart="10dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="8dp"
-        tools:text="blouse" />
+        android:paddingStart="8dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="6dp"
+        android:textColor="@color/white"
+        tools:background="@drawable/bg_mnemonic_word_light"
+        tools:text="blog" />
 
 </merge>

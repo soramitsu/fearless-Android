@@ -61,8 +61,7 @@ class SearchAssetsViewModel @Inject constructor(
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = readyToUseAssets,
-            filteredChains = chains,
-            networkIssues = emptySet()
+            filteredChains = chains
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems

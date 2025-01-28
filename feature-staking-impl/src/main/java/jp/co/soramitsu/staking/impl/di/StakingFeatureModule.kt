@@ -269,6 +269,7 @@ class StakingFeatureModule {
         walletConstants: WalletConstants,
         chainRegistry: ChainRegistry,
         assetCache: AssetCache,
+        stakingTotalRewardDao: StakingTotalRewardDao,
     ): StakingRelayChainScenarioInteractor {
         return StakingRelayChainScenarioInteractor(
             interactor,
@@ -283,6 +284,7 @@ class StakingFeatureModule {
             payoutRepository,
             walletConstants,
             chainRegistry,
+            stakingTotalRewardDao,
             assetCache,
         )
     }

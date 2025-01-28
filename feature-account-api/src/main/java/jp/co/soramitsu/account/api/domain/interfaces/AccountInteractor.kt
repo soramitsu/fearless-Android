@@ -1,69 +1,38 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import java.io.File
-import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
 
 interface AccountInteractor {
-    suspend fun generateMnemonic(): List<String>
+    suspend fun generateMnemonic(length: Mnemonic.Length): List<String>
 
     fun getCryptoTypes(): List<CryptoType>
 
     suspend fun getPreferredCryptoType(): CryptoType
 
-    suspend fun createAccount(
-        accountName: String,
-        mnemonic: String,
-        encryptionType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        isBackedUp: Boolean
-    ): Result<Unit>
-
-    suspend fun createChainAccount(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    ): Result<Unit>
-
-    suspend fun importFromMnemonic(
-        mnemonic: String,
-        walletName: String,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        selectedEncryptionType: CryptoType,
-        withEth: Boolean,
-        isBackedUp: Boolean,
-        googleBackupAddress: String?
-    ): Result<Long>
-
-    suspend fun importChainAccountFromMnemonic(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        mnemonicWords: String,
-        cryptoType: CryptoType,
-        substrateDerivationPath: String,
-        ethereumDerivationPath: String
-    ): Result<Unit>
+    suspend fun createAccount(payload: AddAccountPayload): Result<Long>
 
     suspend fun importFromSeed(
-        substrateSeed: String,
+        walletId: Long?,
+        substrateSeed: String?,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
@@ -71,31 +40,15 @@ interface AccountInteractor {
         googleBackupAddress: String?
     ): Result<Unit>
 
-    suspend fun importChainFromSeed(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        seed: String,
-        substrateDerivationPath: String,
-        selectedEncryptionType: CryptoType
-    ): Result<Unit>
-
     fun validateJsonBackup(json: String, password: String)
 
     suspend fun importFromJson(
+        walletId: Long?,
         json: String,
         password: String,
         name: String,
         ethJson: String?,
         googleBackupAddress: String?
-    ): Result<Unit>
-
-    suspend fun importChainFromJson(
-        metaId: Long,
-        chainId: ChainId,
-        accountName: String,
-        json: String,
-        password: String
     ): Result<Unit>
 
     suspend fun isCodeSet(): Boolean
@@ -109,10 +62,6 @@ interface AccountInteractor {
     suspend fun setBiometricOn()
 
     suspend fun setBiometricOff()
-
-    suspend fun getAccount(address: String): Account
-
-    fun selectedAccountFlow(): Flow<Account>
 
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
 
@@ -137,9 +86,8 @@ interface AccountInteractor {
     suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String): Result<String>
 
     suspend fun getMetaAccount(metaId: Long): MetaAccount
+    suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
     fun getMetaAccountsGoogleAddresses(): Flow<List<String>>
-
-    suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>?
 
     suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId): EncodableStruct<ChainAccountSecrets>?
 
@@ -148,6 +96,7 @@ interface AccountInteractor {
     suspend fun googleBackupAddressForWallet(walletId: Long): String
     suspend fun isGoogleBackupSupported(walletId: Long): Boolean
     suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
+    suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType?
 
     suspend fun getChain(chainId: ChainId): Chain
 
@@ -161,5 +110,18 @@ interface AccountInteractor {
 
     suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean, metaId: Long)
     suspend fun selectedLightMetaAccount(): LightMetaAccount
+    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
     fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>>
+
+    suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: Int)
+    suspend fun getGoogleBackupAccounts(): List<BackupAccountMeta>
+    suspend fun getExtensionGoogleBackups(): List<BackupAccountMeta>
+    suspend fun deleteGoogleBackupAccount(walletId: Long, address: String)
+    suspend fun authorizeGoogleBackup(launcher: ActivityResultLauncher<Intent>): Boolean
+    suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>?
+
+    fun getMnemonic(metaId: Long): Flow<Mnemonic>
+    fun getSeedForSeedExport(metaId: Long): Flow<ComponentHolder>
+    fun getDerivationPathForExport(metaId: Long): Flow<ComponentHolder>
+    suspend fun saveChainSelectFilter(metaId: Long, filterValue: String)
 }

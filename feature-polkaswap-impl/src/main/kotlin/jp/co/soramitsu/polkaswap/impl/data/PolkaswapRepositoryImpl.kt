@@ -184,7 +184,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
         desired: WithDesired
     ): Result<String> {
         val chain = chainRegistry.getChain(chainId)
-        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId!!
         return extrinsicService.submitExtrinsic(chain, accountId) {
             swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
         }
