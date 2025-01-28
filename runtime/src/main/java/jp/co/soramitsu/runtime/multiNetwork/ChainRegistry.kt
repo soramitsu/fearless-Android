@@ -179,7 +179,7 @@ class ChainRegistry @Inject constructor(
         return chainsRepository.getChain(chainId)
     }
 
-    override suspend fun getChains(): List<IChain> {
+    override suspend fun getChains(): List<Chain> {
         return chainsRepository.getChains()
     }
 
