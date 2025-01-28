@@ -20,7 +20,6 @@ import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
-import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
@@ -30,6 +29,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import jp.co.soramitsu.common.model.ImportAccountType
 
 @HiltViewModel
 class TonSignRequestViewModel @Inject constructor(
@@ -96,7 +96,7 @@ class TonSignRequestViewModel @Inject constructor(
         }
 
         val requestedWalletIcon = addressIconGenerator.createWalletIcon(
-            WalletEcosystem.Ton,
+            ImportAccountType.Ton,
             AddressIconGenerator.SIZE_BIG
         )
 
@@ -137,7 +137,7 @@ class TonSignRequestViewModel @Inject constructor(
             val metaAccount = accountRepository.getSelectedMetaAccount()
 
             val requestedWalletIcon = addressIconGenerator.createWalletIcon(
-                WalletEcosystem.Ton,
+                ImportAccountType.Ton,
                 AddressIconGenerator.SIZE_BIG
             )
 

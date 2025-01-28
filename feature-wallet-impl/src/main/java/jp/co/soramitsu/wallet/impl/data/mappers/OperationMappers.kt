@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.mappers
 
-import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.address.createAddressModel
@@ -44,7 +43,7 @@ import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistor
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
-import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.model.ImportAccountType
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -523,7 +522,7 @@ private suspend fun Operation.createTransferOperationModel(
 
         Ecosystem.Ton -> {
             iconGenerator.createWalletIcon(
-                WalletEcosystem.Ton,
+                ImportAccountType.Ton,
                 AddressIconGenerator.SIZE_BIG
             )
         }

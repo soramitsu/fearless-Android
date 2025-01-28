@@ -6,7 +6,7 @@ import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleOwner
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.common.utils.bindTo

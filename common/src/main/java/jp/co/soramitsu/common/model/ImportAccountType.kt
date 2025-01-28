@@ -1,4 +1,4 @@
-package jp.co.soramitsu.account.api.presentation.importing
+package jp.co.soramitsu.common.model
 
 import jp.co.soramitsu.core.models.Ecosystem
 

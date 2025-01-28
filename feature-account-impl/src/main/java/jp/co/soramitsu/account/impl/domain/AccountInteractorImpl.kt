@@ -11,7 +11,7 @@ import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
@@ -24,7 +24,6 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
@@ -340,15 +339,15 @@ class AccountInteractorImpl(
         }.map {
             it.supportedEcosystems().mapNotNull {
                 when (it) {
-                    WalletEcosystem.Substrate -> accountRepository.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.Entropy)?.let { entropy ->
+                    ImportAccountType.Substrate -> accountRepository.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.Entropy)?.let { entropy ->
                         MnemonicCreator.fromEntropy(entropy)
                     }
 
-                    WalletEcosystem.Evm -> accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.Entropy)?.let { entropy ->
+                    ImportAccountType.Ethereum -> accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.Entropy)?.let { entropy ->
                         MnemonicCreator.fromEntropy(entropy)
                     }
 
-                    WalletEcosystem.Ton -> accountRepository.getTonSecrets(metaId)?.get(TonSecrets.Seed)?.decodeToString()?.let { words ->
+                    ImportAccountType.Ton -> accountRepository.getTonSecrets(metaId)?.get(TonSecrets.Seed)?.decodeToString()?.let { words ->
                         //MnemonicCreator.fromWords(words) // error entropy creation
                         Mnemonic(
                             words = words,

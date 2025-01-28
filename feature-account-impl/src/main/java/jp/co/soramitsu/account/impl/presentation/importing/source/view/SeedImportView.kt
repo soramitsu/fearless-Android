@@ -3,7 +3,7 @@ package jp.co.soramitsu.account.impl.presentation.importing.source.view
 import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleOwner
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
 import jp.co.soramitsu.common.utils.bindTo

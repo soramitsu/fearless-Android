@@ -21,7 +21,7 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
@@ -60,7 +60,7 @@ class BackupWalletViewModel @Inject constructor(
 
     val isAllowGoogleBackupFlow = wallet.map { wallet ->
         wallet.supportedEcosystemWithIconAddress().keys.any {
-            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Evm)
+            it in listOf(ImportAccountType.Substrate, ImportAccountType.Ethereum)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

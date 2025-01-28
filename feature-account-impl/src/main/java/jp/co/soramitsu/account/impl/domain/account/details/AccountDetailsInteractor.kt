@@ -10,16 +10,13 @@ import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.model.AssetKey
-import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Ecosystem
-import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -31,7 +28,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 
 class AccountDetailsInteractor(
@@ -138,7 +134,7 @@ class AccountDetailsInteractor(
             combine(
                 flowOf { chainRegistry.getChains() }.map { chains ->
                     chains.filter { chain ->
-                        if (metaAccount.supportedEcosystems().contains(WalletEcosystem.Ton)) {
+                        if (metaAccount.supportedEcosystems().contains(ImportAccountType.Ton)) {
                             chain.ecosystem == Ecosystem.Ton
                         } else {
                             true

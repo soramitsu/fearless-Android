@@ -49,7 +49,7 @@ import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
-import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -561,8 +561,8 @@ class BalanceListViewModel @Inject constructor(
 
         currentMetaAccountFlow.onEach {
             val showCurrenciesOrNftSelector =
-                it.supportedEcosystems().contains(WalletEcosystem.Evm) || it.supportedEcosystems()
-                    .contains(WalletEcosystem.Substrate)
+                it.supportedEcosystems().contains(ImportAccountType.Ethereum) || it.supportedEcosystems()
+                    .contains(ImportAccountType.Substrate)
 
             state.value = state.value.copy(
                 isBackedUp = it.isBackedUp,

@@ -7,7 +7,7 @@ import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.InputField

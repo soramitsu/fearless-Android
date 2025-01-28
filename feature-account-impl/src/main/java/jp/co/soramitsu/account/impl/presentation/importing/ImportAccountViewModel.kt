@@ -15,7 +15,7 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode.Google
 import jp.co.soramitsu.account.api.domain.model.ImportMode.Json
 import jp.co.soramitsu.account.api.domain.model.ImportMode.MnemonicPhrase
 import jp.co.soramitsu.account.api.domain.model.ImportMode.RawSeed
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.IMPORT_ACCOUNT_TYPE_KEY

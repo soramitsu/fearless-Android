@@ -4,7 +4,7 @@ import android.graphics.drawable.PictureDrawable
 import androidx.annotation.ColorRes
 import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.shared_utils.exceptions.AddressFormatException
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
@@ -37,7 +37,7 @@ interface AddressIconGenerator {
         @ColorRes backgroundColorRes: Int = R.color.account_icon_light
     ): PictureDrawable
 
-    suspend fun createWalletIcon(ecosystem: WalletEcosystem, sizeInDp: Int): PictureDrawable
+    suspend fun createWalletIcon(ecosystem: ImportAccountType, sizeInDp: Int): PictureDrawable
 }
 
 @Throws(AddressFormatException::class)
@@ -88,23 +88,23 @@ suspend fun AddressIconGenerator.createAddressModel(accountAddress: String, size
 }
 
 @Throws(AddressFormatException::class)
-suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddress: Map<WalletEcosystem, String>, accountAddress: String, sizeInDp: Int, accountName: String? = null): AddressModel {
+suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddress: Map<ImportAccountType, String>, accountAddress: String, sizeInDp: Int, accountName: String? = null): AddressModel {
     val icon = createAddressIcon(supportedEcosystemWithAddress, sizeInDp)
 
     return AddressModel(accountAddress, icon, accountName)
 }
 
 @Throws(AddressFormatException::class)
-suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress: Map<WalletEcosystem, String>, sizeInDp: Int, accountName: String? = null): PictureDrawable {
+suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress: Map<ImportAccountType, String>, sizeInDp: Int, accountName: String? = null): PictureDrawable {
     return if (supportedEcosystemWithAddress.size == 1) {
         val ecosystem = supportedEcosystemWithAddress.toList()[0].first
         createWalletIcon(ecosystem, sizeInDp)
     } else {
         val address = supportedEcosystemWithAddress.toList().sortedBy {
             when (it.first) {
-                WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Evm -> 2
-                WalletEcosystem.Ton -> 3
+                ImportAccountType.Substrate -> 1
+                ImportAccountType.Ethereum -> 2
+                ImportAccountType.Ton -> 3
             }
         }[0].second
 
@@ -113,7 +113,7 @@ suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress
 }
 
 @Throws(AddressFormatException::class)
-suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddress: Map<WalletEcosystem, String>, sizeInDp: Int, accountName: String? = null): AddressModel {
+suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddress: Map<ImportAccountType, String>, sizeInDp: Int, accountName: String? = null): AddressModel {
     if (supportedEcosystemWithAddress.size == 1) {
         val (ecosystem, address) = supportedEcosystemWithAddress.toList()[0]
         val icon = createWalletIcon(ecosystem, sizeInDp)
@@ -121,9 +121,9 @@ suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddres
     } else {
         val address = supportedEcosystemWithAddress.toList().sortedBy {
             when (it.first) {
-                WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Evm -> 2
-                WalletEcosystem.Ton -> 3
+                ImportAccountType.Substrate -> 1
+                ImportAccountType.Ethereum -> 2
+                ImportAccountType.Ton -> 3
             }
         }[0].second
 
@@ -178,7 +178,7 @@ class CachingAddressIconGenerator(
             }
         }
 
-    override suspend fun createWalletIcon(ecosystem: WalletEcosystem, sizeInDp: Int): PictureDrawable =
+    override suspend fun createWalletIcon(ecosystem: ImportAccountType, sizeInDp: Int): PictureDrawable =
         withContext(Dispatchers.Default) {
             val key = "${ecosystem.name}:$sizeInDp"
 
@@ -210,12 +210,12 @@ class StatelessAddressIconGenerator(
         iconGenerator.generateEthereumAddressIcon(accountId, sizeInPx, backgroundColor = backgroundColor)
     }
 
-    override suspend fun createWalletIcon(ecosystem: WalletEcosystem, sizeInDp: Int): PictureDrawable = withContext(Dispatchers.Default) {
+    override suspend fun createWalletIcon(ecosystem: ImportAccountType, sizeInDp: Int): PictureDrawable = withContext(Dispatchers.Default) {
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
         val icon = when (ecosystem) {
-            WalletEcosystem.Substrate -> iconGenerator.getSubstrateWalletIcon(sizeInPx)
-            WalletEcosystem.Evm -> iconGenerator.getEvmWalletIcon(sizeInPx)
-            WalletEcosystem.Ton -> iconGenerator.getTonWalletIcon(sizeInPx)
+            ImportAccountType.Substrate -> iconGenerator.getSubstrateWalletIcon(sizeInPx)
+            ImportAccountType.Ethereum -> iconGenerator.getEvmWalletIcon(sizeInPx)
+            ImportAccountType.Ton -> iconGenerator.getTonWalletIcon(sizeInPx)
         }
         icon
     }

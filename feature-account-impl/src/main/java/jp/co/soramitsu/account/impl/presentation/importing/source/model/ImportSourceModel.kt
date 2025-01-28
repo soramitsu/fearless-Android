@@ -9,7 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.presentation.accountSource.AccountSource
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.data.mappers.mapCryptoTypeToCryptoTypeModel
 import jp.co.soramitsu.account.impl.presentation.importing.FileReader
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel

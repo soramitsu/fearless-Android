@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.chainaccounts.ChainAccountsDialog
 import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog
