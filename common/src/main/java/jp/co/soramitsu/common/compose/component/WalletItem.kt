@@ -146,7 +146,7 @@ fun WalletItem(
                         },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(30.dp)
+                            .size(32.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dots_horizontal_24),

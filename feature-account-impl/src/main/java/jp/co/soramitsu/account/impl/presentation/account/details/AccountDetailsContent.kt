@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.material.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +27,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.H5
+import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -38,6 +39,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.compose.theme.white30
+import jp.co.soramitsu.common.utils.clickableSingle
 
 data class AccountDetailsState(
     val walletItem: WalletItemViewState?,
@@ -120,25 +122,37 @@ internal fun AccountDetailsContent(
                         B1(text = item.title)
                         Spacer(modifier = Modifier.weight(1f))
                         if (item.amount > 0) {
-                            B1(text = item.amount.toString())
-                            IconButton(
-                                onClick = { callback.accountsItemOptionsClicked(item.accountType) },
-                                modifier = Modifier
-                                    .size(32.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
-                                    tint = white,
-                                    contentDescription = null
-                                )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                B1(text = item.amount.toString())
+                                MarginHorizontal(10.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .minimumInteractiveComponentSize()
+                                        .clickableSingle {
+                                            callback.accountsItemOptionsClicked(item.accountType)
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
+                                        tint = white,
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         } else {
-                            IconButton(
-                                onClick = { callback.accountsItemOptionsClicked(item.accountType) },
+                            Box(
                                 modifier = Modifier
                                     .size(32.dp)
+                                    .minimumInteractiveComponentSize()
+                                    .clickableSingle {
+                                        callback.accountsItemOptionsClicked(item.accountType)
+                                    },
+                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
+                                    modifier = Modifier.size(24.dp),
                                     painter = painterResource(id = R.drawable.ic_alert_16),
                                     tint = alertYellow,
                                     contentDescription = null
