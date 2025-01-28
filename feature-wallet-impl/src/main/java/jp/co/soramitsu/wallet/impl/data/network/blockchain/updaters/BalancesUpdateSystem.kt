@@ -2,7 +2,11 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
 import android.annotation.SuppressLint
 import android.util.Log
+import jp.co.soramitsu.account.api.domain.model.hasEthereum
+import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -14,16 +18,12 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
 private const val TAG = "BalancesUpdateSystem"
@@ -55,7 +55,12 @@ class BalancesUpdateSystem(
         }
             .map { (chains, metaAccount) ->
                 scope.launch {
-                    chains.forEach { chain ->
+                    val supportedChains = chains.filter {
+                        it.ecosystem == Ecosystem.Ton && metaAccount.hasTon ||
+                        it.ecosystem == Ecosystem.Ethereum && metaAccount.hasEthereum ||
+                        it.ecosystem == Ecosystem.Substrate && metaAccount.hasSubstrate
+                    }
+                    supportedChains.forEach { chain ->
                         launch {
                             val balanceLoader = balanceLoaderProvider.invoke(chain)
                             balanceLoader.subscribeBalance(metaAccount)
