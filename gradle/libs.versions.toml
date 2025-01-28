@@ -67,7 +67,6 @@ zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
 soramitsuAndroidFoundation = "0.0.4"
 tonVersion = "0.3.1"
-soramitsuAndroidFoundation = "0.0.4"
 
 [libraries]
 security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
