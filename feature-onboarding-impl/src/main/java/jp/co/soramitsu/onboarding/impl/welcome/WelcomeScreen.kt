@@ -28,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.GoogleButton
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.IconButton
@@ -42,6 +43,7 @@ import jp.co.soramitsu.feature_onboarding_impl.R
 import kotlinx.coroutines.flow.StateFlow
 
 data class WelcomeState(
+    val isLoading: Boolean = false,
     val isBackVisible: Boolean = false,
     val preinstalledFeatureEnabled: Boolean = false
 )
@@ -77,12 +79,14 @@ fun NavGraphBuilder.WelcomeScreen(
             AccountType.valueOf(stringValue)
         } ?: throw IllegalStateException("accountType can't be null")
 
-        WelcomeScreenContent(
-            state = state,
-            isGoogleAvailable = isGoogleAvailable,
-            accountType = accountType,
-            callbacks = callbacks
-        )
+        FullScreenLoading(state.isLoading) {
+            WelcomeScreenContent(
+                state = state,
+                isGoogleAvailable = isGoogleAvailable,
+                accountType = accountType,
+                callbacks = callbacks
+            )
+        }
     }
 }
 
@@ -192,7 +196,7 @@ private fun WelcomeScreenContent(
 private fun WelcomeScreenPreview() {
     FearlessAppTheme {
         WelcomeScreenContent(
-            state = WelcomeState(isBackVisible = true),
+            state = WelcomeState(isLoading = true, isBackVisible = true),
             isGoogleAvailable = true,
             accountType = AccountType.SubstrateOrEvm,
             callbacks = object : WelcomeScreenInterface {

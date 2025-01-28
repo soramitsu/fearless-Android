@@ -24,4 +24,6 @@ interface OnboardingRouter {
     fun openCreatePincode()
 
     fun openInitialCheckPincode()
+
+    fun openMain()
 }

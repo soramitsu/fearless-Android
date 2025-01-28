@@ -3,24 +3,30 @@ package jp.co.soramitsu.onboarding.impl.welcome
 import android.content.Intent
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AccountType
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.onboarding.api.domain.OnboardingInteractor
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,8 +38,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
-
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
     private val router: OnboardingRouter,
@@ -42,7 +46,8 @@ class WelcomeViewModel @Inject constructor(
     private val backupService: BackupService,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val onboardingInteractor: OnboardingInteractor,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val interactor: AccountInteractor
 ) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback,
     OnboardingSplashScreenClickListener, SelectEcosystemScreenCallbacks {
 
@@ -56,12 +61,18 @@ class WelcomeViewModel @Inject constructor(
     val onboardingFlowState = _onboardingFlowState.map { it?.getOrNull() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val state = MutableStateFlow(
+    val showLoading = MutableStateFlow(false)
+    val state = showLoading.map {
         WelcomeState(
+            isLoading = it,
             isBackVisible = payload.displayBack,
             preinstalledFeatureEnabled = pendulumPreInstalledAccountsScenario.isFeatureEnabled()
         )
-    )
+    }.stateIn(this, SharingStarted.Eagerly, WelcomeState(
+        isLoading = false,
+        isBackVisible = payload.displayBack,
+        preinstalledFeatureEnabled = pendulumPreInstalledAccountsScenario.isFeatureEnabled()
+    ))
 
     private val _events = Channel<WelcomeEvent>(
         capacity = Int.MAX_VALUE,
@@ -124,7 +135,10 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun createAccountClicked(accountType: AccountType) {
-        router.openCreateAccountFromOnboarding(accountType)
+        when (accountType) {
+            AccountType.SubstrateOrEvm -> router.openCreateAccountFromOnboarding(accountType)
+            AccountType.Ton -> silentCreateTonAccount()
+        }
     }
 
     override fun googleSigninClicked() {
@@ -250,6 +264,34 @@ class WelcomeViewModel @Inject constructor(
     private suspend fun moveNextToPincode() {
         if (accountRepository.isCodeSet()) {
             router.openInitialCheckPincode()
+        } else {
+            router.openCreatePincode()
+        }
+    }
+
+    private fun silentCreateTonAccount() {
+        showLoading.value = true
+        launch {
+            val mnemonic = interactor.generateMnemonic(Mnemonic.Length.TWENTY_FOUR)
+            val mnemonicWords = mnemonic.joinToString(" ")
+            val createTonAccountPayload = AddAccountPayload.Ton(
+                accountName = "Wallet",
+                mnemonic = mnemonicWords,
+                isBackedUp = false
+            )
+            val result = interactor.createAccount(createTonAccountPayload)
+            if (result.isSuccess) {
+                continueBasedOnCodeStatus()
+            } else {
+                showError(result.requireException())
+                showLoading.value = false
+            }
+        }
+    }
+
+    private suspend fun continueBasedOnCodeStatus() {
+        if (interactor.isCodeSet()) {
+            router.openMain()
         } else {
             router.openCreatePincode()
         }

@@ -58,10 +58,10 @@ class BackupMnemonicViewModel @Inject constructor(
         savedStateHandle.get<BackupMnemonicPayload>(BackupMnemonicScreenKeys.PAYLOAD_KEY)!!
     val walletId = payload.walletId
 
-    val isSubstrateAndEthereumAccount = payload.accountTypes.contains(ImportAccountType.Substrate) && payload.accountTypes.contains(ImportAccountType.Ethereum)
     val isEthereumAccount = payload.accountTypes.contains(ImportAccountType.Ethereum)
     val isSubstrateAccount = payload.accountTypes.contains(ImportAccountType.Substrate)
     val isTonAccount = payload.accountTypes.contains(ImportAccountType.Ton)
+    val isSubstrateAndEthereumAccount = isSubstrateAccount && isEthereumAccount
     val isSubstrateOrEthereumAccount = isSubstrateAccount || isEthereumAccount
 
     val isShowAdvancedBlock =
