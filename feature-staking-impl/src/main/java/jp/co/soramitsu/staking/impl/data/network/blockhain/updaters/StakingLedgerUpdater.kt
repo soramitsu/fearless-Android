@@ -32,6 +32,7 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -58,7 +59,7 @@ class StakingLedgerUpdater(
         val runtime = chainRegistry.getRuntime(chain.id)
 
         val account = scope.getAccount()
-        val currentAccountId = scope.getAccount().accountId(chain)!! // TODO ethereum
+        val currentAccountId = scope.getAccount().accountId(chain) ?: return emptyFlow()
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
 

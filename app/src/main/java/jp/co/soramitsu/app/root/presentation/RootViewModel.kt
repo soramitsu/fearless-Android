@@ -75,8 +75,6 @@ class RootViewModel @Inject constructor(
         viewModelScope.launch {
             startAppInitializer()
         }
-        observeWalletConnectEvents()
-        observeTonConnectEvents()
     }
 
     private suspend fun startAppInitializer(startFrom: InitializationStep = InitializationStep.All) {
@@ -88,19 +86,13 @@ class RootViewModel @Inject constructor(
                 } else {
                     _showNoInternetConnectionAlert.value = Event(result.step)
                 }
-//                startAppInitializer(result.step)
             }
             InitializeResult.Success -> {
-
+                observeWalletConnectEvents()
+                observeTonConnectEvents()
             }
         }
     }
-
-//    private suspend fun isCurrentAppVersionSupporoted(): Boolean {
-//        val appConfigResult = interactor.getRemoteConfig()
-//        return appConfigResult.getOrNull()?.isCurrentVersionSupported == true
-//
-//    }
 
     override fun onCleared() {
         super.onCleared()
