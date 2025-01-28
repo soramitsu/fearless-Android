@@ -243,7 +243,6 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 class TransactionDetailsBottomSheetCallback(
     private val viewModel: BalanceDetailViewModel,
     private val detailsBottomSheetState: TransactionDetailsState,
