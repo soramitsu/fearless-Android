@@ -9,8 +9,10 @@ import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -44,7 +46,7 @@ class ChainsRepository(private val chainDao: ChainDao) {
     }
 
     suspend fun getChain(chainId: ChainId): Chain = withContext(Dispatchers.IO) {
-        val chainLocal = chainDao.getJoinChainInfo(chainId)
+        val chainLocal = chainDao.getJoinChainInfo(chainId).mapNotNull { it }.first()
         mapChainLocalToChain(chainLocal)
     }
 

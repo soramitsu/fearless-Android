@@ -152,7 +152,7 @@ abstract class ChainDao {
 
     @Query("SELECT * FROM chains WHERE id = :chainId")
     @Transaction
-    abstract suspend fun getJoinChainInfo(chainId: String): JoinedChainInfo
+    abstract fun getJoinChainInfo(chainId: String): Flow<JoinedChainInfo?>
 
     @Query("SELECT * FROM chains")
     @Transaction
