@@ -76,12 +76,17 @@ class DiscoverDappFragment : BaseComposeFragment<DiscoverDappViewModel>() {
                                 .collectAsState(
                                     DappsListState("", emptyList())
                                 )
-                            BackHandler(enabled = dappsModalBottomSheetState.isVisible, onBack = viewModel::onBottomSheetDappClose)
+                            BackHandler(
+                                enabled = dappsModalBottomSheetState.isVisible,
+                                onBack = viewModel::onBottomSheetDappClose
+                            )
                             SeeAllDappsBottomSheet(
                                 dappsListBottomSheetState,
-                                viewModel::bottomSheetDappSelected,
-                                viewModel::onBottomSheetDappClose
-                            )
+                                viewModel::bottomSheetDappSelected
+                            ) {
+                                hideKeyboard()
+                                viewModel.onBottomSheetDappClose()
+                            }
                         },
                         content = {
                             val toolbarState by viewModel.toolbarState.collectAsState()
