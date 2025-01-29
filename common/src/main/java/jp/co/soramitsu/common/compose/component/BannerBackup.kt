@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.compose.component
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -84,9 +85,10 @@ fun BannerBackup(
             )
             MarginVertical(margin = 8.dp)
             Text(
-                maxLines = 2,
+                maxLines = 1,
                 modifier = Modifier
-                    .wrapContentWidth(),
+                    .wrapContentWidth()
+                    .basicMarquee(),
                 text = stringResource(R.string.banners_backup_description),
                 style = MaterialTheme.customTypography.paragraphXS,
                 color = Color.White
@@ -146,7 +148,7 @@ fun HaloIconBackup(
     }
 }
 
-@Preview
+@Preview(locale = "ru", widthDp = 300)
 @Composable
 private fun BannerBackupPreview() {
     BannerBackup(
