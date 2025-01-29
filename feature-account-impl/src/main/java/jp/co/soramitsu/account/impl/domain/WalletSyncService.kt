@@ -402,6 +402,11 @@ class WalletSyncService(
         )
 
         metaAccountDao.observeJoinedMetaAccountsInfo()
+            .map { list ->
+                list.filter { info ->
+                    info.metaAccount.ethereumPublicKey != null || info.chainAccounts.any { it.chainId in supportedChains }
+                }
+            }
             .distinctUntilChangedBy {
                 it.size + it.map { info -> info.chainAccounts }.flatten().size
             }
@@ -413,11 +418,8 @@ class WalletSyncService(
                     existingScores.filter { currentTime - it.updated > twelveHoursMillis }
                         .map { it.metaId }
 
-                val metaAccounts = metaAccountInfo.asSequence()
-                    .filter { info -> info.metaAccount.ethereumAddress != null || info.chainAccounts.any { it.chainId in supportedChains } }
-
                 val newAccounts =
-                    metaAccounts.filter { it.metaAccount.id !in existingScores.map { score -> score.metaId } }
+                    metaAccountInfo.filter { it.metaAccount.id !in existingScores.map { score -> score.metaId } }
 
                 val accountsToUpdate = metaAccountInfo.asSequence()
                     .filter { it.metaAccount.id in existingScoresToUpdate }
