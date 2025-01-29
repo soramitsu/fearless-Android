@@ -51,6 +51,7 @@ import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.BannerPageIndicator
+import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.Image
@@ -130,31 +131,9 @@ fun EmptySumimasen() {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Center
         ) {
-            Column(
-                horizontalAlignment = CenterHorizontally
-            ) {
-                Box(
-                    Modifier
-                        .size(56.dp)
-                        .background(
-                            color = Color.White.copy(alpha = 0.08f),
-                            shape = RoundedCornerShape(100)
-                        )
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_screen_warning),
-                        tint = white,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .testTag("stub_icon")
-                            .alpha(0.16f)
-                            .padding(top = 10.dp)
-                            .align(TopCenter)
-                    )
-                }
-                MarginVertical(margin = 16.dp)
-                H3(text = stringResource(id = R.string.common_search_assets_alert_title))
-            }
+            EmptyMessage(
+                message = R.string.dapp_no_connected_dapps_title
+            )
         }
     }
 
