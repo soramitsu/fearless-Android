@@ -288,7 +288,7 @@ class ImportAccountViewModel @Inject constructor(
             )
             is JsonImportSource -> interactor.importFromJson(
                 walletId = walletId,
-                json = substrateJson!!,
+                json = substrateJson,
                 password = sourceType.passwordLiveData.value!!,
                 name = name,
                 ethJson = ethJson,

@@ -44,7 +44,7 @@ interface AccountInteractor {
 
     suspend fun importFromJson(
         walletId: Long?,
-        json: String,
+        json: String?,
         password: String,
         name: String,
         ethJson: String?,
