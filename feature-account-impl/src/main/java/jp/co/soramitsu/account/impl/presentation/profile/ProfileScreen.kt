@@ -100,7 +100,7 @@ fun ProfileScreenPreview() {
                 fiatChange = "$2345.32"
             ),
             score = 50,
-//            supportedEcosystems = setOf(WalletEcosystem.Ton)
+//            supportedEcosystems = setOf(ImportAccountType.Ton)
         ),
         currency = "USD",
         language = "ENG",

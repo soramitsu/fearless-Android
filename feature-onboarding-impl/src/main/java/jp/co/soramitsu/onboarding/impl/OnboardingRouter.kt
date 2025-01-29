@@ -2,7 +2,7 @@ package jp.co.soramitsu.onboarding.impl
 
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlinx.coroutines.flow.Flow
 
 interface OnboardingRouter {
@@ -11,7 +11,7 @@ interface OnboardingRouter {
 
     fun backToWelcomeScreen()
 
-    fun openImportAccountScreen(importAccountType: ImportAccountType, importMode: ImportMode)
+    fun openImportAccountScreen(walletEcosystem: WalletEcosystem, importMode: ImportMode)
 
     fun openImportRemoteWalletDialog()
 

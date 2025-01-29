@@ -18,13 +18,13 @@ import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserB
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.account.details.WalletAccountActionsSheet
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
@@ -38,7 +38,7 @@ class ChainAccountsDialog : BaseComposeBottomSheetDialogFragment<ChainAccountsVi
     override val viewModel: ChainAccountsViewModel by viewModels()
 
     companion object {
-        fun getBundle(metaAccountId: Long, type: ImportAccountType) = bundleOf(
+        fun getBundle(metaAccountId: Long, type: WalletEcosystem) = bundleOf(
             ACCOUNT_ID_KEY to metaAccountId,
             ACCOUNT_TYPE_KEY to type
         )

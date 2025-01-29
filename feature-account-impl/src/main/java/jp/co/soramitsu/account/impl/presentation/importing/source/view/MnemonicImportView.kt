@@ -3,9 +3,9 @@ package jp.co.soramitsu.account.impl.presentation.importing.source.view
 import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleOwner
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
@@ -30,7 +30,7 @@ class MnemonicImportView @JvmOverloads constructor(
         binding.importMnemonicUsernameInput.content.filters = nameInputFilters()
     }
 
-    override fun observeSource(source: ImportSource, blockchainType: ImportAccountType, lifecycleOwner: LifecycleOwner) {
+    override fun observeSource(source: ImportSource, blockchainType: WalletEcosystem, lifecycleOwner: LifecycleOwner) {
         require(source is MnemonicImportSource)
 
         binding.importMnemonicContent.bindTo(source.mnemonicContentLiveData, lifecycleOwner)

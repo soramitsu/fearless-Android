@@ -5,12 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.AccountType
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
@@ -19,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
@@ -71,7 +71,7 @@ class CreateAccountViewModel @Inject constructor(
         if (isFromGoogleBackup) {
             router.openMnemonicAgreementsDialogForGoogleBackup(
                 accountName = walletNickname.value,
-                accountTypes = listOf(ImportAccountType.Substrate, ImportAccountType.Ethereum)
+                accountTypes = listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
             )
         } else {
             _showScreenshotsWarningEvent.value = Event(Unit)
@@ -80,8 +80,8 @@ class CreateAccountViewModel @Inject constructor(
 
     fun screenshotWarningConfirmed() {
         val accountTypes = when (accountMode) {
-            AccountType.SubstrateOrEvm -> listOf(ImportAccountType.Substrate, ImportAccountType.Ethereum)
-            AccountType.Ton -> listOf(ImportAccountType.Ton)
+            AccountType.SubstrateOrEvm -> listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
+            AccountType.Ton -> listOf(WalletEcosystem.Ton)
         }
         router.openMnemonicScreen(walletNickname.value, accountTypes)
     }

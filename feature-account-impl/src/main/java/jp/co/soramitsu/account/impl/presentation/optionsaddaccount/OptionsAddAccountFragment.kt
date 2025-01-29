@@ -7,8 +7,8 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.model.WalletEcosystem
 
 @AndroidEntryPoint
 class OptionsAddAccountFragment : BaseComposeBottomSheetDialogFragment<OptionsAddAccountViewModel>() {
@@ -17,7 +17,7 @@ class OptionsAddAccountFragment : BaseComposeBottomSheetDialogFragment<OptionsAd
         const val KEY_WALLET_ID = "KEY_WALLET_ID"
         const val KEY_TYPE = "KEY_TYPE"
 
-        fun getBundle(walletId: Long, type: ImportAccountType) = bundleOf(
+        fun getBundle(walletId: Long, type: WalletEcosystem) = bundleOf(
             KEY_WALLET_ID to walletId,
             KEY_TYPE to type
         )

@@ -8,11 +8,11 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
@@ -29,7 +29,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         fun getBundle(
             accountName: String,
             walletId: Long?,
-            accountTypes: List<ImportAccountType>
+            accountTypes: List<WalletEcosystem>
         ): Bundle {
             return bundleOf(
                 BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(

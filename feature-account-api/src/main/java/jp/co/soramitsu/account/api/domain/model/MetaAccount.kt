@@ -170,13 +170,13 @@ fun LightMetaAccount.address(chain: Chain): String? {
 fun LightMetaAccount.supportedEcosystemWithIconAddress(): Map<WalletEcosystem, String> = listOfNotNull(
     tonPublicKey?.let { WalletEcosystem.Ton to it.v4r2tonAddress(false) },
     substratePublicKey?.let { WalletEcosystem.Substrate to it.toAddress(0.toShort()) }, // 0 = polkadotAddressPrefix
-    ethereumPublicKey?.let { WalletEcosystem.Evm to it.ethereumAddressToHex() }
+    ethereumPublicKey?.let { WalletEcosystem.Ethereum to it.ethereumAddressToHex() }
 ).toMap()
 
 fun LightMetaAccount.supportedEcosystems(): Set<WalletEcosystem> = setOfNotNull(
     tonPublicKey?.let { WalletEcosystem.Ton },
     substratePublicKey?.let { WalletEcosystem.Substrate },
-    ethereumPublicKey?.let { WalletEcosystem.Evm }
+    ethereumPublicKey?.let { WalletEcosystem.Ethereum }
 )
 
 fun MetaAccount.chainAddress(chain: Chain): String? {

@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
-import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground

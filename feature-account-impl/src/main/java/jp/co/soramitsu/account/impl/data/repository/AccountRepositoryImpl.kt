@@ -15,7 +15,6 @@ import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
@@ -29,6 +28,7 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
@@ -594,9 +594,9 @@ class AccountRepositoryImpl(
         return substrateSecrets?.get(SubstrateSecrets.Entropy) != null
     }
 
-    override suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType? {
+    override suspend fun getBestBackupType(walletId: Long, type: WalletEcosystem): BackupAccountType? {
         when (type) {
-            ImportAccountType.Substrate -> {
+            WalletEcosystem.Substrate -> {
                 val substrateSecrets = substrateSecretStore.get(walletId)
                 if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null) {
                     return BackupAccountType.PASSPHRASE
@@ -606,7 +606,7 @@ class AccountRepositoryImpl(
                 }
             }
 
-            ImportAccountType.Ethereum -> {
+            WalletEcosystem.Ethereum -> {
                 val ethereumSecrets = ethereumSecretStore.get(walletId)
                 if (ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
                     return BackupAccountType.PASSPHRASE
@@ -616,7 +616,7 @@ class AccountRepositoryImpl(
                 }
             }
 
-            ImportAccountType.Ton -> {
+            WalletEcosystem.Ton -> {
                 val tonSecrets = tonSecretStore.get(walletId)
                 if (tonSecrets != null) {
                     return BackupAccountType.PASSPHRASE

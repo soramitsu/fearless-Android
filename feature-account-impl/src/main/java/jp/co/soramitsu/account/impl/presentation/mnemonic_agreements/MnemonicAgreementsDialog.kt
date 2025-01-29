@@ -10,8 +10,8 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.model.WalletEcosystem
 
 @AndroidEntryPoint
 class MnemonicAgreementsDialog : BaseComposeBottomSheetDialogFragment<MnemonicAgreementsViewModel>() {
@@ -40,7 +40,7 @@ class MnemonicAgreementsDialog : BaseComposeBottomSheetDialogFragment<MnemonicAg
 
         fun getBundle(
             accountName: String,
-            accountTypes: List<ImportAccountType>
+            accountTypes: List<WalletEcosystem>
         ): Bundle {
             return bundleOf(
                 WALLET_NAME_KEY to accountName,

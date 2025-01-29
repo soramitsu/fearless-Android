@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.confirm
 
 import android.os.Parcelable
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.core.models.CryptoType
 import kotlinx.parcelize.Parcelize
 
@@ -10,7 +10,7 @@ class ConfirmMnemonicPayload(
     val mnemonic: List<String>,
     val metaId: Long?,
     val createExtras: CreateExtras?,
-    val accountTypes: List<ImportAccountType>
+    val accountTypes: List<WalletEcosystem>
 ) : Parcelable {
     @Parcelize
     open class CreateExtras(

@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.address
 
 import android.graphics.drawable.PictureDrawable
 import androidx.annotation.ColorRes
-import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -14,6 +13,7 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 
 interface AddressIconGenerator {
@@ -103,7 +103,7 @@ suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress
         val address = supportedEcosystemWithAddress.toList().sortedBy {
             when (it.first) {
                 WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Evm -> 2
+                WalletEcosystem.Ethereum -> 2
                 WalletEcosystem.Ton -> 3
             }
         }[0].second
@@ -122,7 +122,7 @@ suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddres
         val address = supportedEcosystemWithAddress.toList().sortedBy {
             when (it.first) {
                 WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Evm -> 2
+                WalletEcosystem.Ethereum -> 2
                 WalletEcosystem.Ton -> 3
             }
         }[0].second
@@ -214,7 +214,7 @@ class StatelessAddressIconGenerator(
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
         val icon = when (ecosystem) {
             WalletEcosystem.Substrate -> iconGenerator.getSubstrateWalletIcon(sizeInPx)
-            WalletEcosystem.Evm -> iconGenerator.getEvmWalletIcon(sizeInPx)
+            WalletEcosystem.Ethereum -> iconGenerator.getEvmWalletIcon(sizeInPx)
             WalletEcosystem.Ton -> iconGenerator.getTonWalletIcon(sizeInPx)
         }
         icon

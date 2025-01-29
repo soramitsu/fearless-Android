@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 
 import android.os.Parcelable
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -9,5 +9,5 @@ class BackupMnemonicPayload(
     val isFromGoogleBackup: Boolean,
     val accountName: String,
     val walletId: Long?,
-    val accountTypes: List<ImportAccountType>
+    val accountTypes: List<WalletEcosystem>
 ) : Parcelable

@@ -2,7 +2,6 @@ package jp.co.soramitsu.account.impl.domain
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -11,7 +10,6 @@ import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
@@ -44,7 +42,6 @@ import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -52,6 +49,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.io.File
+import kotlin.coroutines.CoroutineContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
@@ -229,7 +228,7 @@ class AccountInteractorImpl(
     override suspend fun getSupportedBackupTypes(walletId: Long) =
         accountRepository.getSupportedBackupTypes(walletId)
 
-    override suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType? =
+    override suspend fun getBestBackupType(walletId: Long, type: WalletEcosystem): BackupAccountType? =
         accountRepository.getBestBackupType(walletId, type)
 
     override suspend fun getChain(chainId: ChainId) = accountRepository.getChain(chainId)
@@ -344,7 +343,7 @@ class AccountInteractorImpl(
                         MnemonicCreator.fromEntropy(entropy)
                     }
 
-                    WalletEcosystem.Evm -> accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.Entropy)?.let { entropy ->
+                    WalletEcosystem.Ethereum -> accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.Entropy)?.let { entropy ->
                         MnemonicCreator.fromEntropy(entropy)
                     }
 

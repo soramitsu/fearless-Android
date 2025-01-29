@@ -7,7 +7,7 @@ import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.InputField
@@ -145,17 +145,17 @@ class AdvancedBlockView @JvmOverloads constructor(
         configureEthereum(fieldState)
     }
 
-    fun configureForAccountType(type: ImportAccountType) {
+    fun configureForAccountType(type: WalletEcosystem) {
         when (type) {
-            ImportAccountType.Substrate -> {
+            WalletEcosystem.Substrate -> {
                 configureSubstrate(FieldState.NORMAL)
                 configureEthereum(FieldState.HIDDEN)
             }
-            ImportAccountType.Ethereum -> {
+            WalletEcosystem.Ethereum -> {
                 configure(FieldState.HIDDEN)
                 configure(ethereumEncryptionTypeField, FieldState.DISABLED)
             }
-            ImportAccountType.Ton -> {
+            WalletEcosystem.Ton -> {
                 /* not used */
                 configureSubstrate(FieldState.HIDDEN)
                 configureEthereum(FieldState.HIDDEN)

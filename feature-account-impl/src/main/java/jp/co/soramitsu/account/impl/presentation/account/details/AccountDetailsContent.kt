@@ -21,7 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.account.model.ConnectedAccountsInfoItem
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B1
@@ -39,6 +38,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.compose.theme.white30
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.clickableSingle
 
 data class AccountDetailsState(
@@ -57,7 +57,7 @@ interface AccountDetailsCallback {
 
     fun onBackClick()
 
-    fun accountsItemOptionsClicked(type: ImportAccountType)
+    fun accountsItemOptionsClicked(type: WalletEcosystem)
 
     fun walletOptionsClicked(item: WalletItemViewState)
 }
@@ -174,12 +174,12 @@ private fun PreviewAccountDetailsContent() {
         walletItem = WalletItemViewState(0L, null, "SMBL", null, "Title", "", false),
         connectedAccountsInfo = listOf(
             ConnectedAccountsInfoItem(
-                ImportAccountType.Substrate,
+                WalletEcosystem.Substrate,
                 "Substrate chain accounts",
                 33
             ),
             ConnectedAccountsInfoItem(
-                ImportAccountType.Ethereum,
+                WalletEcosystem.Ethereum,
                 "EVM chain accounts",
                 0
             )
@@ -190,7 +190,7 @@ private fun PreviewAccountDetailsContent() {
             state = state,
             callback = object : AccountDetailsCallback {
                 override fun onBackClick() {}
-                override fun accountsItemOptionsClicked(type: ImportAccountType) {}
+                override fun accountsItemOptionsClicked(type: WalletEcosystem) {}
                 override fun walletOptionsClicked(item: WalletItemViewState) {}
             }
         )

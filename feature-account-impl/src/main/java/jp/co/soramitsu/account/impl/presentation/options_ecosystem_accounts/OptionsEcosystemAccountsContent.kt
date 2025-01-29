@@ -16,18 +16,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.feature_account_api.R
 
 data class OptionsEcosystemAccountsScreenViewState(
     val metaId: Long,
-    val type: ImportAccountType,
+    val type: WalletEcosystem,
     val hasReplacedAccounts: Boolean
 )
 
@@ -94,7 +94,7 @@ private fun OptionsEcosystemAccountsScreenPreview() {
         OptionsEcosystemAccountsContent(
             state = OptionsEcosystemAccountsScreenViewState(
                 metaId = 1,
-                type = ImportAccountType.Ethereum,
+                type = WalletEcosystem.Ethereum,
                 hasReplacedAccounts = false
             ),
             onBackupEcosystemAccountsClicked = { },

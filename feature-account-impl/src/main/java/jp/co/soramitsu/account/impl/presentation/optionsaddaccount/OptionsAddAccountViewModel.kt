@@ -3,17 +3,17 @@ package jp.co.soramitsu.account.impl.presentation.optionsaddaccount
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment.Companion.KEY_TYPE
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment.Companion.KEY_WALLET_ID
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class OptionsAddAccountViewModel @Inject constructor(
@@ -22,7 +22,7 @@ class OptionsAddAccountViewModel @Inject constructor(
     private val accountRouter: AccountRouter
 ) : BaseViewModel() {
     val walletId = savedStateHandle.get<Long>(KEY_WALLET_ID) ?: error("Wallet Id not provided")
-    val type = savedStateHandle.get<ImportAccountType>(KEY_TYPE) ?: error("Account type not provided")
+    val type = savedStateHandle.get<WalletEcosystem>(KEY_TYPE) ?: error("Account type not provided")
 
     fun createAccount() {
         launch {
@@ -44,7 +44,7 @@ class OptionsAddAccountViewModel @Inject constructor(
     private fun handleSelectedImportMode(importMode: ImportMode) {
         accountRouter.openImportAddAccountScreen(
             walletId = walletId,
-            importAccountType = type,
+            walletEcosystem = type,
             importMode = importMode
         )
     }

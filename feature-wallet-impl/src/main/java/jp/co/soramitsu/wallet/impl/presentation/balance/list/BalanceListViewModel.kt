@@ -14,10 +14,6 @@ import co.jp.soramitsu.tonconnect.model.TonConnectException
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -119,6 +115,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -561,7 +561,7 @@ class BalanceListViewModel @Inject constructor(
 
         currentMetaAccountFlow.onEach {
             val showCurrenciesOrNftSelector =
-                it.supportedEcosystems().contains(WalletEcosystem.Evm) || it.supportedEcosystems()
+                it.supportedEcosystems().contains(WalletEcosystem.Ethereum) || it.supportedEcosystems()
                     .contains(WalletEcosystem.Substrate)
 
             state.value = state.value.copy(

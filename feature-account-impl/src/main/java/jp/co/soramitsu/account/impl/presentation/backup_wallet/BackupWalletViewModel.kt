@@ -7,7 +7,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class BackupWalletViewModel @Inject constructor(
@@ -60,7 +60,7 @@ class BackupWalletViewModel @Inject constructor(
 
     val isAllowGoogleBackupFlow = wallet.map { wallet ->
         wallet.supportedEcosystemWithIconAddress().keys.any {
-            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Evm)
+            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
