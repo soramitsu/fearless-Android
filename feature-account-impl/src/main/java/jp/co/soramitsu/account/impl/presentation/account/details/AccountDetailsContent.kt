@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
-import androidx.compose.material.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,7 +115,10 @@ internal fun AccountDetailsContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 12.dp),
+                            .padding(horizontal = 12.dp, vertical = 12.dp)
+                            .clickableSingle {
+                                callback.accountsItemOptionsClicked(item.accountType)
+                            },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         B1(text = item.title)
@@ -126,12 +128,7 @@ internal fun AccountDetailsContent(
                                 B1(text = item.amount.toString())
                                 MarginHorizontal(10.dp)
                                 Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .minimumInteractiveComponentSize()
-                                        .clickableSingle {
-                                            callback.accountsItemOptionsClicked(item.accountType)
-                                        },
+                                    modifier = Modifier.size(32.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -143,12 +140,7 @@ internal fun AccountDetailsContent(
                             }
                         } else {
                             Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .minimumInteractiveComponentSize()
-                                    .clickableSingle {
-                                        callback.accountsItemOptionsClicked(item.accountType)
-                                    },
+                                modifier = Modifier.size(32.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
