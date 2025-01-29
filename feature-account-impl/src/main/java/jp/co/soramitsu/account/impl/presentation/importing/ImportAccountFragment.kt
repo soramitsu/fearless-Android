@@ -11,7 +11,6 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
@@ -27,6 +26,7 @@ import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.EthereumDerivat
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.makeGone
@@ -46,7 +46,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         fun getBundle(
             walletId: Long?,
-            accountType: ImportAccountType = ImportAccountType.Substrate,
+            accountType: WalletEcosystem = WalletEcosystem.Substrate,
             importMode: ImportMode = ImportMode.MnemonicPhrase
         ): Bundle {
             return bundleOf(
@@ -74,7 +74,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         with(binding) {
             toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
-            if (viewModel.initialImportAccountType == ImportAccountType.Ton) {
+            if (viewModel.initialWalletEcosystem == WalletEcosystem.Ton) {
                 sourceTypeInput.isEnabled = false
             } else {
                 sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
@@ -120,7 +120,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         mediateWith(
             viewModel.blockchainLiveData,
             viewModel.selectedSourceLiveData
-        ) { (blockchainType: ImportAccountType?, sourceType: ImportSource) ->
+        ) { (blockchainType: WalletEcosystem?, sourceType: ImportSource) ->
             blockchainType?.let {
                 val sourceViews = buildSourceTypesViews(blockchainType)
                 setupSourceTypes(sourceType, sourceViews)
@@ -129,7 +129,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }.observe { }
     }
 
-    private fun buildSourceTypesViews(blockchainType: ImportAccountType) = viewModel.sourceTypes.map {
+    private fun buildSourceTypesViews(blockchainType: WalletEcosystem) = viewModel.sourceTypes.map {
         val view = createSourceView(it, blockchainType)
 
         view.observeSource(it, blockchainType, viewLifecycleOwner)
@@ -151,11 +151,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
     }
 
-    private fun setupAdvancedBlock(blockchainType: ImportAccountType, sourceType: ImportSource) {
+    private fun setupAdvancedBlock(blockchainType: WalletEcosystem, sourceType: ImportSource) {
         binding.advancedBlockView.makeVisible()
         binding.advancedBlockView.apply {
             when {
-                blockchainType == ImportAccountType.Ton -> {
+                blockchainType == WalletEcosystem.Ton -> {
                     binding.advancedBlockView.makeGone()
                 }
                 sourceType is MnemonicImportSource -> {
@@ -200,7 +200,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         startActivityForResult(intent, it)
     }
 
-    private fun createSourceView(source: ImportSource, blockchainType: ImportAccountType): ImportSourceView {
+    private fun createSourceView(source: ImportSource, blockchainType: WalletEcosystem): ImportSourceView {
         val context = requireContext()
 
         return when (source) {

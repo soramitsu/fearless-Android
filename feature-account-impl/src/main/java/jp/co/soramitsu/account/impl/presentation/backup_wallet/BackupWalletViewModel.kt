@@ -7,7 +7,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
@@ -21,7 +20,7 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.model.ImportAccountType
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class BackupWalletViewModel @Inject constructor(
@@ -60,7 +60,7 @@ class BackupWalletViewModel @Inject constructor(
 
     val isAllowGoogleBackupFlow = wallet.map { wallet ->
         wallet.supportedEcosystemWithIconAddress().keys.any {
-            it in listOf(ImportAccountType.Substrate, ImportAccountType.Ethereum)
+            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

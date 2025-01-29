@@ -4,9 +4,8 @@ import android.graphics.drawable.Drawable
 import co.jp.soramitsu.tonconnect.model.AppEntity
 import co.jp.soramitsu.tonconnect.model.DappModel
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import java.math.BigDecimal
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.common.AlertViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
@@ -27,6 +26,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.Ext
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
+import java.math.BigDecimal
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 interface WalletRouter : SecureRouter, WalletRouterApi {
@@ -139,7 +139,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSelectWallet()
 
-    fun openOptionsAddAccount(metaId: Long, type: ImportAccountType)
+    fun openOptionsAddAccount(metaId: Long, type: WalletEcosystem)
 
     fun openOptionsSwitchNode(
         metaId: Long,

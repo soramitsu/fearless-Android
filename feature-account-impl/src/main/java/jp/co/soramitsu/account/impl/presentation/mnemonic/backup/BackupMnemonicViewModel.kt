@@ -9,10 +9,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.exceptions.NotValidDerivationPath
@@ -22,6 +20,7 @@ import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.MnemonicWordModel
 import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.Event
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @HiltViewModel
 class BackupMnemonicViewModel @Inject constructor(
@@ -58,9 +58,9 @@ class BackupMnemonicViewModel @Inject constructor(
         savedStateHandle.get<BackupMnemonicPayload>(BackupMnemonicScreenKeys.PAYLOAD_KEY)!!
     val walletId = payload.walletId
 
-    val isEthereumAccount = payload.accountTypes.contains(ImportAccountType.Ethereum)
-    val isSubstrateAccount = payload.accountTypes.contains(ImportAccountType.Substrate)
-    val isTonAccount = payload.accountTypes.contains(ImportAccountType.Ton)
+    val isEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Ethereum)
+    val isSubstrateAccount = payload.accountTypes.contains(WalletEcosystem.Substrate)
+    val isTonAccount = payload.accountTypes.contains(WalletEcosystem.Ton)
     val isSubstrateAndEthereumAccount = isSubstrateAccount && isEthereumAccount
     val isSubstrateOrEthereumAccount = isSubstrateAccount || isEthereumAccount
 

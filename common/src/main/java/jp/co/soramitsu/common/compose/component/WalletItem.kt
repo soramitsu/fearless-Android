@@ -29,7 +29,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white08
-import jp.co.soramitsu.common.model.ImportAccountType
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class WalletItemViewState(
@@ -42,11 +42,11 @@ data class WalletItemViewState(
     val isSelected: Boolean,
     val additionalMetadata: String = "",
     val score: Int? = null,
-    val supportedEcosystems: Set<ImportAccountType> = emptySet()
+    val supportedEcosystems: Set<WalletEcosystem> = emptySet()
 ) {
     val onlyTonSupported: Boolean
         get() {
-            return supportedEcosystems.size == 1 && supportedEcosystems.contains(ImportAccountType.Ton)
+            return supportedEcosystems.size == 1 && supportedEcosystems.contains(WalletEcosystem.Ton)
         }
 }
 

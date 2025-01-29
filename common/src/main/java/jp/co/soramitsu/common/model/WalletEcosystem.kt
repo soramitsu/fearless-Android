@@ -2,13 +2,13 @@ package jp.co.soramitsu.common.model
 
 import jp.co.soramitsu.core.models.Ecosystem
 
-enum class ImportAccountType {
+enum class WalletEcosystem {
     Substrate, Ethereum, Ton
 }
 
 fun Ecosystem.toAccountType() = when (this) {
-    Ecosystem.Substrate -> ImportAccountType.Substrate
-    Ecosystem.Ton -> ImportAccountType.Ton
+    Ecosystem.Substrate -> WalletEcosystem.Substrate
+    Ecosystem.Ton -> WalletEcosystem.Ton
     Ecosystem.EthereumBased,
-    Ecosystem.Ethereum -> ImportAccountType.Ethereum
+    Ecosystem.Ethereum -> WalletEcosystem.Ethereum
 }

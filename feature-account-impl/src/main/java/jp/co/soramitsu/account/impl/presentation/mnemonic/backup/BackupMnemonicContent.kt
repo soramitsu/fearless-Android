@@ -18,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AdvancedExpandableText
@@ -36,12 +35,13 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customColors
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.shared_utils.encrypt.EncryptionType
 
 data class BackupMnemonicState(
     val mnemonicWords: List<MnemonicWordModel>,
     val selectedEncryptionType: String,
-    val accountTypes: List<ImportAccountType>,
+    val accountTypes: List<WalletEcosystem>,
     val substrateDerivationPath: String,
     val ethereumDerivationPath: String,
     val isFromGoogleBackup: Boolean
@@ -220,7 +220,7 @@ private fun PreviewBackupMnemonicContent() {
             state = BackupMnemonicState(
                 mnemonicWords = listOf(MnemonicWordModel("1", "one"), MnemonicWordModel("2", "two"), MnemonicWordModel("3", "three")),
                 selectedEncryptionType = EncryptionType.ECDSA.rawName,
-                accountTypes = listOf(ImportAccountType.Substrate),
+                accountTypes = listOf(WalletEcosystem.Substrate),
                 substrateDerivationPath = "",
                 ethereumDerivationPath = "",
                 isFromGoogleBackup = false

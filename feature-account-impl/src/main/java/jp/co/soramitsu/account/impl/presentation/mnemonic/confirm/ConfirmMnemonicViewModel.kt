@@ -5,13 +5,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
@@ -22,6 +21,7 @@ import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ConfirmMnemonicViewModel @Inject constructor(
@@ -132,8 +132,8 @@ class ConfirmMnemonicViewModel @Inject constructor(
         val payloadExtras = payload.createExtras ?: return
         val mnemonicString = originMnemonic.joinToString(" ")
 
-        val isSubstrateOrEthereumAccount = payload.accountTypes.contains(ImportAccountType.Substrate) || payload.accountTypes.contains(ImportAccountType.Ethereum)
-        val isTonAccount = payload.accountTypes.contains(ImportAccountType.Ton)
+        val isSubstrateOrEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Substrate) || payload.accountTypes.contains(WalletEcosystem.Ethereum)
+        val isTonAccount = payload.accountTypes.contains(WalletEcosystem.Ton)
 
         launch {
             val addAccountPayload = when  {

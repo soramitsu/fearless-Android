@@ -2,16 +2,15 @@ package jp.co.soramitsu.account.api.domain.interfaces
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import java.io.File
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
@@ -20,6 +19,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 interface AccountInteractor {
     suspend fun generateMnemonic(length: Mnemonic.Length): List<String>
@@ -96,7 +96,7 @@ interface AccountInteractor {
     suspend fun googleBackupAddressForWallet(walletId: Long): String
     suspend fun isGoogleBackupSupported(walletId: Long): Boolean
     suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
-    suspend fun getBestBackupType(walletId: Long, type: ImportAccountType): BackupAccountType?
+    suspend fun getBestBackupType(walletId: Long, type: WalletEcosystem): BackupAccountType?
 
     suspend fun getChain(chainId: ChainId): Chain
 

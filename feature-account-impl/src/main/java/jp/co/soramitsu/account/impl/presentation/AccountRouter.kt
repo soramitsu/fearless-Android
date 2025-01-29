@@ -1,10 +1,10 @@
 package jp.co.soramitsu.account.impl.presentation
 
 import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
@@ -23,18 +23,18 @@ interface AccountRouter : SecureRouter {
 
     fun openMnemonicScreen(
         accountName: String,
-        accountTypes: List<ImportAccountType>
+        accountTypes: List<WalletEcosystem>
     )
 
     fun openMnemonicScreenAddAccount(
         walletId: Long,
         accountName: String,
-        type: ImportAccountType
+        type: WalletEcosystem
     )
 
     fun openMnemonicDialogGoogleBackup(
         accountName: String,
-        accountTypes: List<ImportAccountType>
+        accountTypes: List<WalletEcosystem>
     )
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
@@ -86,7 +86,7 @@ interface AccountRouter : SecureRouter {
 
     fun openExperimentalFeatures()
 
-    fun openOptionsAddAccount(metaId: Long, type: ImportAccountType)
+    fun openOptionsAddAccount(metaId: Long, type: WalletEcosystem)
 
     fun openPolkaswapDisclaimerFromProfile()
 
@@ -96,7 +96,7 @@ interface AccountRouter : SecureRouter {
 
     fun openMnemonicAgreementsDialogForGoogleBackup(
         accountName: String,
-        accountTypes: List<ImportAccountType>
+        accountTypes: List<WalletEcosystem>
     )
 
     fun openImportRemoteWalletDialog()
@@ -105,13 +105,13 @@ interface AccountRouter : SecureRouter {
 
     fun openScoreDetailsScreen(metaId: Long)
 
-    fun openEcosystemAccountsOptions(walletId: Long, type: ImportAccountType)
+    fun openEcosystemAccountsOptions(walletId: Long, type: WalletEcosystem)
 
-    fun openEcosystemAccountsFragment(walletId: Long, type: ImportAccountType)
+    fun openEcosystemAccountsFragment(walletId: Long, type: WalletEcosystem)
 
     fun openSelectImportModeForResult(): Flow<ImportMode>
 
-    fun openImportAddAccountScreen(walletId: Long, importAccountType: ImportAccountType, importMode: ImportMode)
+    fun openImportAddAccountScreen(walletId: Long, walletEcosystem: WalletEcosystem, importMode: ImportMode)
 
     fun openOptionsWallet(walletId: Long, allowDetails: Boolean)
 

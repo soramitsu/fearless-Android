@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
@@ -13,7 +12,6 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.account.api.presentation.exporting.buildChainAccountOptions
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.model.ConnectedAccountsInfoItem
@@ -22,6 +20,7 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -38,6 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class AccountDetailsViewModel @Inject constructor(
@@ -118,11 +118,11 @@ class AccountDetailsViewModel @Inject constructor(
         accountRouter.back()
     }
 
-    private fun mapTypeToTitle(type: ImportAccountType): String {
+    private fun mapTypeToTitle(type: WalletEcosystem): String {
         val resId = when (type) {
-            ImportAccountType.Substrate -> R.string.connected_accounts_substrate_title
-            ImportAccountType.Ethereum -> R.string.connected_accounts_ethereum_title
-            ImportAccountType.Ton -> R.string.connected_accounts_ton_title
+            WalletEcosystem.Substrate -> R.string.connected_accounts_substrate_title
+            WalletEcosystem.Ethereum -> R.string.connected_accounts_ethereum_title
+            WalletEcosystem.Ton -> R.string.connected_accounts_ton_title
         }
         return resourceManager.getString(resId)
     }
@@ -151,7 +151,7 @@ class AccountDetailsViewModel @Inject constructor(
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
-    override fun accountsItemOptionsClicked(type: ImportAccountType) {
+    override fun accountsItemOptionsClicked(type: WalletEcosystem) {
         launch {
             val connectedChainsSize = connectedAccountsSummaryFlow.value.firstOrNull { it.accountType == type }?.amount ?: 0
 

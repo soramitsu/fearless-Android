@@ -6,7 +6,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -15,7 +14,6 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode.Google
 import jp.co.soramitsu.account.api.domain.model.ImportMode.Json
 import jp.co.soramitsu.account.api.domain.model.ImportMode.MnemonicPhrase
 import jp.co.soramitsu.account.api.domain.model.ImportMode.RawSeed
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.IMPORT_ACCOUNT_TYPE_KEY
@@ -29,6 +27,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.source.model.Mnemonic
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.exceptions.NotValidDerivationPath
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
@@ -42,6 +41,7 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ImportAccountViewModel @Inject constructor(
@@ -56,14 +56,14 @@ class ImportAccountViewModel @Inject constructor(
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
     val walletId = savedStateHandle.get<Long?>(IMPORT_WALLET_ID_KEY)
-    val initialImportAccountType = savedStateHandle.get<ImportAccountType>(IMPORT_ACCOUNT_TYPE_KEY)
+    val initialWalletEcosystem = savedStateHandle.get<WalletEcosystem>(IMPORT_ACCOUNT_TYPE_KEY)
     private val initialImportMode = savedStateHandle[IMPORT_MODE_KEY] ?: MnemonicPhrase
 
     private val _showEthAccountsDialog = MutableLiveData<Event<Unit>>()
     val showEthAccountsDialog: LiveData<Event<Unit>> = _showEthAccountsDialog
 
-    private val _blockchainTypeLiveData = MutableLiveData<ImportAccountType>(initialImportAccountType)
-    val blockchainLiveData: LiveData<ImportAccountType> = _blockchainTypeLiveData
+    private val _blockchainTypeLiveData = MutableLiveData<WalletEcosystem>(initialWalletEcosystem)
+    val blockchainLiveData: LiveData<WalletEcosystem> = _blockchainTypeLiveData
 
     val nameLiveData = MutableLiveData<String>()
 
@@ -135,25 +135,25 @@ class ImportAccountViewModel @Inject constructor(
             source is MnemonicImportSource -> {
                 import(withEth = true)
             }
-            source is RawSeedImportSource && _blockchainTypeLiveData.value == ImportAccountType.Substrate -> {
+            source is RawSeedImportSource && _blockchainTypeLiveData.value == WalletEcosystem.Substrate -> {
                 source.rawSeedLiveData.value?.let {
                     substrateSeed = it
                     _showEthAccountsDialog.value = Event(Unit)
                 }
             }
-            source is RawSeedImportSource && _blockchainTypeLiveData.value == ImportAccountType.Ethereum -> {
+            source is RawSeedImportSource && _blockchainTypeLiveData.value == WalletEcosystem.Ethereum -> {
                 source.rawSeedLiveData.value?.let {
                     ethSeed = it
                     import(withEth = true)
                 }
             }
-            source is JsonImportSource && _blockchainTypeLiveData.value == ImportAccountType.Substrate -> {
+            source is JsonImportSource && _blockchainTypeLiveData.value == WalletEcosystem.Substrate -> {
                 source.jsonContentLiveData.value?.let {
                     substrateJson = it
                     _showEthAccountsDialog.value = Event(Unit)
                 }
             }
-            source is JsonImportSource && _blockchainTypeLiveData.value == ImportAccountType.Ethereum -> {
+            source is JsonImportSource && _blockchainTypeLiveData.value == WalletEcosystem.Ethereum -> {
                 source.jsonContentLiveData.value?.let {
                     ethJson = it
                     import(withEth = true)
@@ -248,7 +248,7 @@ class ImportAccountViewModel @Inject constructor(
     ): Result<Any> {
         return when (sourceType) {
             is MnemonicImportSource -> {
-                val payload = if (blockchainLiveData.value == ImportAccountType.Ton) {
+                val payload = if (blockchainLiveData.value == WalletEcosystem.Ton) {
                     AddAccountPayload.Ton(
                         accountName = name,
                         mnemonic = sourceType.mnemonicContentLiveData.value!!,
@@ -298,7 +298,7 @@ class ImportAccountViewModel @Inject constructor(
     }
 
     fun onAddEthAccountConfirmed() {
-        _blockchainTypeLiveData.value = ImportAccountType.Ethereum
+        _blockchainTypeLiveData.value = WalletEcosystem.Ethereum
         (_selectedSourceTypeLiveData.value as? RawSeedImportSource)?.rawSeedLiveData?.value = ""
         (_selectedSourceTypeLiveData.value as? JsonImportSource)?.apply {
             jsonContentLiveData.value = ""

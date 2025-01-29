@@ -7,18 +7,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.onboarding.api.domain.OnboardingInteractor
@@ -35,6 +34,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
@@ -157,7 +157,7 @@ class WelcomeViewModel @Inject constructor(
             }
 
             AccountType.Ton -> router.openImportAccountScreen(
-                importAccountType = ImportAccountType.Ton,
+                walletEcosystem = WalletEcosystem.Ton,
                 importMode = ImportMode.MnemonicPhrase
             )
         }
@@ -168,7 +168,7 @@ class WelcomeViewModel @Inject constructor(
             _events.trySend(WelcomeEvent.AuthorizeGoogle)
         } else {
             router.openImportAccountScreen(
-                importAccountType = ImportAccountType.Substrate,
+                walletEcosystem = WalletEcosystem.Substrate,
                 importMode = importMode
             )
         }

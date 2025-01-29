@@ -20,12 +20,9 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import java.math.BigDecimal
-import java.util.concurrent.atomic.AtomicBoolean
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.chainaccounts.ChainAccountsDialog
 import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog
@@ -65,6 +62,7 @@ import jp.co.soramitsu.app.root.presentation.WebViewerFragment
 import jp.co.soramitsu.app.root.presentation.emptyResultKey
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.AlertViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -177,8 +175,6 @@ import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPre
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.resume
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -198,6 +194,10 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
+import java.math.BigDecimal
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -294,7 +294,7 @@ class Navigator :
 
     override fun openMnemonicAgreementsDialogForGoogleBackup(
         accountName: String,
-        accountTypes: List<ImportAccountType>
+        accountTypes: List<WalletEcosystem>
     ) {
         val bundle = MnemonicAgreementsDialog.getBundle(accountName, accountTypes)
         navController?.navigate(R.id.mnemonicAgreementsDialog, bundle)
@@ -381,26 +381,26 @@ class Navigator :
 
     override fun openImportAddAccountScreen(
         walletId: Long,
-        importAccountType: ImportAccountType,
+        walletEcosystem: WalletEcosystem,
         importMode: ImportMode
     ) {
-        val arguments = ImportAccountFragment.getBundle(walletId, importAccountType, importMode)
+        val arguments = ImportAccountFragment.getBundle(walletId, walletEcosystem, importMode)
         navController?.navigate(R.id.importAccountFragment, arguments)
     }
 
-    override fun openImportAccountScreen(importAccountType: ImportAccountType, importMode: ImportMode) {
-        val arguments = ImportAccountFragment.getBundle(null, importAccountType, importMode)
+    override fun openImportAccountScreen(walletEcosystem: WalletEcosystem, importMode: ImportMode) {
+        val arguments = ImportAccountFragment.getBundle(null, walletEcosystem, importMode)
         navController?.navigate(R.id.importAccountFragment, arguments)
     }
 
-    override fun openMnemonicScreenAddAccount(walletId: Long, accountName: String, type: ImportAccountType) {
+    override fun openMnemonicScreenAddAccount(walletId: Long, accountName: String, type: WalletEcosystem) {
         val bundle = BackupMnemonicFragment.getBundle(accountName, walletId, listOf(type))
         navController?.navigate(R.id.backupMnemonicFragment, bundle)
     }
 
     override fun openMnemonicScreen(
         accountName: String,
-        accountTypes: List<ImportAccountType>
+        accountTypes: List<WalletEcosystem>
     ) {
         val bundle = BackupMnemonicFragment.getBundle(accountName, null, accountTypes)
         navController?.navigate(R.id.backupMnemonicFragment, bundle)
@@ -408,7 +408,7 @@ class Navigator :
 
     override fun openMnemonicDialogGoogleBackup(
         accountName: String,
-        accountTypes: List<ImportAccountType>
+        accountTypes: List<WalletEcosystem>
     ) {
         val bundle = BackupMnemonicDialog.getBundle(accountName, accountTypes)
         navController?.navigate(R.id.backupMnemonicDialog, bundle)
@@ -1166,7 +1166,7 @@ class Navigator :
         navController?.navigate(R.id.accountDetailsDialog, extras)
     }
 
-    override fun openEcosystemAccountsFragment(walletId: Long, type: ImportAccountType) {
+    override fun openEcosystemAccountsFragment(walletId: Long, type: WalletEcosystem) {
         val bundle = ChainAccountsDialog.getBundle(walletId, type)
         navController?.navigate(R.id.chainAccountsDialog, bundle)
     }
@@ -1275,7 +1275,7 @@ class Navigator :
             mnemonic = mnemonic,
             metaId = metaId,
             createExtras = null,
-            accountTypes = listOf(ImportAccountType.Substrate)
+            accountTypes = listOf(WalletEcosystem.Substrate)
         )
         val extras = ConfirmMnemonicFragment.getBundle(payload)
 
@@ -1340,12 +1340,12 @@ class Navigator :
         navController?.navigate(R.id.selectWalletFragment)
     }
 
-    override fun openOptionsAddAccount(metaId: Long, type: ImportAccountType) {
+    override fun openOptionsAddAccount(metaId: Long, type: WalletEcosystem) {
         val bundle = OptionsAddAccountFragment.getBundle(metaId, type)
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
     }
 
-    override fun openEcosystemAccountsOptions(walletId: Long, type: ImportAccountType) {
+    override fun openEcosystemAccountsOptions(walletId: Long, type: WalletEcosystem) {
         val bundle = OptionsEcosystemAccountsFragment.getBundle(walletId, type)
         navController?.navigate(R.id.optionsEcosystemAccountsFragment, bundle)
     }

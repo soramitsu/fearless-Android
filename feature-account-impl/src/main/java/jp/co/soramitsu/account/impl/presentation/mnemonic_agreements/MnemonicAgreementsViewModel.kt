@@ -3,16 +3,16 @@ package jp.co.soramitsu.account.impl.presentation.mnemonic_agreements
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import jp.co.soramitsu.common.model.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class MnemonicAgreementsViewModel @Inject constructor(
@@ -21,7 +21,7 @@ class MnemonicAgreementsViewModel @Inject constructor(
 ) : BaseViewModel(), MnemonicAgreementsCallback {
 
     private val walletName = savedStateHandle.get<String>(MnemonicAgreementsDialog.WALLET_NAME_KEY).orEmpty()
-    private val accountTypes = savedStateHandle.get<List<ImportAccountType>>(MnemonicAgreementsDialog.ACCOUNT_TYPES_KEY) ?: error("Account type not specified")
+    private val accountTypes = savedStateHandle.get<List<WalletEcosystem>>(MnemonicAgreementsDialog.ACCOUNT_TYPES_KEY) ?: error("Account type not specified")
 
     private val isLosePhraseAgreementSelected = MutableStateFlow(false)
     private val isSharePhraseAgreementItemStateSelected = MutableStateFlow(false)
