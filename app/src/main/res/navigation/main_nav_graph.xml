@@ -723,6 +723,11 @@
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.connections.ConnectionsFragment"
         android:label="connectionsFragment" />
 
+   <dialog
+        android:id="@+id/tonConnectionsFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.connections.TonConnectionsFragment"
+        android:label="tonConnectionsFragment" />
+
     <dialog
         android:id="@+id/sessionProposalFragment"
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment"
@@ -1030,6 +1035,11 @@
         android:id="@+id/tonConnectionDetails"
         android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment"
         android:label="tonConnectionDetailsFragment" />
+
+    <dialog
+        android:id="@+id/tonConnectionInfo"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment"
+        android:label="tonConnectionInfo" />
 
     <dialog
         android:id="@+id/tonSignRequestFragment"

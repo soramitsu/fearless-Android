@@ -16,6 +16,11 @@ class AccountListingProvider(
     private val addressIconGenerator: AddressIconGenerator
 ) : AccountListingMixin {
 
+    override suspend fun getAccount(metaId: Long, metaAccountIconDpSize: Int?): LightMetaAccountUi {
+        val metaAccount = accountInteractor.getLightMetaAccount(metaId)
+        return mapMetaAccountToUi(metaAccount, addressIconGenerator, metaAccountIconDpSize)
+    }
+
     override fun accountsFlow(metaAccountIconDpSize: Int?) = accountInteractor.lightMetaAccountsFlow()
         .mapList {
             mapMetaAccountToUi(

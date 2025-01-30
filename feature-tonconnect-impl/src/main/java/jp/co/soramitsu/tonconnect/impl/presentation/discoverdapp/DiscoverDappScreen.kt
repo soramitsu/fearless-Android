@@ -274,7 +274,8 @@ fun PreviewDappsGroup() {
                     url = "https://ton-connect.example.fearless.soramitsu.co.jp",
                     description = "FW dapp example description",
                     background = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/icons/dapps/defaultbg.png",
-                    icon = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/FW_icon_288.png"
+                    icon = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/FW_icon_288.png",
+                    metaId = null
                 )
             )
         ),

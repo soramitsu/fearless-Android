@@ -32,6 +32,7 @@ interface ProfileScreenInterface {
     fun walletsClicked()
 
     fun onWalletConnectClick()
+    fun onTonConnectClick()
     fun currencyClicked()
     fun crowdloansClicked()
     fun languagesClicked()
@@ -62,10 +63,12 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
         MarginVertical(margin = 16.dp)
         SettingsItem(icon = painterResource(R.drawable.ic_settings_wallets), text = stringResource(R.string.profile_wallets_title), action = state.walletsItemAction, onClick = callback::walletsClicked)
         SettingsDivider()
-        if (state.walletState.onlyTonSupported.not()) {
+        if (state.walletState.onlyTonSupported) {
+            SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_tonconnect_title), onClick = callback::onTonConnectClick)
+        } else {
             SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
-            SettingsDivider()
         }
+        SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_nav_crowdloans), text = stringResource(R.string.crowdloan_crowdloan), onClick = callback::crowdloansClicked)
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_dollar_circle), text = stringResource(R.string.common_currency), action = SettingsItemAction.Selector(state.currency), onClick = callback::currencyClicked)
@@ -111,6 +114,7 @@ fun ProfileScreenPreview() {
             override fun onWalletOptionsClick(item: WalletItemViewState) = Unit
             override fun walletsClicked() = Unit
             override fun onWalletConnectClick() = Unit
+            override fun onTonConnectClick() = Unit
             override fun currencyClicked() = Unit
             override fun crowdloansClicked() {}
             override fun languagesClicked() = Unit

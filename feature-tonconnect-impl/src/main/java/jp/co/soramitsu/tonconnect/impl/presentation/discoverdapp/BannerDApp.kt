@@ -103,7 +103,8 @@ private fun BannerDAppPreview() {
             url = "Dapp url",
             description = "dApp description",
             background = "",
-            icon = ""
+            icon = "",
+            metaId = null
         ),
         onClick = {}
     )

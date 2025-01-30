@@ -196,6 +196,7 @@ import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicBoolean
+import jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment
 import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
 
@@ -900,6 +901,10 @@ class Navigator :
         navController?.navigate(R.id.connectionsFragment)
     }
 
+    override fun openTonConnectionsScreen() {
+        navController?.navigate(R.id.tonConnectionsFragment)
+    }
+
     override fun openSelectMultipleChains(
         items: List<String>,
         selected: List<String>,
@@ -1069,8 +1074,8 @@ class Navigator :
         navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
-    override fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?) {
-        val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
+    override fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?, customTitle: String?) {
+        val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage, customTitle)
 
         navController?.navigate(R.id.successSheetFragment, bundle)
     }
@@ -1582,20 +1587,10 @@ class Navigator :
         navController?.navigate(R.id.poolsFlowFragment)
     }
 
-    override fun openTonConnectionDetails(app: AppEntity, proofPayload: String?) {
-        val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
+    override fun openTonConnectionInfo(dappItem: DappModel) {
+        val bundle = TonConnectionInfoFragment.getBundle(dappItem)
 
-        navController?.navigate(R.id.tonConnectionDetails, bundle)
-    }
-
-    override fun openTonConnectionDetailsForResult(app: AppEntity, proofPayload: String?): Flow<String> {
-        val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
-
-        return openWithResult(
-            destinationId = R.id.tonConnectionDetails,
-            bundle = bundle,
-            resultKey = TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY
-        )
+        navController?.navigate(R.id.tonConnectionInfo, bundle)
     }
 
     override suspend fun openTonSignRequestWithResult(

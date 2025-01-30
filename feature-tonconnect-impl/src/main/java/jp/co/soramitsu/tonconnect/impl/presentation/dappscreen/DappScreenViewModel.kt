@@ -57,12 +57,6 @@ class DappScreenViewModel @Inject constructor(
         }
 
         return signedRequest
-//        val activity = requireContext().activity ?: return JsonBuilder.connectEventError(BridgeError.BAD_REQUEST)
-//        return tonConnectManager.launchConnectFlow(
-//            activity = activity,
-//            tonConnect = TonConnect.fromJsInject(request, webView.url?.toUri()),
-//            wallet = wallet
-//        )
     }
 
     suspend fun send(array: JSONArray): JSONObject {
@@ -117,8 +111,4 @@ class DappScreenViewModel @Inject constructor(
             interactor.disconnect(dapp.identifier)
         }
     }
-
-//    fun backButtonPressed() {
-//        interactor.backToProfileScreen()
-//    }
 }

@@ -19,12 +19,11 @@ import co.jp.soramitsu.tonconnect.model.optStringCompatJS
 import co.jp.soramitsu.tonconnect.model.post
 import co.jp.soramitsu.tonconnect.model.sse
 import co.jp.soramitsu.tonconnect.model.toDomain
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.ktor.util.encodeBase64
+import java.net.URL
+import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.Keypair
-import jp.co.soramitsu.common.data.network.ton.DappConfigRemote
 import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.resources.ContextManager
@@ -59,7 +58,6 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -86,8 +84,6 @@ import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
-import java.net.URL
-import javax.inject.Named
 
 @Suppress("LargeClass")
 class TonConnectInteractorImpl(
@@ -227,18 +223,6 @@ class TonConnectInteractorImpl(
                 apps = list.map { DappModel(it) }
             )
         }
-    }
-
-    fun getDiscoverDapps(): List<DappConfigRemote> {
-        val localDappsJson =
-            contextManager.getContext().assets.open("dapps.json").bufferedReader()
-                .use { it.readText() }
-        val json = Gson().fromJson<List<DappConfigRemote>>(
-            localDappsJson,
-            object : TypeToken<List<DappConfigRemote>>() {}.type
-        )
-
-        return json
     }
 
     override fun eventsFlow(lastEventId: Long): Flow<BridgeEvent> {

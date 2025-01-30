@@ -102,6 +102,7 @@ interface AccountRouter : SecureRouter {
     fun openImportRemoteWalletDialog()
 
     fun openConnectionsScreen()
+    fun openTonConnectionsScreen()
 
     fun openScoreDetailsScreen(metaId: Long)
 

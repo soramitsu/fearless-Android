@@ -20,12 +20,9 @@ interface TonConnectInteractor {
         signedRequest: JSONObject,
         app: AppEntity
     )
-//    suspend fun openTonSignRequest(appUrl: String, method: String, signRequest: SignRequestEntity): JSONObject
-//    suspend fun openTonSignPreview()
 
     suspend fun getChain(): Chain
 
-    //    fun getDiscoverDapps(): List<DappConfigRemote>
     suspend fun getDappsConfig(): List<DappConfig>
 
     fun getConnectedDapps(): Flow<DappConfig>

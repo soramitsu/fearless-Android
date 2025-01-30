@@ -232,6 +232,10 @@ class ProfileViewModel @Inject constructor(
         router.openConnectionsScreen()
     }
 
+    override fun onTonConnectClick() {
+        router.openTonConnectionsScreen()
+    }
+
     override fun onNomisMultichainScoreContainerClick() {
         nomisScoreInteractor.nomisMultichainScoreEnabled =
             !nomisScoreInteractor.nomisMultichainScoreEnabled

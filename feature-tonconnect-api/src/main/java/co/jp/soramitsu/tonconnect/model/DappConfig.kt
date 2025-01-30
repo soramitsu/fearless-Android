@@ -19,7 +19,8 @@ data class DappModel(
     val url: String?,
     val description: String?,
     val background: String?,
-    val icon: String?
+    val icon: String?,
+    val metaId: Long?
 ) : Parcelable {
     constructor(dappRemote: DappRemote) : this(
         identifier = dappRemote.identifier,
@@ -28,7 +29,8 @@ data class DappModel(
         url = dappRemote.url,
         description = dappRemote.description,
         background = dappRemote.background,
-        icon = dappRemote.icon
+        icon = dappRemote.icon,
+        metaId = null
     )
 
     constructor(tonDappConnection: TonDappConnection) : this(
@@ -38,7 +40,8 @@ data class DappModel(
         url = tonDappConnection.url,
         description = tonDappConnection.url,
         background = null,
-        icon = tonDappConnection.icon
+        icon = tonDappConnection.icon,
+        metaId = tonDappConnection.metaId
     )
 }
 

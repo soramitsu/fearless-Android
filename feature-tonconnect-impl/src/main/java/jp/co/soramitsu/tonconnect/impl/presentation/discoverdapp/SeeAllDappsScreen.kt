@@ -72,7 +72,8 @@ fun SeeAllPreview() {
             url = "Dapp url",
             description = "dApp description",
             background = "",
-            icon = ""
+            icon = "",
+            metaId = null
         ),
         DappModel(
             identifier = "",
@@ -81,7 +82,8 @@ fun SeeAllPreview() {
             url = "Dapp url",
             description = "dApp description",
             background = "",
-            icon = ""
+            icon = "",
+            metaId = null
         ),
         DappModel(
             identifier = "",
@@ -90,7 +92,8 @@ fun SeeAllPreview() {
             url = "Dapp url",
             description = "dApp description",
             background = "",
-            icon = ""
+            icon = "",
+            metaId = null
         ),
     )
     SeeAllDappsBottomSheet(DappsListState("Featured", dapps), {}, {})

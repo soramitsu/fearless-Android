@@ -780,6 +780,7 @@
   <string name="profile_settings_title">Settings</string>
   <string name="profile_soracard_title">SORA Card</string>
   <string name="profile_title">Account</string>
+  <string name="profile_tonconnect_title">Ton connect</string>
   <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Wallets</string>
   <string name="reason">Reason</string>
