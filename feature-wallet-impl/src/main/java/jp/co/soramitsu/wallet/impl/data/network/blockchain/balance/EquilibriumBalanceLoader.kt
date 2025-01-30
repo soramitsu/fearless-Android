@@ -5,11 +5,9 @@ import android.util.Log
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.impl.domain.StorageKeyWithMetadata
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
-import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
@@ -62,7 +60,7 @@ class EquilibriumBalanceLoader(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun subscribeBalance(metaAccount: MetaAccount): Flow<AssetBalanceUpdateItem> {
+    override fun subscribeBalance(metaAccount: MetaAccount): Flow<BalanceLoaderAction> {
         metaAccount.substrateAccountId ?: return emptyFlow()
         return flow { emit(chainRegistry.awaitRuntimeProvider(chain.id).get()) }
             .transformLatest { runtime ->
@@ -108,12 +106,14 @@ class EquilibriumBalanceLoader(
                             ).orZero()
 
                             emit(
-                                AssetBalanceUpdateItem(
-                                    id = asset.id,
-                                    chainId = chain.id,
-                                    accountId = metaAccount.substrateAccountId!!,
-                                    metaId = metaAccount.id,
-                                    freeInPlanks = balance,
+                                BalanceLoaderAction.UpdateBalance(
+                                    AssetBalanceUpdateItem(
+                                        id = asset.id,
+                                        chainId = chain.id,
+                                        accountId = metaAccount.substrateAccountId!!,
+                                        metaId = metaAccount.id,
+                                        freeInPlanks = balance,
+                                    )
                                 )
                             )
                         }

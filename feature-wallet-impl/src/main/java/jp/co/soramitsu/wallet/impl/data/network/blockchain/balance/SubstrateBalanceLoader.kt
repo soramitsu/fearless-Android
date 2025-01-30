@@ -151,7 +151,7 @@ class SubstrateBalanceLoader(
         }
     }
 
-    override fun subscribeBalance(metaAccount: MetaAccount): Flow<AssetBalanceUpdateItem> {
+    override fun subscribeBalance(metaAccount: MetaAccount): Flow<BalanceLoaderAction> {
         return flow { emit(chainRegistry.awaitRuntimeProvider(chain.id).get()) }
             .combine(flow { emit(chainRegistry.awaitConnection(chain.id).socketService) }) { runtime, socketService ->
             runtime to socketService
@@ -179,18 +179,20 @@ class SubstrateBalanceLoader(
                             }.getOrNull()?.toAssetBalance() ?: return@onEach
 
                         trySend(
-                            AssetBalanceUpdateItem(
-                                id = metadata.asset.id,
-                                chainId = chain.id,
-                                accountId = metadata.accountId,
-                                metaId = metadata.metaAccountId,
-                                freeInPlanks = balanceData.freeInPlanks,
-                                reservedInPlanks = balanceData.reservedInPlanks,
-                                miscFrozenInPlanks = balanceData.miscFrozenInPlanks,
-                                feeFrozenInPlanks = balanceData.feeFrozenInPlanks,
-                                bondedInPlanks = balanceData.bondedInPlanks,
-                                redeemableInPlanks = balanceData.redeemableInPlanks,
-                                unbondingInPlanks = balanceData.unbondingInPlanks
+                            BalanceLoaderAction.UpdateBalance(
+                                AssetBalanceUpdateItem(
+                                    id = metadata.asset.id,
+                                    chainId = chain.id,
+                                    accountId = metadata.accountId,
+                                    metaId = metadata.metaAccountId,
+                                    freeInPlanks = balanceData.freeInPlanks,
+                                    reservedInPlanks = balanceData.reservedInPlanks,
+                                    miscFrozenInPlanks = balanceData.miscFrozenInPlanks,
+                                    feeFrozenInPlanks = balanceData.feeFrozenInPlanks,
+                                    bondedInPlanks = balanceData.bondedInPlanks,
+                                    redeemableInPlanks = balanceData.redeemableInPlanks,
+                                    unbondingInPlanks = balanceData.unbondingInPlanks
+                                )
                             )
                         )
                     }

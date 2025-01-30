@@ -60,7 +60,7 @@ class EthereumBalanceLoader(
         }
     }
 
-    override fun subscribeBalance(metaAccount: MetaAccount): Flow<AssetBalanceUpdateItem> {
+    override fun subscribeBalance(metaAccount: MetaAccount): Flow<BalanceLoaderAction> {
         return trigger.onStart { emit(null) }.flatMapLatest { triggeredChainId ->
             channelFlow {
                 val specificChainTriggered = triggeredChainId != null
@@ -88,7 +88,7 @@ class EthereumBalanceLoader(
                                 freeInPlanks = balance
                                 //assetBalance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
                             )
-                            send(assetLocal)
+                            send(BalanceLoaderAction.UpdateBalance(assetLocal))
                         }
                     }
                 }

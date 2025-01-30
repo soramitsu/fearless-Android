@@ -100,7 +100,7 @@ class WalletSyncService(
                     val accountHasAssetWithPositiveBalanceMap = mutableMapOf<Long, Boolean>()
                     val syncedChains = mutableSetOf<ChainId>()
                     supervisorScope {
-                        val chainsBalancesDeferred = chains.map { chain ->
+                        val chainsBalancesDeferred = chainsRepository.getChains().map { chain ->
                             val filteredMetaAccounts = when(chain.ecosystem) {
                                 Ecosystem.Substrate,
                                 Ecosystem.Ethereum,
@@ -150,7 +150,7 @@ class WalletSyncService(
 
                         val assetsLocal = allBalances.mapNotNull { balance ->
                             val chain =
-                                chains.find { it.id == balance.chainId } ?: return@mapNotNull null
+                                chainsRepository.getChains().find { it.id == balance.chainId } ?: return@mapNotNull null
                             val chainAsset = chain.assetsById.getOrDefault(balance.id, null)
                                 ?: return@mapNotNull null
 

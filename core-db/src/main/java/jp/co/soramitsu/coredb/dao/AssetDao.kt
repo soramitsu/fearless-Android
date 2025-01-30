@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
@@ -130,6 +131,9 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Update(entity = AssetLocal::class)
     abstract suspend fun updateAsset(asset: AssetBalanceUpdateItem)
+
+    @Upsert(entity = AssetLocal::class)
+    abstract suspend fun updateOrInsertAsset(asset: AssetLocal)
 
     @Query("DELETE FROM assets WHERE metaId = :metaId AND accountId = :accountId AND chainId = :chainId AND id = :assetId")
     abstract fun deleteAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String)

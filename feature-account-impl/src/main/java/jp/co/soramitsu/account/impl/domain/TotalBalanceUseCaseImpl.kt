@@ -1,7 +1,5 @@
 package jp.co.soramitsu.account.impl.domain
 
-import java.math.BigDecimal
-import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
@@ -25,7 +23,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class TotalBalanceUseCaseImpl(
     private val accountRepository: AccountRepository,
@@ -54,6 +55,7 @@ class TotalBalanceUseCaseImpl(
             .filter { it.isNotEmpty() }
             .map(::getTotalBalance)
             .flowOn(Dispatchers.Default)
+            .onStart { emit(TotalBalance.Empty) }
     }
 
     private suspend fun getTotalBalance(assets: List<AssetWithToken>): TotalBalance {

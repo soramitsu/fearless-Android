@@ -67,7 +67,7 @@ class TonBalanceLoader(chain: Chain, private val tonSyncDataRepository: TonSyncD
 
                         else -> BigInteger.valueOf(-1)
                     }
-                    hashCode()
+
                     AssetBalanceUpdateItem(
                         metaId = metaAccount.id,
                         chainId = chain.id,
@@ -81,7 +81,7 @@ class TonBalanceLoader(chain: Chain, private val tonSyncDataRepository: TonSyncD
         }
     }
 
-    override fun subscribeBalance(metaAccount: MetaAccount): Flow<AssetBalanceUpdateItem> {
+    override fun subscribeBalance(metaAccount: MetaAccount): Flow<BalanceLoaderAction> {
         return trigger.onStart { emit(null) }.flatMapLatest { triggeredChainId ->
             channelFlow {
                 val specificChainTriggered = triggeredChainId != null
@@ -135,7 +135,7 @@ class TonBalanceLoader(chain: Chain, private val tonSyncDataRepository: TonSyncD
                             id = asset.id,
                             freeInPlanks = balance,
                         )
-                        send(balanceLocal)
+                        send(BalanceLoaderAction.UpdateOrInsertBalance(balanceLocal, asset))
                     }
                 }
             }
