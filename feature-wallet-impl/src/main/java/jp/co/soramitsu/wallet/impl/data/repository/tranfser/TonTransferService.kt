@@ -1,8 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository.tranfser
 
 import android.annotation.SuppressLint
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.ton.AccountAddress
 import jp.co.soramitsu.common.data.network.ton.AccountStatus
@@ -32,7 +30,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.TonTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import kotlin.math.floor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -62,6 +59,8 @@ import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
+import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val KEYPAIR_REQUIRED_MESSAGE = "Ton keypair is required for ton transfers"
 
@@ -94,7 +93,6 @@ class TonTransferService(
         val senderSmartContract = V4R2WalletContract(selectedMetaAccount.await().tonPublicKey!!)
 
         val seqnoDeferred = async { tonRemoteSource.getSeqno(chain, senderAccountId) }
-
 
         val fakePrivateKey = PrivateKeyEd25519(ByteArray(Ed25519.KEY_SIZE_BYTES))
 
@@ -324,7 +322,7 @@ class TonTransferService(
         val transferParams = transfer.additionalParams as? TonTransferParams
 
         return if(transfer.chainAsset.type == ChainAssetType.Jetton) {
-            val commentPayload = getCommentForwardPayload(transferParams!!.comment!!)
+            val commentPayload = getCommentForwardPayload(transferParams?.comment)
 
             buildCell {
                 storeUInt(jettonTransferOpCode, 32)
