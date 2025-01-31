@@ -2,14 +2,10 @@ package jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import co.jp.soramitsu.feature_tonconnect_impl.R
-import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
-import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
-import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.ktor.http.Url
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -24,12 +20,16 @@ import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.feature_tonconnect_impl.R
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 @HiltViewModel
 class TonSignRequestViewModel @Inject constructor(

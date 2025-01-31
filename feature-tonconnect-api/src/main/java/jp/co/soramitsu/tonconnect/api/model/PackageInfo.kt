@@ -1,4 +1,4 @@
-package co.jp.soramitsu.tonconnect.model
+package jp.co.soramitsu.tonconnect.api.model
 
 enum class BridgeMethod(val title: String) {
     SEND_TRANSACTION("sendTransaction"),

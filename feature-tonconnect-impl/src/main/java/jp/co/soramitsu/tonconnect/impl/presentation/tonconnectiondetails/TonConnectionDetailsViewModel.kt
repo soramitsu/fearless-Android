@@ -2,14 +2,8 @@ package jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import co.jp.soramitsu.feature_tonconnect_impl.R
-import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
-import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
-import co.jp.soramitsu.tonconnect.model.AppEntity
-import co.jp.soramitsu.tonconnect.model.BridgeError
-import co.jp.soramitsu.tonconnect.model.JsonBuilder
-import co.jp.soramitsu.tonconnect.model.TONProof
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -20,6 +14,13 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.feature_tonconnect_impl.R
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.BridgeError
+import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
+import jp.co.soramitsu.tonconnect.api.model.TONProof
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,7 +29,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class TonConnectionDetailsViewModel @Inject constructor(

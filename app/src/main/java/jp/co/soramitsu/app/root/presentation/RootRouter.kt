@@ -1,7 +1,7 @@
 package jp.co.soramitsu.app.root.presentation
 
-import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 
 interface RootRouter {
     fun returnToWallet()

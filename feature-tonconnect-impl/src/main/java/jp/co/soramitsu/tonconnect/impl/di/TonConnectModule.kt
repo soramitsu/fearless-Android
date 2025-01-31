@@ -1,25 +1,24 @@
 package jp.co.soramitsu.tonconnect.impl.di
 
-import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
-import co.jp.soramitsu.tonconnect.domain.TonConnectRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
+import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.dao.TonConnectDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRepository
 import jp.co.soramitsu.tonconnect.impl.data.TonConnectRepositoryImpl
 import jp.co.soramitsu.tonconnect.impl.domain.TonConnectInteractorImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import okhttp3.OkHttpClient
-import javax.inject.Named
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -37,7 +36,6 @@ class TonConnectModule {
         tonConnectRepository: TonConnectRepository,
         tonRemoteSource: TonRemoteSource,
         walletRepository: WalletRepository,
-        contextManager: ContextManager,
         keypairRepository: KeypairProvider
     ): TonConnectInteractor = TonConnectInteractorImpl(
         chainsRepository,
@@ -47,7 +45,6 @@ class TonConnectModule {
         tonConnectRepository,
         tonRemoteSource,
         walletRepository,
-        contextManager,
         keypairRepository,
         tonSseClient,
         tonApiClient

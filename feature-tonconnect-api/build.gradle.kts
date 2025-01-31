@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "co.jp.soramitsu.feature_tonconnect_api"
+    namespace = "jp.co.soramitsu.feature_tonconnect_api"
     compileSdk = rootProject.ext["compileSdkVersion"] as Int
 
     defaultConfig {

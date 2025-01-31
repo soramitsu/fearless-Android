@@ -2,24 +2,24 @@ package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
-import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
-import co.jp.soramitsu.tonconnect.model.BridgeError
-import co.jp.soramitsu.tonconnect.model.BridgeEvent
-import co.jp.soramitsu.tonconnect.model.BridgeMethod
-import co.jp.soramitsu.tonconnect.model.ConnectRequest
-import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.JsonBuilder
-import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.concurrent.CancellationException
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
+import jp.co.soramitsu.tonconnect.api.model.BridgeError
+import jp.co.soramitsu.tonconnect.api.model.BridgeEvent
+import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
+import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.CancellationException
-import javax.inject.Inject
 
 @HiltViewModel
 class DappScreenViewModel @Inject constructor(

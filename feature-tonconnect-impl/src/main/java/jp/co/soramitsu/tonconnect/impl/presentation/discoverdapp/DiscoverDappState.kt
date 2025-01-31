@@ -1,8 +1,8 @@
 package jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp
 
 import androidx.compose.runtime.Stable
-import co.jp.soramitsu.tonconnect.model.DappConfig
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.tonconnect.api.model.DappConfig
 
 @Stable
 data class DiscoverDappState(

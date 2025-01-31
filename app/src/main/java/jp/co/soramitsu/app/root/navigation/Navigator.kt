@@ -12,10 +12,10 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
-import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
-import co.jp.soramitsu.tonconnect.model.AppEntity
-import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState

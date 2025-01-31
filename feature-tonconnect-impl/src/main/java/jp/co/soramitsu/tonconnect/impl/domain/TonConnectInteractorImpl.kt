@@ -2,23 +2,6 @@ package jp.co.soramitsu.tonconnect.impl.domain
 
 import android.util.Base64
 import androidx.core.net.toUri
-import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
-import co.jp.soramitsu.tonconnect.domain.TonConnectRepository
-import co.jp.soramitsu.tonconnect.model.AppEntity
-import co.jp.soramitsu.tonconnect.model.BridgeError
-import co.jp.soramitsu.tonconnect.model.BridgeEvent
-import co.jp.soramitsu.tonconnect.model.ConnectRequest
-import co.jp.soramitsu.tonconnect.model.DappConfig
-import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.JsonBuilder
-import co.jp.soramitsu.tonconnect.model.Security.secureRandom
-import co.jp.soramitsu.tonconnect.model.TONProof
-import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
-import co.jp.soramitsu.tonconnect.model.optStringCompat
-import co.jp.soramitsu.tonconnect.model.optStringCompatJS
-import co.jp.soramitsu.tonconnect.model.post
-import co.jp.soramitsu.tonconnect.model.sse
-import co.jp.soramitsu.tonconnect.model.toDomain
 import io.ktor.util.encodeBase64
 import java.net.URL
 import javax.inject.Named
@@ -26,7 +9,6 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
 import jp.co.soramitsu.common.data.network.ton.TonApi
-import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.utils.base64
 import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
@@ -54,6 +36,23 @@ import jp.co.soramitsu.shared_utils.encrypt.json.copyBytes
 import jp.co.soramitsu.shared_utils.encrypt.xsalsa20poly1305.Keys
 import jp.co.soramitsu.shared_utils.encrypt.xsalsa20poly1305.SecretBox
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRepository
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.BridgeError
+import jp.co.soramitsu.tonconnect.api.model.BridgeEvent
+import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
+import jp.co.soramitsu.tonconnect.api.model.DappConfig
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
+import jp.co.soramitsu.tonconnect.api.model.Security.secureRandom
+import jp.co.soramitsu.tonconnect.api.model.TONProof
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.optStringCompat
+import jp.co.soramitsu.tonconnect.api.model.optStringCompatJS
+import jp.co.soramitsu.tonconnect.api.model.post
+import jp.co.soramitsu.tonconnect.api.model.sse
+import jp.co.soramitsu.tonconnect.api.model.toDomain
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -94,7 +93,6 @@ class TonConnectInteractorImpl(
     private val tonConnectRepository: TonConnectRepository,
     private val tonRemoteSource: TonRemoteSource,
     private val walletRepository: WalletRepository,
-    private val contextManager: ContextManager,
     private val keyPairRepository: KeypairProvider,
     @Named("TonSseClient") private val tonSseClient: OkHttpClient,
     @Named("tonApiHttpClient") private val tonApiHttpClient: OkHttpClient

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 
-import co.jp.soramitsu.tonconnect.model.ConnectRequest
+import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import okhttp3.Headers
 import okhttp3.Response
 import org.json.JSONArray

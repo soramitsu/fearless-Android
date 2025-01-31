@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.RectF
 import android.net.Uri
-import android.os.Build
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
@@ -15,11 +14,11 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import co.jp.soramitsu.feature_tonconnect_impl.R
+import java.util.LinkedList
+import jp.co.soramitsu.feature_tonconnect_impl.R
+import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONObject
-import java.util.LinkedList
-import kotlin.coroutines.resume
 
 @Suppress("MagicNumber")
 open class WebViewFixed @JvmOverloads constructor(

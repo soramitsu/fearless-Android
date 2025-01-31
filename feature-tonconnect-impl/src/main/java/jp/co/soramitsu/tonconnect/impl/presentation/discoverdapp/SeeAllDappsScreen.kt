@@ -12,13 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import co.jp.soramitsu.feature_tonconnect_impl.R
-import co.jp.soramitsu.tonconnect.model.DappModel
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
+import jp.co.soramitsu.feature_tonconnect_impl.R
+import jp.co.soramitsu.tonconnect.api.model.DappModel
 
 data class DappsListState(val title: String, val dapps: List<DappModel>)
 

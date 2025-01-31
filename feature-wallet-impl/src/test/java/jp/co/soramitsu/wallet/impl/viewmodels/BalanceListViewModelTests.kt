@@ -2,7 +2,6 @@ package jp.co.soramitsu.wallet.impl.viewmodels
 
 import android.graphics.drawable.PictureDrawable
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import co.jp.soramitsu.tonconnect.domain.TonConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import io.mockk.coEvery
 import io.mockk.every
@@ -33,6 +32,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.nft.domain.NFTInteractor
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor

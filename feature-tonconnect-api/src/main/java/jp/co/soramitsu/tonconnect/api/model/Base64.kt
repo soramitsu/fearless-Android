@@ -1,4 +1,4 @@
-package co.jp.soramitsu.tonconnect.model
+package jp.co.soramitsu.tonconnect.api.model
 
 import android.util.Base64
 import io.ktor.util.decodeBase64Bytes

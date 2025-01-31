@@ -1,9 +1,9 @@
-package co.jp.soramitsu.tonconnect.domain
+package jp.co.soramitsu.tonconnect.api.domain
 
-import co.jp.soramitsu.tonconnect.model.AppEntity
-import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import org.json.JSONObject
 
 interface TonConnectRouter {

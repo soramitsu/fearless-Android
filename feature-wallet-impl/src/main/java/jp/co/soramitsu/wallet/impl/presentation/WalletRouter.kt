@@ -1,9 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
 import android.graphics.drawable.Drawable
-import co.jp.soramitsu.tonconnect.model.AppEntity
-import co.jp.soramitsu.tonconnect.model.DappModel
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import java.math.BigDecimal
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.navigation.DelayedNavigation
@@ -12,6 +11,8 @@ import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
@@ -26,7 +27,6 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.Ext
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
-import java.math.BigDecimal
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 interface WalletRouter : SecureRouter, WalletRouterApi {

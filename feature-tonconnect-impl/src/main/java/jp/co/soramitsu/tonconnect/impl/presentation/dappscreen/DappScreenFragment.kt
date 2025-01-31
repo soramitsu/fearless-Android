@@ -15,8 +15,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import co.jp.soramitsu.tonconnect.model.DappModel
-import co.jp.soramitsu.tonconnect.model.JsonBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
@@ -26,6 +24,8 @@ import jp.co.soramitsu.common.compose.component.ProgressDialog
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import okhttp3.Response
 
 @AndroidEntryPoint

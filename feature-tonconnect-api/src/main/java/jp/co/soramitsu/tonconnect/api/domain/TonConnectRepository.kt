@@ -1,8 +1,8 @@
-package co.jp.soramitsu.tonconnect.domain
+package jp.co.soramitsu.tonconnect.api.domain
 
-import co.jp.soramitsu.tonconnect.model.TonDappConnection
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.tonconnect.api.model.TonDappConnection
 import kotlinx.coroutines.flow.Flow
 
 interface TonConnectRepository {

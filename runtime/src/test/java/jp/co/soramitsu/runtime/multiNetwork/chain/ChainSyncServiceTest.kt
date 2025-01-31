@@ -82,14 +82,11 @@ class ChainSyncServiceTest {
     @Mock
     lateinit var contextManager: ContextManager
 
-    @Mock
-    lateinit var remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
-
     lateinit var chainSyncService: ChainSyncService
 
     @Before
     fun setup() {
-        chainSyncService = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, remoteAssetsSyncServiceProvider, contextManager)
+        chainSyncService = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager)
     }
 
     @Test

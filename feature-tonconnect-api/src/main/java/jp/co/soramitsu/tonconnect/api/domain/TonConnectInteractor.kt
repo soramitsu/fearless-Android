@@ -1,14 +1,14 @@
-package co.jp.soramitsu.tonconnect.domain
+package jp.co.soramitsu.tonconnect.api.domain
 
-import co.jp.soramitsu.tonconnect.model.AppEntity
-import co.jp.soramitsu.tonconnect.model.BridgeError
-import co.jp.soramitsu.tonconnect.model.BridgeEvent
-import co.jp.soramitsu.tonconnect.model.ConnectRequest
-import co.jp.soramitsu.tonconnect.model.DappConfig
-import co.jp.soramitsu.tonconnect.model.TONProof
-import co.jp.soramitsu.tonconnect.model.TonConnectSignRequest
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.BridgeError
+import jp.co.soramitsu.tonconnect.api.model.BridgeEvent
+import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
+import jp.co.soramitsu.tonconnect.api.model.DappConfig
+import jp.co.soramitsu.tonconnect.api.model.TONProof
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
 
@@ -44,6 +44,7 @@ interface TonConnectInteractor {
         method: String,
         signRequest: TonConnectSignRequest
     ): String
+
     suspend fun sendBlockchainMessage(chain: Chain, boc: String)
     suspend fun sendDappMessage(event: BridgeEvent, boc: String)
     suspend fun readManifest(url: String): AppEntity

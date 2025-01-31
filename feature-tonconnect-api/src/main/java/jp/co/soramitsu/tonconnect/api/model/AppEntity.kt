@@ -1,4 +1,4 @@
-package co.jp.soramitsu.tonconnect.model
+package jp.co.soramitsu.tonconnect.api.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

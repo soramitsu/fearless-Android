@@ -1,6 +1,5 @@
 package jp.co.soramitsu.app.di.app
 
-import co.jp.soramitsu.tonconnect.domain.TonConnectRouter
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import dagger.Module
 import dagger.Provides
@@ -17,6 +16,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 
 @InstallIn(SingletonComponent::class)

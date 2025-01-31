@@ -3,7 +3,6 @@ package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
-import android.util.Log
 import android.webkit.JavascriptInterface
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope

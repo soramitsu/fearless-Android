@@ -6,7 +6,7 @@ plugins {
     id("kotlin-parcelize")
 }
 android {
-    namespace = "co.jp.soramitsu.feature_tonconnect_impl"
+    namespace = "jp.co.soramitsu.feature_tonconnect_impl"
     compileSdk = rootProject.ext["compileSdkVersion"] as Int
 
     defaultConfig {
