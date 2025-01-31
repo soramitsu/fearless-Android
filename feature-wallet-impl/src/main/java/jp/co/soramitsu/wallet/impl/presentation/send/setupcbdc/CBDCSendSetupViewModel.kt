@@ -48,6 +48,7 @@ import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.CBDCTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -200,11 +201,16 @@ class CBDCSendSetupViewModel @Inject constructor(
                 sender = requireNotNull(currentAccountAddress.invoke(chainAsset.chainId)),
                 amount = cbdcQrInfo.transactionAmount,
                 chainAsset = chainAsset,
-                comment = cbdcQrInfo.recipientId
+                additionalParams = CBDCTransferParams(
+                    comment = cbdcQrInfo.recipientId,
+                    maxAmountInPlanks = null,
+                    tipInPlanks = null,
+                    appId = null
+                )
             )
         }
     }.flatMapLatest { transfer ->
-        transfer?.let { walletInteractor.observeTransferFee(transfer).map { it.feeAmount } }
+        transfer?.let { walletInteractor.observeTransferFee(transfer) }
             ?: flowOf(null)
     }
         .retry(SendSetupViewModel.RETRY_TIMES)
@@ -358,15 +364,15 @@ class CBDCSendSetupViewModel @Inject constructor(
             val recipientAddress = CBDC_BRIDGE
             val selfAddress = currentAccountAddress(chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
-            val validationProcessResult = validateTransferUseCase(
+            val validationProcessResult = validateTransferUseCase.validateTransfer(
                 amountInPlanks = inPlanks,
-                originAsset = asset,
-                destinationChainId = chainId,
+                asset = asset,
                 destinationAddress = recipientAddress,
-                originAddress = selfAddress,
-                originFee = fee,
+                senderAddress = selfAddress,
+                fee = fee,
                 confirmedValidations = confirmedValidations,
-                transferMyselfAvailable = false
+                transferMyselfAvailable = false,
+                skipEdValidation = false
             )
 
             // error occurred inside validation
@@ -415,7 +421,8 @@ class CBDCSendSetupViewModel @Inject constructor(
             fee = feeAmount,
             assetPayload = payload,
             recipientAddress = CBDC_BRIDGE,
-            tip = null
+            tip = null,
+            message = null
         )
     }
 

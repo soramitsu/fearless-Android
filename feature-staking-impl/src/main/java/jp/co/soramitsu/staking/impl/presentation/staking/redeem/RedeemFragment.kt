@@ -21,7 +21,7 @@ const val PAYLOAD_KEY = "PAYLOAD_KEY"
 @AndroidEntryPoint
 class RedeemFragment : BaseFragment<RedeemViewModel>(R.layout.fragment_redeem) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentRedeemBinding::bind)
 

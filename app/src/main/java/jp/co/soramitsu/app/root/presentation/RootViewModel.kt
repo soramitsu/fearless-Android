@@ -10,18 +10,25 @@ import java.util.Timer
 import java.util.TimerTask
 import javax.inject.Inject
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.domain.AppInitializer
+import jp.co.soramitsu.app.root.domain.InitializationStep
+import jp.co.soramitsu.app.root.domain.InitializeResult
+import jp.co.soramitsu.app.root.domain.NotSupportedAppVersionException
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
-import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.model.BridgeError
+import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlin.concurrent.timerTask
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,11 +40,14 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
+    private val appInitializer: AppInitializer,
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val tonConnectInteractor: TonConnectInteractor
 ) : BaseViewModel() {
+
     companion object {
         private const val IDLE_MINUTES: Long = 20
     }
@@ -48,8 +58,8 @@ class RootViewModel @Inject constructor(
     private val _showUnsupportedAppVersionAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedAppVersionAlert: LiveData<Event<Unit>> = _showUnsupportedAppVersionAlert
 
-    private val _showNoInternetConnectionAlert = MutableLiveData<Event<Unit>>()
-    val showNoInternetConnectionAlert: LiveData<Event<Unit>> = _showNoInternetConnectionAlert
+    private val _showNoInternetConnectionAlert = MutableLiveData<Event<InitializationStep>>()
+    val showNoInternetConnectionAlert: LiveData<Event<InitializationStep>> = _showNoInternetConnectionAlert
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
@@ -60,55 +70,26 @@ class RootViewModel @Inject constructor(
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
-    private var shouldHandleResumeInternetConnection = false
-
     init {
         viewModelScope.launch {
-            syncConfigs()
+            startAppInitializer()
         }
-        observeWalletConnectEvents()
     }
 
-    private suspend fun syncConfigs() {
-        coroutineScope {
-            checkAppVersion()
-            interactor.fetchFeatureToggle()
-            interactor.syncChainsConfigs().onFailure {
-                _showNoInternetConnectionAlert.value = Event(Unit)
+    private suspend fun startAppInitializer(startFrom: InitializationStep = InitializationStep.All) {
+        val result = appInitializer.invoke()
+        when(result) {
+            is InitializeResult.ErrorCanRetry -> {
+                if(result.error is NotSupportedAppVersionException) {
+                    _showUnsupportedAppVersionAlert.value = Event(Unit)
+                } else {
+                    _showNoInternetConnectionAlert.value = Event(result.step)
+                }
             }
-        }
-    }
-
-    private suspend  fun checkAppVersion() {
-            val appConfigResult = interactor.getRemoteConfig()
-            if (appConfigResult.getOrNull()?.isCurrentVersionSupported == false) {
-                _showUnsupportedAppVersionAlert.value = Event(Unit)
-            } else {
-                runBalancesUpdate()
+            InitializeResult.Success -> {
+                observeWalletConnectEvents()
+                observeTonConnectEvents()
             }
-    }
-
-    private fun runBalancesUpdate() {
-        if (shouldHandleResumeInternetConnection) {
-            shouldHandleResumeInternetConnection = false
-            interactor.chainRegistrySyncUp()
-        }
-        viewModelScope.launch {
-            interactor.runWalletsSync()
-            interactor.runBalancesUpdate()
-                .onEach { handleUpdatesSideEffect(it) }
-                .launchIn(this)
-        }
-        updatePhishingAddresses()
-    }
-
-    private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
-        // pass
-    }
-
-    private fun updatePhishingAddresses() {
-        viewModelScope.launch {
-            interactor.updatePhishingAddresses()
         }
     }
 
@@ -178,14 +159,15 @@ class RootViewModel @Inject constructor(
         }
     }
 
-    fun retryLoadConfigClicked() {
+    fun retryLoadConfigClicked(step: InitializationStep) {
         viewModelScope.launch {
-            syncConfigs()
+            startAppInitializer(step)
         }
     }
 
     private val _showConnectingBar = MutableStateFlow<Boolean>(false)
     val showConnectingBar: StateFlow<Boolean> = _showConnectingBar
+
     fun onNetworkAvailable() {
         _showConnectingBar.update { false }
         // todo this code triggers redundant requests and balance updates. Needs research
@@ -198,22 +180,52 @@ class RootViewModel @Inject constructor(
         _showConnectingBar.update { true }
     }
 
+    private fun observeTonConnectEvents() {
+        tonConnectInteractor.eventsFlow().onEach { event ->
+            try {
+                when(event.method) {
+                    BridgeMethod.SEND_TRANSACTION -> {
+                        if (event.message.params.size > 1) throw IllegalStateException("Request contains excess transactions. Required: 1, Provided: ${event.message.params.size}")
+                        val signRequest = TonConnectSignRequest(event.message.params.first())
+
+                        rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
+                            .onSuccess {
+                                tonConnectInteractor.sendDappMessage(event, it)
+                            }
+                            .onFailure {
+                                tonConnectInteractor.respondDappError(event, BridgeError.UNKNOWN)
+                            }
+                    }
+                    BridgeMethod.DISCONNECT -> {
+                        tonConnectInteractor.disconnect(event.connection.clientId)
+                    }
+                    BridgeMethod.UNKNOWN -> {}
+                }
+            } catch (e: Exception){
+                showError(e)
+            }
+        }.launchIn(this)
+    }
+
     private fun observeWalletConnectEvents() {
         WCDelegate.walletEvents.onEach {
             when (it) {
                 is Wallet.Model.SessionProposal -> {
                     handleSessionProposal(it)
                 }
+
                 is Wallet.Model.SessionRequest -> {
                     handleSessionRequest(it)
                 }
+
                 else -> {}
             }
         }.stateIn(this, SharingStarted.Eagerly, null)
     }
 
     private suspend fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
-        val pendingListOfSessionRequests = interactor.getPendingListOfSessionRequests(sessionRequest.topic)
+        val pendingListOfSessionRequests =
+            interactor.getPendingListOfSessionRequests(sessionRequest.topic)
         if (pendingListOfSessionRequests.isEmpty()) {
             return
         }

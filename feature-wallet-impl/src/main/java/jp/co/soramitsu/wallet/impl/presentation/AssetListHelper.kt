@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
 import java.math.BigDecimal
-import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainId
@@ -16,13 +15,11 @@ object AssetListHelper {
         assets: List<AssetWithStatus>,
         filteredChains: List<Chain>,
         selectedChainId: ChainId? = null,
-        networkIssues: Set<NetworkIssueItemState>
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
         assets.groupBy { it.asset.token.configuration.symbol }
             .forEach { (symbol, symbolAssets) ->
                 val chainsWithIssuesIds = symbolAssets.filter { it.hasAccount.not() }.map { it.asset.token.configuration.chainId }
-                    .plus(networkIssues.map { it.chainId })
 
                 val tokenChains = filteredChains.asSequence()
                     .filter { chain ->
@@ -33,7 +30,6 @@ object AssetListHelper {
                     }.filter { chain ->
                         chain.id !in chainsWithIssuesIds
                     }.toList()
-
 
                 if (tokenChains.isEmpty()) return@forEach
 

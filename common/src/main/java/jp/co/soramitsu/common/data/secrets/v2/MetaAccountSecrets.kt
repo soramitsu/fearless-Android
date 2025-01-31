@@ -25,6 +25,8 @@ object MetaAccountSecrets : Schema<MetaAccountSecrets>() {
 
     val EthereumKeypair by schema(KeyPairSchema).optional()
     val EthereumDerivationPath by string().optional()
+
+    val TonKeypair by schema(KeyPairSchema).optional()
 }
 
 object ChainAccountSecrets : Schema<ChainAccountSecrets>() {
@@ -41,7 +43,8 @@ fun MetaAccountSecrets(
     seed: ByteArray? = null,
     substrateDerivationPath: String? = null,
     ethereumKeypair: Keypair? = null,
-    ethereumDerivationPath: String? = null
+    ethereumDerivationPath: String? = null,
+    tonKeypair: Keypair? = null
 ): EncodableStruct<MetaAccountSecrets> = MetaAccountSecrets { secrets ->
     secrets[Entropy] = entropy
     secrets[Seed] = seed
@@ -61,6 +64,13 @@ fun MetaAccountSecrets(
         }
     }
     secrets[EthereumDerivationPath] = ethereumDerivationPath
+    secrets[TonKeypair] = tonKeypair?.let {
+        KeyPairSchema { keypair ->
+            keypair[PublicKey] = it.publicKey
+            keypair[PrivateKey] = it.privateKey
+            keypair[Nonce] = null // ton does not support Sr25519 so nonce is always null
+        }
+    }
 }
 
 fun ChainAccountSecrets(

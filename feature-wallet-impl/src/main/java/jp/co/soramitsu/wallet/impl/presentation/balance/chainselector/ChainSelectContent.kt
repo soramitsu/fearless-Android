@@ -34,6 +34,7 @@ import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.CorneredInput
+import jp.co.soramitsu.common.compose.component.FearlessProgress
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H4
@@ -83,36 +84,50 @@ fun ChainSelectContent(
             )
         }
 
-        if (chains?.isNotEmpty() == true) {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                if (state.showAllChains) {
-                    val appliedFilter =
-                        state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
-                            ?.appliedFilter ?: ChainSelectorViewStateWithFilters.Filter.All
-
-                    val selectedFilter =
-                        state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
-                            ?.selectedFilter ?: ChainSelectorViewStateWithFilters.Filter.All
-
-                    item {
-                        ChainAllItem(
-                            appliedFilter = appliedFilter,
-                            selectedFilter = selectedFilter,
-                            isSelected = state.selectedChainId == null,
-                            onSelected = contract::onChainSelected
-                        )
-                    }
-                }
-
-                items(chains.map { it.markSelected(isSelected = it.id == state.selectedChainId) }) { chain ->
-                    ChainItem(
-                        state = chain,
-                        contract = contract
+        when {
+            chains == null -> {
+                Box(
+                    Modifier.fillMaxSize()
+                ) {
+                    FearlessProgress(
+                        Modifier.align(Alignment.Center)
                     )
                 }
             }
-        } else {
-            EmptyResultContent()
+
+            chains.isEmpty() -> {
+                EmptyResultContent()
+            }
+
+            else -> {
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    if (state.showAllChains) {
+                        val appliedFilter =
+                            state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
+                                ?.appliedFilter ?: ChainSelectorViewStateWithFilters.Filter.All
+
+                        val selectedFilter =
+                            state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
+                                ?.selectedFilter ?: ChainSelectorViewStateWithFilters.Filter.All
+
+                        item {
+                            ChainAllItem(
+                                appliedFilter = appliedFilter,
+                                selectedFilter = selectedFilter,
+                                isSelected = state.selectedChainId == null,
+                                onSelected = contract::onChainSelected
+                            )
+                        }
+                    }
+
+                    items(chains.map { it.markSelected(isSelected = it.id == state.selectedChainId) }) { chain ->
+                        ChainItem(
+                            state = chain,
+                            contract = contract
+                        )
+                    }
+                }
+            }
         }
 
         MarginVertical(margin = 16.dp)

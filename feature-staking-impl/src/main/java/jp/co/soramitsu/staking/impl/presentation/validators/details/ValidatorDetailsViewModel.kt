@@ -144,8 +144,6 @@ class ValidatorDetailsViewModel @Inject constructor(
         val supportedExplorers = chain.explorers.getSupportedAddressExplorers(address)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = address,
-            chainId = chainId,
-            chainName = chain.name,
             explorers = supportedExplorers
         )
 

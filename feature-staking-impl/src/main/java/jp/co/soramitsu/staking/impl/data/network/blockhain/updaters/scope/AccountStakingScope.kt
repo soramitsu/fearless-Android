@@ -11,6 +11,7 @@ import jp.co.soramitsu.staking.api.data.StakingType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -24,7 +25,7 @@ class AccountStakingScope(
     override fun invalidationFlow(): Flow<Any> {
         return combineToPair(
             sharedStakingState.selectionItem,
-            accountRepository.selectedMetaAccountFlow().debounce(500)
+            accountRepository.selectedMetaAccountFlow().filter { it.substratePublicKey != null }.debounce(500)
         ).flatMapLatest { (selectionItem, account) ->
 
             val (chain, chainAsset) = sharedStakingState.assetWithChain.first()

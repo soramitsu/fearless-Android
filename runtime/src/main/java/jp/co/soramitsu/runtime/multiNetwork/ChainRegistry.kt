@@ -2,8 +2,6 @@ package jp.co.soramitsu.runtime.multiNetwork
 
 import android.util.Log
 import jp.co.soramitsu.common.domain.NetworkStateService
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.mapList
@@ -21,6 +19,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
+import jp.co.soramitsu.runtime.multiNetwork.configurator.ChainEnvironmentConfiguratorProvider
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
@@ -28,7 +27,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -47,6 +45,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,13 +63,13 @@ class ChainRegistry @Inject constructor(
     private val chainDao: ChainDao,
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
-    private val updatesMixin: UpdatesMixin,
     private val networkStateService: NetworkStateService,
     private val ethereumConnectionPool: EthereumConnectionPool,
     assetsCache: AssetReadOnlyCache,
     private val chainsRepository: ChainsRepository,
+    private val chainEnvironmentConfiguratorProvider: ChainEnvironmentConfiguratorProvider,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
-) : IChainRegistry, UpdatesProviderUi by updatesMixin {
+) : IChainRegistry {
 
     val scope = CoroutineScope(dispatcher + SupervisorJob())
 
@@ -105,68 +104,45 @@ class ChainRegistry @Inject constructor(
         .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }
         .flowOn(dispatcher)
 
-    var configsSyncDeferred: MutableList<Deferred<Any>> = mutableListOf()
-
-    init {
-        syncUp()
-    }
-
-    suspend fun syncConfigs() = withContext(dispatcher) {
-        val chainSyncDeferred = async { chainSyncService.syncUp() }
-        val typesResultDeferred = async { runtimeSyncService.syncTypes() }
-
-        configsSyncDeferred.add(chainSyncDeferred)
-        configsSyncDeferred.add(typesResultDeferred)
-
-        val chainsSyncResult = kotlin.runCatching { chainSyncDeferred.await() }
-        val typesResult = typesResultDeferred.await()
-
-        return@withContext if(chainsSyncResult.isSuccess && typesResult.isSuccess) {
-            Result.success(Unit)
-        } else {
-            Result.failure("failed to load chains configs")
-        }
-    }
+//    init {
+//        syncUp()
+//    }
 
     fun syncUp() {
-        scope.launch {
-            configsSyncDeferred.joinAll()
-
-            chainsToSync
-                .onEach { (removed, addedOrModified, all) ->
-                    coroutineScope {
-                        val removedDeferred = removed.map {
-                            async { connectionPool.getConnectionOrNull(it.id)?.socketService?.pause() }
-                        }
-
-                        updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }
-                            .map { it.id })
-
-                        val syncDeferred = addedOrModified.map { chain ->
-                            async {
-                                runCatching {
-                                    setupChain(chain)
-                                }.onFailure {
-                                    networkStateService.notifyChainSyncProblem(chain.id)
-                                    Log.e(
-                                        "ChainRegistry",
-                                        "error while sync in chain registry $it"
-                                    )
-                                }.onSuccess {
-                                    networkStateService.notifyChainSyncSuccess(
-                                        chain.id
-                                    )
-                                }
-                            }
-                        }
-
-                        (removedDeferred + syncDeferred).awaitAll()
-                    }
-                    this@ChainRegistry.syncedChains.emit(all)
-
+        chainsToSync.onEach { (removed, addedOrModified, all) ->
+            coroutineScope {
+                val removedDeferred = removed.map {
+                    async { connectionPool.getConnectionOrNull(it.id)?.socketService?.pause() }
                 }
-                .launchIn(scope)
+
+                val syncDeferred = addedOrModified.map { chain ->
+                    async {
+                        runCatching {
+                            setupChain(chain)
+                        }.onFailure {
+                            networkStateService.notifyChainSyncProblem(chain.id)
+                            Log.e(
+                                "ChainRegistry",
+                                "error while sync in chain registry $it"
+                            )
+                        }.onSuccess {
+                            networkStateService.notifyChainSyncSuccess(
+                                chain.id
+                            )
+                        }
+                    }
+                }
+
+                (removedDeferred + syncDeferred).awaitAll()
+                coroutineContext.job.invokeOnCompletion {
+                    val errorMessage = it?.let { "with error: ${it.message}" } ?: ""
+                    Log.d("ChainRegistry", "chains sync completed $errorMessage")
+                }
+            }
+            this@ChainRegistry.syncedChains.emit(all)
+
         }
+            .launchIn(scope)
     }
 
     fun stopChain(chain: Chain) {
@@ -182,27 +158,8 @@ class ChainRegistry @Inject constructor(
     }
 
     suspend fun setupChain(chain: Chain) {
-        if (chain.isEthereumChain) {
-            ethereumConnectionPool.setupConnection(chain, ::notifyNodeSwitched)
-            return
-        }
-
-        val connection = connectionPool.getConnectionOrNull(chain.id)?.let {
-            if (it.state.value is SocketStateMachine.State.Paused) {
-                it.socketService.resume()
-            }
-            it
-        } ?: connectionPool.setupConnection(chain, ::notifyNodeSwitched)
-
-        if (runtimeProviderPool.getRuntimeProviderOrNull(chain.id)?.getOrNull() != null) return
-
-        if (connection.state.value !is SocketStateMachine.State.Connected) {
-            connection.socketService.start(chain.nodes.first().url)
-        }
-
-        runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
-        runtimeSyncService.registerChain(chain)
-        runtimeProviderPool.setupRuntimeProvider(chain)
+        kotlin.runCatching { chainEnvironmentConfiguratorProvider.provide(chain).configure(chain) }
+            .onFailure { Log.d("ChainRegistry", "failed to setup  ${chain.name} chain") }
     }
 
     suspend fun checkChainSyncedUp(chain: Chain): Boolean {
@@ -222,7 +179,7 @@ class ChainRegistry @Inject constructor(
         return chainsRepository.getChain(chainId)
     }
 
-    override suspend fun getChains(): List<IChain> {
+    override suspend fun getChains(): List<Chain> {
         return chainsRepository.getChains()
     }
 
@@ -234,15 +191,11 @@ class ChainRegistry @Inject constructor(
             val chain = getChain(id.chainId)
             if (!chain.isEthereumChain) {
                 connectionPool.getConnectionOrNull(id.chainId)?.socketService?.switchUrl(id.nodeUrl)?.let {
-                    notifyNodeSwitched(id.chainId, id.nodeUrl)
+                    scope.launch {
+                        chainsRepository.notifyNodeSwitched(id.chainId, id.nodeUrl)
+                    }
                 }
             }
-        }
-    }
-
-    private fun notifyNodeSwitched(chainId: ChainId, nodeUrl: String) {
-        scope.launch {
-            chainDao.selectNode(chainId, nodeUrl)
         }
     }
 

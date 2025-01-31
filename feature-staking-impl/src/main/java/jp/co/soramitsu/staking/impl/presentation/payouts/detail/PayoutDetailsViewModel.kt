@@ -68,8 +68,6 @@ class PayoutDetailsViewModel @Inject constructor(
         val supportedExplorers = chain.explorers.getSupportedAddressExplorers(payout.validatorInfo.address)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = payout.validatorInfo.address,
-            chainId = chainId,
-            chainName = chain.name,
             explorers = supportedExplorers
         )
 

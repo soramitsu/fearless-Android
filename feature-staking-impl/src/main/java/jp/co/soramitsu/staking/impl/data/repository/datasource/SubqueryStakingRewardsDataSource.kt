@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.data.repository.datasource
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -31,6 +30,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class SubqueryStakingRewardsDataSource(
     private val stakingApi: StakingApi,
@@ -56,7 +57,7 @@ class SubqueryStakingRewardsDataSource(
             stakingUrl == null -> throw RewardsNotSupportedWarning()
 
             syntheticStakingType == SyntheticStakingType.SORA -> {
-                val sum = blockExplorerRepository.getStakingRewarded(chainId, accountAddress).sumOf { it.toBigDecimal() }
+                val sum = kotlin.runCatching { blockExplorerRepository.getStakingRewarded(chainId, accountAddress).sumOf { it.toBigDecimal() } }.getOrNull() ?: BigDecimal.ZERO
                 val total = chain.utilityAsset?.planksFromAmount(sum) ?: BigInteger.ZERO
                 stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, total))
             }

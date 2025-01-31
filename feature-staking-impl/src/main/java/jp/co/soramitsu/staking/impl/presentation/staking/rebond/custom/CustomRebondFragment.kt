@@ -18,7 +18,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class CustomRebondFragment : BaseFragment<CustomRebondViewModel>(R.layout.fragment_rebond_custom) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentRebondCustomBinding::bind)
 

@@ -5,6 +5,7 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.CreateRawEthTransaction
@@ -92,9 +93,9 @@ class NFTTransferInteractorImpl(
 
         runCatching {
             val ethereumSecrets =
-                accountRepository.getMetaAccountSecrets(
+                accountRepository.getEthereumSecrets(
                     metaId = accountRepository.getSelectedMetaAccount().id
-                )?.get(MetaAccountSecrets.EthereumKeypair) ?: error(
+                )?.get(EthereumSecrets.EthereumKeypair) ?: error(
                     """
                         Public or Private key is not available.
                     """.trimIndent()

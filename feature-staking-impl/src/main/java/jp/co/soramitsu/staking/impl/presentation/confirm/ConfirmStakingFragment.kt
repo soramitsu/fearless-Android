@@ -25,7 +25,7 @@ import javax.inject.Inject
 class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>(R.layout.fragment_confirm_stake) {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentConfirmStakeBinding::bind)
 

@@ -65,7 +65,7 @@ import kotlinx.coroutines.launch
 class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
     private val delegationAdapter by lazy { DelegationRecyclerViewAdapter(this) }
 
     override val viewModel: StakingViewModel by viewModels()

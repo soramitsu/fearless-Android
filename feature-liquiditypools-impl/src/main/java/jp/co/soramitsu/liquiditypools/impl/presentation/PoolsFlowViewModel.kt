@@ -110,6 +110,10 @@ class PoolsFlowViewModel @Inject constructor(
     val toolbarStateFlow: StateFlow<LoadingState<TextModel>> = mutableToolbarStateFlow
 
     fun onDestinationChanged(route: String) {
+        if (route == LiquidityPoolsNavGraphRoute.PoolDetailsScreen.routeName) {
+            liquidityAddPresenter.resetInputFields()
+        }
+
         val newToolbarState: LoadingState<TextModel> = when (route) {
             LiquidityPoolsNavGraphRoute.Loading.routeName ->
                 LoadingState.Loading()

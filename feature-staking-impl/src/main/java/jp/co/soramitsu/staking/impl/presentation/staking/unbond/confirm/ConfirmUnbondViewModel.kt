@@ -110,8 +110,6 @@ class ConfirmUnbondViewModel @Inject constructor(
         val supportedExplorers = chain.explorers.getSupportedAddressExplorers(originAddressModel.address)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = originAddressModel.address,
-            chainId = chainId,
-            chainName = chain.name,
             explorers = supportedExplorers
         )
 

@@ -14,6 +14,7 @@ import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.Encryp
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 
@@ -53,11 +54,16 @@ class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonic
 
     companion object {
         fun getBundle(
-            isFromGoogleBackup: Boolean,
-            accountName: String
+            accountName: String,
+            accountTypes: List<WalletEcosystem>
         ): Bundle {
             return bundleOf(
-                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, null)
+                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(
+                    isFromGoogleBackup = true,
+                    accountName = accountName,
+                    walletId = null,
+                    accountTypes = accountTypes
+                )
             )
         }
     }

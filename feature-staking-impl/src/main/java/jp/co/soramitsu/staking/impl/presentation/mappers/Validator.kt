@@ -209,7 +209,7 @@ fun BlockProducersSorting<Validator>.toScoring(validator: Validator, token: Toke
             ValidatorModel.Scoring.OneField(apy.fractionToPercentage().formatAsPercentage())
         }
         BlockProducersSorting.ValidatorSorting.TotalStakeSorting -> {
-            val totalCountedFormatted = token.amountFromPlanks(validator.electedInfo?.totalStake ?: BigInteger.ZERO)
+            val totalCountedFormatted = token.configuration.amountFromPlanks(validator.electedInfo?.totalStake ?: BigInteger.ZERO)
             ValidatorModel.Scoring.TwoFields(
                 totalCountedFormatted.formatCryptoDetail(token.configuration.symbol),
                 token.fiatAmount(totalCountedFormatted)?.formatFiat(token.fiatSymbol)

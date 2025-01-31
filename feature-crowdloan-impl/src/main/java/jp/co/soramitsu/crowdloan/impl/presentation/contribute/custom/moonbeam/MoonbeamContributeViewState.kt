@@ -1,9 +1,10 @@
 package jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.moonbeam
 
+import java.math.BigInteger
+import java.util.regex.Pattern
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
-import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_API_KEY
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_API_URL
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_BONUS_RATE
@@ -18,13 +19,13 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.moonbeam.Mo
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getAsBigDecimal
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getString
+import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
-import java.util.regex.Pattern
 
 enum class MoonbeamCrowdloanStep(val step: Int) {
     TERMS(0),
@@ -47,7 +48,7 @@ class MoonbeamContributeViewState(
     val customContributePayload: CustomContributePayload,
     resourceManager: ResourceManager,
     coroutineScope: CoroutineScope,
-    accountUseCase: SelectedAccountUseCase
+    accountInteractor: AccountInteractor
 ) : CustomContributeViewState {
 
     val title = customContributePayload.parachainMetadata.run {
@@ -81,10 +82,12 @@ class MoonbeamContributeViewState(
 
     val enteredAmountFlow = MutableStateFlow("")
 
-    private val selectedAddressModelFlow = accountUseCase.selectedAccountFlow()
+    private val polkadotAddressModelFlow = accountInteractor.selectedMetaAccountFlow().map {
+        it.substrateAccountId?.toAddress(0.toShort())
+    }
         .asLiveData(coroutineScope)
 
-    private val savedEthAddress: String? = selectedAddressModelFlow.value?.address?.let { address ->
+    private val savedEthAddress: String? = polkadotAddressModelFlow.value?.let { address ->
         interactor.getEthAddress(
             paraId = customContributePayload.paraId,
             address = address

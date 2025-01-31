@@ -9,10 +9,14 @@ import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.hasTon
+import kotlinx.coroutines.flow.map
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val interactor: RootInteractor,
+    interactor: RootInteractor,
+    accountInteractor: AccountInteractor,
     private val walletRouter: WalletRouter,
     private val polkaswapRouter: PolkaswapRouter,
     private val polkaswapInteractor: PolkaswapInteractor,
@@ -23,8 +27,9 @@ class MainViewModel @Inject constructor(
         externalRequirements.value = ChainConnection.ExternalRequirement.ALLOWED
     }
 
-    val stakingAvailableLiveData = interactor.stakingAvailableFlow()
-        .asLiveData()
+    val isTonAccountSelectedFlow = accountInteractor.selectedMetaAccountFlow().map {
+        it.hasTon
+    }
 
     fun navigateToSwapScreen() {
         walletRouter.openSwapTokensScreen(
@@ -32,9 +37,5 @@ class MainViewModel @Inject constructor(
             assetIdFrom = null,
             assetIdTo = null
         )
-
-        if (!polkaswapInteractor.hasReadDisclaimer) {
-            polkaswapRouter.openPolkaswapDisclaimerFromMainScreen()
-        }
     }
 }

@@ -10,6 +10,7 @@ import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.AddressDisplayState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -24,7 +25,11 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
 
 private const val ICON_SIZE_DP = 32
 
@@ -54,11 +59,13 @@ class TransactionDetailViewModel @Inject constructor(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val recipientAddressModelLiveData = liveData {
-        emit(getIcon(operation.receiver))
+        val icon = kotlin.runCatching { getIcon(operation.receiver) }.getOrNull() ?: return@liveData
+        emit(icon)
     }
 
     val senderAddressModelLiveData = liveData {
-        emit(getIcon(operation.sender))
+        val icon = kotlin.runCatching { getIcon(operation.sender) }.getOrNull() ?: return@liveData
+        emit(icon)
     }
 
     private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.chainId).explorers) }.share()

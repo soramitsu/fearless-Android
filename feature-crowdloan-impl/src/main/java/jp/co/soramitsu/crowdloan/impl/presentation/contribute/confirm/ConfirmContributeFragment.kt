@@ -27,7 +27,7 @@ const val KEY_PAYLOAD = "KEY_PAYLOAD"
 class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentContributeConfirmBinding
 

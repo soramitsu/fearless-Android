@@ -79,8 +79,6 @@ class ConfirmSetControllerViewModel @Inject constructor(
             val supportedExplorers = chain.explorers.getSupportedAddressExplorers(payload.stashAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = payload.stashAddress,
-                chainId = chainId,
-                chainName = chain.name,
                 explorers = supportedExplorers
             )
 
@@ -95,8 +93,6 @@ class ConfirmSetControllerViewModel @Inject constructor(
             val supportedExplorers = chain.explorers.getSupportedAddressExplorers(payload.controllerAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = payload.controllerAddress,
-                chainId = chainId,
-                chainName = chain.name,
                 explorers = supportedExplorers
             )
 

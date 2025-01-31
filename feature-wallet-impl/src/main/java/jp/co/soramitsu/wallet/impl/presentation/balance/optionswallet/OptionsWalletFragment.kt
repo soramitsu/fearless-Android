@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,12 +20,12 @@ class OptionsWalletFragment : BaseComposeBottomSheetDialogFragment<OptionsWallet
 
     companion object {
         const val KEY_WALLET_ID = "id"
+        const val KEY_ALLOW_WALLET_DETAILS = "key_allow_wallet_details"
 
-        fun getBundle(walletId: Long): Bundle {
-            return Bundle().apply {
-                putLong(KEY_WALLET_ID, walletId)
-            }
-        }
+        fun getBundle(walletId: Long, allowDetails: Boolean = true) = bundleOf(
+            KEY_WALLET_ID to walletId,
+            KEY_ALLOW_WALLET_DETAILS to allowDetails
+        )
     }
 
     override val viewModel: OptionsWalletViewModel by viewModels()

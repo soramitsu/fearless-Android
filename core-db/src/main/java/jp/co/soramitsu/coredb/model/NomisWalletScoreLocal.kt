@@ -3,7 +3,6 @@ package jp.co.soramitsu.coredb.model
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import java.math.BigDecimal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Entity(
     tableName = "nomis_wallet_score",

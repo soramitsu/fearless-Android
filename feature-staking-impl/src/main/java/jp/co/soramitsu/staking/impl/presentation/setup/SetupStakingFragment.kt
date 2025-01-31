@@ -39,7 +39,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.displayFeeStatus
 class SetupStakingFragment : BaseFragment<SetupStakingViewModel>(R.layout.fragment_setup_staking) {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentSetupStakingBinding::bind)
 

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.account.impl.domain
 
-import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -14,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
@@ -33,22 +33,22 @@ class NomisScoreInteractorImpl(
             if(it) {
                 accountRepository.observeNomisScores()
             } else {
-                kotlinx.coroutines.flow.flowOf(emptyList())
+                flowOf(emptyList())
             }
         }.flowOn(coroutineContext)
     }
 
     override fun observeCurrentAccountScore(): Flow<NomisScoreData?> {
         return observeNomisMultichainScoreEnabled().flatMapLatest {
-            if(it) {
-                accountRepository.selectedMetaAccountFlow()
+            if (it) {
+                accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
+                    accountRepository.observeNomisScore(metaAccount.id)
+                }
             } else {
-                kotlinx.coroutines.flow.flowOf(null)
+                flowOf(null)
             }
         }
-            .flatMapLatest { metaAccount ->
-                metaAccount?.let { accountRepository.observeNomisScore(it.id) } ?: kotlinx.coroutines.flow.flowOf(null)
-            }.flowOn(coroutineContext)
+            .flowOn(coroutineContext)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -72,7 +72,7 @@ class NomisScoreInteractorImpl(
 
     override suspend fun getNomisScore(address: String): NomisScoreData?  {
         return scoresCache.getOrPut(address) {
-            withContext(coroutineContext) {runCatching { nomisApi.getNomisScore(address) }.onFailure { Log.d("&&&", "failed to load nomis score: $it") }.getOrNull()?.toDomain() }?: return null
+            withContext(coroutineContext) {runCatching { nomisApi.getNomisScore(address) }.getOrNull()?.toDomain() }?: return null
         }
     }
 

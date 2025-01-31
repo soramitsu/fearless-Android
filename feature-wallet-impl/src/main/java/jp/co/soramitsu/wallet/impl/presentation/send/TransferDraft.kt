@@ -11,5 +11,6 @@ class TransferDraft(
     val fee: BigDecimal,
     val assetPayload: AssetPayload,
     val recipientAddress: String,
-    val tip: BigDecimal?
+    val tip: BigDecimal?,
+    val message: String?
 ) : Parcelable

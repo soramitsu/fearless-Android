@@ -14,7 +14,6 @@ import jp.co.soramitsu.feature_account_impl.R
 class SuccessfulFragment : Fragment() {
 
     companion object {
-        // todo shit
         var avatar: Drawable? = null
     }
 

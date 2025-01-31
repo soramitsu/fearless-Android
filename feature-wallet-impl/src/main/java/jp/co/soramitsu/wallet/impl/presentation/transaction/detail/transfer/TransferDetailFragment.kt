@@ -1,14 +1,16 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
+import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
@@ -156,7 +158,8 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         showExternalActionsSheet(
             copyLabelRes = R.string.transaction_details_copy_hash,
             value = hash,
-            explorers = viewModel.explorerType?.let { viewModel.getSupportedExplorers(it, hash) }.orEmpty(),
+            explorers = viewModel.explorerType?.let { viewModel.getSupportedExplorers(it, hash) }
+                .orEmpty(),
             externalViewCallback = viewModel::openUrl
         )
     }
@@ -171,7 +174,6 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                chainId = viewModel.assetPayload.chainId,
                 explorers = explorers
             )
         )

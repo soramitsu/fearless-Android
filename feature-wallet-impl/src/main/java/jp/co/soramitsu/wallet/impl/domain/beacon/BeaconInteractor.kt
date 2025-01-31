@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.decodeToInt
@@ -222,13 +223,16 @@ class BeaconInteractor(
         }
 
         val currentMetaAccount = accountRepository.getSelectedMetaAccount()
-        val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+
+        val secrets = accountRepository.getSubstrateSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+        val keypairSchema = secrets[SubstrateSecrets.SubstrateKeypair]
         val publicKey = keypairSchema[KeyPairSchema.PublicKey]
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
         val nonce1 = keypairSchema[KeyPairSchema.Nonce]
+
+
         val keypair = Keypair(publicKey, privateKey, nonce1)
-        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
+        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType ?: error("There are no secrets for metaId: ${currentMetaAccount.id}"))
 
         return extrinsicService.createSignature(
             encryption,
@@ -240,13 +244,13 @@ class BeaconInteractor(
 
     private suspend fun signRawPayload(payload: SubstrateSignerPayload.Raw): String {
         val currentMetaAccount = accountRepository.getSelectedMetaAccount()
-        val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+        val secrets = accountRepository.getSubstrateSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+        val keypairSchema = secrets[SubstrateSecrets.SubstrateKeypair]
         val publicKey = keypairSchema[KeyPairSchema.PublicKey]
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
         val nonce = keypairSchema[KeyPairSchema.Nonce]
         val keypair = Keypair(publicKey, privateKey, nonce)
-        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
+        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType ?: error("There are no secrets for metaId: ${currentMetaAccount.id}"))
 
         return extrinsicService.createSignature(
             encryption,

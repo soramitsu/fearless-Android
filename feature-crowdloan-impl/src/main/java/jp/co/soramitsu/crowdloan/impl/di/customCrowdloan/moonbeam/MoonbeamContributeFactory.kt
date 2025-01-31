@@ -1,8 +1,8 @@
 package jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.moonbeam
 
 import android.content.Context
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContributeView
@@ -24,13 +24,13 @@ class MoonbeamContributeFactory(
     override val submitter: MoonbeamContributeSubmitter,
     private val interactor: MoonbeamContributeInteractor,
     private val resourceManager: ResourceManager,
-    private val accountUseCase: SelectedAccountUseCase
+    private val accountInteractor: AccountInteractor
 ) : CustomContributeFactory {
 
     override val flowType = "moonbeam"
 
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): MoonbeamContributeViewState =
-        MoonbeamContributeViewState(interactor, payload, resourceManager, scope, accountUseCase)
+        MoonbeamContributeViewState(interactor, payload, resourceManager, scope, accountInteractor)
 
     override fun createView(context: Context, step: MoonbeamCrowdloanStep?): CustomContributeView = when (step) {
         TERMS -> MoonbeamStep1Terms(context)
