@@ -5,8 +5,8 @@ apply plugin: "org.sonarqube"
 buildscript {
     ext {
         // App version
-        versionName = '3.7.4'
-        versionCode = 209
+        versionName = '4.0.1'
+        versionCode = 210
 
         // SDK and tools
         compileSdkVersion = 34
