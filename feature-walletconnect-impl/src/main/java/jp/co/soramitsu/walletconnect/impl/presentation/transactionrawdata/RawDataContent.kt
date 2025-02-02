@@ -1,13 +1,13 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -18,6 +18,7 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -33,7 +34,6 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 
@@ -55,62 +55,59 @@ interface RawDataScreenInterface {
 @Composable
 fun RawDataContent(state: RawDataViewState, callback: RawDataScreenInterface) {
     BottomSheetScreen {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .nestedScroll(rememberNestedScrollInteropConnection())
-        ) {
-            ToolbarBottomSheet(
-                title = stringResource(id = R.string.common_transaction_raw_data),
-                onNavigationClick = callback::onClose
-            )
-
-            MarginVertical(margin = 8.dp)
-
-            SelectionContainer(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                CompositionLocalProvider(
-                    LocalTextInputService provides null
-                ) {
-                    BasicTextField(
-                        value = state.rawData,
-                        onValueChange = {},
-                        textStyle = MaterialTheme.customTypography.body1,
-                        cursorBrush = SolidColor(colorAccentDark),
-                        decorationBox = { innerTextField: @Composable () -> Unit ->
-                            TextFieldDefaults.TextFieldDecorationBox(
-                                value = state.rawData,
-                                visualTransformation = VisualTransformation.None,
-                                innerTextField = innerTextField,
-                                singleLine = false,
-                                enabled = true,
-                                interactionSource = remember { MutableInteractionSource() },
-                                contentPadding = PaddingValues(0.dp)
-                            )
-                        }
-                    )
-                }
-            }
+        Box() {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 56.dp)
-                    .wrapContentHeight()
+                    .padding(horizontal = 16.dp)
+                    .nestedScroll(rememberNestedScrollInteropConnection()),
             ) {
-                MarginVertical(margin = 12.dp)
-                AccentButton(
-                    text = stringResource(id = R.string.common_close),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    onClick = callback::onClose
+                ToolbarBottomSheet(
+                    title = stringResource(id = R.string.common_transaction_raw_data),
+                    onNavigationClick = callback::onClose
                 )
 
-                MarginVertical(margin = 16.dp)
+                MarginVertical(margin = 8.dp)
+
+                SelectionContainer(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    CompositionLocalProvider(
+                        LocalTextInputService provides null
+                    ) {
+                        BasicTextField(
+                            readOnly = true,
+                            value = state.rawData,
+                            onValueChange = {},
+                            textStyle = MaterialTheme.customTypography.body1,
+                            cursorBrush = SolidColor(colorAccentDark),
+                            decorationBox = { innerTextField: @Composable () -> Unit ->
+                                TextFieldDefaults.TextFieldDecorationBox(
+                                    value = state.rawData,
+                                    visualTransformation = VisualTransformation.None,
+                                    innerTextField = innerTextField,
+                                    singleLine = false,
+                                    enabled = true,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    contentPadding = PaddingValues(bottom = 72.dp)
+                                )
+                            }
+                        )
+                    }
+                }
             }
+            AccentButton(
+                text = stringResource(id = R.string.common_close),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp)
+                    .height(48.dp)
+                ,
+                onClick = callback::onClose
+            )
         }
     }
 }
@@ -120,14 +117,14 @@ fun RawDataContent(state: RawDataViewState, callback: RawDataScreenInterface) {
 @Suppress("MagicNumber")
 private fun RawDataPreview() {
     val state = RawDataViewState(
-        rawData = LoremIpsum(20).values.joinToString(separator = " ") { it }
+        rawData = LoremIpsum(200).values.joinToString(separator = " ") { it }
     )
 
     val emptyCallback = object : RawDataScreenInterface {
         override fun onClose() {}
     }
 
-    FearlessTheme {
+    Box(modifier = Modifier.heightIn(max = 600.dp)) {
         RawDataContent(
             state = state,
             callback = emptyCallback
