@@ -190,7 +190,18 @@ class RootViewModel @Inject constructor(
 
                         rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
                             .onSuccess {
-                                tonConnectInteractor.sendDappMessage(event, it)
+                                kotlin.runCatching {
+                                    tonConnectInteractor.sendDappMessage(event, it)
+                                }.onFailure {
+                                    showError(it)
+                                }.onSuccess {
+                                    rootRouter.openOperationSuccess(
+                                        null,
+                                        null,
+                                        resourceManager.getString(R.string.success_message_transaction_sent),
+                                        resourceManager.getString(jp.co.soramitsu.feature_tonconnect_impl.R.string.all_done)
+                                    )
+                                }
                             }
                             .onFailure {
                                 tonConnectInteractor.respondDappError(event, BridgeError.UNKNOWN)
