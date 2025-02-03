@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.feature_tonconnect_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -81,7 +82,7 @@ class DiscoverDappViewModel @Inject constructor(
         tonConnectInteractor.getDappsConfig()
     }
 
-    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps()
+    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps(ConnectionSource.WEB)
 
     private val dAppsItemsFlow: Flow<List<DappConfig>> = combine(
         selectedChainId,

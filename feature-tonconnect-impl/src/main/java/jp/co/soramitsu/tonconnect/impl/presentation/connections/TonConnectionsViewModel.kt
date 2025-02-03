@@ -9,6 +9,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
@@ -36,7 +37,7 @@ class TonConnectionsViewModel @Inject constructor(
 
     private val enteredChainQueryFlow = MutableStateFlow("")
 
-    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps()
+    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps(ConnectionSource.QR)
 
     val state = combine(connectedDapps, enteredChainQueryFlow) { connectedDapps, searchQuery ->
         val dApps = connectedDapps.apps.filter {

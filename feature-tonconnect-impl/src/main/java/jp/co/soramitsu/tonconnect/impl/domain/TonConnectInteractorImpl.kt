@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.utils.base64
 import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -140,7 +141,8 @@ class TonConnectInteractorImpl(
                     dappBrowserClientId,
                     app.name,
                     app.iconUrl,
-                    app.url
+                    app.url,
+                    ConnectionSource.WEB
                 ),
                 Keypair(publicKey, privateKey)
             )
@@ -151,7 +153,8 @@ class TonConnectInteractorImpl(
                     clientId,
                     app.name,
                     app.iconUrl,
-                    app.url
+                    app.url,
+                    ConnectionSource.QR
                 ),
                 Keypair(publicKey, privateKey)
             )
@@ -214,8 +217,8 @@ class TonConnectInteractorImpl(
         tonConnectRepository.deleteConnection(clientId)
     }
 
-    override fun getConnectedDapps(): Flow<DappConfig> {
-        return tonConnectRepository.observeConnections().map { list ->
+    override fun getConnectedDapps(source: ConnectionSource): Flow<DappConfig> {
+        return tonConnectRepository.observeConnections(source).map { list ->
             DappConfig(
                 type = null,
                 apps = list.map { DappModel(it) }
@@ -224,7 +227,7 @@ class TonConnectInteractorImpl(
     }
 
     override fun eventsFlow(lastEventId: Long): Flow<BridgeEvent> {
-        return tonConnectRepository.observeConnections()
+        return tonConnectRepository.observeConnections(ConnectionSource.QR)
             .flatMapLatest { connections ->
                 val chain = getChain()
                 val clientIdParams = connections.mapNotNull {
@@ -292,11 +295,12 @@ class TonConnectInteractorImpl(
     override suspend fun signMessage(
         chain: Chain,
         method: String,
-        signRequest: TonConnectSignRequest
+        signRequest: TonConnectSignRequest,
+        metaId: Long
     ) = withContext(Dispatchers.Default) {
-        val selectedMetaAccount = async { accountRepository.getSelectedMetaAccount() }
+        val connectedMetaAccount = async { accountRepository.getMetaAccount(metaId) }
 
-        val tonPublicKey = selectedMetaAccount.await().tonPublicKey ?: error("No account provided")
+        val tonPublicKey = connectedMetaAccount.await().tonPublicKey ?: error("No account provided")
 
         val contract = V4R2WalletContract(tonPublicKey)
         val senderAccountId = contract.getAccountId(chain.isTestNet)
@@ -306,7 +310,7 @@ class TonConnectInteractorImpl(
 
         val transfers = mutableListOf<WalletTransfer>()
 
-        val tonAssets = walletRepository.getAssets(selectedMetaAccount.await().id)
+        val tonAssets = walletRepository.getAssets(connectedMetaAccount.await().id)
             .filter { it.chainId == chain.id }
 
         for (message in signRequest.messages) {
@@ -399,7 +403,7 @@ class TonConnectInteractorImpl(
             }
         }
         val keypair =
-            keyPairRepository.getKeypairFor(chain, selectedMetaAccount.await().tonPublicKey!!)
+            keyPairRepository.getKeypairFor(chain, connectedMetaAccount.await().tonPublicKey!!)
         val privateKey = PrivateKeyEd25519(keypair.privateKey)
         val hash = privateKey.sign(unsignedBody.hash().toByteArray())
         val signature = BitString(hash)

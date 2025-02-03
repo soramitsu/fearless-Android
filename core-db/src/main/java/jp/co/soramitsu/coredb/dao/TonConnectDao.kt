@@ -4,9 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import jp.co.soramitsu.coredb.model.TokenPriceLocal
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 
 @Dao
@@ -14,8 +13,8 @@ abstract class TonConnectDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertTonConnection(connection: TonConnectionLocal)
 
-    @Query("SELECT * FROM ton_connection")
-    abstract fun observeTonConnections(): Flow<List<TonConnectionLocal>>
+    @Query("SELECT * FROM ton_connection WHERE source = :source")
+    abstract fun observeTonConnections(source: ConnectionSource): Flow<List<TonConnectionLocal>>
 
     @Query("SELECT * FROM ton_connection WHERE metaId = :metaId AND url LIKE :url")
     abstract suspend fun getTonConnection(metaId: Long, url: String): TonConnectionLocal?

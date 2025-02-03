@@ -38,6 +38,7 @@ class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignReque
         const val DAPP_KEY = "dapp_key"
         const val METHOD_KEY = "method_key"
         const val TON_SIGN_REQUEST_KEY = "ton_sign_request_key"
+        const val TON_SIGN_RESULT_KEY = "ton_sign_result_key"
 
         fun getBundle(
             dapp: DappModel,

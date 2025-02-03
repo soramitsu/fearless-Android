@@ -85,7 +85,7 @@ class TonSignRequestViewModel @Inject constructor(
                     positiveButtonText = resourceManager.getString(R.string.common_close),
                     positiveClick = {
                         tonConnectRouter.backWithResult(
-                            TonSignRequestFragment.TON_SIGN_REQUEST_KEY to Result.failure<String>(
+                            TonSignRequestFragment.TON_SIGN_RESULT_KEY to Result.failure<String>(
                                 IllegalStateException(resourceManager.getString(R.string.connection_account_not_supported_warning))
                             )
                         )
@@ -125,7 +125,7 @@ class TonSignRequestViewModel @Inject constructor(
 
     override fun onClose() {
         tonConnectRouter.backWithResult(
-            TonSignRequestFragment.TON_SIGN_REQUEST_KEY to Result.failure<String>(
+            TonSignRequestFragment.TON_SIGN_RESULT_KEY to Result.failure<String>(
                 IllegalStateException("User declined request")
             )
         )
@@ -194,6 +194,7 @@ class TonSignRequestViewModel @Inject constructor(
     override fun onSignClick() {
         viewModelScope.launch {
             if ((state.value as? TonSignPreviewViewState)?.loading == true) return@launch
+            val metaId = dApp.metaId ?: return@launch
             val chain = tonConnectInteractor.getChain()
 
             state.update { prevState ->
@@ -204,8 +205,8 @@ class TonSignRequestViewModel @Inject constructor(
                 }
             }
 
-            runCatching { tonConnectInteractor.signMessage(chain, method, signRequest) }
-                .onSuccess { tonConnectRouter.backWithResult(TonSignRequestFragment.TON_SIGN_REQUEST_KEY to Result.success(it)) }
+            runCatching { tonConnectInteractor.signMessage(chain, method, signRequest, metaId) }
+                .onSuccess { tonConnectRouter.backWithResult(TonSignRequestFragment.TON_SIGN_RESULT_KEY to Result.success(it)) }
                 .onFailure { showError(it) }
 
             state.update { prevState ->

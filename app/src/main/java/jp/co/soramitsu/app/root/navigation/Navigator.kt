@@ -1603,7 +1603,7 @@ class Navigator :
         val result = openAndWaitResult<Result<String>>(
             destinationId = R.id.tonSignRequestFragment,
             bundle = bundle,
-            resultKey = TonSignRequestFragment.TON_SIGN_REQUEST_KEY
+            resultKey = TonSignRequestFragment.TON_SIGN_RESULT_KEY
         )
         return result
     }

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.tonconnect.api.domain
 
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.tonconnect.api.model.AppEntity
@@ -25,7 +26,7 @@ interface TonConnectInteractor {
 
     suspend fun getDappsConfig(): List<DappConfig>
 
-    fun getConnectedDapps(): Flow<DappConfig>
+    fun getConnectedDapps(source: ConnectionSource): Flow<DappConfig>
     suspend fun requestProof(
         selectedWalletId: Long,
         app: AppEntity,
@@ -42,7 +43,8 @@ interface TonConnectInteractor {
     suspend fun signMessage(
         chain: Chain,
         method: String,
-        signRequest: TonConnectSignRequest
+        signRequest: TonConnectSignRequest,
+        metaId: Long
     ): String
 
     suspend fun sendBlockchainMessage(chain: Chain, boc: String)
