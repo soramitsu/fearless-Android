@@ -68,7 +68,7 @@ fun TonConnectionsContent(
 ) {
     BottomSheetScreen(
         modifier = Modifier
-            .padding(top = 106.dp)
+            .padding(top = 77.dp)
     ) {
         Toolbar(state = ToolbarViewState(stringResource(id = R.string.connection_connections), R.drawable.ic_arrow_back_24dp), onNavigationClick = onClose)
 
@@ -79,7 +79,7 @@ fun TonConnectionsContent(
             onInput = onSearchInput,
             hintLabel = stringResource(id = R.string.connections_search_hint)
         )
-
+        MarginVertical(margin = 8.dp)
         Column(
             modifier = Modifier
                 .nestedScroll(rememberNestedScrollInteropConnection())
