@@ -33,7 +33,6 @@ import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SoraCardBuyXorState
-import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
@@ -600,24 +599,28 @@ class BalanceListViewModel @Inject constructor(
             )
         }
 
-        soraCardInteractor.basicStatus
-            .onEach { soraCardStatus ->
+        combine(
+            soraCardInteractor.basicStatus,
+            interactor.observeIsShowSoraCard(),
+            soraCardInteractor.observeBuyXorVisibility()
+        ) { soraCardStatus, isSoraCardVisible, isBysXorVisible ->
+            Triple(soraCardStatus, isSoraCardVisible, isBysXorVisible)
+        }
+            .onEach { (soraCardStatus, isSoraCardVisible, isBysXorVisible) ->
                 val mapped = mapKycStatus(soraCardStatus.verification)
                 state.update {
                     it.copy(
                         soraCardState = it.soraCardState.copy(
-                            visible = interactor.isShowGetSoraCard() && soraCardStatus.needInstallUpdate.not(),
+                            visible = isSoraCardVisible && soraCardStatus.needInstallUpdate.not(),
                             soraCardProgress = soraCardInteractor.getSoraCardProgress(),
                             kycStatus = mapped.first,
                             loading = false,
                             success = mapped.second,
                             iban = soraCardStatus.ibanInfo,
-                            buyXor = soraCardInteractor.isShowBuyXor().let { vis ->
-                                if (vis) SoraCardBuyXorState(
-                                    soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
-                                        ?: false
-                                ) else null
-                            },
+                            buyXor = if (isBysXorVisible) SoraCardBuyXorState(
+                                enabled = soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
+                                    ?: false,
+                            ) else null
                         )
                     )
                 }
