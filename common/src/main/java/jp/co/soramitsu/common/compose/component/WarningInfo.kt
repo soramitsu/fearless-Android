@@ -81,8 +81,8 @@ fun WarningInfo(
             MarginVertical(margin = 12.dp)
 
             if (state.extras.isNotEmpty() && state.isExpanded) {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(state.extras) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    state.extras.forEach {
                         Row(
                             modifier = Modifier.testTag("warning_extra_${it.first}")
                         ) {

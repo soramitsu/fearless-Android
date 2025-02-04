@@ -183,7 +183,7 @@ fun SendSetupContent(
                     onClick = callback::onChainClick
                 )
                 MarginVertical(12.dp)
-                if(state.commentState != null) {
+                state.commentState?.let {
                     TextInput(state = state.commentState, onInput = callback::onCommentInput)
                 }
                 state.warningInfoState?.let {
