@@ -155,9 +155,7 @@ class DiscoverDappViewModel @Inject constructor(
                         selectedChainName = chain?.title,
                         selectedChainId = chain?.id,
                         selectedChainImageUrl = chain?.imageUrl,
-                        filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                            it.name == filter
-                        } ?: ChainSelectorViewStateWithFilters.Filter.All
+                        filterApplied = filter
                     )
                 )
             }

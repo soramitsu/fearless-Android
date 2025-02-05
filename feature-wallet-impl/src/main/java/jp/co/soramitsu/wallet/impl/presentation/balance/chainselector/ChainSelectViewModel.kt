@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
@@ -29,6 +30,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
@@ -78,15 +82,19 @@ class ChainSelectViewModel @Inject constructor(
                 originChainId = xcmSelectedOriginChainId,
                 assetSymbol = xcmAssetSymbol
             )
-        ) { chains, xsmChainIds ->
+        ) { chains, xcmChainIds ->
             chains.filter {
-                it.id in xsmChainIds
+                it.id in xcmChainIds
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
+        .shareIn(viewModelScope, SharingStarted.Eagerly)
 
-    private val chainsFlow = allChainsFlow.map { chains ->
-        when {
+    private val chainsFlow = combine(
+        cachedMetaAccountFlow.mapNotNull { it },
+        allChainsFlow
+    ) { meta, chains ->
+        val filteredChains = when {
             initialSelectedAssetId != null -> {
                 walletInteractor.observeCurrentAccountChainsPerAsset(initialSelectedAssetId).first().keys.toList()
             }
@@ -97,9 +105,8 @@ class ChainSelectViewModel @Inject constructor(
                 chains.filter { it.id in filterChainIds }
             }
         }
-    }.map { chains ->
-        val meta = accountInteractor.selectedMetaAccount()
-        val filtered = chains.filter {
+
+        val supported = filteredChains.filter {
             when (it.ecosystem) {
                 Ecosystem.Substrate -> meta.hasSubstrate
                 Ecosystem.Ton -> meta.hasTon
@@ -107,7 +114,7 @@ class ChainSelectViewModel @Inject constructor(
                 Ecosystem.Ethereum -> meta.hasEthereum
             }
         }
-        filtered
+        supported
     }.stateIn(this, SharingStarted.Eagerly, null)
 
     private val symbolFlow = allChainsFlow.map { chains ->
@@ -171,15 +178,11 @@ class ChainSelectViewModel @Inject constructor(
         favoriteChainsCacheResolverFlow
     ) {
       chainsPreFiltered,
-      savedFilterAsString,
+      savedFilter,
       userInputFilter,
       selectedChainId,
       searchQuery,
       favoriteChains ->
-        val savedFilter =
-            ChainSelectorViewStateWithFilters.Filter.entries.find {
-                it.name == savedFilterAsString
-            } ?: ChainSelectorViewStateWithFilters.Filter.All
 
         val chainsWithFavoriteInfo = chainsPreFiltered?.map { chain ->
             chain to (favoriteChains[chain.id] ?: false)

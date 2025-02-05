@@ -187,8 +187,7 @@ class BalanceListViewModel @Inject constructor(
 
     private val selectedChainItemFlow =
         combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
-            hashCode()
-            if(selectedChainId == null && chains.size == 1) {
+            if (selectedChainId == null && chains.size == 1) {
                 allowSelectChain.value = false
                 return@combine chains.first()
             }
@@ -221,11 +220,7 @@ class BalanceListViewModel @Inject constructor(
         chains: List<Chain>,
         selectedChainId: ChainId?,
         currentMetaAccountFlow: MetaAccount,
-        appliedFilterAsString: String ->
-
-        val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
-            it.name == appliedFilterAsString
-        } ?: ChainSelectorViewStateWithFilters.Filter.All
+        filter: ChainSelectorViewStateWithFilters.Filter ->
 
         showNetworkIssues.value = false
 
@@ -459,9 +454,7 @@ class BalanceListViewModel @Inject constructor(
                         selectedChainName = chain?.title,
                         selectedChainId = chain?.id,
                         selectedChainImageUrl = chain?.imageUrl,
-                        filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                            it.name == filter
-                        } ?: ChainSelectorViewStateWithFilters.Filter.All,
+                        filterApplied = filter,
                         allowChainSelection = allowChainSelect
                     )
                 )

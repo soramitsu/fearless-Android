@@ -24,6 +24,7 @@ import jp.co.soramitsu.androidfoundation.testing.MainCoroutineRule
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -124,7 +125,7 @@ class BalanceListViewModelTests {
         every { walletInteractor.assetsFlowAndAccount() } returns flowOf(123L to emptyList())
         every { chainInteractor.getChainsFlow() } returns flowOf(emptyList())
         every { walletInteractor.selectedMetaAccountFlow() } returns flowOf(createMetaAccount())
-        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns flowOf("")
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns flowOf(ChainSelectorViewStateWithFilters.Filter.All)
         every { nFTInteractor.nftFiltersFlow() } returns flowOf(emptyMap())
         every { nFTInteractor.collectionsFlow(any(), any()) } returns flowOf(emptySequence())
         every { walletInteractor.getAssetManagementIntroPassed() } returns true
