@@ -4,7 +4,6 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.validation.DeadRecipientEthereumException
 import jp.co.soramitsu.common.validation.DeadRecipientException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
@@ -63,7 +62,6 @@ sealed class TransferValidationResult {
     data class UtilityExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
     data class UtilityExistentialDepositError(val edAmount: String) : TransferValidationResult()
     data class DeadRecipient(val resultAmount: String, val edAmount: String, val extraAmount: String) : TransferValidationResult()
-    object DeadRecipientEthereum : TransferValidationResult()
     object InvalidAddress : TransferValidationResult()
     object TransferToTheSameAddress : TransferValidationResult()
     object WaitForFee : TransferValidationResult()
@@ -87,6 +85,5 @@ fun ValidationException.Companion.fromValidationResult(result: TransferValidatio
         TransferValidationResult.InvalidAddress -> TransferAddressNotValidException(resourceManager)
         TransferValidationResult.WaitForFee -> WaitForFeeCalculationException(resourceManager)
         TransferValidationResult.TransferToTheSameAddress -> TransferToTheSameAddressException(resourceManager)
-        TransferValidationResult.DeadRecipientEthereum -> DeadRecipientEthereumException(resourceManager)
     }
 }

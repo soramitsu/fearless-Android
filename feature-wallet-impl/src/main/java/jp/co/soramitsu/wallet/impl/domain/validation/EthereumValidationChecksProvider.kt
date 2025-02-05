@@ -45,23 +45,13 @@ class EthereumValidationChecksProvider(
             )
         }
         val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
-        val totalDestinationUtilityAssetBalanceInPlanks = kotlin.runCatching {
-            utilityAsset?.token?.configuration?.let {
-                walletRepository.getTotalBalance(
-                    it,
-                    chain,
-                    destinationAddress
-                )
-            }
-        }.getOrNull().orZero()
         val resultedBalance =
             (asset.freeInPlanks.positiveOrNull().orZero()) - (amountInPlanks + fee)
 
         return mapOf(
             TransferValidationResult.InsufficientBalance to (amountInPlanks + fee > asset.transferableInPlanks),
             TransferValidationResult.ExistentialDepositWarning(edFormatted) to (resultedBalance < existentialDeposit),
-            TransferValidationResult.InsufficientUtilityAssetBalance to (fee > utilityAssetBalance),
-            TransferValidationResult.DeadRecipientEthereum to (!asset.token.configuration.isUtility && totalDestinationUtilityAssetBalanceInPlanks.isZero())
+            TransferValidationResult.InsufficientUtilityAssetBalance to (fee > utilityAssetBalance)
         )
     }
 }
