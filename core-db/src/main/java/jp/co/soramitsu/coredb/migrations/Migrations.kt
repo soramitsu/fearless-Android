@@ -14,7 +14,7 @@ val Migration_72_73 = object : Migration(72, 73) {
             `icon` TEXT NOT NULL, 
             `url` TEXT NOT NULL, 
             `source` TEXT NOT NULL,
-            PRIMARY KEY(`url`, `metaId`, `source`),
+            PRIMARY KEY(`metaId`, `url`, `source`), 
             FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
             )
             """.trimMargin()
