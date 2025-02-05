@@ -742,10 +742,6 @@ class BalanceListViewModel @Inject constructor(
                 receiveClicked(payload)
             }
 
-            ActionItemType.TELEPORT -> {
-                showMessage("YOU NEED THE BLUE KEY")
-            }
-
             ActionItemType.HIDE -> {
                 launch { hideAsset(chainId, chainAssetId) }
             }

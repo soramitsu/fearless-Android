@@ -101,9 +101,6 @@ class SearchAssetsViewModel @Inject constructor(
             ActionItemType.RECEIVE -> {
                 receiveClicked(payload)
             }
-            ActionItemType.TELEPORT -> {
-                showMessage("YOU NEED THE BLUE KEY")
-            }
             ActionItemType.HIDE -> {
                 launch { hideAsset(chainId, chainAssetId) }
             }
