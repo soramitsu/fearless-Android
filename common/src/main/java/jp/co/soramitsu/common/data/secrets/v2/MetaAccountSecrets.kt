@@ -16,6 +16,7 @@ object KeyPairSchema : Schema<KeyPairSchema>() {
     val Nonce by byteArray().optional()
 }
 
+@Deprecated("Use v3 SecretStore")
 object MetaAccountSecrets : Schema<MetaAccountSecrets>() {
     val Entropy by byteArray().optional()
     val Seed by byteArray().optional()

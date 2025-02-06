@@ -7,7 +7,8 @@ import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
 import jp.co.soramitsu.core.models.Asset
@@ -47,9 +48,9 @@ class XcmInteractor(
         metaAccount.substrateCryptoType ?: throw IllegalStateException("Can't do XCM without susbtrate keypair")
         val originChain = chainRegistry.getChain(originChainId)
         val keypairType = if (originChain.isEthereumBased) {
-            MetaAccountSecrets.EthereumKeypair
+            EthereumSecrets.EthereumKeypair
         } else {
-            MetaAccountSecrets.SubstrateKeypair
+            SubstrateSecrets.SubstrateKeypair
         }
         val secrets = accountInteractor.getSubstrateSecrets(metaAccount.id)?.get(keypairType)
         requireNotNull(secrets)
