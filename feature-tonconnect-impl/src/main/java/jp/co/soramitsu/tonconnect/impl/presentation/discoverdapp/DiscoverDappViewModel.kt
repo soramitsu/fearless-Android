@@ -2,7 +2,6 @@ package jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -39,6 +38,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class DiscoverDappViewModel @Inject constructor(
@@ -131,7 +131,6 @@ class DiscoverDappViewModel @Inject constructor(
     }
 
     private fun observeToolbarStates() {
-
         currentAddressModelFlow().onEach { addressModel ->
             toolbarState.update { prevState ->
                 val newWalletIconState = when (prevState.homeIconState) {

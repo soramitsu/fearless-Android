@@ -91,7 +91,6 @@ fun TonConnectionInfoContent(state: TonConnectionInfoViewState, callback: TonCon
                         onSelected = {}
                     )
                 }
-
             }
 
             Column(

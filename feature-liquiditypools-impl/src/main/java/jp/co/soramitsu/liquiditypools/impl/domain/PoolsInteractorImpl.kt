@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.domain
 
-import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.utils.flowOf
@@ -13,7 +12,6 @@ import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +22,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import kotlin.coroutines.CoroutineContext
 
 class PoolsInteractorImpl(
     private val poolsRepository: PoolsRepository,
@@ -146,7 +146,7 @@ class PoolsInteractorImpl(
     ): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainsRepository.getChain(chainId)
-        val address = metaAccount.address(chain) ?: throw IllegalStateException("There is no substrate account in current metaAccount")
+        val address = metaAccount.address(chain) ?: error("There is no substrate account in current metaAccount")
 
         val status = poolsRepository.observeAddLiquidity(
             chainId,

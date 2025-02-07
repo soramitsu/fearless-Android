@@ -14,11 +14,11 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import java.util.LinkedList
 import jp.co.soramitsu.feature_tonconnect_impl.R
-import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONObject
+import java.util.LinkedList
+import kotlin.coroutines.resume
 
 @Suppress("MagicNumber")
 open class WebViewFixed @JvmOverloads constructor(

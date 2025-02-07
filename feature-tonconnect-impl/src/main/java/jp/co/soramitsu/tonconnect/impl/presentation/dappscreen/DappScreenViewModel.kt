@@ -3,8 +3,6 @@ package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.concurrent.CancellationException
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
@@ -20,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.concurrent.CancellationException
+import javax.inject.Inject
 
 @HiltViewModel
 class DappScreenViewModel @Inject constructor(

@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jp.co.soramitsu.tonconnect.api.model.DappModel
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -32,6 +31,7 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
+import jp.co.soramitsu.tonconnect.api.model.DappModel
 
 @Composable
 fun BannerDApp(dApp: DappModel, onClick: () -> Unit) {

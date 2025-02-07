@@ -3,8 +3,6 @@ package jp.co.soramitsu.tonconnect.impl.domain
 import android.util.Base64
 import androidx.core.net.toUri
 import io.ktor.util.encodeBase64
-import java.net.URL
-import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
@@ -84,6 +82,8 @@ import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
+import java.net.URL
+import javax.inject.Named
 
 @Suppress("LargeClass")
 class TonConnectInteractorImpl(

@@ -55,7 +55,7 @@ interface RawDataScreenInterface {
 @Composable
 fun RawDataContent(state: RawDataViewState, callback: RawDataScreenInterface) {
     BottomSheetScreen {
-        Box() {
+        Box {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -104,8 +104,7 @@ fun RawDataContent(state: RawDataViewState, callback: RawDataScreenInterface) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 16.dp)
-                    .height(48.dp)
-                ,
+                    .height(48.dp),
                 onClick = callback::onClose
             )
         }
