@@ -10,6 +10,7 @@ interface TonConnectRepository {
     suspend fun saveConnection(connection: TonConnectionLocal, keypair: Keypair)
 
     fun observeConnections(source: ConnectionSource): Flow<List<TonDappConnection>>
+    suspend fun getConnections(source: ConnectionSource): List<TonDappConnection>
     suspend fun deleteConnection(clientId: String)
     fun getConnectionKeypair(clientId: String): Keypair?
     suspend fun getConnection(metaId: Long, url: String): TonConnectionLocal?

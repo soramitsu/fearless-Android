@@ -41,8 +41,8 @@ data class TonConnectRawMessage(
     constructor(json: JSONObject) : this(
         json.getString("address"),
         parseAmount(json.get("amount")),
-        json.optString("stateInit"),
-        json.optString("payload")
+        json.optStringCompatJS("stateInit"),
+        json.optStringCompatJS("payload")
     )
 
     private companion object {

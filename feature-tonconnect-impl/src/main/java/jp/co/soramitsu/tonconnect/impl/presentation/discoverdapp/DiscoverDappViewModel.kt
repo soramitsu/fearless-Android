@@ -82,7 +82,7 @@ class DiscoverDappViewModel @Inject constructor(
         tonConnectInteractor.getDappsConfig()
     }
 
-    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps(ConnectionSource.WEB)
+    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDappsFlow(ConnectionSource.WEB)
 
     private val dAppsItemsFlow: Flow<List<DappConfig>> = combine(
         selectedChainId,
@@ -216,9 +216,11 @@ class DiscoverDappViewModel @Inject constructor(
         viewModelScope.launch {
             val remoteDappGroupsDeferred = async { dappsFlow.firstOrNull() }
             val connectedDappsDeferred = async { connectedDapps.firstOrNull() }
-            val dapps = remoteDappGroupsDeferred.await()?.flatMap { it.apps }
-                ?.plus(connectedDappsDeferred.await()?.apps ?: emptyList()) ?: return@launch
-            val selectedDapp = dapps.firstOrNull { it.identifier == dappId }
+
+            val remoteDApps = remoteDappGroupsDeferred.await()?.flatMap { it.apps }
+            val connectedDapps = connectedDappsDeferred.await()?.apps
+
+            val selectedDapp =connectedDapps?.firstOrNull { it.identifier == dappId } ?: remoteDApps?.firstOrNull { it.identifier == dappId }
 
             if (selectedDapp?.name != null && selectedDapp.url != null) {
                 router.openDappScreen(selectedDapp)

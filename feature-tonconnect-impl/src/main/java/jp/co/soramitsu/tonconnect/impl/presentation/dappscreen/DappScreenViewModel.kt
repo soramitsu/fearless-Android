@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
@@ -75,11 +77,10 @@ class DappScreenViewModel @Inject constructor(
 
             @Suppress("SwallowedException")
             return try {
-                tonConnectRouter.openTonSignRequestWithResult(dapp, message.method.title, signRequest)
-                    .fold(
-                        { boc -> JsonBuilder.responseSendTransaction(id, boc) },
-                        { JsonBuilder.responseError(id, BridgeError.UNKNOWN) }
-                    )
+                sendTransaction(dapp, message, signRequest).fold(
+                    { boc -> JsonBuilder.responseSendTransaction(id, boc) },
+                    { JsonBuilder.responseError(id, BridgeError.UNKNOWN) }
+                )
             } catch (e: CancellationException) {
                 JsonBuilder.responseError(id, BridgeError.USER_DECLINED_TRANSACTION)
             } catch (e: BridgeError.Exception) {
@@ -89,6 +90,25 @@ class DappScreenViewModel @Inject constructor(
             }
         } else {
             return JsonBuilder.responseError(0, BridgeError.BAD_REQUEST)
+        }
+    }
+
+    private suspend fun sendTransaction(
+        dapp: DappModel,
+        message: BridgeEvent.Message,
+        signRequest: TonConnectSignRequest
+    ): Result<String> {
+        val signResult = tonConnectRouter.openTonSignRequestWithResult(dapp, message.method.title, signRequest)
+
+        if(signResult.isFailure) return signResult
+
+        val boc = signResult.requireValue()
+        val sendTransactionResult = runCatching { interactor.sendBlockchainMessage(interactor.getChain(), boc) }
+
+        return if(sendTransactionResult.isSuccess) {
+            signResult
+        } else {
+            Result.failure(sendTransactionResult.requireException())
         }
     }
 

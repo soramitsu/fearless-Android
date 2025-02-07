@@ -68,10 +68,16 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.bitstring.BitString
+import org.ton.block.AddrNone
 import org.ton.block.AddrStd
 import org.ton.block.Coins
+import org.ton.block.Either
+import org.ton.block.ExtInMsgInfo
+import org.ton.block.Maybe
+import org.ton.block.Message
 import org.ton.block.MessageRelaxed
 import org.ton.block.MsgAddressInt
+import org.ton.block.StateInit
 import org.ton.cell.Cell
 import org.ton.cell.CellBuilder
 import org.ton.cell.buildCell
@@ -217,13 +223,21 @@ class TonConnectInteractorImpl(
         tonConnectRepository.deleteConnection(clientId)
     }
 
-    override fun getConnectedDapps(source: ConnectionSource): Flow<DappConfig> {
+    override fun getConnectedDappsFlow(source: ConnectionSource): Flow<DappConfig> {
         return tonConnectRepository.observeConnections(source).map { list ->
             DappConfig(
                 type = null,
                 apps = list.map { DappModel(it) }
             )
         }
+    }
+
+    override suspend fun getConnectedDapps(source: ConnectionSource): DappConfig = withContext(Dispatchers.Default) {
+        val connections = tonConnectRepository.getConnections(source)
+        return@withContext DappConfig(
+            type = null,
+            apps = connections.map { DappModel(it) }
+        )
     }
 
     override fun eventsFlow(lastEventId: Long): Flow<BridgeEvent> {
@@ -391,15 +405,15 @@ class TonConnectInteractorImpl(
             storeUInt(contract.walletId, 32)
             storeSeqAndValidUntil(seqNo, validUntil)
             storeUInt(0, 8)
-            for (gift in transfers) {
+            for (transfer in transfers) {
                 var sendMode = 3
-                if (gift.sendMode > -1) {
-                    sendMode = gift.sendMode
+                if (transfer.sendMode > -1) {
+                    sendMode = transfer.sendMode
                 }
                 storeUInt(sendMode, 8)
-
-                val intMsg = CellRef(createIntMsg(gift))
-                storeRef(MessageRelaxed.tlbCodec(AnyTlbConstructor), intMsg)
+                val internalMessage = createIntMsg(transfer)
+                val internalMessageRef = CellRef(internalMessage)
+                this.storeRef(MessageRelaxed.tlbCodec(AnyTlbConstructor), internalMessageRef)
             }
         }
         val keypair =
@@ -412,7 +426,29 @@ class TonConnectInteractorImpl(
             storeBits(unsignedBody.bits)
             storeRefs(unsignedBody.refs)
         }
-        return@withContext signedBody.base64()
+
+        val info = ExtInMsgInfo(
+            src = AddrNone,
+            dest = contract.address,
+            importFee = Coins()
+        )
+
+        val init = if (seqNo == 0) {
+            contract.stateInit
+        } else null
+
+        val maybeStateInit = Maybe.of(init?.let { Either.of<StateInit, CellRef<StateInit>>(null, CellRef(it)) })
+
+        val body = Either.of<Cell, CellRef<Cell>>(null, CellRef(signedBody))
+        val message = Message(
+            info = info,
+            init = maybeStateInit,
+            body = body
+        )
+        val boc = buildCell {
+            storeTlb(Message.tlbCodec(AnyTlbConstructor), message)
+        }.base64()
+        return@withContext boc
     }
 
     private fun body(body: Any?): Cell? {

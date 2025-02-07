@@ -37,7 +37,7 @@ class TonConnectionsViewModel @Inject constructor(
 
     private val enteredChainQueryFlow = MutableStateFlow("")
 
-    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDapps(ConnectionSource.QR)
+    private val connectedDapps: Flow<DappConfig> = tonConnectInteractor.getConnectedDappsFlow(ConnectionSource.QR)
 
     val state = combine(connectedDapps, enteredChainQueryFlow) { connectedDapps, searchQuery ->
         val dApps = connectedDapps.apps.filter {

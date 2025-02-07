@@ -1,5 +1,6 @@
 package jp.co.soramitsu.tonconnect.api.model
 
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.utils.base64
 import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
@@ -72,7 +73,7 @@ object JsonBuilder {
         val stateInit = senderSmartContract.stateInitCell().base64()
         val tonAddressItemReply = JSONObject()
         tonAddressItemReply.put("name", "ton_addr")
-        val isTestnet = true // to do remove from release
+        val isTestnet = false // to do remove from release
         tonAddressItemReply.put("address", tonPublicKey.tonAccountId(isTestnet))
         val network = if (isTestnet) "-3" else "-239"
         tonAddressItemReply.put("network", network)
@@ -117,7 +118,7 @@ object JsonBuilder {
         val deviceJson = JSONObject()
         deviceJson.put("platform", "android")
         deviceJson.put("appName", "Tonkeeper")
-        deviceJson.put("appVersion", "5.0.12") // BuildConfig.VERSION_NAME)
+        deviceJson.put("appVersion", BuildConfig.VERSION_NAME)
         deviceJson.put("maxProtocolVersion", 2)
         deviceJson.put("features", featuresJsonArray)
 

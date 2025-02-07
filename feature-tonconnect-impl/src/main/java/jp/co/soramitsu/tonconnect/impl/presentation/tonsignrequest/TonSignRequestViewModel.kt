@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.feature_tonconnect_impl.R
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.URL
 import javax.inject.Inject
 
 @HiltViewModel
@@ -194,7 +196,11 @@ class TonSignRequestViewModel @Inject constructor(
     override fun onSignClick() {
         viewModelScope.launch {
             if ((state.value as? TonSignPreviewViewState)?.loading == true) return@launch
-            val metaId = dApp.metaId ?: return@launch
+
+            val connectedDapp = tonConnectInteractor.getConnectedDapps(ConnectionSource.WEB).apps
+                .find { URL(it.url).host == URL(dApp.url).host }
+
+            val metaId = dApp.metaId ?: connectedDapp?.metaId ?: return@launch
             val chain = tonConnectInteractor.getChain()
 
             state.update { prevState ->

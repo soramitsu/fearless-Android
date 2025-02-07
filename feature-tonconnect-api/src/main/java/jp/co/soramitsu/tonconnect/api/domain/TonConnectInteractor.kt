@@ -26,7 +26,9 @@ interface TonConnectInteractor {
 
     suspend fun getDappsConfig(): List<DappConfig>
 
-    fun getConnectedDapps(source: ConnectionSource): Flow<DappConfig>
+    fun getConnectedDappsFlow(source: ConnectionSource): Flow<DappConfig>
+    suspend fun getConnectedDapps(source: ConnectionSource): DappConfig
+
     suspend fun requestProof(
         selectedWalletId: Long,
         app: AppEntity,

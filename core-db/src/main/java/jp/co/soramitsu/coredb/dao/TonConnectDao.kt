@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import jp.co.soramitsu.coredb.model.ConnectionSource
-import kotlinx.coroutines.flow.Flow
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class TonConnectDao {
@@ -15,6 +15,9 @@ abstract class TonConnectDao {
 
     @Query("SELECT * FROM ton_connection WHERE source = :source")
     abstract fun observeTonConnections(source: ConnectionSource): Flow<List<TonConnectionLocal>>
+
+    @Query("SELECT * FROM ton_connection WHERE source = :source")
+    abstract suspend fun getTonConnections(source: ConnectionSource): List<TonConnectionLocal>
 
     @Query("SELECT * FROM ton_connection WHERE metaId = :metaId AND url LIKE :url")
     abstract suspend fun getTonConnection(metaId: Long, url: String): TonConnectionLocal?

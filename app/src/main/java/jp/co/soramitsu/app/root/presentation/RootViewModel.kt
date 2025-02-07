@@ -5,10 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
-import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.AppInitializer
 import jp.co.soramitsu.app.root.domain.InitializationStep
@@ -25,9 +21,6 @@ import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
-import kotlin.concurrent.timerTask
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,6 +30,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
+import javax.inject.Inject
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
@@ -189,19 +189,23 @@ class RootViewModel @Inject constructor(
                         val signRequest = TonConnectSignRequest(event.message.params.first())
 
                         rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
-                            .onSuccess {
-                                kotlin.runCatching {
-                                    tonConnectInteractor.sendDappMessage(event, it)
-                                }.onFailure {
-                                    showError(it)
-                                }.onSuccess {
-                                    rootRouter.openOperationSuccess(
-                                        null,
-                                        null,
-                                        resourceManager.getString(R.string.success_message_transaction_sent),
-                                        resourceManager.getString(jp.co.soramitsu.feature_tonconnect_impl.R.string.all_done)
-                                    )
-                                }
+                            .onSuccess { boc ->
+                                runCatching { tonConnectInteractor.sendBlockchainMessage(tonConnectInteractor.getChain(), boc) }
+                                    .onSuccess {
+                                        kotlin.runCatching {
+                                            tonConnectInteractor.sendDappMessage(event, boc)
+                                        }.onFailure {
+                                            showError(it)
+                                        }.onSuccess {
+                                            rootRouter.openOperationSuccess(
+                                                null,
+                                                null,
+                                                resourceManager.getString(R.string.success_message_transaction_sent),
+                                                resourceManager.getString(jp.co.soramitsu.feature_tonconnect_impl.R.string.all_done)
+                                            )
+                                        }
+                                    }
+                                    .onFailure { showError(it) }
                             }
                             .onFailure {
                                 tonConnectInteractor.respondDappError(event, BridgeError.UNKNOWN)
