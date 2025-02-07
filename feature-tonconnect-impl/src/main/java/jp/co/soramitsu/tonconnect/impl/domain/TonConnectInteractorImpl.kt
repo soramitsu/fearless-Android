@@ -305,7 +305,7 @@ class TonConnectInteractorImpl(
         return secret
     }
 
-    @Suppress("MagicNumber")
+    @Suppress("MagicNumber", "CyclomaticComplexMethod")
     override suspend fun signMessage(
         chain: Chain,
         method: String,
@@ -435,7 +435,9 @@ class TonConnectInteractorImpl(
 
         val init = if (seqNo == 0) {
             contract.stateInit
-        } else null
+        } else {
+            null
+        }
 
         val maybeStateInit = Maybe.of(init?.let { Either.of<StateInit, CellRef<StateInit>>(null, CellRef(it)) })
 

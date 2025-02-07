@@ -100,12 +100,12 @@ class DappScreenViewModel @Inject constructor(
     ): Result<String> {
         val signResult = tonConnectRouter.openTonSignRequestWithResult(dapp, message.method.title, signRequest)
 
-        if(signResult.isFailure) return signResult
+        if (signResult.isFailure) return signResult
 
         val boc = signResult.requireValue()
         val sendTransactionResult = runCatching { interactor.sendBlockchainMessage(interactor.getChain(), boc) }
 
-        return if(sendTransactionResult.isSuccess) {
+        return if (sendTransactionResult.isSuccess) {
             signResult
         } else {
             Result.failure(sendTransactionResult.requireException())

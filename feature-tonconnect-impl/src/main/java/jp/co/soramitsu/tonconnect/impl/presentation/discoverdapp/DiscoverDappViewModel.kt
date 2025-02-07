@@ -220,7 +220,11 @@ class DiscoverDappViewModel @Inject constructor(
             val remoteDApps = remoteDappGroupsDeferred.await()?.flatMap { it.apps }
             val connectedDapps = connectedDappsDeferred.await()?.apps
 
-            val selectedDapp =connectedDapps?.firstOrNull { it.identifier == dappId } ?: remoteDApps?.firstOrNull { it.identifier == dappId }
+            val selectedDapp = connectedDapps?.firstOrNull {
+                it.identifier == dappId
+            } ?: remoteDApps?.firstOrNull {
+                it.identifier == dappId
+            }
 
             if (selectedDapp?.name != null && selectedDapp.url != null) {
                 router.openDappScreen(selectedDapp)
