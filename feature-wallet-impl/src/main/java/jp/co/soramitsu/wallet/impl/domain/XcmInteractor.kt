@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.utils.combineToPair
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
@@ -160,7 +161,7 @@ class XcmInteractor(
 
     private fun Asset.getPlanksFromAmountForOriginFee(amount: BigDecimal): BigInteger {
         val rawAmountInPlanks = planksFromAmount(amount)
-        if (rawAmountInPlanks == BigInteger.ZERO) {
+        if (rawAmountInPlanks.isZero()) {
             return BigInteger.ONE
         }
 
