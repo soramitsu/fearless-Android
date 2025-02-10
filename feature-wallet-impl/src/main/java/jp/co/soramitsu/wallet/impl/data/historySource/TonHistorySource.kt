@@ -37,25 +37,33 @@ class TonHistorySource(
             tonRemoteSource.getAccountEvents(historyUrl, contract.getAccountId(chain.isTestNet), beforeLt)
 
         val nextCursor = accountEvents.events.minByOrNull { it.timestamp }?.lt.toString()
+
         val filteredActions = if (chainAsset.type == ChainAssetType.Normal) {
-            accountEvents.events.filter { event -> event.actions.all { !it.isJetton() } }
+            accountEvents.events.filter { event -> event.actions.any { !it.isJetton() } }
         } else {
-            accountEvents.events.filter { event -> event.actions.all { it.isJetton() } }
+            accountEvents.events.filter { event -> event.actions.any { it.isJetton() } }
         }
+
         val operations = kotlin.runCatching { filteredActions.map { event ->
             val fee = if (0 > event.extra) {
                 abs(event.extra)
             } else {
                 0
             }.toBigInteger()
-            event.actions.map { action ->
-                val status = if (action.status == AccountEventAction.Status.failed) {
-                    Operation.Status.FAILED
-                } else if (action.status == AccountEventAction.Status.ok) {
-                    Operation.Status.COMPLETED
-                } else if (event.inProgress) {
-                    Operation.Status.PENDING
-                } else throw IllegalStateException("Unknown ton transfer status")
+            val mappedActions = event.actions.mapIndexed { index, action ->
+                val status = when {
+                    action.status == AccountEventAction.Status.failed -> {
+                        Operation.Status.FAILED
+                    }
+                    action.status == AccountEventAction.Status.ok -> {
+                        Operation.Status.COMPLETED
+                    }
+                    event.inProgress -> {
+                        Operation.Status.PENDING
+                    }
+                    else -> Operation.Status.PENDING
+                }
+
                 val operation = when {
                     action.tonTransfer != null -> {
                         val tonTransfer = action.tonTransfer!!
@@ -108,13 +116,14 @@ class TonHistorySource(
                 }
 
                 Operation(
-                    id = event.eventId,
+                    id = "${event.eventId}:${index}",
                     address = accountAddress,
-                    time = event.timestamp.toDuration(DurationUnit.SECONDS).inWholeMilliseconds,
+                    time = event.timestamp.toDuration(DurationUnit.SECONDS).inWholeMilliseconds + index, //for sorting
                     chainAsset = chainAsset,
                     type = operation
                 )
             }
+            mappedActions
         }.flatten() }.getOrNull() ?: emptyList()
 
         return CursorPage(nextCursor, operations)
