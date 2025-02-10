@@ -575,6 +575,7 @@ class BalanceListViewModel @Inject constructor(
         }
             .onEach { (soraCardStatus, isSoraCardVisible, isBysXorVisible) ->
                 val mapped = mapKycStatus(soraCardStatus.verification)
+                val ibanStatus = soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
                 state.update {
                     it.copy(
                         soraCardState = it.soraCardState.copy(
@@ -584,9 +585,8 @@ class BalanceListViewModel @Inject constructor(
                             loading = false,
                             success = mapped.second,
                             iban = soraCardStatus.ibanInfo,
-                            buyXor = if (isBysXorVisible) SoraCardBuyXorState(
-                                enabled = soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
-                                    ?: false,
+                            buyXor = if (isBysXorVisible && ibanStatus == true) SoraCardBuyXorState(
+                                enabled = ibanStatus,
                             ) else null
                         )
                     )
