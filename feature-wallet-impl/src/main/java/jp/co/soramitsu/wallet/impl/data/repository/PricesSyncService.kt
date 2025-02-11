@@ -18,7 +18,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,7 +25,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -224,7 +222,31 @@ class TonPricesService(
                 }
             }
 
-            accountsJettonsPricesDeferred.awaitAll().flatten()
+            val tonCoinPricesDeferred = async {
+                val tonCoinPriceResponse = runCatching { tonSyncDataRepository.getTonCoinPrices() }.getOrNull() ?: return@async null
+                val uppercasedId = fiatModel.id.uppercase()
+
+                val price = tonCoinPriceResponse.prices[uppercasedId]?.toBigDecimal()
+                val diff24h = runCatching {
+                    val diffStr = tonCoinPriceResponse.diff24h[uppercasedId]
+                    BigDecimal(diffStr?.replace("%", "")?.replace("+", "")?.replace("−", "-"))
+                }.getOrNull()
+
+                if (price != null && diff24h != null) {
+                    TokenPriceLocal(
+                        "the-open-network",
+                        fiatModel.symbol,
+                        price,
+                        diff24h
+                    )
+                } else {
+                    null
+                }
+            }
+
+            val tonPrice = tonCoinPricesDeferred.await()?.let { listOf(it) } ?: emptyList()
+
+            accountsJettonsPricesDeferred.awaitAll().flatten() + tonPrice
         }
     }
 

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import jp.co.soramitsu.common.data.network.ton.JettonsBalances
+import jp.co.soramitsu.common.data.network.ton.TokenRate
 import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -48,5 +49,9 @@ class TonSyncDataRepository(private val tonRemoteSource: TonRemoteSource) {
                 tonRemoteSource.loadJettonBalances(chain, accountId)
             }
         }.await()
+    }
+
+    suspend fun getTonCoinPrices(): TokenRate {
+        return tonRemoteSource.getTonCoinPrices()
     }
 }

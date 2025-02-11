@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.network.ton.PublicKeyResponse
 import jp.co.soramitsu.common.data.network.ton.RawTime
 import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
 import jp.co.soramitsu.common.data.network.ton.Seqno
+import jp.co.soramitsu.common.data.network.ton.TokenRate
 import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
@@ -83,5 +84,10 @@ class TonRemoteSource(
 
     suspend fun getAccountEvents(historyUrl: String, accountId: String, beforeLt: Long?, limit: Int = 100): AccountEvents {
         return  tonApi.getAccountEvents("${historyUrl}/v2/accounts/$accountId/events", limit = limit, beforeLt = beforeLt)
+    }
+
+    suspend fun getTonCoinPrices(): TokenRate {
+        val currencies = availableFiatCurrencies.invoke().joinToString(",") { it.id.uppercase() }
+        return tonApi.getTonCoinPrice(listOf(currencies)).rates["TON"]!!
     }
 }

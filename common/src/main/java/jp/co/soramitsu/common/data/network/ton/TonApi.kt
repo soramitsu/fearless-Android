@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.data.network.ton
 
 import jp.co.soramitsu.common.BuildConfig
 import okhttp3.RequestBody
-import okhttp3.Response
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -51,4 +50,7 @@ interface TonApi {
 
     @GET(BuildConfig.DAPPS_URL)
     suspend fun getDappsConfig(): List<DappConfigRemote>
+
+    @GET("https://tonapi.io/v2/rates?tokens=TON")
+    fun getTonCoinPrice(@Query("currencies") currencies: List<String>?): RatesResponse
 }

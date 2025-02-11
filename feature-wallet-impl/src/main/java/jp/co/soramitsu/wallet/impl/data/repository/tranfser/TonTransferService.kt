@@ -293,7 +293,6 @@ class TonTransferService(
             } else if(transfer.chainAsset.type == ChainAssetType.Normal) {
                 this.coins = Coins.ofNano(transfer.amountInPlanks)
                 this.destination = AddrStd(recipientAccountDataDeferred.await().address)
-                hashCode()
             }
         }
 
