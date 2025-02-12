@@ -570,10 +570,10 @@ class BalanceListViewModel @Inject constructor(
             soraCardInteractor.basicStatus,
             interactor.observeIsShowSoraCard(),
             soraCardInteractor.observeBuyXorVisibility()
-        ) { soraCardStatus, isSoraCardVisible, isBysXorVisible ->
-            Triple(soraCardStatus, isSoraCardVisible, isBysXorVisible)
+        ) { soraCardStatus, isSoraCardVisible, isBuyXorVisible ->
+            Triple(soraCardStatus, isSoraCardVisible, isBuyXorVisible)
         }
-            .onEach { (soraCardStatus, isSoraCardVisible, isBysXorVisible) ->
+            .onEach { (soraCardStatus, isSoraCardVisible, isBuyXorVisible) ->
                 val mapped = mapKycStatus(soraCardStatus.verification)
                 val ibanStatus = soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
                 state.update {
@@ -585,9 +585,9 @@ class BalanceListViewModel @Inject constructor(
                             loading = false,
                             success = mapped.second,
                             iban = soraCardStatus.ibanInfo,
-                            buyXor = if (isBysXorVisible && ibanStatus == true) SoraCardBuyXorState(
+                            buyXor = if (isBuyXorVisible && (ibanStatus == true)) SoraCardBuyXorState(
                                 enabled = ibanStatus,
-                            ) else null
+                            ) else null,
                         )
                     )
                 }
