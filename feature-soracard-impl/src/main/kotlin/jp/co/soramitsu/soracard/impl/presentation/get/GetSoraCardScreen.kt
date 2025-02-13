@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -19,6 +20,9 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.oauth.uiscreens.clientsui.GetSoraCardScreen
 import jp.co.soramitsu.oauth.uiscreens.clientsui.GetSoraCardState
+import jp.co.soramitsu.oauth.uiscreens.clientsui.UiStyle
+import jp.co.soramitsu.oauth.uiscreens.clientsui.localCompositionUiStyle
+import jp.co.soramitsu.oauth.uiscreens.theme.AuthSdkTheme
 
 interface GetSoraCardScreenInterface {
     fun onSeeBlacklist()
@@ -63,13 +67,19 @@ private fun GetSoraCardScreenInternal(
     scrollState: ScrollState,
     callbacks: GetSoraCardScreenInterface,
 ) {
-    GetSoraCardScreen(
-        scrollState = scrollState,
-        state = state,
-        onBlackList = callbacks::onSeeBlacklist,
-        onSignUp = callbacks::onSignUp,
-        onLogIn = callbacks::onLogIn,
-    )
+    CompositionLocalProvider(
+        localCompositionUiStyle provides UiStyle.FW
+    ) {
+        AuthSdkTheme(darkTheme = true) {
+            GetSoraCardScreen(
+                scrollState = scrollState,
+                state = state,
+                onBlackList = callbacks::onSeeBlacklist,
+                onSignUp = callbacks::onSignUp,
+                onLogIn = callbacks::onLogIn,
+            )
+        }
+    }
 }
 
 @Preview
