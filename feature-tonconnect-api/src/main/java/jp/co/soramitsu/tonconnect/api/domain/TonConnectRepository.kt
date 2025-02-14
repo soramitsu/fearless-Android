@@ -13,5 +13,9 @@ interface TonConnectRepository {
     suspend fun getConnections(source: ConnectionSource): List<TonDappConnection>
     suspend fun deleteConnection(clientId: String)
     fun getConnectionKeypair(clientId: String): Keypair?
-    suspend fun getConnection(metaId: Long, url: String, source: ConnectionSource): TonConnectionLocal?
+    suspend fun getConnection(
+        metaId: Long,
+        url: String,
+        source: ConnectionSource
+    ): TonConnectionLocal?
 }
