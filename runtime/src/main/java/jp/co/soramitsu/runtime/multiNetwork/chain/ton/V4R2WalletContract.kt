@@ -8,7 +8,6 @@ import org.ton.block.StateInit
 import org.ton.boc.BagOfCells
 import org.ton.cell.Cell
 import org.ton.cell.CellBuilder
-import org.ton.contract.SmartContract
 import org.ton.tlb.CellRef
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi

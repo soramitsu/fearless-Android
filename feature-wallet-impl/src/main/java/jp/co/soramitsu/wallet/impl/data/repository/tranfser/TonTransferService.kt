@@ -5,6 +5,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.ton.AccountAddress
 import jp.co.soramitsu.common.data.network.ton.AccountStatus
 import jp.co.soramitsu.common.data.network.ton.EmulateMessageToWalletRequest
+import jp.co.soramitsu.common.data.network.ton.EmulateMessageToWalletRequestParamsInner
 import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
 import jp.co.soramitsu.common.data.network.ton.totalFees
 import jp.co.soramitsu.common.utils.TON_BASE_FORWARD_AMOUNT
@@ -109,11 +110,13 @@ class TonTransferService(
         }
 
         val seqno = seqnoDeferred.await()
-        val stateInit = if (seqno == 0) {
+
+        val stateInit = if (0 >= seqno) {
             customPayloadStateInit ?: senderSmartContract.stateInit
         } else {
             customPayloadStateInit
         }
+
         val transferUnsignedBody = createUnsignedBody(
             transfer.copy(recipient = transfer.sender),
             stateInit,
@@ -130,9 +133,16 @@ class TonTransferService(
             stateInit
         } else null
 
-        val maybeStateInit = Maybe.of(init?.let { Either.of<StateInit, CellRef<StateInit>>(null, CellRef(it)) })
+        val maybeStateInit = run {
+            val either = init?.let {
+                val ref = CellRef(it)
 
-        val signature = BitString(fakePrivateKey.sign(transferUnsignedBody.hash().toByteArray()))
+                Either.of<StateInit, CellRef<StateInit>>(null, ref)
+            }
+            Maybe.of(either)
+        }
+        val transferUnsignedBodyMessage = transferUnsignedBody.hash().toByteArray()
+        val signature = BitString(fakePrivateKey.sign(transferUnsignedBodyMessage))
 
         val transferBody = CellBuilder.createCell {
             storeBits(signature)
@@ -152,7 +162,8 @@ class TonTransferService(
         }
         val transferMessageCellBase64 = transferMessageCell.base64()
 
-        val request = EmulateMessageToWalletRequest(transferMessageCellBase64, emptyList())
+        val params = listOf(EmulateMessageToWalletRequestParamsInner(senderSmartContract.getAccountId(chain.isTestNet),2_000_000_000))
+        val request = EmulateMessageToWalletRequest(transferMessageCellBase64, params, false)
         val fees = try {
             tonRemoteSource.emulateBlockchainMessageRequest(chain, request).totalFees
         } catch (e: Throwable) {
@@ -223,7 +234,14 @@ class TonTransferService(
             stateInit
         } else null
 
-        val maybeStateInit = Maybe.of(init?.let { Either.of<StateInit, CellRef<StateInit>>(null, CellRef(it)) })
+        val maybeStateInit = run {
+            val either = init?.let {
+                val ref = CellRef(it)
+
+                Either.of<StateInit, CellRef<StateInit>>(null, ref)
+            }
+            Maybe.of(either)
+        }
 
         val signature = BitString(privateKey.sign(transferUnsignedBody.hash().toByteArray()))
         val transferBody = CellBuilder.createCell {
@@ -282,7 +300,10 @@ class TonTransferService(
         val walletTransfer = WalletTransfer {
             this.bounceable = isBounce(transfer.recipient, recipientAccountData)
 
-            this.messageData = MessageData.Raw(body(transfer, senderSmartContract.address) ?: Cell.empty(), stateInit?.let { CellRef(stateInit, StateInit) })
+            val stateInitRef = stateInit?.let { CellRef.valueOf(CellBuilder.createCell {
+                storeTlb(StateInit.tlbCodec(), senderSmartContract.stateInit)
+            },StateInit) }
+            this.messageData = MessageData.Raw(body(transfer, senderSmartContract.address) ?: Cell.empty(), stateInitRef)
 
             this.sendMode = sendMode
             if (transfer.chainAsset.type == ChainAssetType.Jetton) {

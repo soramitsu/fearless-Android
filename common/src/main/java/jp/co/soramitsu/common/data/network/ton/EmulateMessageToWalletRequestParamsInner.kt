@@ -19,6 +19,9 @@ data class EmulateMessageToWalletRequest (
 
     /* additional per account configuration */
     @SerializedName("params")
-    val params: List<EmulateMessageToWalletRequestParamsInner>? = null
+    val params: List<EmulateMessageToWalletRequestParamsInner>? = null,
+
+    @SerializedName("safe_mode")
+    val safeMode: Boolean? = null
 
 )
