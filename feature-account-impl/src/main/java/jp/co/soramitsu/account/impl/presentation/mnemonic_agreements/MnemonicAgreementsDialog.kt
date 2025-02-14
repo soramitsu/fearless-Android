@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.model.WalletEcosystem
 
 @AndroidEntryPoint
 class MnemonicAgreementsDialog : BaseComposeBottomSheetDialogFragment<MnemonicAgreementsViewModel>() {
@@ -34,16 +35,16 @@ class MnemonicAgreementsDialog : BaseComposeBottomSheetDialogFragment<MnemonicAg
 
     companion object {
 
-        const val IS_FROM_GOOGLE_BACKUP_KEY = "IS_FROM_GOOGLE_BACKUP_KEY"
         const val WALLET_NAME_KEY = "ACCOUNT_NAME_KEY"
+        const val ACCOUNT_TYPES_KEY = "ACCOUNT_TYPES_KEY"
 
         fun getBundle(
-            isFromGoogleBackupKey: Boolean,
-            accountName: String
+            accountName: String,
+            accountTypes: List<WalletEcosystem>
         ): Bundle {
             return bundleOf(
-                IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackupKey,
-                WALLET_NAME_KEY to accountName
+                WALLET_NAME_KEY to accountName,
+                ACCOUNT_TYPES_KEY to accountTypes
             )
         }
     }

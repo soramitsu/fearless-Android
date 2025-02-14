@@ -570,7 +570,7 @@ style:
   OptionalAbstractKeyword:
     active: true
   OptionalUnit:
-    active: true
+    active: false
     excludes: ['**/build/**']
   OptionalWhenBraces:
     active: false

@@ -22,14 +22,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -46,11 +46,10 @@ dependencies {
     implementation project(':feature-account-api')
     implementation project(':feature-staking-api')
     implementation project(':feature-wallet-api')
-    implementation project(':feature-soracard-api')
-    implementation project(':feature-soracard-impl')
     implementation project(':feature-polkaswap-api')
     implementation libs.kotlin.stdlib.jdk7
 
+    implementation libs.bundles.ton
     implementation libs.appcompat
     implementation libs.core.ktx
     implementation libs.material
@@ -92,8 +91,9 @@ dependencies {
 
     implementation libs.gson
 
-    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
+    api libs.sharedFeaturesCoreDep
+    implementation libs.soramitsu.android.foundation
 
-    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
+    implementation libs.sharedFeaturesBackupDep
     implementation libs.web3jDep
 }

@@ -29,7 +29,7 @@ class TokenRepositoryImpl(
         } else {
             chainAsset.priceId
         }
-        val tokenPriceLocal = priceId?.let { tokenPriceDao.getTokenPrice(it) ?: TokenPriceLocal.createEmpty(it) }
+        val tokenPriceLocal = priceId?.let { tokenPriceDao.getTokenPrice(it) }
 
         combineAssetWithPrices(chainAsset, tokenPriceLocal)
     }

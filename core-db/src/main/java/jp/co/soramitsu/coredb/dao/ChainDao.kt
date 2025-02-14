@@ -44,10 +44,9 @@ abstract class ChainDao {
     }
 
     @Transaction
-    open suspend fun updateChains(chainsToAdd: List<ChainLocal>, chainsToUpdate: List<ChainLocal>, chainsToRemove: List<ChainLocal>) {
+    open suspend fun updateChains(chainsToAdd: List<ChainLocal>, chainsToUpdate: List<ChainLocal>) {
         insertChains(chainsToAdd)
         updateChains(chainsToUpdate)
-        deleteChains(chainsToRemove)
     }
 
     @Transaction
@@ -76,7 +75,7 @@ abstract class ChainDao {
     }
 
     @Delete
-    protected abstract suspend fun deleteChains(chains: List<ChainLocal>)
+    abstract suspend fun deleteChains(chains: List<ChainLocal>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChains(chains: List<ChainLocal>)
@@ -124,6 +123,9 @@ abstract class ChainDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun insertChainAssetsIgnoringConflicts(assets: List<ChainAssetLocal>)
 
     @Update
     protected abstract suspend fun updateChainAssets(assets: List<ChainAssetLocal>)

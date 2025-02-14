@@ -66,9 +66,12 @@ class StakingInteractor(
     fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
     suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
+    var syncStakingRewardListener: (suspend (ChainId) -> Unit)? = null
+
     suspend fun syncStakingRewards(chainId: ChainId, accountAddress: String) = withContext(Dispatchers.IO) {
         runCatching {
             stakingRewardsRepository.sync(chainId, accountAddress)
+            syncStakingRewardListener?.invoke(chainId)
         }
     }
 

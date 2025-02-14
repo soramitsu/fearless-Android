@@ -8,7 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -60,6 +61,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -77,7 +79,7 @@ import kotlinx.coroutines.launch
 class CustomContributeViewModel @Inject constructor(
     private val customContributeManager: CustomContributeManager,
     private val router: CrowdloanRouter,
-    accountUseCase: SelectedAccountUseCase,
+    accountInteractor: AccountInteractor,
     addressModelGenerator: AddressIconGenerator,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
@@ -100,10 +102,11 @@ class CustomContributeViewModel @Inject constructor(
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val selectedAddressModelFlow = _viewStateFlow
         .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == TERMS_CONFIRM }
-        .flatMapLatest { accountUseCase.selectedAccountFlow() }
-        .map { addressModelGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name) }
+        .flatMapLatest { accountInteractor.selectedMetaAccountFlow() }
+        .map { addressModelGenerator.createAddressModel(it.supportedEcosystemWithIconAddress(), AddressIconGenerator.SIZE_SMALL, it.name) }
         .share()
 
     private val _validationProgress = MutableLiveData(false)

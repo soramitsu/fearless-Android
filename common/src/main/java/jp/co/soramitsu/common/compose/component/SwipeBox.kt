@@ -137,8 +137,7 @@ private fun AssetItemSwipeBoxPreview() {
         chainAssetId = "",
         actionItems = listOf(
             ActionItemType.SEND,
-            ActionItemType.RECEIVE,
-            ActionItemType.TELEPORT
+            ActionItemType.RECEIVE
         )
     )
 

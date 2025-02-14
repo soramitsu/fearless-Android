@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.MultiToggleItem
-import jp.co.soramitsu.common.compose.component.NetworkIssueType
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting

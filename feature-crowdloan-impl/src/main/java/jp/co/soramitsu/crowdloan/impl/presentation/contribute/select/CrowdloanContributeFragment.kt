@@ -31,7 +31,7 @@ const val KEY_PAYLOAD = "KEY_PAYLOAD"
 @AndroidEntryPoint
 class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>(R.layout.fragment_contribute) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentContributeBinding::bind)
 

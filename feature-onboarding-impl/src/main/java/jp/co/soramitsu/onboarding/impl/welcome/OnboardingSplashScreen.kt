@@ -34,20 +34,14 @@ fun interface OnboardingSplashScreenClickListener {
 }
 
 @Suppress("FunctionName")
-fun NavGraphBuilder.OnboardingSplashScreen(
-    isAccountSelectedFlow: StateFlow<Boolean>,
-    listener: OnboardingSplashScreenClickListener
-) {
+fun NavGraphBuilder.OnboardingSplashScreen() {
     composable(WelcomeEvent.Onboarding.SplashScreen.route) {
-        OnboardingSplashScreenContent(isAccountSelectedFlow.collectAsState().value, listener)
+        OnboardingSplashScreenContent()
     }
 }
 
 @Composable
-private fun OnboardingSplashScreenContent(
-    isAccountSelected: Boolean,
-    listener: OnboardingSplashScreenClickListener
-) {
+private fun OnboardingSplashScreenContent() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,16 +75,16 @@ private fun OnboardingSplashScreenContent(
         }
 
 
-        if (isAccountSelected.not()) {
-            AccentButton(
-                text = stringResource(id = R.string.common_start),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(horizontal = 16.dp),
-                onClick = listener::onStart
-            )
-        }
+//        if (isAccountSelected.not()) {
+//            AccentButton(
+//                text = stringResource(id = R.string.common_start),
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(48.dp)
+//                    .padding(horizontal = 16.dp),
+//                onClick = listener::onStart
+//            )
+//        }
 
         MarginVertical(margin = 16.dp)
     }
@@ -100,9 +94,6 @@ private fun OnboardingSplashScreenContent(
 @Preview
 private fun OnboardingSplashScreenPreview() {
     FearlessAppTheme {
-        OnboardingSplashScreenContent(
-            isAccountSelected = true,
-            listener = {}
-        )
+        OnboardingSplashScreenContent()
     }
 }

@@ -77,6 +77,8 @@ fun CoroutineScope.childScope(supervised: Boolean = true): CoroutineScope {
 
 fun Int.asBoolean() = this != 0
 
+fun String.splitVersions() = split(".").map { it.toInt() }
+
 private val CAMEL_CASE_REGEX = "(?<=[a-z])(?=[A-Z])".toRegex()
 fun String.camelCaseToCapitalizedWords() =
     CAMEL_CASE_REGEX.split(this).joinToString(separator = " ") { it.capitalize() }

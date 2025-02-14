@@ -10,6 +10,7 @@ import jp.co.soramitsu.shared_utils.encrypt.keypair.substrate.Sr25519Keypair
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+@Deprecated("Use SecretStoreV2 instead")
 interface SecretStoreV1 {
 
     suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource)

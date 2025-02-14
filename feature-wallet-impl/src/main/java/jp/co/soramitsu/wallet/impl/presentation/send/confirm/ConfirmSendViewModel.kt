@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -46,7 +47,10 @@ import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.CBDCTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
+import jp.co.soramitsu.wallet.impl.domain.model.SubstrateTransferParams
+import jp.co.soramitsu.wallet.impl.domain.model.TonTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
@@ -142,7 +146,6 @@ class ConfirmSendViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
         .flatMapLatest { interactor.observeTransferFee(it) }
-        .map { it.feeAmount }
         .onStart { transferDraft.fee }
 
     val state: StateFlow<ConfirmSendViewState> = combine(
@@ -254,11 +257,8 @@ class ConfirmSendViewModel @Inject constructor(
             val supportedExplorers = chain.explorers.getSupportedAddressExplorers(transferDraft.recipientAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = transferDraft.recipientAddress,
-                chainId = chainId,
-                chainName = chain.name,
                 explorers = supportedExplorers
             )
-
             externalAccountActions.showExternalActions(externalActionsPayload)
         }
     }
@@ -353,13 +353,10 @@ class ConfirmSendViewModel @Inject constructor(
 
             transferSubmittingFlow.value = true
 
-            val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
 
-            val usesAppId = chainFlow.firstOrNull()?.isUsesAppId == true
-            val appId = if (usesAppId) BigInteger.ZERO else null
 
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks, appId)
+                interactor.performTransfer(createTransfer(token, fee))
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
@@ -397,6 +394,7 @@ class ConfirmSendViewModel @Inject constructor(
         val isSendBokoloCash = token.currencyId == bokoloCashTokenId
         val utilityAsset = utilityAssetFlow.firstOrNull() ?: error("Utility asset not configured")
         val asset = assetFlow.firstOrNull() ?: error("Asset not configured")
+        val chain = chainFlow.first()
 
         val feeRequiredTokens = if (isSendBokoloCash && utilityAsset.transferable < fee.orZero()) {
             val swapDetails = polkaswapInteractor.calcDetails(
@@ -412,6 +410,21 @@ class ConfirmSendViewModel @Inject constructor(
         } else {
             null
         }
+        val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
+
+        val usesAppId = chainFlow.firstOrNull()?.isUsesAppId == true
+        val appId = if (usesAppId) BigInteger.ZERO else null
+        val maxAmountInPlanks = feeRequiredTokens?.let { token.planksFromAmount(it * FEE_RESERVE_TOLERANCE) }
+        val additionalParams = when {
+            isSendBokoloCash -> CBDCTransferParams(transferComment, maxAmountInPlanks, tipInPlanks, appId)
+            chain.ecosystem == Ecosystem.Substrate || chain.ecosystem == Ecosystem.EthereumBased -> {
+                SubstrateTransferParams(tipInPlanks, appId)
+            }
+            chain.ecosystem == Ecosystem.Ton -> {
+                TonTransferParams(transferDraft.message)
+            }
+            else -> null
+        }
 
         return with(transferDraft) {
             Transfer(
@@ -419,9 +432,8 @@ class ConfirmSendViewModel @Inject constructor(
                 sender = currentAddress,
                 amount = amount,
                 chainAsset = token,
-                comment = transferComment,
                 estimateFee = fee + FEE_CORRECTION,
-                maxAmountIn = feeRequiredTokens?.let { it * FEE_RESERVE_TOLERANCE }
+                additionalParams = additionalParams
             )
         }
     }

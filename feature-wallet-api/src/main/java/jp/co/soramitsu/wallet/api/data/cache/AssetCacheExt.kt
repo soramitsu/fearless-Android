@@ -78,19 +78,6 @@ suspend fun AssetCache.updateAsset(
     }
 }
 
-//suspend fun AssetCache.updateAsset(
-//    metaId: Long,
-//    accountId: AccountId,
-//    chainAsset: Asset,
-//    accountInfo: AccountInfo
-//) = updateAsset(metaId, accountId, chainAsset, accountInfoUpdater(accountInfo))
-
-//suspend fun AssetCache.updateAsset(
-//    accountId: AccountId,
-//    chainAsset: Asset,
-//    accountInfo: AccountInfo
-//) = updateAsset(accountId, chainAsset, accountInfoUpdater(accountInfo))
-
 private fun accountInfoUpdater(accountInfo: AccountInfo) = { asset: AssetLocal ->
     val data = accountInfo.data
 

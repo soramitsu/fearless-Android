@@ -1,32 +1,19 @@
 package jp.co.soramitsu.onboarding.impl
 
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
+import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlinx.coroutines.flow.Flow
 
 interface OnboardingRouter {
 
-    fun openCreateAccountFromOnboarding()
-
-    fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload)
+    fun openCreateAccountFromOnboarding(accountType: AccountType)
 
     fun backToWelcomeScreen()
 
-    fun openImportAccountScreen(blockChainType: Int, importMode: ImportMode)
-
-    fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload)
-
-    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
+    fun openImportAccountScreen(walletEcosystem: WalletEcosystem, importMode: ImportMode)
 
     fun openImportRemoteWalletDialog()
-
-    fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload)
-
-    fun openMnemonicAgreementsDialog(
-        isFromGoogleBackup: Boolean,
-        accountName: String
-    )
 
     fun back()
 
@@ -37,4 +24,6 @@ interface OnboardingRouter {
     fun openCreatePincode()
 
     fun openInitialCheckPincode()
+
+    fun openMain()
 }

@@ -6,30 +6,25 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.toLocal
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
-import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalance
-import jp.co.soramitsu.common.data.network.runtime.binding.toAssetBalance
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
-import jp.co.soramitsu.core.models.ChainAssetType
-import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
+import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
-import jp.co.soramitsu.coredb.model.chain.RelationJoinedMetaAccountInfo
+import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
-import jp.co.soramitsu.runtime.multiNetwork.connection.EvmConnectionStatus
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
+import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -41,17 +36,14 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.math.BigInteger
 
 private const val TAG = "WalletSyncService"
 
@@ -63,11 +55,9 @@ class WalletSyncService(
     private val assetDao: AssetDao,
     private val nomisApi: NomisApi,
     private val nomisScoresDao: NomisScoresDao,
+    private val balanceLoaderProvider: BalanceLoader.Provider,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
-    companion object {
-        private const val CHAIN_SYNC_TIMEOUT_MILLIS: Long = 15_000L
-    }
 
     private val scope =
         CoroutineScope(dispatcher + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
@@ -89,7 +79,7 @@ class WalletSyncService(
 
     fun start() {
         observeNotInitializedMetaAccounts()
-        observeNotInitializedChainAccounts()
+//        observeNotInitializedChainAccounts()
         observeNomisScores()
     }
 
@@ -98,392 +88,292 @@ class WalletSyncService(
             .onEach { localMetaAccounts ->
                 syncJob?.cancel()
                 syncJob = scope.launch {
-                    chainRegistry.configsSyncDeferred.joinAll()
-
                     val chains = chainsRepository.getChains()
-                    val ethereumChains =
-                        chains.filter { it.isEthereumChain }.sortedByDescending { it.rank }
-                    val substrateChains =
-                        chains.filter { !it.isEthereumChain }.sortedByDescending { it.rank }
 
-                    val metaAccounts =
-                        localMetaAccounts.map { accountInfo ->
-                            mapMetaAccountLocalToMetaAccount(
-                                chains.associateBy { it.id },
-                                accountInfo
+                    val metaAccounts = localMetaAccounts.map { accountInfo ->
+                        mapMetaAccountLocalToMetaAccount(
+                            chains.associateBy { it.id },
+                            accountInfo
+                        )
+                    }.toSet()
+
+                    val accountHasAssetWithPositiveBalanceMap = mutableMapOf<Long, Boolean>()
+                    val syncedChains = mutableSetOf<ChainId>()
+                    supervisorScope {
+                        val chainsBalancesDeferred = chainsRepository.getChains().map { chain ->
+                            val filteredMetaAccounts = when(chain.ecosystem) {
+                                Ecosystem.Substrate,
+                                Ecosystem.Ethereum,
+                                Ecosystem.EthereumBased -> metaAccounts.asSequence().filter { it.substratePublicKey != null || it.ethereumPublicKey != null }
+                                Ecosystem.Ton -> metaAccounts.asSequence().filter { it.tonPublicKey != null }
+                            }.toSet()
+                            val chainSyncDeferred = async {
+                                val provider = balanceLoaderProvider.invoke(chain)
+                                val balances = withTimeoutOrNull(15_000) {
+                                    provider.loadBalance(filteredMetaAccounts)
+                                } ?: let {
+                                    filteredMetaAccounts.map { meta ->
+                                        chainsRepository.getChain(chain.id).assets.mapNotNull { asset ->
+                                            val accountId =
+                                                meta.accountId(chain) ?: return@mapNotNull null
+
+                                            AssetBalanceUpdateItem(
+                                                metaId = meta.id,
+                                                chainId = chain.id,
+                                                accountId = accountId,
+                                                id = asset.id
+                                            )
+                                        }
+                                    }.flatten()
+
+                                }
+                                val balancesByMetaIds = balances.groupBy { it.metaId }
+
+                                metaAccounts.forEach { metaAccount ->
+                                    val accountBalances =
+                                        balancesByMetaIds[metaAccount.id] ?: emptyList()
+                                    if (accountBalances.any { it.freeInPlanks.positiveOrNull() != null }) {
+                                        accountHasAssetWithPositiveBalanceMap[metaAccount.id] = true
+                                    }
+                                }
+
+                                balances
+                            }
+
+                            chainSyncDeferred.invokeOnCompletion {
+                                syncedChains.add(chain.id)
+                            }
+                            chainSyncDeferred
+                        }
+
+                        val allBalances = chainsBalancesDeferred.awaitAll().flatten()
+
+                        val assetsLocal = allBalances.mapNotNull { balance ->
+                            val chain =
+                                chainsRepository.getChains().find { it.id == balance.chainId } ?: return@mapNotNull null
+                            val chainAsset = chain.assetsById.getOrDefault(balance.id, null)
+                                ?: return@mapNotNull null
+
+                            val isPopularUtilityAsset =
+                                chain.rank != null && chainAsset.isUtility
+
+                            val accountHasAssetWithPositiveBalance =
+                                accountHasAssetWithPositiveBalanceMap[balance.metaId] == true
+
+                            val isTonAsset = chain.ecosystem == Ecosystem.Ton && chainAsset.symbol.equals("TON", ignoreCase = true)
+
+                            AssetLocal(
+                                id = balance.id,
+                                chainId = balance.chainId,
+                                accountId = balance.accountId,
+                                metaId = balance.metaId,
+                                tokenPriceId = chainAsset.priceId,
+                                freeInPlanks = balance.freeInPlanks,
+                                reservedInPlanks = balance.reservedInPlanks,
+                                miscFrozenInPlanks = balance.miscFrozenInPlanks,
+                                feeFrozenInPlanks = balance.feeFrozenInPlanks,
+                                bondedInPlanks = balance.bondedInPlanks,
+                                redeemableInPlanks = balance.redeemableInPlanks,
+                                unbondingInPlanks = balance.unbondingInPlanks,
+                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) || isTonAsset
                             )
                         }
-                    val accountHasAssetWithPositiveBalanceMap = mutableMapOf<Long, Boolean>()
-
-                    supervisorScope {
-                        launch {
-                            ethereumChains.forEach { chain ->
-                                launch {
-                                    if (chainRegistry.checkChainSyncedUp(chain).not()) {
-                                        chainRegistry.setupChain(chain)
-                                    }
-                                    val connection =
-                                        withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
-                                            val connection =
-                                                chainRegistry.awaitEthereumConnection(chain.id)
-                                            // await connecting to the node
-                                            connection.statusFlow.first { it is EvmConnectionStatus.Connected }
-                                            connection
-                                        }
-                                    val assetsDeferred = async {
-                                        metaAccounts.mapNotNull { metaAccount ->
-                                            val accountId =
-                                                metaAccount.accountId(chain)
-                                                    ?: return@mapNotNull null
-
-                                            val accountBalancesDeferred =
-                                                chain.assets.map { chainAsset ->
-                                                    async {
-                                                        val balance = kotlin.runCatching {
-                                                            connection?.web3j?.fetchEthBalance(
-                                                                chainAsset,
-                                                                accountId.toHexString(true)
-                                                            )
-                                                        }.getOrNull()
-
-                                                        if (balance.positiveOrNull() != null) {
-                                                            accountHasAssetWithPositiveBalanceMap[metaAccount.id] =
-                                                                true
-                                                        }
-
-                                                        val isPopularUtilityAsset =
-                                                            chain.rank != null && chainAsset.isUtility
-                                                        val accountHasAssetWithPositiveBalance =
-                                                            accountHasAssetWithPositiveBalanceMap[metaAccount.id] == true
-
-                                                        AssetLocal(
-                                                            id = chainAsset.id,
-                                                            chainId = chain.id,
-                                                            accountId = accountId,
-                                                            metaId = metaAccount.id,
-                                                            tokenPriceId = chainAsset.priceId,
-                                                            freeInPlanks = balance,
-                                                            reservedInPlanks = BigInteger.ZERO,
-                                                            miscFrozenInPlanks = BigInteger.ZERO,
-                                                            feeFrozenInPlanks = BigInteger.ZERO,
-                                                            bondedInPlanks = BigInteger.ZERO,
-                                                            redeemableInPlanks = BigInteger.ZERO,
-                                                            unbondingInPlanks = BigInteger.ZERO,
-                                                            enabled = balance.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
-                                                        )
-                                                    }
-                                                }
-
-                                            accountBalancesDeferred.awaitAll()
-                                        }.flatten()
-                                    }
-                                    val localAssets = assetsDeferred.await()
-                                    assetDao.insertAssets(localAssets)
-                                    hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(
-                                        metaAccounts
-                                    )
-                                }
-                            }
+                        assetsLocal.groupBy { it.metaId }.forEach { b ->
+                            runCatching { assetDao.insertAssets(b.value) }
+                                .onFailure { Log.d(TAG, "failed to insert ${b.value.size} assets for metaId: ${b.key}, reason: $it") }
+                                .onSuccess { Log.d(TAG, "successfully inserted ${b.value.size} assets for metaId: ${b.key} ") }
                         }
-                        launch {
-                            substrateChains.onEach { chain ->
-                                launch {
-                                    val assetsDeferred = async {
-                                        val emptyAssets: MutableList<AssetLocal> = mutableListOf()
-                                        val runtime = withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
-                                            if (chainRegistry.checkChainSyncedUp(chain).not()) {
-                                                chainRegistry.setupChain(chain)
-                                            }
 
-                                            // awaiting runtime snapshot
-                                            chainRegistry.awaitRuntimeProvider(chain.id).get()
-                                        }
-
-                                        val isEquilibriumTypeChain =
-                                            chain.utilityAsset != null && chain.utilityAsset!!.typeExtra == ChainAssetType.Equilibrium
-
-                                        if (isEquilibriumTypeChain) {
-                                            buildEquilibriumAssetsByMetaAccounts(
-                                                metaAccounts,
-                                                chain,
-                                                runtime
-                                            )
-                                        } else {
-                                            val allAccountsStorageKeys =
-                                                metaAccounts.mapNotNull { metaAccount ->
-                                                    val accountId =
-                                                        metaAccount.accountId(chain)
-                                                            ?: return@mapNotNull null
-                                                    buildSubstrateStorageKeys(
-                                                        chain,
-                                                        runtime,
-                                                        metaAccount.id,
-                                                        accountId
-                                                    )
-                                                }.flatten()
-
-                                            val keysToQuery =
-                                                allAccountsStorageKeys.mapNotNull { metadata ->
-                                                    // if storage key build is failed - we put the empty assets
-                                                    if (metadata.key == null) {
-                                                        emptyAssets.add(
-                                                            AssetLocal(
-                                                                accountId = metadata.accountId,
-                                                                id = metadata.asset.id,
-                                                                chainId = metadata.asset.chainId,
-                                                                metaId = metadata.metaAccountId,
-                                                                tokenPriceId = metadata.asset.priceId,
-                                                                enabled = false,
-                                                                freeInPlanks = BigInteger.valueOf(-1)
-                                                            )
-                                                        )
-                                                    }
-                                                    metadata.key
-                                                }.toList()
-
-                                            val storageKeyToResult = remoteStorageSource.queryKeys(
-                                                keysToQuery,
-                                                chain.id,
-                                                null
-                                            )
-
-                                            allAccountsStorageKeys.map { metadata ->
-                                                val hexRaw =
-                                                    storageKeyToResult.getOrDefault(
-                                                        metadata.key,
-                                                        null
-                                                    )
-
-                                                val assetBalance =
-                                                    runtime?.let {
-                                                        handleBalanceResponse(
-                                                            it,
-                                                            metadata.asset,
-                                                            hexRaw
-                                                        ).getOrNull().toAssetBalance()
-                                                    } ?: AssetBalance()
-
-                                                if (assetBalance.freeInPlanks.positiveOrNull() != null) {
-                                                    accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] =
-                                                        true
-                                                }
-
-                                                val isPopularUtilityAsset =
-                                                    chain.rank != null && metadata.asset.isUtility
-                                                val accountHasAssetWithPositiveBalance =
-                                                    accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] == true
-
-                                                AssetLocal(
-                                                    id = metadata.asset.id,
-                                                    chainId = chain.id,
-                                                    accountId = metadata.accountId,
-                                                    metaId = metadata.metaAccountId,
-                                                    tokenPriceId = metadata.asset.priceId,
-                                                    freeInPlanks = assetBalance.freeInPlanks,
-                                                    reservedInPlanks = assetBalance.reservedInPlanks,
-                                                    miscFrozenInPlanks = assetBalance.miscFrozenInPlanks,
-                                                    feeFrozenInPlanks = assetBalance.feeFrozenInPlanks,
-                                                    bondedInPlanks = assetBalance.bondedInPlanks,
-                                                    redeemableInPlanks = assetBalance.redeemableInPlanks,
-                                                    unbondingInPlanks = assetBalance.unbondingInPlanks,
-                                                    enabled = assetBalance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
-                                                )
-                                            } + emptyAssets
-                                        }
-                                    }
-                                    val localAssets = assetsDeferred.await()
-                                    assetDao.insertAssets(localAssets)
-                                    hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(
-                                        metaAccounts
-                                    )
-                                }
-                            }
-                        }
-                        launch { metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id }) }
-                        this
-                    }.coroutineContext.job.join()
-
-                    hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(metaAccounts)
-                }
-            }
-            .launchIn(scope)
-    }
-
-    private fun observeNotInitializedChainAccounts() {
-        metaAccountDao.observeNotInitializedChainAccounts().filter { it.isNotEmpty() }
-            .onEach { chainAccounts ->
-                chainRegistry.configsSyncDeferred.joinAll()
-                val chains =
-                    chainAccounts.map { chainRegistry.getChain(it.chainId) }.associateBy { it.id }
-                val ethereumChains =
-                    chains.values.filter { it.isEthereumChain }.sortedByDescending { it.rank }
-                val substrateChains =
-                    chains.values.filter { !it.isEthereumChain }.sortedByDescending { it.rank }
-
-                supervisorScope {
-                    launch {
-                        ethereumChains.forEach { chain ->
-                            launch {
-                                val assetsDeferred = async {
-                                    if (chainRegistry.checkChainSyncedUp(chain).not()) {
-                                        chainRegistry.setupChain(chain)
-                                    }
-                                    val connection =
-                                        withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
-                                            val connection =
-                                                chainRegistry.awaitEthereumConnection(chain.id)
-                                            // await connecting to the node
-                                            connection.statusFlow.first { it is EvmConnectionStatus.Connected }
-                                            connection
-                                        }
-
-                                    chainAccounts.map { chainAccount ->
-                                        chainAccount.accountId
-                                        val accountId = chainAccount.accountId
-
-                                        val accountBalances = chain.assets.map { chainAsset ->
-                                            async {
-                                                val balance = kotlin.runCatching {
-                                                    connection?.web3j?.fetchEthBalance(
-                                                        chainAsset,
-                                                        accountId.toHexString(true)
-                                                    )
-                                                }.getOrNull()
-
-                                                AssetLocal(
-                                                    id = chainAsset.id,
-                                                    chainId = chain.id,
-                                                    accountId = accountId,
-                                                    metaId = chainAccount.metaId,
-                                                    tokenPriceId = chainAsset.priceId,
-                                                    freeInPlanks = balance,
-                                                    reservedInPlanks = BigInteger.ZERO,
-                                                    miscFrozenInPlanks = BigInteger.ZERO,
-                                                    feeFrozenInPlanks = BigInteger.ZERO,
-                                                    bondedInPlanks = BigInteger.ZERO,
-                                                    redeemableInPlanks = BigInteger.ZERO,
-                                                    unbondingInPlanks = BigInteger.ZERO,
-                                                    enabled = balance.positiveOrNull() != null || chainAsset.isUtility
-                                                )
-                                            }
-                                        }
-                                        accountBalances.awaitAll()
-                                    }.flatten()
-                                }
-                                val localAssets = assetsDeferred.await()
-                                assetDao.insertAssets(localAssets)
-                            }
+                        coroutineContext.job.invokeOnCompletion {
+                            val errorMessage = it?.let { "with error: ${it.message}" } ?: ""
+                            Log.d(TAG, "balances sync completed $errorMessage")
                         }
                     }
-                    launch {
-                        substrateChains.onEach { chain ->
-                            launch {
-                                val assetsDeferred = async {
-                                    val emptyAssets: MutableList<AssetLocal> = mutableListOf()
-                                    val runtime = withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
-                                        if (chainRegistry.checkChainSyncedUp(chain).not()) {
-                                            chainRegistry.setupChain(chain)
-                                        }
-
-                                        // awaiting runtime snapshot
-                                        chainRegistry.awaitRuntimeProvider(chain.id).get()
-                                    }
-
-                                    val isEquilibriumTypeChain =
-                                        chain.utilityAsset != null && chain.utilityAsset!!.typeExtra == ChainAssetType.Equilibrium
-
-                                    if (isEquilibriumTypeChain) {
-                                        buildEquilibriumAssets(
-                                            chainAccounts.map { it.metaId to it.accountId },
-                                            chain,
-                                            runtime
-                                        )
-                                    } else {
-                                        val allAccountsStorageKeys =
-                                            chainAccounts.map { chainAccount ->
-                                                buildSubstrateStorageKeys(
-                                                    chain,
-                                                    runtime,
-                                                    chainAccount.metaId,
-                                                    chainAccount.accountId
-                                                )
-                                            }.flatten()
-
-                                        val keysToQuery =
-                                            allAccountsStorageKeys.mapNotNull { metadata ->
-                                                // if storage key build is failed - we put the empty assets
-                                                if (metadata.key == null) {
-                                                    emptyAssets.add(
-                                                        AssetLocal(
-                                                            accountId = metadata.accountId,
-                                                            id = metadata.asset.id,
-                                                            chainId = metadata.asset.chainId,
-                                                            metaId = metadata.metaAccountId,
-                                                            tokenPriceId = metadata.asset.priceId,
-                                                            enabled = false,
-                                                            freeInPlanks = BigInteger.valueOf(-1)
-                                                        )
-                                                    )
-                                                }
-                                                metadata.key
-                                            }.toList()
-
-                                        val storageKeyToResult = remoteStorageSource.queryKeys(
-                                            keysToQuery,
-                                            chain.id,
-                                            null
-                                        )
-
-                                        allAccountsStorageKeys.map { metadata ->
-                                            val hexRaw =
-                                                storageKeyToResult.getOrDefault(
-                                                    metadata.key,
-                                                    null
-                                                )
-
-                                            val assetBalance =
-                                                runtime?.let {
-                                                    handleBalanceResponse(
-                                                        it,
-                                                        metadata.asset,
-                                                        hexRaw
-                                                    ).getOrNull().toAssetBalance()
-                                                } ?: AssetBalance()
-
-                                            AssetLocal(
-                                                id = metadata.asset.id,
-                                                chainId = chain.id,
-                                                accountId = metadata.accountId,
-                                                metaId = metadata.metaAccountId,
-                                                tokenPriceId = metadata.asset.priceId,
-                                                freeInPlanks = assetBalance.freeInPlanks,
-                                                reservedInPlanks = assetBalance.reservedInPlanks,
-                                                miscFrozenInPlanks = assetBalance.miscFrozenInPlanks,
-                                                feeFrozenInPlanks = assetBalance.feeFrozenInPlanks,
-                                                bondedInPlanks = assetBalance.bondedInPlanks,
-                                                redeemableInPlanks = assetBalance.redeemableInPlanks,
-                                                unbondingInPlanks = assetBalance.unbondingInPlanks,
-                                                enabled = assetBalance.freeInPlanks.positiveOrNull() != null || metadata.asset.isUtility
-                                            )
-                                        } + emptyAssets
-                                    }
-                                }
-                                val localAssets = assetsDeferred.await()
-                                assetDao.insertAssets(localAssets)
-                            }
-                        }
-                    }
-
-                    this
-                }.coroutineContext.job.join()
-                coroutineScope {
-                    chainAccounts.forEach {
-                        metaAccountDao.markChainAccountInitialized(it.metaId, it.chainId)
+                    coroutineScope {
+                        metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id })
+                        hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(
+                            metaAccounts.toList()
+                        )
                     }
                 }
             }
             .launchIn(scope)
     }
+
+//    private fun observeNotInitializedChainAccounts() {
+//        metaAccountDao.observeNotInitializedChainAccounts().filter { it.isNotEmpty() }
+//            .onEach { chainAccounts ->
+//                chainRegistry.configsSyncDeferred.joinAll()
+//                val chains =
+//                    chainAccounts.map { chainRegistry.getChain(it.chainId) }.associateBy { it.id }
+//                val ethereumChains =
+//                    chains.values.filter { it.isEthereumChain }.sortedByDescending { it.rank }
+//                val substrateChains =
+//                    chains.values.filter { !it.isEthereumChain }.sortedByDescending { it.rank }
+//
+//                supervisorScope {
+//                    launch {
+//                        ethereumChains.forEach { chain ->
+//                            launch {
+//                                val assetsDeferred = async {
+//                                    if (chainRegistry.checkChainSyncedUp(chain).not()) {
+//                                        chainRegistry.setupChain(chain)
+//                                    }
+//                                    val connection =
+//                                        withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
+//                                            val connection =
+//                                                chainRegistry.awaitEthereumConnection(chain.id)
+//                                            // await connecting to the node
+//                                            connection.statusFlow.first { it is EvmConnectionStatus.Connected }
+//                                            connection
+//                                        }
+//
+//                                    chainAccounts.map { chainAccount ->
+//                                        val accountId = chainAccount.accountId
+//
+//                                        val accountBalances = chain.assets.map { chainAsset ->
+//                                            async {
+//                                                val balance = kotlin.runCatching {
+//                                                    connection?.web3j?.fetchEthBalance(
+//                                                        chainAsset,
+//                                                        accountId.toHexString(true)
+//                                                    )
+//                                                }.getOrNull()
+//
+//                                                AssetLocal(
+//                                                    id = chainAsset.id,
+//                                                    chainId = chain.id,
+//                                                    accountId = accountId,
+//                                                    metaId = chainAccount.metaId,
+//                                                    tokenPriceId = chainAsset.priceId,
+//                                                    freeInPlanks = balance,
+//                                                    reservedInPlanks = BigInteger.ZERO,
+//                                                    miscFrozenInPlanks = BigInteger.ZERO,
+//                                                    feeFrozenInPlanks = BigInteger.ZERO,
+//                                                    bondedInPlanks = BigInteger.ZERO,
+//                                                    redeemableInPlanks = BigInteger.ZERO,
+//                                                    unbondingInPlanks = BigInteger.ZERO,
+//                                                    enabled = balance.positiveOrNull() != null || chainAsset.isUtility
+//                                                )
+//                                            }
+//                                        }
+//                                        accountBalances.awaitAll()
+//                                    }.flatten()
+//                                }
+//                                val localAssets = assetsDeferred.await()
+//                                assetDao.insertAssets(localAssets)
+//                            }
+//                        }
+//                    }
+//                    launch {
+//                        substrateChains.onEach { chain ->
+//                            launch {
+//                                val assetsDeferred = async {
+//                                    val emptyAssets: MutableList<AssetLocal> = mutableListOf()
+//                                    val runtime = withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
+//                                        if (chainRegistry.checkChainSyncedUp(chain).not()) {
+//                                            chainRegistry.setupChain(chain)
+//                                        }
+//
+//                                        // awaiting runtime snapshot
+//                                        chainRegistry.awaitRuntimeProvider(chain.id).get()
+//                                    }
+//
+//                                    val isEquilibriumTypeChain =
+//                                        chain.utilityAsset != null && chain.utilityAsset!!.typeExtra == ChainAssetType.Equilibrium
+//
+//                                    if (isEquilibriumTypeChain) {
+//                                        buildEquilibriumAssets(
+//                                            chainAccounts.map { it.metaId to it.accountId },
+//                                            chain,
+//                                            runtime
+//                                        )
+//                                    } else {
+//                                        val allAccountsStorageKeys =
+//                                            chainAccounts.map { chainAccount ->
+//                                                buildSubstrateStorageKeys(
+//                                                    chain,
+//                                                    runtime,
+//                                                    chainAccount.metaId,
+//                                                    chainAccount.accountId
+//                                                )
+//                                            }.flatten()
+//
+//                                        val keysToQuery =
+//                                            allAccountsStorageKeys.mapNotNull { metadata ->
+//                                                // if storage key build is failed - we put the empty assets
+//                                                if (metadata.key == null) {
+//                                                    emptyAssets.add(
+//                                                        AssetLocal(
+//                                                            accountId = metadata.accountId,
+//                                                            id = metadata.asset.id,
+//                                                            chainId = metadata.asset.chainId,
+//                                                            metaId = metadata.metaAccountId,
+//                                                            tokenPriceId = metadata.asset.priceId,
+//                                                            enabled = false,
+//                                                            freeInPlanks = BigInteger.valueOf(-1)
+//                                                        )
+//                                                    )
+//                                                }
+//                                                metadata.key
+//                                            }.toList()
+//
+//                                        val storageKeyToResult = remoteStorageSource.queryKeys(
+//                                            keysToQuery,
+//                                            chain.id,
+//                                            null
+//                                        )
+//
+//                                        allAccountsStorageKeys.map { metadata ->
+//                                            val hexRaw =
+//                                                storageKeyToResult.getOrDefault(
+//                                                    metadata.key,
+//                                                    null
+//                                                )
+//
+//                                            val assetBalance =
+//                                                runtime?.let {
+//                                                    handleBalanceResponse(
+//                                                        it,
+//                                                        metadata.asset,
+//                                                        hexRaw
+//                                                    ).getOrNull().toAssetBalance()
+//                                                } ?: AssetBalance()
+//
+//                                            AssetLocal(
+//                                                id = metadata.asset.id,
+//                                                chainId = chain.id,
+//                                                accountId = metadata.accountId,
+//                                                metaId = metadata.metaAccountId,
+//                                                tokenPriceId = metadata.asset.priceId,
+//                                                freeInPlanks = assetBalance.freeInPlanks,
+//                                                reservedInPlanks = assetBalance.reservedInPlanks,
+//                                                miscFrozenInPlanks = assetBalance.miscFrozenInPlanks,
+//                                                feeFrozenInPlanks = assetBalance.feeFrozenInPlanks,
+//                                                bondedInPlanks = assetBalance.bondedInPlanks,
+//                                                redeemableInPlanks = assetBalance.redeemableInPlanks,
+//                                                unbondingInPlanks = assetBalance.unbondingInPlanks,
+//                                                enabled = assetBalance.freeInPlanks.positiveOrNull() != null || metadata.asset.isUtility
+//                                            )
+//                                        } + emptyAssets
+//                                    }
+//                                }
+//                                val localAssets = assetsDeferred.await()
+//                                assetDao.insertAssets(localAssets)
+//                            }
+//                        }
+//                    }
+//
+//                    this
+//                }.coroutineContext.job.join()
+//                coroutineScope {
+//                    chainAccounts.forEach {
+//                        metaAccountDao.markChainAccountInitialized(it.metaId, it.chainId)
+//                    }
+//                }
+//            }
+//            .launchIn(scope)
+//    }
 
     private suspend fun hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(
         metaAccounts: List<MetaAccount>
@@ -503,79 +393,6 @@ class WalletSyncService(
         }
     }
 
-    private suspend fun buildEquilibriumAssetsByMetaAccounts(
-        metaAccounts: List<MetaAccount>,
-        chain: Chain,
-        runtime: RuntimeSnapshot?
-    ): List<AssetLocal> {
-        return buildEquilibriumAssets(
-            metaAccounts.map { it.id to it.accountId(chain) },
-            chain,
-            runtime
-        )
-    }
-
-    private suspend fun buildEquilibriumAssets(
-        accountInfo: List<Pair<Long, ByteArray?>>,
-        chain: Chain,
-        runtime: RuntimeSnapshot?
-    ): List<AssetLocal> {
-        val emptyAssets: MutableList<AssetLocal> = mutableListOf()
-
-        val allAccountsStorageKeys = accountInfo.mapNotNull { (metaId, accountId) ->
-            accountId ?: return@mapNotNull null
-            buildEquilibriumStorageKeys(chain, runtime, metaId, accountId)
-        }.associateBy { it.key }
-
-        val keysToQuery =
-            allAccountsStorageKeys.mapNotNull { (storageKey, metadata) ->
-                // if storage key build is failed - we put the empty assets
-                if (storageKey == null) {
-                    // filling all the equilibrium assets
-                    val empty = chain.assets.map {
-                        AssetLocal(
-                            accountId = metadata.accountId,
-                            id = it.id,
-                            chainId = it.chainId,
-                            metaId = metadata.metaAccountId,
-                            tokenPriceId = it.priceId,
-                            enabled = false,
-                            freeInPlanks = BigInteger.valueOf(-1)
-                        )
-                    }
-                    emptyAssets.addAll(empty)
-                }
-                storageKey
-            }.toList()
-
-        val storageKeyToResult = remoteStorageSource.queryKeys(keysToQuery, chain.id, null)
-
-        return storageKeyToResult.mapNotNull { (storageKey, hexRaw) ->
-            val metadata = allAccountsStorageKeys[storageKey] ?: return@mapNotNull null
-
-            val balanceData = runtime?.let { bindEquilibriumAccountData(hexRaw, it) }
-            val equilibriumAssetsBalanceMap = balanceData?.data?.balances.orEmpty()
-
-            chain.assets.map { asset ->
-                val balance =
-                    asset.currencyId?.toBigInteger()?.let {
-                        equilibriumAssetsBalanceMap.getOrDefault(it, null)
-                            .orZero()
-                    }.orZero()
-
-                AssetLocal(
-                    accountId = metadata.accountId,
-                    id = asset.id,
-                    chainId = asset.chainId,
-                    metaId = metadata.metaAccountId,
-                    tokenPriceId = asset.priceId,
-                    enabled = balance.positiveOrNull() != null,
-                    freeInPlanks = balance
-                )
-            }
-        }.flatten() + emptyAssets
-    }
-
     private fun observeNomisScores() {
         var syncJob: Job? = null
         val supportedChains = setOf(
@@ -585,7 +402,14 @@ class WalletSyncService(
         )
 
         metaAccountDao.observeJoinedMetaAccountsInfo()
-            .distinctUntilChangedBy { it.size + it.map { info -> info.chainAccounts }.flatten().size }
+            .map { list ->
+                list.filter { info ->
+                    info.metaAccount.ethereumPublicKey != null || info.chainAccounts.any { it.chainId in supportedChains }
+                }
+            }
+            .distinctUntilChangedBy {
+                it.size + it.map { info -> info.chainAccounts }.flatten().size
+            }
             .map { metaAccountInfo ->
                 val existingScores = nomisScoresDao.getScores()
                 val currentTime = System.currentTimeMillis()
@@ -594,11 +418,8 @@ class WalletSyncService(
                     existingScores.filter { currentTime - it.updated > twelveHoursMillis }
                         .map { it.metaId }
 
-                val metaAccounts = metaAccountInfo.asSequence()
-                    .filter { info -> info.metaAccount.ethereumAddress != null || info.chainAccounts.any { it.chainId in supportedChains } }
-
                 val newAccounts =
-                    metaAccounts.filter { it.metaAccount.id !in existingScores.map { score -> score.metaId } }
+                    metaAccountInfo.filter { it.metaAccount.id !in existingScores.map { score -> score.metaId } }
 
                 val accountsToUpdate = metaAccountInfo.asSequence()
                     .filter { it.metaAccount.id in existingScoresToUpdate }
@@ -626,7 +447,8 @@ class WalletSyncService(
                     val id = accountInfo.metaAccount.id
                     nomisScoresDao.insert(NomisWalletScoreLocal.loading(id))
                     runCatching {
-                        val address = accountInfo.metaAccount.ethereumAddress ?: accountInfo.chainAccounts.firstOrNull { it.chainId in supportedChains }?.publicKey?.ethereumAddressFromPublicKey()
+                        val address = accountInfo.metaAccount.ethereumAddress
+                            ?: accountInfo.chainAccounts.firstOrNull { it.chainId in supportedChains }?.publicKey?.ethereumAddressFromPublicKey()
                         nomisApi.getNomisScore(address!!.toHexString(true))
                     }.onSuccess { response ->
                         nomisScoresDao.insert(response.toLocal(id))

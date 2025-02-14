@@ -25,7 +25,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 
 data class BackupWalletState(
-    val walletItem: WalletItemViewState?,
+    val walletItem: WalletItemViewState,
     val isAuthedToGoogle: Boolean,
     val isWalletSavedInGoogle: Boolean,
     val isMnemonicBackupSupported: Boolean,
@@ -34,10 +34,20 @@ data class BackupWalletState(
 ) {
     companion object {
         val Empty = BackupWalletState(
-            walletItem = null,
+            walletItem = WalletItemViewState(
+                id = 0,
+                balance = null,
+                assetSymbol = null,
+                changeBalanceViewState = null,
+                title = "",
+                walletIcon = R.drawable.ic_wallet,
+                isSelected = false,
+                additionalMetadata = "",
+                score = null
+            ),
             isAuthedToGoogle = false,
             isWalletSavedInGoogle = false,
-            isMnemonicBackupSupported = false,
+            isMnemonicBackupSupported = true,
             isSeedBackupSupported = false,
             isJsonBackupSupported = true
         )
@@ -79,15 +89,15 @@ internal fun BackupWalletContent(
             ),
             onNavigationClick = callback::onBackClick
         )
-        if (state.walletItem != null) {
-            MarginVertical(16.dp)
-            WalletItem(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp),
-                state = state.walletItem,
-                onSelected = {}
-            )
-        }
+
+        MarginVertical(16.dp)
+        WalletItem(
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
+            state = state.walletItem,
+            onSelected = {}
+        )
+
         MarginVertical(16.dp)
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState())

@@ -13,10 +13,10 @@ import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
-import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 
 @InstallIn(SingletonComponent::class)
@@ -61,11 +61,11 @@ class NavigationModule {
 
     @Singleton
     @Provides
-    fun provideSoraCardRouter(navigator: Navigator): SoraCardRouter = navigator
+    fun provideWalletConnectRouter(navigator: Navigator): WalletConnectRouter = navigator
 
     @Singleton
     @Provides
-    fun provideWalletConnectRouter(navigator: Navigator): WalletConnectRouter = navigator
+    fun provideTonConnectRouter(navigator: Navigator): TonConnectRouter = navigator
 
     @Singleton
     @Provides

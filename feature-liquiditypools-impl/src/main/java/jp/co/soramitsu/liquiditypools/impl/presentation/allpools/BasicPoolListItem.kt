@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -102,7 +101,6 @@ fun BasicPoolListItem(
                     contentDescription = null,
                     loading = { Shimmer(Modifier.size(Size.ExtraSmall)) },
                     error = {
-                        it.result.throwable.message?.let { it1 -> Log.d("&&&", it1) }
                         Icon(painterResource(id = R.drawable.ic_token_default), null, modifier = Modifier.size(size = 32.dp))
                     }
                 )

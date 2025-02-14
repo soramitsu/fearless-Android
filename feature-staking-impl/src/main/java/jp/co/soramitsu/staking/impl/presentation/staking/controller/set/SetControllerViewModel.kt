@@ -124,8 +124,6 @@ class SetControllerViewModel @Inject constructor(
             val supportedExplorers = chain.explorers.getSupportedAddressExplorers(stashAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = stashAddress,
-                chainId = chainId,
-                chainName = chain.name,
                 explorers = supportedExplorers
             )
 

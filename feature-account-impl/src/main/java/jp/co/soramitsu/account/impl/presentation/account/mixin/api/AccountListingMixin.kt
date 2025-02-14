@@ -6,4 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface AccountListingMixin {
 
     fun accountsFlow(metaAccountIconDpSize: Int? = null): Flow<List<LightMetaAccountUi>>
+    suspend fun getAccount(metaId: Long, metaAccountIconDpSize: Int? = null): LightMetaAccountUi
 }

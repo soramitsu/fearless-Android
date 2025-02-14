@@ -32,7 +32,6 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
-import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
@@ -564,7 +563,7 @@ class PoolsRepositoryImpl constructor(
         secondAmountMin: BigDecimal
     ): Result<String>? {
         val soraChain = accountRepository.getChain(chainId)
-        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId ?: return Result.failure(IllegalStateException("There is no keypair for substrate ecosystem"))
         val baseTokenId = tokenBase.currencyId ?: return null
         val targetTokenId = tokenTarget.currencyId ?: return null
 
@@ -586,7 +585,6 @@ class PoolsRepositoryImpl constructor(
     override suspend fun observeAddLiquidity(
         chainId: ChainId,
         address: String,
-        keypair: Keypair,
         tokenBase: Asset,
         tokenTarget: Asset,
         amountBase: BigDecimal,
@@ -599,7 +597,7 @@ class PoolsRepositoryImpl constructor(
         val amountToMin = PolkaswapFormulas.calculateMinAmount(amountTarget, slippageTolerance)
         val dexId = getPoolBaseTokenDexId(chainId, tokenBase.currencyId)
         val soraChain = accountRepository.getChain(chainId)
-        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId ?: return Result.failure(IllegalStateException("There is no keypair for substrate ecosystem"))
 
         val baseTokenId = tokenBase.currencyId
         val targetTokenId = tokenTarget.currencyId

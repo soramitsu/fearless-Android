@@ -61,8 +61,7 @@ class SearchAssetsViewModel @Inject constructor(
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = readyToUseAssets,
-            filteredChains = chains,
-            networkIssues = emptySet()
+            filteredChains = chains
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
@@ -101,9 +100,6 @@ class SearchAssetsViewModel @Inject constructor(
             }
             ActionItemType.RECEIVE -> {
                 receiveClicked(payload)
-            }
-            ActionItemType.TELEPORT -> {
-                showMessage("YOU NEED THE BLUE KEY")
             }
             ActionItemType.HIDE -> {
                 launch { hideAsset(chainId, chainAssetId) }

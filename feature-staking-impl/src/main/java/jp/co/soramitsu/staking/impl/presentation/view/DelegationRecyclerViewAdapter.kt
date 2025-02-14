@@ -29,6 +29,7 @@ class DelegationRecyclerViewAdapter(
 }
 
 class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    var singleClickProcessing = false
     fun bind(item: DelegatorViewState.CollatorDelegationModel, itemHandler: DelegationRecyclerViewAdapter.DelegationHandler) {
         itemView.findViewById<StakeSummaryView>(R.id.summaryView).apply {
             hideLoading()

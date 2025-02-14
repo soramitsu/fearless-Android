@@ -107,6 +107,7 @@ fun BigInteger.greaterThen(other: BigInteger): Boolean = this.compareTo(other) =
 fun BigInteger?.isZero(): Boolean = this?.compareTo(BigInteger.ZERO) == 0
 fun BigInteger?.greaterThanOrEquals(other: BigInteger): Boolean = this?.compareTo(other) == 1 || this?.compareTo(other) == 0
 fun BigInteger?.lessThan(other: BigInteger): Boolean = this?.compareTo(other) == -1
+fun BigInteger?.lessThanOrEquals(other: BigInteger): Boolean = this?.compareTo(other) == -1 || this?.compareTo(other) == 0
 fun BigInteger?.isNotZero(): Boolean = !isZero()
 
 fun BigInteger?.positiveOrNull(): BigInteger? {

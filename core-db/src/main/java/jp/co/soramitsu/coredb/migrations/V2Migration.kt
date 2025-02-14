@@ -17,7 +17,7 @@ import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.converters.CryptoTypeConverters
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
@@ -84,6 +84,7 @@ class V2Migration(
                 substrateCryptoType = account.cryptoType,
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
+                tonPublicKey = null,
                 name = account.name,
                 isSelected = isSelected,
                 position = index,

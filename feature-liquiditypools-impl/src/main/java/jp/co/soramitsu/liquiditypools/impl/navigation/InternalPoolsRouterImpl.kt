@@ -110,7 +110,7 @@ class InternalPoolsRouterImpl(
         chainId: ChainId,
         customMessage: String
     ) {
-        walletRouter.openOperationSuccess(txHash, chainId, customMessage)
+        walletRouter.openOperationSuccess(txHash, chainId, customMessage, null)
     }
 
     override fun <T : LiquidityPoolsNavGraphRoute> destination(clazz: Class<T>): T? {

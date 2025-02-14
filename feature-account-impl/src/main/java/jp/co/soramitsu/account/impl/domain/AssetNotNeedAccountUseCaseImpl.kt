@@ -39,7 +39,7 @@ class AssetNotNeedAccountUseCaseImpl(
         if (cached == null) {
             val initial = AssetLocal.createEmpty(emptyAccountIdValue, assetId, chainId, metaId, priceId)
             val newAsset = initial.copy(markedNotNeed = true)
-            priceId?.let { tokenPriceDao.ensureTokenPrice(it) }
+//            priceId?.let { tokenPriceDao.ensureTokenPrice(it) }
             assetDao.insertAsset(newAsset)
         } else {
             val updatedAsset = cached.copy(markedNotNeed = true)

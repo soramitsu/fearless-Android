@@ -101,7 +101,6 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                chainId = viewModel.chainId,
                 explorers = explorers
             )
         )

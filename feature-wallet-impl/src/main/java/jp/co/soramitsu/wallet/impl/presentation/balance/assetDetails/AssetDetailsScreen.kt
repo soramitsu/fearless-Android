@@ -45,7 +45,6 @@ import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIcon
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
@@ -55,6 +54,7 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white16
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
@@ -223,7 +223,7 @@ private fun AssetDetailsContentPreview() {
                 ),
                 tabState = MultiToggleButtonState(
                     currentSelection = AssetDetailsState.Tab.AvailableChains,
-                    toggleStates = AssetDetailsState.Tab.values().toList()
+                    toggleStates = AssetDetailsState.Tab.entries
                 ),
                 items = listOf(
                     AssetDetailsItemViewState(

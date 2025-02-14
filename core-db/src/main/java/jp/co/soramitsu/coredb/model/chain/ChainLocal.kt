@@ -25,7 +25,10 @@ data class ChainLocal(
     val supportNft: Boolean,
     val isUsesAppId: Boolean,
     val identityChain: String?,
-    val remoteAssetsSource: String?
+    val ecosystem: String,
+    val androidMinAppVersion: String?,
+    val remoteAssetsSource: String?,
+    val tonBridgeUrl: String?
 ) {
 
     class ExternalApi(

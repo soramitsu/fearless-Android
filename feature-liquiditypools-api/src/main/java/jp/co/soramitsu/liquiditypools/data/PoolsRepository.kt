@@ -4,7 +4,6 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
@@ -69,7 +68,6 @@ interface PoolsRepository {
     suspend fun observeAddLiquidity(
         chainId: ChainId,
         address: String,
-        keypair: Keypair,
         tokenBase: Asset,
         tokenTarget: Asset,
         amountBase: BigDecimal,

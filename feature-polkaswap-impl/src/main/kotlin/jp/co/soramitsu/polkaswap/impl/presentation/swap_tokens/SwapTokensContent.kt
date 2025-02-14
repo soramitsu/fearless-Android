@@ -2,7 +2,6 @@ package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -403,14 +402,13 @@ private fun MarketLabel(
                 .background(MaterialTheme.customColors.white08)
                 .size(32.dp)
                 .padding(4.dp),
-            painter = painterResource(R.drawable.ic_settings),
+            painter = painterResource(R.drawable.ic_settings_swap),
             contentDescription = null,
             tint = MaterialTheme.customColors.white
         )
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Banners(
     showLiquidity: Boolean,

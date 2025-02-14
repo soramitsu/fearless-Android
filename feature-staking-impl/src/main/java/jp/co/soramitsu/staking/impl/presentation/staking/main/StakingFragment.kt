@@ -32,6 +32,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.common.utils.MultipleEventsCutter
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
@@ -65,7 +66,7 @@ import kotlinx.coroutines.launch
 class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
     private val delegationAdapter by lazy { DelegationRecyclerViewAdapter(this) }
 
     override val viewModel: StakingViewModel by viewModels()
@@ -380,12 +381,17 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         stakingViewState: StakeViewState<S>,
         mapStatus: (StakeSummaryModel<S>) -> StakeSummaryView.Status
     ) {
+        val multipleEventsCutter = MultipleEventsCutter()
         setStatusClickListener {
-            stakingViewState.statusClicked()
+            multipleEventsCutter.processEvent {
+                stakingViewState.statusClicked()
+            }
         }
 
         setStakeInfoClickListener {
-            stakingViewState.moreActionsClicked()
+            multipleEventsCutter.processEvent {
+                stakingViewState.moreActionsClicked()
+            }
         }
 
         stakingViewState.showStatusAlertEvent.observeEvent { (title, message) ->

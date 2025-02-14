@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.models.Asset
@@ -34,6 +32,7 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -53,19 +52,16 @@ class StakingLedgerUpdater(
     private val accountStakingDao: AccountStakingDao,
     private val storageCache: StorageCache,
     private val assetCache: AssetCache,
-    private val updatesMixin: UpdatesMixin,
     override val scope: AccountUpdateScope
-) : StakingUpdater, UpdatesProviderUi by updatesMixin {
+) : StakingUpdater {
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
         val runtime = chainRegistry.getRuntime(chain.id)
 
         val account = scope.getAccount()
-        val currentAccountId = scope.getAccount().accountId(chain)!! // TODO ethereum
+        val currentAccountId = scope.getAccount().accountId(chain) ?: return emptyFlow()
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
-
-        updatesMixin.startUpdateAsset(scope.getAccount().id, chain.id, currentAccountId, chainAsset.id)
 
         return storageSubscriptionBuilder.subscribe(key)
             .flatMapLatest { change ->
@@ -150,7 +146,7 @@ class StakingLedgerUpdater(
         stakingLedger: StakingLedger,
         era: BigInteger
     ) {
-        assetCache.updateAsset(accountId, metaId, chainAsset) { cached ->
+        assetCache.updateAsset(metaId, accountId, chainAsset) { cached ->
             val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(era) }
             val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(era) }
 
@@ -167,7 +163,7 @@ class StakingLedgerUpdater(
         accountId: AccountId,
         chainAsset: Asset
     ) {
-        assetCache.updateAsset(accountId, metaId, chainAsset) { cached ->
+        assetCache.updateAsset(metaId, accountId, chainAsset) { cached ->
             cached.copy(
                 redeemableInPlanks = BigInteger.ZERO,
                 unbondingInPlanks = BigInteger.ZERO,

@@ -3,7 +3,9 @@ package jp.co.soramitsu.account.api.domain.model
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 
-data class Account(
+data class
+
+Account(
     val address: String,
     val name: String?,
     val accountIdHex: String,

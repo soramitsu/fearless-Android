@@ -29,7 +29,8 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class OptionsWalletScreenViewState(
     val isSelected: Boolean,
-    val showScoreButton: Boolean
+    val showScoreButton: Boolean,
+    val showDetailsButton: Boolean
 )
 
 interface OptionsWalletCallback {
@@ -91,14 +92,16 @@ fun OptionsWalletContent(
                 text = stringResource(id = R.string.export_wallet),
                 onClick = callback::onBackupWalletClick
             )
-            MarginVertical(margin = 12.dp)
-            GrayButton(
-                text = stringResource(id = R.string.common_details_wallet),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                onClick = callback::onWalletDetailsClick
-            )
+            if (state.showDetailsButton) {
+                MarginVertical(margin = 12.dp)
+                GrayButton(
+                    text = stringResource(id = R.string.common_details_wallet),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    onClick = callback::onWalletDetailsClick
+                )
+            }
             MarginVertical(margin = 12.dp)
             GrayButton(
                 modifier = Modifier
@@ -140,7 +143,8 @@ private fun OptionsWalletScreenPreview() {
         OptionsWalletContent(
             state = OptionsWalletScreenViewState(
                 isSelected = false,
-                showScoreButton = true
+                showScoreButton = true,
+                showDetailsButton = true
             ),
             callback = object : OptionsWalletCallback {
                 override fun onChangeWalletNameClick() {}
