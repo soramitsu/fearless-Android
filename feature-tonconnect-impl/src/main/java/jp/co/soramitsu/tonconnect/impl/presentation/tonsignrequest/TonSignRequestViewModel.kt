@@ -212,7 +212,9 @@ class TonSignRequestViewModel @Inject constructor(
             }
 
             runCatching { tonConnectInteractor.signMessage(chain, method, signRequest, metaId) }
-                .onSuccess { tonConnectRouter.backWithResult(TonSignRequestFragment.TON_SIGN_RESULT_KEY to Result.success(it)) }
+                .onSuccess {
+                    tonConnectRouter.backWithResult(TonSignRequestFragment.TON_SIGN_RESULT_KEY to Result.success(it))
+                }
                 .onFailure { showError(it) }
 
             state.update { prevState ->

@@ -16,7 +16,7 @@ interface TonConnectRouter {
         dapp: DappModel,
         method: String,
         signRequest: TonConnectSignRequest
-    ): Result<String>
+    ): Result<Pair<String, String>>
 
     suspend fun openTonConnectionAndWaitForResult(app: AppEntity, proofPayload: String?): JSONObject
     fun openRawData(payload: String)

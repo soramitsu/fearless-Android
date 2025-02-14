@@ -12,10 +12,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
-import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
-import jp.co.soramitsu.tonconnect.api.model.AppEntity
-import jp.co.soramitsu.tonconnect.api.model.DappModel
-import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
@@ -128,6 +124,11 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDet
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment
 import jp.co.soramitsu.tonconnect.impl.presentation.dappscreen.DappScreenFragment
 import jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment
 import jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment
@@ -196,7 +197,6 @@ import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicBoolean
-import jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment
 import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
 
@@ -1597,10 +1597,10 @@ class Navigator :
         dapp: DappModel,
         method: String,
         signRequest: TonConnectSignRequest
-    ): Result<String> {
+    ): Result<Pair<String, String>> {
         val bundle = TonSignRequestFragment.getBundle(dapp, method, signRequest)
 
-        val result = openAndWaitResult<Result<String>>(
+        val result = openAndWaitResult<Result<Pair<String, String>>>(
             destinationId = R.id.tonSignRequestFragment,
             bundle = bundle,
             resultKey = TonSignRequestFragment.TON_SIGN_RESULT_KEY

@@ -450,10 +450,10 @@ class TonConnectInteractorImpl(
             init = maybeStateInit,
             body = body
         )
-        val boc = buildCell {
+        val cell = buildCell {
             storeTlb(Message.tlbCodec(AnyTlbConstructor), message)
-        }.base64()
-        return@withContext boc
+        }
+        return@withContext cell.base64() to cell.hash().toHex()
     }
 
     private fun body(body: Any?): Cell? {

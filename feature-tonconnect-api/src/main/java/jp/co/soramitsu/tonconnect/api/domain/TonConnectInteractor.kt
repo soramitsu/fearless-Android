@@ -47,7 +47,7 @@ interface TonConnectInteractor {
         method: String,
         signRequest: TonConnectSignRequest,
         metaId: Long
-    ): String
+    ): Pair<String, String>
 
     suspend fun sendBlockchainMessage(chain: Chain, boc: String)
     suspend fun sendDappMessage(event: BridgeEvent, boc: String)

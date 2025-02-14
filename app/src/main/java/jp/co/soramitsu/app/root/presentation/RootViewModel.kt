@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
 import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
@@ -189,7 +190,7 @@ class RootViewModel @Inject constructor(
                         val signRequest = TonConnectSignRequest(event.message.params.first())
 
                         rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
-                            .onSuccess { boc ->
+                            .onSuccess { (boc, hex) ->
                                 runCatching { tonConnectInteractor.sendBlockchainMessage(tonConnectInteractor.getChain(), boc) }
                                     .onSuccess {
                                         kotlin.runCatching {
@@ -198,8 +199,8 @@ class RootViewModel @Inject constructor(
                                             showError(it)
                                         }.onSuccess {
                                             rootRouter.openOperationSuccess(
-                                                null,
-                                                null,
+                                                hex,
+                                                tonChainId,
                                                 resourceManager.getString(R.string.success_message_transaction_sent),
                                                 resourceManager.getString(jp.co.soramitsu.feature_tonconnect_impl.R.string.all_done)
                                             )
