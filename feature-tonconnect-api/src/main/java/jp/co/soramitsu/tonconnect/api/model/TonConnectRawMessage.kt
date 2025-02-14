@@ -18,21 +18,25 @@ data class TonConnectRawMessage(
     val payloadValue: String?
 ) : Parcelable {
 
+    @delegate:Transient
     @IgnoredOnParcel
     val address: AddrStd by lazy {
         AddrStd.parse(addressValue)
     }
 
+    @delegate:Transient
     @IgnoredOnParcel
     val coins: Coins by lazy {
         Coins.ofNano(amount)
     }
 
+    @delegate:Transient
     @IgnoredOnParcel
     val stateInit: StateInit? by lazy {
         stateInitValue?.toTlb()
     }
 
+    @delegate:Transient
     @IgnoredOnParcel
     val payload: Cell by lazy {
         payloadValue?.safeParseCell() ?: Cell()

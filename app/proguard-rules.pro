@@ -36,12 +36,20 @@
 -keep class jp.co.soramitsu.crowdloan.impl.data.** { *; }
 -keep class jp.co.soramitsu.crowdloan.impl.domain.** { *; }
 
+-keep class jp.co.soramitsu.tonconnect.api.model.** { *; }
+-keep class jp.co.soramitsu.tonconnect.impl.** { *; }
+
 -keep class jp.co.soramitsu.core_db.** { *; }
 -keep class jp.co.soramitsu.coredb.** { *; }
 -keep class jp.co.soramitsu.core.** { *; }
 
 -keep class net.jpountz.** { *; }
 -keep class org.web3j.** { *; }
+
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator CREATOR;
+}
+-keep class org.json.** { *; }
 
 # Jackson (serializer used in web3j lib) tries to get Enum classes from the whole application (not only its packages)
 # by doing so it tries to find Enums that are defined inside its packages :/
