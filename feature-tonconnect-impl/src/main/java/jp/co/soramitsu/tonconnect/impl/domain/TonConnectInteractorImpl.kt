@@ -517,10 +517,10 @@ class TonConnectInteractorImpl(
         tonApiHttpClient.post(url, requestBody)
     }
 
-    override suspend fun getConnection(url: String): TonConnectionLocal? {
+    override suspend fun getConnection(url: String, source: ConnectionSource): TonConnectionLocal? {
         val formatted = URL(url).host
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        return tonConnectRepository.getConnection(metaAccount.id, formatted)
+        return tonConnectRepository.getConnection(metaAccount.id, formatted, source)
     }
 
     override suspend fun respondDappError(event: BridgeEvent, error: BridgeError): Unit =

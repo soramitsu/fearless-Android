@@ -53,6 +53,6 @@ interface TonConnectInteractor {
     suspend fun sendDappMessage(event: BridgeEvent, boc: String)
     suspend fun readManifest(url: String): AppEntity
 
-    suspend fun getConnection(url: String): TonConnectionLocal?
+    suspend fun getConnection(url: String, source: ConnectionSource): TonConnectionLocal?
     suspend fun respondDappError(event: BridgeEvent, error: BridgeError)
 }

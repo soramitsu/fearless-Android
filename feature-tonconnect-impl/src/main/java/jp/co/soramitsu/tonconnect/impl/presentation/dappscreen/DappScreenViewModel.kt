@@ -7,6 +7,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
@@ -117,7 +118,7 @@ class DappScreenViewModel @Inject constructor(
             return JsonBuilder.connectEventError(BridgeError.UNKNOWN_APP)
         }
 
-        if (interactor.getConnection(url) == null) {
+        if (interactor.getConnection(url, ConnectionSource.WEB) == null) {
             return JsonBuilder.connectEventError(BridgeError.UNKNOWN_APP)
         }
 

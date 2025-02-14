@@ -50,9 +50,9 @@ class TonConnectRepositoryImpl(
         tonConnectDao.deleteTonConnection(clientId)
     }
 
-    override suspend fun getConnection(metaId: Long, url: String): TonConnectionLocal? {
+    override suspend fun getConnection(metaId: Long, url: String, source: ConnectionSource): TonConnectionLocal? {
         val formatted = "%$url%"
-        return tonConnectDao.getTonConnection(metaId, formatted)
+        return tonConnectDao.getTonConnection(metaId, formatted, source)
     }
 
     companion object {

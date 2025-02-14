@@ -19,8 +19,8 @@ abstract class TonConnectDao {
     @Query("SELECT * FROM ton_connection WHERE source = :source")
     abstract suspend fun getTonConnections(source: ConnectionSource): List<TonConnectionLocal>
 
-    @Query("SELECT * FROM ton_connection WHERE metaId = :metaId AND url LIKE :url")
-    abstract suspend fun getTonConnection(metaId: Long, url: String): TonConnectionLocal?
+    @Query("SELECT * FROM ton_connection WHERE metaId = :metaId AND url LIKE :url AND source = :source")
+    abstract suspend fun getTonConnection(metaId: Long, url: String, source: ConnectionSource): TonConnectionLocal?
 
     @Query("DELETE FROM ton_connection WHERE clientId = :dappId")
     abstract suspend fun deleteTonConnection(dappId: String)
