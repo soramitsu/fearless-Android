@@ -21,7 +21,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TonWalletContract.Companio
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.cellFromBase64
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.hex
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.isBounceable
+import jp.co.soramitsu.runtime.multiNetwork.chain.ton.isBounce
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.loadAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.loadCoins
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.loadMaybeRef
@@ -375,12 +375,13 @@ class TonConnectInteractorImpl(
             } else {
                 message.payload
             }
-
+            val recipientAccountDataDeferred =
+                async { tonRemoteSource.loadAccountData(chain, message.addressValue) }
             val builder = WalletTransferBuilder()
             builder.destination = message.address
             builder.messageData =
                 MessageData.Raw(body, newStateInit ?: message.stateInit?.let { CellRef(it) })
-            builder.bounceable = message.addressValue.isBounceable()
+            builder.bounceable = isBounce(message.addressValue, recipientAccountDataDeferred.await())
             if (newCustomPayload != null) {
                 val defCoins = Coins.of(0.5)
                 if (defCoins.amount.value > message.coins.amount.value) {

@@ -135,7 +135,7 @@ fun AddrStd.isBounceable(): Boolean {
     return toString(userFriendly = true).isBounceable()
 }
 fun String.isBounceable(): Boolean {
-    return !startsWith("UQ")
+    return startsWith("0:") || startsWith("E")
 }
 
 
