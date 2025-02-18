@@ -10,11 +10,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AddressDisplay
 import jp.co.soramitsu.common.compose.component.AddressDisplayState
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.DisabledTextInput
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.TextInput
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
@@ -37,7 +35,7 @@ fun TransferDetailScreen(state: TransferDetailsState, callback: TransactionDetai
         Toolbar(ToolbarViewState(stringResource(R.string.common_details), R.drawable.ic_cross), onNavigationClick = callback::onNavigationClick)
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             MarginVertical(16.dp)
-            DisabledTextInput(state.id.hint, state.id.text, endIcon = state.id.endIcon, callback::onHashClick)
+            DisabledTextInput(state.hash.hint, state.hash.text, endIcon = state.hash.endIcon, callback::onHashClick)
             MarginVertical(8.dp)
             state.firstAddress?.let {
                 AddressDisplay(it, endIconClick = callback::onFromClick)
@@ -58,7 +56,7 @@ fun TransferDetailScreen(state: TransferDetailsState, callback: TransactionDetai
 fun TransferDetailsPreview() {
 
     val state = TransferDetailsState(
-        id = TextInputViewState(
+        hash = TextInputViewState(
             text = "0xksduhf8747hrgouy2heqrfuh1erhf8037rfh8-139ujf",
             hint ="Hash",
             isActive = false,

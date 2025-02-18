@@ -120,7 +120,7 @@ class TonHistorySource(
                     address = accountAddress,
                     time = event.timestamp.toDuration(DurationUnit.SECONDS).inWholeMilliseconds + index, //for sorting
                     chainAsset = chainAsset,
-                    type = operation
+                    type = operation,
                 )
             }
             mappedActions

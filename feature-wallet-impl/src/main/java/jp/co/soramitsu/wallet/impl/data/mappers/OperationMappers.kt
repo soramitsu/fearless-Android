@@ -666,9 +666,10 @@ private suspend fun Operation.createExtrinsicDetailsState(
 
         else -> address
     }
+
     return TransferDetailsState(
-        id = TextInputViewState(
-            text = id,
+        hash = TextInputViewState(
+            text = type.hash ?: id,
             hint = resourceManager.getString(R.string.common_details),
             isActive = false,
             endIcon = R.drawable.ic_more_vertical
@@ -752,9 +753,10 @@ private suspend fun Operation.createTransferDetailsState(
             chainAsset.iconUrl
         }
     }
+
     return TransferDetailsState(
-        id = TextInputViewState(
-            text = id,
+        hash = TextInputViewState(
+            text = type.hash ?: id,
             hint = resourceManager.getString(R.string.hash),
             isActive = false,
             endIcon = R.drawable.ic_more_vertical
@@ -799,7 +801,7 @@ private suspend fun Operation.createRewardDetailsState(
     val timeStr = time.formatDateTime()
 
     return TransferDetailsState(
-        id = TextInputViewState(
+        hash = TextInputViewState(
             text = id,
             hint = resourceManager.getString(R.string.common_event),
             isActive = false,

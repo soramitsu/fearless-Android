@@ -12,7 +12,7 @@ sealed interface TransactionDetailsState {
 }
 
 data class TransferDetailsState(
-    val id: TextInputViewState,
+    val hash: TextInputViewState,
     val firstAddress: AddressDisplayState?,
     val secondAddress: AddressDisplayState?,
     val status: OperationStatusAppearance,

@@ -70,7 +70,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -206,6 +205,8 @@ class WalletRepositoryImpl(
 
         val accountAddress = chain.addressOf(accountId)
         val utilityAsset = chain.assets.firstOrNull { it.isUtility }
+
+        if(chain.ecosystem == Ecosystem.Ton) return operationHash
 
         val operation = createOperation(
             operationHash,

@@ -7,8 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -76,6 +74,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -538,7 +538,7 @@ class BalanceDetailViewModel @Inject constructor(
 
     fun transactionHashClicked(detailsBottomSheetState: TransactionDetailsState) = viewModelScope.launch {
         if(detailsBottomSheetState is TransferDetailsState) {
-            val hash = detailsBottomSheetState.id.text
+            val hash = detailsBottomSheetState.hash.text
             val supportedAddressExplorers = selectedChainFlow.first().explorers.getSupportedTransactionExplorers(hash)
             externalActionsSelector.value = ExternalAccountActions.Payload(hash, supportedAddressExplorers)
         }
