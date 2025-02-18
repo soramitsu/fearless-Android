@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -75,9 +77,10 @@ fun AssetListItem(
                 contentDescription = null,
                 modifier = Modifier
                     .testTag("AssetListItem_${state.assetSymbol}_image")
-                    .size(42.dp)
-                    .padding(start = 4.dp)
                     .align(CenterVertically)
+                    .padding(start = 4.dp)
+                    .size(42.dp)
+                    .clip(CircleShape)
             )
             MarginHorizontal(margin = 8.dp)
             Divider(
