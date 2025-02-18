@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network.ton
 
 import com.google.gson.annotations.SerializedName
-import org.ton.block.ComputeSkipReason
+import java.math.BigInteger
 
 data class Transaction (
 
@@ -27,7 +27,7 @@ data class Transaction (
     val endStatus: AccountStatus,
 
     @SerializedName("total_fees")
-    val totalFees: kotlin.Long,
+    val totalFees: BigInteger,
 
     @SerializedName("end_balance")
     val endBalance: kotlin.Long,

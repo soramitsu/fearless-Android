@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.network.ton
 
 import com.google.gson.annotations.SerializedName
+import java.math.BigInteger
 
 data class MessageConsequences (
 
@@ -15,7 +16,7 @@ data class MessageConsequences (
 
 )
 
-val MessageConsequences.totalFees: Long
+val MessageConsequences.totalFees: BigInteger
     get() = trace.transaction.totalFees
 
 data class Trace (

@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.TON_BASE_FORWARD_AMOUNT
 import jp.co.soramitsu.common.utils.base64
 import jp.co.soramitsu.common.utils.lessThanOrEquals
 import jp.co.soramitsu.common.utils.putTransferParams
+import jp.co.soramitsu.common.utils.toWalletAddress
 import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.common.utils.v4r2tonAddress
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
@@ -117,8 +118,10 @@ class TonTransferService(
             customPayloadStateInit
         }
 
+        val fakeRecipientAddress = V4R2WalletContract(fakePrivateKey.publicKey()).address.toWalletAddress(chain.isTestNet)
+
         val transferUnsignedBody = createUnsignedBody(
-            transfer.copy(recipient = transfer.sender),
+            transfer.copy(recipient = fakeRecipientAddress),
             stateInit,
             seqno,
             senderSmartContract
@@ -180,7 +183,8 @@ class TonTransferService(
                 throw RuntimeException("Something went wrong")
             }
         }
-        requireNotNull(chain.utilityAsset?.amountFromPlanks(BigInteger.valueOf(fees)))
+
+        requireNotNull(chain.utilityAsset?.amountFromPlanks(fees))
     }
 
     override fun observeTransferFee(transfer: Transfer): Flow<BigDecimal> {

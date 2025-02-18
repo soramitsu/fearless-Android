@@ -5,10 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
@@ -106,6 +102,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 
 @HiltViewModel
 class SendSetupViewModel @Inject constructor(
@@ -161,6 +161,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val chainIdFlow = sharedState.chainIdFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+
     private val selectedChain = chainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
     }
@@ -297,28 +298,38 @@ class SendSetupViewModel @Inject constructor(
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
+
+    private val currentAccountAddressFlow = chainIdFlow.map {
+        it ?: return@map null
+        currentAccountAddress(it)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private val feeAmountFlow = combine(
         addressInputTrimmedFlow,
         isInputAddressValidFlow,
         enteredAmountBigDecimalFlow,
-        assetFlow.mapNotNull { it }
+        assetFlow.mapNotNull { it }.distinctUntilChanged()
     ) { address, isAddressValid, enteredAmount, asset ->
 
         val feeRequestAddress = when {
             isAddressValid -> address
-            else -> currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
+            else -> currentAccountAddressFlow.value ?: return@combine null
         }
 
         Transfer(
             recipient = feeRequestAddress,
-            sender = requireNotNull(currentAccountAddress.invoke(asset.token.configuration.chainId)),
+            sender = requireNotNull(currentAccountAddressFlow.value),
             amount = enteredAmount,
             chainAsset = asset.token.configuration
         )
-    }.debounce(300L).flatMapLatest {
-        it?.let { transfer -> walletInteractor.observeTransferFee(transfer) } ?: flowOf(null)
     }
+        .debounce(300L)
+        .distinctUntilChanged()
+        .flatMapLatest { transfer ->
+            transfer ?: return@flatMapLatest flowOf(null)
+            walletInteractor.observeTransferFee(transfer)
+        }
         .retry(RETRY_TIMES)
         .catch {
             if (it is NotInitializedTonAccountException) {
@@ -336,7 +347,8 @@ class SendSetupViewModel @Inject constructor(
     private val feeInPlanksFlow = combine(feeAmountFlow, assetFlow) { fee, asset ->
         fee ?: return@combine null
         asset ?: return@combine null
-        asset.token.planksFromAmount(fee)
+        val scaledFee = fee.setScale(asset.token.configuration.precision, RoundingMode.DOWN)
+        asset.token.planksFromAmount(scaledFee)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -654,7 +666,7 @@ class SendSetupViewModel @Inject constructor(
                 return@combine null
             }
             val ownAddress =
-                currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
+                currentAccountAddressFlow.value ?: return@combine null
 
             val recipientAddress = when {
                 isAddressValid -> address
@@ -765,10 +777,9 @@ class SendSetupViewModel @Inject constructor(
             val asset = assetFlow.value ?: return@launch
 
             val amount = enteredAmountBigDecimalFlow.value
-            val inPlanks = asset.token.planksFromAmount(amount).orZero()
+            val inPlanks = asset.token.planksFromAmount(amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)).orZero()
             val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
-            val selfAddress =
-                currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+            val selfAddress = currentAccountAddressFlow.value ?: return@launch
             val fee = feeInPlanksFlow.value
             val validationProcessResult = validateTransferUseCase.validateTransfer(
                 amountInPlanks = inPlanks,

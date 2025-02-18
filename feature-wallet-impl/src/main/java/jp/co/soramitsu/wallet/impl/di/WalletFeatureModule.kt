@@ -1,12 +1,10 @@
 package jp.co.soramitsu.wallet.impl.di
 
 import android.content.ContentResolver
-import android.content.Context
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -82,7 +80,6 @@ import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.QuickInputsUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
-import jp.co.soramitsu.wallet.impl.domain.validation.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
@@ -96,6 +93,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
+import jp.co.soramitsu.wallet.impl.domain.validation.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
@@ -463,9 +461,9 @@ class WalletFeatureModule {
     @Provides
     fun provideAccountAddressUseCase(
         accountRepository: AccountRepository,
-        chainRegistry: ChainRegistry
+        chainsRepository: ChainsRepository
     ) =
-        CurrentAccountAddressUseCase(accountRepository, chainRegistry)
+        CurrentAccountAddressUseCase(accountRepository, chainsRepository)
 
     @Provides
     @Singleton
