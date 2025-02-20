@@ -32,7 +32,7 @@ class TonHistorySource(
     ): CursorPage<Operation> {
         val tonPublicKey = PublicKeyEd25519(accountId)
         val contract = V4R2WalletContract(tonPublicKey)
-        val beforeLt = cursor?.toLong()
+        val beforeLt = kotlin.runCatching { cursor?.toLong() }.getOrNull()
         val accountEvents =
             tonRemoteSource.getAccountEvents(historyUrl, contract.getAccountId(chain.isTestNet), beforeLt)
 

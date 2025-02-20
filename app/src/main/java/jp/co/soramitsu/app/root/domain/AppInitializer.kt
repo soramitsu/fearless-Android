@@ -20,6 +20,7 @@ import jp.co.soramitsu.wallet.impl.data.repository.PricesSyncService
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -33,7 +34,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-class AppInitializer(
+class AppInitializer @OptIn(ExperimentalCoroutinesApi::class) constructor(
     private val chainRegistry: ChainRegistry,
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
@@ -46,7 +47,7 @@ class AppInitializer(
     private val preferences: Preferences,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val pricesSyncService: PricesSyncService,
-    private val coroutineContext: CoroutineContext = Dispatchers.Default + SupervisorJob()
+    private val coroutineContext: CoroutineContext = Dispatchers.Default.limitedParallelism(8) + SupervisorJob()
 ) {
 
     data class Step(val type: InitializationStep, val action: suspend () -> Unit)
