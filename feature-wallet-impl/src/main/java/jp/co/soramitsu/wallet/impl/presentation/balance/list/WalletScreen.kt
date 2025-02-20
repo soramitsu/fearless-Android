@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -81,8 +80,9 @@ fun WalletScreen(
 
     LaunchedEffect(data.scrollToBottomEvent) {
         data.scrollToBottomEvent?.getContentIfNotHandled()?.let {
-            if (data.assetsState is WalletAssetsState.Assets) {
-                val items = data.assetsState.assets.size + listOf("header", "footer").size
+            if (data.assetsState is WalletAssetsState.Assets && data.assetsState.assets is AssetsLoadingState.Loaded) {
+
+                val items = data.assetsState.assets.assets.size + listOf("header", "footer").size
                 val lastItemIndex = items - 1
                 listState.animateScrollToItem(lastItemIndex)
 
@@ -113,6 +113,7 @@ fun WalletScreen(
                 onToggleChange = callback::assetTypeChanged
             )
         }
+
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
@@ -314,7 +315,7 @@ private fun PreviewWalletScreen() {
                         AssetType.Currencies,
                         listOf(AssetType.Currencies, AssetType.NFTs)
                     ),
-                    assetsState = WalletAssetsState.Assets(assets, isHideVisible = true),
+                    assetsState = WalletAssetsState.Assets(AssetsLoadingState.Loaded(assets), isHideVisible = true),
                     balance = AssetBalanceViewState(
                         "TRANSFERABLE BALANCE",
                         "ADDRESS",

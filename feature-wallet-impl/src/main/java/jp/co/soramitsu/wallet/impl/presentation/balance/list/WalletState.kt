@@ -5,7 +5,6 @@ import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
@@ -28,7 +27,7 @@ data class WalletState(
     companion object {
         val default = WalletState(
             multiToggleButtonState = MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)),
-            assetsState = WalletAssetsState.Assets(emptyList(), isHideVisible = true),
+            assetsState = WalletAssetsState.Assets(AssetsLoadingState.Loading(), isHideVisible = true),
             balance = AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
             hasNetworkIssues = false,
             isBackedUp = true,
@@ -44,7 +43,7 @@ data class WalletState(
 @Stable
 sealed interface WalletAssetsState {
     data class Assets(
-        override val assets: List<AssetListItemViewState>,
+        override val assets: AssetsLoadingState,
         val isHideVisible: Boolean
     ): WalletAssetsState, AssetListState(assets)
 

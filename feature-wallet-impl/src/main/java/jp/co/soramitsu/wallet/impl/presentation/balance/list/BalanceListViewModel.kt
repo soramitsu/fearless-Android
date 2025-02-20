@@ -11,10 +11,6 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -39,6 +35,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -70,6 +67,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.TonConnectException
@@ -106,6 +104,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -119,6 +118,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -216,15 +219,17 @@ class BalanceListViewModel @Inject constructor(
         selectedChainId,
         interactor.selectedMetaAccountFlow(),
         interactor.observeSelectedAccountChainSelectFilter()
-    ) { (walletId: Long, assets: List<AssetWithStatus>),
+    )  { (walletId: Long, assets: List<AssetWithStatus>),
         chains: List<Chain>,
         selectedChainId: ChainId?,
-        currentMetaAccountFlow: MetaAccount,
+        currentMetaAccount: MetaAccount,
         filter: ChainSelectorViewStateWithFilters.Filter ->
 
-        showNetworkIssues.value = false
+        if (currentMetaAccount.id != walletId) {
+            return@combine AssetsLoadingState.Loading()
+        }
 
-        val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
+        val selectedAccountFavoriteChains = currentMetaAccount.favoriteChains
 
         val chainsWithFavoriteInfo = chains.map { chain ->
             chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
@@ -269,17 +274,21 @@ class BalanceListViewModel @Inject constructor(
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
             .mapIndexed { index, item ->
-                if (currentMetaAccountFlow.id == walletId) {
+                if (currentMetaAccount.id == walletId) {
                     item.toAssetState(index)
                 } else {
                     // invoke shimmers
                     item.toAssetState(index).copy(assetTransferableBalance = null)
                 }
             }
-
-        assetStates
-    }.onStart { emit(buildInitialAssetsList().toMutableList()) }
-        .inBackground().share()
+        AssetsLoadingState.Loaded(assetStates)
+    }.distinctUntilChanged()
+        .onStart { emit(buildInitialAssetsList()) }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = AssetsLoadingState.Loading()
+    )
 
     @OptIn(FlowPreview::class)
     private fun createNFTCollectionScreenViewsFlow(): Flow<Pair<LoadableListPage<NFTCollectionsScreenView>, ScreenLayout>> {
@@ -504,29 +513,41 @@ class BalanceListViewModel @Inject constructor(
     }
 
     // we open screen - no assets in the list
-    private suspend fun buildInitialAssetsList(): List<AssetListItemViewState> {
+    private suspend fun buildInitialAssetsList(): AssetsLoadingState {
         return withContext(coroutineManager.default) {
+            val currentMetaAccount = accountInteractor.selectedLightMetaAccount()
             val assets = chainInteractor.getChainAssets()
 
-            assets.sortedWith(defaultChainAssetListSort()).take(10).mapIndexed { index, chainAsset ->
-                AssetListItemViewState(
-                    index = index,
-                    assetIconUrl = chainAsset.iconUrl,
-                    assetChainName = chainAsset.chainName,
-                    assetName = chainAsset.name.orEmpty(),
-                    assetSymbol = chainAsset.symbol,
-                    assetTokenFiat = null,
-                    assetTokenRate = null,
-                    assetTransferableBalance = null,
-                    assetTransferableBalanceFiat = null,
-                    assetChainUrls = emptyMap(),
-                    chainId = chainAsset.chainId,
-                    chainAssetId = chainAsset.id,
-                    isSupported = true,
-                    isHidden = false,
-                    isTestnet = chainAsset.isTestNet ?: false
-                )
-            }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
+            val shimmers = when {
+                currentMetaAccount.tonPublicKey != null && 
+                currentMetaAccount.substratePublicKey == null && 
+                currentMetaAccount.ethereumPublicKey == null -> {
+                    val tonAsset = assets.first { it.chainId == tonMainnetChainId }
+                    listOf(
+                        AssetListItemShimmerViewState(
+                            assetIconUrl = tonAsset.iconUrl,
+                            assetChainUrls = listOf(tonAsset.chainIcon ?: tonAsset.iconUrl)
+                        )
+                    )
+                }
+                else -> {
+                    assets
+                        .asSequence()
+                        .sortedWith(defaultChainAssetListSort())
+                        .take(10)
+                        .map { chainAsset ->
+                            chainAsset.chainId to AssetListItemShimmerViewState(
+                                assetIconUrl = chainAsset.iconUrl,
+                                assetChainUrls = listOf(chainAsset.chainIcon ?: chainAsset.iconUrl)
+                            )
+                        }
+                        .filter { selectedChainId.value == null || selectedChainId.value == it.first }
+                        .map { it.second }
+                        .toList()
+                }
+            }
+
+            AssetsLoadingState.Loading(shimmers)
         }
     }
 
@@ -595,8 +616,8 @@ class BalanceListViewModel @Inject constructor(
     @OptIn(FlowPreview::class)
     private fun startManageAssetsIntroAnimation() {
         awaitAssetsJob?.cancel()
-        awaitAssetsJob = assetStates.filter { it.isNotEmpty() }
-            .map { it.size }
+        awaitAssetsJob = assetStates.filterIsInstance<AssetsLoadingState.Loaded>().filter { it.assets.isNotEmpty() }
+            .map { it.assets.size }
             .distinctUntilChanged()
             .debounce(200L)
             .onEach {

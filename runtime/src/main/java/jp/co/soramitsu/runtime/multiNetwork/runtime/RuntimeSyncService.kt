@@ -24,9 +24,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
@@ -136,7 +134,7 @@ class RuntimeSyncService(
         )
     }
 
-    suspend fun syncTypes()= withContext(Dispatchers.Default) {
+    suspend fun syncTypes() {
         val types = typesFetcher.getTypes(BuildConfig.TYPES_URL)
         val defaultTypes = typesFetcher.getTypes(BuildConfig.DEFAULT_V13_TYPES_URL)
         val array = Json.decodeFromString<JsonArray>(types)

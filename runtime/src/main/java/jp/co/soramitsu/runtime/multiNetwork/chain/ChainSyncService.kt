@@ -1,7 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import jp.co.soramitsu.common.resources.ContextManager
-import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -13,32 +12,11 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
-
-class RemoteAssetsInitializer(
-    private val dao: ChainDao,
-    private val remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider,
-) {
-    suspend fun invoke() {
-        val syncedChains = dao.getJoinChainInfo().map { mapChainLocalToChain(it) }
-        val chainsWithRemoteAssets = syncedChains.filter { it.remoteAssetsSource != null }
-
-        supervisorScope {
-            chainsWithRemoteAssets.forEach { chain ->
-                launch {
-                    val service = remoteAssetsSyncServiceProvider.provide(chain)
-                    service?.sync()
-                }
-            }
-        }
-    }
-}
 
 class ChainSyncService(
     private val dao: ChainDao,
@@ -49,8 +27,8 @@ class ChainSyncService(
     private val contextManager: ContextManager
 ) {
 
-    suspend fun syncUp() = withContext(Dispatchers.Default) {
-        kotlin.runCatching { configChainsSyncUp() }.onFailure { it.printStackTrace() }.getOrNull() ?: return@withContext
+    suspend fun syncUp() {
+        kotlin.runCatching { configChainsSyncUp() }.onFailure { it.printStackTrace() }.getOrNull() ?: return
     }
 
     private suspend fun configChainsSyncUp(): List<Chain> = supervisorScope {

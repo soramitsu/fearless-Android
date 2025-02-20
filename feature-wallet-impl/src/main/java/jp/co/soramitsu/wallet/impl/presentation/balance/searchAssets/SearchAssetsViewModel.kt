@@ -6,12 +6,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.SwipeState
+import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.greaterThanOrEquals
@@ -25,6 +23,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +31,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 @HiltViewModel
 class SearchAssetsViewModel @Inject constructor(
@@ -66,27 +68,48 @@ class SearchAssetsViewModel @Inject constructor(
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
-            .map { it.toAssetState() }
+            .mapIndexed { index, item -> item.toAssetState(index) }
 
-        assetStates
+        AssetsLoadingState.Loaded(assetStates)
+    }
+
+    private fun buildInitialAssetsList(): List<AssetListItemShimmerViewState> {
+        return List(SHIMMER_ITEMS_COUNT) { index ->
+            AssetListItemShimmerViewState(
+                assetIconUrl = "asset_$index",
+                assetChainUrls = List(2) { "chain_${index}_$it" }
+            )
+        }
     }
 
     val state = combine(
         assetStates,
         enteredAssetQueryFlow
-    ) { assetsListItemStates: List<AssetListItemViewState>,
-        searchQuery ->
-
-        val assets = assetsListItemStates
-            .filter {
-                searchQuery.isEmpty() || it.assetSymbol.contains(searchQuery, true) || it.assetName.contains(searchQuery, true)
+    ) { assetsLoadingState: AssetsLoadingState, searchQuery ->
+        when (assetsLoadingState) {
+            is AssetsLoadingState.Loading -> SearchAssetState(
+                assets = AssetsLoadingState.Loading(buildInitialAssetsList()),
+                searchQuery = searchQuery
+            )
+            is AssetsLoadingState.Loaded -> {
+                val filteredAssets = assetsLoadingState.assets
+                    .filter {
+                        searchQuery.isEmpty() || 
+                        it.assetSymbol.contains(searchQuery, true) || 
+                        it.assetName.contains(searchQuery, true)
+                    }
+                
+                SearchAssetState(
+                    assets = AssetsLoadingState.Loaded(filteredAssets),
+                    searchQuery = searchQuery
+                )
             }
-
-        SearchAssetState(
-            assets = assets,
-            searchQuery = searchQuery
-        )
-    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
+        }
+    }.stateIn(
+        scope = this,
+        started = SharingStarted.Eagerly,
+        initialValue = SearchAssetState(assets = AssetsLoadingState.Loading(buildInitialAssetsList()))
+    )
 
     @OptIn(ExperimentalMaterialApi::class)
     override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {
@@ -154,4 +177,8 @@ class SearchAssetsViewModel @Inject constructor(
         .thenBy { it.asset.isTestNet }
         .thenBy { it.asset.chainId.defaultChainSort() }
         .thenBy { it.asset.chainName }
+
+    companion object {
+        private const val SHIMMER_ITEMS_COUNT = 8
+    }
 }

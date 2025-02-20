@@ -9,6 +9,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -23,8 +24,9 @@ class TonSyncDataRepository(private val tonRemoteSource: TonRemoteSource) {
     private val accountDataCache: ConcurrentHashMap<Pair<ChainId, String>, Deferred<TonAccountData>> =
         ConcurrentHashMap()
 
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     init {
-        val scope = CoroutineScope(Dispatchers.Default)
         // clear expired data every 5 minutes
         scope.launch {
             while (isActive) {
@@ -38,20 +40,35 @@ class TonSyncDataRepository(private val tonRemoteSource: TonRemoteSource) {
     suspend fun getAccountData(chain: Chain, accountId: String): TonAccountData {
         val key = chain.id to accountId
         return accountDataCache.computeIfAbsent(key) {
-            CoroutineScope(Dispatchers.Default).async { tonRemoteSource.loadAccountData(chain, accountId) }
+            scope.async {
+                retry { tonRemoteSource.loadAccountData(chain, accountId) }
+            }
         }.await()
     }
 
     suspend fun getJettonBalances(chain: Chain, accountId: String): JettonsBalances {
         val key = chain.id to accountId
         return jettonCache.computeIfAbsent(key) {
-            CoroutineScope(Dispatchers.Default).async {
-                tonRemoteSource.loadJettonBalances(chain, accountId)
+            scope.async {
+                retry { tonRemoteSource.loadJettonBalances(chain, accountId) }
             }
         }.await()
     }
 
     suspend fun getTonCoinPrices(): TokenRate {
         return tonRemoteSource.getTonCoinPrices()
+    }
+
+    private suspend fun <T> retry(block: suspend () -> T): T {
+        var lastException: Exception? = null
+        repeat(3) {
+            try {
+                return block()
+            } catch (e: Exception) {
+                lastException = e
+                delay(1000)
+            }
+        }
+        throw lastException ?: IllegalStateException("Retry failed")
     }
 }

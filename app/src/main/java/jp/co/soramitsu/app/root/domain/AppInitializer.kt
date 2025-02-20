@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.CoroutineContext
@@ -82,7 +83,9 @@ class AppInitializer(
 
             // Load all remote assets. Auto retry 3 times
             try {
-                remoteAssetsInitializer.invoke()
+                launch {
+                    remoteAssetsInitializer.invoke()
+                }
             } catch (e: Throwable) {
                 e.printStackTrace()
             }

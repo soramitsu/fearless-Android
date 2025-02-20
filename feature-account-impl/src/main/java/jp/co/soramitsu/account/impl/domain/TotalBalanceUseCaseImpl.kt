@@ -54,11 +54,11 @@ class TotalBalanceUseCaseImpl(
             .flatMapLatest { assetDao.observeAssets(it.id) }
             .filter { it.isNotEmpty() }
             .map(::getTotalBalance)
-            .flowOn(Dispatchers.Default)
+            .flowOn(Dispatchers.IO)
             .onStart { emit(TotalBalance.Empty) }
     }
 
-    private suspend fun getTotalBalance(assets: List<AssetWithToken>): TotalBalance {
+    private suspend fun getTotalBalance(assets: List<AssetWithToken>): TotalBalance = withContext(Dispatchers.IO){
         val chainsById = chainsRepository.getChainsById()
 
         val polkadotCurrency = assets.find { it.asset.chainId == polkadotChainId }?.token?.fiatSymbol
@@ -74,7 +74,7 @@ class TotalBalanceUseCaseImpl(
         val fiatCurrency =
             runCatching { fiatSymbolsInAssets.maxBy { s -> filtered.count { it.token?.fiatSymbol == s } } }.getOrNull() ?: polkadotCurrency
 
-        return filtered.fold(TotalBalance.Empty) { acc, current ->
+        return@withContext filtered.fold(TotalBalance.Empty) { acc, current ->
 
             val chainAsset = chainsById.getOrDefault(current.asset.chainId, null)?.assets
                 ?.firstOrNull { it.id == current.asset.id }

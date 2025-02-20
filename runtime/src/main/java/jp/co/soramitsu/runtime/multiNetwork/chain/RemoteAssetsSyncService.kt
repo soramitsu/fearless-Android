@@ -9,20 +9,13 @@ import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.yield
 
 class RemoteAssetsSyncServiceProvider(
     //private val okxApiService: OkxApiService,
@@ -68,14 +61,12 @@ class TonRemoteAssetsSyncService(
         private const val TAG = "TonRemoteAssetsSyncService"
     }
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
     override suspend fun sync() {
-        val subscription = metaAccountDao.metaAccountsFlow()
-            .distinctUntilChangedBy { it.size }
+        metaAccountDao.metaAccountsFlow()
             .map { accounts -> accounts.mapNotNull { it.tonPublicKey } }
             .filter { it.isNotEmpty() }
-            .onEach { publicKeys ->
+            .distinctUntilChanged()
+            .collect { publicKeys ->
                 supervisorScope {
                     val chainAssetsDeferred = publicKeys.map { publicKey ->
                         async {
@@ -83,7 +74,9 @@ class TonRemoteAssetsSyncService(
                             val jettonBalances = kotlin.runCatching {
                                 tonSyncDataRepository.getJettonBalances(chain, accountId)
                             }.onFailure { Log.d(TAG, "Failed load jetton balances: $it") }.getOrNull() ?: return@async emptyList()
-                            hashCode()
+
+                            yield()
+
                             jettonBalances.balances.map { jettonBalance ->
                                 ChainAssetLocal(
                                     id = jettonBalance.jetton.address,
@@ -107,10 +100,11 @@ class TonRemoteAssetsSyncService(
                         }
                     }
                     val chainAssets = chainAssetsDeferred.awaitAll().flatten()
+
+                    yield()
+
                     chainDao.insertChainAssetsIgnoringConflicts(chainAssets)
                 }
             }
-
-        subscription.launchIn(coroutineScope)
     }
 }
