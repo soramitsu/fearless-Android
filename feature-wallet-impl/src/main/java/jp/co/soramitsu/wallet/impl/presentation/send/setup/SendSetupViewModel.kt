@@ -11,7 +11,6 @@ import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
@@ -27,6 +26,8 @@ import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
+import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.model.toAccountType
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -147,12 +148,6 @@ class SendSetupViewModel @Inject constructor(
         savedStateHandle[SendSetupFragment.KEY_INITIAL_AMOUNT]
     private val lockSendToAmount: Boolean =
         savedStateHandle.get<Boolean>(SendSetupFragment.KEY_LOCK_AMOUNT) == true
-
-//    val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
-//        error("Required data (asset or address) not specified")
-//    } else {
-//        true
-//    }
 
     private val initialAmount = initSendToAmount.orZero()
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
@@ -582,11 +577,7 @@ class SendSetupViewModel @Inject constructor(
             val image: Any = if (isAddressValid.not()) {
                 R.drawable.ic_address_placeholder
             } else {
-                addressIconGenerator.createAddressIcon(
-                    chain?.isEthereumBased == true,
-                    address,
-                    AddressIconGenerator.SIZE_BIG
-                )
+                addressIconGenerator.createWalletIcon(chain?.ecosystem?.toAccountType() ?: WalletEcosystem.Substrate, AddressIconGenerator.SIZE_BIG)
             }
             val addressState = if (address.isNotEmpty()) {
                 (state.value.addressInputState as? AddressInputWithScore.Filled)?.copy(
