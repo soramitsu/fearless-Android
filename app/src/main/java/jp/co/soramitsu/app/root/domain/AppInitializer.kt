@@ -47,7 +47,7 @@ class AppInitializer @OptIn(ExperimentalCoroutinesApi::class) constructor(
     private val preferences: Preferences,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val pricesSyncService: PricesSyncService,
-    private val coroutineContext: CoroutineContext = Dispatchers.Default.limitedParallelism(8) + SupervisorJob()
+    private val coroutineContext: CoroutineContext = Dispatchers.Default + SupervisorJob()
 ) {
 
     data class Step(val type: InitializationStep, val action: suspend () -> Unit)

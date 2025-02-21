@@ -33,7 +33,6 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
@@ -83,7 +82,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -150,11 +148,11 @@ class SendSetupViewModel @Inject constructor(
     private val lockSendToAmount: Boolean =
         savedStateHandle.get<Boolean>(SendSetupFragment.KEY_LOCK_AMOUNT) == true
 
-    val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
-        error("Required data (asset or address) not specified")
-    } else {
-        true
-    }
+//    val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
+//        error("Required data (asset or address) not specified")
+//    } else {
+//        true
+//    }
 
     private val initialAmount = initSendToAmount.orZero()
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
@@ -218,12 +216,7 @@ class SendSetupViewModel @Inject constructor(
         commentState = null
     )
 
-    private val assetFlow: StateFlow<Asset?> = sharedState.assetIdToChainIdFlow.map {
-        it?.let { (assetId, chainId) ->
-            walletInteractor.getCurrentAsset(chainId, assetId)
-        }
-    }
-        .stateIn(this, SharingStarted.Eagerly, null)
+    private val assetFlow: MutableStateFlow<Asset?> = MutableStateFlow(null)
 
     private val amountInputFocusFlow = MutableStateFlow(false)
 
@@ -265,39 +258,7 @@ class SendSetupViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
 
 
-    private val amountInputViewState: Flow<AmountInputViewState> = combine(
-        visibleAmountFlow,
-        initialAmountFlow,
-        assetFlow,
-        amountInputFocusFlow,
-        lockAmountInputFlow,
-        lockInputFlow
-    ) { amount, initialAmount, asset, isAmountInputFocused, isLockAmountInput, isLockInput ->
-        if (asset == null) {
-            defaultAmountInputState
-        } else {
-            val tokenBalance = asset.sendAvailable.formatCrypto(asset.token.configuration.symbol)
-            val fiatAmount =
-                amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
-
-            AmountInputViewState(
-                tokenName = asset.token.configuration.symbol,
-                tokenImage = asset.token.configuration.iconUrl,
-                totalBalance = resourceManager.getString(
-                    R.string.common_transferable_format,
-                    tokenBalance
-                ),
-                fiatAmount = fiatAmount,
-                tokenAmount = amount,
-                isActive = true,
-                isFocused = isAmountInputFocused,
-                allowAssetChoose = isLockInput.not(),
-                precision = asset.token.configuration.precision,
-                inputEnabled = isLockInput.not() || isLockAmountInput.not()
-            )
-        }
-    }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
-
+    private val amountInputViewState = MutableStateFlow(defaultAmountInputState)
 
     private val currentAccountAddressFlow = chainIdFlow.map {
         it ?: return@map null
@@ -477,6 +438,7 @@ class SendSetupViewModel @Inject constructor(
 
     init {
         sharedState.clear()
+        subscribeAsset()
         if (payload == null) {
             if (!initSendToAddress.isNullOrEmpty()) {
                 findChainsForAddress(initSendToAddress)
@@ -495,6 +457,48 @@ class SendSetupViewModel @Inject constructor(
         }.launchIn(this)
 
         subscribeScreenState()
+        subscribeAmountInputState()
+    }
+    private fun subscribeAmountInputState() {
+        assetFlow.filterNotNull().combine(visibleAmountFlow) { asset, amount ->
+            val tokenBalance = asset.sendAvailable.formatCrypto(asset.token.configuration.symbol)
+            val fiatAmount =
+                amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+
+            amountInputViewState.update { prev ->
+                prev.copy( tokenName = asset.token.configuration.symbol,
+                    tokenImage = asset.token.configuration.iconUrl,
+                    totalBalance = resourceManager.getString(
+                        R.string.common_transferable_format,
+                        tokenBalance
+                    ),
+                    fiatAmount = fiatAmount,
+                    tokenAmount = amount,
+                    precision = asset.token.configuration.precision,)
+            }
+        }.launchIn(viewModelScope)
+
+        amountInputFocusFlow.onEach { isFocused ->
+            amountInputViewState.update { prev ->
+                prev.copy(isFocused = isFocused)
+            }
+        }.launchIn(viewModelScope)
+
+        lockAmountInputFlow.combine(lockInputFlow) { lockAmountInput, lockInput ->
+            amountInputViewState.update { prev ->
+                prev.copy(inputEnabled = lockInput.not() || lockAmountInput.not())
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun subscribeAsset() {
+        sharedState.assetIdToChainIdFlow.map {
+            it?.let { (assetId, chainId) ->
+                walletInteractor.getCurrentAsset(chainId, assetId)
+            }
+        }.onEach { asset ->
+            assetFlow.update { asset }
+        }.launchIn(viewModelScope)
     }
 
     private fun subscribeScreenState() {
