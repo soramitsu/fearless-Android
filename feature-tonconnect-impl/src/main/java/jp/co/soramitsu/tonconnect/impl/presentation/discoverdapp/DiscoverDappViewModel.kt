@@ -233,7 +233,8 @@ class DiscoverDappViewModel @Inject constructor(
     }
 
     fun openWalletSelector() {
-        router.openSelectWallet()
+        // decided to turn it off
+//        router.openSelectWallet()
     }
 
     fun openSearch() {
