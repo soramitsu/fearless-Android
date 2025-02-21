@@ -30,19 +30,21 @@ class AccountListingProvider(
             )
         }
 
-    private suspend fun mapMetaAccountToUi(
-        metaAccount: LightMetaAccount,
-        iconGenerator: AddressIconGenerator,
-        iconSizeDp: Int?
-    ) = with(metaAccount) {
+    companion object {
+        suspend fun mapMetaAccountToUi(
+            metaAccount: LightMetaAccount,
+            iconGenerator: AddressIconGenerator,
+            iconSizeDp: Int?
+        ) = with(metaAccount) {
 
-        val icon = iconGenerator.createAddressIcon(metaAccount.supportedEcosystemWithIconAddress(), iconSizeDp ?: AddressIconGenerator.SIZE_MEDIUM)
+            val icon = iconGenerator.createAddressIcon(metaAccount.supportedEcosystemWithIconAddress(), iconSizeDp ?: AddressIconGenerator.SIZE_MEDIUM)
 
-        LightMetaAccountUi(
-            id = id,
-            name = name,
-            isSelected = isSelected,
-            picture = IgnoredOnEquals(icon)
-        )
+            LightMetaAccountUi(
+                id = id,
+                name = name,
+                isSelected = isSelected,
+                picture = IgnoredOnEquals(icon)
+            )
+        }
     }
 }

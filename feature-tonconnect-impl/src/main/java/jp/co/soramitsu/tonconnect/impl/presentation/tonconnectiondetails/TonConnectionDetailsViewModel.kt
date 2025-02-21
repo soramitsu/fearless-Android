@@ -3,8 +3,9 @@ package jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.account.impl.presentation.account.mixin.impl.AccountListingProvider.Companion.mapMetaAccountToUi
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
@@ -13,6 +14,7 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.feature_tonconnect_impl.R
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
@@ -26,17 +28,19 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TonConnectionDetailsViewModel @Inject constructor(
-    accountListingMixin: AccountListingMixin,
+    private val accountInteractor: AccountInteractor,
     private val tonConnectInteractor: TonConnectInteractor,
     private val tonConnectRouter: TonConnectRouter,
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
+    private val iconGenerator: AddressIconGenerator,
     savedStateHandle: SavedStateHandle
 ) : TonConnectionDetailsScreenInterface, BaseViewModel() {
 
@@ -47,7 +51,15 @@ class TonConnectionDetailsViewModel @Inject constructor(
     private val isApproving = MutableStateFlow(false)
     private val isRejecting = MutableStateFlow(false)
 
-    private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+    private val accountsFlow = accountInteractor.lightMetaAccountsFlow()
+        .map { list -> list.filter { it.tonPublicKey != null } }
+        .mapList {
+            mapMetaAccountToUi(
+                it,
+                iconGenerator,
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
 
     private val walletItemsFlow: SharedFlow<List<WalletNameItemViewState>> = combine(accountsFlow, selectedWalletId) { accounts, selectedWalletId ->
         accounts.map {
