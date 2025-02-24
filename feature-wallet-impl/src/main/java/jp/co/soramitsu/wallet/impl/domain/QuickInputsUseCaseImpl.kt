@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.domain
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.utils.TON_BASE_FORWARD_AMOUNT
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Ecosystem
@@ -209,17 +208,12 @@ class QuickInputsUseCaseImpl(
             val tipAmount = utilityAsset.amountFromPlanks(tip)
             val utilityTipReserve =
                 when {
-//                    asset.token.configuration.isUtility && chain.ecosystem == Ecosystem.Ton -> TON_BASE_FORWARD_AMOUNT
                     asset.token.configuration.isUtility -> tipAmount
                     else -> BigDecimal.ZERO
                 }
             val allAmount = asset.transferable
 
-            val quickAmounts = if (chain.ecosystem == Ecosystem.Ton) {
-                listOf(QuickAmountInput.MAX.value)
-            } else {
-                inputValues
-            }.map { input ->
+            val quickAmounts = inputValues.map { input ->
                 async {
                     val amountToTransfer = allAmount * input.toBigDecimal() - utilityTipReserve
                     val amountToTransferScaled = amountToTransfer.setScale(

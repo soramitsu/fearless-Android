@@ -547,9 +547,6 @@ class SendSetupViewModel @Inject constructor(
                 asset?.token?.configuration?.currencyId == bokoloCashTokenId -> {
                     emptyList()
                 }
-                selectedChain.first()?.ecosystem == Ecosystem.Ton -> {
-                    listOf(QuickAmountInput.MAX)
-                }
                 else -> {
                     QuickAmountInput.entries
                 }
