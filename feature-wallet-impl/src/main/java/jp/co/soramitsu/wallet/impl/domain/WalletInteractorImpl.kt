@@ -4,9 +4,6 @@ import android.net.Uri
 import android.util.Log
 import com.mastercard.mpqr.pushpayment.model.PushPaymentData
 import com.mastercard.mpqr.pushpayment.parser.Parser
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.net.URLDecoder
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -64,7 +61,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -78,6 +74,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URLDecoder
+import kotlin.coroutines.CoroutineContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -353,6 +353,11 @@ class WalletInteractorImpl(
             billNumber = pushPaymentData.additionalData?.billNumber,
             recipientId = getAccountId(pushPaymentData)
         )
+    }
+
+    override fun extractTonAddress(input: String): String? {
+        val regex = Regex("ton://transfer/([a-zA-Z0-9_\\-:.]+)")
+        return regex.find(input)?.groupValues?.get(1)
     }
 
     private fun getAccountId(item: PushPaymentData): String {

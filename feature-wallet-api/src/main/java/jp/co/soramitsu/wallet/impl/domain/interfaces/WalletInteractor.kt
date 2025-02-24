@@ -1,8 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -29,6 +26,9 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
@@ -150,4 +150,5 @@ interface WalletInteractor {
     suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
     suspend fun getExportSourceTypes(chainId: ChainId, walletId: Long? = null): MutableSet<ExportSource>
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
+    fun extractTonAddress(input: String): String?
 }

@@ -912,21 +912,33 @@ class BalanceListViewModel @Inject constructor(
                     val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
                     if (cbdcFormat != null) {
                         router.openCBDCSend(cbdcQrInfo = cbdcFormat)
-                    } else {
-                        val soraFormat =
-                            interactor.tryReadSoraFormat(content)
-                        if (soraFormat != null) {
-                            val amount =
-                                soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
-                            openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
-                        } else {
-                            router.openSend(
-                                assetPayload = null,
-                                initialSendToAddress = content,
-                                amount = null
-                            )
-                        }
+                        return@launch
                     }
+
+                    val soraFormat =
+                        interactor.tryReadSoraFormat(content)
+                    if (soraFormat != null) {
+                        val amount =
+                            soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
+                        openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                        return@launch
+                    }
+
+                    val tonKeeperFormat = interactor.extractTonAddress(content)
+                    if(tonKeeperFormat != null) {
+                        router.openSend(
+                            assetPayload = null,
+                            initialSendToAddress = tonKeeperFormat,
+                            amount = null
+                        )
+                        return@launch
+                    }
+
+                    router.openSend(
+                        assetPayload = null,
+                        initialSendToAddress = content,
+                        amount = null
+                    )
                 }
             }
         }

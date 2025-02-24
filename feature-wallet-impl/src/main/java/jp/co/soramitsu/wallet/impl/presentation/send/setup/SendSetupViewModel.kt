@@ -454,6 +454,7 @@ class SendSetupViewModel @Inject constructor(
         subscribeScreenState()
         subscribeAmountInputState()
     }
+
     private fun subscribeAmountInputState() {
         assetFlow.filterNotNull().combine(visibleAmountFlow) { asset, amount ->
             val tokenBalance = asset.sendAvailable.formatCrypto(asset.token.configuration.symbol)
@@ -461,7 +462,8 @@ class SendSetupViewModel @Inject constructor(
                 amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             amountInputViewState.update { prev ->
-                prev.copy( tokenName = asset.token.configuration.symbol,
+                prev.copy(
+                    tokenName = asset.token.configuration.symbol,
                     tokenImage = asset.token.configuration.iconUrl,
                     totalBalance = resourceManager.getString(
                         R.string.common_transferable_format,
@@ -469,7 +471,8 @@ class SendSetupViewModel @Inject constructor(
                     ),
                     fiatAmount = fiatAmount,
                     tokenAmount = amount,
-                    precision = asset.token.configuration.precision,)
+                    precision = asset.token.configuration.precision,
+                )
             }
         }.launchIn(viewModelScope)
 
@@ -547,6 +550,7 @@ class SendSetupViewModel @Inject constructor(
                 asset?.token?.configuration?.currencyId == bokoloCashTokenId -> {
                     emptyList()
                 }
+
                 else -> {
                     QuickAmountInput.entries
                 }
@@ -574,7 +578,10 @@ class SendSetupViewModel @Inject constructor(
             val image: Any = if (isAddressValid.not()) {
                 R.drawable.ic_address_placeholder
             } else {
-                addressIconGenerator.createWalletIcon(chain?.ecosystem?.toAccountType() ?: WalletEcosystem.Substrate, AddressIconGenerator.SIZE_BIG)
+                addressIconGenerator.createWalletIcon(
+                    chain?.ecosystem?.toAccountType() ?: WalletEcosystem.Substrate,
+                    AddressIconGenerator.SIZE_BIG
+                )
             }
             val addressState = if (address.isNotEmpty()) {
                 (state.value.addressInputState as? AddressInputWithScore.Filled)?.copy(
@@ -769,7 +776,12 @@ class SendSetupViewModel @Inject constructor(
             val asset = assetFlow.value ?: return@launch
 
             val amount = enteredAmountBigDecimalFlow.value
-            val inPlanks = asset.token.planksFromAmount(amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)).orZero()
+            val inPlanks = asset.token.planksFromAmount(
+                amount.setScale(
+                    asset.token.configuration.precision,
+                    RoundingMode.HALF_DOWN
+                )
+            ).orZero()
             val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
             val selfAddress = currentAccountAddressFlow.value ?: return@launch
             val fee = feeInPlanksFlow.value
@@ -895,11 +907,20 @@ class SendSetupViewModel @Inject constructor(
             }
 
             if (chain?.ecosystem == Ecosystem.Ton) {
+
                 if (chain.isValidAddress(content)) {
                     fillQrContentToAddressField(content)
-                } else {
-                    showInvalidAddressError()
+                    return@launch
                 }
+
+                val extractedAddress = walletInteractor.extractTonAddress(content)
+                if (extractedAddress != null && chain.isValidAddress(extractedAddress)) {
+                    fillQrContentToAddressField(extractedAddress)
+                    return@launch
+                }
+
+                showInvalidAddressError()
+
                 return@launch
             }
 
@@ -935,7 +956,7 @@ class SendSetupViewModel @Inject constructor(
             }
         }
         val addressChains = accountSupportedChains.filter {
-            it.isValidAddress(address)
+            runCatching { it.isValidAddress(address) }.getOrNull() == true
         }
         return addressChains
     }
