@@ -205,3 +205,12 @@ val MetaAccount.hasEthereum
 
 val MetaAccount.hasTon
     get() = tonPublicKey != null
+
+val LightMetaAccount.hasSubstrate
+    get() = substrateAccountId != null
+
+val LightMetaAccount.hasEthereum
+    get() = ethereumPublicKey != null
+
+val LightMetaAccount.hasTon
+    get() = tonPublicKey != null

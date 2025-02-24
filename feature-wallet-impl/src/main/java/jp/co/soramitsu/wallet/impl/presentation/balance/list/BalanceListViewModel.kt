@@ -16,6 +16,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
@@ -190,7 +191,7 @@ class BalanceListViewModel @Inject constructor(
 
     private val selectedChainItemFlow =
         combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
-            if (selectedChainId == null && chains.size == 1) {
+            if ((selectedChainId == null && chains.size == 1) || selectedChainId == tonMainnetChainId) {
                 allowSelectChain.value = false
                 return@combine chains.first()
             }
@@ -522,7 +523,7 @@ class BalanceListViewModel @Inject constructor(
                 currentMetaAccount.tonPublicKey != null && 
                 currentMetaAccount.substratePublicKey == null && 
                 currentMetaAccount.ethereumPublicKey == null -> {
-                    val tonAsset = assets.first { it.chainId == tonMainnetChainId }
+                    val tonAsset = assets.firstOrNull { it.chainId == tonMainnetChainId || it.chainName.contains("ton", true) || it.name?.contains("ton", true) == true} ?: assets.first()
                     listOf(
                         AssetListItemShimmerViewState(
                             assetIconUrl = tonAsset.iconUrl,
@@ -573,22 +574,32 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(multiToggleButtonState = it)
         }.launchIn(viewModelScope)
 
-        currentMetaAccountFlow.onEach {
+        currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
             val showCurrenciesOrNftSelector =
-                it.supportedEcosystems().contains(WalletEcosystem.Ethereum) || it.supportedEcosystems()
+                metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
                     .contains(WalletEcosystem.Substrate)
 
             state.value = state.value.copy(
-                isBackedUp = it.isBackedUp,
+                isBackedUp = metaAccount.isBackedUp,
                 scrollToTopEvent = Event(Unit),
                 showCurrenciesOrNftSelector = showCurrenciesOrNftSelector
             )
 
-            if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
-                selectedChainId.value = pendulumChainId
-            } else {
-                selectedChainId.value = interactor.getSavedChainId(it.id)
+
+            val customChainId = when {
+                pendulumPreInstalledAccountsScenario.isPendulumMode(metaAccount.id) -> {
+                    pendulumChainId
+                }
+                metaAccount.hasTon -> {
+                    tonMainnetChainId
+                }
+                else -> null
             }
+
+            if(customChainId != null) {
+                interactor.saveChainId(metaAccount.id, customChainId)
+            }
+            selectedChainId.value= customChainId ?: interactor.getSavedChainId(metaAccount.id)
         }.launchIn(viewModelScope)
 
         showNetworkIssues.onEach {
