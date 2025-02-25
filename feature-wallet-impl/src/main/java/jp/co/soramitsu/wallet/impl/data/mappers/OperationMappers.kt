@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.toWalletAddress
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.model.OperationLocal
@@ -25,7 +26,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.toMarkets
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatSigned
@@ -41,6 +41,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDe
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.mapToStatusAppearance
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistoryItem
+import org.ton.block.AddrStd
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -661,11 +662,43 @@ private suspend fun Operation.createExtrinsicDetailsState(
 
     val sender = when (chain.ecosystem) {
         Ecosystem.Ton -> {
-            V4R2WalletContract(address).getAddress(chain.isTestNet)
+            AddrStd(address).toWalletAddress(chain.isTestNet)
         }
 
         else -> address
     }
+
+    val tableItems = mutableListOf(
+        TitleValueViewState(
+            title = resourceManager.getString(R.string.common_date),
+            value = time.formatDateTime()
+        )
+    )
+
+    if (operationType.module.isNotEmpty()) {
+        tableItems.add(
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_module),
+                value = operationType.module
+            )
+        )
+    }
+
+    if (operationType.call.isNotEmpty()) {
+        tableItems.add(
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_call),
+                value = operationType.call
+            )
+        )
+    }
+
+    tableItems.add(
+        TitleValueViewState(
+            title = resourceManager.getString(R.string.choose_amount_fee),
+            value = operationType.fee.formatFee(chainAsset)
+        )
+    )
 
     return TransferDetailsState(
         hash = TextInputViewState(
@@ -682,24 +715,7 @@ private suspend fun Operation.createExtrinsicDetailsState(
         ),
         secondAddress = null,
         status = statusAppearance,
-        listOf(
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.common_date),
-                value = time.formatDateTime()
-            ),
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.common_module),
-                value = operationType.module
-            ),
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.common_call),
-                value = operationType.call
-            ),
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.choose_amount_fee),
-                value = operationType.fee.formatFee(chainAsset)
-            )
-        )
+        items = tableItems
     )
 }
 
