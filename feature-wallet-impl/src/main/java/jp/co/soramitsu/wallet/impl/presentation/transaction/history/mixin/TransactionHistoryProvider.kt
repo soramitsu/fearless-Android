@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToTransactionDetailsState
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -98,12 +99,21 @@ class TransactionHistoryProvider(
         operationsObserveJob?.cancel()
         operationsObserveJob = observeOperationsFirstPage(asset).onEach { page ->
             nextCursor = page.nextCursor
+            val filtersApplied = historyFiltersProvider.currentFilters()
+            val filteredPageItems = page.items.filter {
+                when (it.type) {
+                    is Operation.Type.Extrinsic -> filtersApplied.contains(TransactionFilter.EXTRINSIC)
+                    is Operation.Type.Reward -> filtersApplied.contains(TransactionFilter.REWARD)
+                    is Operation.Type.Swap -> filtersApplied.contains(TransactionFilter.EXTRINSIC)
+                    is Operation.Type.Transfer -> filtersApplied.contains(TransactionFilter.TRANSFER)
+                }
+            }
 
-            if (page.items.isEmpty()) {
+            if (filteredPageItems.isEmpty()) {
                 _state.emit(TransactionHistoryUi.State.Empty())
             } else {
                 currentData.addAll(page.items)
-                _state.emit(TransactionHistoryUi.State.Data(transformData(page.items, ecosystem)))
+                _state.emit(TransactionHistoryUi.State.Data(transformData(filteredPageItems, ecosystem)))
             }
         }.launchIn(this)
     }

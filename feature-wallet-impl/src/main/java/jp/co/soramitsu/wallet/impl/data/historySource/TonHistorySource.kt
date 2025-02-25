@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
+import com.google.gson.Gson
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.ton.AccountEventAction
 import jp.co.soramitsu.common.utils.toUserFriendly
@@ -11,10 +12,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import org.ton.api.pub.PublicKeyEd25519
 import kotlin.math.abs
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import org.ton.api.pub.PublicKeyEd25519
 
 class TonHistorySource(
     private val tonRemoteSource: TonRemoteSource,
@@ -50,7 +51,7 @@ class TonHistorySource(
             } else {
                 0
             }.toBigInteger()
-            val mappedActions = event.actions.mapIndexed { index, action ->
+            val mappedActions = event.actions.mapIndexedNotNull { index, action ->
                 val status = when {
                     action.status == AccountEventAction.Status.failed -> {
                         Operation.Status.FAILED
@@ -66,6 +67,8 @@ class TonHistorySource(
 
                 val operation = when {
                     action.tonTransfer != null -> {
+                        if (!filters.contains(TransactionFilter.TRANSFER)) return@mapIndexedNotNull null
+
                         val tonTransfer = action.tonTransfer!!
 
                         Operation.Type.Transfer(
@@ -86,6 +89,8 @@ class TonHistorySource(
                     }
 
                     action.jettonTransfer != null && action.jettonTransfer!!.jetton.address == chainAsset.id -> {
+                        if (!filters.contains(TransactionFilter.TRANSFER)) return@mapIndexedNotNull null
+
                         val jettonTransfer = action.jettonTransfer!!
                         Operation.Type.Transfer(
                             hash = event.eventId,
@@ -105,6 +110,9 @@ class TonHistorySource(
                     }
 
                     else -> {
+                        if (!filters.contains(TransactionFilter.EXTRINSIC) && action.type !in listOf(AccountEventAction.Type.tonTransfer, AccountEventAction.Type.jettonTransfer)) {
+                            return@mapIndexedNotNull null
+                        }
                         Operation.Type.Extrinsic(
                             hash = event.eventId,
                             module = "",

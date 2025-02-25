@@ -15,6 +15,7 @@ import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
@@ -80,7 +81,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean)
 
-    fun openFilter()
+    fun openFilter(filtersToShowOrAll: Set<TransactionFilter> = TransactionFilter.entries.toSet())
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?, customTitle: String?)

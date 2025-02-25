@@ -197,6 +197,8 @@ import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicBoolean
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
+import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment
 import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
 
@@ -1021,8 +1023,9 @@ class Navigator :
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
-    override fun openFilter() {
-        navController?.navigate(R.id.action_mainFragment_to_filterFragment)
+    override fun openFilter(filtersToShowOrAll: Set<TransactionFilter>) {
+        val bundle = TransactionHistoryFilterFragment.getBundle(filtersToShowOrAll)
+        navController?.navigate(R.id.action_mainFragment_to_filterFragment, bundle)
     }
 
     override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?, skipEdValidation: Boolean) {

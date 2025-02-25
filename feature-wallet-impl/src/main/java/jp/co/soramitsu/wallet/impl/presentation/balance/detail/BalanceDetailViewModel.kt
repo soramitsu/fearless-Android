@@ -76,6 +76,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
+import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -291,7 +293,7 @@ class BalanceDetailViewModel @Inject constructor(
                 }
             )
             val chain = selectedChainFlow.first()
-            val filtersEnabled = chain.isEthereumChain
+            val filtersEnabled = chain.isEthereumChain || chain.ecosystem == Ecosystem.Ton
             state.update { prevState ->
                 prevState.copy(
                     actionBarViewState = actionBarState,
@@ -321,7 +323,15 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun filterClicked() {
-        router.openFilter()
+        viewModelScope.launch {
+            val chain = interactor.getChain(assetPayload.value.chainId)
+            if (chain.ecosystem == Ecosystem.Ton) {
+                val filterValues = setOf(TransactionFilter.TRANSFER, TransactionFilter.EXTRINSIC)
+                router.openFilter(filterValues)
+            } else {
+                router.openFilter()
+            }
+        }
     }
 
     override fun sync() {
