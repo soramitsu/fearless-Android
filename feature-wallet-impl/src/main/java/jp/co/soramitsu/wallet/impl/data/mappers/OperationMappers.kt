@@ -375,8 +375,11 @@ fun mapNodeToOperation(
 private val Operation.Type.Transfer.isIncome
     get() = myAddress == receiver
 
-private val Operation.Type.Transfer.displayAddress
-    get() = if (isIncome) sender else receiver
+private val Operation.Type.Transfer.displayAddress: String
+    get() {
+        val address =  if (isIncome) sender else receiver
+        return "${address.take(8)}...${address.takeLast(8)}"
+    }
 
 private fun formatDetailsAmount(chainAsset: Asset, transfer: Operation.Type.Transfer): String {
     return transfer.amount.formatCryptoDetailFromPlanks(chainAsset).formatSigned(transfer.isIncome)
