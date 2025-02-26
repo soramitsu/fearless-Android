@@ -2,7 +2,6 @@ package jp.co.soramitsu.account.impl.domain
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -43,7 +42,6 @@ import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -51,6 +49,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.io.File
+import kotlin.coroutines.CoroutineContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
@@ -154,7 +154,7 @@ class AccountInteractorImpl(
         return accountRepository.setBiometricOff()
     }
 
-    override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
+    override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow().flowOn(Dispatchers.IO)
 
     override suspend fun selectedMetaAccount() =
         withContext(context) { accountRepository.getSelectedMetaAccount() }

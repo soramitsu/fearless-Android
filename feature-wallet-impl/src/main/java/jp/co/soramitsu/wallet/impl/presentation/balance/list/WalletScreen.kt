@@ -1,10 +1,13 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -106,13 +109,20 @@ fun WalletScreen(
             onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClicked
         )
-        if (data.showCurrenciesOrNftSelector) {
+
+
+        AnimatedVisibility(
+            visible = data.showCurrenciesOrNftSelector,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
             MarginVertical(margin = 16.dp)
             MultiToggleButton(
                 state = data.multiToggleButtonState,
                 onToggleChange = callback::assetTypeChanged
             )
         }
+
 
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
