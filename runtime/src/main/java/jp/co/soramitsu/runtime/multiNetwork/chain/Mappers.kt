@@ -16,7 +16,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
-import java.util.Locale
 
 private const val ETHEREUM_BASED_OPTION = "ethereumBased"
 private const val ETHEREUM_OPTION = "ethereum"
@@ -33,7 +32,7 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "subsquid" -> Chain.ExternalApi.Section.Type.SUBSQUID
     "giantsquid" -> Chain.ExternalApi.Section.Type.GIANTSQUID
     "github" -> Chain.ExternalApi.Section.Type.GITHUB
-    "sora" -> Chain.ExternalApi.Section.Type.SORA
+    "soraSubquery", "sora" -> Chain.ExternalApi.Section.Type.SORA
     "etherscan" -> Chain.ExternalApi.Section.Type.ETHERSCAN
     "oklink" -> Chain.ExternalApi.Section.Type.OKLINK
     "blockscout" -> Chain.ExternalApi.Section.Type.BLOCKSCOUT
