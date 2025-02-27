@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.data.mappers
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.address.createAddressModel
@@ -41,12 +44,9 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDe
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.mapToStatusAppearance
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.models.TxHistoryItem
-import org.ton.block.AddrStd
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import org.ton.block.AddrStd
 
 // VAL
 const val SORA_REWARD_ASSET_ID =
@@ -381,6 +381,9 @@ private val Operation.Type.Transfer.displayAddress: String
         return "${address.take(8)}...${address.takeLast(8)}"
     }
 
+private val Operation.Type.Transfer.partnerAddress: String
+    get() = if (isIncome) sender else receiver
+
 private fun formatDetailsAmount(chainAsset: Asset, transfer: Operation.Type.Transfer): String {
     return transfer.amount.formatCryptoDetailFromPlanks(chainAsset).formatSigned(transfer.isIncome)
 }
@@ -512,14 +515,14 @@ private suspend fun Operation.createTransferOperationModel(
     val operationIcon = when (ecosystem) {
         Ecosystem.EthereumBased, Ecosystem.Ethereum -> {
             iconGenerator.createEthereumAddressIcon(
-                operationType.displayAddress,
+                operationType.partnerAddress,
                 AddressIconGenerator.SIZE_MEDIUM
             )
         }
 
         Ecosystem.Substrate -> {
             iconGenerator.createAddressIcon(
-                operationType.displayAddress,
+                operationType.partnerAddress,
                 AddressIconGenerator.SIZE_BIG
             )
         }
