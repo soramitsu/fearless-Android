@@ -285,28 +285,23 @@ class AccountRepositoryImpl(
 
             val metaAccountId = async { insertAccount(metaAccount) }
 
-            coroutineScope {
-                launch {
-                    val substrateSecrets = SubstrateSecrets(
-                        substrateKeyPair = keys,
-                        substrateDerivationPath = derivationPath,
-                        seed = substrateSeedBytes
-                    )
-                    substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
-                }
-                if (ethereumKeypair != null) {
-                    launch {
-                        val ethereumSecrets = EthereumSecrets(
-                            ethereumKeypair = ethereumKeypair,
-                            seed = ethSeedBytes,
-                            ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-                        )
+            val substrateSecrets = SubstrateSecrets(
+                substrateKeyPair = keys,
+                substrateDerivationPath = derivationPath,
+                seed = substrateSeedBytes
+            )
+            substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
+            if (ethereumKeypair != null) {
 
-                        ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
-                    }
-                }
-                launch { selectAccount(metaAccountId.await()) }
-            }.join()
+                val ethereumSecrets = EthereumSecrets(
+                    ethereumKeypair = ethereumKeypair,
+                    seed = ethSeedBytes,
+                    ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                )
+
+                ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
+            }
+            selectAccount(metaAccountId.await())
         }
     }
 
@@ -350,25 +345,20 @@ class AccountRepositoryImpl(
 
             val metaAccountId = async { insertAccount(metaAccount) }
 
-            coroutineScope {
-                launch {
-                    val substrateSecrets = SubstrateSecrets(
-                        substrateKeyPair = substrateKeys,
-                        seed = substrateImportData.seed
-                    )
-                    substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
-                }
-                if(ethereumKeypair != null) {
-                    launch {
-                        val ethereumSecrets = EthereumSecrets(
-                            ethereumKeypair = ethereumKeypair
-                        )
+            val substrateSecrets = SubstrateSecrets(
+                substrateKeyPair = substrateKeys,
+                seed = substrateImportData.seed
+            )
+            substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
+            if (ethereumKeypair != null) {
+                val ethereumSecrets = EthereumSecrets(
+                    ethereumKeypair = ethereumKeypair
+                )
 
-                        ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
-                    }
-                }
-                launch { selectAccount(metaAccountId.await()) }
-            }.join()
+                ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
+
+            }
+            selectAccount(metaAccountId.await())
         }
     }
 
