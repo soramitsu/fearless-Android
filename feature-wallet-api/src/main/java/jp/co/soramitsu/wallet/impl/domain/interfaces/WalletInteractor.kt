@@ -151,4 +151,6 @@ interface WalletInteractor {
     suspend fun getExportSourceTypes(chainId: ChainId, walletId: Long? = null): MutableSet<ExportSource>
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
     fun extractTonAddress(input: String): String?
+    fun extractEthAddress(input: String): String?
+    fun tryReadAmountFromQrContent(input: String): BigDecimal?
 }

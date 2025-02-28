@@ -934,13 +934,25 @@ class BalanceListViewModel @Inject constructor(
                         openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
                         return@launch
                     }
+                    // todo check if it's OK to use the amount from QR code for evm chains/assets
+                    val amount = null //interactor.tryReadAmountFromQrContent(content)
 
                     val tonKeeperFormat = interactor.extractTonAddress(content)
                     if(tonKeeperFormat != null) {
                         router.openSend(
                             assetPayload = null,
                             initialSendToAddress = tonKeeperFormat,
-                            amount = null
+                            amount = amount
+                        )
+                        return@launch
+                    }
+
+                    val ethFormat = interactor.extractEthAddress(content)
+                    if (ethFormat != null) {
+                        router.openSend(
+                            assetPayload = null,
+                            initialSendToAddress = ethFormat,
+                            amount = amount
                         )
                         return@launch
                     }
@@ -948,7 +960,7 @@ class BalanceListViewModel @Inject constructor(
                     router.openSend(
                         assetPayload = null,
                         initialSendToAddress = content,
-                        amount = null
+                        amount = amount
                     )
                 }
             }

@@ -355,10 +355,21 @@ class WalletInteractorImpl(
         )
     }
 
-    override fun extractTonAddress(input: String): String? {
+    override fun extractTonAddress(input: String): String? = kotlin.runCatching {
         val regex = Regex("ton://transfer/([a-zA-Z0-9_\\-:.]+)")
+        regex.find(input)?.groupValues?.get(1)
+    }.getOrNull()
+
+    override fun extractEthAddress(input: String): String? = kotlin.runCatching {
+        val regex = Regex("""\b(0x[a-fA-F0-9]{40})\b""")
         return regex.find(input)?.groupValues?.get(1)
-    }
+    }.getOrNull()
+
+    override fun tryReadAmountFromQrContent(input: String): BigDecimal? = runCatching {
+        val regex = Regex("""[?&]amount=([\d.]+)""")
+        val amountStr = regex.find(input)?.groupValues?.get(1)
+        BigDecimal(amountStr)
+    }.getOrNull()
 
     private fun getAccountId(item: PushPaymentData): String {
         for (i in ACCOUNT_ID_MIN_TAG..ACCOUNT_ID_MAX_TAG) {
