@@ -819,7 +819,7 @@
   <string name="scam_info_nomis_name">Nomis multi-chain score</string>
   <string name="scam_info_nomis_reason_text">Low network activity</string>
   <string name="scam_info_nomis_subtype_text">Proceed with caution</string>
-  <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send {asset} to this account.</string>
+  <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send %s to this account.</string>
   <string name="scan_qr_subtitle">Scan code from receiver</string>
   <string name="scan_qr_title">QR Code</string>
   <string name="scan_qr_upload_button_title">Upload from gallery</string>

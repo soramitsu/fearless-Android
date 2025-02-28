@@ -87,6 +87,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -367,11 +368,12 @@ class SendSetupViewModel @Inject constructor(
     private val warningInfoStateFlow = combine(
         phishingModelFlow,
         isWarningExpanded,
-        nomisScore
-    ) { phishing, isExpanded, nomisScoreLoadingState ->
+        nomisScore,
+        assetFlow.filter { it != null }
+    ) { phishing, isExpanded, nomisScoreLoadingState, asset ->
         phishing?.let {
             WarningInfoState(
-                message = getPhishingMessage(phishing.type),
+                message = getPhishingMessage(phishing.type, asset ?: return@combine null),
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
                     phishing.type.let { resourceManager.getString(R.string.reason) to it.capitalizedName },
@@ -398,17 +400,18 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private fun getPhishingMessage(type: PhishingType): String {
+    private fun getPhishingMessage(type: PhishingType, asset: Asset): String {
+        val assetSymbol = asset.token.configuration.symbol.uppercase()
         return when (type) {
-            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message, "DOT")
+            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message, assetSymbol)
             PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_warning_message)
             PhishingType.DONATION -> resourceManager.getString(
                 R.string.donation_warning_message_format,
-                "DOT"
+                assetSymbol
             )
 
-            PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_warning_message)
-            else -> resourceManager.getString(R.string.scam_warning_message, "DOT")
+            PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_warning_message, assetSymbol)
+            else -> resourceManager.getString(R.string.scam_warning_message, assetSymbol)
         }
     }
 

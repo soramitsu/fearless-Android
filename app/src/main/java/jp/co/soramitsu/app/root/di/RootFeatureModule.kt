@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.domain.WalletSyncService
@@ -17,9 +16,9 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsInitializer
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
-import jp.co.soramitsu.wallet.impl.data.repository.ChainlinkPricesService
 import jp.co.soramitsu.wallet.impl.data.repository.PricesSyncService
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import javax.inject.Named
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -27,24 +26,8 @@ import javax.inject.Singleton
 class RootFeatureModule {
 
     @Provides
-    fun provideRootInteractor(
-        walletRepository: WalletRepository,
-        @Named("BalancesUpdateSystem") walletUpdateSystem: UpdateSystem,
-        pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
-        preferences: Preferences,
-        accountRepository: AccountRepository,
-        walletSyncService: WalletSyncService,
-        chainRegistry: ChainRegistry
-    ): RootInteractor {
-        return RootInteractor(
-            walletUpdateSystem,
-            walletRepository,
-            pendulumPreInstalledAccountsScenario,
-            preferences,
-            accountRepository,
-            walletSyncService,
-            chainRegistry
-        )
+    fun provideRootInteractor(): RootInteractor {
+        return RootInteractor()
     }
 
     @Provides

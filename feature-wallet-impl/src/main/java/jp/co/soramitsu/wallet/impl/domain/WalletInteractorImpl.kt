@@ -265,8 +265,8 @@ class WalletInteractorImpl(
         return walletRepository.isAddressFromPhishingList(address)
     }
 
-    override suspend fun getPhishingInfo(address: String): PhishingModel? {
-        return walletRepository.getPhishingInfo(address)?.toPhishingModel()
+    override suspend fun getPhishingInfo(address: String): PhishingModel? = withContext(coroutineContext) {
+        return@withContext walletRepository.getPhishingInfo(address)?.toPhishingModel()
     }
 
     override suspend fun observeTransferFee(
