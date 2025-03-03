@@ -1,15 +1,10 @@
 package jp.co.soramitsu.wallet.impl.domain.validation
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
-import jp.co.soramitsu.common.utils.sumByBigDecimal
-import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.isSoraBasedChain
@@ -18,12 +13,8 @@ import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
-import jp.co.soramitsu.polkaswap.api.models.Market
-import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
@@ -35,7 +26,6 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -125,7 +115,6 @@ class ValidateTransferUseCaseImpl(
             originExistentialDeposit.formatCryptoDetailFromPlanks(originAssetConfig)
 
         val amountDecimal = originAssetConfig.amountFromPlanks(amountInPlanks).orZero()
-
 
         val tip =
             if (originAssetConfig.isUtility && originChain.isEthereumChain.not()) walletConstants.tip(
@@ -420,13 +409,7 @@ class ValidateTransferUseCaseImpl(
             }
 
             else -> {
-                val originEdFormatted =
-                    originExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
-                mapOf(
-                    getTransferValidationResultExistentialDeposit(
-                        isCrossChainTransfer,
-                        originEdFormatted
-                    ) to (transferable - amountInPlanks < originExistentialDeposit),
+                mapOf<TransferValidationResult, Boolean>(
                     TransferValidationResult.DeadRecipient(
                         destinationResultFormatted,
                         destinationEdFormatted,
