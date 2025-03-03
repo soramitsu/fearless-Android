@@ -490,6 +490,12 @@ class SendSetupViewModel @Inject constructor(
                 prev.copy(inputEnabled = lockInput.not() || lockAmountInput.not())
             }
         }.launchIn(viewModelScope)
+
+        lockInputFlow.onEach { isLocked ->
+            amountInputViewState.update { prev ->
+                prev.copy(allowAssetChoose = isLocked.not())
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun subscribeAsset() {
