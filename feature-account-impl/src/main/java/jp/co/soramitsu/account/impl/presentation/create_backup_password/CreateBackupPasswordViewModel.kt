@@ -1,9 +1,12 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
 import android.app.Activity
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
@@ -20,8 +23,12 @@ import jp.co.soramitsu.common.utils.combine as combineFlows
 @HiltViewModel
 class CreateBackupPasswordViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
+    private val savedStateHandle: SavedStateHandle,
+    private val interactor: AccountInteractor,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), CreateBackupPasswordCallback {
+
+    private val payload = savedStateHandle.get<SaveBackupPayload?>(CreateBackupPasswordDialog.PAYLOAD_KEY)
 
     private val originPassword = MutableStateFlow("")
     private val confirmPassword = MutableStateFlow("")
@@ -143,11 +150,34 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     override fun onApplyPasswordClick() {
+        isLoading.value = true
 
         viewModelScope.launch {
-            isLoading.value = true
-            continueBasedOnCodeStatus()
-            isLoading.value = false
+            runCatching {
+                val createResult = payload?.addAccountPayload?.let {
+                    interactor.createAccount(it)
+                }
+
+                val walletId = createResult?.getOrNull() ?: payload?.walletId
+                walletId?.let {
+                    interactor.saveGoogleBackupAccount(
+                        walletId,
+                        originPassword.value
+                    )
+                }
+                walletId
+            }
+                .onSuccess { walletId ->
+                    walletId?.let {
+                        interactor.updateWalletBackedUp(walletId)
+                    }
+                    continueBasedOnCodeStatus()
+                    isLoading.value = false
+                }
+                .onFailure {
+                    isLoading.value = false
+                    showError(it)
+                }
         }
     }
 

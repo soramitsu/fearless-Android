@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.impl.domain
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -42,6 +43,7 @@ import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -49,8 +51,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import java.io.File
-import kotlin.coroutines.CoroutineContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
@@ -263,7 +263,7 @@ class AccountInteractorImpl(
             }.flowOn(Dispatchers.IO)
     }
 
-    override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: Int) {
+    override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String) {
         withContext(Dispatchers.IO) {
             val wallet = getMetaAccount(metaId)
             val westendChain = getChain(westendChainId)
@@ -272,13 +272,13 @@ class AccountInteractorImpl(
             val jsonResult = generateRestoreJson(
                 metaId = metaId,
                 chainId = polkadotChainId,
-                password = googleBackupPassword.toString()
+                password = googleBackupPassword
             )
             val substrateJson = jsonResult.getOrNull()
             val ethJsonResult = generateRestoreJson(
                 metaId = metaId,
                 chainId = moonriverChainId,
-                password = googleBackupPassword.toString()
+                password = googleBackupPassword
             )
             val ethJson = ethJsonResult.getOrNull()
 
@@ -289,11 +289,19 @@ class AccountInteractorImpl(
             val ethereumDerivationPath = ethereumSecrets?.get(EthereumSecrets.EthereumDerivationPath).orEmpty()
             val entropy = substrateSecrets?.get(SubstrateSecrets.Entropy)?.clone()
             val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }
-            val substrateSeed = substrateSecrets?.get(SubstrateSecrets.Seed)?.toHexString(true)
+            val substrateSeed = (
+                    substrateSecrets?.get(SubstrateSecrets.Seed) ?: mnemonic?.let {
+                        seedFromMnemonic(
+                            mnemonic,
+                            substrateDerivationPath.nullIfEmpty()
+                        )
+                    }
+                    )?.toHexString(true)
             val ethSeed = ethereumSecrets?.get(EthereumSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
 
             val backupAccountTypes = getSupportedBackupTypes(metaId).toList()
 
+            val substrateCryptoType = wallet.substrateCryptoType ?: error("Need substrate CryptoType to backup wallet: ${wallet.id} - ${wallet.name}")
             backupService.saveBackupAccount(
                 account = DecryptedBackupAccount(
                     name = wallet.name,
@@ -301,12 +309,12 @@ class AccountInteractorImpl(
                     mnemonicPhrase = mnemonic,
                     substrateDerivationPath = substrateDerivationPath,
                     ethDerivationPath = ethereumDerivationPath,
-                    cryptoType = wallet.substrateCryptoType!!,
+                    cryptoType = substrateCryptoType,
                     backupAccountType = backupAccountTypes,
                     seed = Seed(substrateSeed = substrateSeed, ethSeed),
                     json = Json(substrateJson = substrateJson, ethJson)
                 ),
-                password = googleBackupPassword.toString()
+                password = googleBackupPassword
             )
         }
     }
@@ -410,4 +418,9 @@ class AccountInteractorImpl(
             val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
             SubstrateSeedFactory.deriveSeed32(mnemonicWords, password).seed
         }
+
+    private fun seedFromMnemonic(mnemonic: String, derivationPath: String?): ByteArray {
+        val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
+        return SubstrateSeedFactory.deriveSeed32(mnemonic, password).seed
+    }
 }

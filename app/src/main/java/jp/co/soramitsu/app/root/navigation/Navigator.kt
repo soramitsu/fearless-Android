@@ -16,9 +16,12 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import java.math.BigDecimal
+import java.util.concurrent.atomic.AtomicBoolean
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.chainaccounts.ChainAccountsDialog
 import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog
@@ -134,6 +137,7 @@ import jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConn
 import jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -170,12 +174,15 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -195,12 +202,6 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
-import java.math.BigDecimal
-import java.util.concurrent.atomic.AtomicBoolean
-import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
-import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.resume
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -288,10 +289,12 @@ class Navigator :
         navController?.navigate(R.id.importRemoteWalletDialog, bundle)
     }
 
-    override fun openCreateBackupPasswordDialogWithResult(): Flow<Int> {
+    override fun openCreateBackupPasswordDialogWithResult(payload: SaveBackupPayload?): Flow<Int> {
+        val bundle = CreateBackupPasswordDialog.getBundle(payload)
         return openWithResult(
             destinationId = R.id.createBackupPasswordDialog,
-            resultKey = CreateBackupPasswordDialog.RESULT_BACKUP_KEY
+            resultKey = CreateBackupPasswordDialog.RESULT_BACKUP_KEY,
+            bundle = bundle
         )
     }
 

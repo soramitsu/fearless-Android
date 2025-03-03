@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 
 @HiltViewModel
 class BackupWalletViewModel @Inject constructor(
@@ -312,15 +313,17 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     private fun openCreateBackupPasswordDialog() {
-        launch {
-            accountRouter.openCreateBackupPasswordDialogWithResult()
-                .onEach { resultCode ->
-                    if (resultCode == Activity.RESULT_OK) {
-                        checkIsWalletBackedUpToGoogle()
-                    }
+        val payload = SaveBackupPayload(
+            walletId = walletId,
+            addAccountPayload = null
+        )
+        accountRouter.openCreateBackupPasswordDialogWithResult(payload)
+            .onEach { resultCode ->
+                if (resultCode == Activity.RESULT_OK) {
+                    checkIsWalletBackedUpToGoogle()
                 }
-                .launchIn(viewModelScope)
-        }
+            }
+            .launchIn(viewModelScope)
     }
 
     override fun onGoogleLoginError(message: String) {

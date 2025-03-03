@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 
+import android.app.Activity
 import android.content.Intent
 import android.widget.LinearLayout
 import androidx.activity.result.ActivityResultLauncher
@@ -9,8 +10,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.exceptions.NotValidDerivationPath
@@ -25,7 +28,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
@@ -37,10 +39,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 @HiltViewModel
 class BackupMnemonicViewModel @Inject constructor(
@@ -229,26 +229,17 @@ class BackupMnemonicViewModel @Inject constructor(
     }
 
     private fun openCreateBackupPasswordDialog() {
-        router.openCreateBackupPasswordDialogWithResult()
-            .take(1)
-            .onEach {
-                onGoogleBackupPasswordReady(it)
+        val createAndSavePayload = SaveBackupPayload(
+            walletId = null,
+            addAccountPayload = getAddAccountPayload()
+        )
+        router.openCreateBackupPasswordDialogWithResult(createAndSavePayload)
+            .onEach { resultCode ->
+                if (resultCode == Activity.RESULT_OK) {
+                    continueBasedOnCodeStatus()
+                }
             }
             .launchIn(viewModelScope)
-    }
-
-    private fun onGoogleBackupPasswordReady(password: Int) {
-        //create account, save backup to google and open main screen
-        viewModelScope.launch {
-            val result = createAccount()
-            if (result.isFailure){
-                showError(result.requireException())
-                return@launch
-            }
-
-            kotlin.runCatching { interactor.saveGoogleBackupAccount(result.requireValue(), password) }
-                .onSuccess { continueBasedOnCodeStatus() }
-        }
     }
 
     override fun onGoogleLoginError(message: String) {
@@ -291,6 +282,37 @@ class BackupMnemonicViewModel @Inject constructor(
         }
     }
 
+    private fun getAddAccountPayload(): AddAccountPayload {
+        val mnemonicWords = this@BackupMnemonicViewModel.mnemonic.value.map(MnemonicWordModel::word)
+        val mnemonicString = mnemonicWords.joinToString(" ")
+
+        return when {
+            isSubstrateOrEthereumAccount -> {
+                val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: error("There must be encryption type selected for substrate ecosystem")
+                val substrateDerivationPath = substrateDerivationPath.value
+                val ethereumDerivationPath =
+                    ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
+                AddAccountPayload.SubstrateOrEvm(
+                    payload.accountName,
+                    mnemonicString,
+                    cryptoTypeModel.cryptoType,
+                    substrateDerivationPath,
+                    ethereumDerivationPath,
+                    null,
+                    false
+                )
+            }
+
+            isTonAccount -> AddAccountPayload.Ton(
+                payload.accountName,
+                mnemonicString,
+                false
+            )
+
+            else -> error("AccountType not specified")
+        }
+    }
+
     private suspend fun createAccount(): Result<Long> {
         val mnemonicWords = this@BackupMnemonicViewModel.mnemonic.value.map(MnemonicWordModel::word)
         val mnemonicString = mnemonicWords.joinToString(" ")
@@ -327,11 +349,13 @@ class BackupMnemonicViewModel @Inject constructor(
         return interactor.createAccount(addAccountPayload)
     }
 
-    private suspend fun continueBasedOnCodeStatus() {
-        if (interactor.isCodeSet()) {
-            router.openMain()
-        } else {
-            router.openCreatePincode()
+    private fun continueBasedOnCodeStatus() {
+        launch(Dispatchers.Main) {
+            if (interactor.isCodeSet()) {
+                router.openMain()
+            } else {
+                router.openCreatePincode()
+            }
         }
     }
 }

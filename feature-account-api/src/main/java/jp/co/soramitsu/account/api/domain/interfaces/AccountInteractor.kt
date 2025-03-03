@@ -113,7 +113,7 @@ interface AccountInteractor {
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
     fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>>
 
-    suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: Int)
+    suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String)
     suspend fun getGoogleBackupAccounts(): List<BackupAccountMeta>
     suspend fun getExtensionGoogleBackups(): List<BackupAccountMeta>
     suspend fun deleteGoogleBackupAccount(walletId: Long, address: String)
