@@ -415,16 +415,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val buttonStateFlow = combine(
-        visibleAmountFlow,
-        assetFlow
-    ) { amount, asset ->
-        val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
-        ButtonViewState(
-            text = resourceManager.getString(R.string.common_continue),
-            enabled = amountInPlanks.isNotZero()
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
+    private val buttonStateFlow = MutableStateFlow(defaultButtonState)
 
     private val sendAllToggleState: MutableStateFlow<ToggleState> =
         MutableStateFlow(ToggleState.INITIAL)
@@ -456,6 +447,21 @@ class SendSetupViewModel @Inject constructor(
 
         subscribeScreenState()
         subscribeAmountInputState()
+
+        combine(
+            visibleAmountFlow,
+            assetFlow
+        ) { amount, asset ->
+            val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
+            ButtonViewState(
+                text = resourceManager.getString(R.string.common_continue),
+                enabled = amountInPlanks.isNotZero(),
+                loading = false
+            )
+        }.onEach { newState ->
+            buttonStateFlow.update { newState }
+        }.launchIn(viewModelScope)
+
     }
 
     private fun subscribeAmountInputState() {
@@ -782,6 +788,7 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onNextClick() {
         viewModelScope.launch {
+            buttonStateFlow.update { prevState -> prevState.copy(loading = true, enabled = false) }
             val asset = assetFlow.value ?: return@launch
 
             val amount = enteredAmountBigDecimalFlow.value
@@ -808,6 +815,7 @@ class SendSetupViewModel @Inject constructor(
             // error occurred inside validation
             validationProcessResult.exceptionOrNull()?.let {
                 showError(it)
+                buttonStateFlow.update { prevState -> prevState.copy(loading = false, enabled = true) }
                 return@launch
             }
             val validationResult = validationProcessResult.requireValue()
@@ -818,10 +826,11 @@ class SendSetupViewModel @Inject constructor(
                 } else {
                     showError(it)
                 }
+                buttonStateFlow.update { prevState -> prevState.copy(loading = false, enabled = true) }
                 return@launch
             }
             // all checks have passed - go to next step
-
+            buttonStateFlow.update { prevState -> prevState.copy(loading = false, enabled = true) }
             onNextStep()
         }
     }
