@@ -30,4 +30,10 @@
         android:id="@+id/walletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListFragment"
         android:label="WalletFragment" />
+
+    <fragment
+        android:id="@+id/crowdloanFragment"
+        tools:layout="@layout/fragment_crowdloans"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
+        android:label="CrowdloanFragment" />
 </navigation>
