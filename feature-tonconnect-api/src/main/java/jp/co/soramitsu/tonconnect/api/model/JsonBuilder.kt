@@ -117,7 +117,7 @@ object JsonBuilder {
 
         val deviceJson = JSONObject()
         deviceJson.put("platform", "android")
-        deviceJson.put("appName", "Tonkeeper")
+        deviceJson.put("appName", "Fearless")
         deviceJson.put("appVersion", BuildConfig.VERSION_NAME)
         deviceJson.put("maxProtocolVersion", 2)
         deviceJson.put("features", featuresJsonArray)

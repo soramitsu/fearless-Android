@@ -15,7 +15,7 @@ class DAppBridge(
     val restoreConnection: suspend () -> JSONObject,
     val disconnect: suspend () -> Unit,
     val tonapiFetch: suspend (url: String, options: String) -> Response
-) : JsBridge("tonkeeper") {
+) : JsBridge("fearless") {
 
     override val availableFunctions = arrayOf("send", "connect", "restoreConnection", "disconnect")
 
