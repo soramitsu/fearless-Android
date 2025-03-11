@@ -144,7 +144,7 @@ val accentRadioButtonColors = object : RadioButtonColors {
     override fun radioColor(enabled: Boolean, selected: Boolean): State<Color> {
         val target = when {
             !enabled -> grayDisabled
-            !selected -> white16
+            !selected -> colorAccentDark
             else -> colorAccentDark
         }
 
