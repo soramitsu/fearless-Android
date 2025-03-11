@@ -17,9 +17,8 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBin
 @AndroidEntryPoint
 class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.fragment_create_account) {
     companion object {
-        const val ACCOUNT_TYPE_KEY = "ACCOUNT_TYPE_KEY"
         fun getBundle(accountType: AccountType) = bundleOf(
-            ACCOUNT_TYPE_KEY to accountType
+            CreateAccountScreenKeys.ACCOUNT_TYPE_KEY to accountType
         )
     }
 

@@ -27,7 +27,7 @@ class CreateAccountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), CreateAccountCallback {
 
-    private val accountMode = savedStateHandle.get<AccountType>(CreateAccountFragment.ACCOUNT_TYPE_KEY) ?: throw IllegalStateException("ACCOUNT_TYPE_KEY can't be null")
+    private val accountMode = savedStateHandle.get<AccountType>(CreateAccountScreenKeys.ACCOUNT_TYPE_KEY) ?: throw IllegalStateException("ACCOUNT_TYPE_KEY can't be null")
     private val isFromGoogleBackup = savedStateHandle.get<Boolean>(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY) ?: false
 
     private val _nextButtonEnabledLiveData = MutableLiveData<Boolean>()

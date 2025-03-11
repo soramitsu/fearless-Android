@@ -11,6 +11,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.presentation.ErrorDialog
@@ -21,7 +22,10 @@ class CreateAccountDialog : BaseComposeBottomSheetDialogFragment<CreateAccountVi
     companion object {
 
         fun getBundle(): Bundle {
-            return bundleOf(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to true)
+            return bundleOf(
+                CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to true,
+                CreateAccountScreenKeys.ACCOUNT_TYPE_KEY to AccountType.SubstrateOrEvm
+            )
         }
     }
 
