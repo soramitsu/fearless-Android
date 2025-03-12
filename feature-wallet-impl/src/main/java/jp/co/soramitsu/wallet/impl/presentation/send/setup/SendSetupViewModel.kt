@@ -1023,7 +1023,7 @@ class SendSetupViewModel @Inject constructor(
                 initialAmountFlow.value = null
                 delay(70)
             }
-            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
+            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN).stripTrailingZeros()
             initialAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
             enteredAmountBigDecimalFlow.value = amount
             observeExistentialDeposit(input < QuickAmountInput.MAX.value)

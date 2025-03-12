@@ -680,7 +680,7 @@ class CrossChainSetupViewModel @Inject constructor(
             val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
             val amount = valuesMap[input] ?: return@launch
 
-            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
+            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN).stripTrailingZeros()
             enteredAmountBigDecimalFlow.value = amount
         }
     }
