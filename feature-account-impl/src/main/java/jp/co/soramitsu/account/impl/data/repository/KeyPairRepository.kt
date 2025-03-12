@@ -43,9 +43,9 @@ class KeyPairRepository(
             secretStoreV2.hasChainSecrets(metaAccount.id, accountId) -> {
                 secretStoreV2.getChainAccountKeypair(metaAccount.id, accountId)
             }
-            chain.ecosystem == Ecosystem.EthereumBased ||
+
             chain.ecosystem == Ecosystem.Substrate -> substrateSecretStore.get(metaAccount.id)?.get(SubstrateSecrets.SubstrateKeypair)?.let { mapKeypairStructToKeypair(it) }
-            chain.ecosystem == Ecosystem.Ethereum -> ethereumSecretStore.get(metaAccount.id)?.get(EthereumSecrets.EthereumKeypair)?.let { mapKeypairStructToKeypair(it) }
+            chain.ecosystem == Ecosystem.EthereumBased ||chain.ecosystem == Ecosystem.Ethereum -> ethereumSecretStore.get(metaAccount.id)?.get(EthereumSecrets.EthereumKeypair)?.let { mapKeypairStructToKeypair(it) }
             chain.ecosystem == Ecosystem.Ton -> tonSecretStore.get(metaAccount.id)?.let { Keypair(it[TonSecrets.PublicKey], it[TonSecrets.PrivateKey]) }
             else -> error("No keypair found for meta account: ${metaAccount.id}, chain: ${chain.id} (${chain.ecosystem.name})")
         }
