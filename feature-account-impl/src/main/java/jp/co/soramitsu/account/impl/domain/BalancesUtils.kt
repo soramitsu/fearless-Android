@@ -32,67 +32,7 @@ import org.web3j.protocol.core.Ethereum
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.utils.Numeric
 
-fun buildStorageKeys(
-    chain: Chain,
-    metaAccount: MetaAccount,
-    runtime: RuntimeSnapshot
-): Result<List<StorageKeyWithMetadata>> {
-    val accountId = metaAccount.accountId(chain)
-        ?: return Result.failure(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}"))
 
-    return Result.success(buildStorageKeys(chain, runtime, metaAccount.id, accountId))
-}
-
-fun buildStorageKeys(
-    chain: Chain,
-    runtime: RuntimeSnapshot?,
-    metaAccountId: Long,
-    accountId: ByteArray
-): List<StorageKeyWithMetadata> {
-    if (chain.utilityAsset != null && chain.utilityAsset?.typeExtra == ChainAssetType.Equilibrium) {
-        return listOf(buildEquilibriumStorageKeys(chain, runtime, metaAccountId, accountId))
-    }
-
-    return buildSubstrateStorageKeys(chain, runtime, metaAccountId, accountId)
-}
-
-fun buildSubstrateStorageKeys(chain: Chain,
-                              runtime: RuntimeSnapshot?,
-                              metaAccountId: Long,
-                              accountId: ByteArray): List<StorageKeyWithMetadata>{
-    return chain.assets.map { asset ->
-        StorageKeyWithMetadata(
-            asset, metaAccountId, accountId,
-            runtime?.let { constructBalanceKey(it, asset, accountId) }
-        )
-    }
-}
-
-fun buildEquilibriumStorageKeys(
-    chain: Chain,
-    runtime: RuntimeSnapshot?,
-    metaAccountId: Long,
-    accountId: ByteArray
-): StorageKeyWithMetadata {
-    val metadata = StorageKeyWithMetadata(
-        requireNotNull(chain.utilityAsset),
-        metaAccountId,
-        accountId,
-        null
-    )
-
-    return if (runtime == null) {
-        metadata
-    } else {
-        metadata.copy(
-            key = constructBalanceKey(
-                runtime,
-                requireNotNull(chain.utilityAsset),
-                accountId
-            )
-        )
-    }
-}
 
 data class StorageKeyWithMetadata(
     val asset: Asset,
@@ -126,91 +66,7 @@ data class StorageKeyWithMetadata(
 }
 
 
-fun constructBalanceKey(
-    runtime: RuntimeSnapshot,
-    asset: Asset,
-    accountId: ByteArray
-): String? {
-    val keyConstructionResult = runCatching {
-        val currency =
-            asset.currency ?: return@runCatching runtime.metadata.system().storage("Account")
-                .storageKey(runtime, accountId)
-        when (asset.typeExtra) {
-            null, ChainAssetType.Normal,
-            ChainAssetType.Equilibrium,
-            ChainAssetType.SoraUtilityAsset -> runtime.metadata.system().storage("Account")
-                .storageKey(runtime, accountId)
 
-            ChainAssetType.OrmlChain,
-            ChainAssetType.OrmlAsset,
-            ChainAssetType.VToken,
-            ChainAssetType.VSToken,
-            ChainAssetType.Stable,
-            ChainAssetType.ForeignAsset,
-            ChainAssetType.StableAssetPoolToken,
-            ChainAssetType.SoraAsset,
-            ChainAssetType.AssetId,
-            ChainAssetType.Token2,
-            ChainAssetType.Xcm,
-            ChainAssetType.LiquidCrowdloan -> runtime.metadata.tokens().storage("Accounts")
-                .storageKey(runtime, accountId, currency)
-
-            ChainAssetType.Assets -> runtime.metadata.module(Modules.ASSETS).storage("Account")
-                .storageKey(runtime, currency, accountId)
-
-            ChainAssetType.Unknown -> error("Not supported type for token ${asset.symbol} in ${asset.chainName}")
-        }
-    }
-    return keyConstructionResult
-        .onFailure {
-            Log.d(
-                "BalancesUpdateSystem",
-                "Failed to construct storage key for asset ${asset.symbol} (${asset.id}) $it "
-            )
-        }
-        .getOrNull()
-}
-
-fun handleBalanceResponse(
-    runtime: RuntimeSnapshot,
-    asset: Asset,
-    scale: String?
-): Result<AssetBalanceData> {
-    return runCatching {
-        when (asset.typeExtra) {
-            null,
-            ChainAssetType.Normal,
-            ChainAssetType.SoraUtilityAsset -> {
-                bindAccountInfoOrDefault(scale, runtime)
-            }
-
-            ChainAssetType.OrmlChain,
-            ChainAssetType.OrmlAsset,
-            ChainAssetType.ForeignAsset,
-            ChainAssetType.StableAssetPoolToken,
-            ChainAssetType.LiquidCrowdloan,
-            ChainAssetType.VToken,
-            ChainAssetType.SoraAsset,
-            ChainAssetType.VSToken,
-            ChainAssetType.AssetId,
-            ChainAssetType.Token2,
-            ChainAssetType.Xcm,
-            ChainAssetType.Stable -> {
-                bindOrmlTokensAccountDataOrDefault(scale, runtime)
-            }
-
-            ChainAssetType.Equilibrium -> {
-                bindEquilibriumAccountData(scale, runtime) ?: EmptyBalance
-            }
-
-            ChainAssetType.Assets -> {
-                bindAssetsAccountData(scale, runtime) ?: EmptyBalance
-            }
-
-            ChainAssetType.Unknown -> EmptyBalance
-        }
-    }
-}
 
 suspend fun Ethereum.fetchEthBalance(asset: Asset, address: String): BigInteger {
     return withTimeout(3000L) {

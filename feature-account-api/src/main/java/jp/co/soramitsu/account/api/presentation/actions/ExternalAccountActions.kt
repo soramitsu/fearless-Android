@@ -8,12 +8,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 interface ExternalAccountActions : Browserable {
 
-    class Payload(
+    open class Payload(
         val value: String,
-        val chainId: ChainId? = null,
-        val chainName: String? = null,
-        val explorers: Map<Chain.Explorer.Type, String>,
-        val canSwitchNode: Boolean = true
+        val explorers: Map<Chain.Explorer.Type, String>
     )
 
     val showExternalActionsEvent: LiveData<Event<Payload>>

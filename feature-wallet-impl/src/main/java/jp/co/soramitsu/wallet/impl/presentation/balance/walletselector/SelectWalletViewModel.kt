@@ -5,7 +5,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -18,8 +17,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -36,8 +33,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
+import javax.inject.Inject
 
 @HiltViewModel
 class SelectWalletViewModel @Inject constructor(
@@ -45,12 +41,10 @@ class SelectWalletViewModel @Inject constructor(
     private val accountInteractor: AccountInteractor,
     private val nomisScoreInteractor: NomisScoreInteractor,
     private val router: WalletRouter,
-    private val updatesMixin: UpdatesMixin,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val backupService: BackupService,
     private val resourceManager: ResourceManager,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
+) : BaseViewModel() {
 
     private val walletItemsFlow = MutableStateFlow<List<WalletItemViewState>>(emptyList())
 
@@ -146,12 +140,6 @@ class SelectWalletViewModel @Inject constructor(
          router.openCreateAccountFromWallet()
     }
 
-    fun importWallet() {
-        router.openSelectImportModeForResult()
-            .onEach(::handleSelectedImportMode)
-            .launchIn(viewModelScope)
-    }
-
     fun onBackClicked() {
         router.back()
     }
@@ -160,27 +148,9 @@ class SelectWalletViewModel @Inject constructor(
         router.openOptionsWallet(item.id)
     }
 
-    private fun handleSelectedImportMode(importMode: ImportMode) {
-        when (importMode) {
-            ImportMode.Google -> {
-                googleAuthorizeLiveData.value = Event(Unit)
-            }
-            ImportMode.Preinstalled -> {
-                importPreInstalledWalletLiveData.value = Event(Unit)
-            }
-            else -> {
-                router.openImportAccountScreen(
-                    blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
-                    importMode = importMode
-                )
-            }
-        }
-    }
-
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         launch {
-            backupService.logout()
-            if (backupService.authorize(launcher)) {
+            if (accountInteractor.authorizeGoogleBackup(launcher)) {
                 openAddWalletThroughGoogleScreen()
             }
         }
@@ -189,7 +159,7 @@ class SelectWalletViewModel @Inject constructor(
     fun openAddWalletThroughGoogleScreen() {
         launch {
             runCatching {
-                backupService.getBackupAccounts()
+                accountInteractor.getGoogleBackupAccounts()
             }.onFailure {
                 showError(
                     title = resourceManager.getString(R.string.common_error_general_title),

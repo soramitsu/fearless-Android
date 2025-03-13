@@ -2,9 +2,6 @@ package jp.co.soramitsu.liquiditypools.impl.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.data.secrets.v1.Keypair
-import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.liquiditypools.blockexplorer.BlockExplorerManager
@@ -13,6 +10,7 @@ import jp.co.soramitsu.liquiditypools.data.PoolsRepository
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +29,7 @@ class PoolsInteractorImpl(
     private val poolsRepository: PoolsRepository,
     private val accountRepository: AccountRepository,
     private val blockExplorerManager: BlockExplorerManager,
+    private val chainsRepository: ChainsRepository,
     private val coroutineContext: CoroutineContext = Dispatchers.Default
 ) : PoolsInteractor {
 
@@ -146,19 +145,12 @@ class PoolsInteractorImpl(
         slippageTolerance: Double
     ): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        val address = accountRepository.getSelectedAccount(chainId).address
-
-        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id)?.get(MetaAccountSecrets.SubstrateKeypair)
-        requireNotNull(secrets)
-        val private = secrets[KeyPairSchema.PrivateKey]
-        val public = secrets[KeyPairSchema.PublicKey]
-        val nonce = secrets[KeyPairSchema.Nonce]
-        val keypair = Keypair(public, private, nonce)
+        val chain = chainsRepository.getChain(chainId)
+        val address = metaAccount.address(chain) ?: error("There is no substrate account in current metaAccount")
 
         val status = poolsRepository.observeAddLiquidity(
             chainId,
             address,
-            keypair,
             tokenBase,
             tokenTarget,
             amountBase,

@@ -5,9 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -21,7 +18,6 @@ import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
@@ -30,6 +26,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -46,7 +43,10 @@ import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.CBDCTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
+import jp.co.soramitsu.wallet.impl.domain.model.SubstrateTransferParams
+import jp.co.soramitsu.wallet.impl.domain.model.TonTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
@@ -57,16 +57,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 private const val ICON_IN_DP = 24
 val FEE_CORRECTION = BigDecimal("0.01")
@@ -90,19 +96,32 @@ class ConfirmSendViewModel @Inject constructor(
     TransferValidityChecks by transferValidityChecks,
     ConfirmSendScreenInterface {
 
-    private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT) ?: error("Required data not provided for send confirmation")
-    private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
-    private val overrides = savedStateHandle.get<Map<String, Any?>>(ConfirmSendFragment.KEY_OVERRIDES).orEmpty()
-    private val transferComment = savedStateHandle.get<String>(ConfirmSendFragment.KEY_TRANSFER_COMMENT)
-    private val skipEdValidation = savedStateHandle.get<Boolean>(ConfirmSendFragment.KEY_SKIP_ED_VALIDATION) == true
+    private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT)
+        ?: error("Required data not provided for send confirmation")
+    private val phishingType =
+        savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
+    private val overrides =
+        savedStateHandle.get<Map<String, Any?>>(ConfirmSendFragment.KEY_OVERRIDES).orEmpty()
+    private val transferComment =
+        savedStateHandle.get<String>(ConfirmSendFragment.KEY_TRANSFER_COMMENT)
+    private val skipEdValidation =
+        savedStateHandle.get<Boolean>(ConfirmSendFragment.KEY_SKIP_ED_VALIDATION) == true
 
-    private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
-    val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
+    private val _openValidationWarningEvent =
+        MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
+    val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> =
+        _openValidationWarningEvent
 
-    private val recipientFlow = interactor.observeAddressBook(transferDraft.assetPayload.chainId).map { contacts ->
-        val contactName = contacts.firstOrNull { it.address.equals(transferDraft.recipientAddress, ignoreCase = true) }?.name
-        getAddressModel(transferDraft.recipientAddress, contactName)
-    }
+    private val recipientFlow =
+        interactor.observeAddressBook(transferDraft.assetPayload.chainId).map { contacts ->
+            val contactName = contacts.firstOrNull {
+                it.address.equals(
+                    transferDraft.recipientAddress,
+                    ignoreCase = true
+                )
+            }?.name
+            getAddressModel(transferDraft.recipientAddress, contactName)
+        }
 
     private val senderFlow = flowOf {
         currentAccountAddress(transferDraft.assetPayload.chainId)?.let { address ->
@@ -126,7 +145,10 @@ class ConfirmSendViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
-    private val assetFlow = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId).share()
+    private val assetFlow = interactor.assetFlow(
+        transferDraft.assetPayload.chainId,
+        transferDraft.assetPayload.chainAssetId
+    ).share()
 
     private val chainFlow = flowOf {
         interactor.getChain(transferDraft.assetPayload.chainId)
@@ -142,106 +164,134 @@ class ConfirmSendViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
         .flatMapLatest { interactor.observeTransferFee(it) }
-        .map { it.feeAmount }
         .onStart { transferDraft.fee }
 
-    val state: StateFlow<ConfirmSendViewState> = combine(
-        recipientFlow,
-        senderFlow,
-        assetFlow,
-        utilityAssetFlow,
-        buttonStateFlow,
-        transferSubmittingFlow,
-        feeFlow
-    ) { recipient, sender, asset, utilityAsset, buttonState, isSubmitting, fee ->
-        val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
-        val fromInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.transaction_details_from),
-            value = if (isSenderNameSpecified) sender?.name else sender?.address?.shortenAddress(),
-            additionalValue = if (isSenderNameSpecified) sender?.address?.shortenAddress() else null
-        )
+    val state = MutableStateFlow(ConfirmSendViewState.default)
 
-        val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
-        val hasOverriddenToValue = overrides.containsKey(ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE)
+    init {
+        viewModelScope.launch {
+            val iconOverrideResId = overrides[ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID] as? Int
+            state.update { prev -> prev.copy(iconOverrideResId = iconOverrideResId) }
 
-        val toValue = when {
-            hasOverriddenToValue -> overrides[ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE] as String
-            isRecipientNameSpecified -> recipient.name
-            else -> recipient.address.shortenAddress()
+            recipientFlow.onEach { recipient ->
+                val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
+                val hasOverriddenToValue =
+                    overrides.containsKey(ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE)
+
+                val toValue = when {
+                    hasOverriddenToValue -> overrides[ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE] as String
+                    isRecipientNameSpecified -> recipient.name
+                    else -> recipient.address.shortenAddress()
+                }
+                val toAdditionalValue = when {
+                    hasOverriddenToValue -> null
+                    isRecipientNameSpecified -> recipient.address.shortenAddress()
+                    else -> null
+                }
+                val toInfoItem = TitleValueViewState(
+                    title = resourceManager.getString(R.string.choose_amount_to),
+                    value = toValue,
+                    additionalValue = toAdditionalValue,
+                    clickState = phishingType?.let {
+                        TitleValueViewState.ClickState.Value(
+                            R.drawable.ic_alert_16,
+                            ConfirmSendViewState.CODE_WARNING_CLICK
+                        )
+                    }
+                )
+                state.update { prevState -> prevState.copy(toInfoItem = toInfoItem) }
+            }.launchIn(viewModelScope)
+
+            senderFlow.onEach { sender ->
+                val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
+                val fromInfoItem = TitleValueViewState(
+                    title = resourceManager.getString(R.string.transaction_details_from),
+                    value = if (isSenderNameSpecified) sender?.name else sender?.address?.shortenAddress(),
+                    additionalValue = if (isSenderNameSpecified) sender?.address?.shortenAddress() else null
+                )
+                state.update { prevState -> prevState.copy(fromInfoItem = fromInfoItem) }
+            }.launchIn(viewModelScope)
+
+            assetFlow.onEach { asset ->
+                val assetModel = mapAssetToAssetModel(asset)
+                val amountInfoItem = TitleValueViewState(
+                    title = resourceManager.getString(R.string.common_amount),
+                    value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbol),
+                    additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
+                )
+                state.update { prevState ->
+                    prevState.copy(
+                        amountInfoItem = amountInfoItem,
+                        chainIconUrl = asset.token.configuration.chainIcon
+                            ?: asset.token.configuration.iconUrl
+                    )
+                }
+            }.launchIn(viewModelScope)
+
+            utilityAssetFlow.onEach {
+                state.update { prevState -> prevState.copy() }
+            }.launchIn(viewModelScope)
+
+            buttonStateFlow.onEach {
+                state.update { prevState -> prevState.copy(buttonState = it) }
+            }.launchIn(viewModelScope)
+
+            transferSubmittingFlow.onEach {
+                state.update { prevState -> prevState.copy(isLoading = it) }
+            }.launchIn(viewModelScope)
+
+            combine(assetFlow, utilityAssetFlow, feeFlow) { asset, utilityAsset, fee ->
+                val tipInfoItem = transferDraft.tip?.let { tip ->
+                    TitleValueViewState(
+                        title = resourceManager.getString(R.string.choose_amount_tip),
+                        value = tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
+                        additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
+                    )
+                }
+
+                val isSendBokoloCash = asset.token.configuration.currencyId == bokoloCashTokenId
+
+                val showFeeAsset = if (isSendBokoloCash && utilityAsset.transferable < fee) {
+                    asset
+                } else {
+                    utilityAsset
+                }
+
+                val assetFeeAmount = if (isSendBokoloCash && utilityAsset.transferable < fee) {
+                    val swapDetails = polkaswapInteractor.calcDetails(
+                        availableDexPaths = listOf(0),
+                        tokenFrom = asset,
+                        tokenTo = utilityAsset,
+                        amount = fee,
+                        desired = WithDesired.OUTPUT,
+                        slippageTolerance = 1.5,
+                        market = Market.SMART
+                    )
+                    swapDetails.getOrNull()?.amount
+                } else {
+                    fee
+                }
+
+                val feeFormatted =
+                    assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
+                val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)
+                    ?.formatFiat(showFeeAsset.token.fiatSymbol)
+
+                val feeInfoItem = TitleValueViewState(
+                    title = resourceManager.getString(R.string.common_network_fee),
+                    value = feeFormatted,
+                    additionalValue = feeFiat
+                )
+
+                state.update { prevState ->
+                    prevState.copy(
+                        feeInfoItem = feeInfoItem,
+                        tipInfoItem = tipInfoItem
+                    )
+                }
+            }.launchIn(viewModelScope)
         }
-        val toAdditionalValue = when {
-            hasOverriddenToValue -> null
-            isRecipientNameSpecified -> recipient.address.shortenAddress()
-            else -> null
-        }
-        val toInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.choose_amount_to),
-            value = toValue,
-            additionalValue = toAdditionalValue,
-            clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
-        )
-
-        val assetModel = mapAssetToAssetModel(asset)
-        val amountInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.common_amount),
-            value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbol),
-            additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
-        )
-
-        val tipInfoItem = transferDraft.tip?.let { tip ->
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.choose_amount_tip),
-                value = tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
-                additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
-            )
-        }
-
-        val isSendBokoloCash = asset.token.configuration.currencyId == bokoloCashTokenId
-
-        val showFeeAsset = if (isSendBokoloCash && utilityAsset.transferable < fee) {
-            asset
-        } else {
-            utilityAsset
-        }
-
-        val assetFeeAmount = if (isSendBokoloCash && utilityAsset.transferable < fee) {
-            val swapDetails = polkaswapInteractor.calcDetails(
-                availableDexPaths = listOf(0),
-                tokenFrom = asset,
-                tokenTo = utilityAsset,
-                amount = fee,
-                desired = WithDesired.OUTPUT,
-                slippageTolerance = 1.5,
-                market = Market.SMART
-            )
-            swapDetails.getOrNull()?.amount
-        } else {
-            fee
-        }
-
-        val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
-        val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)?.formatFiat(showFeeAsset.token.fiatSymbol)
-
-        val feeInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.common_network_fee),
-            value = feeFormatted,
-            additionalValue = feeFiat
-        )
-
-        val iconOverrideResId = overrides[ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID] as? Int
-
-        ConfirmSendViewState(
-            iconOverrideResId = iconOverrideResId,
-            chainIconUrl = asset.token.configuration.chainIcon ?: asset.token.configuration.iconUrl,
-            fromInfoItem = fromInfoItem,
-            toInfoItem = toInfoItem,
-            amountInfoItem = amountInfoItem,
-            tipInfoItem = tipInfoItem,
-            feeInfoItem = feeInfoItem,
-            buttonState = buttonState,
-            isLoading = isSubmitting
-        )
-    }.stateIn(this, SharingStarted.Eagerly, ConfirmSendViewState.default)
+    }
 
     override fun onNavigationClick() {
         router.back()
@@ -251,14 +301,12 @@ class ConfirmSendViewModel @Inject constructor(
         launch {
             val chainId = transferDraft.assetPayload.chainId
             val chain = chainRegistry.getChain(chainId)
-            val supportedExplorers = chain.explorers.getSupportedAddressExplorers(transferDraft.recipientAddress)
+            val supportedExplorers =
+                chain.explorers.getSupportedAddressExplorers(transferDraft.recipientAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = transferDraft.recipientAddress,
-                chainId = chainId,
-                chainName = chain.name,
                 explorers = supportedExplorers
             )
-
             externalAccountActions.showExternalActions(externalActionsPayload)
         }
     }
@@ -271,7 +319,8 @@ class ConfirmSendViewModel @Inject constructor(
             val inPlanks = token.planksFromAmount(transferDraft.amount)
             val fee = token.planksFromAmount(transferDraft.fee)
             val recipientAddress = transferDraft.recipientAddress
-            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+            val selfAddress =
+                currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 
             if (!skipEdValidation) {
                 val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
@@ -353,13 +402,9 @@ class ConfirmSendViewModel @Inject constructor(
 
             transferSubmittingFlow.value = true
 
-            val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
-
-            val usesAppId = chainFlow.firstOrNull()?.isUsesAppId == true
-            val appId = if (usesAppId) BigInteger.ZERO else null
 
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks, appId)
+                interactor.performTransfer(createTransfer(token, fee))
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
@@ -381,22 +426,32 @@ class ConfirmSendViewModel @Inject constructor(
 
     private fun processInvalidStatus(status: TransferValidityStatus) {
         when (status) {
-            is TransferValidityLevel.Warning.Status -> transferValidityChecks.showTransferWarning(status)
+            is TransferValidityLevel.Warning.Status -> transferValidityChecks.showTransferWarning(
+                status
+            )
+
             is TransferValidityLevel.Error.Status -> transferValidityChecks.showTransferError(status)
         }
     }
 
-    private suspend fun getAddressModel(address: String, accountName: String? = null): AddressModel {
+    private suspend fun getAddressModel(
+        address: String,
+        accountName: String? = null
+    ): AddressModel {
         return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
-    private suspend fun createTransfer(token: Asset, fee: BigDecimal = transferDraft.fee): Transfer {
+    private suspend fun createTransfer(
+        token: Asset,
+        fee: BigDecimal = transferDraft.fee
+    ): Transfer {
         val currentAddress = currentAccountAddress(transferDraft.assetPayload.chainId)
         requireNotNull(currentAddress)
 
         val isSendBokoloCash = token.currencyId == bokoloCashTokenId
         val utilityAsset = utilityAssetFlow.firstOrNull() ?: error("Utility asset not configured")
         val asset = assetFlow.firstOrNull() ?: error("Asset not configured")
+        val chain = chainFlow.first()
 
         val feeRequiredTokens = if (isSendBokoloCash && utilityAsset.transferable < fee.orZero()) {
             val swapDetails = polkaswapInteractor.calcDetails(
@@ -412,6 +467,30 @@ class ConfirmSendViewModel @Inject constructor(
         } else {
             null
         }
+        val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
+
+        val usesAppId = chainFlow.firstOrNull()?.isUsesAppId == true
+        val appId = if (usesAppId) BigInteger.ZERO else null
+        val maxAmountInPlanks =
+            feeRequiredTokens?.let { token.planksFromAmount(it * FEE_RESERVE_TOLERANCE) }
+        val additionalParams = when {
+            isSendBokoloCash -> CBDCTransferParams(
+                transferComment,
+                maxAmountInPlanks,
+                tipInPlanks,
+                appId
+            )
+
+            chain.ecosystem == Ecosystem.Substrate || chain.ecosystem == Ecosystem.EthereumBased -> {
+                SubstrateTransferParams(tipInPlanks, appId)
+            }
+
+            chain.ecosystem == Ecosystem.Ton -> {
+                TonTransferParams(transferDraft.message)
+            }
+
+            else -> null
+        }
 
         return with(transferDraft) {
             Transfer(
@@ -419,9 +498,8 @@ class ConfirmSendViewModel @Inject constructor(
                 sender = currentAddress,
                 amount = amount,
                 chainAsset = token,
-                comment = transferComment,
                 estimateFee = fee + FEE_CORRECTION,
-                maxAmountIn = feeRequiredTokens?.let { it * FEE_RESERVE_TOLERANCE }
+                additionalParams = additionalParams
             )
         }
     }

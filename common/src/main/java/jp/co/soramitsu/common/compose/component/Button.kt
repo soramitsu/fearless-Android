@@ -55,7 +55,8 @@ import jp.co.soramitsu.common.utils.rememberLastClickTime
 
 data class ButtonViewState(
     val text: String,
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
+    val loading: Boolean = false
 )
 
 @Composable
@@ -134,13 +135,33 @@ fun AccentDarkDisabledButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    TextButton(
-        text = state.text,
-        enabled = state.enabled,
-        colors = accentDarkDisabledButtonColors,
-        modifier = modifier,
-        onClick = onClick
-    )
+    if (state.loading) {
+        ShapeButton(
+            modifier = modifier,
+            backgroundColor = colorAccentDark,
+            onClick = {}
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 1.dp,
+                color = white
+            )
+            MarginHorizontal(margin = 4.dp)
+            Text(
+                text = state.text,
+                style = MaterialTheme.customTypography.header4,
+                textAlign = TextAlign.Center
+            )
+        }
+    } else {
+        TextButton(
+            text = state.text,
+            enabled = state.enabled,
+            colors = accentDarkDisabledButtonColors,
+            modifier = modifier,
+            onClick = onClick
+        )
+    }
 }
 
 @Composable
@@ -507,6 +528,11 @@ fun ButtonPreview() {
             TransparentBorderedButton(
                 iconRes = R.drawable.ic_scan,
                 text = "Get a pre-installed wallet",
+                onClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            AccentDarkDisabledButton(
+                state = ButtonViewState("Get a pre-installed wallet", loading = true),
                 onClick = {}
             )
         }

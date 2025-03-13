@@ -7,5 +7,6 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 class WelcomeFragmentPayload(
     val displayBack: Boolean,
-    val createChainAccount: ChainAccountCreatePayload?
+    val createChainAccount: ChainAccountCreatePayload?,
+    val route: String? = null
 ) : Parcelable

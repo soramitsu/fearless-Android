@@ -21,7 +21,8 @@ class SecretStoreV2(
     }
 
     suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>? = withContext(Dispatchers.IO) {
-        encryptedPreferences.getDecryptedString(metaAccountKey(metaId, ACCESS_SECRETS))?.let(MetaAccountSecrets::read)
+        encryptedPreferences.getDecryptedString(metaAccountKey(metaId, ACCESS_SECRETS))
+            ?.let(MetaAccountSecrets::read)
     }
 
     suspend fun putChainAccountSecrets(metaId: Long, accountId: ByteArray, secrets: EncodableStruct<ChainAccountSecrets>) = withContext(Dispatchers.IO) {
@@ -59,22 +60,8 @@ suspend fun SecretStoreV2.getChainAccountKeypair(
     mapKeypairStructToKeypair(keypairStruct)
 }
 
-suspend fun SecretStoreV2.getMetaAccountKeypair(
-    metaId: Long,
-    isEthereum: Boolean
-): Keypair = withContext(Dispatchers.Default) {
-    val secrets = getMetaAccountSecrets(metaId) ?: error("No secrets found for meta account $metaId")
 
-    val keypairStruct = if (isEthereum) {
-        secrets[MetaAccountSecrets.EthereumKeypair] ?: error("No ethereum keypair found for meta account $metaId")
-    } else {
-        secrets[MetaAccountSecrets.SubstrateKeypair]
-    }
-
-    mapKeypairStructToKeypair(keypairStruct)
-}
-
-private fun mapKeypairStructToKeypair(struct: EncodableStruct<KeyPairSchema>): Keypair {
+fun mapKeypairStructToKeypair(struct: EncodableStruct<KeyPairSchema>): Keypair {
     return Keypair(
         publicKey = struct[KeyPairSchema.PublicKey],
         privateKey = struct[KeyPairSchema.PrivateKey],
