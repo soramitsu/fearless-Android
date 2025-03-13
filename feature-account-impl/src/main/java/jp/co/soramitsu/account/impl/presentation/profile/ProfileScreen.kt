@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.feature_account_impl.R
 
 data class ProfileScreenState(
@@ -24,7 +25,8 @@ data class ProfileScreenState(
     val walletsItemAction: SettingsItemAction = SettingsItemAction.Transition,
     val currency: String,
     val language: String,
-    val nomisChecked: Boolean
+    val nomisChecked: Boolean,
+    val soraCardVisible: Boolean,
 )
 
 interface ProfileScreenInterface {
@@ -33,6 +35,7 @@ interface ProfileScreenInterface {
 
     fun onWalletConnectClick()
     fun onTonConnectClick()
+    fun onSoraCardClicked()
     fun currencyClicked()
     fun crowdloansClicked()
     fun languagesClicked()
@@ -69,6 +72,14 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
             SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
         }
         SettingsDivider()
+        if (state.soraCardVisible) {
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_card),
+                text = stringResource(R.string.profile_soracard_title),
+                onClick = callback::onSoraCardClicked,
+            )
+            SettingsDivider()
+        }
         SettingsItem(icon = painterResource(R.drawable.ic_nav_crowdloans), text = stringResource(R.string.crowdloan_crowdloan), onClick = callback::crowdloansClicked)
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_dollar_circle), text = stringResource(R.string.common_currency), action = SettingsItemAction.Selector(state.currency), onClick = callback::currencyClicked)
@@ -108,6 +119,7 @@ fun ProfileScreenPreview() {
         currency = "USD",
         language = "ENG",
         nomisChecked = true,
+        soraCardVisible = true,
     )
     FearlessAppTheme {
         ProfileScreen(state, object : ProfileScreenInterface {
@@ -115,6 +127,7 @@ fun ProfileScreenPreview() {
             override fun walletsClicked() = Unit
             override fun onWalletConnectClick() = Unit
             override fun onTonConnectClick() = Unit
+            override fun onSoraCardClicked() = Unit
             override fun currencyClicked() = Unit
             override fun crowdloansClicked() {}
             override fun languagesClicked() = Unit

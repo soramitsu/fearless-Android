@@ -46,6 +46,8 @@ dependencies {
     implementation project(':feature-account-api')
     implementation project(':feature-staking-api')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
     implementation project(':feature-polkaswap-api')
     implementation libs.kotlin.stdlib.jdk7
 
@@ -92,6 +94,7 @@ dependencies {
     implementation libs.gson
 
     api libs.sharedFeaturesCoreDep
+    implementation(libs.sora.soracard)
     implementation libs.soramitsu.android.foundation
 
     implementation libs.sharedFeaturesBackupDep

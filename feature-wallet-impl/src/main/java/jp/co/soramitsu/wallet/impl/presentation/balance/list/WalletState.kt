@@ -5,6 +5,8 @@ import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
+import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
@@ -17,6 +19,7 @@ data class WalletState(
     val multiToggleButtonState: MultiToggleButtonState<AssetType>,
     val balance: AssetBalanceViewState,
     val hasNetworkIssues: Boolean,
+    val soraCardState: SoraCardItemViewState,
     val isBackedUp: Boolean,
     val hasTonAccounts: Boolean,
     val hasSubOrEvmAccounts: Boolean,
@@ -30,6 +33,7 @@ data class WalletState(
             assetsState = WalletAssetsState.Assets(AssetsLoadingState.Loading(), isHideVisible = true),
             balance = AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
             hasNetworkIssues = false,
+            soraCardState = SoraCardItemViewState(visible = true, loading = true, success = false, iban = null, soraCardProgress = SoraCardProgress.START),
             isBackedUp = true,
             hasTonAccounts = false,
             hasSubOrEvmAccounts = false,
