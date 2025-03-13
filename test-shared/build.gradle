@@ -13,12 +13,13 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-        jvmTarget = '17'
+
+        jvmTarget = '21'
     }
     namespace 'jp.co.soramitsu.test_shared'
 }
@@ -34,6 +35,7 @@ dependencies {
     api libs.mockito.inline
     api libs.mockito.core
     api libs.mockito.kotlin
+    api libs.mockk
     api libs.kotlinx.coroutines.test
 
     api libs.nv.websocket.client

@@ -90,14 +90,6 @@
         app:destination="@id/exportJsonPasswordFragment" />
 
     <action
-        android:id="@+id/action_open_accountsForExportFragment"
-        app:destination="@id/accountsForExportFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_mainFragment_to_balanceDetailFragment"
         app:destination="@id/balanceDetailFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -286,12 +278,6 @@
         android:label="LanguagesFragment"
         tools:layout="@layout/fragment_languages" />
 
-    <fragment
-        android:id="@+id/accountsForExportFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment"
-        android:label="AccountsForExportFragment"
-        tools:layout="@layout/fragment_accounts_for_export" />
-
     <action
         android:id="@+id/action_open_nodesFragment"
         app:destination="@+id/nodesFragment"
@@ -345,11 +331,6 @@
         android:id="@+id/transactionHistoryFilterFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment"
         android:label="TransactionHistoryFilterFragment" />
-
-    <fragment
-        android:id="@+id/getSoraCardFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.get.GetSoraCardFragment"
-        android:label="GetSoraCardFragment" />
 
     <fragment
         android:id="@+id/exportMnemonicFragment"
@@ -418,11 +399,6 @@
         android:label="searchAssetsFragment" />
 
     <fragment
-        android:id="@+id/buyCryptoFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.buycrypto.BuyCryptoFragment"
-        android:label="buyCryptoFragment" />
-
-    <fragment
         android:id="@+id/importAccountFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
         android:label="fragment_import"
@@ -458,11 +434,6 @@
         android:label="successSheetFragment" />
 
     <dialog
-        android:id="@+id/getMoreXorFragment"
-        android:name="jp.co.soramitsu.soracard.impl.presentation.getmorexor.GetMoreXorFragment"
-        android:label="getMoreXorFragment" />
-
-    <dialog
         android:id="@+id/startStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.StartStakingPoolFragment"
         android:label="startStakingPoolFragment" />
@@ -471,6 +442,11 @@
         android:id="@+id/webViewerFragment"
         android:name="jp.co.soramitsu.app.root.presentation.WebViewerFragment"
         android:label="WebViewerFragment" />
+
+    <dialog
+        android:id="@+id/dappScreenFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.dappscreen.DappScreenFragment"
+        android:label="DappScreenFragment" />
 
     <dialog
         android:id="@+id/setupStakingPoolFragment"
@@ -503,6 +479,11 @@
         android:label="accountDetailsDialog" />
 
     <dialog
+        android:id="@+id/chainAccountsDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.chainaccounts.ChainAccountsDialog"
+        android:label="chainAccountsDialog" />
+
+    <dialog
         android:id="@+id/createBackupPasswordDialog"
         android:name="jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog"
         android:label="createBackupPasswordDialog"/>
@@ -517,10 +498,10 @@
         android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
         android:label="dialog_create_account" />
 
-    <dialog
+    <fragment
         android:id="@+id/backupMnemonicFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
-        android:label="dialog_create_account" />
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment"
+        android:label="fragment_backup_mnemonic" />
 
     <dialog
         android:id="@+id/mnemonicAgreementsDialog"
@@ -558,11 +539,6 @@
         android:label="selectWalletFragment" />
 
     <dialog
-        android:id="@+id/networkIssuesFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.NetworkIssuesFragment"
-        android:label="networkIssuesFragment" />
-
-    <dialog
         android:id="@+id/alertFragment"
         android:name="jp.co.soramitsu.app.root.presentation.AlertFragment"
         android:label="alertFragment" />
@@ -576,6 +552,11 @@
         android:id="@+id/optionsAddAccountFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment"
         android:label="optionsAddAccountFragment" />
+
+    <dialog
+        android:id="@+id/optionsEcosystemAccountsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.options_ecosystem_accounts.OptionsEcosystemAccountsFragment"
+        android:label="optionsEcosystemAccountsFragment" />
 
     <dialog
         android:id="@+id/optionsSwitchNodeFragment"
@@ -742,6 +723,11 @@
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.connections.ConnectionsFragment"
         android:label="connectionsFragment" />
 
+   <dialog
+        android:id="@+id/tonConnectionsFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.connections.TonConnectionsFragment"
+        android:label="tonConnectionsFragment" />
+
     <dialog
         android:id="@+id/sessionProposalFragment"
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment"
@@ -749,7 +735,7 @@
 
     <dialog
         android:id="@+id/sessionRequestFragment"
-        android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment"
         android:label="sessionRequestFragment"/>
 
     <dialog
@@ -1044,6 +1030,21 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="validatorDetailsFragment"
         tools:layout="@layout/fragment_validator_details" />
+
+    <dialog
+        android:id="@+id/tonConnectionDetails"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment"
+        android:label="tonConnectionDetailsFragment" />
+
+    <dialog
+        android:id="@+id/tonConnectionInfo"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment"
+        android:label="tonConnectionInfo" />
+
+    <dialog
+        android:id="@+id/tonSignRequestFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment"
+        android:label="tonSignRequestFragment" />
 
     <fragment
         android:id="@+id/collatorDetailsFragment"
@@ -1371,5 +1372,11 @@
         android:id="@+id/scoreDetailsFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
         android:label="ScoreDetailsFragment" />
+
+    <fragment
+        android:id="@+id/crowdloanFragment"
+        tools:layout="@layout/fragment_crowdloans"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
+        android:label="CrowdloanFragment" />
 
 </navigation>

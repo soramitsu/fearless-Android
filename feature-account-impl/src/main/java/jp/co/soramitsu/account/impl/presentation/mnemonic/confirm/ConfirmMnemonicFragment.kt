@@ -92,7 +92,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     private fun populateMnemonicContainer(mnemonicWords: List<String>) {
         val words = mnemonicWords.map { mnemonicWord ->
-            MnemonicWordView(activity!!).apply {
+            MnemonicWordView(requireActivity()).apply {
                 setWord(mnemonicWord)
                 setColorMode(MnemonicWordView.ColorMode.LIGHT)
                 setOnClickListener { wordClickListener(this, mnemonicWord) }
@@ -114,7 +114,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
         binding.wordsMnemonicView.removeWordView(mnemonicWordView)
 
-        val wordView = MnemonicWordView(activity!!).apply {
+        val wordView = MnemonicWordView(requireActivity()).apply {
             setWord(word)
             setColorMode(MnemonicWordView.ColorMode.DARK)
             measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
@@ -123,7 +123,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     private fun playMatchingMnemonicErrorAnimation() {
-        val animation = AnimationUtils.loadAnimation(activity!!, R.anim.shake)
+        val animation = AnimationUtils.loadAnimation(requireActivity(), R.anim.shake)
         animation.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationRepeat(animation: Animation?) {
             }

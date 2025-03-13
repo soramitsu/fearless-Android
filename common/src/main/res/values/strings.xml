@@ -57,6 +57,7 @@
   <string name="account_stats_rejected_transactions_title">Rejected transactions</string>
   <string name="account_stats_title">Your score</string>
   <string name="account_stats_total_transactions_title">Total transactions</string>
+  <string name="account_stats_unavailable_text">You don\'t have an EVM compatible account. If you want to see the score - add it via \"Import wallet\" option.</string>
   <string name="account_stats_updated_title">Updated</string>
   <string name="account_stats_wallet_age_title">Wallet age</string>
   <string name="account_stats_wallet_option_title">Show wallet score</string>
@@ -92,7 +93,7 @@
   <string name="backup_mnemonic_description">Remember to record your words in the same order as they appear below. Use a non-digital way to backup.</string>
   <string name="backup_mnemonic_title">Write down your mnemonic</string>
   <string name="backup_not_backed_up_confirm">I will risk it</string>
-  <string name="backup_not_backed_up_message">If your device gets lost or stolen, you will loose your wallet and all your funds forever</string>
+  <string name="backup_not_backed_up_message">If your device gets lost or stolen, you will lose your wallet and all your funds forever</string>
   <string name="backup_not_backed_up_title">Not backed up!</string>
   <string name="backup_now">Backup now</string>
   <string name="backup_wallet_backup_to_google">Backup to Google</string>
@@ -779,6 +780,7 @@
   <string name="profile_settings_title">Settings</string>
   <string name="profile_soracard_title">SORA Card</string>
   <string name="profile_title">Account</string>
+  <string name="profile_tonconnect_title">Ton connect</string>
   <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Wallets</string>
   <string name="reason">Reason</string>
@@ -817,7 +819,7 @@
   <string name="scam_info_nomis_name">Nomis multi-chain score</string>
   <string name="scam_info_nomis_reason_text">Low network activity</string>
   <string name="scam_info_nomis_subtype_text">Proceed with caution</string>
-  <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send {asset} to this account.</string>
+  <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send %s to this account.</string>
   <string name="scan_qr_subtitle">Scan code from receiver</string>
   <string name="scan_qr_title">QR Code</string>
   <string name="scan_qr_upload_button_title">Upload from gallery</string>
@@ -1142,6 +1144,12 @@
   <string name="tabbar_profile_title">Profile</string>
   <string name="tabbar_staking_title">Staking</string>
   <string name="tabbar_wallet_title">Wallet</string>
+  <string name="tc_connected_dapp">Connected</string>
+  <string name="tc_discover_dapp">Discover dApp</string>
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+  <string name="tc_review_dapp_info">Review dApp info</string>
+  <string name="tc_service_address">Service address</string>
+  <string name="tc_see_all">See all</string>
   <string name="today">Today</string>
   <string name="ton_connect_alert_description">Service address</string>
   <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>

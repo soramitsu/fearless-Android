@@ -11,10 +11,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import java.security.SecureRandom
-import java.util.Random
-import javax.inject.Qualifier
-import javax.inject.Singleton
+import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.CachingAddressIconGenerator
 import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
@@ -24,15 +21,16 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
-import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.domain.NetworkStateService
-import jp.co.soramitsu.common.mixin.impl.UpdatesProvider
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -47,6 +45,10 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.icon.IconGenerator
+import java.security.SecureRandom
+import java.util.Random
+import javax.inject.Qualifier
+import javax.inject.Singleton
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -61,6 +63,12 @@ class CommonModule {
     @Provides
     @Singleton
     fun provideComputationalCache() = ComputationalCache()
+
+    @Provides
+    @Singleton
+    fun provideCoroutineManager(): CoroutineManager {
+        return CoroutineManager()
+    }
 
     @Provides
     @Singleton
@@ -212,7 +220,21 @@ class CommonModule {
 
     @Provides
     @Singleton
-    fun provideUpdatesMixin(): UpdatesMixin = UpdatesProvider()
+    fun provideSubstrateSecretStore(
+        encryptedPreferences: EncryptedPreferences
+    ) = SubstrateSecretStore(encryptedPreferences)
+
+    @Provides
+    @Singleton
+    fun provideEthereumSecretStore(
+        encryptedPreferences: EncryptedPreferences
+    ) = EthereumSecretStore(encryptedPreferences)
+
+    @Provides
+    @Singleton
+    fun provideTonSecretStore(
+        encryptedPreferences: EncryptedPreferences
+    ) = TonSecretStore(encryptedPreferences)
 
     @Provides
     @Singleton

@@ -39,6 +39,7 @@ import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.utils.clickableSingle
 import androidx.compose.foundation.Image as ComposeImage
 
 data class AssetSelectorState(
@@ -58,7 +59,7 @@ fun AssetSelector(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .clickable { onClick() }
+            .clickableSingle { onClick() }
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
             MarginHorizontal(16.dp)

@@ -11,26 +11,10 @@ class AddressDisplayUseCase(
     private val accountRepository: AccountRepository
 ) {
 
-    class Identifier(private val addressToName: Map<String, String?>) {
-
-        fun nameOrAddress(address: String): String {
-            return addressToName[address] ?: address
-        }
-    }
-
     suspend operator fun invoke(address: String): String? {
         return withContext(Dispatchers.Default) {
             val accountId = kotlin.runCatching { address.toAccountId() }.getOrNull() ?: address.fromHex()
             accountRepository.findMetaAccount(accountId)?.name
         }
-    }
-
-    suspend fun createIdentifier(): Identifier = withContext(Dispatchers.Default) {
-        val accounts = accountRepository.getAccounts().associateBy(
-            keySelector = { it.address },
-            valueTransform = { it.name }
-        )
-
-        Identifier(accounts)
     }
 }

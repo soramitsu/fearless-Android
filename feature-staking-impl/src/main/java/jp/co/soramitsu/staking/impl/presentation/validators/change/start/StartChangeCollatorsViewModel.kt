@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.validators.change.start
 
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -34,6 +32,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 private val RECOMMENDED_FEATURES_IDS = listOf(
     R.string.staking_recommended_feature_1,
@@ -106,9 +106,12 @@ class StartChangeCollatorsViewModel @Inject constructor(
 
     fun getRecommendedFeaturesIds() = RECOMMENDED_FEATURES_IDS
 
+    private var canShowRecommendedCollators: Boolean = true
+
     init {
         launch {
             collatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
+            canShowRecommendedCollators = canShowRecommendedCollators()
 
             collatorsLoading.value = false
         }
@@ -120,7 +123,7 @@ class StartChangeCollatorsViewModel @Inject constructor(
 
     fun goToRecommendedClicked() {
         launch {
-            if (canShowRecommendedCollators()) {
+            if (canShowRecommendedCollators) {
                 router.openRecommendedCollators()
             } else {
                 showError(resourceManager.getString(R.string.staking_recommended_collators_empty_text))

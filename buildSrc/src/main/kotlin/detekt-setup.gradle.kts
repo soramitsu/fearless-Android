@@ -41,7 +41,6 @@ fun Detekt.setup(autoCorrect: Boolean) {
         "**/feature-crowdloan-api/**", "**/feature-crowdloan-impl/**",
         "**/feature-onboarding-api/**", "**/feature-onboarding-impl/**",
         "**/feature-polkaswap-api/**", "**/feature-polkaswap-impl/**",
-        "**/feature-soracard-api/**", "**/feature-soracard-impl/**",
         "**/splash/**",
         "**/feature-staking-api/**", "**/feature-staking-impl/**",
         "**/feature-success-api/**", "**/feature-success-impl/**",
@@ -53,8 +52,8 @@ fun Detekt.setup(autoCorrect: Boolean) {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "17"
+    jvmTarget = JavaVersion.VERSION_21.toString()
 }
 tasks.withType<DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "17"
+    jvmTarget = JavaVersion.VERSION_21.toString()
 }

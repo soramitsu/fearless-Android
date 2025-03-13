@@ -113,7 +113,6 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                chainId = viewModel.payload!!.chainId,
                 explorers = explorers
             )
         )

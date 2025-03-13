@@ -12,19 +12,17 @@ import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.bindString
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
-import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
@@ -39,8 +37,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
@@ -50,16 +48,15 @@ import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.TransferServiceProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
-import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -68,9 +65,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -84,19 +78,20 @@ class WalletRepositoryImpl(
     private val operationDao: OperationDao,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
-    private val assetCache: AssetCache,
+    private val assetDao: AssetDao,
     private val walletConstants: WalletConstants,
     private val phishingDao: PhishingDao,
     private val coingeckoApi: CoingeckoApi,
     private val chainRegistry: ChainRegistry,
-    private val updatesMixin: UpdatesMixin,
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
     private val extrinsicService: ExtrinsicService,
     private val remoteStorageSource: StorageDataSource,
-    private val pricesSyncService: PricesSyncService
-) : WalletRepository, UpdatesProviderUi by updatesMixin {
+    private val pricesSyncService: PricesSyncService,
+    private val transferServiceProvider: TransferServiceProvider,
+    private val tonRemoteSource: TonRemoteSource
+) : WalletRepository {
 
     companion object {
         private const val COINGECKO_REQUEST_DELAY_MILLIS = 60 * 1000
@@ -107,8 +102,9 @@ class WalletRepositoryImpl(
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
         return combine(
             chainsRepository.chainsByIdFlow(),
-            assetCache.observeAssets(meta.id)
+            assetDao.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
+
             val chainAccounts = meta.chainAccounts.values.toList()
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
@@ -127,7 +123,7 @@ class WalletRepositoryImpl(
 
     override suspend fun getAssets(metaId: Long): List<Asset> = withContext(Dispatchers.Default) {
         val chainsById = chainsRepository.getChainsById()
-        val assetsLocal = assetCache.getAssets(metaId)
+        val assetsLocal = assetDao.getAssets(metaId)
 
         assetsLocal.mapNotNull {
             mapAssetLocalToAsset(chainsById, it)
@@ -159,7 +155,7 @@ class WalletRepositoryImpl(
         chainAsset: CoreAsset,
         minSupportedVersion: String?
     ): Flow<Asset> {
-        return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
+        return assetDao.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
             .mapNotNull { it }
             .mapNotNull { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
             .distinctUntilChanged()
@@ -171,33 +167,21 @@ class WalletRepositoryImpl(
         chainAsset: CoreAsset,
         minSupportedVersion: String?
     ): Asset? {
-        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
+        val assetLocal = assetDao.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
 
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
     override suspend fun updateAssetsHidden(state: List<AssetUpdateItem>) {
-        assetCache.updateAsset(state)
+        assetDao.updateAssets(state)
     }
 
     override suspend fun observeTransferFee(
         chain: Chain,
-        transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean
-    ): Flow<Fee> {
-        return if (chain.isEthereumChain) {
-            subscribeOnEthereumTransferFee(transfer, chain)
-        } else {
-            flowOf(substrateSource.getTransferFee(chain, transfer, additional, batchAll))
-        }
-            .flowOn(Dispatchers.IO)
-            .map {
-                Fee(
-                    transferAmount = transfer.amount,
-                    feeAmount = chain.utilityAsset?.amountFromPlanks(it).orZero()
-                )
-            }
+        transfer: Transfer
+    ): Flow<BigDecimal> {
+        val transferServiceProvider =  transferServiceProvider.provide(chain)
+        return transferServiceProvider.observeTransferFee(transfer)
     }
 
     override suspend fun getTransferFee(
@@ -205,62 +189,29 @@ class WalletRepositoryImpl(
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
-    ): Fee {
-        val fee = if (chain.isEthereumChain) {
-            subscribeOnEthereumTransferFee(transfer, chain).first()
-        } else {
-            substrateSource.getTransferFee(chain, transfer, additional, batchAll)
-        }
-
-        return Fee(
-            transferAmount = transfer.amount,
-            feeAmount = chain.utilityAsset?.amountFromPlanks(fee).orZero()
-        )
-    }
-
-    private fun subscribeOnEthereumTransferFee(transfer: Transfer, chain: Chain): Flow<BigInteger> {
-        return ethereumSource.listenGas(transfer, chain)
+    ): BigDecimal {
+        return transferServiceProvider.provide(chain).getTransferFee(transfer)
     }
 
     override suspend fun performTransfer(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
-        fee: BigDecimal,
-        tip: BigInteger?,
-        appId: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
-        val operationHash = if (chain.isEthereumChain) {
-            val currentMetaAccount = accountRepository.getSelectedMetaAccount()
-            val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id)
-                ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
-            val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("")
-            val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
-
-            ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true))
-                .requireValue() // handle error
-        } else {
-            substrateSource.performTransfer(
-                accountId,
-                chain,
-                transfer,
-                tip,
-                appId,
-                additional,
-                batchAll
-            )
-        }
+        val transferService = transferServiceProvider.provide(chain)
+        val operationHash = transferService.transfer(transfer)
 
         val accountAddress = chain.addressOf(accountId)
         val utilityAsset = chain.assets.firstOrNull { it.isUtility }
+
+        if(chain.ecosystem == Ecosystem.Ton) return operationHash
 
         val operation = createOperation(
             operationHash,
             transfer,
             accountAddress,
-            fee,
             OperationLocal.Source.APP,
             utilityAsset
         )
@@ -280,18 +231,17 @@ class WalletRepositoryImpl(
         val feeResponse = getTransferFee(chain, transfer, additional, batchAll)
 
         val chainAsset = transfer.chainAsset
-        val recipientAccountId = chain.accountIdOf(transfer.recipient)
 
-        val totalRecipientBalanceInPlanks = getTotalBalance(chainAsset, chain, recipientAccountId)
+        val totalRecipientBalanceInPlanks = getTotalBalance(chainAsset, chain, transfer.recipient)
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
+        val assetLocal = assetDao.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
         val asset = mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
 
         val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
-        val utilityAssetLocal = assetCache.getAsset(
+        val utilityAssetLocal = assetDao.getAsset(
             metaId,
             accountId,
             chainAsset.chainId,
@@ -316,7 +266,7 @@ class WalletRepositoryImpl(
         return transfer.validityStatus(
             senderTransferable = asset.transferable,
             senderTotal = asset.total.orZero(),
-            fee = feeResponse.feeAmount,
+            fee = feeResponse,
             recipientBalance = totalRecipientBalance,
             existentialDeposit = existentialDeposit,
             isUtilityToken = chainAsset.isUtility,
@@ -329,13 +279,23 @@ class WalletRepositoryImpl(
     override suspend fun getTotalBalance(
         chainAsset: CoreAsset,
         chain: Chain,
-        accountId: ByteArray
+        address: String
     ): BigInteger {
-        return if (chain.isEthereumChain) {
-            ethereumSource.getTotalBalance(chainAsset, chain, accountId)
-                .requireValue() // handle errors
-        } else {
-            substrateSource.getTotalBalance(chainAsset, accountId)
+        return when(chain.ecosystem) {
+            Ecosystem.Substrate,
+            Ecosystem.EthereumBased -> {
+                val accountId = chain.accountIdOf(address)
+                substrateSource.getTotalBalance(chainAsset, accountId)
+            }
+            Ecosystem.Ethereum -> {
+                val accountId = chain.accountIdOf(address)
+                ethereumSource.getTotalBalance(chainAsset, chain, accountId)
+                    .requireValue() // handle errors
+            }
+            Ecosystem.Ton -> {
+                BigInteger.ONE
+                //throw IllegalStateException("getTotalBalance for ton is not implemented")
+            }
         }
     }
 
@@ -384,7 +344,6 @@ class WalletRepositoryImpl(
         hash: String,
         transfer: Transfer,
         senderAddress: String,
-        fee: BigDecimal,
         source: OperationLocal.Source,
         utilityAsset: CoreAsset?
     ) =
@@ -396,7 +355,7 @@ class WalletRepositoryImpl(
             amount = transfer.amountInPlanks,
             senderAddress = senderAddress,
             receiverAddress = transfer.recipient,
-            fee = utilityAsset?.planksFromAmount(fee),
+            fee = transfer.estimateFee?.let { utilityAsset?.planksFromAmount(it) },
             status = OperationLocal.Status.PENDING,
             source = source
         )
@@ -425,8 +384,8 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 
-    override suspend fun getRemoteConfig(): Result<AppConfigRemote> {
-        return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }
+    override suspend fun getRemoteConfig(): AppConfigRemote {
+        return remoteConfigFetcher.getAppConfig()
     }
 
     override suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId? {

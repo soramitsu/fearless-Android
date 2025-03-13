@@ -1,10 +1,17 @@
 package jp.co.soramitsu.account.impl.presentation.exporting
 
 import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.annotation.CallSuper
+import androidx.compose.ui.platform.ComposeView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.presentation.ErrorDialog
 
 abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
 
@@ -34,15 +41,60 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
     }
 
     private fun showSecurityWarning() {
-        val res = requireContext().resources
-        ErrorDialog(
-            isHideable = false,
-            title = res.getString(R.string.account_export_warning_title),
-            message = res.getString(R.string.account_export_warning_message),
-            positiveButtonText = res.getString(R.string.common_proceed),
-            negativeButtonText = res.getString(R.string.common_cancel),
-            negativeClick = viewModel::securityWarningCancel,
-            onBackClick = viewModel::securityWarningCancel
-        ).show(childFragmentManager)
+        childFragmentManager.setFragmentResultListener("security_warning", viewLifecycleOwner) { _, _ ->
+
+        }
+
+        SecurityWarningBottomSheet(
+            onConfirm = {},
+            onDismiss = viewModel::securityWarningCancel
+        ).show(childFragmentManager, "security_warning")
+    }
+}
+
+class SecurityWarningBottomSheet(
+    private val onConfirm: () -> Unit,
+    private val onDismiss: () -> Unit
+) : BottomSheetDialogFragment() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogThemeNonTranparentScrim)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                SecurityWarningDialog(
+                    onConfirm = {
+                        onConfirm()
+                        dismiss()
+                    },
+                    onDismiss = {
+                        onDismiss()
+                        dismiss()
+                    }
+                )
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupBottomSheet()
+    }
+
+    private fun setupBottomSheet() {
+        dialog?.setOnShowListener {
+            val bottomSheetDialog = it as BottomSheetDialog
+            val behavior = bottomSheetDialog.behavior
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.isDraggable = false
+            behavior.isHideable = false
+        }
     }
 }

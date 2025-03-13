@@ -3,17 +3,19 @@ package jp.co.soramitsu.wallet.impl.presentation
 import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
-import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.common.AlertViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.tonconnect.api.model.AppEntity
+import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
@@ -25,6 +27,7 @@ import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import kotlinx.coroutines.flow.Flow
+import org.json.JSONObject
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 interface WalletRouter : SecureRouter, WalletRouterApi {
@@ -78,10 +81,10 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean)
 
-    fun openFilter()
+    fun openFilter(filtersToShowOrAll: Set<TransactionFilter> = TransactionFilter.entries.toSet())
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?, customTitle: String?)
 
     fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null, skipEdValidation: Boolean = false)
 
@@ -104,8 +107,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openBackupWalletScreen(metaAccountId: Long)
 
     fun openRenameWallet(metaAccountId: Long, name: String?)
-
-    fun openImportAccountScreen(blockChainType: Int, importMode: ImportMode)
 
     fun openImportAccountScreenFromWallet(blockChainType: Int)
 
@@ -139,11 +140,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSelectWallet()
 
-    fun openNetworkIssues()
-
-    fun openGetSoraCard()
-
-    fun openOptionsAddAccount(payload: AddAccountPayload)
+    fun openOptionsAddAccount(metaId: Long, type: WalletEcosystem)
 
     fun openOptionsSwitchNode(
         metaId: Long,
@@ -159,7 +156,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSearchAssets()
 
-    fun openOptionsWallet(walletId: Long)
+    fun openOptionsWallet(walletId: Long, allowDetails: Boolean = true)
 
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
@@ -178,10 +175,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
 
-    fun openSelectImportModeForResult(): Flow<ImportMode>
-
-    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
-
     fun openImportRemoteWalletDialog()
     fun openConnectionDetails(topic: String)
 
@@ -198,4 +191,11 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openServiceScreen()
 
     fun openScoreDetailsScreen(metaId: Long)
+
+    fun openCreateSubstrateOrEvmAccountScreen()
+    fun openCreateTonAccountScreen()
+
+    fun openDappScreen(dapp: DappModel)
+
+    suspend fun openTonConnectionAndWaitForResult(app: AppEntity, proofPayload: String?): JSONObject
 }

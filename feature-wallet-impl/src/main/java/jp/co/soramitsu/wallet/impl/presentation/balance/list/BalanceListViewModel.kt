@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
@@ -15,6 +16,10 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.hasTon
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
+import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -31,6 +36,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -38,8 +44,7 @@ import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -49,10 +54,10 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.lessThan
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
@@ -63,15 +68,17 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
-import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectException
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_TON_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
-import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -79,13 +86,11 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainIte
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
-import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toUiModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -100,8 +105,8 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -131,19 +136,18 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val accountInteractor: AccountInteractor,
     private val nomisScoreInteractor: NomisScoreInteractor,
-    private val updatesMixin: UpdatesMixin,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val getTotalBalance: TotalBalanceUseCase,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val nftInteractor: NFTInteractor,
-    private val walletConnectInteractor: WalletConnectInteractor
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin,
-    WalletScreenInterface {
+    private val walletConnectInteractor: WalletConnectInteractor,
+    private val coroutineManager: CoroutineManager,
+    private val tonConnectInteractor: TonConnectInteractor,
+) : BaseViewModel(), WalletScreenInterface {
 
     private var awaitAssetsJob: Job? = null
-    private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
@@ -171,22 +175,33 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    private val chainsFlow = chainInteractor.getChainsFlow().mapList {
-        it.toChainItemState()
+    private val currentMetaAccountFlow = accountInteractor.selectedLightMetaAccountFlow()
+
+    private val chainsFlow = combine(currentMetaAccountFlow, chainInteractor.getChainsFlow()) { metaAccount, chains ->
+        val filteredChains = if(metaAccount.tonPublicKey != null) {
+            chains.filter { it.ecosystem == Ecosystem.Ton }
+        } else {
+            chains.filter { it.ecosystem != Ecosystem.Ton }
+        }
+        filteredChains.map {it.toChainItemState()}
     }.inBackground()
 
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
+    private val allowSelectChain = MutableStateFlow(false)
 
     private val selectedChainItemFlow =
         combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
+            if ((selectedChainId == null && chains.size == 1) || selectedChainId == tonMainnetChainId) {
+                allowSelectChain.value = false
+                return@combine chains.first()
+            }
+            allowSelectChain.value = true
             selectedChainId?.let {
                 chains.firstOrNull { it.id == selectedChainId }
             }
         }
 
     private val networkIssueStateFlow = MutableStateFlow<WalletAssetsState.NetworkIssue?>(null)
-
-    private val currentMetaAccountFlow = interactor.selectedLightMetaAccountFlow()
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -205,19 +220,17 @@ class BalanceListViewModel @Inject constructor(
         selectedChainId,
         interactor.selectedMetaAccountFlow(),
         interactor.observeSelectedAccountChainSelectFilter()
-    ) { (walletId: Long, assets: List<AssetWithStatus>),
-            chains: List<Chain>,
-            selectedChainId: ChainId?,
-            currentMetaAccountFlow: MetaAccount,
-            appliedFilterAsString: String ->
+    )  { (walletId: Long, assets: List<AssetWithStatus>),
+        chains: List<Chain>,
+        selectedChainId: ChainId?,
+        currentMetaAccount: MetaAccount,
+        filter: ChainSelectorViewStateWithFilters.Filter ->
 
-        val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
-            it.name == appliedFilterAsString
-        } ?: ChainSelectorViewStateWithFilters.Filter.All
+        if (currentMetaAccount.id != walletId) {
+            return@combine AssetsLoadingState.Loading()
+        }
 
-        showNetworkIssues.value = false
-
-        val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
+        val selectedAccountFavoriteChains = currentMetaAccount.favoriteChains
 
         val chainsWithFavoriteInfo = chains.map { chain ->
             chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
@@ -250,29 +263,33 @@ class BalanceListViewModel @Inject constructor(
 
         currentAssetsFlow.update { filteredAssets }
 
-        val filteredAssetsWithoutBrokenAssets = filteredAssets.filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
+        val filteredAssetsWithoutBrokenAssets =
+            filteredAssets.filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = filteredAssetsWithoutBrokenAssets,
             filteredChains = filteredChains,
-            selectedChainId = selectedChainId,
-            networkIssues = emptySet()
+            selectedChainId = selectedChainId
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
             .mapIndexed { index, item ->
-                if (currentMetaAccountFlow.id == walletId) {
+                if (currentMetaAccount.id == walletId) {
                     item.toAssetState(index)
                 } else {
                     // invoke shimmers
                     item.toAssetState(index).copy(assetTransferableBalance = null)
                 }
             }
-
-        assetStates
-    }.onStart { emit(buildInitialAssetsList().toMutableList()) }
-        .inBackground().share()
+        AssetsLoadingState.Loaded(assetStates)
+    }.distinctUntilChanged()
+        .onStart { emit(buildInitialAssetsList()) }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = AssetsLoadingState.Loading()
+    )
 
     @OptIn(FlowPreview::class)
     private fun createNFTCollectionScreenViewsFlow(): Flow<Pair<LoadableListPage<NFTCollectionsScreenView>, ScreenLayout>> {
@@ -282,24 +299,25 @@ class BalanceListViewModel @Inject constructor(
             val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
                 .map { PaginationRequest.Start(100) }
 
-            val paginationRequestHelperFlow = merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
-                .onStart { emit(PaginationRequest.Start(100)) }
-                .onEach { request ->
-                    val screenModel = when (request) {
-                        is PaginationRequest.Start -> ScreenModel.Reloading
+            val paginationRequestHelperFlow =
+                merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
+                    .onStart { emit(PaginationRequest.Start(100)) }
+                    .onEach { request ->
+                        val screenModel = when (request) {
+                            is PaginationRequest.Start -> ScreenModel.Reloading
 
-                        is PaginationRequest.Prev -> ScreenModel.PreviousPageLoading
+                            is PaginationRequest.Prev -> ScreenModel.PreviousPageLoading
 
-                        is PaginationRequest.Next -> ScreenModel.NextPageLoading
+                            is PaginationRequest.Next -> ScreenModel.NextPageLoading
 
-                        is PaginationRequest.ProceedFromLastPage -> ScreenModel.NextPageLoading
-                    }
+                            is PaginationRequest.ProceedFromLastPage -> ScreenModel.NextPageLoading
+                        }
 
-                    send(screenModel to mutableScreenLayoutFlow.value)
-                }.debounce(300L)
-                .filter { isLoadingCompleted.get() }
-                .onEach { isLoadingCompleted.set(false) }
-                .shareIn(this, SharingStarted.Eagerly, 1)
+                        send(screenModel to mutableScreenLayoutFlow.value)
+                    }.debounce(300L)
+                    .filter { isLoadingCompleted.get() }
+                    .onEach { isLoadingCompleted.set(false) }
+                    .shareIn(viewModelScope, SharingStarted.Eagerly, 1)
 
             nftInteractor.collectionsFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,
@@ -358,7 +376,7 @@ class BalanceListViewModel @Inject constructor(
             }.launchIn(this)
         }.distinctUntilChangedBy { (screenModel, screenLayout) ->
             "${screenModel::class.simpleName}::${screenLayout.name}"
-        }.flowOn(Dispatchers.Default)
+        }.flowOn(coroutineManager.default)
     }
 
     private fun onNFTCollectionClick(collection: NFTCollection.Loaded.Result.Collection) {
@@ -422,9 +440,11 @@ class BalanceListViewModel @Inject constructor(
     private fun observeToolbarStates() {
         currentAddressModelFlow().onEach { addressModel ->
             toolbarState.update { prevState ->
-                val newWalletIconState = when(prevState.homeIconState) {
+                val newWalletIconState = when (prevState.homeIconState) {
                     is ToolbarHomeIconState.Navigation -> ToolbarHomeIconState.Wallet(walletIcon = addressModel.image)
-                    is ToolbarHomeIconState.Wallet -> (prevState.homeIconState as ToolbarHomeIconState.Wallet).copy(walletIcon = addressModel.image)
+                    is ToolbarHomeIconState.Wallet -> (prevState.homeIconState as ToolbarHomeIconState.Wallet).copy(
+                        walletIcon = addressModel.image
+                    )
                 }
                 prevState.copy(
                     title = addressModel.nameOrAddress,
@@ -435,17 +455,17 @@ class BalanceListViewModel @Inject constructor(
 
         combine(
             interactor.observeSelectedAccountChainSelectFilter(),
-            selectedChainItemFlow
-        ) { filter, chain ->
+            selectedChainItemFlow,
+            allowSelectChain
+        ) { filter, chain, allowChainSelect ->
             toolbarState.update { prevState ->
                 prevState.copy(
                     selectorViewState = ChainSelectorViewStateWithFilters(
                         selectedChainName = chain?.title,
                         selectedChainId = chain?.id,
                         selectedChainImageUrl = chain?.imageUrl,
-                        filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                            it.name == filter
-                        } ?: ChainSelectorViewStateWithFilters.Filter.All
+                        filterApplied = filter,
+                        allowChainSelection = allowChainSelect
                     )
                 )
             }
@@ -454,7 +474,8 @@ class BalanceListViewModel @Inject constructor(
         nomisScoreInteractor.observeCurrentAccountScore()
             .onEach { score ->
                 toolbarState.update { prevState ->
-                    val newWalletIconState = (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
+                    val newWalletIconState =
+                        (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
                     newWalletIconState?.let {
                         prevState.copy(homeIconState = newWalletIconState)
                     } ?: prevState
@@ -473,14 +494,18 @@ class BalanceListViewModel @Inject constructor(
 
             val isAllAssetsWithProblems =
                 currentAssets.isNotEmpty() && currentAssets.filter { it.asset.token.configuration.chainId == selectedChainId }
-                    .all { it.asset.freeInPlanks == null || it.asset.freeInPlanks.lessThan(BigInteger.ZERO) }
+                    .all {
+                        it.asset.freeInPlanks == null || it.asset.freeInPlanks.lessThan(
+                            BigInteger.ZERO
+                        )
+                    }
             if (isAllAssetsWithProblems.not()) return@combine null
 
             val selectedChainIssue = networkIssues[selectedChainId] ?: NetworkIssueType.Network
 
             WalletAssetsState.NetworkIssue(
                 selectedChainId,
-                selectedChainIssue.toUiModel(),
+                selectedChainIssue,
                 false
             )
         }.onEach { newState ->
@@ -489,29 +514,41 @@ class BalanceListViewModel @Inject constructor(
     }
 
     // we open screen - no assets in the list
-    private suspend fun buildInitialAssetsList(): List<AssetListItemViewState> {
-        return withContext(Dispatchers.Default) {
+    private suspend fun buildInitialAssetsList(): AssetsLoadingState {
+        return withContext(coroutineManager.default) {
+            val currentMetaAccount = accountInteractor.selectedLightMetaAccount()
             val assets = chainInteractor.getChainAssets()
 
-            assets.sortedWith(defaultChainAssetListSort()).mapIndexed { index, chainAsset ->
-                AssetListItemViewState(
-                    index = index,
-                    assetIconUrl = chainAsset.iconUrl,
-                    assetChainName = chainAsset.chainName,
-                    assetName = chainAsset.name.orEmpty(),
-                    assetSymbol = chainAsset.symbol,
-                    assetTokenFiat = null,
-                    assetTokenRate = null,
-                    assetTransferableBalance = null,
-                    assetTransferableBalanceFiat = null,
-                    assetChainUrls = emptyMap(),
-                    chainId = chainAsset.chainId,
-                    chainAssetId = chainAsset.id,
-                    isSupported = true,
-                    isHidden = false,
-                    isTestnet = chainAsset.isTestNet ?: false
-                )
-            }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
+            val shimmers = when {
+                currentMetaAccount.tonPublicKey != null && 
+                currentMetaAccount.substratePublicKey == null && 
+                currentMetaAccount.ethereumPublicKey == null -> {
+                    val tonAsset = assets.firstOrNull { it.chainId == tonMainnetChainId || it.chainName.contains("ton", true) || it.name?.contains("ton", true) == true} ?: assets.first()
+                    listOf(
+                        AssetListItemShimmerViewState(
+                            assetIconUrl = tonAsset.iconUrl,
+                            assetChainUrls = listOf(tonAsset.chainIcon ?: tonAsset.iconUrl)
+                        )
+                    )
+                }
+                else -> {
+                    assets
+                        .asSequence()
+                        .sortedWith(defaultChainAssetListSort())
+                        .take(10)
+                        .map { chainAsset ->
+                            chainAsset.chainId to AssetListItemShimmerViewState(
+                                assetIconUrl = chainAsset.iconUrl,
+                                assetChainUrls = listOf(chainAsset.chainIcon ?: chainAsset.iconUrl)
+                            )
+                        }
+                        .filter { selectedChainId.value == null || selectedChainId.value == it.first }
+                        .map { it.second }
+                        .toList()
+                }
+            }
+
+            AssetsLoadingState.Loading(shimmers)
         }
     }
 
@@ -526,51 +563,72 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
-    //    private val soraCardState = combine(
-//        interactor.observeIsShowSoraCard(),
-//        soraCardInteractor.subscribeSoraCardInfo()
-//    ) { isShow, soraCardInfo ->
-//        val kycStatus = soraCardInfo?.kycStatus?.let(::mapKycStatus)
-//        SoraCardItemViewState(kycStatus, soraCardInfo, null, isShow)
-//    }
-    private val soraCardState = flowOf(SoraCardItemViewState())
-
     val state = MutableStateFlow(WalletState.default)
 
     private fun subscribeScreenState() {
         assetTypeState.onEach {
             state.value = state.value.copy(assetsState = it)
-        }.launchIn(this)
+        }.launchIn(viewModelScope)
 
         assetTypeSelectorState.onEach {
             state.value = state.value.copy(multiToggleButtonState = it)
-        }.launchIn(this)
+        }.launchIn(viewModelScope)
 
-        soraCardState.onEach {
-            state.value = state.value.copy(soraCardState = it)
-        }.launchIn(this)
+        currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
+            val showCurrenciesOrNftSelector =
+                metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
+                    .contains(WalletEcosystem.Substrate)
 
-        currentMetaAccountFlow.onEach {
             state.value = state.value.copy(
-                isBackedUp = it.isBackedUp,
-                scrollToTopEvent = Event(Unit)
+                isBackedUp = metaAccount.isBackedUp,
+                scrollToTopEvent = Event(Unit),
+                showCurrenciesOrNftSelector = showCurrenciesOrNftSelector
             )
-        }.launchIn(this)
+
+
+            val customChainId = when {
+                pendulumPreInstalledAccountsScenario.isPendulumMode(metaAccount.id) -> {
+                    pendulumChainId
+                }
+                metaAccount.hasTon -> {
+                    tonMainnetChainId
+                }
+                else -> null
+            }
+
+            if(customChainId != null) {
+                interactor.saveChainId(metaAccount.id, customChainId)
+            }
+            selectedChainId.value= customChainId ?: interactor.getSavedChainId(metaAccount.id)
+        }.launchIn(viewModelScope)
 
         showNetworkIssues.onEach {
             state.value = state.value.copy(hasNetworkIssues = it)
-        }.launchIn(this)
+        }.launchIn(viewModelScope)
         subscribeTotalBalance()
+
         if (interactor.getAssetManagementIntroPassed().not()) {
             startManageAssetsIntroAnimation()
         }
+
+        accountInteractor.lightMetaAccountsFlow().map { wallets ->
+            val hasTonAccounts = wallets.any { it.tonPublicKey != null }
+            val hasSubAccounts = wallets.any { it.substratePublicKey != null }
+            val hasEthAccounts = wallets.any { it.ethereumPublicKey != null }
+            hasTonAccounts to (hasSubAccounts || hasEthAccounts)
+        }.distinctUntilChanged().onEach { (hasTon, hasSubOrEvm) ->
+            state.value = state.value.copy(
+                hasTonAccounts = hasTon,
+                hasSubOrEvmAccounts = hasSubOrEvm
+            )
+        }.launchIn(viewModelScope)
     }
 
     @OptIn(FlowPreview::class)
     private fun startManageAssetsIntroAnimation() {
         awaitAssetsJob?.cancel()
-        awaitAssetsJob = assetStates.filter { it.isNotEmpty() }
-            .map { it.size }
+        awaitAssetsJob = assetStates.filterIsInstance<AssetsLoadingState.Loaded>().filter { it.assets.isNotEmpty() }
+            .map { it.assets.size }
             .distinctUntilChanged()
             .debounce(200L)
             .onEach {
@@ -601,39 +659,29 @@ class BalanceListViewModel @Inject constructor(
             )
         }.onEach {
             state.value = state.value.copy(balance = it)
-        }.launchIn(this)
+        }.launchIn(viewModelScope)
     }
 
-    val toolbarState: MutableStateFlow<MainToolbarViewStateWithFilters> = MutableStateFlow(MainToolbarViewStateWithFilters(title = null, selectorViewState = null))
+    val toolbarState: MutableStateFlow<MainToolbarViewStateWithFilters> =
+        MutableStateFlow(MainToolbarViewStateWithFilters(title = null, selectorViewState = null))
 
     init {
         subscribeScreenState()
         observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
-        sync()
+//        sync()
 
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
             interactor.saveChainId(walletId, chainId)
+
             selectedChainId.value = chainId
         }.launchIn(this)
 
         selectedChainId.onEach { chainId ->
             BalanceUpdateTrigger.invoke(chainId = chainId)
         }.launchIn(this)
-
-        interactor.selectedLightMetaAccountFlow().map { wallet ->
-            if (pendulumPreInstalledAccountsScenario.isPendulumMode(wallet.id)) {
-                selectedChainId.value = pendulumChainId
-            } else {
-                selectedChainId.value = interactor.getSavedChainId(wallet.id)
-            }
-        }.launchIn(this)
-
-        if (!interactor.isShowGetSoraCard()) {
-            interactor.decreaseSoraCardHiddenSessions()
-        }
     }
 
     override fun onRefresh() {
@@ -650,7 +698,7 @@ class BalanceListViewModel @Inject constructor(
     override fun onRetry() {
         val (chainId, issueType, _) = networkIssueStateFlow.value ?: return
 
-        if (issueType != jp.co.soramitsu.common.compose.component.NetworkIssueType.Account) {
+        if (issueType != NetworkIssueType.Account) {
             viewModelScope.launch {
                 networkIssueStateFlow.update { it?.copy(retryButtonLoading = true) }
                 interactor.retryChainSync(chainId)
@@ -669,7 +717,8 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private suspend fun checkControllerDeprecations() {
-        val warnings = withContext(Dispatchers.Default) { interactor.checkControllerDeprecations() }
+        val warnings =
+            withContext(coroutineManager.default) { interactor.checkControllerDeprecations() }
         warnings.firstOrNull()?.let { warning ->
             val model = warning.toModel(resourceManager)
             showError(
@@ -694,10 +743,10 @@ class BalanceListViewModel @Inject constructor(
 
     private fun sync() {
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                getAvailableFiatCurrencies.sync()
+            withContext(coroutineManager.default) {
+//                getAvailableFiatCurrencies.sync()
                 interactor.syncAssetsRates().onFailure {
-                    withContext(Dispatchers.Main) {
+                    withContext(coroutineManager.main) {
                         selectedFiat.notifySyncFailed()
                     }
                 }
@@ -723,10 +772,6 @@ class BalanceListViewModel @Inject constructor(
 
             ActionItemType.RECEIVE -> {
                 receiveClicked(payload)
-            }
-
-            ActionItemType.TELEPORT -> {
-                showMessage("YOU NEED THE BLUE KEY")
             }
 
             ActionItemType.HIDE -> {
@@ -763,33 +808,22 @@ class BalanceListViewModel @Inject constructor(
                 _showUnsupportedChainAlert.value = Event(Unit)
                 return@launch
             }
-
-            router.openAssetIntermediateDetails(state.chainAssetId)
+            if (state.assetChainUrls.size > 1) {
+                router.openAssetIntermediateDetails(state.chainAssetId)
+            } else {
+                val payload = AssetPayload(
+                    chainId = state.chainId,
+                    chainAssetId = state.chainAssetId
+                )
+                router.openAssetDetails(payload)
+            }
         }
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
-        return interactor.selectedLightMetaAccountFlow()
-            .map {
-                val polkadotAddressPrefix = 0
-                val address = it.substrateAccountId.toAddress(polkadotAddressPrefix.toShort())
-                WalletAccount(address, it.name)
-            }
-            .catch { emit(WalletAccount("", "")) }
-            .onEach { account ->
-                if (accountAddressToChainIdMap.containsKey(account.address).not()) {
-                    selectedChainId.value = null
-                    accountAddressToChainIdMap[account.address] = null
-                } else {
-                    selectedChainId.value =
-                        accountAddressToChainIdMap.getOrDefault(account.address, null)
-                }
-            }
-            .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
-    }
-
-    private suspend fun generateAddressModel(account: WalletAccount, sizeInDp: Int): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
+        return currentMetaAccountFlow.map {
+            addressIconGenerator.createAddressModel(it.supportedEcosystemWithIconAddress(), CURRENT_ICON_SIZE, it.name)
+        }
     }
 
     override fun onBalanceClicked() {
@@ -801,10 +835,6 @@ class BalanceListViewModel @Inject constructor(
             _showFiatChooser.value =
                 FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
         }
-    }
-
-    override fun onNetworkIssuesClicked() {
-        router.openNetworkIssues()
     }
 
     override fun onBackupClicked() {
@@ -825,6 +855,26 @@ class BalanceListViewModel @Inject constructor(
         )
     }
 
+    override fun onJoinSubOrEvmClicked() {
+        router.openCreateSubstrateOrEvmAccountScreen()
+    }
+
+    override fun onJoinSubOrEvmCloseClick() {
+        state.update { prevState ->
+            prevState.copy(hasSubOrEvmAccounts = true)
+        }
+    }
+
+    override fun onJoinTonClicked() {
+        router.openCreateTonAccountScreen()
+    }
+
+    override fun onJoinTonCloseClick() {
+        state.update { prevState ->
+            prevState.copy(hasTonAccounts = true)
+        }
+    }
+
     private fun considerWalletBackedUp() {
         launch {
             val meta = accountInteractor.selectedLightMetaAccount()
@@ -840,18 +890,6 @@ class BalanceListViewModel @Inject constructor(
                 copyToClipboard(address)
             }
         }
-    }
-
-    override fun soraCardClicked() {
-        if (state.value.soraCardState?.kycStatus == null) {
-            router.openGetSoraCard()
-        } else {
-            onSoraCardStatusClicked()
-        }
-    }
-
-    override fun soraCardClose() {
-        interactor.hideSoraCard()
     }
 
     fun onFiatSelected(item: FiatCurrency) {
@@ -870,36 +908,93 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            if (content.startsWith(QR_PREFIX_WALLET_CONNECT)) {
-                sendWalletConnectPair(pairingUri = content)
-            } else {
-                val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-                if (cbdcFormat != null) {
-                    router.openCBDCSend(cbdcQrInfo = cbdcFormat)
-                } else {
+            when {
+                content.startsWith(QR_PREFIX_WALLET_CONNECT) -> {
+                    sendWalletConnectPair(pairingUri = content)
+                }
+
+                content.startsWith(QR_PREFIX_TON_CONNECT) -> {
+                    try { readTonQrContent(qrContent = content) } catch (e: Exception){
+                        showError(e)
+                    }
+                }
+
+                else -> {
+                    val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
+                    if (cbdcFormat != null) {
+                        router.openCBDCSend(cbdcQrInfo = cbdcFormat)
+                        return@launch
+                    }
+
                     val soraFormat =
                         interactor.tryReadSoraFormat(content)
                     if (soraFormat != null) {
                         val amount =
                             soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
                         openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
-                    } else {
+                        return@launch
+                    }
+                    // todo check if it's OK to use the amount from QR code for evm chains/assets
+                    val amount = null //interactor.tryReadAmountFromQrContent(content)
+
+                    val tonKeeperFormat = interactor.extractTonAddress(content)
+                    if(tonKeeperFormat != null) {
                         router.openSend(
                             assetPayload = null,
-                            initialSendToAddress = content,
-                            amount = null
+                            initialSendToAddress = tonKeeperFormat,
+                            amount = amount
                         )
+                        return@launch
                     }
+
+                    val ethFormat = interactor.extractEthAddress(content)
+                    if (ethFormat != null) {
+                        router.openSend(
+                            assetPayload = null,
+                            initialSendToAddress = ethFormat,
+                            amount = amount
+                        )
+                        return@launch
+                    }
+
+                    router.openSend(
+                        assetPayload = null,
+                        initialSendToAddress = content,
+                        amount = amount
+                    )
                 }
             }
         }
+    }
+
+    private suspend fun readTonQrContent(qrContent: String) {
+        val uri = kotlin.runCatching { Uri.parse(qrContent) }.getOrNull() ?: return
+        val clientId = uri.getQueryParameter("id")
+        if (!isValidClientId(clientId)) {
+            throw TonConnectException.WrongClientId(clientId)
+        }
+        val request = ConnectRequest.parse(uri.getQueryParameter("r"))
+
+        if (request.items.isEmpty()) {
+            showError(resourceManager.getString(R.string.common_undefined_error_message))
+        }
+
+        val app = tonConnectInteractor.readManifest(request.manifestUrl)
+        val signedRequest = router.openTonConnectionAndWaitForResult(app, request.proofPayload)
+        kotlin.runCatching { tonConnectInteractor.respondDappConnectRequest(clientId!!, request, signedRequest, app) }
+            .onFailure { showError(it) }
+
+    }
+
+    private fun isValidClientId(clientId: String?): Boolean {
+        return !clientId.isNullOrBlank() && clientId.length == 64
     }
 
     private fun sendWalletConnectPair(pairingUri: String) {
         walletConnectInteractor.pair(
             pairingUri = pairingUri,
             onError = { error ->
-                viewModelScope.launch(Dispatchers.Main.immediate) {
+                viewModelScope.launch(coroutineManager.main.immediate) {
                     if (error.throwable is MalformedWalletConnectUri) {
                         showError(
                             title = resourceManager.getString(R.string.connection_invalid_url_error_title),
@@ -955,9 +1050,6 @@ class BalanceListViewModel @Inject constructor(
 
         val message = resourceManager.getString(R.string.common_copied)
         showMessage(message)
-    }
-
-    private fun onSoraCardStatusClicked() {
     }
 
     fun onServiceButtonClick() {
