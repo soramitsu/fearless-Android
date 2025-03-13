@@ -36,7 +36,6 @@ fun BottomNavigationBar(navController: NavController?) {
             backgroundColor = colorResource(id = R.color.black) // .copy(alpha = 0.5f),
         ) {
             val navBackStackEntry = navController?.currentBackStackEntryAsState()
-//            val navBackStackEntry by navController?.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.value?.destination?.route
             items.forEachIndexed { index, item ->
                 BottomNavigationItem(

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/drawable_background_image"
+    android:background="@color/black"
     android:backgroundTint="#63000000"
     android:backgroundTintMode="src_atop"
     android:fitsSystemWindows="true"
@@ -14,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:iconRight="@drawable/ic_info_white_24"
+        app:dividerVisible="false"
         app:titleText="@string/account_create_title" />
 
     <ScrollView
@@ -47,12 +48,22 @@
     </ScrollView>
 
     <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/confirmMnemonicSkip"
+        style="@style/Widget.Fearless.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x3"
+        android:layout_marginEnd="@dimen/x2"
+        android:text="@string/common_skip_process" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/nextBtn"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/x2"
-        android:layout_marginTop="@dimen/x3"
+        android:layout_marginTop="@dimen/x1"
         android:layout_marginEnd="@dimen/x2"
         android:text="@string/common_next" />
 

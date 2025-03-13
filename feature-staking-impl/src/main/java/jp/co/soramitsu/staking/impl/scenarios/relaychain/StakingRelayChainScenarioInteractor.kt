@@ -11,11 +11,17 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.models.Asset.StakingType
+import jp.co.soramitsu.core.models.SoraMainChainId
+import jp.co.soramitsu.core.models.SoraTestChainId
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
+import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -142,8 +148,17 @@ class StakingRelayChainScenarioInteractor(
     private val payoutRepository: PayoutRepository,
     private val walletConstants: WalletConstants,
     private val chainRegistry: ChainRegistry,
+    private val stakingTotalRewardDao: StakingTotalRewardDao,
     private val assetCache: AssetCache
 ) : StakingScenarioInteractor {
+
+    init {
+        stakingInteractor.syncStakingRewardListener = { chainId ->
+            if (chainId == soraMainChainId || chainId == soraTestChainId) {
+                calculatePendingPayouts()
+            }
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
@@ -534,6 +549,11 @@ class StakingRelayChainScenarioInteractor(
                 val historyDepth = stakingRelayChainScenarioRepository.getHistoryDepth(chainId)
 
                 val payouts = payoutRepository.calculateUnpaidPayouts(currentStakingState)
+
+                if (chainId == soraMainChainId || chainId == soraTestChainId) {
+                    val sum = payouts.sumByBigInteger { it.amount }
+                    stakingTotalRewardDao.insert(TotalRewardLocal(currentStakingState.accountAddress, sum))
+                }
 
                 val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
                 val identityMapping = identityRepository.getIdentitiesFromAddresses(

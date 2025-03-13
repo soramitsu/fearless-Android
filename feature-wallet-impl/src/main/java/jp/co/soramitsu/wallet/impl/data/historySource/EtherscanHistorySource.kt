@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -44,8 +45,8 @@ class EtherscanHistorySource(
         accountAddress: String
     ): CursorPage<Operation> {
         return kotlin.runCatching {
-            val response = when (chainAsset.ethereumType) {
-                Asset.EthereumType.NORMAL -> {
+            val response = when (chainAsset.type) {
+                ChainAssetType.Normal -> {
                     walletOperationsApi.getEtherscanOperationsHistory(
                         url = historyUrl,
                         address = accountId.toHexString(true),
@@ -53,8 +54,8 @@ class EtherscanHistorySource(
                     )
                         .let { response -> response.copy(result = response.result.filter { it.contractAddress.isEmpty() && it.value.isNotZero() }) }
                 }
-                Asset.EthereumType.BEP20,
-                Asset.EthereumType.ERC20 -> {
+                ChainAssetType.BEP20,
+                ChainAssetType.ERC20 -> {
                     walletOperationsApi.getEtherscanOperationsHistory(
                         url = historyUrl,
                         action = "tokentx",

@@ -4,12 +4,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
@@ -19,7 +16,6 @@ import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.AccountNominationsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
-import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.CurrentEraUpdater
@@ -31,6 +27,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.NominatorsUp
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.ValidatorExposureUpdater
+import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.controller.AccountControllerBalanceUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.historical.HistoricalTotalValidatorRewardUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.historical.HistoricalUpdateMediator
@@ -39,6 +36,8 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.scope.Accoun
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import kotlinx.coroutines.flow.map
+import javax.inject.Named
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -138,7 +137,6 @@ class StakingUpdatersModule {
         accountStakingDao: AccountStakingDao,
         assetCache: AssetCache,
         storageCache: StorageCache,
-        updatesMixin: UpdatesMixin,
         accountUpdateScope: AccountUpdateScope
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
@@ -148,7 +146,6 @@ class StakingUpdatersModule {
             accountStakingDao,
             storageCache,
             assetCache,
-            updatesMixin,
             accountUpdateScope
         )
     }
@@ -233,14 +230,12 @@ class StakingUpdatersModule {
         assetCache: AssetCache,
         scope: AccountStakingScope,
         sharedState: StakingSharedState,
-        chainRegistry: ChainRegistry,
-        updatesMixin: UpdatesMixin
+        chainRegistry: ChainRegistry
     ) = AccountControllerBalanceUpdater(
         scope,
         sharedState,
         chainRegistry,
-        assetCache,
-        updatesMixin
+        assetCache
     )
 
     @Provides

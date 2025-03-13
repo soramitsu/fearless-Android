@@ -212,6 +212,12 @@
         <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+    <style name="CustomBottomSheetDialogThemeNonTranparentScrim" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:backgroundDimAmount">1</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
 
     <style name="CustomBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="backgroundTint">#00000000</item>

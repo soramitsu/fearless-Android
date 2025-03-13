@@ -16,19 +16,3 @@ data class UserPoolJoinedLocalNullable(
     @Embedded
     val basicPoolLocal: BasicPoolLocal,
 )
-
-//data class TokenFiatLocal(
-//    @Embedded
-//    val token: TokenLocal,
-//    @Relation(parentColumn = "id", entityColumn = "tokenIdFiat")
-//    val fiat: FiatTokenPriceLocal?,
-//)
-//
-//data class BasicPoolWithTokenFiatLocal(
-//    @Embedded
-//    val basicPoolLocal: BasicPoolLocal,
-//    @Relation(parentColumn = "tokenIdBase", entityColumn = "id", entity = TokenLocal::class)
-//    val tokenBaseLocal: TokenFiatLocal,
-//    @Relation(parentColumn = "tokenIdTarget", entityColumn = "id", entity = TokenLocal::class)
-//    val tokenTargetLocal: TokenFiatLocal,
-//)

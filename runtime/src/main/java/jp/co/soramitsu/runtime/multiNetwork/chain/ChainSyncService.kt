@@ -1,49 +1,39 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.coredb.model.accountId
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
 
 class ChainSyncService(
     private val dao: ChainDao,
     private val chainFetcher: ChainFetcher,
     private val metaAccountDao: MetaAccountDao,
     private val assetsDao: AssetDao,
-    private val remoteAssetsSyncServiceProvider: RemoteAssetsSyncServiceProvider
+
+    private val contextManager: ContextManager
 ) {
 
-    suspend fun syncUp() = withContext(Dispatchers.Default) {
-        val syncedChainsDeferred = async { configChainsSyncUp() }
-        val syncedChains = runCatching { syncedChainsDeferred.await() }.onFailure { it.printStackTrace() }.getOrNull() ?: return@withContext
-
-        val chainsWithRemoteAssets = syncedChains.filter { it.remoteAssetsSource != null }
-
-        supervisorScope {
-            chainsWithRemoteAssets.forEach { chain ->
-                launch {
-                    val service = remoteAssetsSyncServiceProvider.provide(chain)
-                    service?.sync()
-                }
-            }
-        }
+    suspend fun syncUp() {
+        kotlin.runCatching { configChainsSyncUp() }.onFailure { it.printStackTrace() }.getOrNull() ?: return
     }
 
-    private suspend fun configChainsSyncUp() = supervisorScope {
+    private suspend fun configChainsSyncUp(): List<Chain> = supervisorScope {
         val localChainsJoinedInfo = dao.getJoinChainInfo()
-        val localChainsJoinedInfoMap = dao.getJoinChainInfo().associateBy { it.chain.id }
+        val localChainsJoinedInfoMap = localChainsJoinedInfo.associateBy { it.chain.id }
 
         val remoteChains = chainFetcher.getChains()
             .filter {
@@ -52,6 +42,7 @@ class ChainSyncService(
             .map {
                 it.toChain()
             }
+
         val remoteMapping = remoteChains.associateBy(Chain::id)
 
         val mappedRemoteChains = remoteChains.map { mapChainToChainLocal(it) }
@@ -71,10 +62,11 @@ class ChainSyncService(
                     localChain != remoteChain -> chainsToUpdate.add(remoteChain) // updated
                 }
             }
-            dao.updateChains(chainsToAdd, chainsToUpdate, chainsToRemove)
+            dao.updateChains(chainsToAdd, chainsToUpdate)
+            chainsToRemove
         }
 
-        chainsSyncDeferred.await()
+        val chainsToDelete = chainsSyncDeferred.await()
         coroutineScope {
             chainsSyncDeferred.join()
             launch {
@@ -83,16 +75,19 @@ class ChainSyncService(
                 val remoteAssets =
                     mappedRemoteChains.map { it.assets }.flatten()
 
+                val chainsWithRemoteAssetsIds = remoteChains.filter { it.remoteAssetsSource != null }.map { it.id }.toSet()
+
                 val assetsToAdd: MutableList<ChainAssetLocal> = mutableListOf()
                 val assetsToUpdate: MutableList<ChainAssetLocal> = mutableListOf()
-                val assetsToRemove =
-                    localAssets.filter { local ->
+                val assetsToRemove = localAssets.asSequence()
+                    .filter { it.chainId !in chainsWithRemoteAssetsIds }.filter { local ->
                         val remoteAssetsIds = remoteAssets.map { it.id to it.chainId }
+
                         local.id to local.chainId !in remoteAssetsIds
                     }.toList()
 
                 remoteAssets.forEach { remoteAsset ->
-                    val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId}
+                    val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId }
 
                     when {
                         localAsset == null -> {
@@ -109,12 +104,9 @@ class ChainSyncService(
                 if(metaAccounts.isEmpty()) return@launch
                 val newLocalAssets = metaAccounts.map { metaAccount ->
                     assetsToAdd.mapNotNull {
-                        val chain = remoteMapping[it.chainId]
-                        val accountId = if (chain?.isEthereumBased == true) {
-                            metaAccount.ethereumAddress
-                        } else {
-                            metaAccount.substrateAccountId
-                        } ?: return@mapNotNull null
+                        val chain = remoteMapping[it.chainId] ?: return@mapNotNull null
+                        val accountId = metaAccount.accountId(chain) ?: return@mapNotNull null
+
                         AssetLocal(
                             accountId = accountId,
                             id = it.id,
@@ -165,7 +157,11 @@ class ChainSyncService(
                 }
                 dao.updateExplorers(explorersToAdd, explorersToUpdate, explorersToRemove)
             }
-            remoteChains
-        }
+            coroutineContext.job
+        }.join()
+
+        dao.deleteChains(chainsToDelete)
+
+        remoteChains
     }
 }

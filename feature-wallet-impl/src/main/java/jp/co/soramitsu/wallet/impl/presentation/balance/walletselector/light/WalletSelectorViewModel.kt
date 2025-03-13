@@ -73,8 +73,8 @@ class WalletSelectorViewModel @Inject constructor(
     private fun observeTotalBalance(metaId: Long) {
         totalBalanceUseCase.observe(metaId).onEach { balanceModel ->
             walletItemsFlow.update {
-                it.map {  state ->
-                    if(state.id == metaId) {
+                it.map { state ->
+                    if (state.id == metaId) {
                         state.copy(
                             balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
                             changeBalanceViewState = ChangeBalanceViewState(

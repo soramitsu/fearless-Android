@@ -15,7 +15,6 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
-import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import kotlinx.coroutines.flow.Flow
@@ -48,22 +47,17 @@ interface WalletRepository {
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
         batchAll: Boolean = false
-    ): Fee
+    ): BigDecimal
 
     suspend fun observeTransferFee(
         chain: Chain,
-        transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
-        batchAll: Boolean = false
-    ): Flow<Fee>
+        transfer: Transfer
+    ): Flow<BigDecimal>
 
     suspend fun performTransfer(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
-        fee: BigDecimal,
-        tip: BigInteger?,
-        appId: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
         batchAll: Boolean = false
     ): String
@@ -89,7 +83,7 @@ interface WalletRepository {
 
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
 
-    suspend fun getRemoteConfig(): Result<AppConfigRemote>
+    suspend fun getRemoteConfig(): AppConfigRemote
 
     suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
@@ -98,7 +92,7 @@ interface WalletRepository {
     suspend fun getTotalBalance(
         chainAsset: CoreAsset,
         chain: Chain,
-        accountId: ByteArray
+        address: String
     ): BigInteger
 
     fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
