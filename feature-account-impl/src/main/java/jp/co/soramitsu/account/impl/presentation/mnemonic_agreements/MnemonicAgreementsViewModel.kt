@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,8 +20,9 @@ class MnemonicAgreementsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), MnemonicAgreementsCallback {
 
-    private val isFromGoogleBackup = savedStateHandle.get<Boolean>(MnemonicAgreementsDialog.IS_FROM_GOOGLE_BACKUP_KEY) ?: false
     private val walletName = savedStateHandle.get<String>(MnemonicAgreementsDialog.WALLET_NAME_KEY).orEmpty()
+    private val accountTypes = savedStateHandle.get<List<WalletEcosystem>>(MnemonicAgreementsDialog.ACCOUNT_TYPES_KEY) ?: error("Account type not specified")
+
     private val isLosePhraseAgreementSelected = MutableStateFlow(false)
     private val isSharePhraseAgreementItemStateSelected = MutableStateFlow(false)
     private val isKeepPhraseAgreementItemStateSelected = MutableStateFlow(false)
@@ -92,9 +94,9 @@ class MnemonicAgreementsViewModel @Inject constructor(
     }
 
     override fun onShowPhrase() {
-        router.openMnemonicDialog(
-            isFromGoogleBackup = isFromGoogleBackup,
-            accountName = walletName
+        router.openMnemonicDialogGoogleBackup(
+            accountName = walletName,
+            accountTypes = accountTypes
         )
     }
 

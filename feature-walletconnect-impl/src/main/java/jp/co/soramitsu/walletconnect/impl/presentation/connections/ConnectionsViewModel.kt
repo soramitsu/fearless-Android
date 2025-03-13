@@ -36,7 +36,7 @@ class ConnectionsViewModel @Inject constructor(
 
     val state = combine(WCDelegate.activeSessionFlow, enteredChainQueryFlow) { activeSessions, searchQuery ->
         val sessions = activeSessions.filter {
-            it.metaData?.name?.contains(searchQuery, false) == true
+            it.metaData?.name?.contains(searchQuery, true) == true
         }
 
         val sessionItems = sessions.map {

@@ -27,7 +27,6 @@ enum class ActionItemType(
 ) {
     SEND(R.drawable.ic_common_send, R.string.common_action_send),
     RECEIVE(R.drawable.ic_common_receive, R.string.common_action_receive),
-    TELEPORT(R.drawable.ic_common_teleport, R.string.common_action_teleport),
     HIDE(R.drawable.ic_common_hide, R.string.common_action_hide),
     SHOW(R.drawable.ic_common_hide, R.string.common_action_show),
     CROSS_CHAIN(R.drawable.ic_common_cross_chain, R.string.common_action_cross_chain),

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
 import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.shared_utils.encrypt.Signer

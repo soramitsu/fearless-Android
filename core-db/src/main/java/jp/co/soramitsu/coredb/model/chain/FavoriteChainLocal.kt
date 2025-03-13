@@ -2,6 +2,7 @@ package jp.co.soramitsu.coredb.model.chain
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
 
 @Entity(
     tableName = "favorite_chains",

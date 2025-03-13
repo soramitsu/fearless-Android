@@ -6,7 +6,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 
-private const val DisableClickTime = 1000L
+private const val DisableClickTime = 1500L
 
 @Composable
 fun rememberLastClickTime(): MutableState<Long> {
