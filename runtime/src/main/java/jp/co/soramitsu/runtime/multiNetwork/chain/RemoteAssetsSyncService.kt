@@ -101,7 +101,8 @@ class TonRemoteAssetsSyncService(
                                         existentialDeposit = null,
                                         color = null,
                                         isNative = null,
-                                        priceProvider = null
+                                        priceProvider = null,
+                                        coinbaseUrl = null
                                     )
                                 }
                             }
