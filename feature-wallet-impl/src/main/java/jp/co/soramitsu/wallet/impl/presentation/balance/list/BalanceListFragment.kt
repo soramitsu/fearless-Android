@@ -45,7 +45,7 @@ import kotlinx.coroutines.launch
 class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     override val viewModel: BalanceListViewModel by viewModels()
 
@@ -61,7 +61,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.onResume()
     }
 
-    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(
         padding: PaddingValues,

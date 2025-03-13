@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.wallet.impl.data.network.model.EvmTransfer
@@ -75,9 +76,9 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
         )
     }
 
-    private val legacyTransactionCallBuildersByAssetType: HashMap<Asset.EthereumType, (EvmTransfer) -> Transaction?> =
+    private val legacyTransactionCallBuildersByAssetType: HashMap<ChainAssetType, (EvmTransfer) -> Transaction?> =
         hashMapOf(
-            Asset.EthereumType.NORMAL to {
+            ChainAssetType.Normal to {
                 Transaction.createEtherTransaction(
                     /* from = */ it.sender,
                     /* nonce = */ it.nonce,
@@ -87,13 +88,13 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
                     /* value = */ it.amount
                 )
             },
-            Asset.EthereumType.ERC20 to erc20LegacyTransferCallBuilder,
-            Asset.EthereumType.BEP20 to erc20LegacyTransferCallBuilder
+            ChainAssetType.ERC20 to erc20LegacyTransferCallBuilder,
+            ChainAssetType.BEP20 to erc20LegacyTransferCallBuilder
         )
 
-    private val eip1559TransactionCallBuildersByAssetType: HashMap<Asset.EthereumType, (EvmTransfer) -> Transaction?> =
+    private val eip1559TransactionCallBuildersByAssetType: HashMap<ChainAssetType, (EvmTransfer) -> Transaction?> =
         hashMapOf(
-            Asset.EthereumType.NORMAL to {
+            ChainAssetType.Normal to {
                 Transaction(
                     /* from = */ it.sender,
                     /* nonce = */ it.nonce,
@@ -107,13 +108,13 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
                     /* maxFeePerGas = */ it.maxFeePerGas
                 )
             },
-            Asset.EthereumType.ERC20 to erc20EIP1559TransferCallBuilder,
-            Asset.EthereumType.BEP20 to erc20EIP1559TransferCallBuilder
+            ChainAssetType.ERC20 to erc20EIP1559TransferCallBuilder,
+            ChainAssetType.BEP20 to erc20EIP1559TransferCallBuilder
         )
 
-    private val eip1559RawTransactionCallBuildersByAssetType: HashMap<Asset.EthereumType, (EvmTransfer) -> RawTransaction> =
+    private val eip1559RawTransactionCallBuildersByAssetType: HashMap<ChainAssetType, (EvmTransfer) -> RawTransaction> =
         hashMapOf(
-            Asset.EthereumType.NORMAL to {
+            ChainAssetType.Normal to {
                 RawTransaction.createEtherTransaction(
                     /* chainId = */ it.chainAsset.chainId.requireHexPrefix().drop(2).toLong(),
                     /* nonce = */ it.nonce,
@@ -124,13 +125,13 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
                     /* maxFeePerGas = */ it.maxFeePerGas
                 )
             },
-            Asset.EthereumType.ERC20 to erc20EIP1559RawTransferCallBuilder,
-            Asset.EthereumType.BEP20 to erc20EIP1559RawTransferCallBuilder
+            ChainAssetType.ERC20 to erc20EIP1559RawTransferCallBuilder,
+            ChainAssetType.BEP20 to erc20EIP1559RawTransferCallBuilder
         )
 
-    private val legacyRawTransactionCallBuildersByAssetType: HashMap<Asset.EthereumType, (EvmTransfer) -> RawTransaction> =
+    private val legacyRawTransactionCallBuildersByAssetType: HashMap<ChainAssetType, (EvmTransfer) -> RawTransaction> =
         hashMapOf(
-            Asset.EthereumType.NORMAL to {
+            ChainAssetType.Normal to {
                 RawTransaction.createEtherTransaction(
                     /* nonce = */ it.nonce,
                     /* gasPrice = */ it.gasPrice,
@@ -139,8 +140,8 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
                     /* value = */ it.amount,
                 )
             },
-            Asset.EthereumType.ERC20 to erc20LegacyRawTransferCallBuilder,
-            Asset.EthereumType.BEP20 to erc20LegacyRawTransferCallBuilder
+            ChainAssetType.ERC20 to erc20LegacyRawTransferCallBuilder,
+            ChainAssetType.BEP20 to erc20LegacyRawTransferCallBuilder
         )
 
     fun build(transfer: Transfer): Result<RawTransaction> {
@@ -174,7 +175,7 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
             // eip1559
             val maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas
 
-            eip1559RawTransactionCallBuildersByAssetType[chainAsset.ethereumType]?.invoke(
+            eip1559RawTransactionCallBuildersByAssetType[chainAsset.type]?.invoke(
                 EvmTransfer.createFromTransfer(
                     transfer = transfer,
                     nonce = nonce,
@@ -187,7 +188,7 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
         } else {
             // legacy
 
-            legacyRawTransactionCallBuildersByAssetType[chainAsset.ethereumType]?.invoke(
+            legacyRawTransactionCallBuildersByAssetType[chainAsset.type]?.invoke(
                 EvmTransfer.createFromTransfer(
                     transfer = transfer,
                     nonce = nonce,
@@ -209,7 +210,7 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
     }
 
     private fun buildFeeEstimationCall(evmTransfer: EvmTransfer): Transaction? {
-        return legacyTransactionCallBuildersByAssetType[evmTransfer.chainAsset.ethereumType]?.invoke(
+        return legacyTransactionCallBuildersByAssetType[evmTransfer.chainAsset.type]?.invoke(
             evmTransfer
         )
     }

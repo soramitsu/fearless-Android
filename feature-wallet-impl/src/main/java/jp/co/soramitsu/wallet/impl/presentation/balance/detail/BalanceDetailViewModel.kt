@@ -7,13 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -24,6 +21,7 @@ import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -34,7 +32,10 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedTransactionExplorers
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
@@ -48,6 +49,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
@@ -65,11 +68,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
+import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -99,18 +107,24 @@ class BalanceDetailViewModel @Inject constructor(
     private val assetPayloadInitial: AssetPayload =
         savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
 
+    val transactionDetailsBottomSheet = MutableStateFlow<TransactionDetailsState?>(null)
+    val externalActionsSelector = MutableStateFlow<ExternalAccountActions.Payload?>(null)
+
     private val _showAccountOptions = MutableLiveData<Event<AccountOptionsPayload>>()
     val showAccountOptions: LiveData<Event<AccountOptionsPayload>> = _showAccountOptions
 
+    private val _shareUrlEvent = MutableLiveData<Event<String>>()
+    val shareUrlEvent = _shareUrlEvent
+
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
-    val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> =
-        _showExportSourceChooser
+    val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
 
     private val chainsFlow = chainInteractor.getChainsFlow().share()
     private val chainsItemStateFlow = chainsFlow.mapList { it.toChainItemState() }
+    private val selectedChainFlow = selectedChainId.map { interactor.getChain(it) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val assetModelFlow = selectedChainId.mapNotNull { selectedChainId ->
@@ -136,6 +150,7 @@ class BalanceDetailViewModel @Inject constructor(
         }
         .distinctUntilChanged()
         .onEach {
+
             assetPayload.emit(
                 AssetPayload(
                     chainId = it.token.configuration.chainId,
@@ -277,8 +292,8 @@ class BalanceDetailViewModel @Inject constructor(
                     null
                 }
             )
-
-            val filtersEnabled = balanceModel.token.configuration.ethereumType == null
+            val chain = selectedChainFlow.first()
+            val filtersEnabled = chain.isEthereumChain || chain.ecosystem == Ecosystem.Ton
             state.update { prevState ->
                 prevState.copy(
                     actionBarViewState = actionBarState,
@@ -308,7 +323,15 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun filterClicked() {
-        router.openFilter()
+        viewModelScope.launch {
+            val chain = interactor.getChain(assetPayload.value.chainId)
+            if (chain.ecosystem == Ecosystem.Ton) {
+                val filterValues = setOf(TransactionFilter.TRANSFER, TransactionFilter.EXTRINSIC)
+                router.openFilter(filterValues)
+            } else {
+                router.openFilter()
+            }
+        }
     }
 
     override fun sync() {
@@ -426,10 +449,6 @@ class BalanceDetailViewModel @Inject constructor(
                 receiveClicked(payload)
             }
 
-            ActionItemType.TELEPORT -> {
-                showMessage("YOU NEED THE BLUE KEY")
-            }
-
             ActionItemType.CROSS_CHAIN -> {
                 onCrossChainClicked(payload)
             }
@@ -468,10 +487,7 @@ class BalanceDetailViewModel @Inject constructor(
 
     fun exportClicked() {
         viewModelScope.launch {
-            val isEthereumBased = interactor
-                .getChain(assetPayload.value.chainId)
-                .isEthereumBased
-            val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
+            val sources = interactor.getExportSourceTypes(assetPayload.value.chainId)
             _showExportSourceChooser.value = Event(
                 ExportSourceChooserPayload(
                     assetPayload.value.chainId,
@@ -496,10 +512,13 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun transactionClicked(transactionModel: OperationModel) {
-        transactionHistoryProvider.transactionClicked(
-            transactionModel = transactionModel,
-            assetPayload = assetPayload.value
-        )
+        launch {
+            val detailsState = transactionHistoryProvider.getTransactionDetailsState(
+                transactionModel = transactionModel,
+                assetPayload = assetPayload.value
+            )
+            transactionDetailsBottomSheet.value = detailsState
+        }
     }
 
     override fun tableItemClicked(itemId: Int) {
@@ -521,5 +540,64 @@ class BalanceDetailViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun onDetailsClose() {
+        transactionDetailsBottomSheet.value = null
+    }
+
+    fun transactionHashClicked(detailsBottomSheetState: TransactionDetailsState) = viewModelScope.launch {
+        if(detailsBottomSheetState is TransferDetailsState) {
+            val hash = detailsBottomSheetState.hash.text
+            val supportedAddressExplorers = selectedChainFlow.first().explorers.getSupportedTransactionExplorers(hash)
+            externalActionsSelector.value = ExternalAccountActions.Payload(hash, supportedAddressExplorers)
+        }
+    }
+
+    fun fromClicked(detailsBottomSheetState: TransactionDetailsState) {
+        require(detailsBottomSheetState is TransferDetailsState)
+        viewModelScope.launch {
+            detailsBottomSheetState.firstAddress?.input?.let {
+                val supportedAddressExplorers = selectedChainFlow.first().explorers.getSupportedAddressExplorers(it)
+                externalActionsSelector.value = ExternalAccountActions.Payload(it, supportedAddressExplorers)
+            }
+        }
+    }
+
+    fun toClicked(detailsBottomSheetState: TransactionDetailsState) {
+        require(detailsBottomSheetState is TransferDetailsState)
+        viewModelScope.launch {
+            detailsBottomSheetState.secondAddress?.input?.let {
+                externalActionsSelector.value = ExternalAccountActions.Payload(it, selectedChainFlow.first().explorers.getSupportedAddressExplorers(it))
+            }
+        }
+    }
+
+    fun onSwapDetailsHashClick(hash: String) {
+        copyStringClicked(hash)
+    }
+
+    fun onSwapDetailsSubscanClicked(hash: String) = viewModelScope.launch {
+        selectedChainFlow.first().explorers.firstOrNull { it.type == Chain.Explorer.Type.SUBSCAN }?.let {
+            BlockExplorerUrlBuilder(it.url, it.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, hash)
+        }?.let {
+            openUrl(it)
+        }
+    }
+
+    fun onShareSwapClicked(hash: String) = viewModelScope.launch {
+        selectedChainFlow.first().explorers.firstOrNull { it.type == Chain.Explorer.Type.SUBSCAN }?.let {
+            BlockExplorerUrlBuilder(it.url, it.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, hash)
+        }?.let {
+            shareUrlEvent.value = Event(it)
+        }
+    }
+
+    fun copyStringClicked(value: String) {
+        copyToClipboard(value)
+    }
+
+    fun openUrl(url: String) {
+        externalAccountActions.viewExternalClicked(url)
     }
 }

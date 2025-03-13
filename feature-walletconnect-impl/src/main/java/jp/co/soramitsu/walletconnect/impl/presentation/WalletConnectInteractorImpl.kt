@@ -11,7 +11,8 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
@@ -270,11 +271,11 @@ class WalletConnectInteractorImpl(
         val ethSignTypedMessage = recentSession.request.message
         val message = StructuredDataEncoder(ethSignTypedMessage).hashStructuredData()
 
-        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
-        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
+        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
-        val cred = Credentials.create(privateKey?.toHexString())
+        val cred = Credentials.create(privateKey.toHexString())
 
         val signatureData = Sign.signMessage(message, cred.ecKeyPair, false)
         val signatureWrapper = SignatureWrapper.Ecdsa(signatureData.v, signatureData.r, signatureData.s)
@@ -288,8 +289,8 @@ class WalletConnectInteractorImpl(
     ): String {
         val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
 
-        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
         val raw = mapToRawTransaction(recentSession.request.message)
@@ -306,8 +307,8 @@ class WalletConnectInteractorImpl(
         recentSession: Wallet.Model.SessionRequest
     ): String {
         val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
-        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
         val raw = mapToRawTransaction(recentSession.request.message)
@@ -323,9 +324,9 @@ class WalletConnectInteractorImpl(
         metaAccount: MetaAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
-        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
-        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey) ?: throw IllegalArgumentException("no eth keypair")
+        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
         return CacaoSigner.sign(
             recentSession.request.message,
@@ -367,13 +368,13 @@ class WalletConnectInteractorImpl(
             payloadBytes
         }
 
-        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+        val secrets = accountRepository.getSubstrateSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val keypairSchema = secrets[SubstrateSecrets.SubstrateKeypair]
         val publicKey = keypairSchema[KeyPairSchema.PublicKey]
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
         val nonce1 = keypairSchema[KeyPairSchema.Nonce]
         val keypair = Keypair(publicKey, privateKey, nonce1)
-        val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType)
+        val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType!!)
 
         val signature = extrinsicService.createSignature(
             encryption,

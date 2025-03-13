@@ -805,7 +805,7 @@
   <string name="scam_info_nomis_name">Điểm nomis đa chuỗi</string>
   <string name="scam_info_nomis_reason_text">Mạng ít hoạt động</string>
   <string name="scam_info_nomis_subtype_text">Tiến hành thận trọng</string>
-  <string name="scam_warning_message">Địa chỉ này đã bị gắn cờ do có bằng chứng lừa đảo. Chúng tôi thực sự khuyên bạn không nên gửi {asset} tới tài khoản này.</string>
+  <string name="scam_warning_message">Địa chỉ này đã bị gắn cờ do có bằng chứng lừa đảo. Chúng tôi thực sự khuyên bạn không nên gửi %s tới tài khoản này.</string>
   <string name="scan_qr_subtitle">Quét mã từ người nhận</string>
   <string name="scan_qr_title">Quét mã QR</string>
   <string name="scan_qr_upload_button_title">Tải lên từ thư viện</string>

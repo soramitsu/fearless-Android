@@ -19,7 +19,7 @@ const val PAYLOAD_KEY = "PAYLOAD_KEY"
 @AndroidEntryPoint
 class ConfirmBondMoreFragment : BaseFragment<ConfirmBondMoreViewModel>(R.layout.fragment_confirm_bond_more) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     override val viewModel: ConfirmBondMoreViewModel by viewModels()
 
