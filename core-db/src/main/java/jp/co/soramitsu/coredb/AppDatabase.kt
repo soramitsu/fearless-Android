@@ -79,6 +79,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_68_69
 import jp.co.soramitsu.coredb.migrations.Migration_69_70
 import jp.co.soramitsu.coredb.migrations.Migration_70_71
 import jp.co.soramitsu.coredb.migrations.Migration_72_73
+import jp.co.soramitsu.coredb.migrations.Migration_73_74
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -95,6 +96,7 @@ import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
+import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.coredb.model.UserPoolLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
@@ -104,10 +106,9 @@ import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
-import jp.co.soramitsu.coredb.model.TonConnectionLocal
 
 @Database(
-    version = 73,
+    version = 74,
     entities = [
         AddressBookContact::class,
         AssetLocal::class,
@@ -206,6 +207,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_70_71)
                     .addMigrations(TonMigration(storeV2, substrateSecretStore, ethereumSecretStore, encryptedPreferences))
                     .addMigrations(Migration_72_73)
+                    .addMigrations(Migration_73_74)
                     .build()
             }
             return instance!!

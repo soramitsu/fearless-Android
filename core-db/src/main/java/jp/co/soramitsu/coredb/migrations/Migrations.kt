@@ -3,6 +3,12 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_73_74 = object : Migration(73, 74) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chain_assets ADD COLUMN `coinbaseUrl` TEXT NULL DEFAULT NULL")
+    }
+}
+
 val Migration_72_73 = object : Migration(72, 73) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

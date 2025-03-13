@@ -239,7 +239,8 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                     existentialDeposit = chainAsset.existentialDeposit,
                     color = chainAsset.color,
                     isNative = chainAsset.isNative,
-                    priceProvider = chainAsset.priceProvider?.mapRemoteToModel()
+                    priceProvider = chainAsset.priceProvider?.mapRemoteToModel(),
+                    coinbaseUrl = chainAsset.coinbaseUrl
                 )
             }
         }.getOrNull()
@@ -277,7 +278,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative,
-            priceProvider = mapToPriceProvider(it.priceProvider)
+            priceProvider = mapToPriceProvider(it.priceProvider),
+            coinbaseUrl = it.coinbaseUrl
         )
     }
 
@@ -357,7 +359,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative,
-            priceProvider = it.priceProvider?.let { priceProvider ->  gson.toJson(priceProvider) }
+            priceProvider = it.priceProvider?.let { priceProvider ->  gson.toJson(priceProvider) },
+            coinbaseUrl = it.coinbaseUrl
         )
     }
 
