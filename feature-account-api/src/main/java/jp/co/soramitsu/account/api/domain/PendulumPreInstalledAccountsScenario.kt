@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.api.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
@@ -26,16 +26,16 @@ class PendulumPreInstalledAccountsScenario(
             String(bytes)
         }.getOrElse { return Result.failure(RuntimeException("Can't decode qr code.")) }
         return kotlin.runCatching {
-            accountRepository.importFromMnemonic(
-                mnemonic = mnemonic,
+            val payload = AddAccountPayload.SubstrateOrEvm(
                 accountName = "Pendulum Wallet",
+                mnemonic = mnemonic,
+                encryptionType = CryptoType.SR25519,
                 substrateDerivationPath = "",
                 ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH,
-                selectedEncryptionType = CryptoType.SR25519,
-                withEth = true,
-                isBackedUp = true,
-                googleBackupAddress = null
+                googleBackupAddress = null,
+                isBackedUp = true
             )
+            accountRepository.createAccount(payload)
         }.onSuccess {
             markAccountImportedForPendulum(it)
         }
@@ -50,7 +50,7 @@ class PendulumPreInstalledAccountsScenario(
     }
 
     fun isFeatureEnabled(): Boolean {
-        return BuildConfig.DEBUG || (preferences.contains(PENDULUM_FEATURE_TOGGLE_KEY) && preferences.getBoolean(
+        return /*BuildConfig.DEBUG ||*/ (preferences.contains(PENDULUM_FEATURE_TOGGLE_KEY) && preferences.getBoolean(
             PENDULUM_FEATURE_TOGGLE_KEY,
             false
         ))

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import kotlin.reflect.KClass
 
 class Crowdloan(
@@ -119,7 +120,7 @@ class CrowdloanInteractor(
     }
 
     suspend fun checkRemark(apiUrl: String, apiKey: String): Result<Boolean> = runCatching {
-        val address = accountRepository.getSelectedAccount().address
+        val address = accountRepository.getSelectedMetaAccount().substrateAccountId?.toAddress(0.toShort())!!
         crowdloanRepository.checkRemark(apiUrl, apiKey, address)
     }
 }

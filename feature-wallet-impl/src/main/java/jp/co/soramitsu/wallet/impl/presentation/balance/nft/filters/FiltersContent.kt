@@ -24,7 +24,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.H4
-import jp.co.soramitsu.common.compose.component.H4Bold
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.colorAccent
@@ -92,7 +91,7 @@ fun FiltersContent(
                     .height(48.dp)
                     .fillMaxWidth()
             ) {
-                H4Bold(
+                H4(
                     text = filter.name,
                     modifier = Modifier.weight(1f)
                 )

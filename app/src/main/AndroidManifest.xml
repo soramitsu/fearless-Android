@@ -5,7 +5,6 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -43,27 +42,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <intent-filter android:autoVerify="true">
-                <data
-                    android:host="buy-success"
-                    android:scheme="fearless" />
-
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="fearless" />
+                <data android:host="buy-success" />
             </intent-filter>
 
             <intent-filter android:autoVerify="true">
-                <category android:name="android.intent.category.VIEW" />
+                <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <!-- Only accept URLs that look like https://fearlesswallet.io/ton-connect/* -->
-                <data
-                    android:scheme="https"
-                    android:host="fearlesswallet.io"
-                    android:pathPrefix="/ton-connect/" />
+                <data android:scheme="https" />
+                <data android:host="fearlesswallet.io" />
+                <data android:pathPrefix="/ton-connect/" />
             </intent-filter>
         </activity>
 

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/drawable_background_image"
     android:backgroundTint="#63000000"
     android:backgroundTintMode="src_atop"
-    android:orientation="vertical"
     android:clipChildren="false"
+    android:orientation="vertical"
     tools:theme="@style/Theme.Soramitsu.Fearless">
 
     <androidx.fragment.app.FragmentContainerView
@@ -19,32 +19,49 @@
         app:defaultNavHost="true"
         app:navGraph="@navigation/bottom_nav_graph" />
 
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:backgroundTint="@color/bottom_bar_grey"
+        app:cradle_vertical_offset="-16dp"
+        app:elevation="0dp"
+        app:fab_cradle_margin="@dimen/x1"
+        app:fab_size="50dp"
+        app:itemIconTint="@drawable/bottom_navigation_tint_color_selector"
+        app:labelVisibilityMode="unlabeled"
+        app:menu="@menu/bottom_navigations"
+        tools:translationY="-50dp"
+        tools:translationZ="100dp" />
+
     <jp.co.soramitsu.common.view.BottomNavigationViewWithFAB
-        android:id="@+id/bottomNavigationView"
+        android:id="@+id/bottom_navigation_view_with_fab"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:backgroundTint="@color/bottom_bar_grey"
-        app:menu="@menu/bottom_navigations"
+        app:cradle_vertical_offset="-16dp"
+        app:elevation="0dp"
+        app:fab_cradle_margin="@dimen/x1"
+        app:fab_size="50dp"
         app:itemIconTint="@drawable/bottom_navigation_tint_color_selector"
         app:labelVisibilityMode="unlabeled"
-        app:elevation="0dp"
-        app:fab_size="50dp"
-        app:fab_cradle_margin="@dimen/x1"
-        app:cradle_vertical_offset="-16dp"/>
+        app:menu="@menu/bottom_navigations_fab" />
+
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabMain"
         android:layout_width="@dimen/floating_action_button_size"
         android:layout_height="@dimen/floating_action_button_size"
         android:translationY="16dp"
+        app:backgroundTint="@android:color/transparent"
+        app:elevation="@dimen/x2"
         app:icon="@drawable/ic_polkaswap_fab"
         app:iconSize="@dimen/floating_action_button_icon_size"
         app:iconTint="@null"
-        app:backgroundTint="@android:color/transparent"
-        app:elevation="@dimen/x2"
-        app:pressedTranslationZ="@dimen/x2"
-        app:layout_anchor="@id/bottomNavigationView"
-        app:layout_anchorGravity="fill_vertical|center_horizontal" />
+        app:layout_anchor="@id/bottom_navigation_view_with_fab"
+        app:layout_anchorGravity="fill_vertical|center_horizontal"
+        app:pressedTranslationZ="@dimen/x2" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

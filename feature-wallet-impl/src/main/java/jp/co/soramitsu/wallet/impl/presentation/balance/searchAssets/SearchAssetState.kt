@@ -1,9 +1,9 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets
 
-import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetListState
 
 data class SearchAssetState(
-    override val assets: List<AssetListItemViewState>,
-    val searchQuery: String? = null
+    override val assets: AssetsLoadingState = AssetsLoadingState.Loading(),
+    val searchQuery: String = ""
 ) : AssetListState(assets)

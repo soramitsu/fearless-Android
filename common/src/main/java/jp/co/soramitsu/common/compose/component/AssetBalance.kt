@@ -1,5 +1,9 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,7 +42,9 @@ fun AssetBalance(
         modifier = Modifier.fillMaxWidth()
     ) {
         if (state.changeViewState.fiatChange.isNotEmpty()) {
-            ChangeBalance(state.changeViewState)
+            AnimatedContent(state.changeViewState) {
+                ChangeBalance(it)
+            }
         }
         Row(
             verticalAlignment = CenterVertically,
@@ -46,7 +52,10 @@ fun AssetBalance(
                 .testTag("balance_fiat")
                 .clickableWithNoIndication(onBalanceClick)
         ) {
-            H1(text = state.transferableBalance)
+            AnimatedContent(state.transferableBalance) {
+                H1(text = it)
+            }
+
             if (state.isInfoEnabled) {
                 MarginHorizontal(margin = 5.dp)
                 Image(
@@ -58,7 +67,12 @@ fun AssetBalance(
                 )
             }
         }
-        if (state.address.isNotEmpty()) {
+
+        AnimatedVisibility(
+            visible = state.address.isNotEmpty(),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
             Address(
                 address = state.address,
                 onClick = onAddressClick,

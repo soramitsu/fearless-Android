@@ -32,8 +32,9 @@ interface ProfileScreenInterface {
     fun walletsClicked()
 
     fun onWalletConnectClick()
-    fun onSoraCardClicked()
+    fun onTonConnectClick()
     fun currencyClicked()
+    fun crowdloansClicked()
     fun languagesClicked()
 
     fun onNomisMultichainScoreContainerClick()
@@ -51,22 +52,35 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             H1(text = stringResource(R.string.profile_settings_title))
             MarginVertical(margin = 16.dp)
-            WalletItem(state = state.walletState, onOptionsClick = callback::onWalletOptionsClick, onScoreClick = callback::onScoreClick)
+            WalletItem(
+                state = state.walletState,
+                onOptionsClick = callback::onWalletOptionsClick.takeIf {
+                    state.walletState.onlyTonSupported.not()
+                },
+                onScoreClick = callback::onScoreClick
+            )
         }
         MarginVertical(margin = 16.dp)
         SettingsItem(icon = painterResource(R.drawable.ic_settings_wallets), text = stringResource(R.string.profile_wallets_title), action = state.walletsItemAction, onClick = callback::walletsClicked)
         SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
+        if (state.walletState.onlyTonSupported) {
+            SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_tonconnect_title), onClick = callback::onTonConnectClick)
+        } else {
+            SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
+        }
         SettingsDivider()
-//        SettingsItem(icon = painterResource(R.drawable.ic_card), text = stringResource(R.string.profile_soracard_title), onClick = callback::onSoraCardClicked)
+        SettingsItem(icon = painterResource(R.drawable.ic_nav_crowdloans), text = stringResource(R.string.crowdloan_crowdloan), onClick = callback::crowdloansClicked)
+        SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_dollar_circle), text = stringResource(R.string.common_currency), action = SettingsItemAction.Selector(state.currency), onClick = callback::currencyClicked)
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_language), text = stringResource(R.string.profile_language_title), action = SettingsItemAction.Selector(state.language), onClick = callback::languagesClicked)
         SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_score_star_full_24_pink), text = stringResource(R.string.profile_account_score_title), action = SettingsItemAction.Switch(state.nomisChecked), onClick = callback::onNomisMultichainScoreContainerClick)
-        SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_polkaswap_logo), text = stringResource(R.string.polkaswap_disclaimer_settings_item), onClick = callback::polkaswapDisclaimerClicked)
-        SettingsDivider()
+        if (state.walletState.onlyTonSupported.not()) {
+            SettingsItem(icon = painterResource(R.drawable.ic_score_star_full_24_pink), text = stringResource(R.string.profile_account_score_title), action = SettingsItemAction.Switch(state.nomisChecked), onClick = callback::onNomisMultichainScoreContainerClick)
+            SettingsDivider()
+            SettingsItem(icon = painterResource(R.drawable.ic_polkaswap_logo), text = stringResource(R.string.polkaswap_disclaimer_settings_item), onClick = callback::polkaswapDisclaimerClicked)
+            SettingsDivider()
+        }
         SettingsItem(icon = painterResource(R.drawable.ic_pin_24), text = stringResource(R.string.profile_pincode_change_title), onClick = callback::changePinCodeClicked)
         SettingsDivider()
         SettingsItem(icon = painterResource(R.drawable.ic_info_primary_24), text = stringResource(R.string.about_title), onClick = callback::aboutClicked)
@@ -88,7 +102,8 @@ fun ProfileScreenPreview() {
                 percentChange = "+5.67%",
                 fiatChange = "$2345.32"
             ),
-            score = 50
+            score = 50,
+//            supportedEcosystems = setOf(ImportAccountType.Ton)
         ),
         currency = "USD",
         language = "ENG",
@@ -99,8 +114,9 @@ fun ProfileScreenPreview() {
             override fun onWalletOptionsClick(item: WalletItemViewState) = Unit
             override fun walletsClicked() = Unit
             override fun onWalletConnectClick() = Unit
-            override fun onSoraCardClicked() = Unit
+            override fun onTonConnectClick() = Unit
             override fun currencyClicked() = Unit
+            override fun crowdloansClicked() {}
             override fun languagesClicked() = Unit
             override fun onNomisMultichainScoreContainerClick() = Unit
             override fun polkaswapDisclaimerClicked() = Unit

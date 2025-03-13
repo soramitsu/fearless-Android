@@ -305,6 +305,10 @@ class SwapTokensViewModel @Inject constructor(
     init {
         polkaswapInteractor.setChainId(initFromChainId)
 
+        if (!polkaswapInteractor.hasReadDisclaimer) {
+            polkaswapRouter.openPolkaswapDisclaimerFromSwapTokensFragment()
+        }
+
         subscribeFromAmountInputViewState()
         subscribeToAmountInputViewState()
 

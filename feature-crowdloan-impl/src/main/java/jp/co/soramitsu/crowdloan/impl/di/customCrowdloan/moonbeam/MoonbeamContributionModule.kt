@@ -6,8 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -59,11 +59,11 @@ class MoonbeamContributionModule {
         submitter: MoonbeamContributeSubmitter,
         moonbeamInteractor: MoonbeamContributeInteractor,
         resourceManager: ResourceManager,
-        accountUseCase: SelectedAccountUseCase
+        accountInteractor: AccountInteractor
     ): CustomContributeFactory = MoonbeamContributeFactory(
         submitter,
         moonbeamInteractor,
         resourceManager,
-        accountUseCase
+        accountInteractor
     )
 }
