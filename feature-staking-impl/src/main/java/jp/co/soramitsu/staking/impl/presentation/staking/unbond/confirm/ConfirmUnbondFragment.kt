@@ -19,7 +19,7 @@ const val PAYLOAD_KEY = "PAYLOAD_KEY"
 @AndroidEntryPoint
 class ConfirmUnbondFragment : BaseFragment<ConfirmUnbondViewModel>(R.layout.fragment_confirm_unbond) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentConfirmUnbondBinding::bind)
 

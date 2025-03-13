@@ -4,6 +4,12 @@ import jp.co.soramitsu.core.models.Asset
 import java.math.BigDecimal
 import java.math.BigInteger
 
+data class TokenPrice(
+    val fiatRate: BigDecimal?,
+    val fiatSymbol: String?,
+    val recentRateChange: BigDecimal?
+)
+
 data class Token(
     val configuration: Asset,
     val fiatRate: BigDecimal?,

@@ -20,25 +20,14 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.feature_account_api.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-
-data class OptionsAddAccountScreenViewState(
-    val metaId: Long,
-    val chainId: ChainId,
-    val chainName: String,
-    val markedAsNotNeed: Boolean,
-    val assetId: String
-)
 
 @Composable
 fun OptionsAddAccountContent(
-    state: OptionsAddAccountScreenViewState,
-    onCreate: (chainId: ChainId, metaId: Long) -> Unit,
-    onImport: (chainId: ChainId, metaId: Long) -> Unit,
-    dontShowAgain: (chainId: ChainId, metaId: Long) -> Unit,
+    onCreate: () -> Unit,
+    onImport: () -> Unit,
     onBackClicked: () -> Unit
 ) {
     BottomSheetScreen {
@@ -72,32 +61,17 @@ fun OptionsAddAccountContent(
                 text = stringResource(id = R.string.create_new_account),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                onCreate(state.chainId, state.metaId)
-            }
+                    .height(48.dp),
+                onClick = onCreate
+            )
             MarginVertical(margin = 12.dp)
             GrayButton(
                 text = stringResource(id = R.string.already_have_account),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                onImport(state.chainId, state.metaId)
-            }
-            if (!state.markedAsNotNeed) {
-                MarginVertical(margin = 12.dp)
-                // TODO temporarily hide this button
-//                TextButton(
-//                    text = stringResource(id = R.string.issue_do_not_show_again),
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(48.dp),
-//                    colors = customButtonColors(grayButtonBackground, colorAccentDark)
-//                ) {
-//                    dontShowAgain(state.chainId, state.metaId)
-//                }
-            }
+                    .height(48.dp),
+                onClick = onImport
+            )
             MarginVertical(margin = 12.dp)
         }
     }
@@ -106,18 +80,10 @@ fun OptionsAddAccountContent(
 @Preview
 @Composable
 private fun OptionsAddAccountScreenPreview() {
-    FearlessTheme {
+    FearlessAppTheme() {
         OptionsAddAccountContent(
-            state = OptionsAddAccountScreenViewState(
-                metaId = 1,
-                chainId = "",
-                chainName = "Kusama",
-                markedAsNotNeed = false,
-                assetId = ""
-            ),
-            onCreate = { t, t2 -> },
-            onImport = { t, t2 -> },
-            dontShowAgain = { t, t2 -> },
+            onCreate = {},
+            onImport = {},
             onBackClicked = {}
         )
     }

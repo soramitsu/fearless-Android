@@ -4,27 +4,24 @@ import android.widget.LinearLayout
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
-import jp.co.soramitsu.common.model.AssetBooleanState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ConfirmMnemonicViewModel @Inject constructor(
@@ -113,10 +110,11 @@ class ConfirmMnemonicViewModel @Inject constructor(
     private fun proceed(isBackedUp: Boolean) {
         if (proceedInProgress.value == true) return
         proceedInProgress.value = true
-        when (val createExtras = payload.createExtras) {
-            null -> markWalletBackedUp(payload.metaId)
-            is ConfirmMnemonicPayload.CreateChainExtras -> createChainAccount(createExtras)
-            else -> createAccount(createExtras, isBackedUp)
+
+        if (payload.createExtras != null) {
+            createAccount(payload, isBackedUp)
+        } else {
+            markWalletBackedUp(payload.metaId)
         }
     }
 
@@ -130,36 +128,54 @@ class ConfirmMnemonicViewModel @Inject constructor(
         }
     }
 
-    private fun createAccount(extras: ConfirmMnemonicPayload.CreateExtras, isBackedUp: Boolean) {
-        viewModelScope.launch {
-            val mnemonicString = originMnemonic.joinToString(" ")
+    private fun createAccount(payload: ConfirmMnemonicPayload, isBackedUp: Boolean) {
+        val payloadExtras = payload.createExtras ?: return
+        val mnemonicString = originMnemonic.joinToString(" ")
 
-            with(extras) {
-                val result = interactor.createAccount(accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath, isBackedUp)
+        val isSubstrateOrEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Substrate) || payload.accountTypes.contains(WalletEcosystem.Ethereum)
+        val isTonAccount = payload.accountTypes.contains(WalletEcosystem.Ton)
 
-                if (result.isSuccess) {
-                    continueBasedOnCodeStatus()
-                } else {
-                    showError(result.requireException())
+        launch {
+            val addAccountPayload = when  {
+                payload.metaId != null -> {
+                    AddAccountPayload.AdditionalEvm(
+                        payload.metaId,
+                        payloadExtras.accountName,
+                        mnemonicString,
+                        payloadExtras.ethereumDerivationPath,
+                        isBackedUp
+                    )
+                }
+
+                isSubstrateOrEthereumAccount -> {
+                    AddAccountPayload.SubstrateOrEvm(
+                        payloadExtras.accountName,
+                        mnemonicString,
+                        payloadExtras.cryptoType,
+                        payloadExtras.substrateDerivationPath,
+                        payloadExtras.ethereumDerivationPath,
+                        null,
+                        isBackedUp
+                    )
+                }
+
+                isTonAccount -> AddAccountPayload.Ton(
+                    payloadExtras.accountName,
+                    mnemonicString,
+                    isBackedUp
+                )
+
+                else -> {
+                    showError(IllegalStateException("AccountType not specified"))
+                    return@launch
                 }
             }
-        }
-    }
-
-    private fun createChainAccount(extras: ConfirmMnemonicPayload.CreateChainExtras) {
-        viewModelScope.launch {
-            val mnemonicString = originMnemonic.joinToString(" ")
-
-            with(extras) {
-                val result =
-                    interactor.createChainAccount(metaId, chainId, accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath)
-
-                if (result.isSuccess) {
-                    continueBasedOnCodeStatus()
-                } else {
-                    proceedInProgress.value = false
-                    showError(result.requireException())
-                }
+            val result = interactor.createAccount(addAccountPayload)
+            if (result.isSuccess) {
+                interactor.saveChainSelectFilter(result.requireValue(), "Popular")
+                continueBasedOnCodeStatus()
+            } else {
+                showError(result.requireException())
             }
         }
     }

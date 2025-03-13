@@ -162,7 +162,7 @@ interface StakingRouter {
 
     fun openWebViewer(title: String, url: String)
 
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String? = null)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String? = null, customTitle: String? = null)
 
     fun setAlertResult(key: String, result: Result<*>, @IdRes resultDestinationId: Int? = null)
 

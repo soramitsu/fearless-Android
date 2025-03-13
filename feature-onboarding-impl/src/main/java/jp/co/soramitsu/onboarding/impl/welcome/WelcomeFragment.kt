@@ -21,6 +21,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -43,10 +44,11 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
 
         fun getBundle(
             displayBack: Boolean,
-            chainAccountData: ChainAccountCreatePayload? = null
+            chainAccountData: ChainAccountCreatePayload? = null,
+            route: String? = null
         ): Bundle {
             return bundleOf(
-                KEY_PAYLOAD to WelcomeFragmentPayload(displayBack, chainAccountData)
+                KEY_PAYLOAD to WelcomeFragmentPayload(displayBack, chainAccountData, route)
             )
         }
     }
@@ -102,14 +104,21 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                             requestCameraPermission()
 
                         is WelcomeEvent.Onboarding ->
-                            navController.navigate(event.route)
+                            when (event) {
+                                is WelcomeEvent.Onboarding.WelcomeScreen -> {
+                                    navController.navigate(route = event.route.replace("{accountType}", event.accountType.name))
+                                }
+                                else -> navController.navigate(event.route)
+                            }
+
+                        WelcomeEvent.Back -> navController.popBackStack()
                     }
                 }.launchIn(this)
         }
 
         FearlessAppTheme {
             NavHost(
-                startDestination = WelcomeEvent.Onboarding.SplashScreen.route,
+                startDestination = viewModel.startDestination,
                 contentAlignment = Alignment.TopCenter,
                 navController = navController,
                 modifier = Modifier
@@ -117,10 +126,9 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                     .fillMaxSize(),
             ) {
 
-                OnboardingSplashScreen(
-                    isAccountSelectedFlow = viewModel.isAccountSelectedFlow,
-                    listener = viewModel
-                )
+                OnboardingSplashScreen()
+
+                SelectEcosystemScreen(listener = viewModel)
 
                 OnboardingScreen(
                     backgroundImageFlow = viewModel.onboardingBackground,
@@ -133,9 +141,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                     isGoogleAvailable = isGoogleAvailable,
                     callbacks = viewModel
                 )
-
             }
-
         }
     }
 

@@ -6,13 +6,10 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 
 @Dao
 abstract class TokenPriceDao {
-
-    @Query("SELECT EXISTS(SELECT * FROM token_price WHERE priceId = :priceId)")
-    abstract suspend fun isTokenPriceExists(priceId: String): Boolean
-
     @Query("select * from token_price where priceId = :priceId")
     abstract suspend fun getTokenPrice(priceId: String): TokenPriceLocal?
 
@@ -28,5 +25,9 @@ abstract class TokenPriceDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     abstract suspend fun insertTokenPriceOrIgnore(token: TokenPriceLocal)
 
-    suspend fun ensureTokenPrice(priceId: String) = insertTokenPriceOrIgnore(TokenPriceLocal.createEmpty(priceId))
+    @Query("UPDATE token_price SET fiatRate = :fiatRate WHERE priceId = :priceId AND fiatSymbol = :fiatSymbol")
+    abstract suspend fun updatePrices(priceId: String, fiatSymbol: String, fiatRate: BigDecimal)
+
+    @Query("select * from token_price where fiatSymbol = :symbol")
+    abstract fun observePrices(symbol: String): Flow<List<TokenPriceLocal>>
 }

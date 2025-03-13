@@ -153,8 +153,6 @@ fun ByteArray.decodeToInt() = fromUnsignedBytes().toInt()
 
 fun SeedFactory.createSeed32(length: Mnemonic.Length, password: String?) = cropSeedTo32Bytes(createSeed(length, password))
 
-// fun SeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = cropSeedTo32Bytes(deriveSeed(mnemonicWords, password))
-
 fun SubstrateSeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = cropSeedTo32Bytes(deriveSeed(mnemonicWords, password))
 
 fun EthereumSeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = deriveSeed(mnemonicWords, password)

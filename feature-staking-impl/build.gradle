@@ -24,7 +24,7 @@ android {
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
     composeOptions {
@@ -32,8 +32,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     namespace 'jp.co.soramitsu.feature_staking_impl'
@@ -75,8 +75,6 @@ dependencies {
     implementation libs.lifecycle.process
     kapt libs.lifecycle.compiler
 
-    testImplementation libs.junit
-    testImplementation libs.mockito.inline
 
     compileOnly libs.nv.websocket.client
 
@@ -90,4 +88,10 @@ dependencies {
 
     implementation libs.converter.gson
     implementation libs.converter.scalars
+
+    testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.mockito.kotlin
+    testImplementation libs.mockito.inline
+    testImplementation libs.mockito.core
 }
