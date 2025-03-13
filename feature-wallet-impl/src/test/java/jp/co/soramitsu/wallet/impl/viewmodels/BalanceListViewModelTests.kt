@@ -150,6 +150,13 @@ class BalanceListViewModelTests {
         every { walletInteractor.selectedLightMetaAccountFlow() } returns flowOf(
             createLightMetaAccount()
         )
+        every { accountInteractor.selectedLightMetaAccountFlow() } returns flowOf(
+            createLightMetaAccount()
+        )
+        coEvery { accountInteractor.selectedLightMetaAccount() } returns createLightMetaAccount()
+        coEvery { accountInteractor.lightMetaAccountsFlow() } returns flowOf(
+            listOf(createLightMetaAccount())
+        )
         coEvery { currentAccountAddressUseCase.invoke(any()) } returns ""
         every { totalBalanceUseCase.observe(any()) } returns flowOf(
             TotalBalance(
@@ -180,6 +187,13 @@ class BalanceListViewModelTests {
                 accountName = any(),
             )
         } returns AddressModel("", picture, "")
+        coEvery {
+            addressIconGenerator.createAddressIcon(
+                accountId = any(),
+                sizeInDp = any(),
+                backgroundColorRes = any(),
+            )
+        } returns picture
 //        mockkObject(BalanceUpdateTrigger)
 //        every { BalanceUpdateTrigger.observe() } returns flowOf("")
         vm = BalanceListViewModel(
