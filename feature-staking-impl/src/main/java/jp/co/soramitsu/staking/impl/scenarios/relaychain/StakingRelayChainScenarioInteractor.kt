@@ -11,8 +11,6 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.models.Asset.StakingType
-import jp.co.soramitsu.core.models.SoraMainChainId
-import jp.co.soramitsu.core.models.SoraTestChainId
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
@@ -630,9 +628,26 @@ class StakingRelayChainScenarioInteractor(
         HOURS_IN_DAY / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger {
-        return stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset)
-    }
+    override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger =
+        withContext(Dispatchers.Default) {
+            val exposuresDeferred = async {
+                stakingRelayChainScenarioRepository.legacyElectedExposuresInActiveEra(chainAsset.chainId)
+                    .first().values
+            }
+
+            val minimumNominatorBond =
+                stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset).orZero()
+
+            val minActiveStake =
+                stakingRelayChainScenarioRepository.minimumActiveStake(chainAsset.chainId)
+                    ?: exposuresDeferred.await()
+                        .minOf { exposure -> exposure.others.minOf { it.value } }
+
+            val minimalStakeInPlanks =
+                minActiveStake.coerceAtLeast(minimumNominatorBond)
+
+            return@withContext minimalStakeInPlanks
+        }
 
     suspend fun getLockupPeriodInHours() = withContext(Dispatchers.Default) {
         getLockupPeriodInHours(stakingSharedState.chainId())
