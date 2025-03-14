@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
@@ -125,9 +126,13 @@ class SetupStakingViewModel @Inject constructor(
     private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
 
     init {
-        loadFee()
+        launch {
+            supervisorScope {
+                loadFee()
 
-        startUpdatingReturns()
+                startUpdatingReturns()
+            }
+        }
 
         launch {
             val chainAsset = assetFlow.first().token.configuration
