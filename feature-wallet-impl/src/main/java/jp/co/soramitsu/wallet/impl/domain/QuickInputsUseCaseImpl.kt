@@ -42,7 +42,7 @@ class QuickInputsUseCaseImpl(
     private val coroutineContext: CoroutineContext = Dispatchers.Default,
 ) : QuickInputsUseCase {
 
-    private val inputValues = listOf(1.0, 0.75, 0.5, 0.25)
+    private val inputValues = listOf(/*1.0,*/ 0.75, 0.5, 0.25)
 
     override suspend fun calculateStakingQuickInputs(
         chainId: ChainId,
