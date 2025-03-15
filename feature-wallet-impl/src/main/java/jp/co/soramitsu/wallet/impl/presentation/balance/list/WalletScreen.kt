@@ -6,6 +6,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -158,7 +160,11 @@ fun WalletScreen(
 }
 
 @Composable
-private fun Banners(data: WalletState, callback: WalletScreenInterface) {
+private fun Banners(
+    data: WalletState,
+    callback: WalletScreenInterface,
+    autoPlay: Boolean = true
+) {
     val soraCardFiatItem: @Composable (() -> Unit)? =
         if (data.soraCardState.soraCardProgress == SoraCardProgress.KYC_IBAN) {
             {
