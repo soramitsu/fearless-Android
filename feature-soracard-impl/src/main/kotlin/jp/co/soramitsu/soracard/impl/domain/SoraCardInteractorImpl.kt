@@ -91,14 +91,15 @@ class SoraCardInteractorImpl @Inject constructor(
     override fun xorAssetFlow(): Flow<Asset> = flow {
         val chain = chainRegistry.getChain(soraCardChainId)
         val metaAccount = accountRepository.getSelectedMetaAccount()
+        val substrateAccountId = metaAccount.substrateAccountId
         val xorAsset = chain.assets.firstOrNull { it.isUtility }
-        if (xorAsset == null) {
+        if (xorAsset == null || substrateAccountId == null) {
             emitAll(emptyFlow())
         } else {
             emitAll(
                 walletRepository.assetFlow(
                     metaId = metaAccount.id,
-                    accountId = metaAccount.substrateAccountId,
+                    accountId = substrateAccountId,
                     chainAsset = xorAsset,
                     minSupportedVersion = chain.minSupportedVersion,
                 )
