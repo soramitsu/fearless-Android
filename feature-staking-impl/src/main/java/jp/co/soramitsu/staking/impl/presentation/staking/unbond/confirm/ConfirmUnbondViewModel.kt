@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.UnbondValidationPayload
@@ -28,13 +29,12 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 
 @HiltViewModel
 class ConfirmUnbondViewModel @Inject constructor(
@@ -63,8 +63,8 @@ class ConfirmUnbondViewModel @Inject constructor(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val assetModelFlow = assetFlow
-        .map { mapAssetToAssetModel(it, resourceManager, Asset::bonded, R.string.staking_bonded_format) }
+    val assetModelFlow = assetFlow.filter { it.bonded != null }
+        .map { mapAssetToAssetModel(it, resourceManager, { it.bonded.orZero() }, R.string.staking_bonded_format) }
         .inBackground()
         .asLiveData()
 

@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -12,7 +10,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -74,6 +71,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
@@ -123,7 +122,7 @@ sealed class StakeViewState<S>(
     initialManageActions: Set<ManageStakeAction>
 ) : StakingViewStateOld() {
 
-    val assetFlow =
+    val assetFlow: Flow<Asset> =
         currentAssetFlow.filter { it.token.configuration.chainId == stakeState.chain.id }
 
     val manageStakingActionsButtonVisible = initialManageActions.isNotEmpty()
@@ -170,7 +169,8 @@ sealed class StakeViewState<S>(
             Event(ManageStakingBottomSheet.Payload(availableManageActionsFlow.value))
     }
 
-    val stakeSummaryFlow = combine(assetFlow, summaryFlowProvider(stakeState)) { asset, summary ->
+    val stakeSummaryFlow = combine(assetFlow.distinctUntilChanged(), summaryFlowProvider(stakeState).distinctUntilChanged()) { asset, summary ->
+
         buildStakeSummaryModel(asset, summary)
     }
         .withLoading()
@@ -206,8 +206,8 @@ sealed class StakeViewState<S>(
 
         return StakeSummaryModel(
             status = summary.status,
-            totalStaked = summary.totalStaked.formatCryptoDetail(tokenType.symbol),
-            totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
+            totalStaked = summary.totalStaked.orZero().formatCryptoDetail(tokenType.symbol),
+            totalStakedFiat = token.fiatAmount(summary.totalStaked.orZero())?.formatFiat(token.fiatSymbol),
             totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbol),
             totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),
             currentEraDisplay = resourceManager.getString(
