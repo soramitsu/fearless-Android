@@ -4,13 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.core.models.Asset
@@ -38,6 +36,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class SelectRewardDestinationViewModel @Inject constructor(
@@ -95,8 +96,8 @@ class SelectRewardDestinationViewModel @Inject constructor(
             loadFee(rewardDestination, stashState)
         }.launchIn(viewModelScope)
 
-        controllerAssetFlow.onEach {
-            rewardDestinationMixin.updateReturns(rewardCalculator(), it, it.bonded)
+        controllerAssetFlow.filter { it.bonded != null }.onEach {
+            rewardDestinationMixin.updateReturns(rewardCalculator(), it, it.bonded.orZero())
         }.launchIn(viewModelScope)
 
         stashStateFlow.onEach(rewardDestinationMixin::loadActiveRewardDestination)
