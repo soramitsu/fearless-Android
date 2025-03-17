@@ -172,9 +172,6 @@ class WalletSyncService(
                                 reservedInPlanks = balance.reservedInPlanks,
                                 miscFrozenInPlanks = balance.miscFrozenInPlanks,
                                 feeFrozenInPlanks = balance.feeFrozenInPlanks,
-                                bondedInPlanks = balance.bondedInPlanks,
-                                redeemableInPlanks = balance.redeemableInPlanks,
-                                unbondingInPlanks = balance.unbondingInPlanks,
                                 enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) || isTonAsset
                             )
                         }
