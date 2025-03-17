@@ -110,13 +110,13 @@ fun WalletScreen(
             onBalanceClick = callback::onBalanceClicked
         )
 
-
+        MarginVertical(margin = 16.dp)
         AnimatedVisibility(
             visible = data.showCurrenciesOrNftSelector,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            MarginVertical(margin = 16.dp)
+
             MultiToggleButton(
                 state = data.multiToggleButtonState,
                 onToggleChange = callback::assetTypeChanged
