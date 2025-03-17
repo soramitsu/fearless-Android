@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -11,6 +9,8 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 data class AssetBalance(
@@ -104,7 +104,7 @@ data class Asset(
     val sendAvailable: BigDecimal = if (isAssetFrozen) BigDecimal.ZERO else transferable
     val sendAvailableInPlanks: BigInteger = if (isAssetFrozen) BigInteger.ZERO else transferableInPlanks
 
-    val bonded = token.amountFromPlanks(bondedInPlanks.orZero())
+    val bonded = bondedInPlanks?.let { token.amountFromPlanks(it) }
     val redeemable = token.amountFromPlanks(redeemableInPlanks.orZero())
     val unbonding = token.amountFromPlanks(unbondingInPlanks.orZero())
 

@@ -140,10 +140,7 @@ class SubstrateBalanceLoader(
                     freeInPlanks = assetBalance.freeInPlanks,
                     reservedInPlanks = assetBalance.reservedInPlanks,
                     miscFrozenInPlanks = assetBalance.miscFrozenInPlanks,
-                    feeFrozenInPlanks = assetBalance.feeFrozenInPlanks,
-                    bondedInPlanks = assetBalance.bondedInPlanks,
-                    redeemableInPlanks = assetBalance.redeemableInPlanks,
-                    unbondingInPlanks = assetBalance.unbondingInPlanks
+                    feeFrozenInPlanks = assetBalance.feeFrozenInPlanks
                 )
             } + emptyAssets
 
@@ -187,10 +184,7 @@ class SubstrateBalanceLoader(
                                     freeInPlanks = balanceData.freeInPlanks,
                                     reservedInPlanks = balanceData.reservedInPlanks,
                                     miscFrozenInPlanks = balanceData.miscFrozenInPlanks,
-                                    feeFrozenInPlanks = balanceData.feeFrozenInPlanks,
-                                    bondedInPlanks = balanceData.bondedInPlanks,
-                                    redeemableInPlanks = balanceData.redeemableInPlanks,
-                                    unbondingInPlanks = balanceData.unbondingInPlanks
+                                    feeFrozenInPlanks = balanceData.feeFrozenInPlanks
                                 )
                             )
                         )
