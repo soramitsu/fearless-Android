@@ -2,9 +2,9 @@ package jp.co.soramitsu.staking.impl.domain.model
 
 import java.math.BigDecimal
 
-class StakeSummary<S>(
+data class StakeSummary<S>(
     val status: S,
-    val totalStaked: BigDecimal,
+    val totalStaked: BigDecimal?,
     val totalReward: BigDecimal,
     val currentEra: Int
 )

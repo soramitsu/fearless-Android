@@ -4,10 +4,10 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
-import jp.co.soramitsu.common.utils.positiveOrNull
 
 /*** This table is used for storing balances in database.
  *  freeInPlanks - has three states:
@@ -94,9 +94,6 @@ data class AssetBalanceUpdateItem(
     val reservedInPlanks: BigInteger? = null,
     val miscFrozenInPlanks: BigInteger? = null,
     val feeFrozenInPlanks: BigInteger? = null,
-    val bondedInPlanks: BigInteger? = null,
-    val redeemableInPlanks: BigInteger? = null,
-    val unbondingInPlanks: BigInteger? = null,
 
     val status: String? = null
 )

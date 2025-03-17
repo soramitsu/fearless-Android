@@ -418,10 +418,10 @@ class StakingRelayChainScenarioInteractor(
         selectedAccountStakingStateFlow().first()
 
     override fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
-        return stakingInteractor.currentAssetFlow().map { asset ->
+        return stakingInteractor.currentAssetFlow().filter { it.bonded != null }.map { asset ->
             StakingBalanceModel(
                 staked = mapAmountToAmountModel(
-                    asset.bonded,
+                    asset.bonded.orZero(),
                     asset,
                     R.string.wallet_balance_bonded,
                     useDetailCryptoFormat = true
@@ -487,7 +487,7 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun overrideUnbondHint(): String? = null
     override fun overrideUnbondAvailableLabel(): Int = R.string.staking_bonded_format
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?) =
-        asset.bonded
+        asset.bonded.orZero()
 
     override fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal) = asset.unbonding
     override suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload) =
@@ -503,7 +503,7 @@ class StakingRelayChainScenarioInteractor(
             walletConstants.existentialDeposit(tokenConfiguration).orZero()
         val existentialDeposit = tokenConfiguration.amountFromPlanks(existentialDepositInPlanks)
 
-        val bonded = payload.asset.bonded
+        val bonded = payload.asset.bonded.orZero()
         val resultGreaterThanExistential = bonded - payload.amount >= existentialDeposit
         val resultIsZero = bonded == payload.amount
         return resultGreaterThanExistential || resultIsZero

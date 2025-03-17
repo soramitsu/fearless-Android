@@ -83,9 +83,6 @@ class BalancesUpdateSystem(
                                                 reservedInPlanks = balance.reservedInPlanks,
                                                 miscFrozenInPlanks = balance.miscFrozenInPlanks,
                                                 feeFrozenInPlanks = balance.feeFrozenInPlanks,
-                                                bondedInPlanks = balance.bondedInPlanks,
-                                                redeemableInPlanks = balance.redeemableInPlanks,
-                                                unbondingInPlanks = balance.unbondingInPlanks,
                                                 enabled = true
                                             )
                                             assetDao.updateOrInsertAsset(assetLocal)
