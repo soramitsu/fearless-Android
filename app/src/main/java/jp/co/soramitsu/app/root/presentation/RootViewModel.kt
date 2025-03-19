@@ -15,7 +15,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
 import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
@@ -200,7 +200,7 @@ class RootViewModel @Inject constructor(
                                         }.onSuccess {
                                             rootRouter.openOperationSuccess(
                                                 hex,
-                                                tonChainId,
+                                                tonMainnetChainId,
                                                 resourceManager.getString(R.string.success_message_transaction_sent),
                                                 resourceManager.getString(jp.co.soramitsu.feature_tonconnect_impl.R.string.all_done)
                                             )

@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -52,7 +52,7 @@ class OptionsEcosystemAccountsViewModel @Inject constructor(
                 val usedChainId = when (type) {
                     WalletEcosystem.Substrate -> polkadotChainId
                     WalletEcosystem.Ethereum -> ethereumChainId
-                    WalletEcosystem.Ton -> tonChainId
+                    WalletEcosystem.Ton -> tonMainnetChainId
                 }
                 when (it) {
                     BackupAccountType.PASSPHRASE -> {
