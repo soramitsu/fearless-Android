@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -35,6 +36,8 @@ import jp.co.soramitsu.common.compose.theme.white30
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
+import jp.co.soramitsu.wallet.impl.presentation.common.AssetListShimmer
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 
@@ -45,11 +48,13 @@ interface SearchAssetsScreenInterface : AssetsListInterface {
 
 @Composable
 fun SearchAssetsScreen(
-    data: SearchAssetState?,
+    data: SearchAssetState,
     callback: SearchAssetsScreenInterface
 ) {
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp).imePadding(),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         MarginVertical(margin = 16.dp)
@@ -59,11 +64,10 @@ fun SearchAssetsScreen(
         ) {
             Box(
                 contentAlignment = Alignment.CenterStart,
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             ) {
                 CorneredInput(
-                    state = data?.searchQuery,
+                    state = data.searchQuery,
                     borderColor = white30,
                     hintLabel = stringResource(id = R.string.manage_assets_search_hint),
                     onInput = callback::onAssetSearchEntered
@@ -84,15 +88,25 @@ fun SearchAssetsScreen(
             }
         }
         MarginVertical(margin = 16.dp)
-        when {
-            data?.assets == null -> {}
-            data.assets.isEmpty() -> {
-                MarginVertical(margin = 16.dp)
-                EmptyMessage(message = R.string.common_search_network_and_assets_alert_description)
+        
+        when (val assets = data.assets) {
+            is AssetsLoadingState.Loading -> {
+                if (assets.shimmerStates.isEmpty()) {
+                    AssetListShimmer()
+                } else {
+                    AssetsList(
+                        shimmerStates = assets.shimmerStates,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
-
-            else -> {
-                AssetsList(data, callback)
+            is AssetsLoadingState.Loaded -> {
+                if (assets.assets.isEmpty()) {
+                    MarginVertical(margin = 16.dp)
+                    EmptyMessage(message = R.string.common_search_network_and_assets_alert_description)
+                } else {
+                    AssetsList(data, callback)
+                }
             }
         }
     }
@@ -110,7 +124,7 @@ private fun PreviewWalletScreen() {
     }
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
-            SearchAssetsScreen(null, empty)
+            SearchAssetsScreen(SearchAssetState(), empty)
         }
     }
 }

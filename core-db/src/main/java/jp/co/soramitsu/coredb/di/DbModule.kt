@@ -5,10 +5,13 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.coredb.AppDatabase
-import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -17,12 +20,11 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
-import jp.co.soramitsu.coredb.dao.SoraCardDao
+import jp.co.soramitsu.coredb.dao.PoolDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
-import javax.inject.Singleton
-import jp.co.soramitsu.coredb.dao.PoolDao
+import jp.co.soramitsu.coredb.dao.TonConnectDao
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -33,15 +35,12 @@ class DbModule {
     fun provideAppDatabase(
         context: Context,
         storeV1: SecretStoreV1,
-        storeV2: SecretStoreV2
+        storeV2: SecretStoreV2,
+        encryptedPreferences: EncryptedPreferences,
+        substrateSecretStore: SubstrateSecretStore,
+        ethereumSecretStore: EthereumSecretStore
     ): AppDatabase {
-        return AppDatabase.get(context, storeV1, storeV2)
-    }
-
-    @Provides
-    @Singleton
-    fun provideUserDao(appDatabase: AppDatabase): AccountDao {
-        return appDatabase.userDao()
+        return AppDatabase.get(context, storeV1, storeV2, encryptedPreferences, substrateSecretStore, ethereumSecretStore)
     }
 
     @Provides
@@ -106,12 +105,6 @@ class DbModule {
 
     @Provides
     @Singleton
-    fun provideSoraCardDao(appDatabase: AppDatabase): SoraCardDao {
-        return appDatabase.soraCardDao()
-    }
-
-    @Provides
-    @Singleton
     fun provideNomisScoresDao(appDatabase: AppDatabase): NomisScoresDao {
         return appDatabase.nomisScoresDao()
     }
@@ -120,5 +113,11 @@ class DbModule {
     @Singleton
     fun providePoolsDao(appDatabase: AppDatabase): PoolDao {
         return appDatabase.poolDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideTonConnectDao(appDatabase: AppDatabase): TonConnectDao {
+        return appDatabase.tonConnectDao()
     }
 }

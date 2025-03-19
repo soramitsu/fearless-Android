@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
@@ -31,7 +32,7 @@ data class MnemonicAgreementsState(
     val isShowMnemonicButtonEnabled: Boolean
 )
 
-sealed interface MnemonicAgreementsCallback {
+interface MnemonicAgreementsCallback {
 
     fun onLosePhraseAgreementClick()
 
@@ -103,4 +104,33 @@ internal fun MnemonicAgreementsContent(
             MarginVertical(12.dp)
         }
     }
+}
+
+@Preview
+@Composable
+private fun PreviewMnemonicAgreementsContent() {
+    MnemonicAgreementsContent(
+        state = MnemonicAgreementsState(
+            losePhraseAgreementItemState = TextSelectableItemState(
+                isSelected = true,
+                textResId = jp.co.soramitsu.feature_account_impl.R.string.mnemonic_agreements_ageement_1
+            ),
+            sharePhraseAgreementItemState = TextSelectableItemState(
+                isSelected = false,
+                textResId = jp.co.soramitsu.feature_account_impl.R.string.mnemonic_agreements_ageement_2
+            ),
+            keepPhraseAgreementItemState = TextSelectableItemState(
+                isSelected = true,
+                textResId = jp.co.soramitsu.feature_account_impl.R.string.mnemonic_agreements_ageement_3
+            ),
+            isShowMnemonicButtonEnabled = false
+        ),
+        callback = object : MnemonicAgreementsCallback {
+            override fun onLosePhraseAgreementClick() {}
+            override fun onSharePhraseAgreementClick() {}
+            override fun onKeepPhraseAgreementClick() {}
+            override fun onBackClick() {}
+            override fun onShowPhrase() {}
+        }
+    )
 }

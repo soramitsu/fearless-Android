@@ -87,6 +87,33 @@ fun BottomSheetLayout(
 }
 
 @Composable
+fun BottomSheetLayout(
+    content: @Composable (ModalBottomSheetState) -> Unit,
+    sheetContent: @Composable ColumnScope.(ModalBottomSheetState) -> Unit,
+    bottomSheetState: ModalBottomSheetState,
+    sheetGesturesEnabled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    ModalBottomSheetLayout(
+        modifier = modifier,
+        sheetState = bottomSheetState,
+        sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
+        sheetBackgroundColor = backgroundBlack,
+        scrimColor = black72,
+        sheetGesturesEnabled = sheetGesturesEnabled,
+        sheetContent = {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    sheetContent(bottomSheetState)
+                }
+                Grip(Modifier.align(Alignment.TopCenter))
+            }
+        },
+        content = { content(bottomSheetState) }
+    )
+}
+
+@Composable
 fun Grip(modifier: Modifier) {
     Box(
         modifier = modifier

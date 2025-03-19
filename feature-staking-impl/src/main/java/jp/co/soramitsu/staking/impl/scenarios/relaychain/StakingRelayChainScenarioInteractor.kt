@@ -12,10 +12,14 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
+import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -142,8 +146,17 @@ class StakingRelayChainScenarioInteractor(
     private val payoutRepository: PayoutRepository,
     private val walletConstants: WalletConstants,
     private val chainRegistry: ChainRegistry,
+    private val stakingTotalRewardDao: StakingTotalRewardDao,
     private val assetCache: AssetCache
 ) : StakingScenarioInteractor {
+
+    init {
+        stakingInteractor.syncStakingRewardListener = { chainId ->
+            if (chainId == soraMainChainId || chainId == soraTestChainId) {
+                calculatePendingPayouts()
+            }
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
@@ -405,10 +418,10 @@ class StakingRelayChainScenarioInteractor(
         selectedAccountStakingStateFlow().first()
 
     override fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
-        return stakingInteractor.currentAssetFlow().map { asset ->
+        return stakingInteractor.currentAssetFlow().filter { it.bonded != null }.map { asset ->
             StakingBalanceModel(
                 staked = mapAmountToAmountModel(
-                    asset.bonded,
+                    asset.bonded.orZero(),
                     asset,
                     R.string.wallet_balance_bonded,
                     useDetailCryptoFormat = true
@@ -474,7 +487,7 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun overrideUnbondHint(): String? = null
     override fun overrideUnbondAvailableLabel(): Int = R.string.staking_bonded_format
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?) =
-        asset.bonded
+        asset.bonded.orZero()
 
     override fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal) = asset.unbonding
     override suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload) =
@@ -490,7 +503,7 @@ class StakingRelayChainScenarioInteractor(
             walletConstants.existentialDeposit(tokenConfiguration).orZero()
         val existentialDeposit = tokenConfiguration.amountFromPlanks(existentialDepositInPlanks)
 
-        val bonded = payload.asset.bonded
+        val bonded = payload.asset.bonded.orZero()
         val resultGreaterThanExistential = bonded - payload.amount >= existentialDeposit
         val resultIsZero = bonded == payload.amount
         return resultGreaterThanExistential || resultIsZero
@@ -534,6 +547,11 @@ class StakingRelayChainScenarioInteractor(
                 val historyDepth = stakingRelayChainScenarioRepository.getHistoryDepth(chainId)
 
                 val payouts = payoutRepository.calculateUnpaidPayouts(currentStakingState)
+
+                if (chainId == soraMainChainId || chainId == soraTestChainId) {
+                    val sum = payouts.sumByBigInteger { it.amount }
+                    stakingTotalRewardDao.insert(TotalRewardLocal(currentStakingState.accountAddress, sum))
+                }
 
                 val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
                 val identityMapping = identityRepository.getIdentitiesFromAddresses(
@@ -610,9 +628,26 @@ class StakingRelayChainScenarioInteractor(
         HOURS_IN_DAY / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger {
-        return stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset)
-    }
+    override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger =
+        withContext(Dispatchers.Default) {
+            val exposuresDeferred = async {
+                stakingRelayChainScenarioRepository.legacyElectedExposuresInActiveEra(chainAsset.chainId)
+                    .first().values
+            }
+
+            val minimumNominatorBond =
+                stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset).orZero()
+
+            val minActiveStake =
+                stakingRelayChainScenarioRepository.minimumActiveStake(chainAsset.chainId)
+                    ?: exposuresDeferred.await()
+                        .minOf { exposure -> exposure.others.minOf { it.value } }
+
+            val minimalStakeInPlanks =
+                minActiveStake.coerceAtLeast(minimumNominatorBond)
+
+            return@withContext minimalStakeInPlanks
+        }
 
     suspend fun getLockupPeriodInHours() = withContext(Dispatchers.Default) {
         getLockupPeriodInHours(stakingSharedState.chainId())

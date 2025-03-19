@@ -4,9 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/drawable_background_image"
-    android:backgroundTint="#63000000"
-    android:backgroundTintMode="src_atop"
+    android:background="@color/black"
     android:fitsSystemWindows="true">
 
 
@@ -28,6 +26,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:animateLayoutChanges="true"
+        android:background="@color/black4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
@@ -46,19 +45,37 @@
         app:layout_constraintStart_toStartOf="@+id/confirmationMnemonicView"
         app:layout_constraintTop_toBottomOf="@+id/confirmationMnemonicView" />
 
-    <jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicContainerView
-        android:id="@+id/wordsMnemonicView"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/x2"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:animateLayoutChanges="true"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonsBarrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
-        tools:layout_height="144dp" />
+        tools:layout_height="144dp">
+
+        <jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicContainerView
+            android:id="@+id/wordsMnemonicView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/x2"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:animateLayoutChanges="true"
+            android:background="@color/black4"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView2"
+            tools:layout_height="1440dp" />
+    </ScrollView>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/buttonsBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="confirmMnemonicSkip, nextBtn" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/confirmMnemonicSkip"
@@ -86,6 +103,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

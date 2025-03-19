@@ -8,10 +8,11 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
@@ -26,12 +27,17 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
 
     companion object {
         fun getBundle(
-            isFromGoogleBackup: Boolean,
             accountName: String,
-            payload: ChainAccountCreatePayload?
+            walletId: Long?,
+            accountTypes: List<WalletEcosystem>
         ): Bundle {
             return bundleOf(
-                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, payload)
+                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(
+                    isFromGoogleBackup = false,
+                    accountName = accountName,
+                    walletId = walletId,
+                    accountTypes = accountTypes
+                )
             )
         }
     }
@@ -44,12 +50,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         when (result.resultCode) {
-            Activity.RESULT_OK -> with(binding) {
-                viewModel.onGoogleSignInSuccess(
-                    advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
-                )
-            }
+            Activity.RESULT_OK -> viewModel.onGoogleSignInSuccess()
             Activity.RESULT_CANCELED -> { /* no action */ }
             else -> {
                 val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
@@ -69,6 +70,23 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             }
 
             advancedBlockView.isVisible = viewModel.isShowAdvancedBlock
+            if (viewModel.walletId != null) {
+                when {
+                    viewModel.isSubstrateAndEthereumAccount -> {
+                        advancedBlockView.configure(FieldState.NORMAL)
+                    }
+
+                    viewModel.isSubstrateAccount -> {
+                        advancedBlockView.configureSubstrate(FieldState.NORMAL)
+                        advancedBlockView.configureEthereum(FieldState.HIDDEN)
+                    }
+
+                    viewModel.isEthereumAccount -> {
+                        advancedBlockView.configureSubstrate(FieldState.HIDDEN)
+                        advancedBlockView.configureEthereum(FieldState.NORMAL)
+                    }
+                }
+            }
             advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
                 viewModel.chooseEncryptionClicked()
             }
@@ -88,9 +106,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     launcher
                 )
+            }
+            confirmMnemonicSkip.isVisible = viewModel.isShowSkipButton
+            confirmMnemonicSkip.setOnClickListener {
+                viewModel.skipClicked()
             }
         }
     }
@@ -109,8 +130,6 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         viewModel.showInfoEvent.observeEvent {
             showMnemonicInfoDialog()
         }
-
-        viewModel.chainAccountImportType.observe(binding.advancedBlockView::configureForMnemonic)
     }
 
     private fun showEncryptionChooser(payload: Payload<CryptoTypeModel>) {

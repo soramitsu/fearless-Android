@@ -50,7 +50,6 @@ import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H5
-import jp.co.soramitsu.common.compose.component.H5Bold
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.models.Loadable
@@ -338,7 +337,7 @@ private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.Section
                     .fillMaxWidth(.4f)
                     .height(15.dp)
             ) { _, data ->
-                H5Bold(
+                H5(
                     modifier = Modifier
                         .padding(vertical = 16.dp)
                         .fillMaxWidth()

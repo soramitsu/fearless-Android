@@ -3,7 +3,9 @@ package jp.co.soramitsu.wallet.impl.domain
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.utils.TON_BASE_FORWARD_AMOUNT
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
@@ -14,6 +16,7 @@ import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import jp.co.soramitsu.wallet.impl.domain.model.TonTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -39,7 +42,7 @@ class QuickInputsUseCaseImpl(
     private val coroutineContext: CoroutineContext = Dispatchers.Default,
 ) : QuickInputsUseCase {
 
-    private val inputValues = listOf(1.0, 0.75, 0.5, 0.25)
+    private val inputValues = listOf(/*1.0,*/ 0.75, 0.5, 0.25)
 
     override suspend fun calculateStakingQuickInputs(
         chainId: ChainId,
@@ -184,10 +187,7 @@ class QuickInputsUseCaseImpl(
     override suspend fun calculateTransfersQuickInputs(
         chainId: ChainId,
         assetId: String
-    ): Map<Double, BigDecimal> =
-        withContext(
-            coroutineContext
-        ) {
+    ): Map<Double, BigDecimal> = withContext(coroutineContext) {
             val chainDeferred = async { chainsRepository.getChain(chainId) }
             val currentAccountDeferred = async { accountRepository.getSelectedMetaAccount() }
             val tipDeferred = async { walletConstants.tip(chainId).orZero() }
@@ -207,36 +207,46 @@ class QuickInputsUseCaseImpl(
 
             val tipAmount = utilityAsset.amountFromPlanks(tip)
             val utilityTipReserve =
-                if (asset.token.configuration.isUtility) tipAmount else BigDecimal.ZERO
+                when {
+                    asset.token.configuration.isUtility -> tipAmount
+                    else -> BigDecimal.ZERO
+                }
             val allAmount = asset.transferable
 
             val quickAmounts = inputValues.map { input ->
                 async {
-                    val amountToTransfer = (allAmount * input.toBigDecimal()).setScale(
+                    val amountToTransfer = allAmount * input.toBigDecimal() - utilityTipReserve
+                    val amountToTransferScaled = amountToTransfer.setScale(
                         asset.token.configuration.precision,
-                        RoundingMode.HALF_DOWN
-                    ) - utilityTipReserve
-
-                    val transfer = Transfer(
-                        recipient = selfAddress,
-                        sender = selfAddress,
-                        amount = amountToTransfer,
-                        chainAsset = asset.token.configuration
+                        RoundingMode.UP
                     )
 
+                    val transfer = when (chain.ecosystem) {
+                        Ecosystem.Ton -> Transfer(
+                            recipient = selfAddress,
+                            sender = selfAddress,
+                            amount = amountToTransferScaled + TON_BASE_FORWARD_AMOUNT,
+                            chainAsset = asset.token.configuration,
+                            additionalParams = TonTransferParams(selfAddress)
+                        )
+
+                        else -> Transfer(
+                            recipient = selfAddress,
+                            sender = selfAddress,
+                            amount = amountToTransferScaled,
+                            chainAsset = asset.token.configuration,
+                        )
+                    }
+
                     val utilityFeeReserve = if (asset.token.configuration.isUtility) {
-                        runCatching {
-                            walletRepository.getTransferFee(
-                                chain,
-                                transfer
-                            ).feeAmount
-                        }.getOrNull().orZero()
+                        runCatching { walletRepository.getTransferFee(chain, transfer) }
+                            .getOrNull()
+                            .orZero()
                     } else {
                         BigDecimal.ZERO
                     }
 
-                    val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve
-
+                    val quickAmountWithoutExtraPays = amountToTransferScaled - utilityFeeReserve
                     quickAmountWithoutExtraPays.coerceAtLeast(BigDecimal.ZERO)
                 }
             }.awaitAll()
