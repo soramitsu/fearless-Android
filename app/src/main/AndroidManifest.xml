@@ -10,6 +10,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <queries>
+        <package android:name="com.soracard.wallet.iban"/>
+        <package android:name="com.soracard.wallet.iban.test"/>
+    </queries>
+
     <application
         android:name=".App"
         android:allowBackup="false"
@@ -61,18 +66,6 @@
                 <data android:scheme="https" />
                 <data android:host="fearlesswallet.io" />
                 <data android:pathPrefix="/ton-connect/" />
-            </intent-filter>
-
-            <intent-filter android:autoVerify="true">
-                <category android:name="android.intent.category.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <!-- Only accept URLs that look like https://fearlesswallet.io/ton-connect/* -->
-                <data
-                    android:scheme="https"
-                    android:host="fearlesswallet.io"
-                    android:pathPrefix="/ton-connect/" />
             </intent-filter>
         </activity>
 

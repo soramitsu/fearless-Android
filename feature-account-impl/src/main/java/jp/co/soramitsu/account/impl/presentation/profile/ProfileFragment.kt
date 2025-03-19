@@ -1,10 +1,13 @@
 package jp.co.soramitsu.account.impl.presentation.profile
 
+import android.os.Bundle
+import android.view.View
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +26,7 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 
 @AndroidEntryPoint
 class ProfileFragment : BaseComposeFragment<ProfileViewModel>() {
@@ -31,6 +35,17 @@ class ProfileFragment : BaseComposeFragment<ProfileViewModel>() {
     lateinit var imageLoader: ImageLoader
 
     override val viewModel: ProfileViewModel by viewModels()
+
+    private val soraCardSignIn = registerForActivityResult(
+        SoraCardContract()
+    ) { viewModel.handleSoraCardResult(it) }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.launchSoraCardSignIn.observe { contractData ->
+            soraCardSignIn.launch(contractData)
+        }
+    }
 
     @Composable
     override fun Content(

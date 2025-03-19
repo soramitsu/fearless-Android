@@ -21,6 +21,7 @@ import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.PoolDao
+import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -101,6 +102,12 @@ class DbModule {
     @Singleton
     fun provideAddressBookDao(appDatabase: AppDatabase): AddressBookDao {
         return appDatabase.addressBookDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSoraCardDao(appDatabase: AppDatabase): SoraCardDao {
+        return appDatabase.soraCardDao()
     }
 
     @Provides

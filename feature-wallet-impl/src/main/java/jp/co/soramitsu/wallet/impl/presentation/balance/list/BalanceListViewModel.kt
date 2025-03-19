@@ -20,6 +20,7 @@ import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
+import jp.co.soramitsu.androidfoundation.fragment.SingleLiveEvent
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -31,6 +32,7 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.SoraCardBuyXorState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
@@ -62,6 +64,10 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -72,6 +78,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.TonConnectException
+import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
+import jp.co.soramitsu.soracard.api.util.createSoraCardGateHubContract
+import jp.co.soramitsu.soracard.api.util.readyToStartGatehubOnboarding
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -143,6 +153,8 @@ class BalanceListViewModel @Inject constructor(
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val nftInteractor: NFTInteractor,
     private val walletConnectInteractor: WalletConnectInteractor,
+    private val soraCardInteractor: SoraCardInteractor,
+    private val soraCardRouter: SoraCardRouter,
     private val coroutineManager: CoroutineManager,
     private val tonConnectInteractor: TonConnectInteractor,
 ) : BaseViewModel(), WalletScreenInterface {
@@ -164,6 +176,11 @@ class BalanceListViewModel @Inject constructor(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
+
+    private val _launchSoraCardSignIn = SingleLiveEvent<SoraCardContractData>()
+    val launchSoraCardSignIn: LiveData<SoraCardContractData> = _launchSoraCardSignIn
+
+    private var currentSoraCardContractData: SoraCardContractData? = null
 
     private val pageScrollingCallback = object : PageScrollingCallback {
         override fun onAllPrevPagesScrolled() {
@@ -520,8 +537,8 @@ class BalanceListViewModel @Inject constructor(
             val assets = chainInteractor.getChainAssets()
 
             val shimmers = when {
-                currentMetaAccount.tonPublicKey != null && 
-                currentMetaAccount.substratePublicKey == null && 
+                currentMetaAccount.tonPublicKey != null &&
+                currentMetaAccount.substratePublicKey == null &&
                 currentMetaAccount.ethereumPublicKey == null -> {
                     val tonAsset = assets.firstOrNull { it.chainId == tonMainnetChainId || it.chainName.contains("ton", true) || it.name?.contains("ton", true) == true} ?: assets.first()
                     listOf(
@@ -574,6 +591,38 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(multiToggleButtonState = it)
         }.launchIn(viewModelScope)
 
+        state.update { prevState ->
+            prevState.copy(
+                soraCardState = prevState.soraCardState.copy(
+                    soraCardProgress = soraCardInteractor.getSoraCardProgress()
+                )
+            )
+        }
+
+        soraCardInteractor.basicStatus
+            .onEach { soraCardStatus ->
+                val mapped = mapKycStatus(soraCardStatus.verification)
+                state.update {
+                    it.copy(
+                        soraCardState = it.soraCardState.copy(
+                            visible = interactor.isShowGetSoraCard() && soraCardStatus.needInstallUpdate.not(),
+                            soraCardProgress = soraCardInteractor.getSoraCardProgress(),
+                            kycStatus = mapped.first,
+                            loading = false,
+                            success = mapped.second,
+                            iban = soraCardStatus.ibanInfo,
+                            buyXor = soraCardInteractor.isShowBuyXor().let { vis ->
+                                if (vis) SoraCardBuyXorState(
+                                    soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
+                                        ?: false
+                                ) else null
+                            },
+                        )
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+
         currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
             val showCurrenciesOrNftSelector =
                 metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
@@ -624,6 +673,30 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    private fun mapKycStatus(kycStatus: SoraCardCommonVerification): Pair<String?, Boolean> {
+        return when (kycStatus) {
+            SoraCardCommonVerification.Failed -> {
+                resourceManager.getString(jp.co.soramitsu.oauth.R.string.verification_failed_title) to false
+            }
+
+            SoraCardCommonVerification.Rejected -> {
+                resourceManager.getString(jp.co.soramitsu.oauth.R.string.verification_rejected_title) to false
+            }
+
+            SoraCardCommonVerification.Pending -> {
+                resourceManager.getString(jp.co.soramitsu.oauth.R.string.kyc_result_verification_in_progress) to false
+            }
+
+            SoraCardCommonVerification.Successful -> {
+                resourceManager.getString(jp.co.soramitsu.oauth.R.string.verification_successful_title) to true
+            }
+
+            else -> {
+                null to false
+            }
+        }
+    }
+
     @OptIn(FlowPreview::class)
     private fun startManageAssetsIntroAnimation() {
         awaitAssetsJob?.cancel()
@@ -670,6 +743,11 @@ class BalanceListViewModel @Inject constructor(
         observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
+        viewModelScope.launch {
+            withContext(coroutineManager.io) {
+                soraCardInteractor.initialize()
+            }
+        }
 //        sync()
 
         router.chainSelectorPayloadFlow.map { chainId ->
@@ -682,6 +760,10 @@ class BalanceListViewModel @Inject constructor(
         selectedChainId.onEach { chainId ->
             BalanceUpdateTrigger.invoke(chainId = chainId)
         }.launchIn(this)
+
+        if (!interactor.isShowGetSoraCard()) {
+            interactor.decreaseSoraCardHiddenSessions()
+        }
     }
 
     override fun onRefresh() {
@@ -888,6 +970,88 @@ class BalanceListViewModel @Inject constructor(
                 currentAccountAddress(chainId = it)
             }?.let { address ->
                 copyToClipboard(address)
+            }
+        }
+    }
+
+    override fun soraCardClicked() {
+        if (soraCardInteractor.basicStatus.value.initialized) {
+            state.value.soraCardState.let { card ->
+                if (card.iban?.ibanStatus != null) {
+                    router.openSoraCardDetails()
+                } else if (card.kycStatus == null) {
+                    router.openGetSoraCard()
+                } else if (card.success) {
+                    router.openSoraCardDetails()
+                } else {
+                    currentSoraCardContractData?.let { contractData ->
+                        _launchSoraCardSignIn.value = contractData
+                    }
+                }
+            }
+        } else {
+            soraCardInteractor.basicStatus.value.initError.takeIf {
+                it.isNullOrEmpty().not()
+            }?.let {
+                showMessage(it)
+            }
+        }
+    }
+
+    override fun soraCardClose() {
+        interactor.hideSoraCard()
+    }
+
+    override fun buyXorClose() {
+        soraCardInteractor.hideBuyXor()
+    }
+
+    override fun buyXorClick() {
+        if (soraCardInteractor.basicStatus.value.initialized) {
+            _launchSoraCardSignIn.value = createSoraCardGateHubContract()
+        }
+    }
+
+    fun handleSoraCardResult(soraCardResult: SoraCardResult) {
+        when (soraCardResult) {
+            is SoraCardResult.NavigateTo -> {
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> { /*do nothing*/
+                    }
+
+                    OutwardsScreen.SWAP -> {
+                        soraCardRouter.openSwapTokensScreen(
+                            chainId = soraCardInteractor.soraCardChainId,
+                            assetIdFrom = null,
+                            assetIdTo = null,
+                        )
+                    }
+
+                    OutwardsScreen.BUY -> {
+                        soraCardRouter.showBuyCrypto()
+                    }
+                }
+            }
+
+            is SoraCardResult.Success -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setStatus(soraCardResult.status)
+                }
+            }
+
+            is SoraCardResult.Failure -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setStatus(soraCardResult.status)
+                }
+            }
+
+            is SoraCardResult.Canceled -> { /*do nothing*/
+            }
+
+            is SoraCardResult.Logout -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setLogout()
+                }
             }
         }
     }

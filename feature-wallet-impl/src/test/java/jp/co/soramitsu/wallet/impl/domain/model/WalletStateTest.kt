@@ -3,6 +3,8 @@ package jp.co.soramitsu.wallet.impl.domain.model
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
+import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletState
@@ -22,6 +24,15 @@ class WalletStateTest {
         assertEquals(null, s.scrollToBottomEvent)
         assertEquals(true, s.isBackedUp)
         assertEquals(false, s.hasNetworkIssues)
+        assertEquals(
+            SoraCardItemViewState(
+                visible = true,
+                success = false,
+                iban = null,
+                soraCardProgress = SoraCardProgress.START,
+                loading = true,
+            ), s.soraCardState
+        )
         assertEquals(
             AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
             s.balance,

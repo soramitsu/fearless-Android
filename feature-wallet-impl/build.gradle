@@ -18,6 +18,9 @@ android {
         buildConfigField "String", "RAMP_TOKEN", "\"4bk3yhfrg99fer764bo7egrqmxbfene7gbrpwmp3\""
         buildConfigField "String", "RAMP_HOST", "\"ri-widget-staging.firebaseapp.com\""
 
+        buildConfigField "String", "COINBASE_HOST", "\"pay.coinbase.com/buy/select-asset\""
+        buildConfigField "String", "COINBASE_APP_ID", "\"396933a1-26e6-4b65-b442-637d260e05c2\""
+
         buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_TEST_SECRET")
         buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
         buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
@@ -68,6 +71,8 @@ dependencies {
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
     implementation project(':runtime')
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
     implementation project(':runtime-permission')
     implementation project(':feature-nft-api')
     implementation project(':feature-walletconnect-api')
@@ -139,6 +144,7 @@ dependencies {
 
     implementation libs.sharedFeaturesXcmDep
     implementation libs.sharedFeaturesBackupDep
+    implementation(libs.sora.soracard)
     implementation(libs.soramitsu.android.foundation)
 
     implementation libs.web3jDep

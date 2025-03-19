@@ -69,6 +69,10 @@ class NavigationModule {
 
     @Singleton
     @Provides
+    fun provideTonConnectRouter(navigator: Navigator): TonConnectRouter = navigator
+
+    @Singleton
+    @Provides
     fun provideNFTRouter(navigator: Navigator): NFTRouter = navigator
 
     @Singleton
