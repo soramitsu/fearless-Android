@@ -24,11 +24,11 @@ MOONPAY_TEST_SECRET=stub
 MOONPAY_PRODUCTION_SECRET=stub
 ```
 
-Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
+Note, that with stub keys bought via moonpay will not work correctly. However, other parts of the application will not be affected.
 
 ### Sora CARD SDK
 
-For starting Sora CARD SDK initial data have to be provided via gradle properties due to security purpose.
+For starting Sora CARD SDK initial data have to be provided via gradle properties due to security purposes.
 
 ````
 // PayWings repo credentials properties for getting artifacts
