@@ -120,13 +120,13 @@ fun WalletScreen(
             onBalanceClick = callback::onBalanceClicked
         )
 
-
+        MarginVertical(margin = 16.dp)
         AnimatedVisibility(
             visible = data.showCurrenciesOrNftSelector,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            MarginVertical(margin = 16.dp)
+
             MultiToggleButton(
                 state = data.multiToggleButtonState,
                 onToggleChange = callback::assetTypeChanged
@@ -320,70 +320,31 @@ fun WalletScreenFooter(
 private fun PreviewWalletScreen() {
     @OptIn(ExperimentalMaterialApi::class)
     val emptyCallback = object : WalletScreenInterface {
-        override fun soraCardClicked() {
-            TODO()
-        }
-
-        override fun soraCardClose() {
-            TODO()
-        }
-
-        override fun buyXorClick() {
-            TODO()
-        }
-
-        override fun buyXorClose() {
-            TODO()
-        }
-
-        override fun onAddressClick() {
-            TODO()
-        }
-
-        override fun onBalanceClicked() {
-            TODO()
-        }
-
-        override fun onBackupClicked() {
-            TODO()
-        }
-
-        override fun onBackupCloseClick() {
-            TODO()
-        }
-
+        override fun soraCardClicked() {}
+        override fun soraCardClose() {}
+        override fun buyXorClick() {}
+        override fun buyXorClose() {}
+        override fun onAddressClick() {}
+        override fun onBalanceClicked() {}
+        override fun onBackupClicked() {}
+        override fun onBackupCloseClick() {}
         override fun onJoinSubOrEvmClicked() {}
         override fun onJoinSubOrEvmCloseClick() {}
         override fun onJoinTonClicked() {}
         override fun onJoinTonCloseClick() {}
-        override fun assetTypeChanged(type: AssetType) {
-            TODO()
-        }
-
-        override fun assetClicked(state: AssetListItemViewState) {
-            TODO()
-        }
-
+        override fun assetTypeChanged(type: AssetType) {}
+        override fun assetClicked(state: AssetListItemViewState) {}
         override fun actionItemClicked(
             actionType: ActionItemType,
             chainId: ChainId,
             chainAssetId: String,
             swipeableState: SwipeableState<SwipeState>
         ) {
-            TODO()
         }
 
-        override fun onRefresh() {
-            TODO()
-        }
-
-        override fun onManageAssetClick() {
-            TODO()
-        }
-
-        override fun onRetry() {
-            TODO()
-        }
+        override fun onRefresh() {}
+        override fun onManageAssetClick() {}
+        override fun onRetry() {}
     }
 
     val element = AssetListItemViewState(

@@ -107,7 +107,7 @@ class SelectUnbondViewModel @Inject constructor(
 
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
 
-    private val parsedAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toBigDecimal())
+    private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
         asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
@@ -204,7 +204,7 @@ class SelectUnbondViewModel @Inject constructor(
                 stash = accountStakingFlow.first(),
                 asset = asset,
                 fee = fee,
-                amount = parsedAmountFlow.value,
+                amount = parsedAmountFlow.first(),
                 collatorAddress = payload.collatorAddress
             )
 
@@ -269,7 +269,7 @@ class SelectUnbondViewModel @Inject constructor(
             val amount = valuesMap[input] ?: return@launch
             val asset = assetFlow.first()
             enteredAmountFlow.value = amount.formatCryptoDetail()
-            parsedAmountFlow.value  = amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)
+//            parsedAmountFlow.value  = amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)
         }
     }
 }

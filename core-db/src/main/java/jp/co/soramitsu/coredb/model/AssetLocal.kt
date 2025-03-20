@@ -94,9 +94,6 @@ data class AssetBalanceUpdateItem(
     val reservedInPlanks: BigInteger? = null,
     val miscFrozenInPlanks: BigInteger? = null,
     val feeFrozenInPlanks: BigInteger? = null,
-    val bondedInPlanks: BigInteger? = null,
-    val redeemableInPlanks: BigInteger? = null,
-    val unbondingInPlanks: BigInteger? = null,
 
     val status: String? = null
 )

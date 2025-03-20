@@ -55,6 +55,6 @@ dependencies {
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
-    implementation(projects.featureAccountApi) //todo check neediness
+    implementation(projects.featureAccountApi)
     implementation(projects.featureSoracardApi)
 }
