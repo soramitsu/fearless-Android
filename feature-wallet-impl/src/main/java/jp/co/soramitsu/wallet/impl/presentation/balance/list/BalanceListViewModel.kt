@@ -80,6 +80,7 @@ import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.TonConnectException
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
+import jp.co.soramitsu.soracard.api.util.createSoraCardContract
 import jp.co.soramitsu.soracard.api.util.createSoraCardGateHubContract
 import jp.co.soramitsu.soracard.api.util.readyToStartGatehubOnboarding
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
@@ -599,24 +600,37 @@ class BalanceListViewModel @Inject constructor(
             )
         }
 
-        soraCardInteractor.basicStatus
-            .onEach { soraCardStatus ->
+        combine(
+            soraCardInteractor.basicStatus,
+            interactor.observeIsShowSoraCard(),
+            soraCardInteractor.observeBuyXorVisibility()
+        ) { soraCardStatus, isSoraCardVisible, isBuyXorVisible ->
+            Triple(soraCardStatus, isSoraCardVisible, isBuyXorVisible)
+        }
+            .onEach { (soraCardStatus, isSoraCardVisible, isBuyXorVisible) ->
+
+                soraCardStatus.availabilityInfo?.let {
+                    currentSoraCardContractData = createSoraCardContract(
+                        userAvailableXorAmount = it.xorBalance.toDouble(),
+                        isEnoughXorAvailable = it.enoughXor
+                    )
+                }
                 val mapped = mapKycStatus(soraCardStatus.verification)
+                val ibanStatus =
+                    soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
+
                 state.update {
                     it.copy(
                         soraCardState = it.soraCardState.copy(
-                            visible = interactor.isShowGetSoraCard() && soraCardStatus.needInstallUpdate.not(),
+                            visible = isSoraCardVisible && soraCardStatus.needInstallUpdate.not(),
                             soraCardProgress = soraCardInteractor.getSoraCardProgress(),
                             kycStatus = mapped.first,
                             loading = false,
                             success = mapped.second,
                             iban = soraCardStatus.ibanInfo,
-                            buyXor = soraCardInteractor.isShowBuyXor().let { vis ->
-                                if (vis) SoraCardBuyXorState(
-                                    soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
-                                        ?: false
-                                ) else null
-                            },
+                            buyXor = if (isBuyXorVisible && (ibanStatus == true)) SoraCardBuyXorState(
+                                enabled = ibanStatus,
+                            ) else null,
                         )
                     )
                 }
@@ -689,6 +703,10 @@ class BalanceListViewModel @Inject constructor(
 
             SoraCardCommonVerification.Successful -> {
                 resourceManager.getString(jp.co.soramitsu.oauth.R.string.verification_successful_title) to true
+            }
+
+            SoraCardCommonVerification.Retry -> {
+                resourceManager.getString(jp.co.soramitsu.oauth.R.string.verification_rejected_title) to false
             }
 
             else -> {

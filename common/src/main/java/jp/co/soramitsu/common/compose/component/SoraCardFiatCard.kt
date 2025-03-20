@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.oauth.base.sdk.contract.IbanInfo
@@ -155,7 +157,7 @@ fun SoraCardFiatCard(
 @Composable
 private fun PreviewAssetListItem() {
     FearlessAppTheme {
-        Box {
+        Box(modifier = Modifier.background(MaterialTheme.customColors.black)) {
             Column {
                 SoraCardFiatCard(
                     state = previewSoraCardItemViewState,

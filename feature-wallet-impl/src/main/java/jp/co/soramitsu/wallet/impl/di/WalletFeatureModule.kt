@@ -256,12 +256,12 @@ class WalletFeatureModule {
     fun provideHistorySourceProvider(
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
-        txHistoryRepository: TxHistoryRepository,
+        historyInfoRemoteLoader: HistoryInfoRemoteLoader,
         tonRemoteSource: TonRemoteSource
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
-        txHistoryRepository,
+        historyInfoRemoteLoader,
         tonRemoteSource,
     )
 

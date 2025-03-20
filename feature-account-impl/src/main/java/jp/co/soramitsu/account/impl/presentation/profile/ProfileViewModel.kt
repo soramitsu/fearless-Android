@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.SettingsItemAction
+import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach

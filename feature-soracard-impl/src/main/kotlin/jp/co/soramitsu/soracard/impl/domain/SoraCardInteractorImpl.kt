@@ -69,8 +69,8 @@ class SoraCardInteractorImpl @Inject constructor(
     private val _phoneFlow = MutableStateFlow("")
     private val _verStatus = MutableStateFlow(SoraCardCommonVerification.NotFound)
 
-    override fun isShowBuyXor(): Boolean =
-        preferences.getBoolean(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, true)
+    override fun observeBuyXorVisibility(): Flow<Boolean> =
+        preferences.booleanFlow(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, true)
 
     override fun hideBuyXor() {
         preferences.putBoolean(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, false)

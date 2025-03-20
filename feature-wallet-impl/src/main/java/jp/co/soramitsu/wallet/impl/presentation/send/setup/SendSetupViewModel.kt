@@ -296,7 +296,6 @@ class SendSetupViewModel @Inject constructor(
             }
             println("Error: $it")
             it.printStackTrace()
-
             emit(null)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
