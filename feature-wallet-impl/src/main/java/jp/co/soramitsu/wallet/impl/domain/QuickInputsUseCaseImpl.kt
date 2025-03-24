@@ -99,7 +99,7 @@ class QuickInputsUseCaseImpl(
 
         val assetFrom = assetFromDeferred.await() ?: return@withContext emptyMap()
 
-        val quickAmounts = inputValues.map { input ->
+        val quickAmounts = kotlin.runCatching { inputValues.map { input ->
             async {
                 val amountToTransfer = (assetFrom.transferable * input.toBigDecimal()).setScale(
                     chainAssetFrom.precision,
@@ -120,7 +120,7 @@ class QuickInputsUseCaseImpl(
                 }
                 quickAmountWithoutExtraPays.coerceAtLeast(BigDecimal.ZERO)
             }
-        }.awaitAll()
+        }.awaitAll()}.getOrNull() ?: return@withContext emptyMap()
 
         inputValues.zip(quickAmounts).toMap()
     }

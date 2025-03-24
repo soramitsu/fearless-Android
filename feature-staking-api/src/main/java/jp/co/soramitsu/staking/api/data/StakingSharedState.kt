@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -69,10 +70,11 @@ class StakingSharedState(
         private const val DELIMITER = ":"
     }
 
+    private val chains = scope.async { chainsRepository.getChains() }
+
     private val cachedStakingAssetsFlow = accountRepository.selectedMetaAccountFlow()
         .map { metaAccount ->
-            val chains = chainsRepository.getChains()
-            val relevantChains = chains.filter { metaAccount.accountId(it) != null }
+            val relevantChains = chains.await().filter { metaAccount.accountId(it) != null }
             val assets = walletRepository.getAssets(metaAccount.id)
             
             assets.mapNotNull { asset ->
@@ -108,19 +110,15 @@ class StakingSharedState(
         .filterNotNull()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.map { (chainId, chainAssetId) ->
-        val (asset, chain) = cachedStakingAssetsFlow.first().find { it.first.chainId == chainId && it.first.id == chainAssetId }!!
-        SingleAssetSharedState.AssetWithChain(chain, asset.token.configuration)
+    val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.mapNotNull { (chainId, chainAssetId) ->
+        val chain = chainsRepository.getChain(chainId)
+        val asset = chain.assetsById[chainAssetId] ?: return@mapNotNull null
+
+        SingleAssetSharedState.AssetWithChain(chain, asset)
     }
         .distinctUntilChanged()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    suspend fun assetWithChain(selectionItem: StakingAssetSelection) {
-        val (asset, chain) = cachedStakingAssetsFlow.first().find { it.first.chainId == selectionItem.chainId && it.first.id == selectionItem.chainAssetId }!!
-        SingleAssetSharedState.AssetWithChain(chain, asset.token.configuration)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun currentAssetFlow() = combine(
         assetWithChain,
         accountRepository.selectedMetaAccountFlow(),
