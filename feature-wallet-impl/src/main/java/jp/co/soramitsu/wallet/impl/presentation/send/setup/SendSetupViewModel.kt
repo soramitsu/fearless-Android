@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.api.domain.model.hasTon
@@ -76,16 +77,17 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -93,6 +95,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -102,6 +105,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -158,7 +162,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val selectedChain = chainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
-    }
+    }.flowOn(Dispatchers.Default)
 
     private val selectedChainItem = selectedChain.map { chain ->
         chain?.let {
@@ -232,11 +236,8 @@ class SendSetupViewModel @Inject constructor(
     private val lockInputFlow = MutableStateFlow(lockSendToAmount)
 
     private val isInputAddressValidFlow =
-        combine(addressInputTrimmedFlow, chainIdFlow) { addressInput, chainId ->
-            when (chainId) {
-                null -> false
-                else -> walletInteractor.validateSendAddress(chainId, addressInput)
-            }
+        combine(addressInputTrimmedFlow, selectedChain.filterNotNull()) { addressInput, chain ->
+            chain.isValidAddress(addressInput)
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
@@ -266,28 +267,30 @@ class SendSetupViewModel @Inject constructor(
         addressInputTrimmedFlow,
         isInputAddressValidFlow,
         enteredAmountBigDecimalFlow,
-        assetFlow.mapNotNull { it }.distinctUntilChanged()
-    ) { address, isAddressValid, enteredAmount, asset ->
+        assetFlow.mapNotNull { it }.distinctUntilChanged(),
+        selectedChain.filterNotNull()
+    ) { address, isAddressValid, enteredAmount, asset, chain ->
 
+        val currentAddress = currentMetaAccountDeffered.await().address(chain)
         val feeRequestAddress = when {
             isAddressValid -> address
-            else -> currentAccountAddressFlow.value ?: return@combine null
+            else -> currentMetaAccountDeffered.await().address(chain) ?: return@combine null
         }
 
         Transfer(
             recipient = feeRequestAddress,
-            sender = requireNotNull(currentAccountAddressFlow.value),
+            sender = requireNotNull(currentAddress),
             amount = enteredAmount,
             chainAsset = asset.token.configuration
         )
     }
-        .debounce(300L)
         .distinctUntilChanged()
         .flatMapLatest { transfer ->
             transfer ?: return@flatMapLatest flowOf(null)
             walletInteractor.observeTransferFee(transfer)
         }
         .retry(RETRY_TIMES)
+        .flowOn(Dispatchers.Default)
         .catch {
             if (it is NotInitializedTonAccountException) {
                 showError(resourceManager.getString(R.string.fee_calculation_error_inactive_account))
@@ -299,6 +302,7 @@ class SendSetupViewModel @Inject constructor(
 
             emit(null)
         }
+        .flowOn(Dispatchers.Main)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val feeInPlanksFlow = combine(feeAmountFlow, assetFlow) { fee, asset ->
@@ -509,7 +513,8 @@ class SendSetupViewModel @Inject constructor(
             it?.let { (assetId, chainId) ->
                 walletInteractor.getCurrentAsset(chainId, assetId)
             }
-        }.onEach { asset ->
+        }.flowOn(Dispatchers.Default)
+            .onEach { asset ->
             assetFlow.update { asset }
         }.launchIn(viewModelScope)
     }
@@ -962,9 +967,11 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
+    private val currentMetaAccountDeffered = viewModelScope.async { withContext(Dispatchers.Default) { walletInteractor.getSelectedMetaAccount() } }
+
     private suspend fun getAccountSupportedChains(address: String): List<Chain> {
         val chains = walletInteractor.getChains().first()
-        val meta = walletInteractor.getSelectedMetaAccount()
+        val meta = currentMetaAccountDeffered.await()
         val accountSupportedChains = chains.filter {
             when (it.ecosystem) {
                 Ecosystem.Substrate -> meta.hasSubstrate

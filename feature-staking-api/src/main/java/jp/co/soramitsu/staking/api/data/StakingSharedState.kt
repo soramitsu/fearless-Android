@@ -136,13 +136,13 @@ class StakingSharedState(
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableAssetsToSelect(): List<Asset> {
-        return cachedStakingAssetsFlow.first().map { it.first }
+        return cachedStakingAssetsFlow.first{ it.isNotEmpty() }.map { it.first }
     }
 
     suspend fun availableToSelect(): List<StakingAssetSelection> {
 //        val wallet = accountRepository.getSelectedMetaAccount()
 
-        val allChains = cachedStakingAssetsFlow.first().map { it.second }
+        val allChains = cachedStakingAssetsFlow.first{ it.isNotEmpty() }.map { it.second }
 
         return allChains.map { chain ->
             val staking = chain.assets.filter { chainAsset ->

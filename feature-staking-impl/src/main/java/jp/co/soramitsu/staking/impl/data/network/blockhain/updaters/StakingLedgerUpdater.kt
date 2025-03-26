@@ -72,7 +72,9 @@ class StakingLedgerUpdater(
             scope.invalidationFlow().distinctUntilChangedBy { it.id }
         ) { assetWithChain, account ->
             val (chain, chainAsset) = assetWithChain
-
+            if(chainAsset.staking != Asset.StakingType.RELAYCHAIN) {
+                return@combine null
+            }
             val runtime = chainRegistry.getRuntime(chain.id)
 
             val currentAccountId =
