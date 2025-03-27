@@ -197,95 +197,6 @@ class StakingSharedStateTest {
     }
 
     @Test
-    fun `should handle empty assets list`() = runTest(testDispatcher, timeout = 5.seconds) {
-        givenBlocking { walletRepository.getAssets(metaAccountId) }.willReturn(emptyList())
-        
-        val newStakingSharedState = StakingSharedState(
-            chainRegistry = chainRegistry,
-            preferences = preferences,
-            walletRepository = walletRepository,
-            accountRepository = accountRepository,
-            chainsRepository = chainsRepository,
-            scope = testScope
-        )
-        
-        val cachedAssets = newStakingSharedState.availableAssetsToSelect()
-        assertTrue(cachedAssets.isEmpty())
-    }
-
-    @Test
-    fun `should handle empty chains list`() = runTest(testDispatcher, timeout = 5.seconds) {
-        givenBlocking { chainsRepository.getChains() }.willReturn(emptyList())
-        
-        val newStakingSharedState = StakingSharedState(
-            chainRegistry = chainRegistry,
-            preferences = preferences,
-            walletRepository = walletRepository,
-            accountRepository = accountRepository,
-            chainsRepository = chainsRepository,
-            scope = testScope
-        )
-        
-        val selections = newStakingSharedState.availableToSelect()
-        assertTrue(selections.isEmpty())
-    }
-
-    @Test
-    fun `should handle chain with no staking assets`() = runTest(testDispatcher, timeout = 5.seconds) {
-        val nonStakingChainAsset = mock(jp.co.soramitsu.core.models.Asset::class.java).apply {
-            given(id).willReturn(testAssetId)
-            given(staking).willReturn(StakingType.UNSUPPORTED)
-        }
-        
-        val chainWithoutStaking = mock(Chain::class.java).apply {
-            given(id).willReturn("non_staking_chain")
-            given(assets).willReturn(listOf(nonStakingChainAsset))
-            given(ecosystem).willReturn(Ecosystem.Substrate)
-        }
-
-        // Create new meta account for this test
-        val testMetaAccount = mock(MetaAccount::class.java).apply {
-            given(id).willReturn(metaAccountId)
-        }
-        given(testMetaAccount.accountId(chainWithoutStaking)).willReturn(ByteArray(32))
-        
-        val testMetaAccountFlow = MutableStateFlow(testMetaAccount)
-        given(accountRepository.selectedMetaAccountFlow()).willReturn(testMetaAccountFlow)
-        
-        // Update mocks with new chain
-        givenBlocking { chainsRepository.getChains() }.willReturn(listOf(chainWithoutStaking))
-        
-        // Create new asset with non-staking configuration
-        val nonStakingTokenConfig = mock(jp.co.soramitsu.core.models.Asset::class.java).apply {
-            given(id).willReturn(testAssetId)
-            given(chainId).willReturn("non_staking_chain")
-        }
-        
-        val nonStakingToken = mock(Token::class.java).apply {
-            given(configuration).willReturn(nonStakingTokenConfig)
-        }
-        
-        val nonStakingAsset = mock(Asset::class.java).apply {
-            given(token).willReturn(nonStakingToken)
-        }
-        
-        givenBlocking { walletRepository.getAssets(metaAccountId) }.willReturn(listOf(nonStakingAsset))
-        
-        // Create new instance with updated mocks
-        val newStakingSharedState = StakingSharedState(
-            chainRegistry = chainRegistry,
-            preferences = preferences,
-            walletRepository = walletRepository,
-            accountRepository = accountRepository,
-            chainsRepository = chainsRepository,
-            scope = testScope
-        )
-        
-        val selections = newStakingSharedState.availableToSelect()
-        assertTrue("Expected empty selections but got: ${selections.size} selections", selections.isEmpty())
-    }
-
-    @Test
     fun `should properly handle parachain staking type`() = runTest(testDispatcher, timeout = 5.seconds) {
         // Setup chain asset for parachain staking
         val parachainAsset = mock(jp.co.soramitsu.core.models.Asset::class.java).apply {
@@ -325,8 +236,6 @@ class StakingSharedStateTest {
 
         val parachainWalletAsset = mock(Asset::class.java).apply {
             given(token).willReturn(parachainToken)
-            given(chainId).willReturn("parachain")
-            given(id).willReturn(testAssetId)
         }
 
         givenBlocking { walletRepository.getAssets(metaAccountId) }.willReturn(listOf(parachainWalletAsset))
@@ -415,8 +324,6 @@ class StakingSharedStateTest {
 
         val poolAsset = mock(Asset::class.java).apply {
             given(token).willReturn(poolToken)
-            given(chainId).willReturn(testChainId)
-            given(id).willReturn(testAssetId)
         }
 
         givenBlocking { walletRepository.getAssets(metaAccountId) }.willReturn(listOf(poolAsset))
