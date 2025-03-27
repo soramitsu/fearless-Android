@@ -11,6 +11,10 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
@@ -32,7 +36,7 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.component.SoraCardBuyXorState
+import jp.co.soramitsu.common.compose.component.SoraCardBuyCryptoState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
@@ -56,6 +60,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.lessThan
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
@@ -75,14 +80,15 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
-import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
-import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
-import jp.co.soramitsu.tonconnect.api.model.TonConnectException
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.soracard.api.util.createSoraCardContract
 import jp.co.soramitsu.soracard.api.util.createSoraCardGateHubContract
 import jp.co.soramitsu.soracard.api.util.readyToStartGatehubOnboarding
+import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectException
+import jp.co.soramitsu.wallet.impl.data.buyToken.SoracardProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -102,6 +108,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTColle
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -118,6 +125,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -130,10 +138,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -308,6 +312,23 @@ class BalanceListViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AssetsLoadingState.Loading()
     )
+
+    private val soracardBuyTokens = interactor.assetsFlow().mapList {
+        it.asset.token.configuration
+    }.map {
+        it.filter {
+            it.purchaseProviders?.any { it.equals(SoracardProvider().name, ignoreCase = true) } == true
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val soracardBuyTokensVisibilityFlow = soracardBuyTokens.flatMapLatest { tokens ->
+        combine(tokens.map { token ->
+            soraCardInteractor.observeBuyTokenVisibility(token.symbol).map { token to it }
+        }) { values ->
+            values.toMap()
+        }
+    }
 
     @OptIn(FlowPreview::class)
     private fun createNFTCollectionScreenViewsFlow(): Flow<Pair<LoadableListPage<NFTCollectionsScreenView>, ScreenLayout>> {
@@ -584,6 +605,12 @@ class BalanceListViewModel @Inject constructor(
     val state = MutableStateFlow(WalletState.default)
 
     private fun subscribeScreenState() {
+        currentMetaAccountFlow.map {
+            it.supportedEcosystems().contains(WalletEcosystem.Substrate)
+        }.distinctUntilChanged().onEach {
+            state.value = state.value.copy(isCurrentAccountSubstrate = it)
+        }.launchIn(viewModelScope)
+
         assetTypeState.onEach {
             state.value = state.value.copy(assetsState = it)
         }.launchIn(viewModelScope)
@@ -603,11 +630,11 @@ class BalanceListViewModel @Inject constructor(
         combine(
             soraCardInteractor.basicStatus,
             interactor.observeIsShowSoraCard(),
-            soraCardInteractor.observeBuyXorVisibility()
-        ) { soraCardStatus, isSoraCardVisible, isBuyXorVisible ->
-            Triple(soraCardStatus, isSoraCardVisible, isBuyXorVisible)
+            soracardBuyTokensVisibilityFlow
+        ) { soraCardStatus, isSoraCardVisible, buySoracardVisibility ->
+            Triple(soraCardStatus, isSoraCardVisible, buySoracardVisibility)
         }
-            .onEach { (soraCardStatus, isSoraCardVisible, isBuyXorVisible) ->
+            .onEach { (soraCardStatus, isSoraCardVisible, buySoracardVisibility) ->
 
                 soraCardStatus.availabilityInfo?.let {
                     currentSoraCardContractData = createSoraCardContract(
@@ -619,6 +646,9 @@ class BalanceListViewModel @Inject constructor(
                 val ibanStatus =
                     soraCardStatus.ibanInfo?.ibanStatus?.readyToStartGatehubOnboarding()
 
+                val buySoracardTokens = buySoracardVisibility.filter { it.value }.keys.toList()
+                val isBuySoracardVisible = buySoracardTokens.isNotEmpty()
+
                 state.update {
                     it.copy(
                         soraCardState = it.soraCardState.copy(
@@ -628,7 +658,8 @@ class BalanceListViewModel @Inject constructor(
                             loading = false,
                             success = mapped.second,
                             iban = soraCardStatus.ibanInfo,
-                            buyXor = if (isBuyXorVisible && (ibanStatus == true)) SoraCardBuyXorState(
+                            buyCrypto = if (isBuySoracardVisible && (ibanStatus == true)) SoraCardBuyCryptoState(
+                                tokens = buySoracardTokens,
                                 enabled = ibanStatus,
                             ) else null,
                         )
@@ -1020,11 +1051,11 @@ class BalanceListViewModel @Inject constructor(
         interactor.hideSoraCard()
     }
 
-    override fun buyXorClose() {
-        soraCardInteractor.hideBuyXor()
+    override fun buySoracardTokenClose(symbol: String) {
+        soraCardInteractor.hideBuyToken(symbol)
     }
 
-    override fun buyXorClick() {
+    override fun buySoracardTokenClick(symbol: String) {
         if (soraCardInteractor.basicStatus.value.initialized) {
             _launchSoraCardSignIn.value = createSoraCardGateHubContract()
         }

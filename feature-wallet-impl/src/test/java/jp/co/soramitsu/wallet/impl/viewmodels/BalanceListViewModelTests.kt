@@ -168,7 +168,7 @@ class BalanceListViewModelTests {
         )
         every { nomisScoreInteractor.observeCurrentAccountScore() } returns flowOf(createNomis())
         every { walletInteractor.isShowGetSoraCard() } returns true
-        every { soraCardInteractor.observeBuyXorVisibility() } returns flowOf(true)
+        every { walletInteractor.assetsFlow() } returns flowOf(emptyList())
         every { walletInteractor.observeIsShowSoraCard() } returns flowOf(true)
         coEvery { soraCardInteractor.initialize() } just runs
         every { walletInteractor.networkIssuesFlow() } returns flowOf(emptyMap())

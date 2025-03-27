@@ -108,6 +108,7 @@ import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.impl.domain.adapter
 import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
 import javax.inject.Named
 import javax.inject.Singleton
+import jp.co.soramitsu.wallet.impl.data.buyToken.SoracardProvider
 
 private const val TIMEOUT_SECONDS = 60L
 private const val HTTP_CACHE = "http_cache"
@@ -404,7 +405,8 @@ class WalletFeatureModule {
                 CoinbaseProvider(
                     host = BuildConfig.COINBASE_HOST,
                     appId = BuildConfig.COINBASE_APP_ID
-                )
+                ),
+                SoracardProvider()
             )
         )
     }

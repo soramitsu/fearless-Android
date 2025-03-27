@@ -117,6 +117,8 @@
   <string name="banners_backup_description">Protect yourself from losing access to your funds</string>
   <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
   <string name="banners_demeter_title">Demeter Protocol</string>
+  <string name="banners_buy_token_format">Buy %s</string>
+  <string name="banners_buy_or_sell_token_format">Buy or sell %s</string>
   <string name="banners_buy_xor">Buy XOR</string>
   <string name="banners_buy_xor_description">Buy or sell XOR token with\nEuro cash</string>
   <string name="banners_buy_xor_title">Buy XOR token</string>

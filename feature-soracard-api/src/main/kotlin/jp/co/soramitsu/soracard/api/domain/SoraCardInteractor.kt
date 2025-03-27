@@ -18,7 +18,7 @@ interface SoraCardInteractor {
     suspend fun setStatus(status: SoraCardCommonVerification)
     suspend fun setLogout()
 
-    fun observeBuyXorVisibility(): Flow<Boolean>
-    fun hideBuyXor()
+    fun observeBuyTokenVisibility(symbol: String): Flow<Boolean>
+    fun hideBuyToken(symbol: String)
     fun getSoraCardProgress(): SoraCardProgress
 }

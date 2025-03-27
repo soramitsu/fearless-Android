@@ -47,7 +47,7 @@ class SoraCardInteractorImpl @Inject constructor(
 ) : SoraCardInteractor {
 
     companion object {
-        private const val PREFS_SORA_CARD_BUY_XOR_VISIBILITY = "prefs_sora_card_buy_xor_visibility"
+        private const val PREFS_SORA_CARD_BUY_TOKEN_VISIBILITY = "prefs_sora_card_buy_%s_visibility"
         private const val PREFS_SORA_CARD_PROGRESS = "prefs_sora_card_progress"
         private const val POLLING_PERIOD_IN_MILLIS = 90_000L
     }
@@ -69,11 +69,11 @@ class SoraCardInteractorImpl @Inject constructor(
     private val _phoneFlow = MutableStateFlow("")
     private val _verStatus = MutableStateFlow(SoraCardCommonVerification.NotFound)
 
-    override fun observeBuyXorVisibility(): Flow<Boolean> =
-        preferences.booleanFlow(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, true)
+    override fun observeBuyTokenVisibility(symbol: String): Flow<Boolean> =
+        preferences.booleanFlow(PREFS_SORA_CARD_BUY_TOKEN_VISIBILITY.format(symbol), true)
 
-    override fun hideBuyXor() {
-        preferences.putBoolean(PREFS_SORA_CARD_BUY_XOR_VISIBILITY, false)
+    override fun hideBuyToken(symbol: String) {
+        preferences.putBoolean(PREFS_SORA_CARD_BUY_TOKEN_VISIBILITY.format(symbol), false)
     }
 
     override fun getSoraCardProgress(): SoraCardProgress =

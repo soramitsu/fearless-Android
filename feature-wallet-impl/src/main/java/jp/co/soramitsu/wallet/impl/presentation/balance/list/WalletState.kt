@@ -24,6 +24,7 @@ data class WalletState(
     val hasTonAccounts: Boolean,
     val hasSubOrEvmAccounts: Boolean,
     val showCurrenciesOrNftSelector: Boolean,
+    val isCurrentAccountSubstrate: Boolean,
     val scrollToTopEvent: Event<Unit>?,
     val scrollToBottomEvent: Event<Unit>?,
 ) {
@@ -38,6 +39,7 @@ data class WalletState(
             hasTonAccounts = false,
             hasSubOrEvmAccounts = false,
             showCurrenciesOrNftSelector = false,
+            isCurrentAccountSubstrate = false,
             scrollToTopEvent = null,
             scrollToBottomEvent = null
         )

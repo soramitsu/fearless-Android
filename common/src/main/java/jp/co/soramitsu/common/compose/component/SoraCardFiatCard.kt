@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.oauth.base.sdk.contract.IbanInfo
 import jp.co.soramitsu.oauth.base.sdk.contract.IbanStatus
 
@@ -39,7 +40,7 @@ data class SoraCardItemViewState(
     val loading: Boolean,
     val success: Boolean,
     val iban: IbanInfo?,
-    val buyXor: SoraCardBuyXorState? = null,
+    val buyCrypto: SoraCardBuyCryptoState? = null,
     val soraCardProgress: SoraCardProgress,
 )
 
@@ -53,12 +54,13 @@ val previewSoraCardItemViewState = SoraCardItemViewState(
         balance = "3 456",
         statusDescription = "desc",
     ),
-    buyXor = SoraCardBuyXorState(true),
+    buyCrypto = SoraCardBuyCryptoState(emptyList(), true),
     soraCardProgress = SoraCardProgress.START,
     loading = false,
 )
 
-data class SoraCardBuyXorState(
+data class SoraCardBuyCryptoState(
+    val tokens: List<Asset>,
     val enabled: Boolean,
 )
 
@@ -171,7 +173,7 @@ private fun PreviewAssetListItem() {
                         visible = true,
                         success = false,
                         iban = null,
-                        buyXor = SoraCardBuyXorState(true),
+                        buyCrypto = SoraCardBuyCryptoState(emptyList(), true),
                         soraCardProgress = SoraCardProgress.KYC_IBAN,
                         loading = false,
                     ),
@@ -190,7 +192,7 @@ private fun PreviewAssetListItem() {
                             balance = "123.9",
                             statusDescription = "closed",
                         ),
-                        buyXor = SoraCardBuyXorState(true),
+                        buyCrypto = SoraCardBuyCryptoState(emptyList(), true),
                         soraCardProgress = SoraCardProgress.KYC_IBAN,
                         loading = false,
                     ),
@@ -204,7 +206,7 @@ private fun PreviewAssetListItem() {
                         visible = true,
                         success = true,
                         iban = null,
-                        buyXor = SoraCardBuyXorState(true),
+                        buyCrypto = SoraCardBuyCryptoState(emptyList(), true),
                         soraCardProgress = SoraCardProgress.KYC_IBAN,
                         loading = false,
                     ),

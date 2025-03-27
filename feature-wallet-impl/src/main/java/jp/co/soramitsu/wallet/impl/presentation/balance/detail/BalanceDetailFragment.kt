@@ -42,8 +42,11 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
+import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
+import jp.co.soramitsu.wallet.impl.data.buyToken.SoracardProvider
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
-import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.setupBuyIntegration
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyProviderChooserBottomSheet
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.SwapDetailState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailCallbacks
@@ -72,10 +75,14 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         hideKeyboard()
     }
 
+    private val soraCardSignIn = registerForActivityResult(
+        SoraCardContract()
+    ) { viewModel.handleSoraCardResult(it) }
+
     private fun subscribe(viewModel: BalanceDetailViewModel) {
         viewModel.sync()
 
-        setupBuyIntegration(viewModel)
+        setupBuyIntegrationLocal(viewModel)
         setupExternalActions(viewModel)
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
 
@@ -89,6 +96,31 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
 
         viewModel.shareUrlEvent.observeEvent {
             shareUrl(it)
+        }
+
+        viewModel.launchSoraCardSignIn.observe { contractData ->
+            soraCardSignIn.launch(contractData)
+        }
+    }
+
+    private fun setupBuyIntegrationLocal(viewModel: BalanceDetailViewModel) {
+        viewModel.integrateWithBuyProviderEvent.observeEvent {
+            if (it.provider is SoracardProvider) {
+                viewModel.handleBuySoracard()
+            } else {
+                (it.provider as? ExternalProvider)?.createIntegrator(it.chainAsset, it.address)?.integrate(requireContext())
+            }
+        }
+
+        viewModel.showProviderChooserEvent.observeEvent { payload ->
+            BuyProviderChooserBottomSheet(
+                requireContext(),
+                payload.providers,
+                payload.chainAsset,
+                onClick = {
+                    viewModel.providerChosen(it, payload.chainAsset, payload.accountAddress)
+                }
+            ).show()
         }
     }
 

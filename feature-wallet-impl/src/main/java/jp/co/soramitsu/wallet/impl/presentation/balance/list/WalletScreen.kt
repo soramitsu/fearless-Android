@@ -30,10 +30,10 @@ import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.BannerBackup
-import jp.co.soramitsu.common.compose.component.BannerBuyXor
+import jp.co.soramitsu.common.compose.component.BannerBuyToken
+import jp.co.soramitsu.common.compose.component.BannerGetSoraCard
 import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
 import jp.co.soramitsu.common.compose.component.BannerJoinTon
-import jp.co.soramitsu.common.compose.component.BannerGetSoraCard
 import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
@@ -62,8 +62,8 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onBalanceClicked()
     fun soraCardClicked()
     fun soraCardClose()
-    fun buyXorClick()
-    fun buyXorClose()
+    fun buySoracardTokenClick(symbol: String)
+    fun buySoracardTokenClose(symbol: String)
     fun onBackupClicked()
     fun onBackupCloseClick()
     fun onJoinSubOrEvmClicked()
@@ -165,8 +165,9 @@ private fun Banners(
     callback: WalletScreenInterface,
     autoPlay: Boolean = true
 ) {
+    val showSoraBanners = data.isCurrentAccountSubstrate
     val soraCardFiatItem: @Composable (() -> Unit)? =
-        if (data.soraCardState.soraCardProgress == SoraCardProgress.KYC_IBAN) {
+        if (showSoraBanners && data.soraCardState.soraCardProgress == SoraCardProgress.KYC_IBAN) {
             {
                 SoraCardFiatCard(
                     state = data.soraCardState,
@@ -177,18 +178,29 @@ private fun Banners(
         } else {
             null
         }
-    val buyXorBanner: @Composable (() -> Unit)? = data.soraCardState.buyXor?.let { state ->
-        {
-            BannerBuyXor(
-                onBuyXorClick = callback::buyXorClick,
-                onBuyXorCloseClick = callback::buyXorClose,
-                enabled = state.enabled,
-            )
+
+    val buySoraTokenBanners: List<@Composable (() -> Unit)>? =
+        if (showSoraBanners) {
+            data.soraCardState.buyCrypto?.let { state ->
+                state.tokens.map { token ->
+                    {
+                        BannerBuyToken(
+                            symbol = token.symbol,
+                            color = token.color,
+                            imageUrl = token.iconUrl,
+                            enabled = state.enabled,
+                            onBuyTokenClick = { callback.buySoracardTokenClick(token.symbol) },
+                            onBuyTokenCloseClick = { callback.buySoracardTokenClose(token.symbol) },
+                        )
+                    }
+                }
+            }
+        } else {
+            null
         }
-    }
 
     val getSoraCardBanner: @Composable (() -> Unit)? =
-        if (data.soraCardState.soraCardProgress == SoraCardProgress.START && data.soraCardState.visible) {
+        if (showSoraBanners && data.soraCardState.soraCardProgress == SoraCardProgress.START && data.soraCardState.visible) {
             {
                 BannerGetSoraCard(
                     onClose = callback::soraCardClose,
@@ -232,7 +244,7 @@ private fun Banners(
         null
     }
 
-    val banners = listOfNotNull(getSoraCardBanner, buyXorBanner, backupBanner, joinSubOrEvmBanner, joinTonBanner)
+    val banners = listOf(getSoraCardBanner).plus(buySoraTokenBanners.orEmpty()).plus(backupBanner).plus(joinSubOrEvmBanner).plus(joinTonBanner).mapNotNull { it }
     val bannersCount = banners.size
     val pagerState = rememberPagerState { bannersCount }
 
@@ -269,7 +281,6 @@ private fun Banners(
                 )
 
                 if (bannersCount > 1) {
-                    MarginVertical(margin = 8.dp)
                     BannerPageIndicator(bannersCount, pagerState)
                 }
             }
@@ -322,8 +333,8 @@ private fun PreviewWalletScreen() {
     val emptyCallback = object : WalletScreenInterface {
         override fun soraCardClicked() {}
         override fun soraCardClose() {}
-        override fun buyXorClick() {}
-        override fun buyXorClose() {}
+        override fun buySoracardTokenClick(symbol: String) {}
+        override fun buySoracardTokenClose(symbol: String) {}
         override fun onAddressClick() {}
         override fun onBalanceClicked() {}
         override fun onBackupClicked() {}
@@ -398,6 +409,7 @@ private fun PreviewWalletScreen() {
                     hasTonAccounts = false,
                     hasSubOrEvmAccounts = false,
                     showCurrenciesOrNftSelector = false,
+                    isCurrentAccountSubstrate = false,
                     scrollToTopEvent = null,
                     scrollToBottomEvent = null
                 ),

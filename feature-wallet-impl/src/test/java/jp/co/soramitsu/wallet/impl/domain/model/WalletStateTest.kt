@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
 import jp.co.soramitsu.common.compose.component.SoraCardProgress
-import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import org.junit.Assert.assertEquals

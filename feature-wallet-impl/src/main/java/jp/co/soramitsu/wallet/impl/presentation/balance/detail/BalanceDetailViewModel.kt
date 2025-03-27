@@ -7,10 +7,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
+import jp.co.soramitsu.androidfoundation.fragment.SingleLiveEvent
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -31,16 +34,27 @@ import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.IbanStatus
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedTransactionExplorers
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
+import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
+import jp.co.soramitsu.soracard.api.util.createSoraCardContract
+import jp.co.soramitsu.soracard.api.util.createSoraCardGateHubContract
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -74,10 +88,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
-import jp.co.soramitsu.core.models.Ecosystem
-import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -93,7 +103,9 @@ class BalanceDetailViewModel @Inject constructor(
     private val clipboardManager: ClipboardManager,
     addressDisplayUseCase: AddressDisplayUseCase,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val xcmService: XcmService
+    private val xcmService: XcmService,
+    private val soraCardInteractor: SoraCardInteractor,
+    private val soraCardRouter: SoraCardRouter
 ) : BaseViewModel(),
     BalanceDetailsScreenInterface,
     DefaultLifecycleObserver,
@@ -159,6 +171,11 @@ class BalanceDetailViewModel @Inject constructor(
             )
         }
         .share()
+
+    private var currentSoraCardContractData: SoraCardContractData? = null
+
+    private val _launchSoraCardSignIn = SingleLiveEvent<SoraCardContractData>()
+    val launchSoraCardSignIn: LiveData<SoraCardContractData> = _launchSoraCardSignIn
 
     override fun onResume(owner: LifecycleOwner) {
         super.onResume(owner)
@@ -231,6 +248,17 @@ class BalanceDetailViewModel @Inject constructor(
                 )
             }
         }.launchIn(viewModelScope)
+
+        soraCardInteractor.basicStatus
+            .onEach {
+                it.availabilityInfo?.let { info ->
+                    currentSoraCardContractData = createSoraCardContract(
+                        userAvailableXorAmount = info.xorBalance.toDouble(),
+                        isEnoughXorAvailable = info.enoughXor,
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
 
         subscribeScreenState()
     }
@@ -599,5 +627,83 @@ class BalanceDetailViewModel @Inject constructor(
 
     fun openUrl(url: String) {
         externalAccountActions.viewExternalClicked(url)
+    }
+
+    fun handleSoraCardResult(soraCardResult: SoraCardResult) {
+        when (soraCardResult) {
+            is SoraCardResult.NavigateTo -> {
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> { /*do nothing*/
+                    }
+
+                    OutwardsScreen.SWAP -> {
+                        soraCardRouter.openSwapTokensScreen(
+                            chainId = soraCardInteractor.soraCardChainId,
+                            assetIdFrom = null,
+                            assetIdTo = null,
+                        )
+                    }
+
+                    OutwardsScreen.BUY -> {
+                        soraCardRouter.showBuyCrypto()
+                    }
+                }
+            }
+
+            is SoraCardResult.Success -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setStatus(soraCardResult.status)
+                }
+            }
+
+            is SoraCardResult.Failure -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setStatus(soraCardResult.status)
+                }
+            }
+
+            is SoraCardResult.Canceled -> { /*do nothing*/
+            }
+
+            is SoraCardResult.Logout -> {
+                viewModelScope.launch {
+                    soraCardInteractor.setLogout()
+                }
+            }
+        }
+    }
+
+    fun handleBuySoracard() {
+        if (soraCardInteractor.basicStatus.value.initialized) {
+            when {
+                soraCardInteractor.basicStatus.value.ibanInfo != null && soraCardInteractor.basicStatus.value.ibanInfo?.ibanStatus != IbanStatus.OTHER -> {
+                    soraCardGateHubLaunch()
+                }
+
+                soraCardInteractor.basicStatus.value.verification == SoraCardCommonVerification.NotFound -> {
+                    router.openGetSoraCard()
+                }
+
+                soraCardInteractor.basicStatus.value.verification == SoraCardCommonVerification.Successful -> {
+                    soraCardGateHubLaunch()
+                }
+
+                else -> {
+                    currentSoraCardContractData?.let { contractData ->
+                        _launchSoraCardSignIn.value = contractData
+                    }
+                }
+            }
+        } else {
+            soraCardInteractor.basicStatus.value.initError.takeIf {
+                it.isNullOrEmpty().not()
+            }?.let {
+                showMessage(it)
+            }
+        }
+    }
+
+    private fun soraCardGateHubLaunch() {
+        _launchSoraCardSignIn.value = createSoraCardGateHubContract()
     }
 }
