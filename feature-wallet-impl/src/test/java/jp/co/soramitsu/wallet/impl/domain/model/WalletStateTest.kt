@@ -23,7 +23,7 @@ class WalletStateTest {
         assertEquals(null, s.scrollToBottomEvent)
         assertEquals(true, s.isBackedUp)
         assertEquals(false, s.hasNetworkIssues)
-        assertEquals(SoraCardItemViewState(visible = false, success = false, iban = null), s.soraCardState)
+        assertEquals(SoraCardItemViewState(visible = true, loading = true, success = false, iban = null, soraCardProgress = SoraCardProgress.START), s.soraCardState)
         assertEquals(AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")), s.balance)
 //        assertEquals(WalletAssetsState.Assets(AssetsLoadingState.Loading(), isHideVisible = true), s.assetsState)
         assertEquals(MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)), s.multiToggleButtonState)
