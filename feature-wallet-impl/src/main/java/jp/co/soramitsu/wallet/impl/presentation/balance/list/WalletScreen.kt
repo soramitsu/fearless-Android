@@ -246,8 +246,11 @@ private fun Banners(
 
     val banners = listOf(getSoraCardBanner).plus(buySoraTokenBanners.orEmpty()).plus(backupBanner).plus(joinSubOrEvmBanner).plus(joinTonBanner).mapNotNull { it }
     val bannersCount = banners.size
-    val pagerState = rememberPagerState { bannersCount }
-
+    val infinitePageSize = 100000
+    val pagerState = rememberPagerState(
+        pageCount = { bannersCount * infinitePageSize },
+        initialPage = bannersCount * infinitePageSize / 2
+    )
     if (bannersCount > 1) {
         // Auto play
         LaunchedEffect(key1 = autoPlay) {
@@ -256,7 +259,7 @@ private fun Banners(
                     delay(5000L)
                     with(pagerState) {
                         animateScrollToPage(
-                            page = (currentPage + 1) % bannersCount,
+                            page = (currentPage + 1) % pageCount,
                             animationSpec = tween(
                                 durationMillis = 500,
                                 easing = FastOutSlowInEasing
@@ -276,8 +279,8 @@ private fun Banners(
                     state = pagerState,
                     pageSpacing = 8.dp,
                     pageContent = { page ->
-                        banners[page].invoke()
-                    }
+                        banners[page % bannersCount].invoke()
+                    },
                 )
 
                 if (bannersCount > 1) {
