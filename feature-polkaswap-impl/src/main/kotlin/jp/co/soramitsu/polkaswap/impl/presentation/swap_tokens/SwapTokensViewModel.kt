@@ -7,10 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -68,6 +64,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 
 typealias TooltipEvent = Event<Pair<String, String>>
 
@@ -323,7 +323,7 @@ class SwapTokensViewModel @Inject constructor(
 
         viewModelScope.launch {
             observeAvailableSources()
-            initialFee = polkaswapInteractor.calcFakeFee()
+            initialFee = kotlin.runCatching { polkaswapInteractor.calcFakeFee() }.getOrNull().orZero()
         }
 
         combine(

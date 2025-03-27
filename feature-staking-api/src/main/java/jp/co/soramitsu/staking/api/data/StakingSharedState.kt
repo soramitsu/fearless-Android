@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -69,12 +70,13 @@ class StakingSharedState(
         private const val DELIMITER = ":"
     }
 
+    private val chains = scope.async { chainsRepository.getChains() }
+
     private val cachedStakingAssetsFlow = accountRepository.selectedMetaAccountFlow()
         .map { metaAccount ->
-            val chains = chainsRepository.getChains()
-            val relevantChains = chains.filter { metaAccount.accountId(it) != null }
+            val relevantChains = chains.await().filter { metaAccount.accountId(it) != null }
             val assets = walletRepository.getAssets(metaAccount.id)
-            
+
             assets.mapNotNull { asset ->
                 val chain = relevantChains.find { chain ->
                     chain.assets.any { chainAsset ->
@@ -84,8 +86,8 @@ class StakingSharedState(
                     }
                 }
                 if (chain != null) asset to chain else null
-            }.sortedBy { (asset, _) -> 
-                asset.token.configuration.orderInStaking 
+            }.sortedBy { (asset, _) ->
+                asset.token.configuration.orderInStaking
             }
         }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
@@ -108,19 +110,15 @@ class StakingSharedState(
         .filterNotNull()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.map { (chainId, chainAssetId) ->
-        val (asset, chain) = cachedStakingAssetsFlow.first().find { it.first.chainId == chainId && it.first.id == chainAssetId }!!
-        SingleAssetSharedState.AssetWithChain(chain, asset.token.configuration)
+    val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.mapNotNull { (chainId, chainAssetId) ->
+        val chain = chainsRepository.getChain(chainId)
+        val asset = chain.assetsById[chainAssetId] ?: return@mapNotNull null
+
+        SingleAssetSharedState.AssetWithChain(chain, asset)
     }
         .distinctUntilChanged()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    suspend fun assetWithChain(selectionItem: StakingAssetSelection) {
-        val (asset, chain) = cachedStakingAssetsFlow.first().find { it.first.chainId == selectionItem.chainId && it.first.id == selectionItem.chainAssetId }!!
-        SingleAssetSharedState.AssetWithChain(chain, asset.token.configuration)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun currentAssetFlow() = combine(
         assetWithChain,
         accountRepository.selectedMetaAccountFlow(),
@@ -138,13 +136,13 @@ class StakingSharedState(
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableAssetsToSelect(): List<Asset> {
-        return cachedStakingAssetsFlow.first().map { it.first }
+        return cachedStakingAssetsFlow.first{ it.isNotEmpty() }.map { it.first }
     }
 
     suspend fun availableToSelect(): List<StakingAssetSelection> {
 //        val wallet = accountRepository.getSelectedMetaAccount()
 
-        val allChains = cachedStakingAssetsFlow.first().map { it.second }
+        val allChains = cachedStakingAssetsFlow.first{ it.isNotEmpty() }.map { it.second }
 
         return allChains.map { chain ->
             val staking = chain.assets.filter { chainAsset ->
