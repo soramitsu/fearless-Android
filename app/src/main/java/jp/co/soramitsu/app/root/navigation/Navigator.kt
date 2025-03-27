@@ -181,7 +181,6 @@ import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionPr
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
 import kotlinx.coroutines.coroutineScope
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

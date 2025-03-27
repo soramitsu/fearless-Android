@@ -228,7 +228,7 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): TransferValidityStatus {
-        val feeResponse = getTransferFee(chain, transfer, additional, batchAll)
+        val feeResponse = kotlin.runCatching { getTransferFee(chain, transfer, additional, batchAll) }.getOrNull().orZero()
 
         val chainAsset = transfer.chainAsset
 

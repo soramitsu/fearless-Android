@@ -57,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -164,6 +165,7 @@ class ConfirmSendViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
         .flatMapLatest { interactor.observeTransferFee(it) }
+        .catch { showError(it.message ?: resourceManager.getString(R.string.fee_calculation_error)) }
         .onStart { transferDraft.fee }
 
     val state = MutableStateFlow(ConfirmSendViewState.default)

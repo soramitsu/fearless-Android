@@ -190,7 +190,8 @@ fun BalanceDetailsScreen(
         val dragState = rememberDraggableState(onDelta = {
             nestedScrollConnection.preScrollFromParentLayout(Offset(0f, it))
         })
-        val padding = ((1 - nestedScrollConnection.expandPercent) * 16).dp
+
+        val padding = ((1 - nestedScrollConnection.expandPercent) * 16).coerceAtLeast(0F).dp
         Column(
             modifier = Modifier
                 .height(height.value)

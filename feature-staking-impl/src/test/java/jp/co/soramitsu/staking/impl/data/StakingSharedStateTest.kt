@@ -80,6 +80,7 @@ class StakingSharedStateTest {
         chain = mock(Chain::class.java).apply {
             given(id).willReturn(testChainId)
             given(assets).willReturn(listOf(chainAsset))
+            given(assetsById).willReturn(mapOf(testAssetId to chainAsset))
             given(ecosystem).willReturn(Ecosystem.Substrate)
         }
 
@@ -110,6 +111,7 @@ class StakingSharedStateTest {
 
         given(accountRepository.selectedMetaAccountFlow()).willReturn(metaAccountFlow)
         givenBlocking { chainsRepository.getChains() }.willReturn(listOf(chain))
+        givenBlocking { chainsRepository.getChain(testChainId) }.willReturn(chain)
         givenBlocking { walletRepository.getAssets(metaAccountId) }.willReturn(listOf(asset))
 
         val initialSelection = StakingAssetSelection.RelayChainStaking(testChainId, testAssetId)
@@ -145,7 +147,7 @@ class StakingSharedStateTest {
     }
 
     @Test
-    fun `should return available staking selections`() = runTest(testDispatcher, timeout = 5.seconds) {
+    fun `should return available staking selections`() = runTest(testDispatcher) {
         val selections = stakingSharedState.availableToSelect()
 
         assertEquals(2, selections.size) // One for RelayChain and one for Pool
@@ -295,6 +297,7 @@ class StakingSharedStateTest {
         val parachainChain = mock(Chain::class.java).apply {
             given(id).willReturn("parachain")
             given(assets).willReturn(listOf(parachainAsset))
+            given(assetsById).willReturn(mapOf(testAssetId to parachainAsset))
             given(ecosystem).willReturn(Ecosystem.Substrate)
         }
 
@@ -327,6 +330,7 @@ class StakingSharedStateTest {
         }
 
         givenBlocking { walletRepository.getAssets(metaAccountId) }.willReturn(listOf(parachainWalletAsset))
+        givenBlocking { chainsRepository.getChain("parachain") }.willReturn(parachainChain)
 
         // Setup initial selection
         val initialSelection = StakingAssetSelection.ParachainStaking("parachain", testAssetId)
