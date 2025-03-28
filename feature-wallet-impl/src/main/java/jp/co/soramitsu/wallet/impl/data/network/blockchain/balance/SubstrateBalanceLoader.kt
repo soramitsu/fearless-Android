@@ -60,7 +60,7 @@ class SubstrateBalanceLoader(
 ) : BalanceLoader(chain) {
 
     companion object {
-        private const val CHAIN_SYNC_TIMEOUT_MILLIS: Long = 15_000L
+        private const val CHAIN_SYNC_TIMEOUT_MILLIS: Long = 5_000L
     }
 
     private val tag = "SubstrateBalanceLoader (${chain.name})"
@@ -73,10 +73,6 @@ class SubstrateBalanceLoader(
             }
             val emptyAssets: MutableList<AssetBalanceUpdateItem> = mutableListOf()
             val runtime = withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
-                if (chainRegistry.checkChainSyncedUp(chain).not()) {
-                    chainRegistry.setupChain(chain)
-                }
-
                 // awaiting runtime snapshot
                 chainRegistry.awaitRuntimeProvider(chain.id).get()
             }

@@ -79,8 +79,8 @@ data class AssetUpdateItem(
     val chainId: String,
     val accountId: AccountId,
     val id: String,
-    var sortIndex: Int,
-    var enabled: Boolean,
+    val sortIndex: Int,
+    val enabled: Boolean,
     val tokenPriceId: String?
 )
 

@@ -3,10 +3,8 @@ package jp.co.soramitsu.runtime.multiNetwork
 import android.util.Log
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.utils.diffed
-import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
@@ -29,7 +27,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -37,16 +34,13 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.job
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -65,7 +59,7 @@ class ChainRegistry @Inject constructor(
     private val runtimeSyncService: RuntimeSyncService,
     private val networkStateService: NetworkStateService,
     private val ethereumConnectionPool: EthereumConnectionPool,
-    assetsCache: AssetReadOnlyCache,
+    private val assetsCache: AssetReadOnlyCache,
     private val chainsRepository: ChainsRepository,
     private val chainEnvironmentConfiguratorProvider: ChainEnvironmentConfiguratorProvider,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -80,26 +74,8 @@ class ChainRegistry @Inject constructor(
         .distinctUntilChanged()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    private val enabledAssetsFlow = assetsCache.observeAllEnabledAssets()
-        .onStart { emit(emptyList()) }
-
     private val chainsToSync = chainDao.joinChainInfoFlow()
         .mapList(::mapChainLocalToChain)
-        .combine(enabledAssetsFlow) { chains, enabledAssets ->
-            val popularChains = chains.filter { it.rank != null }
-            val enabledChains =
-                enabledAssets.mapNotNull { asset -> chains.find { chain -> chain.id == asset.chainId } }
-            val chainsWithCrowdloans = chains.filter { it.hasCrowdloans }
-            val chainsWithStaking = chains.filter {
-                it.assets.any { asset -> asset.staking == Asset.StakingType.PARACHAIN || asset.staking == Asset.StakingType.RELAYCHAIN || asset.supportStakingPool }
-            }
-            val identityHolders =
-                chains.filter { chain -> chain.identityChain != null }.map { it.identityChain }
-                    .mapNotNull { identityChain -> chains.find { it.id == identityChain } }
-
-            (popularChains + enabledChains + chainsWithCrowdloans + chainsWithStaking + identityHolders).toSet()
-                .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
-        }
         .diffed()
         .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }
         .flowOn(dispatcher)

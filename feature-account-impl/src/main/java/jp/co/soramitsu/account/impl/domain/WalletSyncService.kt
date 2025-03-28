@@ -3,6 +3,9 @@ package jp.co.soramitsu.account.impl.domain
 import android.util.Log
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.hasEthereum
+import jp.co.soramitsu.account.api.domain.model.hasSubstrate
+import jp.co.soramitsu.account.api.domain.model.hasTon
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.toLocal
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
@@ -19,6 +22,7 @@ import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
@@ -34,6 +38,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
@@ -42,8 +47,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private const val TAG = "WalletSyncService"
 
@@ -78,7 +87,7 @@ class WalletSyncService(
     private var syncJob: Job? = null
 
     fun start() {
-        observeNotInitializedMetaAccounts()
+        observeNotInitializedMetaAccounts1()
 //        observeNotInitializedChainAccounts()
         observeNomisScores()
     }
@@ -195,6 +204,142 @@ class WalletSyncService(
                 }
             }
             .launchIn(scope)
+    }
+
+    private fun observeNotInitializedMetaAccounts1() {
+        metaAccountDao.observeNotInitializedMetaAccounts().filter { it.isNotEmpty() }
+            .onEach { localMetaAccounts ->
+                handleNewAccounts(localMetaAccounts)
+            }
+            .launchIn(scope)
+    }
+
+    private val processingAccounts = mutableSetOf<Long>()
+    private val mutex = Mutex()
+
+    private suspend fun handleNewAccounts(accounts: List<RelationJoinedMetaAccountInfo>) {
+        accounts.forEach { account ->
+            mutex.withLock {
+                if (processingAccounts.contains(account.metaAccount.id)) return@forEach
+                processingAccounts.add(account.metaAccount.id)
+            }
+            launchAssetLoading(account)
+        }
+    }
+
+    private fun launchAssetLoading(account: RelationJoinedMetaAccountInfo) {
+        scope.launch {
+            try {
+                val freshAccount = metaAccountDao.getMetaAccount(account.metaAccount.id) ?: return@launch
+                if (freshAccount.initialized) return@launch
+
+                loadBalances(account)
+
+                metaAccountDao.markAccountsInitialized(listOf(account.metaAccount.id))
+
+            } catch (e: Exception) {
+                Log.d(TAG, "Error while loading balance: $e")
+            } finally {
+                mutex.withLock {
+                    processingAccounts.remove(account.metaAccount.id)
+                }
+            }
+        }
+    }
+    private suspend fun loadBalances(account: RelationJoinedMetaAccountInfo) {
+        val chains = chainsRepository.getChains()
+
+        val metaAccount =
+            mapMetaAccountLocalToMetaAccount(
+                chains.associateBy { it.id },
+                account
+            )
+
+        val ecosystemsToLoad = mutableSetOf<Ecosystem>().apply {
+            if(metaAccount.hasEthereum) {
+                add(Ecosystem.Ethereum)
+                add(Ecosystem.EthereumBased)
+            }
+            if(metaAccount.hasSubstrate) {
+                add(Ecosystem.Substrate)
+            }
+            if(metaAccount.hasTon) {
+                add(Ecosystem.Ton)
+            }
+        }
+        val chainsToLoad = chains.asSequence().filter { it.ecosystem in ecosystemsToLoad }.toList()
+
+        val balances = coroutineScope {
+            chainsToLoad
+                .map { async { loadBalances(metaAccount, it) } }
+                .awaitAll()
+                .flatten()
+        }
+
+        val assetsLocal = convertBalancesToAssetLocal(balances, chainsToLoad)
+        assetDao.insertAssets(assetsLocal)
+        assetDao.hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaAccount.id)
+    }
+
+    private suspend fun loadBalances(metaAccount: MetaAccount, chain: Chain): List<AssetBalanceUpdateItem> {
+        val provider = balanceLoaderProvider.invoke(chain)
+        val remoteBalances =  retry(retries = 3, delay = 1.seconds, factor = 2.0) {
+                provider.loadBalance(setOf(metaAccount))
+            }
+        val balances = remoteBalances ?: chain.assets.mapNotNull { asset ->
+            val accountId =
+                metaAccount.accountId(chain) ?: return@mapNotNull null
+
+            AssetBalanceUpdateItem(
+                metaId = metaAccount.id,
+                chainId = chain.id,
+                accountId = accountId,
+                id = asset.id
+            )
+        }
+        return balances
+    }
+
+    private fun convertBalancesToAssetLocal(balances: List<AssetBalanceUpdateItem>, chains: List<Chain>): List<AssetLocal> {
+        val accountHasAssetWithPositiveBalance = balances.any { it.freeInPlanks.positiveOrNull() != null }
+        return balances.mapNotNull { balance ->
+            val chain = chains.find { it.id == balance.chainId } ?: return@mapNotNull null
+            val chainAsset = chain.assetsById.getOrDefault(balance.id, null) ?: return@mapNotNull null
+            val isPopularUtilityAsset =
+                chain.rank != null && chainAsset.isUtility
+            val isTonAsset = chain.ecosystem == Ecosystem.Ton && chainAsset.symbol.equals("TON", ignoreCase = true)
+
+            AssetLocal(
+                id = balance.id,
+                chainId = balance.chainId,
+                accountId = balance.accountId,
+                metaId = balance.metaId,
+                tokenPriceId = chainAsset.priceId,
+                freeInPlanks = balance.freeInPlanks,
+                reservedInPlanks = balance.reservedInPlanks,
+                miscFrozenInPlanks = balance.miscFrozenInPlanks,
+                feeFrozenInPlanks = balance.feeFrozenInPlanks,
+                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) || isTonAsset
+            )
+        }
+    }
+
+    private suspend fun <T> retry(
+        retries: Int,
+        delay: Duration,
+        factor: Double,
+        block: suspend () -> T
+    ): T? {
+        var currentDelay = delay
+        repeat(retries) {
+            try {
+                return block()
+            } catch (e: Exception) {
+                delay(currentDelay)
+                currentDelay = (currentDelay * factor)
+            }
+        }
+        return null
     }
 
 //    private fun observeNotInitializedChainAccounts() {
