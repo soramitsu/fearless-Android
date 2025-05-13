@@ -6,11 +6,11 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
-import jp.co.soramitsu.coredb.model.chain.RelationJoinedMetaAccountInfo
+import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.MetaAccountPositionUpdate
+import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
@@ -37,8 +37,8 @@ interface MetaAccountDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertMetaAccount(metaAccount: MetaAccountLocal): Long
 
-    @Insert
-    suspend fun insertChainAccount(chainAccount: ChainAccountLocal)
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateMetaAccount(metaAccount: MetaAccountLocal)
 
     @Query("SELECT * FROM chain_accounts WHERE initialized = 0")
     fun observeNotInitializedChainAccounts(): Flow<List<ChainAccountLocal>>
@@ -48,6 +48,9 @@ interface MetaAccountDao {
 
     @Query("SELECT * FROM meta_accounts")
     fun getMetaAccounts(): List<MetaAccountLocal>
+
+    @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
+    suspend fun getMetaAccount(metaId: Long): MetaAccountLocal?
 
     @Query("SELECT * FROM meta_accounts")
     @Transaction
@@ -79,13 +82,16 @@ interface MetaAccountDao {
     suspend fun selectedMetaAccountInfo(): RelationJoinedMetaAccountInfo
 
     @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
-    fun selectedLightMetaAccountFlow(): Flow<MetaAccountLocal?>
+    fun selectedLocalMetaAccountFlow(): Flow<MetaAccountLocal?>
 
     @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
-    suspend fun getSelectedLightMetaAccount(): MetaAccountLocal
+    suspend fun getSelectedLocalMetaAccount(): MetaAccountLocal
 
     @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
-    suspend fun getLightMetaAccount(metaId: Long): MetaAccountLocal
+    suspend fun getLocalMetaAccount(metaId: Long): MetaAccountLocal
+
+    @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
+    fun observeLocalMetaAccount(metaId: Long): Flow<MetaAccountLocal?>
 
     @Query("SELECT EXISTS ($FIND_BY_ADDRESS_QUERY)")
     fun isMetaAccountExists(accountId: AccountId): Boolean

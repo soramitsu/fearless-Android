@@ -29,25 +29,7 @@ import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-
-data class SwapDetailState(
-    val fromTokenImage: GradientIconState,
-    val toTokenImage: GradientIconState,
-    val fromTokenAmount: String,
-    val toTokenAmount: String,
-    val fromTokenName: String,
-    val toTokenName: String,
-    val statusAppearance: SwapStatusAppearance,
-    val address: String,
-    val addressName: String?,
-    val hash: String,
-    val fromTokenOnToToken: String,
-    val liquidityProviderFee: String,
-    val networkFee: String,
-    val time: Long,
-    val market: Market,
-    val isShowSubscanButtons: Boolean
-)
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.SwapDetailState
 
 interface SwapDetailCallbacks {
     fun onBackClick()
@@ -68,10 +50,10 @@ fun SwapPreviewContent(
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        MarginVertical(8.dp)
         Toolbar(
             state = ToolbarViewState(
                 title = stringResource(id = R.string.polkaswap_preview_title),
-                navigationIcon = null,
                 menuItems = listOf(
                     MenuIconItem(
                         icon = R.drawable.ic_cross_24,

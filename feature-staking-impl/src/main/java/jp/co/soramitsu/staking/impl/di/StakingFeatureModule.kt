@@ -5,8 +5,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -27,6 +25,7 @@ import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -80,18 +79,19 @@ import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenario
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.api.BlockExplorerRepository
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import javax.inject.Named
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -115,10 +115,6 @@ class StakingFeatureModule {
         tokenUseCase
     )
 
-    @Provides
-    fun provideStakingSharedScope(): CoroutineScope {
-        return CoroutineScope(Dispatchers.Main + SupervisorJob())
-    }
 
     @Provides
     @Singleton
@@ -127,8 +123,8 @@ class StakingFeatureModule {
         preferences: Preferences,
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
-        scope: CoroutineScope
-    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, scope)
+        chainsRepository: ChainsRepository
+    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, chainsRepository)
 
     @Provides
     @Singleton
@@ -147,11 +143,13 @@ class StakingFeatureModule {
     fun provideStakingRewardsSubqueryDataSource(
         stakingApi: StakingApi,
         stakingTotalRewardDao: StakingTotalRewardDao,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        blockExplorerRepository: BlockExplorerRepository,
     ): StakingRewardsDataSource = SubqueryStakingRewardsDataSource(
         stakingApi = stakingApi,
         stakingTotalRewardDao = stakingTotalRewardDao,
-        chainRegistry = chainRegistry
+        chainRegistry = chainRegistry,
+        blockExplorerRepository = blockExplorerRepository,
     )
 
     @Provides
@@ -262,7 +260,10 @@ class StakingFeatureModule {
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         identityRepository: IdentityRepository,
         payoutRepository: PayoutRepository,
-        walletConstants: WalletConstants
+        walletConstants: WalletConstants,
+        chainRegistry: ChainRegistry,
+        assetCache: AssetCache,
+        stakingTotalRewardDao: StakingTotalRewardDao,
     ): StakingRelayChainScenarioInteractor {
         return StakingRelayChainScenarioInteractor(
             interactor,
@@ -275,7 +276,10 @@ class StakingFeatureModule {
             stakingSharedState,
             identityRepository,
             payoutRepository,
-            walletConstants
+            walletConstants,
+            chainRegistry,
+            stakingTotalRewardDao,
+            assetCache,
         )
     }
 
@@ -424,12 +428,14 @@ class StakingFeatureModule {
     fun provideValidatorSetFetcher(
         stakingApi: StakingApi,
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        xNetworkingBlockExplorer: BlockExplorerRepository,
     ): SubQueryValidatorSetFetcher {
         return SubQueryValidatorSetFetcher(
             stakingApi,
             stakingRelayChainScenarioRepository,
-            chainRegistry
+            chainRegistry,
+            xNetworkingBlockExplorer,
         )
     }
 

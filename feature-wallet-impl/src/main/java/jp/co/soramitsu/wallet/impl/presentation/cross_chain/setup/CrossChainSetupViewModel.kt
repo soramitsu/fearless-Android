@@ -22,7 +22,6 @@ import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
-import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
@@ -61,7 +60,6 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -529,7 +527,7 @@ class CrossChainSetupViewModel @Inject constructor(
             }
 
             val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
-            val validationProcessResult = validateTransferUseCase(
+            val validationProcessResult = validateTransferUseCase.validateXcmTransfer(
                 amountInPlanks = inPlanks,
                 originAsset = asset,
                 destinationChainId = destinationChainId,
@@ -682,7 +680,7 @@ class CrossChainSetupViewModel @Inject constructor(
             val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
             val amount = valuesMap[input] ?: return@launch
 
-            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
+            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN).stripTrailingZeros()
             enteredAmountBigDecimalFlow.value = amount
         }
     }

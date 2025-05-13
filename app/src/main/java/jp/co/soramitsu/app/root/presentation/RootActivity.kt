@@ -29,6 +29,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.inject.Inject
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.domain.InitializationStep
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
@@ -84,7 +85,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         intent?.let(::processIntent)
 
-//        processJsonOpenIntent()
         subscribeNetworkStatus()
     }
 
@@ -234,7 +234,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         viewModel.showNoInternetConnectionAlert.observe(
             this,
             EventObserver {
-                showNoInternetConnectionAlert()
+                showNoInternetConnectionAlert(it)
             }
         )
     }
@@ -250,13 +250,13 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             .show()
     }
 
-    private fun showNoInternetConnectionAlert() {
+    private fun showNoInternetConnectionAlert(initializationStep: InitializationStep) {
         AlertBottomSheet.Builder(this)
             .setTitle(R.string.common_connection_problems)
             .setMessage(R.string.connection_problems_alert_message)
             .setButtonText(R.string.common_retry)
             .setCancelable(false)
-            .callback { viewModel.retryLoadConfigClicked() }
+            .callback { viewModel.retryLoadConfigClicked(initializationStep) }
             .build()
             .show()
     }
@@ -318,8 +318,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         viewModel.noticeLanguageLanguage()
 
         recreate()
-
-//        restartAfterLanguageChange(this)
     }
 
     private fun processIntent(intent: Intent) {
@@ -327,16 +325,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         uri?.let { viewModel.externalUrlOpened(uri) }
     }
-
-//    private fun processJsonOpenIntent() {
-//        if (Intent.ACTION_VIEW == intent.action && intent.type != null) {
-//            if ("application/json" == intent.type) {
-//                val file = this.contentResolver.openInputStream(intent.data!!)
-//                val content = file?.reader(Charsets.UTF_8)?.readText()
-//                viewModel.jsonFileOpened(content)
-//            }
-//        }
-//    }
 
     private val navController: NavController by lazy {
         val navHostFragment =

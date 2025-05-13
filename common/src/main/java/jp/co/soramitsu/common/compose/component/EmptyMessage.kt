@@ -9,8 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.gray2
 
 @Composable
@@ -31,6 +33,16 @@ fun EmptyMessage(
             text = stringResource(id = message),
             color = gray2,
             textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+@Preview
+fun EmptyMessagePreview(){
+    FearlessAppTheme {
+        EmptyMessage(
+            message = R.string.choose_amount_error_balance
         )
     }
 }

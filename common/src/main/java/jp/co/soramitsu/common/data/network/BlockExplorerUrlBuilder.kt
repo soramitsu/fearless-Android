@@ -1,10 +1,12 @@
 package jp.co.soramitsu.common.data.network
 
-class BlockExplorerUrlBuilder(private val baseUrl: String, private val types: List<String>) {
-    enum class Type {
-        EXTRINSIC, ACCOUNT, EVENT, TX, TRANSFER, ADDRESS;
+import java.net.URL
 
-        val nameLowercase = name.lowercase()
+class BlockExplorerUrlBuilder(private val baseUrl: String, private val types: List<String>) {
+    enum class Type(customName: String? = null) {
+        EXTRINSIC, ACCOUNT, EVENT, TX, TRANSFER, ADDRESS, TON_ACCOUNT("tonAccount"), TON_TRANSACTION("tonTransaction");
+
+        val nameLowercase = customName ?: name.lowercase()
     }
 
     private fun Type.supportedOrNull() = when (nameLowercase) {
@@ -18,7 +20,20 @@ class BlockExplorerUrlBuilder(private val baseUrl: String, private val types: Li
         }
     }
 
-    fun build(type: Type, value: String) = type.supportedOrNull()?.let {
-        baseUrl.replace("{type}", type.nameLowercase).replace("{value}", value)
+    fun build(type: Type, value: String): String? = type.supportedOrNull()?.let {
+        when (type) {
+            Type.TON_ACCOUNT -> {
+                val url = URL(baseUrl)
+                "${url.protocol}://${url.host}/${value}"
+            }
+            Type.TON_TRANSACTION -> {
+                baseUrl.replace("{type}", "transaction").replace("{value}", value)
+            }
+            else -> {
+                baseUrl.replace("{type}", type.nameLowercase).replace("{value}", value)
+            }
+        }
     }
 }
+
+

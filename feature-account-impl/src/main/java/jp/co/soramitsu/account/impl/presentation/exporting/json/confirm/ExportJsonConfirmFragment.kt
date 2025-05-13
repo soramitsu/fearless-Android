@@ -64,7 +64,7 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
         super.subscribe(viewModel)
 
         viewModel.cryptoTypeLiveData.observe {
-            binding.exportJsonConfirmAdvanced.setSubstrateEncryption(it.name)
+            it?.name?.let { it1 -> binding.exportJsonConfirmAdvanced.setSubstrateEncryption(it1) }
         }
 
         viewModel.chainLiveData.observe {
@@ -121,7 +121,7 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
     }
 
     private fun shareJson(file: File) {
-        val jsonUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", file)
+        val jsonUri = FileProvider.getUriForFile(requireActivity(), "${requireActivity().packageName}.provider", file)
 
         if (jsonUri != null) {
             val intent = Intent(Intent.ACTION_SEND).apply {

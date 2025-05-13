@@ -48,6 +48,7 @@ interface SelectImportModeScreenInterface {
 @Composable
 fun SelectImportModeContent(
     state: SelectImportModeState,
+    isGoogleAvailable: Boolean,
     callback: SelectImportModeScreenInterface
 ) {
     BottomSheetScreen {
@@ -82,13 +83,15 @@ fun SelectImportModeContent(
                     .fillMaxWidth(),
                 onClick = callback::onJsonClick
             )
-            MarginVertical(margin = 8.dp)
-            GoogleButton(
-                text = stringResource(id = R.string.select_import_mode_btn_google),
-                backgroundColor = white08,
-                borderColor = Color.Unspecified,
-                onClick = callback::onGoogleClick
-            )
+            if (isGoogleAvailable) {
+                MarginVertical(margin = 8.dp)
+                GoogleButton(
+                    text = stringResource(id = R.string.select_import_mode_btn_google),
+                    backgroundColor = white08,
+                    borderColor = Color.Unspecified,
+                    onClick = callback::onGoogleClick
+                )
+            }
             if (state.preinstalledFeatureEnabled) {
                 MarginVertical(margin = 8.dp)
                 TransparentBorderedButton(
@@ -117,7 +120,9 @@ fun SelectImportModeContent(
 private fun PreviewSelectImportModeContent() {
     FearlessAppTheme {
         SelectImportModeContent(
-            SelectImportModeState(true), object : SelectImportModeScreenInterface {
+            state = SelectImportModeState(preinstalledFeatureEnabled = true),
+            isGoogleAvailable = true,
+            callback = object : SelectImportModeScreenInterface {
                 override fun onCancelClick() {}
                 override fun onGoogleClick() {}
                 override fun onMnemonicPhraseClick() {}

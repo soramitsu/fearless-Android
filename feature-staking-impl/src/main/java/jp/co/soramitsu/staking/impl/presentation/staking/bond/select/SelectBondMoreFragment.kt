@@ -36,7 +36,7 @@ const val PAYLOAD_KEY = "PAYLOAD_KEY"
 class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fragment_bond_more) {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentBondMoreBinding::bind)
 

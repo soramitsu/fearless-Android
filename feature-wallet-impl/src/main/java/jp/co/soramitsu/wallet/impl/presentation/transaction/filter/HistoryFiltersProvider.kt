@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class HistoryFiltersProvider {
-    val allFilters = TransactionFilter.values().toSet()
+    val allFilters = TransactionFilter.entries.toSet()
 
     val defaultFilters = allFilters
 

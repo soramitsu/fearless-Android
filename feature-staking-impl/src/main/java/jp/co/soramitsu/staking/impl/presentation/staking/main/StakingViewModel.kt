@@ -4,9 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -22,12 +19,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
-import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -64,7 +59,6 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.CoroutineScope
@@ -88,6 +82,9 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -225,6 +222,8 @@ class StakingViewModel @Inject constructor(
         stakingSharedState.selectionItem.distinctUntilChanged().onEach {
             setupStakingSharedState.set(SetupStakingProcess.Initial(it.type))
             stakingStateScope.coroutineContext.cancelChildren()
+
+            stakingPoolSharedStateProvider.poolsCache.update { emptyMap() }
         }.launchIn(viewModelScope)
 
         interactor.selectionStateFlow().onEach {

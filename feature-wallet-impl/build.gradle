@@ -18,6 +18,9 @@ android {
         buildConfigField "String", "RAMP_TOKEN", "\"4bk3yhfrg99fer764bo7egrqmxbfene7gbrpwmp3\""
         buildConfigField "String", "RAMP_HOST", "\"ri-widget-staging.firebaseapp.com\""
 
+        buildConfigField "String", "COINBASE_HOST", "\"pay.coinbase.com/buy/select-asset\""
+        buildConfigField "String", "COINBASE_APP_ID", "\"396933a1-26e6-4b65-b442-637d260e05c2\""
+
         buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_TEST_SECRET")
         buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
         buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
@@ -43,18 +46,19 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
+
     namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
 
@@ -72,6 +76,7 @@ dependencies {
     implementation project(':runtime-permission')
     implementation project(':feature-nft-api')
     implementation project(':feature-walletconnect-api')
+    implementation project(':feature-tonconnect-api')
 
     implementation platform(libs.walletconnectBomDep)
     implementation libs.walletconnectCoreDep
@@ -106,14 +111,14 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
+    testImplementation libs.arch.core.testing
 
     implementation libs.gson
     implementation libs.retrofit
 
     implementation libs.nv.websocket.client
-    implementation libs.xnetworking.basic
-    implementation libs.xnetworking.fearless, withoutBasic
-    implementation libs.xnetworking.sorawallet, withoutBasic
+    implementation libs.xnetworking.lib.android
 
     implementation libs.zxing.core
     implementation libs.zxing.embedded
@@ -122,6 +127,10 @@ dependencies {
 
     implementation libs.jna
     implementation libs.beacon.android.sdk, withoutJna
+
+
+    implementation(libs.converter.gson)
+    implementation(libs.converter.scalars)
 
     implementation libs.shimmer
 
@@ -135,6 +144,9 @@ dependencies {
 
     implementation libs.sharedFeaturesXcmDep
     implementation libs.sharedFeaturesBackupDep
+    implementation(libs.sora.soracard)
+    implementation(libs.soramitsu.android.foundation)
 
     implementation libs.web3jDep
+    implementation libs.bundles.ton
 }

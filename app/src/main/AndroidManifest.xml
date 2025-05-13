@@ -2,12 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <queries>
+        <package android:name="com.soracard.wallet.iban"/>
+        <package android:name="com.soracard.wallet.iban.test"/>
+    </queries>
 
     <application
         android:name=".App"
@@ -41,15 +47,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <intent-filter android:autoVerify="true">
-                <data
-                    android:host="buy-success"
-                    android:scheme="fearless" />
-
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="fearless" />
+                <data android:host="buy-success" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="fearlesswallet.io" />
+                <data android:pathPrefix="/ton-connect/" />
             </intent-filter>
         </activity>
 

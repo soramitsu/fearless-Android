@@ -19,6 +19,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -92,7 +93,7 @@ class MoonbeamContributeInteractor(
                     apiUrl,
                     apiKey,
                     RemarkVerifyRequest(
-                        accountRepository.getSelectedAccount().address,
+                        accountRepository.getSelectedMetaAccount().substrateAccountId?.toAddress(0.toShort())!!,
                         result.second,
                         result.first
                     )
@@ -113,7 +114,7 @@ class MoonbeamContributeInteractor(
             apiUrl,
             apiKey,
             RemarkStoreRequest(
-                accountRepository.getSelectedAccount().address,
+                accountRepository.getSelectedMetaAccount().substrateAccountId?.toAddress(0.toShort())!!,
                 sign
             )
         )

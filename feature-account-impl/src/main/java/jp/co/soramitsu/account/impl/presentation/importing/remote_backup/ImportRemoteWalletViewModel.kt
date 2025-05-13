@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.BackupOrigin
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
@@ -201,7 +202,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     override fun onCreateNewWallet() {
-        accountRouter.openCreateWalletDialog(true)
+        accountRouter.openCreateWalletDialogFromGoogleBackup()
     }
 
     fun backClicked() {
@@ -279,21 +280,22 @@ class ImportRemoteWalletViewModel @Inject constructor(
         decryptedBackupAccount: DecryptedBackupAccount
     ) {
         decryptedBackupAccount.mnemonicPhrase?.let { mnemonicPhrase ->
-            interactor.importFromMnemonic(
-                walletName = decryptedBackupAccount.name,
+            val payload = AddAccountPayload.SubstrateOrEvm(
+                accountName = decryptedBackupAccount.name,
                 mnemonic = mnemonicPhrase,
+                encryptionType = decryptedBackupAccount.cryptoType,
                 substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
                 ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(),
-                selectedEncryptionType = decryptedBackupAccount.cryptoType,
-                withEth = true,
-                isBackedUp = true,
-                googleBackupAddress = decryptedBackupAccount.address
-            ).getOrThrow()
+                googleBackupAddress = decryptedBackupAccount.address,
+                isBackedUp = true
+            )
+            interactor.createAccount(payload)
             return
         }
 
         decryptedBackupAccount.seed?.let { seed ->
             interactor.importFromSeed(
+                walletId = null,
                 substrateSeed = seed.substrateSeed.orEmpty(),
                 username = decryptedBackupAccount.name,
                 derivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
@@ -306,6 +308,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
         decryptedBackupAccount.json?.let { json ->
             interactor.importFromJson(
+                walletId = null,
                 json = json.substrateJson.orEmpty(),
                 password = passwordText.value,
                 name = decryptedBackupAccount.name,

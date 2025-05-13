@@ -1,8 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
@@ -27,10 +27,10 @@ interface TransactionHistoryUi {
 
     fun sideEffects(): Flow<SideEffect>
 
-    fun transactionClicked(
+    suspend fun getTransactionDetailsState(
         transactionModel: OperationModel,
         assetPayload: AssetPayload
-    )
+    ): TransactionDetailsState
 }
 
 interface TransactionHistoryMixin : TransactionHistoryUi, CoroutineScope {

@@ -29,6 +29,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class WalletItemViewState(
@@ -39,15 +40,23 @@ data class WalletItemViewState(
     val title: String,
     val walletIcon: Any,
     val isSelected: Boolean,
-    val additionalMetadata: String = ""
-)
+    val additionalMetadata: String = "",
+    val score: Int? = null,
+    val supportedEcosystems: Set<WalletEcosystem> = emptySet()
+) {
+    val onlyTonSupported: Boolean
+        get() {
+            return supportedEcosystems.size == 1 && supportedEcosystems.contains(WalletEcosystem.Ton)
+        }
+}
 
 @Composable
 fun WalletItem(
     state: WalletItemViewState,
     onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
-    onSelected: (WalletItemViewState) -> Unit,
+    onSelected: (WalletItemViewState) -> Unit = {},
     onLongClick: (WalletItemViewState) -> Unit = {},
+    onScoreClick: (WalletItemViewState) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val borderColor = if (state.isSelected) {
@@ -93,7 +102,7 @@ fun WalletItem(
                     modifier = Modifier.fillMaxSize(),
                     painter = rememberAsyncImagePainter(model = state.walletIcon),
                     contentDescription = null,
-                    tint = Color.Unspecified
+                    tint = Color.Unspecified,
                 )
             }
             MarginHorizontal(margin = 12.dp)
@@ -120,6 +129,13 @@ fun WalletItem(
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
+            state.score?.let { score ->
+                Box(modifier = Modifier
+                    .padding(9.dp)
+                    .clickableWithNoIndication { onScoreClick(state) }) {
+                    ScoreStar(score = score)
+                }
+            }
             onOptionsClick?.let { optionsAction ->
                 Box(
                     contentAlignment = Alignment.CenterEnd
@@ -130,7 +146,7 @@ fun WalletItem(
                         },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(30.dp)
+                            .size(32.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
@@ -166,7 +182,8 @@ private fun WalletItemPreview() {
         title = walletTitle,
         walletIcon = R.drawable.ic_wallet,
         isSelected = isSelected,
-        changeBalanceViewState = changeBalanceViewState
+        changeBalanceViewState = changeBalanceViewState,
+        score = 50
     )
 
     Column {

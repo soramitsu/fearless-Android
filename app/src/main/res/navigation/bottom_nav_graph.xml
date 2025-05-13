@@ -7,15 +7,13 @@
 
     <fragment
         android:id="@+id/profileFragment"
-        tools:layout="@layout/fragment_profile"
         android:name="jp.co.soramitsu.account.impl.presentation.profile.ProfileFragment"
         android:label="ProfileFragment" />
 
     <fragment
-        android:id="@+id/crowdloanFragment"
-        tools:layout="@layout/fragment_crowdloans"
-        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
-        android:label="CrowdloanFragment" />
+        android:id="@+id/discoverDappFragment"
+        android:name="jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp.DiscoverDappFragment"
+        android:label="DiscoverDappFragment" />
 
     <dialog
         android:id="@+id/swapTokensFragment"
@@ -32,4 +30,10 @@
         android:id="@+id/walletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListFragment"
         android:label="WalletFragment" />
+
+    <fragment
+        android:id="@+id/crowdloanFragment"
+        tools:layout="@layout/fragment_crowdloans"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
+        android:label="CrowdloanFragment" />
 </navigation>

@@ -28,13 +28,9 @@ import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.MainToolbar
-import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
-import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MenuIconItem
-import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
-import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
@@ -43,13 +39,14 @@ import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     override val viewModel: BalanceListViewModel by viewModels()
 
@@ -65,7 +62,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.onResume()
     }
 
-    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(
         padding: PaddingValues,
@@ -88,37 +84,28 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
             Modifier
         }
         Column(modifier = toolbarModifier) {
-            when (toolbarState) {
-                is LoadingState.Loading<MainToolbarViewStateWithFilters> -> {
-                    MainToolbarShimmer(
-                        homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
-                        menuItems = listOf(
-                            MenuIconItem(icon = R.drawable.ic_scan) {},
-                            MenuIconItem(icon = R.drawable.ic_search) {}
-                        )
+            MainToolbar(
+                state = toolbarState,
+                menuItems = listOf(
+                    MenuIconItem(
+                        icon = R.drawable.ic_scan,
+                        onClick = ::requestCameraPermission
+                    ),
+                    MenuIconItem(
+                        icon = R.drawable.ic_search,
+                        onClick = viewModel::openSearchAssets
                     )
-                }
-
-                is LoadingState.Loaded<MainToolbarViewStateWithFilters> -> {
-                    MainToolbar(
-                        state = (toolbarState as LoadingState.Loaded<MainToolbarViewStateWithFilters>).data,
-                        menuItems = listOf(
-                            MenuIconItem(
-                                icon = R.drawable.ic_scan,
-                                onClick = ::requestCameraPermission
-                            ),
-                            MenuIconItem(
-                                icon = R.drawable.ic_search,
-                                onClick = viewModel::openSearchAssets
-                            )
-                        ),
-                        onChangeChainClick = viewModel::openSelectChain,
-                        onNavigationClick = viewModel::openWalletSelector
-                    )
-                }
-            }
+                ),
+                onChangeChainClick = viewModel::openSelectChain,
+                onNavigationClick = viewModel::openWalletSelector,
+                onScoreClick = viewModel::onScoreClick
+            )
         }
     }
+
+    private val soraCardSignIn = registerForActivityResult(
+        SoraCardContract()
+    ) { viewModel.handleSoraCardResult(it) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -128,6 +115,9 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
+        viewModel.launchSoraCardSignIn.observe { contractData ->
+            soraCardSignIn.launch(contractData)
+        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

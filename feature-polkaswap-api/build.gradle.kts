@@ -13,12 +13,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
     namespace = "jp.co.soramitsu.feature_polkaswap_api"
@@ -30,6 +30,10 @@ dependencies {
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
     implementation(project(mapOf("path" to ":common")))
+
+    implementation("javax.inject:javax.inject:1")
+
+    implementation(libs.xnetworking.lib.android)
 }
 
 

@@ -2,11 +2,10 @@ package jp.co.soramitsu.account.impl.presentation.importing.source.view
 
 import android.content.Context
 import android.util.AttributeSet
-import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
@@ -16,7 +15,6 @@ import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceSeedBinding
 
 class SeedImportView @JvmOverloads constructor(
     context: Context,
-    private val isChainAccount: Boolean,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_seed, context, attrs, defStyleAttr) {
@@ -30,29 +28,28 @@ class SeedImportView @JvmOverloads constructor(
         init()
     }
 
-    constructor(context: Context, type: ImportAccountType, isChainAccount: Boolean) : this(context, isChainAccount) {
+    constructor(context: Context, type: WalletEcosystem) : this(context) {
         init(type)
     }
 
-    fun init(type: ImportAccountType = ImportAccountType.Substrate) {
+    fun init(type: WalletEcosystem = WalletEcosystem.Substrate) {
         binding.importSeedContentContainer.background = context.getIdleDrawable()
 
         binding.importSeedUsernameInput.content.filters = nameInputFilters()
 
         setImportAccountType(type)
-
-        binding.importSeedUsernameInput.isVisible = !isChainAccount
-        binding.usernameHintTv.isVisible = !isChainAccount
     }
 
-    private fun setImportAccountType(type: ImportAccountType) {
+    private fun setImportAccountType(type: WalletEcosystem) {
         when (type) {
-            ImportAccountType.Substrate -> binding.importSeedTitle.setText(R.string.account_import_substrate_raw_seed_placeholder)
-            ImportAccountType.Ethereum -> binding.importSeedTitle.setText(R.string.account_import_ethereum_raw_seed_placeholder)
+            WalletEcosystem.Substrate -> binding.importSeedTitle.setText(R.string.account_import_substrate_raw_seed_placeholder)
+            WalletEcosystem.Ethereum -> binding.importSeedTitle.setText(R.string.account_import_ethereum_raw_seed_placeholder)
+            WalletEcosystem.Ton -> { /* not applicable */
+            }
         }
     }
 
-    override fun observeSource(source: ImportSource, blockchainType: ImportAccountType, lifecycleOwner: LifecycleOwner) {
+    override fun observeSource(source: ImportSource, blockchainType: WalletEcosystem, lifecycleOwner: LifecycleOwner) {
         require(source is RawSeedImportSource)
 
         binding.importSeedContent.bindTo(source.rawSeedLiveData, lifecycleOwner)

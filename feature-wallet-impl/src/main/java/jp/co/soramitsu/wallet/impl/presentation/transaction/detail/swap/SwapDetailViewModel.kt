@@ -32,6 +32,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.SwapDetailState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -163,7 +164,7 @@ enum class SwapStatusAppearance(
     FAILED(white, R.string.transaction_status_failed)
 }
 
-private fun Operation.Status.mapToStatusAppearance() = when (this) {
+fun Operation.Status.mapToStatusAppearance() = when (this) {
     Operation.Status.COMPLETED -> SwapStatusAppearance.COMPLETED
     Operation.Status.PENDING -> SwapStatusAppearance.PENDING
     Operation.Status.FAILED -> SwapStatusAppearance.FAILED

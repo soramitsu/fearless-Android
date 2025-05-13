@@ -20,7 +20,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(R.layout.fragment_crowdloans), CrowdloanAdapter.Handler {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentCrowdloansBinding::bind)
 
@@ -31,6 +31,10 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(R.layout.fragment_cro
     }
 
     override fun initViews() {
+        binding.crowdloanToolbar.setHomeButtonListener {
+            viewModel.backClicked()
+        }
+
         binding.crowdloanContainer.applyInsetter {
             type(statusBars = true) {
                 padding()

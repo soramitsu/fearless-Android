@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.models.Asset
@@ -14,7 +12,6 @@ import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.insert
-import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
@@ -34,7 +31,9 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -53,40 +52,83 @@ class StakingLedgerUpdater(
     private val accountStakingDao: AccountStakingDao,
     private val storageCache: StorageCache,
     private val assetCache: AssetCache,
-    private val updatesMixin: UpdatesMixin,
     override val scope: AccountUpdateScope
-) : StakingUpdater, UpdatesProviderUi by updatesMixin {
+) : StakingUpdater {
+
+    data class Metadata(
+        val metaId: Long,
+        val chain: jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain,
+        val chainAsset: Asset,
+        val currentAccountId: AccountId,
+        val runtime: RuntimeSnapshot,
+        val stakingBondedStorageKey: String,
+        val bondedStorageChange: StorageChange? = null,
+        val ledgerWithController: LedgerWithController? = null
+    )
+
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
-        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
-        val runtime = chainRegistry.getRuntime(chain.id)
+        return combine(
+            stakingSharedState.assetWithChain.distinctUntilChangedBy { it.asset.id },
+            scope.invalidationFlow().distinctUntilChangedBy { it.id }
+        ) { assetWithChain, account ->
+            val (chain, chainAsset) = assetWithChain
+            if(chainAsset.staking != Asset.StakingType.RELAYCHAIN) {
+                return@combine null
+            }
+            val runtime = chainRegistry.getRuntime(chain.id)
 
-        val currentAccountId = scope.getAccount().accountId(chain)!! // TODO ethereum
+            val currentAccountId =
+                account.accountId(chain) ?: return@combine null
 
-        val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
+            val key = runtime.metadata.staking().storage("Bonded")
+                .storageKey(runtime, currentAccountId)
 
-        updatesMixin.startUpdateAsset(scope.getAccount().id, chain.id, currentAccountId, chainAsset.id)
+            Metadata(account.id, chain, chainAsset, currentAccountId, runtime, key)
+        }.filterNotNull()
+            .flatMapLatest { metadata ->
+                subscribeToLedger(
+                    storageSubscriptionBuilder.socketService,
+                    metadata.runtime,
+                    metadata.chain.id,
+                    metadata.currentAccountId//controllerId
+                ).map { metadata.copy(ledgerWithController = it) }
+            }
+            .onEach { metadata ->
+                updateAccountStaking(
+                    metadata.chain.id,
+                    metadata.chainAsset.id,
+                    metadata.currentAccountId,
+                    metadata.ledgerWithController
+                )
 
-        return storageSubscriptionBuilder.subscribe(key)
-            .flatMapLatest { change ->
-                // assume we're controller, if no controller found
-                val controllerId = change.value?.fromHex() ?: currentAccountId
-
-                subscribeToLedger(storageSubscriptionBuilder.socketService, runtime, chain.id, controllerId)
-            }.onEach { ledgerWithController ->
-                updateAccountStaking(chain.id, chainAsset.id, currentAccountId, ledgerWithController)
-
-                ledgerWithController?.let {
-                    val era = stakingRepository.getActiveEraIndex(chain.id)
+                metadata.ledgerWithController?.let {
+                    val era = stakingRepository.getActiveEraIndex(metadata.chain.id)
 
                     val stashId = it.ledger.stashId
                     val controllerId = it.controllerId
 
-                    updateAssetStaking(it.ledger.stashId, chainAsset, it.ledger, era)
+                    updateAssetStaking(
+                        metadata.metaId,
+                        stashId,
+                        metadata.chainAsset,
+                        it.ledger,
+                        era
+                    )
 
                     if (!stashId.contentEquals(controllerId)) {
-                        updateAssetStaking(controllerId, chainAsset, it.ledger, era)
+                        updateAssetStaking(
+                            metadata.metaId,
+                            controllerId,
+                            metadata.chainAsset,
+                            it.ledger,
+                            era
+                        )
                     }
-                } ?: updateAssetStakingForEmptyLedger(currentAccountId, chainAsset)
+                } ?: updateAssetStakingForEmptyLedger(
+                    metadata.metaId,
+                    metadata.currentAccountId,
+                    metadata.chainAsset
+                )
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
@@ -113,7 +155,7 @@ class StakingLedgerUpdater(
         accountStakingDao.insert(accountStaking)
     }
 
-    private suspend fun subscribeToLedger(
+    private fun subscribeToLedger(
         socketService: SocketService,
         runtime: RuntimeSnapshot,
         chainId: String,
@@ -143,12 +185,13 @@ class StakingLedgerUpdater(
     }
 
     private suspend fun updateAssetStaking(
+        metaId: Long,
         accountId: AccountId,
         chainAsset: Asset,
         stakingLedger: StakingLedger,
         era: BigInteger
     ) {
-        assetCache.updateAsset(accountId, chainAsset) { cached ->
+        assetCache.updateAsset(metaId, accountId, chainAsset) { cached ->
             val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(era) }
             val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(era) }
 
@@ -161,10 +204,11 @@ class StakingLedgerUpdater(
     }
 
     private suspend fun updateAssetStakingForEmptyLedger(
+        metaId: Long,
         accountId: AccountId,
         chainAsset: Asset
     ) {
-        assetCache.updateAsset(accountId, chainAsset) { cached ->
+        assetCache.updateAsset(metaId, accountId, chainAsset) { cached ->
             cached.copy(
                 redeemableInPlanks = BigInteger.ZERO,
                 unbondingInPlanks = BigInteger.ZERO,

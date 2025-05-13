@@ -59,6 +59,22 @@ abstract class OperationDao {
     )
     abstract fun observeOperationAddresses(chainId: String, address: String, limit: Int): Flow<List<String>>
 
+    @Query("""
+        SELECT DISTINCT(CASE 
+            WHEN address != sender THEN sender 
+            WHEN address != receiver THEN receiver 
+            ELSE NULL 
+            END) AS result 
+        FROM operations 
+        WHERE chainId = :chainId 
+        AND address = :address
+        AND result IS NOT NULL
+        ORDER BY time DESC 
+        LIMIT :limit
+        """
+    )
+    abstract fun getOperationAddresses(chainId: String, address: String, limit: Int): List<String>
+
     @Transaction
     open suspend fun insertFromSubquery(
         accountAddress: String,

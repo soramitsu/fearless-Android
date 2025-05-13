@@ -3,6 +3,118 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_73_74 = object : Migration(73, 74) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chain_assets ADD COLUMN `coinbaseUrl` TEXT NULL DEFAULT NULL")
+        db.execSQL("DROP TABLE IF EXISTS `sora_card`")
+        db.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `sora_card` (
+             `id` TEXT NOT NULL, 
+             `accessToken` TEXT NOT NULL, 
+             `refreshToken` TEXT NOT NULL, 
+             `accessTokenExpirationTime` INTEGER NOT NULL, 
+             `kycStatus` TEXT NOT NULL,
+             PRIMARY KEY(`id`)
+             )
+            """.trimIndent()
+        )
+    }
+}
+
+val Migration_72_73 = object : Migration(72, 73) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `ton_connection` (
+            `metaId` INTEGER NOT NULL,
+            `clientId` TEXT NOT NULL, 
+            `name` TEXT NOT NULL, 
+            `icon` TEXT NOT NULL, 
+            `url` TEXT NOT NULL, 
+            `source` TEXT NOT NULL,
+            PRIMARY KEY(`metaId`, `url`, `source`), 
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimMargin()
+        )
+
+        db.execSQL("ALTER TABLE chains ADD COLUMN `tonBridgeUrl` TEXT NULL DEFAULT NULL")
+
+        db.execSQL("DROP TABLE IF EXISTS `users`")
+    }
+}
+
+val Migration_70_71 = object : Migration(70, 71) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `remoteAssetsSource` TEXT NULL DEFAULT NULL")
+    }
+}
+
+val Migration_69_70 = object : Migration(69, 70) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DELETE FROM storage")
+    }
+}
+
+val Migration_68_69 = object : Migration(68, 69) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `nomis_wallet_score` (
+            `metaId` INTEGER NOT NULL,
+            `score` INTEGER NOT NULL,
+            `updated` INTEGER NOT NULL,
+            `nativeBalanceUsd` TEXT NOT NULL,
+            `holdTokensUsd` TEXT NOT NULL,
+            `walletAgeInMonths` INTEGER NOT NULL,
+            `totalTransactions` INTEGER NOT NULL,
+            `rejectedTransactions` INTEGER NOT NULL,
+            `avgTransactionTimeInHours` REAL NOT NULL,
+            `maxTransactionTimeInHours` REAL NOT NULL,
+            `minTransactionTimeInHours` REAL NOT NULL,
+            `scoredAt` TEXT NOT NULL,
+            PRIMARY KEY(`metaId`),
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `allpools` (
+            `tokenIdBase` TEXT NOT NULL, 
+            `tokenIdTarget` TEXT NOT NULL, 
+            `reserveBase` TEXT NOT NULL, 
+            `reserveTarget` TEXT NOT NULL, 
+            `totalIssuance` TEXT NOT NULL, 
+            `reservesAccount` TEXT NOT NULL, 
+            PRIMARY KEY(`tokenIdBase`, `tokenIdTarget`))
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `userpools` (
+            `userTokenIdBase` TEXT NOT NULL, 
+            `userTokenIdTarget` TEXT NOT NULL,
+            `accountAddress` TEXT NOT NULL,
+            `poolProvidersBalance` TEXT NOT NULL,
+            PRIMARY KEY(`userTokenIdBase`, `userTokenIdTarget`, `accountAddress`),
+            FOREIGN KEY(`userTokenIdBase`, `userTokenIdTarget`) REFERENCES `allpools`(`tokenIdBase`, `tokenIdTarget`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_userpools_accountAddress` ON `userpools` (`accountAddress`)")
+    }
+}
+
+val Migration_67_68 = object : Migration(67, 68) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE meta_accounts SET initialized = 0")
+        db.execSQL("UPDATE chain_accounts SET initialized = 0")
+        db.execSQL("DELETE FROM assets")
+    }
+}
+
 val Migration_66_67 = object : Migration(66, 67) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("UPDATE meta_accounts SET initialized = 0")

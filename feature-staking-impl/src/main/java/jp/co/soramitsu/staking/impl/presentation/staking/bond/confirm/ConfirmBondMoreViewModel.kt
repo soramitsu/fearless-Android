@@ -110,8 +110,6 @@ class ConfirmBondMoreViewModel @Inject constructor(
         val supportedExplorers = chain.explorers.getSupportedAddressExplorers(payload.stashAddress)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = payload.stashAddress,
-            chainId = chainId,
-            chainName = chain.name,
             explorers = supportedExplorers
         )
         externalAccountActions.showExternalActions(externalActionsPayload)

@@ -19,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -40,13 +39,12 @@ enum class QuickAmountInput(
     override val label: String,
     override val value: Double
 ) : QuickInput {
-    MAX("MAX", 1.0),
+//    MAX("MAX", 1.0),
     P75("75%", 0.75),
     P50("50%", 0.5),
     P25("25%", 0.25)
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun QuickInput(
     modifier: Modifier = Modifier,

@@ -22,7 +22,7 @@ import javax.inject.Inject
 class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentExportJsonPasswordBinding
 

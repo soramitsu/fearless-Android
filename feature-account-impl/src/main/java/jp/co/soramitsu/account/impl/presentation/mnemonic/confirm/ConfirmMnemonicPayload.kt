@@ -1,15 +1,16 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.confirm
 
 import android.os.Parcelable
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class ConfirmMnemonicPayload(
     val mnemonic: List<String>,
     val metaId: Long?,
-    val createExtras: CreateExtras?
+    val createExtras: CreateExtras?,
+    val accountTypes: List<WalletEcosystem>
 ) : Parcelable {
     @Parcelize
     open class CreateExtras(
@@ -18,14 +19,4 @@ class ConfirmMnemonicPayload(
         open val substrateDerivationPath: String,
         open val ethereumDerivationPath: String
     ) : Parcelable
-
-    @Parcelize
-    class CreateChainExtras(
-        override val accountName: String,
-        override val cryptoType: CryptoType,
-        override val substrateDerivationPath: String,
-        override val ethereumDerivationPath: String,
-        val chainId: ChainId,
-        val metaId: Long
-    ) : CreateExtras(accountName, cryptoType, substrateDerivationPath, ethereumDerivationPath)
 }

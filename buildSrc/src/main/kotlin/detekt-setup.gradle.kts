@@ -33,6 +33,7 @@ fun Detekt.setup(autoCorrect: Boolean) {
 
     // TODO: Remove exclude paths after merge detekt to develop
     exclude(
+        "**/androidfoundation/**",
         "**/common/**",
         "**/core-api/**",
         "**/core-db/**",
@@ -52,8 +53,8 @@ fun Detekt.setup(autoCorrect: Boolean) {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "17"
+    jvmTarget = JavaVersion.VERSION_21.toString()
 }
 tasks.withType<DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "17"
+    jvmTarget = JavaVersion.VERSION_21.toString()
 }

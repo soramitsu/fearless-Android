@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
@@ -22,11 +21,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.withNoFontPadding
 
 @Composable
@@ -34,7 +32,7 @@ fun InputWithHint(
     state: String?,
     modifier: Modifier = Modifier,
     cursorBrush: Brush = SolidColor(white),
-    inputFieldModifier: Modifier = Modifier,
+    inputFieldModifier: Modifier = Modifier,//.fillMaxWidth(),
     editable: Boolean = true,
     onInput: (String) -> Unit,
     Hint: @Composable () -> Unit
@@ -60,7 +58,6 @@ fun InputWithHint(
             enabled = editable,
             keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Text, imeAction = ImeAction.None),
             modifier = inputFieldModifier
-                .fillMaxWidth()
                 .align(Alignment.CenterStart)
                 .onFocusChanged {
                     focusedState = it.isFocused

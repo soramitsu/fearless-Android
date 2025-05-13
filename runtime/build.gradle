@@ -18,11 +18,11 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v10/chains_dev.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v13/chains_dev_prod.json\""
         }
 
         release {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v10/chains.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json\""
         }
     }
 
@@ -31,14 +31,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = JavaVersion.VERSION_21.toString()
 
     }
     namespace 'jp.co.soramitsu.runtime'
@@ -66,6 +66,8 @@ dependencies {
     kapt libs.hilt.compiler
 
     testImplementation project(':test-shared')
+    testImplementation libs.soramitsu.android.foundation
+    testImplementation libs.arch.core.testing
 
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules
@@ -74,4 +76,5 @@ dependencies {
     api libs.sharedFeaturesCoreDep
 
     implementation libs.web3jDep
+    implementation libs.bundles.ton
 }

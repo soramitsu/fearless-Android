@@ -1,13 +1,11 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.balance
 
 import androidx.core.os.bundleOf
-import androidx.core.view.doOnNextLayout
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeValidations
-import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBalanceBinding
@@ -39,11 +37,6 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
             stakingBalanceActions.bondMore.setOnClickListener { viewModel.bondMoreClicked() }
             stakingBalanceActions.unbond.setOnClickListener { viewModel.unbondClicked() }
             stakingBalanceActions.redeem.setOnClickListener { viewModel.redeemClicked() }
-
-            // set padding dynamically so initially scrolling area in under toolbar
-            stakingBalanceToolbar.doOnNextLayout {
-                stakingBalanceSwipeRefresh.updatePadding(top = it.height + 8.dp)
-            }
 
             stakingBalanceSwipeRefresh.setOnRefreshListener {
                 viewModel.refresh()
@@ -111,6 +104,10 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
         viewModel.showRebondActionsEvent.observeEvent {
             ChooseRebondKindBottomSheet(requireContext(), viewModel::rebondKindChosen, it)
                 .show()
+        }
+
+        viewModel.hideLoadingEvent.observeEvent {
+            binding.stakingBalanceSwipeRefresh.isRefreshing = false
         }
     }
 }

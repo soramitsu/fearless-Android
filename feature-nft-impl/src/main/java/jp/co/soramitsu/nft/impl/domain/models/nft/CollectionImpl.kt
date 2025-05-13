@@ -36,7 +36,9 @@ class CollectionImpl(
     override val imageUrl: String by lazy {
         response.media?.firstOrNull {
             !it.thumbnail.isNullOrBlank()
-        }?.thumbnail ?: response.openSea?.imageUrl.orEmpty()
+        }?.thumbnail ?: response.openSea?.imageUrl ?: response.media?.firstOrNull {
+            !it.gateway.isNullOrBlank()
+        }?.gateway.orEmpty()
     }
 
     override val type: String by lazy {

@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Token

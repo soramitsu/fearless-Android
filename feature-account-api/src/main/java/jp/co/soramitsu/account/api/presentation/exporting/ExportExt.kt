@@ -1,37 +1,9 @@
 package jp.co.soramitsu.account.api.presentation.exporting
 
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.shared_utils.scale.Schema
 
-inline fun <reified T : Schema<T>> EncodableStruct<T>?.buildExportSourceTypes(isEthereumBased: Boolean): Set<ExportSource> = when (T::class.java) {
-    MetaAccountSecrets::class.java -> buildMainAccountOptions(isEthereumBased)
-    ChainAccountSecrets::class.java -> buildChainAccountOptions(isEthereumBased)
-    else -> mutableSetOf()
-}
-
-fun <T : Schema<T>> EncodableStruct<T>?.buildMainAccountOptions(
-    isEthereumBased: Boolean
-): MutableSet<ExportSource> {
-    val options = mutableSetOf<ExportSource>()
-
-    this?.run {
-        get(MetaAccountSecrets.Entropy)?.run {
-            options += ExportSource.Mnemonic
-            options += ExportSource.Seed
-        }
-
-        when (isEthereumBased) {
-            true -> get(MetaAccountSecrets.EthereumKeypair)?.run { options += ExportSource.Seed }
-            else -> get(MetaAccountSecrets.Seed)?.run { options += ExportSource.Seed }
-        }
-
-        options += ExportSource.Json
-    }
-
-    return options.toSortedSet(compareBy { it.sort })
-}
 
 fun <T : Schema<T>> EncodableStruct<T>?.buildChainAccountOptions(
     isEthereumBased: Boolean

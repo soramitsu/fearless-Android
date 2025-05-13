@@ -66,7 +66,7 @@ class FeeLoaderProvider(
                 FeeStatus.Error
             }
             value?.let {
-                feeLiveData.postValue(value)
+                feeLiveData.postValue(it)
             }
             withContext(Dispatchers.Main) {
                 onComplete?.invoke(value)

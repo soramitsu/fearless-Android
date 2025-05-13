@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.H4
-import jp.co.soramitsu.common.compose.component.H5Bold
+import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.InactiveDropDown
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
@@ -168,7 +168,7 @@ private fun PoolState(modifier: Modifier = Modifier, state: PoolStatusViewState)
                 .align(Alignment.CenterVertically)
         )
         MarginHorizontal(margin = 4.dp)
-        H5Bold(
+        H5(
             text = stringResource(id = state.nameRes),
             color = state.color,
             maxLines = 1,

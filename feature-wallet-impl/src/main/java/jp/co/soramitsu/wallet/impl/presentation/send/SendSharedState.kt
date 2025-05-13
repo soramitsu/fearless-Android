@@ -3,13 +3,14 @@ package jp.co.soramitsu.wallet.impl.presentation.send
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
 class SendSharedState {
     private val _assetIdToChainIdFlow = MutableStateFlow<Pair<String, ChainId>?>(null)
     private val _addressFlow = MutableStateFlow<String?>(null)
 
-    val assetIdToChainIdFlow: Flow<Pair<String, ChainId>?> = _assetIdToChainIdFlow
+    val assetIdToChainIdFlow: StateFlow<Pair<String, ChainId>?> = _assetIdToChainIdFlow
     val assetIdFlow: Flow<String?> = _assetIdToChainIdFlow.map { it?.first }
     val chainIdFlow: Flow<ChainId?> = _assetIdToChainIdFlow.map { it?.second }
     val addressFlow: Flow<String?> = _addressFlow

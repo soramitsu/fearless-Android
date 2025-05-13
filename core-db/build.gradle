@@ -21,14 +21,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
     sourceSets {
@@ -42,7 +42,6 @@ dependencies {
 
     implementation project(":common")
     implementation libs.gson
-
     implementation libs.kotlin.stdlib.jdk7
 
     implementation libs.coroutines.core
@@ -59,5 +58,7 @@ dependencies {
     androidTestImplementation libs.ext.junit
 
     androidTestImplementation libs.room.testing
-    androidTestImplementation project(':test-shared')
+    androidTestImplementation projects.testShared
+    testImplementation libs.junit
+    testImplementation projects.testShared
 }

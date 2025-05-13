@@ -43,7 +43,7 @@ class ConnectionPool @Inject constructor(
     fun getConnectionOrNull(chainId: ChainId): ChainConnection? = poolFlow.value[chainId]
     fun getConnectionOrThrow(chainId: ChainId): ChainConnection = poolFlow.value.getValue(chainId)
 
-    fun setupConnection(
+    suspend fun setupConnection(
         chain: Chain,
         onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
     ): ChainConnection {

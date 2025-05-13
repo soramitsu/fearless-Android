@@ -5,7 +5,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,7 +17,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.feature_wallet_impl.R
 
-@OptIn(ExperimentalMaterialApi::class)
 @AndroidEntryPoint
 class AssetDetailsFragment : BaseComposeFragment<AssetDetailsViewModel>() {
 

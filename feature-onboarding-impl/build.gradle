@@ -22,7 +22,7 @@ android {
         }
 
         release {
-            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile%20v2.json\""
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/onboarding/mobile%20v2.json\""
         }
     }
 
@@ -33,18 +33,19 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '17'
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
+
     namespace 'jp.co.soramitsu.feature_onboarding_impl'
 }
 

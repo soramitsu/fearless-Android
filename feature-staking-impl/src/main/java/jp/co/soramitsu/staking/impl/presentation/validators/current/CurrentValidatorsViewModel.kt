@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -187,6 +188,9 @@ class CurrentValidatorsViewModel @Inject constructor(
             mapValidatorToValidatorDetailsWithStakeFlagParcelModel(nominatedValidator)
         }
 
-        router.openValidatorDetails(payload)
+        stakingInteractor.validatorDetailsCache.update { prev ->
+            prev + (payload.accountIdHex to payload)
+        }
+        router.openValidatorDetails(payload.accountIdHex)
     }
 }

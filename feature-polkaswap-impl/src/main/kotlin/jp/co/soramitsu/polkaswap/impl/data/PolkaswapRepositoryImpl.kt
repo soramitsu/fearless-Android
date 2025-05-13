@@ -1,7 +1,5 @@
 package jp.co.soramitsu.polkaswap.impl.data
 
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.config.PolkaswapRemoteConfig
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
@@ -10,7 +8,6 @@ import jp.co.soramitsu.common.utils.poolTBC
 import jp.co.soramitsu.common.utils.poolXYK
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.models.Market
@@ -37,19 +34,20 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import java.math.BigInteger
+import javax.inject.Inject
 
 class PolkaswapRepositoryImpl @Inject constructor(
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val remoteStorage: StorageDataSource,
     private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
-    private val rpcCalls: RpcCalls,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
 ) : PolkaswapRepository {
 
     override suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger> {
         val remoteDexes = runCatching { dexInfos(chainId).keys }.getOrNull() ?: emptySet()
-        val config = getPolkaswapConfig().availableDexIds.map { it.code }
+        val config = runCatching { getPolkaswapConfig().availableDexIds.map { it.code } }.getOrNull() ?: emptyList()
         return remoteDexes.filter { it in config }
     }
 
@@ -69,35 +67,39 @@ class PolkaswapRepositoryImpl @Inject constructor(
     }
 
     override fun observePoolXYKReserves(chainId: ChainId, fromTokenId: String, toTokenId: String): Flow<String> {
-        return flow { emit(waitForChain(chainId)) }.flatMapLatest {  remoteStorage.observe(
-            chainId = chainId,
-            keyBuilder = {
-                val from = Struct.Instance(
-                    mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                val to = Struct.Instance(
-                    mapOf("code" to toTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, from, to)
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest {
+            remoteStorage.observe(
+                chainId = chainId,
+                keyBuilder = {
+                    val from = Struct.Instance(
+                        mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    val to = Struct.Instance(
+                        mapOf("code" to toTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, from, to)
+                }
+            ) { scale, _ ->
+                scale.orEmpty()
             }
-        ) { scale, _ ->
-            scale.orEmpty()
-        }}
+        }
     }
 
     override fun observePoolTBCReserves(chainId: ChainId, tokenId: String): Flow<String> {
-        return flow { emit(waitForChain(chainId)) }.flatMapLatest { remoteStorage.observe(
-            chainId = chainId,
-            keyBuilder = {
-                val token = Struct.Instance(
-                    mapOf("code" to tokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, token)
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest {
+            remoteStorage.observe(
+                chainId = chainId,
+                keyBuilder = {
+                    val token = Struct.Instance(
+                        mapOf("code" to tokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, token)
+                }
+            ) { scale, _ ->
+                scale.orEmpty()
             }
-        ) { scale, _ ->
-            scale.orEmpty()
         }
-    }}
+    }
 
     // Because if we get chain from the ChainRegistry, it will emit a chain
     // only after runtime for this chain will be ready
@@ -163,6 +165,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
         markets: List<String>,
         desired: WithDesired
     ): BigInteger {
+
         val chain = chainRegistry.getChain(chainId)
         return extrinsicService.estimateFee(chain) {
             swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
@@ -181,7 +184,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
         desired: WithDesired
     ): Result<String> {
         val chain = chainRegistry.getChain(chainId)
-        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId!!
         return extrinsicService.submitExtrinsic(chain, accountId) {
             swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
         }

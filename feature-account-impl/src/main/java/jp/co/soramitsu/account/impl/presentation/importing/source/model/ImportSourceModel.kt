@@ -9,10 +9,10 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.presentation.accountSource.AccountSource
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.data.mappers.mapCryptoTypeToCryptoTypeModel
 import jp.co.soramitsu.account.impl.presentation.importing.FileReader
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -67,7 +67,7 @@ class JsonImportSource(
     private val scope: CoroutineScope
 ) : ImportSource(R.string.recovery_json, R.string.recover_json_hint, R.drawable.ic_save_type_json), FileRequester {
 
-    val blockchainTypeFlow = MutableStateFlow<ImportAccountType?>(null)
+    val blockchainTypeFlow = MutableStateFlow<WalletEcosystem?>(null)
     val jsonContentLiveData = MutableLiveData<String>()
     val passwordLiveData = MutableLiveData<String>()
 
@@ -152,24 +152,26 @@ class JsonImportSource(
     }
 
     @Throws(WrongBlockchainImportJsonException::class, InvalidJsonException::class)
-    private fun checkJsonForBlockchainType(importBlockchainType: ImportAccountType?, parsedJsonEncryptionType: CryptoType?) {
+    private fun checkJsonForBlockchainType(importBlockchainType: WalletEcosystem?, parsedJsonEncryptionType: CryptoType?) {
         importBlockchainType ?: return
         parsedJsonEncryptionType ?: return
 
         when (importBlockchainType) {
-            ImportAccountType.Substrate -> when (parsedJsonEncryptionType) {
+            WalletEcosystem.Substrate -> when (parsedJsonEncryptionType) {
                 CryptoType.SR25519,
                 CryptoType.ED25519 -> return
 
                 CryptoType.ECDSA -> throw WrongBlockchainImportJsonException()
             }
 
-            ImportAccountType.Ethereum -> when (parsedJsonEncryptionType) {
+            WalletEcosystem.Ethereum -> when (parsedJsonEncryptionType) {
                 CryptoType.SR25519,
                 CryptoType.ED25519 -> throw InvalidJsonException()
 
                 CryptoType.ECDSA -> return
             }
+
+            WalletEcosystem.Ton -> return
         }
     }
 

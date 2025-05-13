@@ -203,8 +203,6 @@ class ConfirmStakingViewModel @Inject constructor(
                 val supportedExplorers = chain.explorers.getSupportedAddressExplorers(account.address)
                 val externalActionsPayload = ExternalAccountActions.Payload(
                     value = account.address,
-                    chainId = chainId,
-                    chainName = chain.name,
                     explorers = supportedExplorers
                 )
 
@@ -220,8 +218,6 @@ class ConfirmStakingViewModel @Inject constructor(
         val supportedExplorers = chain.explorers.getSupportedAddressExplorers(payoutDestination.destination.address)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = payoutDestination.destination.address,
-            chainId = chainId,
-            chainName = chain.name,
             explorers = supportedExplorers
         )
 

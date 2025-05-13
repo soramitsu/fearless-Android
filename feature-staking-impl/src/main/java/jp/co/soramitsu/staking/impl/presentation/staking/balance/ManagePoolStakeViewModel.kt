@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.staking.balance
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
@@ -36,7 +34,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import javax.inject.Inject
 
 @HiltViewModel
 class ManagePoolStakeViewModel @Inject constructor(
@@ -62,7 +63,7 @@ class ManagePoolStakeViewModel @Inject constructor(
                 userRole = pool?.getUserRole(accountId)
             )
         }
-    }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val validatorIdsFlow = poolStateFlow.filterNotNull()
         .map { pool -> stakingPoolInteractor.getValidatorsIds(chain, pool.poolId) }
@@ -225,7 +226,10 @@ class ManagePoolStakeViewModel @Inject constructor(
     private fun onPoolInfoClick() {
         viewModelScope.launch {
             val pool = requireNotNull(poolStateFlow.first { it != null })
-            router.openPoolInfo(pool.toPoolInfo())
+            stakingPoolSharedStateProvider.poolsCache.update { prevState ->
+                prevState + (pool.poolId.toInt() to pool.toPoolInfo())
+            }
+            router.openPoolInfo(pool.poolId.toInt())
         }
     }
 

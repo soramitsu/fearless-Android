@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.filter
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -17,8 +18,12 @@ import javax.inject.Inject
 @HiltViewModel
 class TransactionHistoryFilterViewModel @Inject constructor(
     private val router: WalletRouter,
-    private val historyFiltersProvider: HistoryFiltersProvider
+    private val historyFiltersProvider: HistoryFiltersProvider,
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
+
+    private val predefinedFiltersList = savedStateHandle.get<Set<TransactionFilter>>(TransactionHistoryFilterFragment.KEY_FILTERS_TO_SHOW)
+    val usedFilters = predefinedFiltersList ?: historyFiltersProvider.allFilters
 
     private val initialFiltersFlow = flow { emit(historyFiltersProvider.currentFilters()) }
         .share()
@@ -26,7 +31,7 @@ class TransactionHistoryFilterViewModel @Inject constructor(
     val filtersEnabledMap = createFilterEnabledMap()
 
     private val modifiedFilters = combine(filtersEnabledMap.values) {
-        historyFiltersProvider.allFilters.filterToSet {
+        usedFilters.filterToSet {
             filtersEnabledMap.checkEnabled(it)
         }
     }.inBackground()
@@ -60,7 +65,7 @@ class TransactionHistoryFilterViewModel @Inject constructor(
         router.back()
     }
 
-    private fun createFilterEnabledMap() = historyFiltersProvider.allFilters.associateWith { MutableStateFlow(true) }
+    private fun createFilterEnabledMap() = usedFilters.associateWith { MutableStateFlow(true) }
 
     fun applyClicked() {
         viewModelScope.launch {

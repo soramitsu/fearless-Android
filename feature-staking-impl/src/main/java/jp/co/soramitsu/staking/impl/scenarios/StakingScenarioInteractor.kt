@@ -1,8 +1,5 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -27,6 +24,9 @@ import jp.co.soramitsu.staking.impl.presentation.staking.balance.model.StakingBa
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 interface StakingScenarioInteractor {
@@ -41,7 +41,7 @@ interface StakingScenarioInteractor {
     suspend fun getSelectedAccountStakingState(): StakingState
     fun selectedAccountStakingStateFlow(): Flow<StakingState>
 
-    suspend fun getStakingBalanceFlow(collatorId: AccountId? = null): Flow<StakingBalanceModel>
+    fun getStakingBalanceFlow(collatorId: AccountId? = null): Flow<StakingBalanceModel>
     fun overrideRedeemActionTitle(): Int?
     suspend fun accountIsNotController(controllerAddress: String): Boolean
     suspend fun ledger(): StakingLedger?

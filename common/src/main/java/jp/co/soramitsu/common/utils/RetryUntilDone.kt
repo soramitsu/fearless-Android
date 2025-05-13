@@ -22,3 +22,21 @@ suspend inline fun <T> retryUntilDone(
         }
     }
 }
+
+inline fun <T> retry(
+    times: Int,
+    block: () -> T
+): T {
+    var attempt = 0
+
+    while (attempt < times) {
+        val blockResult = runCatching { block() }
+
+        if (blockResult.isSuccess) {
+            return blockResult.requireValue()
+        } else {
+            attempt++
+        }
+    }
+    throw RuntimeException("Max attempts count was reached without success")
+}

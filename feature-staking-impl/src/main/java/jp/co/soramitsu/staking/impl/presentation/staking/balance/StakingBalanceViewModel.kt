@@ -3,11 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.balance
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -39,14 +35,17 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -70,7 +69,7 @@ class StakingBalanceViewModel @Inject constructor(
     val stakingBalanceModelFlow: Flow<StakingBalanceModel> = refresh.flatMapLatest {
         stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex())
             .catch { }
-    }.share()
+    }.onEach { _hideLoadingEvent.postValue(Event(Unit)) }.share()
 
     private val unbondingsFlow: Flow<List<Unbonding>> = refresh.flatMapLatest {
         stakingScenarioInteractor.currentUnbondingsFlow(collatorAddress)
@@ -126,6 +125,10 @@ class StakingBalanceViewModel @Inject constructor(
 
     private val _showRebondActionsEvent = MutableLiveData<Event<Set<RebondKind>>>()
     val showRebondActionsEvent: LiveData<Event<Set<RebondKind>>> = _showRebondActionsEvent
+
+    private val _hideLoadingEvent = MutableLiveData<Event<Unit>>()
+    val hideLoadingEvent: LiveData<Event<Unit>> = _hideLoadingEvent
+
 
     fun bondMoreClicked() = requireValidManageAction(stakingScenarioInteractor.getBondMoreValidation()) {
         pendingAction.value = false

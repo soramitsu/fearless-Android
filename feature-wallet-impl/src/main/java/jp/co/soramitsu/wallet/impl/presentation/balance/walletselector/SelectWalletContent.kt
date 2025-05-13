@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
-import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.WalletItem
@@ -34,8 +33,8 @@ fun SelectWalletContent(
     onWalletSelected: (WalletItemViewState) -> Unit,
     onWalletOptionsClick: (WalletItemViewState) -> Unit,
     addNewWallet: () -> Unit,
-    importWallet: () -> Unit,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    onScoreClick: (WalletItemViewState) -> Unit
 ) {
     BottomSheetScreen {
         Column(
@@ -54,14 +53,15 @@ fun SelectWalletContent(
             MarginVertical(margin = 20.dp)
             Box(contentAlignment = Alignment.BottomCenter) {
                 LazyColumn(
-                    modifier = Modifier.padding(bottom = 120.dp),
+                    modifier = Modifier.padding(bottom = 50.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(state.wallets.map { it.copy(isSelected = it.id == state.selectedWallet?.id) }) { walletItemState ->
                         WalletItem(
                             state = walletItemState,
                             onOptionsClick = onWalletOptionsClick,
-                            onSelected = onWalletSelected
+                            onSelected = onWalletSelected,
+                            onScoreClick = onScoreClick
                         )
                     }
                     item {
@@ -72,14 +72,6 @@ fun SelectWalletContent(
                     AccentButton(
                         text = stringResource(id = R.string.common_add_new_wallet),
                         onClick = addNewWallet,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                    )
-                    MarginVertical(margin = 12.dp)
-                    GrayButton(
-                        text = stringResource(id = R.string.common_import_wallet),
-                        onClick = importWallet,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
@@ -124,9 +116,9 @@ private fun SelectWalletScreenPreview() {
             ),
             onWalletSelected = {},
             addNewWallet = {},
-            importWallet = {},
             onBackClicked = {},
-            onWalletOptionsClick = {}
+            onWalletOptionsClick = {},
+            onScoreClick = {}
         )
     }
 }

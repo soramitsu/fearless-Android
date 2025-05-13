@@ -5,19 +5,35 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
 
-class Transfer(
+interface TransferParams
+
+open class SubstrateTransferParams(
+    val tipInPlanks: BigInteger?,
+    val appId: BigInteger?
+): TransferParams
+
+class CBDCTransferParams(
+    val comment: String?,
+    val maxAmountInPlanks: BigInteger?,
+    tipInPlanks: BigInteger?,
+    appId: BigInteger?
+): SubstrateTransferParams(tipInPlanks, appId)
+
+class TonTransferParams(
+    val comment: String?
+): TransferParams
+
+data class Transfer(
     val sender: String,
     val recipient: String,
     val amount: BigDecimal,
     val chainAsset: Asset,
-    val comment: String? = null,
     val estimateFee: BigDecimal? = null,
-    val maxAmountIn: BigDecimal? = null
+    val additionalParams: TransferParams? = null
 ) {
 
     val amountInPlanks: BigInteger = chainAsset.planksFromAmount(amount)
     val estimateFeeInPlanks: BigInteger? = estimateFee?.let { chainAsset.planksFromAmount(it) }
-    val maxAmountInInPlanks: BigInteger? = maxAmountIn?.let { chainAsset.planksFromAmount(it) }
 
     fun validityStatus(
         senderTransferable: BigDecimal,

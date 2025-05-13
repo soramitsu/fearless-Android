@@ -2,7 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.validators.change.recommended
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -29,7 +28,9 @@ import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import javax.inject.Named
 
 @HiltViewModel
@@ -73,7 +74,10 @@ class RecommendedValidatorsViewModel @Inject constructor(
     }
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
-        router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(validatorModel.validator))
+        interactor.validatorDetailsCache.update { prev ->
+            prev + (validatorModel.validator.accountIdHex to mapValidatorToValidatorDetailsParcelModel(validatorModel.validator))
+        }
+        router.openValidatorDetails(validatorModel.validator.accountIdHex)
     }
 
     fun nextClicked() {

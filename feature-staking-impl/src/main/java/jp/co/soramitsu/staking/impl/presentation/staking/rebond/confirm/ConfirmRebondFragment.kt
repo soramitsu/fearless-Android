@@ -18,7 +18,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>(R.layout.fragment_confirm_rebond) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentConfirmRebondBinding::bind)
 

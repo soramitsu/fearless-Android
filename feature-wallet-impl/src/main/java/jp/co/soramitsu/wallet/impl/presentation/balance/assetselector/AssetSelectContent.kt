@@ -110,7 +110,7 @@ fun EmptyResultContent() {
         )
         H3(text = stringResource(id = R.string.common_search_assets_alert_title))
         B0(
-            text = stringResource(id = R.string.common_search_assets_alert_description),
+            text = stringResource(id = R.string.common_search_network_and_assets_alert_description),
             color = gray2
         )
     }

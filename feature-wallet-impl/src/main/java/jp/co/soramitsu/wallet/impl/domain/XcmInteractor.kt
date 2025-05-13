@@ -7,8 +7,10 @@ import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.utils.combineToPair
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
@@ -44,13 +46,14 @@ class XcmInteractor(
 
     suspend fun prepareDataForChains(originChainId: ChainId, destinationChainId: ChainId) = withContext(Dispatchers.Default) {
         val metaAccount = accountInteractor.selectedMetaAccount()
+        metaAccount.substrateCryptoType ?: throw IllegalStateException("Can't do XCM without susbtrate keypair")
         val originChain = chainRegistry.getChain(originChainId)
         val keypairType = if (originChain.isEthereumBased) {
-            MetaAccountSecrets.EthereumKeypair
+            EthereumSecrets.EthereumKeypair
         } else {
-            MetaAccountSecrets.SubstrateKeypair
+            SubstrateSecrets.SubstrateKeypair
         }
-        val secrets = accountInteractor.getMetaAccountSecrets(metaAccount.id)?.get(keypairType)
+        val secrets = accountInteractor.getSubstrateSecrets(metaAccount.id)?.get(keypairType)
         requireNotNull(secrets)
         val private = secrets[KeyPairSchema.PrivateKey]
         val public = secrets[KeyPairSchema.PublicKey]
@@ -60,7 +63,7 @@ class XcmInteractor(
             chainId = originChainId,
             keypairProvider = SingleKeypairProvider(
                 keypair = Keypair(public, private, nonce),
-                cryptoType = metaAccount.substrateCryptoType
+                cryptoType = metaAccount.substrateCryptoType!!
             )
         )
         val fromChainMetadata = ChainIdWithMetadata(
@@ -158,7 +161,7 @@ class XcmInteractor(
 
     private fun Asset.getPlanksFromAmountForOriginFee(amount: BigDecimal): BigInteger {
         val rawAmountInPlanks = planksFromAmount(amount)
-        if (rawAmountInPlanks == BigInteger.ZERO) {
+        if (rawAmountInPlanks.isZero()) {
             return BigInteger.ONE
         }
 

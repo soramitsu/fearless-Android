@@ -8,12 +8,17 @@ import jp.co.soramitsu.wallet.impl.data.network.model.request.GiantsquidHistoryR
 import jp.co.soramitsu.wallet.impl.data.network.model.request.ReefHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubsquidHistoryRequest
+import jp.co.soramitsu.wallet.impl.data.network.model.response.AtletaHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.EtherscanHistoryResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.FireHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.GiantsquidHistoryResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.KlaytnHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.OkLinkHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.ReefHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubsquidHistoryElementsConnectionResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.VicscanHistoryResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.ZchainHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.ZetaHistoryResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -67,6 +72,40 @@ interface OperationsHistoryApi {
     suspend fun getZetaOperationsHistory(
         @Url url: String
     ): ZetaHistoryResponse
+
+    @GET
+    suspend fun getAtletaOperationsHistory(
+        @Url url: String
+    ): AtletaHistoryResponse
+
+    @GET
+    suspend fun getKlaytnOperationsHistory(
+        @Url url: String,
+        @Query("page") page: Int
+    ): KlaytnHistoryResponse
+
+    @GET
+    suspend fun getFireOperationsHistory(
+        @Url url: String,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
+    ): FireHistoryResponse
+
+    @GET
+    suspend fun getZchainOperationsHistory(
+        @Url url: String,
+        @Query("a") address: String,
+        @Query("page") page: Int,
+        @Query("page_size") pageSize: Int,
+    ): ZchainHistoryResponse
+
+    @GET
+    suspend fun getVicscanOperationsHistory(
+        @Url url: String,
+        @Query("account") account: String,
+        @Query("limit") limit: Int,
+        @Query("offset") offset: Int
+    ): VicscanHistoryResponse
 
     @POST
     suspend fun getReefOperationsHistory(

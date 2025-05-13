@@ -14,5 +14,8 @@ data class ChainRemote(
     val options: List<String>?,
     val parentId: String?,
     val disabled: Boolean = false,
-    val identityChain: String? = null
+    val identityChain: String? = null,
+    val ecosystem: String,
+    val androidMinAppVersion: String? = null,
+    val tonBridgeUrl: String? = null
 )

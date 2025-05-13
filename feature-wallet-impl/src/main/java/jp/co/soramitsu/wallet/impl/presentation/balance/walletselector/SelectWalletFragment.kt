@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
+import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -52,9 +53,9 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
             state = state,
             onWalletSelected = viewModel::onWalletSelected,
             addNewWallet = viewModel::addNewWallet,
-            importWallet = viewModel::importWallet,
             onBackClicked = viewModel::onBackClicked,
-            onWalletOptionsClick = viewModel::onWalletOptionsClick
+            onWalletOptionsClick = viewModel::onWalletOptionsClick,
+            onScoreClick = viewModel::onScoreClick,
         )
     }
 
@@ -66,8 +67,11 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.googleAuthorizeLiveData.observeEvent {
-            viewModel.authorizeGoogle(launcher = launcher)
+        val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+        if (isGoogleAvailable) {
+            viewModel.googleAuthorizeLiveData.observeEvent {
+                viewModel.authorizeGoogle(launcher = launcher)
+            }
         }
 
         viewModel.importPreInstalledWalletLiveData.observeEvent {

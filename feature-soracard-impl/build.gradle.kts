@@ -22,8 +22,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     composeOptions {
@@ -31,8 +31,9 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_21.toString()
     }
+
     namespace = "jp.co.soramitsu.feature_soracard_impl"
 }
 
@@ -45,18 +46,15 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit)
     implementation(libs.gson)
-    implementation(libs.xnetworking.basic)
-    val withoutBasic: (ExternalModuleDependency).() -> Unit = {
-        exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
-    }
-    implementation(libs.xnetworking.fearless, withoutBasic)
-    implementation(libs.xnetworking.sorawallet, withoutBasic)
+    implementation(libs.xnetworking.lib.android)
 
     implementation(libs.sora.ui)
+    implementation(libs.sora.soracard)
+    implementation(libs.soramitsu.android.foundation)
 
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
-    implementation(projects.featureAccountApi) //todo check neediness
+    implementation(projects.featureAccountApi)
     implementation(projects.featureSoracardApi)
 }

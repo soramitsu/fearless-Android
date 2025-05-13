@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreen
 
 @AndroidEntryPoint
@@ -18,8 +17,8 @@ class PoolInfoFragment : BaseComposeBottomSheetDialogFragment<PoolInfoViewModel>
 
     companion object {
         const val POOL_INFO_KEY = "poolInfo"
-        fun getBundle(poolInfo: PoolInfo) = Bundle().apply {
-            putParcelable(POOL_INFO_KEY, poolInfo)
+        fun getBundle(poolId: Int) = Bundle().apply {
+            putInt(POOL_INFO_KEY, poolId)
         }
     }
 

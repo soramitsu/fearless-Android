@@ -1,10 +1,9 @@
 package jp.co.soramitsu.account.impl.presentation.account.create
 
-import android.os.Bundle
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
@@ -18,16 +17,9 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBin
 @AndroidEntryPoint
 class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.fragment_create_account) {
     companion object {
-
-        fun getBundle(isFromGoogleBackup: Boolean): Bundle {
-            return bundleOf(
-                CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackup
-            )
-        }
-
-        fun getBundle(payload: ChainAccountCreatePayload): Bundle {
-            return bundleOf(CreateAccountScreenKeys.PAYLOAD_KEY to payload)
-        }
+        fun getBundle(accountType: AccountType) = bundleOf(
+            CreateAccountScreenKeys.ACCOUNT_TYPE_KEY to accountType
+        )
     }
 
     private val binding by viewBinding(FragmentCreateAccountBinding::bind)

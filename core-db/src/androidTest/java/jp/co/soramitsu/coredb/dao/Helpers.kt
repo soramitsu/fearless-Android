@@ -46,7 +46,11 @@ fun chainOf(
     rank = null,
     isChainlinkProvider = false,
     supportNft = false,
-    isUsesAppId = false
+    isUsesAppId = false,
+    identityChain = null,
+    ecosystem = "Substrate",
+    androidMinAppVersion = null,
+    remoteAssetsSource = null
 )
 
 fun ChainLocal.nodeOf(
@@ -78,7 +82,6 @@ fun ChainLocal.assetOf(
     existentialDeposit = null,
     color = null,
     isNative = null,
-    ethereumType = null,
     priceProvider = null
 )
 

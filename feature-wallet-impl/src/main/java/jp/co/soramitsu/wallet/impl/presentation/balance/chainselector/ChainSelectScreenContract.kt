@@ -20,7 +20,7 @@ interface ChainSelectScreenContract {
             override val showAllChains: Boolean = true
         ): State {
             companion object {
-                val default = Impl(emptyList(), null)
+                val default = Impl(null, null)
             }
 
             data class FilteringDecorator(

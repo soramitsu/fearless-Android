@@ -3,8 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.selec
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -49,6 +47,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import javax.inject.Inject
 
 private val filtersSet =
     setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
@@ -222,14 +222,12 @@ class SelectCustomValidatorsViewModel @Inject constructor(
     override fun onInfoClick(item: SelectableListItemState<String>) {
         val validator =
             recommendedValidators.value.dataOrNull()?.find { it.accountIdHex == item.id }
-
-        router.openValidatorDetails(
-            mapValidatorToValidatorDetailsParcelModel(
-                requireNotNull(
-                    validator
-                )
-            )
-        )
+        validator?.let {
+            interactor.validatorDetailsCache.update { prev ->
+                prev + (it.accountIdHex to mapValidatorToValidatorDetailsParcelModel(it))
+            }
+            router.openValidatorDetails(it.accountIdHex)
+        }
     }
 
     override fun onChooseClick() {

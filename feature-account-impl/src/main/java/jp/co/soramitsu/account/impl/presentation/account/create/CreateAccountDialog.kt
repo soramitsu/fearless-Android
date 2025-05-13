@@ -1,6 +1,5 @@
 package jp.co.soramitsu.account.impl.presentation.account.create
 
-import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
@@ -8,12 +7,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.presentation.ErrorDialog
@@ -23,10 +21,11 @@ import jp.co.soramitsu.feature_account_impl.R
 class CreateAccountDialog : BaseComposeBottomSheetDialogFragment<CreateAccountViewModel>() {
     companion object {
 
-        const val IS_FROM_GOOGLE_BACKUP_KEY = "IS_FROM_GOOGLE_BACKUP_KEY"
-
-        fun getBundle(isFromGoogleBackup: Boolean): Bundle {
-            return bundleOf(IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackup)
+        fun getBundle(): Bundle {
+            return bundleOf(
+                CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to true,
+                CreateAccountScreenKeys.ACCOUNT_TYPE_KEY to AccountType.SubstrateOrEvm
+            )
         }
     }
 

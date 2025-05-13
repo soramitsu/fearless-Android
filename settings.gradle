@@ -22,9 +22,11 @@ include ':feature-soracard-api'
 include ':feature-soracard-impl'
 include ':runtime-permission'
 
-include ':android-foundation'
-project(':android-foundation').projectDir = new File('android-foundation')
+include ':feature-tonconnect-api'
+include ':feature-tonconnect-impl'
 include ':feature-walletconnect-api'
 include ':feature-walletconnect-impl'
 include ':feature-nft-api'
 include ':feature-nft-impl'
+include ':feature-liquiditypools-api'
+include ':feature-liquiditypools-impl'

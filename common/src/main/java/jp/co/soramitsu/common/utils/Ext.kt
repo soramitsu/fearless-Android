@@ -54,8 +54,7 @@ fun Context.showBrowser(link: String) {
 fun Context.createSendEmailIntent(targetEmail: String, title: String) {
     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
         putExtra(Intent.EXTRA_EMAIL, targetEmail)
-        type = "message/rfc822"
-        data = Uri.parse("mailto:$targetEmail")
+        setDataAndType(Uri.parse("mailto:$targetEmail"), "message/rfc822")
     }
     startActivity(Intent.createChooser(emailIntent, title))
 }
@@ -77,6 +76,8 @@ fun CoroutineScope.childScope(supervised: Boolean = true): CoroutineScope {
 }
 
 fun Int.asBoolean() = this != 0
+
+fun String.splitVersions() = split(".").map { it.toInt() }
 
 private val CAMEL_CASE_REGEX = "(?<=[a-z])(?=[A-Z])".toRegex()
 fun String.camelCaseToCapitalizedWords() =

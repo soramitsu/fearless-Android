@@ -52,6 +52,8 @@ import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.bindTransferExtrinsic
 import jp.co.soramitsu.wallet.impl.data.repository.totalBalance
+import jp.co.soramitsu.wallet.impl.domain.model.CBDCTransferParams
+import jp.co.soramitsu.wallet.impl.domain.model.SubstrateTransferParams
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 
 class WssSubstrateSource(
@@ -110,7 +112,7 @@ class WssSubstrateSource(
             getAssetsAccountInfo(chainAsset, accountId)
         }
 
-        ChainAssetType.Unknown -> null
+        else -> null
     }
 
     private suspend fun getDefaultAccountInfo(
@@ -201,17 +203,17 @@ class WssSubstrateSource(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
-        tip: BigInteger?,
-        appId: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
+        val transferParams = requireNotNull(transfer.additionalParams as? SubstrateTransferParams)
+
         return extrinsicService.submitExtrinsic(
             chain = chain,
             accountId = accountId,
             useBatchAll = batchAll,
-            tip = tip,
-            appId = appId,
+            tip = transferParams.tipInPlanks,
+            appId = transferParams.appId,
             formExtrinsic = {
                 transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
@@ -407,28 +409,34 @@ class WssSubstrateSource(
     private fun ExtrinsicBuilder.xorlessTransfer(
         recipientAccountId: AccountId,
         transfer: Transfer
-    ) = call(
-        moduleName = "LiquidityProxy",
-        callName = "xorless_transfer",
-        arguments = mapOf(
-            "dex_id" to BigInteger.ZERO,
-            "asset_id" to Struct.Instance(
-                mapOf("code" to transfer.chainAsset.currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() })
-            ),
-            "receiver" to recipientAccountId,
-            "amount" to transfer.amountInPlanks,
+    ): ExtrinsicBuilder {
+        val cbdcParams = requireNotNull(transfer.additionalParams as? CBDCTransferParams) { "Wrong transfer params type for CBDC transfer" }
+        val call = call(
+            moduleName = "LiquidityProxy",
+            callName = "xorless_transfer",
+            arguments = mapOf(
+                "dex_id" to BigInteger.ZERO,
+                "asset_id" to Struct.Instance(
+                    mapOf(
+                        "code" to transfer.chainAsset.currencyId?.fromHex()?.toList()
+                            ?.map { it.toInt().toBigInteger() })
+                ),
+                "receiver" to recipientAccountId,
+                "amount" to transfer.amountInPlanks,
 
-            "desired_xor_amount" to transfer.estimateFeeInPlanks.orZero(),
-            "max_amount_in" to transfer.maxAmountInInPlanks.orZero(),
+                "desired_xor_amount" to transfer.estimateFeeInPlanks.orZero(),
+                "max_amount_in" to cbdcParams.maxAmountInPlanks.orZero(),
 
-            "selected_source_types" to emptyList<DictEnum.Entry<Any?>>(),
-            "filter_mode" to DictEnum.Entry(
-                name = "Disabled",
-                value = null
-            ),
-            "additional_data" to transfer.comment?.toByteArray()
+                "selected_source_types" to emptyList<DictEnum.Entry<Any?>>(),
+                "filter_mode" to DictEnum.Entry(
+                    name = "Disabled",
+                    value = null
+                ),
+                "additional_data" to cbdcParams.comment?.toByteArray()
+            )
         )
-    )
+        return call
+    }
 
     private fun ExtrinsicBuilder.defaultTransfer(
         accountId: AccountId,

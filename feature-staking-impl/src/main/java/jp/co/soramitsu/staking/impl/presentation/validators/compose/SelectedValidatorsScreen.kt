@@ -27,7 +27,7 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
-import jp.co.soramitsu.common.compose.component.H3Bold
+import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H6
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
@@ -163,7 +163,7 @@ private fun ValidatorsGroupTitle(state: GroupViewState) {
                     )
                     MarginHorizontal(margin = 8.dp)
                 }
-                H3Bold(text = title, modifier = Modifier.align(Alignment.CenterVertically))
+                H3(text = title, modifier = Modifier.align(Alignment.CenterVertically))
             }
         }
         MarginVertical(margin = 8.dp)

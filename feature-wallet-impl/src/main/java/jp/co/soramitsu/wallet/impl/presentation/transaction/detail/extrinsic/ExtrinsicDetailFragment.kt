@@ -95,7 +95,6 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>(R.layout.
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                chainId = viewModel.payload.chainId,
                 explorers = explorers
             )
         )

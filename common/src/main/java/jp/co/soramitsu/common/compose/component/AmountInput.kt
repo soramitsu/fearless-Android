@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import com.valentinilk.shimmer.shimmer
 import java.math.BigDecimal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -36,7 +36,6 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
@@ -53,8 +52,10 @@ data class AmountInputViewState(
     val isFocused: Boolean = false,
     val allowAssetChoose: Boolean = false,
     val precision: Int = MAX_DECIMALS_8,
-    val inputEnabled: Boolean = true
+    val inputEnabled: Boolean = true,
+    val isShimmerAmounts: Boolean = false
 ) {
+
     companion object {
         val defaultObj = AmountInputViewState(
             tokenName = null,
@@ -63,17 +64,6 @@ data class AmountInputViewState(
             fiatAmount = "$0",
             tokenAmount = BigDecimal.ZERO
         )
-
-        @Deprecated("use defaultObj with copy")
-        fun default(resourceManager: ResourceManager, @StringRes totalBalanceFormat: Int = R.string.common_balance_format): AmountInputViewState {
-            return AmountInputViewState(
-                tokenName = null,
-                tokenImage = null,
-                totalBalance = resourceManager.getString(totalBalanceFormat, "0"),
-                fiatAmount = "$0",
-                tokenAmount = BigDecimal.ZERO
-            )
-        }
     }
 }
 
@@ -133,7 +123,16 @@ fun AmountInput(
                 val title = state.title ?: stringResource(id = R.string.common_amount)
                 H5(text = title, modifier = Modifier.weight(1f), color = black2)
                 state.fiatAmount?.let {
-                    B1(text = it, modifier = Modifier.weight(1f), textAlign = TextAlign.End, color = black2)
+                    B1(
+                        text = it,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(
+                                if (state.isShimmerAmounts) Modifier.shimmer() else Modifier
+                            ),
+                        textAlign = TextAlign.End,
+                        color = black2
+                    )
                 }
             }
 
@@ -168,7 +167,14 @@ fun AmountInput(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("InputAmountField" + (state.tokenName.orEmpty()))
-                        .wrapContentHeight(),
+                        .wrapContentHeight()
+                        .then(
+                            if (state.isShimmerAmounts) {
+                                Modifier.shimmer()
+                            } else {
+                                Modifier
+                            }
+                        ),
                     onFocusChanged = onInputFocusChange,
                     textStyle = MaterialTheme.customTypography.displayS.copy(textAlign = TextAlign.End, color = textColorState),
                     enabled = state.inputEnabled,
@@ -207,10 +213,11 @@ private fun RowScope.TokenIcon(
         .padding(2.dp)
         .align(CenterVertically)
     if (url != null) {
-        AsyncImage(
+        SubcomposeAsyncImage(
+            modifier = imageModifier,
             model = getImageRequest(LocalContext.current, url),
             contentDescription = null,
-            modifier = imageModifier
+            loading = { Shimmer(Modifier.size(28.dp)) }
         )
     } else {
         Icon(

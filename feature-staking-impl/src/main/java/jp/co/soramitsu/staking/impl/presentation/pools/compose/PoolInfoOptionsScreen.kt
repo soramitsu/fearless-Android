@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetDialog
-import jp.co.soramitsu.common.compose.component.H3Bold
+import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -40,7 +40,7 @@ fun PoolInfoOptionsScreen(state: PoolInfoOptionsViewState, onSelected: (PoolInfo
         verticalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.CenterVertically),
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        H3Bold(text = stringResource(id = R.string.pool_options_title))
+        H3(text = stringResource(id = R.string.pool_options_title))
         MarginVertical(margin = 4.dp)
         state.options.forEach {
             val onClick = remember { { onSelected(it) } }

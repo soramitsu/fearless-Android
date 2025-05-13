@@ -11,12 +11,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -28,11 +34,16 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
         const val ACCOUNT_ID_KEY = "ACCOUNT_ID_KEY"
 
         fun getBundle(metaAccountId: Long): Bundle {
-            return Bundle().apply {
-                putLong(ACCOUNT_ID_KEY, metaAccountId)
-            }
+            return bundleOf(
+                ACCOUNT_ID_KEY to metaAccountId
+            )
         }
     }
+
+    private val isGoogleAvailable: Boolean
+        get() {
+            return context?.isGooglePlayServicesAvailable() == true
+        }
 
     override val viewModel: BackupWalletViewModel by viewModels()
 
@@ -55,6 +66,7 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
         BottomSheetScreen {
             BackupWalletContent(
                 state = state,
+                isGoogleAvailable = isGoogleAvailable,
                 callback = viewModel
             )
         }
@@ -66,11 +78,16 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
         behavior.skipCollapsed = true
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.requestGoogleAuth.onEach {
-            viewModel.authorizeGoogle(launcher = launcher)
-        }.launchIn(viewLifecycleOwner.lifecycleScope)
+        if (isGoogleAvailable) {
+            viewModel.isAllowGoogleBackupFlow.filter { it }.flatMapLatest {
+                viewModel.requestGoogleAuth.onEach {
+                    viewModel.authorizeGoogle(launcher = launcher)
+                }
+            }.launchIn(viewLifecycleOwner.lifecycleScope)
+        }
     }
 }

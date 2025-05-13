@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ButtonViewState
@@ -15,11 +16,13 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.hash.isPositive
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -30,6 +33,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -74,10 +79,21 @@ class ClaimRewardsViewModel @Inject constructor(
         interactor.estimateClaimRewardsFee(chainId)
     }.share()
 
-    private val lockedAmountFlow = flowOf {
-        interactor.getVestingLockedAmount(chainId)
-    }.share()
-
+    private val lockedAmountFlow = MutableStateFlow<BigInteger?>(null)
+        .onStart {
+            emit(interactor.getVestingLockedAmount(chainId).orZero())
+        }
+        .onEach {
+            if (it != null && it.isPositive().not()) {
+                showError(
+                    title = resourceManager.getString(R.string.common_warning),
+                    message = resourceManager.getString(R.string.warning_message_nothing_to_claim),
+                    positiveButtonText = resourceManager.getString(R.string.common_confirm),
+                    positiveClick = router::back,
+                    onBackClick = router::back
+                )
+            }
+        }
 
     val state: StateFlow<ClaimRewardsViewState> = kotlinx.coroutines.flow.combine(
         assetFlow,
@@ -123,7 +139,7 @@ class ClaimRewardsViewModel @Inject constructor(
             feeInfoItem = feeInfoItem,
             tokenSymbol = asset.token.configuration.symbol.uppercase(),
             buttonState = buttonState,
-            isLoading = isRequesting
+            isLoading = isRequesting || lockedAmount.isZero()
         )
     }.stateIn(this, SharingStarted.Eagerly, ClaimRewardsViewState.default)
 

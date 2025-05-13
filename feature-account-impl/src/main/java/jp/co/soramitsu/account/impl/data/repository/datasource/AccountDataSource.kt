@@ -25,12 +25,6 @@ interface AccountDataSource : SecretStoreV1 {
 
     suspend fun anyAccountSelected(): Boolean
 
-    suspend fun saveSelectedAccount(account: Account)
-
-    fun selectedAccountFlow(): Flow<Account>
-
-    suspend fun getSelectedAccount(): Account
-
     // TODO for compatibility only
     val selectedAccountMapping: Flow<Map<ChainId, Account?>>
 
@@ -58,6 +52,7 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun deleteMetaAccount(metaId: Long)
 
     fun observeAllMetaAccounts(): Flow<List<MetaAccount>>
+    fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount>
     fun selectedLightMetaAccount(): Flow<LightMetaAccount>
     suspend fun getSelectedLightMetaAccount(): LightMetaAccount
     suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount

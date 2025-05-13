@@ -235,8 +235,6 @@ class CrossChainConfirmViewModel @Inject constructor(
             val supportedExplorers = chain.explorers.getSupportedAddressExplorers(transferDraft.recipientAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = transferDraft.recipientAddress,
-                chainId = chain.id,
-                chainName = chain.name,
                 explorers = supportedExplorers
             )
 

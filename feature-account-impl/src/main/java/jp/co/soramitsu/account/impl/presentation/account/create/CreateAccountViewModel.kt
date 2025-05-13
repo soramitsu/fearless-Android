@@ -1,17 +1,15 @@
 package jp.co.soramitsu.account.impl.presentation.account.create
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
@@ -20,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
@@ -28,7 +27,7 @@ class CreateAccountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), CreateAccountCallback {
 
-    private val payload = savedStateHandle.getLiveData<ChainAccountCreatePayload>(CreateAccountScreenKeys.PAYLOAD_KEY)
+    private val accountMode = savedStateHandle.get<AccountType>(CreateAccountScreenKeys.ACCOUNT_TYPE_KEY) ?: throw IllegalStateException("ACCOUNT_TYPE_KEY can't be null")
     private val isFromGoogleBackup = savedStateHandle.get<Boolean>(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY) ?: false
 
     private val _nextButtonEnabledLiveData = MutableLiveData<Boolean>()
@@ -70,9 +69,9 @@ class CreateAccountViewModel @Inject constructor(
 
     override fun nextClicked() {
         if (isFromGoogleBackup) {
-            router.openMnemonicAgreementsDialog(
-                isFromGoogleBackup = isFromGoogleBackup,
-                accountName = walletNickname.value
+            router.openMnemonicAgreementsDialogForGoogleBackup(
+                accountName = walletNickname.value,
+                accountTypes = listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
             )
         } else {
             _showScreenshotsWarningEvent.value = Event(Unit)
@@ -80,7 +79,11 @@ class CreateAccountViewModel @Inject constructor(
     }
 
     fun screenshotWarningConfirmed() {
-        router.openMnemonicScreen(isFromGoogleBackup, walletNickname.value, payload.value)
+        val accountTypes = when (accountMode) {
+            AccountType.SubstrateOrEvm -> listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
+            AccountType.Ton -> listOf(WalletEcosystem.Ton)
+        }
+        router.openMnemonicScreen(walletNickname.value, accountTypes)
     }
 
     override fun onBackClick() {

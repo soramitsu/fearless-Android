@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
-import android.util.Log
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
@@ -28,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 
 class HistoryRepository(
     private val historySourceProvider: HistorySourceProvider,
@@ -100,11 +100,11 @@ class HistoryRepository(
                 getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset)
             }.getOrDefault(CursorPage(null, emptyList()))
             nextCursor = page.nextCursor
-            hasNextPage = nextCursor != null
+            hasNextPage = nextCursor != null && page.items.isNotEmpty()
             elements.addAll(page.map {
                 mapOperationToOperationLocalDb(
                     it,
-                    OperationLocal.Source.SUBQUERY
+                    OperationLocal.Source.BLOCKCHAIN
                 )
             })
         }
@@ -141,4 +141,11 @@ class HistoryRepository(
                 addresses.toSet()
             }
     }
+
+    suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String> =
+        withContext(coroutineContext) {
+            val address = currentAccountAddress.invoke(chainId) ?: return@withContext emptySet()
+            val operations = operationDao.getOperationAddresses(chainId, address, limit ?: NO_LIMIT)
+            return@withContext operations.filter { it.isNotEmpty() }.toSet()
+        }
 }

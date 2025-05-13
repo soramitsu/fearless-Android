@@ -2,9 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.selec
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -45,7 +42,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class SelectCustomValidatorsViewModel @Inject constructor(
@@ -180,7 +181,10 @@ class SelectCustomValidatorsViewModel @Inject constructor(
     }
 
     fun validatorInfoClicked(validatorModel: ValidatorModel) {
-        router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(validatorModel.validator))
+        interactor.validatorDetailsCache.update { prev ->
+            prev + (validatorModel.accountIdHex to mapValidatorToValidatorDetailsParcelModel(validatorModel.validator))
+        }
+        router.openValidatorDetails(validatorModel.accountIdHex)
     }
 
     fun validatorClicked(validatorModel: ValidatorModel) {

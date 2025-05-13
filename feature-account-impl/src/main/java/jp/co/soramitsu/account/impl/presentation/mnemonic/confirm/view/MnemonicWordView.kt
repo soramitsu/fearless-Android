@@ -33,7 +33,7 @@ class MnemonicWordView @JvmOverloads constructor(
             val word = typedArray.getString(R.styleable.MnemonicWordView_wordText)
             word?.let { setWord(it) }
 
-            val mode = ColorMode.values()[typedArray.getInt(R.styleable.MnemonicWordView_colorMode, 0)]
+            val mode = ColorMode.entries[typedArray.getInt(R.styleable.MnemonicWordView_colorMode, 0)]
             setColorMode(mode)
 
             typedArray.recycle()

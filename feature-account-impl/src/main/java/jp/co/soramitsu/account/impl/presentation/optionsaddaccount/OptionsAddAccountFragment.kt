@@ -3,34 +3,33 @@ package jp.co.soramitsu.account.impl.presentation.optionsaddaccount
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.model.WalletEcosystem
 
 @AndroidEntryPoint
 class OptionsAddAccountFragment : BaseComposeBottomSheetDialogFragment<OptionsAddAccountViewModel>() {
 
     companion object {
-        const val KEY_PAYLOAD = "payload"
+        const val KEY_WALLET_ID = "KEY_WALLET_ID"
+        const val KEY_TYPE = "KEY_TYPE"
 
-        fun getBundle(payload: AddAccountPayload) = bundleOf(KEY_PAYLOAD to payload)
+        fun getBundle(walletId: Long, type: WalletEcosystem) = bundleOf(
+            KEY_WALLET_ID to walletId,
+            KEY_TYPE to type
+        )
     }
 
     override val viewModel: OptionsAddAccountViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {
-        val state by viewModel.state.collectAsState()
         OptionsAddAccountContent(
-            state = state,
             onCreate = viewModel::createAccount,
             onImport = viewModel::importAccount,
-            dontShowAgain = viewModel::dontShowAgainClicked,
             onBackClicked = viewModel::onBackClicked
         )
     }

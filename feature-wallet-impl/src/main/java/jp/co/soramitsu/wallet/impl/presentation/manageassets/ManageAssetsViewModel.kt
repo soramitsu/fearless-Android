@@ -2,8 +2,6 @@ package jp.co.soramitsu.wallet.impl.presentation.manageassets
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -15,7 +13,9 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.data.repository.isSupported
@@ -31,6 +31,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 @HiltViewModel
 class ManageAssetsViewModel @Inject constructor(
@@ -58,10 +60,7 @@ class ManageAssetsViewModel @Inject constructor(
         combine(
             savedChainFlow,
             walletInteractor.observeSelectedAccountChainSelectFilter()
-        ) { chain, filterAsText ->
-            val filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                it.name == filterAsText
-            } ?: ChainSelectorViewStateWithFilters.Filter.All
+        ) { chain, filterApplied ->
 
             val selectedChainTitle = chain?.name ?: when (filterApplied) {
                 ChainSelectorViewStateWithFilters.Filter.All ->
@@ -84,10 +83,7 @@ class ManageAssetsViewModel @Inject constructor(
             selectedChainIdFlow,
             enteredTokenQueryFlow,
             currentAssetStates
-        ) { assets, chains, currentMetaAccount, appliedFilterAsString, selectedChainId, searchQuery, currentStates ->
-            val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                it.name == appliedFilterAsString
-            } ?: ChainSelectorViewStateWithFilters.Filter.All
+        ) {  assets, chains, currentMetaAccount, filter, selectedChainId, searchQuery, currentStates ->
 
             val selectedAccountFavoriteChains = currentMetaAccount.favoriteChains
             val chainsWithFavoriteInfo = chains.map { chain ->
@@ -128,7 +124,7 @@ class ManageAssetsViewModel @Inject constructor(
             filteredChainAssets.map { chainAsset ->
                 val asset = assets.find { chainAsset.id == it.asset.token.configuration.id && chainAsset.chainId == it.asset.token.configuration.chainId }
                 chainAsset to asset
-            }.sortedWith(compareBy<Pair<jp.co.soramitsu.core.models.Asset, AssetWithStatus?>> {
+            }.sortedWith(compareBy<Pair<Asset, AssetWithStatus?>> {
                 it.second == null
             }.thenBy {
                 it.second?.asset?.enabled == false
@@ -224,7 +220,11 @@ class ManageAssetsViewModel @Inject constructor(
 
     override fun onSelectedChainClicked() {
         launch {
-            val selectedChainId = savedChainFlow.firstOrNull()?.id
+            val selectedChain = savedChainFlow.firstOrNull()
+            val selectedChainId = selectedChain?.id
+            if(selectedChain?.ecosystem == Ecosystem.Ton) {
+                return@launch
+            }
             walletRouter.openSelectChain(selectedChainId, isFilteringEnabled = true)
         }
     }

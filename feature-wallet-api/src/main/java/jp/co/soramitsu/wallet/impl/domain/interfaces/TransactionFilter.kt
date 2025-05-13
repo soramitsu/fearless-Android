@@ -5,5 +5,5 @@ enum class TransactionFilter {
 }
 
 fun Set<TransactionFilter>.allFiltersIncluded(): Boolean {
-    return size == TransactionFilter.values().size
+    return size == TransactionFilter.entries.size
 }

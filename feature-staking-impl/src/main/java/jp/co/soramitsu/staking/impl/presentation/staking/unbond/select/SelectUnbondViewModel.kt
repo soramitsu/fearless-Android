@@ -6,9 +6,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
@@ -28,6 +29,7 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,18 +40,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import javax.inject.Named
-import jp.co.soramitsu.common.compose.component.QuickAmountInput
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
-import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-import kotlinx.coroutines.flow.update
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -266,7 +264,9 @@ class SelectUnbondViewModel @Inject constructor(
             val valuesMap =
                 quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
             val amount = valuesMap[input] ?: return@launch
+            val asset = assetFlow.first()
             enteredAmountFlow.value = amount.formatCryptoDetail()
+//            parsedAmountFlow.value  = amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)
         }
     }
 }

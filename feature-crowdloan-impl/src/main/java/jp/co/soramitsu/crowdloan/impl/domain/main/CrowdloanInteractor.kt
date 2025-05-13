@@ -11,6 +11,7 @@ import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
 import jp.co.soramitsu.crowdloan.api.data.repository.getContributions
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -73,7 +74,7 @@ class CrowdloanInteractor(
 
             val metaAccount = accountRepository.getSelectedMetaAccount()
 
-            val accountId = metaAccount.accountId(chain)!! // TODO ethereum
+            val accountId = metaAccount.accountId(chain) ?: return@flow
 
             val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis(chainId)
             val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod(chainId)
@@ -119,7 +120,7 @@ class CrowdloanInteractor(
     }
 
     suspend fun checkRemark(apiUrl: String, apiKey: String): Result<Boolean> = runCatching {
-        val address = accountRepository.getSelectedAccount().address
+        val address = accountRepository.getSelectedMetaAccount().substrateAccountId?.toAddress(0.toShort())!!
         crowdloanRepository.checkRemark(apiUrl, apiKey, address)
     }
 }
