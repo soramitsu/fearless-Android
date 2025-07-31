@@ -2,8 +2,9 @@ plugins {
     id("com.android.library")
     id("dagger.hilt.android.plugin")
     id("kotlin-android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 android {
     namespace = "jp.co.soramitsu.feature_liquiditypools_impl"
@@ -24,9 +25,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = rootProject.ext["composeCompilerVersion"] as String
-    }
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
@@ -43,7 +41,7 @@ dependencies {
     implementation(projects.featureWalletImpl)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)

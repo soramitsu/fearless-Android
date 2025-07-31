@@ -43,12 +43,14 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
     }
 
     override fun initViews() {
-        binding.bottomNavigationView.setOnApplyWindowInsetsListener { _, insets ->
-            // overwrite BottomNavigation behavior and ignore insets
+        binding.bottomNavigationView.setOnApplyWindowInsetsListener { v, insets ->
+            val systemWindowInsetBottom = insets.systemWindowInsetBottom
+            v.updatePadding(bottom = systemWindowInsetBottom)
             insets
         }
-        binding.bottomNavigationViewWithFab.setOnApplyWindowInsetsListener { _, insets ->
-            // overwrite BottomNavigation behavior and ignore insets
+        binding.bottomNavigationViewWithFab.setOnApplyWindowInsetsListener { v, insets ->
+            val systemWindowInsetBottom = insets.systemWindowInsetBottom
+            v.updatePadding(bottom = systemWindowInsetBottom)
             insets
         }
 

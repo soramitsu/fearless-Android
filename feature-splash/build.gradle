@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -43,10 +43,10 @@ dependencies {
     implementation libs.appcompat
 
     implementation libs.hilt.android
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.lifecycle.viewmodel.ktx
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     implementation libs.fragmentKtx
 

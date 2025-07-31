@@ -17,6 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -91,7 +92,7 @@ abstract class AssetDao : AssetReadOnlyCache {
         chainId: String,
         assetId: String,
         emptyAccountId: AccountId
-    ): Flow<AssetWithToken>
+    ): Flow<AssetWithToken?>
 
     override suspend fun getAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String): AssetWithToken? =
         getAssetWithEmpty(metaId, accountId, chainId, assetId, emptyAccountIdValue)
@@ -147,19 +148,28 @@ abstract class AssetDao : AssetReadOnlyCache {
     @OptIn(ExperimentalCoroutinesApi::class)
     open suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken> {
         return observeAssetSymbolById(id).flatMapLatest { symbol ->
-            observeAssetsBySymbol(
-                accountMetaId = accountMetaId,
-                assetSymbol = symbol
-            )
+            if (symbol != null) {
+                observeAssetsBySymbol(
+                    accountMetaId = accountMetaId,
+                    assetSymbol = symbol
+                )
+            } else {
+                flowOf(emptyList())
+            }
         }.first()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     open fun observeAssets(accountMetaId: Long, id: String): Flow<List<AssetWithToken>> {
         return observeAssetSymbolById(id).flatMapLatest { symbol ->
-            observeAssetsBySymbol(
-                accountMetaId = accountMetaId,
-                assetSymbol = symbol
-            )
+            if (symbol != null) {
+                observeAssetsBySymbol(
+                    accountMetaId = accountMetaId,
+                    assetSymbol = symbol
+                )
+            } else {
+                flowOf(emptyList())
+            }
         }
     }
 
@@ -171,7 +181,7 @@ abstract class AssetDao : AssetReadOnlyCache {
             SELECT symbol FROM chain_assets WHERE chain_assets.id = :assetId
         """
     )
-    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String>
+    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String?>
 
     @Transaction
     @Query(

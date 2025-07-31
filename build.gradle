@@ -1,7 +1,3 @@
-apply from: './scripts/secrets.gradle'
-apply plugin: "detekt-setup"
-apply plugin: "org.sonarqube"
-
 buildscript {
     ext {
         // App version
@@ -9,11 +5,9 @@ buildscript {
         versionCode = 217
 
         // SDK and tools
-        compileSdkVersion = 34
+        compileSdkVersion = 35
         minSdkVersion = 26
-        targetSdkVersion = 34
-
-        composeCompilerVersion = '1.5.14'
+        targetSdkVersion = 35
 
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
         withoutJna = { exclude group: 'net.java.dev.jna' }
@@ -33,7 +27,7 @@ buildscript {
         classpath libs.google.services
         classpath libs.firebase.appdistribution.gradle
         classpath libs.play.publisher
-        classpath libs.gradleplugins.hiltAndroid
+        classpath libs.gradleplugins.compose
         classpath libs.org.jacoco.core
         classpath libs.sonarqube.gradle.plugin
     }
@@ -44,6 +38,11 @@ buildscript {
         }
     }
 }
+
+
+apply from: './scripts/secrets.gradle'
+apply plugin: "detekt-setup"
+apply plugin: "org.sonarqube"
 
 allprojects {
     repositories {

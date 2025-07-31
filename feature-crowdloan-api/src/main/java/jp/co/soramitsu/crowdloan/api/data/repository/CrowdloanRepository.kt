@@ -50,13 +50,13 @@ class ParachainMetadata(
     val flow: ParachainMetadataFlow?
 ) {
     val isMoonbeam: Boolean
-        get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
+        get() = name.lowercase(Locale.getDefault()) == "moonbeam"
     val isAstar: Boolean
-        get() = name.toLowerCase(Locale.getDefault()) == "astar"
+        get() = name.lowercase(Locale.getDefault()) == "astar"
     val isAcala: Boolean
-        get() = name.toLowerCase(Locale.getDefault()) == "acala"
+        get() = name.lowercase(Locale.getDefault()) == "acala"
     val isInterlay: Boolean
-        get() = flow?.name?.toLowerCase(Locale.getDefault()) == "interlay"
+        get() = flow?.name?.lowercase(Locale.getDefault()) == "interlay"
 }
 
 class ParachainMetadataFlow(

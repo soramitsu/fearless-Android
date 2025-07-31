@@ -14,7 +14,7 @@ abstract class TokenPriceDao {
     abstract suspend fun getTokenPrice(priceId: String): TokenPriceLocal?
 
     @Query("select * from token_price where priceId = :priceId")
-    abstract fun observeTokenPrice(priceId: String): Flow<TokenPriceLocal>
+    abstract fun observeTokenPrice(priceId: String): Flow<TokenPriceLocal?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertTokenPrice(token: TokenPriceLocal)

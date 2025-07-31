@@ -17,8 +17,10 @@ import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 
 @Dao
 abstract class ChainDao {
@@ -50,14 +52,22 @@ abstract class ChainDao {
     }
 
     @Transaction
-    open suspend fun updateAssets(assetsToAdd: List<ChainAssetLocal>, assetsToUpdate: List<ChainAssetLocal>, assetsToRemove: List<ChainAssetLocal>) {
+    open suspend fun updateAssets(
+        assetsToAdd: List<ChainAssetLocal>,
+        assetsToUpdate: List<ChainAssetLocal>,
+        assetsToRemove: List<ChainAssetLocal>
+    ) {
         insertChainAssets(assetsToAdd)
         updateChainAssets(assetsToUpdate)
         deleteChainAssets(assetsToRemove)
     }
 
     @Transaction
-    open suspend fun updateNodes(nodesToAdd: List<ChainNodeLocal>, nodesToUpdate: List<ChainNodeLocal>, nodesToRemove: List<ChainNodeLocal>) {
+    open suspend fun updateNodes(
+        nodesToAdd: List<ChainNodeLocal>,
+        nodesToUpdate: List<ChainNodeLocal>,
+        nodesToRemove: List<ChainNodeLocal>
+    ) {
         insertChainNodes(nodesToAdd)
         updateChainNodes(nodesToUpdate)
         deleteChainNodes(nodesToRemove)
@@ -129,11 +139,13 @@ abstract class ChainDao {
 
     @Update
     protected abstract suspend fun updateChainAssets(assets: List<ChainAssetLocal>)
+
     @Delete
     protected abstract suspend fun deleteChainAssets(assets: List<ChainAssetLocal>)
 
     @Update
     protected abstract suspend fun updateChainNodes(nodes: List<ChainNodeLocal>)
+
     @Delete
     protected abstract suspend fun deleteChainNodes(nodes: List<ChainNodeLocal>)
 
@@ -200,15 +212,20 @@ abstract class ChainDao {
     @Query("SELECT * FROM chain_assets")
     abstract suspend fun getAssetsConfigs(): List<ChainAssetLocal>
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     open fun observeChainsWithBalance(
         accountMetaId: Long,
         assetId: String
     ): Flow<Map<JoinedChainInfo, AssetWithToken>> {
         return observeAssetSymbolById(assetId).flatMapLatest { symbol ->
-            observeChainsWithBalanceByName(
-                accountMetaId = accountMetaId,
-                assetSymbol = symbol.removedXcPrefix()
-            )
+            if (symbol != null) {
+                observeChainsWithBalanceByName(
+                    accountMetaId = accountMetaId,
+                    assetSymbol = symbol.removedXcPrefix()
+                )
+            } else {
+                flowOf(emptyMap())
+            }
         }
     }
 
@@ -217,7 +234,7 @@ abstract class ChainDao {
             SELECT symbol FROM chain_assets WHERE chain_assets.id = :assetId
         """
     )
-    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String>
+    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String?>
 
     @Transaction
     @Query(

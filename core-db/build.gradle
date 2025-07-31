@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
-apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'dagger.hilt.android.plugin'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -37,6 +37,10 @@ android {
     namespace 'jp.co.soramitsu.core_db'
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
@@ -47,11 +51,11 @@ dependencies {
     implementation libs.coroutines.core
 
     implementation libs.hilt.android
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.room.runtime
     implementation libs.room.ktx
-    kapt libs.room.compiler
+    ksp libs.room.compiler
 
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules
