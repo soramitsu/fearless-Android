@@ -76,9 +76,10 @@ dependencies {
     implementation project(':feature-walletconnect-api')
     implementation project(':feature-tonconnect-api')
 
-    implementation platform(libs.walletconnectBomDep)
-    implementation libs.walletconnectCoreDep
-    implementation libs.walletconnectWeb3WalletDep
+    implementation platform(libs.reownBomDep)
+    // Exclude JNA from Reown libraries to prevent class duplication - using direct JNA dependency below
+    implementation libs.reownCoreDep, withoutJna
+    implementation libs.reownWalletKitDep, withoutJna
 
     implementation libs.kotlin.stdlib.jdk7
 
@@ -123,7 +124,9 @@ dependencies {
 
     implementation libs.insetter.widgets
 
+    // JNA is added as direct dependency to prevent class duplication from 3rd party libraries
     implementation libs.jna
+    // Exclude JNA from beacon SDK to prevent class duplication - using direct JNA dependency above
     implementation libs.beacon.android.sdk, withoutJna
 
 

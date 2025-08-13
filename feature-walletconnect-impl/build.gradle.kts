@@ -40,9 +40,15 @@ dependencies {
 
     implementation(libs.web3jDep)
 
-    implementation(platform(libs.walletconnectBomDep))
-    implementation(libs.walletconnectCoreDep)
-    implementation(libs.walletconnectWeb3WalletDep)
+    implementation(platform(libs.reownBomDep))
+    implementation(libs.reownCoreDep) {
+        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
+        exclude(group = "net.java.dev.jna")
+    }
+    implementation(libs.reownWalletKitDep) {
+        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
+        exclude(group = "net.java.dev.jna")
+    }
 
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)

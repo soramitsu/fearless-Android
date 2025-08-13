@@ -1,8 +1,8 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
 import androidx.core.net.toUri
-import com.walletconnect.android.Core
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.android.Core
+import com.reown.walletkit.client.Wallet
 import io.ipfs.multibase.CharEncoding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.fromHex

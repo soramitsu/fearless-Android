@@ -1,11 +1,11 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
-import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
-import com.walletconnect.web3.wallet.utils.CacaoSigner
+import com.reown.android.cacao.signature.SignatureType
+import com.reown.android.utils.cacao.sign
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
+import com.reown.walletkit.utils.CacaoSigner
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -142,7 +142,7 @@ class WalletConnectInteractorImpl(
             )
         } + optionalSessionNamespaces.filter { it.key !in requiredSessionNamespaces.keys }
 
-        Web3Wallet.approveSession(
+        WalletKit.approveSession(
             params = Wallet.Params.SessionApprove(
                 proposerPublicKey = proposal.proposerPublicKey,
                 namespaces = sessionNamespaces,
@@ -158,7 +158,7 @@ class WalletConnectInteractorImpl(
         onSuccess: (Wallet.Params.SessionReject) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.rejectSession(
+        WalletKit.rejectSession(
             params = Wallet.Params.SessionReject(
                 proposal.proposerPublicKey,
                 "User rejected"
@@ -173,7 +173,7 @@ class WalletConnectInteractorImpl(
         onSuccess: (Wallet.Params.SessionReject) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.rejectSession(
+        WalletKit.rejectSession(
             params = Wallet.Params.SessionReject(
                 proposal.proposerPublicKey,
                 "Blockchain not supported by wallet"
@@ -215,7 +215,7 @@ class WalletConnectInteractorImpl(
             )
         }
 
-        Web3Wallet.respondSessionRequest(
+        WalletKit.respondSessionRequest(
             params = Wallet.Params.SessionRequestResponse(
                 sessionTopic = topic,
                 jsonRpcResponse = jsonRpcResponse
@@ -441,7 +441,7 @@ class WalletConnectInteractorImpl(
         onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.respondSessionRequest(
+        WalletKit.respondSessionRequest(
             params = Wallet.Params.SessionRequestResponse(
                 sessionTopic = sessionTopic,
                 jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
@@ -455,16 +455,16 @@ class WalletConnectInteractorImpl(
         )
     }
 
-    override fun getActiveSessionByTopic(topic: String) = Web3Wallet.getActiveSessionByTopic(topic)
+    override fun getActiveSessionByTopic(topic: String) = WalletKit.getActiveSessionByTopic(topic)
 
-    override fun getPendingListOfSessionRequests(topic: String) = Web3Wallet.getPendingListOfSessionRequests(topic)
+    override fun getPendingListOfSessionRequests(topic: String) = WalletKit.getPendingListOfSessionRequests(topic)
 
     override fun disconnectSession(
         topic: String,
         onSuccess: (Wallet.Params.SessionDisconnect) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.disconnectSession(
+        WalletKit.disconnectSession(
             params = Wallet.Params.SessionDisconnect(topic),
             onSuccess = {
                 WCDelegate.refreshConnections()
@@ -480,7 +480,7 @@ class WalletConnectInteractorImpl(
         onError: (Wallet.Model.Error) -> Unit
     ) {
         val pairingParams = Wallet.Params.Pair(pairingUri)
-        Web3Wallet.pair(
+        WalletKit.pair(
             params = pairingParams,
             onSuccess = onSuccess,
             onError = onError
