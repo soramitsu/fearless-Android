@@ -3,11 +3,11 @@ package jp.co.soramitsu.app
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
-import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
-import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.android.Core
+import com.reown.android.CoreClient
+import com.reown.android.relay.ConnectionType
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
 import dagger.hilt.android.HiltAndroidApp
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
@@ -67,7 +67,7 @@ open class App : Application() {
 
         val initParams = Wallet.Params.Init(core = CoreClient)
 
-        Web3Wallet.initialize(initParams) { error ->
+        WalletKit.initialize(initParams) { error ->
             // Error will be thrown if there's an issue during initialization
             error.throwable.printStackTrace()
         }

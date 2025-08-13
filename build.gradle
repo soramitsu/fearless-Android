@@ -10,6 +10,8 @@ buildscript {
         targetSdkVersion = 35
 
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
+        // Closure to exclude JNA from 3rd party dependencies to prevent class duplication
+        // JNA is added as direct dependency where needed to avoid "missing class" errors
         withoutJna = { exclude group: 'net.java.dev.jna' }
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
     }
