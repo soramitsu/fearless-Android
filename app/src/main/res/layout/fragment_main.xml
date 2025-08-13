@@ -41,6 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:backgroundTint="@color/bottom_bar_grey"
+        android:fitsSystemWindows="true"
         app:cradle_vertical_offset="-16dp"
         app:elevation="0dp"
         app:fab_cradle_margin="@dimen/x1"

@@ -1,8 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../tests.gradle'
 
 android {
@@ -30,9 +31,6 @@ android {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = JavaVersion.VERSION_21.toString()
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
     }
 
     namespace 'jp.co.soramitsu.feature_account_impl'
@@ -78,12 +76,12 @@ dependencies {
     implementation libs.navigation.ui.ktx
 
     implementation libs.hilt.android
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.room.runtime
-    kapt libs.room.compiler
+    ksp libs.room.compiler
 
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug

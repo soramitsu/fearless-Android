@@ -1,7 +1,10 @@
 package jp.co.soramitsu.account.impl.presentation.profile
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -17,7 +20,6 @@ import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
-import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.feature_account_impl.R
 
 data class ProfileScreenState(
@@ -49,7 +51,11 @@ interface ProfileScreenInterface {
 }
 
 @Composable
-fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
+fun ProfileScreen(
+    scrollState: ScrollState,
+    state: ProfileScreenState,
+    callback: ProfileScreenInterface,
+) {
     Column {
         MarginVertical(margin = 16.dp)
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -63,38 +69,87 @@ fun ProfileScreen(state: ProfileScreenState, callback: ProfileScreenInterface) {
                 onScoreClick = callback::onScoreClick
             )
         }
-        MarginVertical(margin = 16.dp)
-        SettingsItem(icon = painterResource(R.drawable.ic_settings_wallets), text = stringResource(R.string.profile_wallets_title), action = state.walletsItemAction, onClick = callback::walletsClicked)
-        SettingsDivider()
-        if (state.walletState.onlyTonSupported) {
-            SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_tonconnect_title), onClick = callback::onTonConnectClick)
-        } else {
-            SettingsItem(icon = painterResource(R.drawable.ic_wallet_connect), text = stringResource(R.string.profile_walletconnect_title), onClick = callback::onWalletConnectClick)
-        }
-        SettingsDivider()
-        if (state.soraCardVisible) {
+
+        Column(modifier = Modifier.verticalScroll(scrollState)) {
+            MarginVertical(margin = 16.dp)
             SettingsItem(
-                icon = painterResource(R.drawable.ic_card),
-                text = stringResource(R.string.profile_soracard_title),
-                onClick = callback::onSoraCardClicked,
+                icon = painterResource(R.drawable.ic_settings_wallets),
+                text = stringResource(R.string.profile_wallets_title),
+                action = state.walletsItemAction,
+                onClick = callback::walletsClicked
             )
             SettingsDivider()
-        }
-        SettingsItem(icon = painterResource(R.drawable.ic_nav_crowdloans), text = stringResource(R.string.crowdloan_crowdloan), onClick = callback::crowdloansClicked)
-        SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_dollar_circle), text = stringResource(R.string.common_currency), action = SettingsItemAction.Selector(state.currency), onClick = callback::currencyClicked)
-        SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_language), text = stringResource(R.string.profile_language_title), action = SettingsItemAction.Selector(state.language), onClick = callback::languagesClicked)
-        SettingsDivider()
-        if (state.walletState.onlyTonSupported.not()) {
-            SettingsItem(icon = painterResource(R.drawable.ic_score_star_full_24_pink), text = stringResource(R.string.profile_account_score_title), action = SettingsItemAction.Switch(state.nomisChecked), onClick = callback::onNomisMultichainScoreContainerClick)
+            if (state.walletState.onlyTonSupported) {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_wallet_connect),
+                    text = stringResource(R.string.profile_tonconnect_title),
+                    onClick = callback::onTonConnectClick
+                )
+            } else {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_wallet_connect),
+                    text = stringResource(R.string.profile_walletconnect_title),
+                    onClick = callback::onWalletConnectClick
+                )
+            }
             SettingsDivider()
-            SettingsItem(icon = painterResource(R.drawable.ic_polkaswap_logo), text = stringResource(R.string.polkaswap_disclaimer_settings_item), onClick = callback::polkaswapDisclaimerClicked)
+            if (state.soraCardVisible) {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_card),
+                    text = stringResource(R.string.profile_soracard_title),
+                    onClick = callback::onSoraCardClicked,
+                )
+                SettingsDivider()
+            }
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_nav_crowdloans),
+                text = stringResource(R.string.crowdloan_crowdloan),
+                onClick = callback::crowdloansClicked
+            )
             SettingsDivider()
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_dollar_circle),
+                text = stringResource(R.string.common_currency),
+                action = SettingsItemAction.Selector(state.currency),
+                onClick = callback::currencyClicked
+            )
+            SettingsDivider()
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_language),
+                text = stringResource(R.string.profile_language_title),
+                action = SettingsItemAction.Selector(state.language),
+                onClick = callback::languagesClicked
+            )
+            SettingsDivider()
+            if (state.walletState.onlyTonSupported.not()) {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_score_star_full_24_pink),
+                    text = stringResource(R.string.profile_account_score_title),
+                    action = SettingsItemAction.Switch(state.nomisChecked),
+                    onClick = callback::onNomisMultichainScoreContainerClick
+                )
+                SettingsDivider()
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_polkaswap_logo),
+                    text = stringResource(R.string.polkaswap_disclaimer_settings_item),
+                    onClick = callback::polkaswapDisclaimerClicked
+                )
+                SettingsDivider()
+            }
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_pin_24),
+                text = stringResource(R.string.profile_pincode_change_title),
+                onClick = callback::changePinCodeClicked
+            )
+            SettingsDivider()
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_info_primary_24),
+                text = stringResource(R.string.about_title),
+                onClick = callback::aboutClicked
+            )
+
+            MarginVertical(margin = 72.dp)
         }
-        SettingsItem(icon = painterResource(R.drawable.ic_pin_24), text = stringResource(R.string.profile_pincode_change_title), onClick = callback::changePinCodeClicked)
-        SettingsDivider()
-        SettingsItem(icon = painterResource(R.drawable.ic_info_primary_24), text = stringResource(R.string.about_title), onClick = callback::aboutClicked)
     }
 }
 
@@ -122,20 +177,22 @@ fun ProfileScreenPreview() {
         soraCardVisible = true,
     )
     FearlessAppTheme {
-        ProfileScreen(state, object : ProfileScreenInterface {
-            override fun onWalletOptionsClick(item: WalletItemViewState) = Unit
-            override fun walletsClicked() = Unit
-            override fun onWalletConnectClick() = Unit
-            override fun onTonConnectClick() = Unit
-            override fun onSoraCardClicked() = Unit
-            override fun currencyClicked() = Unit
-            override fun crowdloansClicked() {}
-            override fun languagesClicked() = Unit
-            override fun onNomisMultichainScoreContainerClick() = Unit
-            override fun polkaswapDisclaimerClicked() = Unit
-            override fun changePinCodeClicked() = Unit
-            override fun aboutClicked() = Unit
-            override fun onScoreClick(item: WalletItemViewState) = Unit
-        })
+        ProfileScreen(
+            scrollState = rememberScrollState(),
+            state, object : ProfileScreenInterface {
+                override fun onWalletOptionsClick(item: WalletItemViewState) = Unit
+                override fun walletsClicked() = Unit
+                override fun onWalletConnectClick() = Unit
+                override fun onTonConnectClick() = Unit
+                override fun onSoraCardClicked() = Unit
+                override fun currencyClicked() = Unit
+                override fun crowdloansClicked() {}
+                override fun languagesClicked() = Unit
+                override fun onNomisMultichainScoreContainerClick() = Unit
+                override fun polkaswapDisclaimerClicked() = Unit
+                override fun changePinCodeClicked() = Unit
+                override fun aboutClicked() = Unit
+                override fun onScoreClick(item: WalletItemViewState) = Unit
+            })
     }
 }

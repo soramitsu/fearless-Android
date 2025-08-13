@@ -1,9 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'kotlinx-serialization'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../scripts/secrets.gradle'
 
 android {
@@ -101,9 +102,6 @@ android {
 
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
-    }
     namespace 'jp.co.soramitsu.common'
 }
 
@@ -129,11 +127,11 @@ dependencies {
     implementation libs.lifecycle.runtime.ktx
     implementation libs.lifecycle.viewmodel.ktx
     implementation libs.lifecycle.process
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     implementation libs.hilt.android
     implementation libs.navigation.fragment.ktx
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.play.services.base
 

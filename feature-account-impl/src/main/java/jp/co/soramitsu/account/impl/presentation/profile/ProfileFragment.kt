@@ -56,7 +56,7 @@ class ProfileFragment : BaseComposeFragment<ProfileViewModel>() {
             subscribe(viewModel)
         }
         val state by viewModel.state.collectAsState()
-        ProfileScreen(state = state, callback = viewModel)
+        ProfileScreen(scrollState = scrollState, state = state, callback = viewModel)
     }
 
     @Composable

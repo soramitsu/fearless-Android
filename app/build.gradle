@@ -5,8 +5,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'com.google.firebase.appdistribution'
 apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
@@ -138,9 +139,6 @@ android {
             }
         }
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
-    }
     lint {
         disable 'Instantiatable'
     }
@@ -215,10 +213,10 @@ dependencies {
     implementation libs.room.runtime
 
     implementation libs.hilt.android
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.lifecycle.process
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     implementation libs.lifecycle.runtime.ktx
     implementation libs.lifecycle.livedata.ktx
@@ -238,7 +236,7 @@ dependencies {
     implementation libs.jna
     implementation libs.beacon.android.sdk, withoutJna
 
-    kaptAndroidTest libs.hilt.compiler
+    kspAndroidTest libs.hilt.compiler
     implementation libs.storiesProgressView
 
     implementation libs.bundles.compose

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 
@@ -60,12 +60,12 @@ dependencies {
 
     implementation libs.hilt.android
     implementation libs.legacy.support.v4
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.room.runtime
-    kapt libs.room.compiler
+    ksp libs.room.compiler
 
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
