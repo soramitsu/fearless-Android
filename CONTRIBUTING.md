@@ -3,6 +3,8 @@
 
 Welcome to Android repository of Fearless Wallet application. If you would like to help us to make the best wallet in Polkadot/Kusama ecosystem, please find appropriate section which describes how you can help us.
 
+For developer setup, module structure, commands, and coding conventions, see the Contributor Guide in [AGENTS.md](AGENTS.md). It complements this document with practical instructions for building, testing, and submitting PRs.
+
 ### 🐞 Reporting bugs
 
 In case you have found any issues with an existing app, feel free to report it directly to [Issues board](https://github.com/soramitsu/fearless-Android/issues). In your report please mention following data:

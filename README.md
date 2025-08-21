@@ -1,5 +1,5 @@
 ### Fearless Wallet Android
-[![Google Play](https://img.shields.io/badge/Google%20Play-Android-green?logo=google%20play)](https://play.google.com/store/apps/details?id=jp.co.soramitsu.fearless)
+[![Google Play](https://img.shields.io/badge/Google%20Play-Android-green?logo=google%20play)](https://play.google.com/store/apps/details?id=jp.co.soramitsu.fearless) [![Android CI](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml)
 
 ![logo](/docs/fearlesswallet_promo.png)
 
@@ -84,6 +84,42 @@ FL_ANDROID_ETHERSCAN_API_KEY
 FL_ANDROID_BSCSCAN_API_KEY
 FL_ANDROID_POLYGONSCAN_API_KEY
 ````
+
+## Local Validation
+
+Run static analysis, unit tests, lint, and set up Android SDK packages:
+
+```
+bash scripts/validate-local.sh
+```
+
+Manual equivalents if you prefer:
+
+```
+./gradlew detektAll
+./gradlew runTest
+./gradlew :app:lint
+```
+
+Prerequisites: JDK 21 (Temurin/Adoptium) and Android SDK with API 35 + build-tools 35.0.0. The script will try to locate `ANDROID_SDK_ROOT` and install missing packages if `sdkmanager` is available.
+
+### Use a local fearless-utils-Android
+
+If you have a local checkout of `fearless-utils-Android`, the build can use it via a composite build.
+
+```
+export FEARLESS_UTILS_PATH=/absolute/path/to/fearless-utils-Android
+./gradlew :app:assembleDebug
+```
+
+When set, Gradle substitutes the binary dependency `jp.co.soramitsu.fearless-utils:fearless-utils` with the local project.
+
+Prereqs for local utils build: NDK (25.2.9519653) and Rust toolchain available on PATH (`rustup`, `cargo`).
+
+## Contributing
+
+- Contributor Guide: see [AGENTS.md](AGENTS.md) for project layout, commands, and conventions.
+- Process & community details: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 Fearless Wallet Android is available under the Apache 2.0 license. See the LICENSE file for more info.

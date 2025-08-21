@@ -12,17 +12,26 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/all_chains_types_android.json\""
-        buildConfigField("String", "DEFAULT_V13_TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/default_v13_types.json\"")
+        // Allow overriding runtime/type sources to align with specific Polkadot SDK releases
+        def TYPES_URL_DEFAULT = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/all_chains_types_android.json"
+        def DEFAULT_V13_TYPES_URL_DEFAULT = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/default_v13_types.json"
+        def typesUrl = readSecret("TYPES_URL_OVERRIDE") ?: TYPES_URL_DEFAULT
+        def defaultV13TypesUrl = readSecret("DEFAULT_V13_TYPES_URL_OVERRIDE") ?: DEFAULT_V13_TYPES_URL_DEFAULT
+        buildConfigField "String", "TYPES_URL", "\"${typesUrl}\""
+        buildConfigField "String", "DEFAULT_V13_TYPES_URL", "\"${defaultV13TypesUrl}\""
     }
 
     buildTypes {
         debug {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v13/chains_dev_prod.json\""
+            def CHAINS_URL_DEBUG_DEFAULT = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v13/chains_dev_prod.json"
+            def chainsUrlDebug = readSecret("CHAINS_URL_DEBUG_OVERRIDE") ?: (readSecret("CHAINS_URL_OVERRIDE") ?: CHAINS_URL_DEBUG_DEFAULT)
+            buildConfigField "String", "CHAINS_URL", "\"${chainsUrlDebug}\""
         }
 
         release {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json\""
+            def CHAINS_URL_RELEASE_DEFAULT = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json"
+            def chainsUrlRelease = readSecret("CHAINS_URL_RELEASE_OVERRIDE") ?: (readSecret("CHAINS_URL_OVERRIDE") ?: CHAINS_URL_RELEASE_DEFAULT)
+            buildConfigField "String", "CHAINS_URL", "\"${chainsUrlRelease}\""
         }
     }
 
