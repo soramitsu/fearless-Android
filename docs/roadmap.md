@@ -20,22 +20,23 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
      - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
      - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
      - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (points to chain list validated against stable2503)
-  2) fearless-utils alignment: If needed, set a local checkout that supports stable2503
-     - `export FEARLESS_UTILS_PATH=/abs/path/to/fearless-utils-Android`
-     - Use a tag/branch verified with stable2503; rebuild to use composite substitution.
-  3) Build + quick checks:
+  2) Utils alignment (remote source): The build fetches `soramitsu/fearless-utils-Android` as a source dependency.
+     - Ensure NDK 25.2.9519653 and Rust toolchain with Android targets are installed (see README and CI config).
+     - Build will compile utils from source; no local path configuration is needed.
+  3) Library version pinning (shared_features): If required, pin via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` in `local.properties` or env.
+  4) Build + quick checks:
      - `./gradlew detektAll runTest :app:lint`
      - `./gradlew :app:assembleDebug`
-  4) Runtime smoke tests: Run app against Polkadot and Kusama
+  5) Runtime smoke tests: Run app against Polkadot and Kusama
      - Verify ChainRegistry establishes connections and loads metadata (logcat).
      - Open Wallet → Balances; verify assets and fiat values present.
      - Open Send; compute fee; submit a small transfer on Westend/Kusama dev if available.
      - Open Staking screens; ensure validators/nominators decode, no crashes.
-  5) Address API deltas:
+  6) Address API deltas:
      - Search for runtime-extrinsic assumptions (e.g., staking pool create/rename) and update code or add capability checks.
      - Validate storage keys/paths used in wallet/staking; update binding code where schema changed.
-  6) Update defaults (optional): If stable2503 becomes default, update `runtime/build.gradle` defaults and docs with new registry URLs.
-  7) Document: Add the exact registry URLs used to `docs/status.md` and a short note on verification results.
+  7) Update defaults (optional): If stable2503 becomes default, update `runtime/build.gradle` defaults and docs with new registry URLs.
+  8) Document: Add the exact registry URLs used to `docs/status.md` and a short note on verification results.
 - Verification matrix (execute manually or script):
   - Polkadot: balances load, transfer fee computed, send succeeds on test account.
   - Kusama: same as above; staking validator list loads.
