@@ -14,6 +14,13 @@ Fearless Wallet roadmap is available for everyone: [roadmap link](https://sorami
 ## Dev Status
 Track features development: [board link](https://soramitsucoltd.aha.io/shared/343e5db57d53398e3f26d0048158c4a2)
 
+## Architecture & Current State
+- Architecture overview: see `docs/ARCHITECTURE.md` for module layout, layers, and flows.
+- Module map: see `docs/MODULES.md` for a quick feature-by-feature guide.
+- Current state: see `docs/CURRENT_STATE.md` for supported ecosystems, integrations, and TODO hotspots.
+ - Status snapshot: see `docs/status.md` for health, risks, and what’s incomplete.
+ - Roadmap: see `docs/roadmap.md` for prioritized, actionable tasks.
+
 ## How to build
 
 To build Fearless Wallet Android project, you need to provide several keys either in environment variables or in `local.properties` file:

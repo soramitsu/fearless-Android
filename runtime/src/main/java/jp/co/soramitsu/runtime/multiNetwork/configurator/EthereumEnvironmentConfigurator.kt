@@ -8,6 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Sets up connections for EVM-compatible chains and reports node switches.
+ */
 class EthereumEnvironmentConfigurator(
     private val ethereumConnectionPool: EthereumConnectionPool,
     private val chainsRepository: ChainsRepository
