@@ -110,18 +110,18 @@ Manual equivalents if you prefer:
 
 Prerequisites: JDK 21 (Temurin/Adoptium) and Android SDK with API 35 + build-tools 35.0.0. The script will try to locate `ANDROID_SDK_ROOT` and install missing packages if `sdkmanager` is available.
 
-### Use a local fearless-utils-Android
+### Use fearless-utils-Android (remote source dependency)
 
-If you have a local checkout of `fearless-utils-Android`, the build can use it via a composite build.
+The build maps the GitHub repository as a source dependency and builds the module from source.
 
 ```
-export FEARLESS_UTILS_PATH=/absolute/path/to/fearless-utils-Android
+# Requires network access during Gradle configuration
 ./gradlew :app:assembleDebug
 ```
 
-When set, Gradle substitutes the binary dependency `jp.co.soramitsu.fearless-utils:fearless-utils` with the local project.
+Gradle will fetch https://github.com/soramitsu/fearless-utils-Android and build module `jp.co.soramitsu.fearless-utils:fearless-utils` from source.
 
-Prereqs for local utils build: NDK (25.2.9519653) and Rust toolchain available on PATH (`rustup`, `cargo`).
+Prereqs for building the utils from source: NDK (25.2.9519653) and Rust toolchain available on PATH (`rustup`, `cargo`).
 
 ## Contributing
 

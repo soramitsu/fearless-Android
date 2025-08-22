@@ -74,6 +74,15 @@ allprojects {
             dependencySubstitution {
                 substitute module('org.bouncycastle:bcprov-jdk15on') using module('org.bouncycastle:bcprov-jdk18on:1.78')
             }
+
+            // Optional: pin shared_features libs to a specific version (e.g., for Polkadot SDK alignment)
+            def sharedFeaturesVer = readSecret("SHARED_FEATURES_VERSION_OVERRIDE")
+            if (sharedFeaturesVer) {
+                force "jp.co.soramitsu.shared_features:core:${sharedFeaturesVer}"
+                force "jp.co.soramitsu.shared_features:xcm:${sharedFeaturesVer}"
+                force "jp.co.soramitsu.shared_features:backup:${sharedFeaturesVer}"
+                println("Using SHARED_FEATURES_VERSION_OVERRIDE=${sharedFeaturesVer}")
+            }
         }
     }
 }

@@ -58,8 +58,11 @@
     - `TYPES_URL_OVERRIDE=https://.../all_chains_types_android.json`
     - `CHAINS_URL_OVERRIDE=https://.../chains.json`
   - After updating, run `./gradlew detektAll runTest :app:lint`.
+- Library version pinning: to use a specific `shared_features` version compatible with a Polkadot SDK release, set
+  - `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y`
+  - Works via `local.properties` or environment variable.
 
-## Local Utils (fearless-utils-Android)
-- To develop against a local utils checkout, set `FEARLESS_UTILS_PATH` or place it at `/Users/williamrichter/Git/fearless-utils-Android`.
-- The build auto-includes it as a composite build and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils` with the local project.
-- This helps test against utils changes required by specific Polkadot SDK releases.
+## Utils Integration
+- Gradle maps the GitHub repo `soramitsu/fearless-utils-Android` as a source dependency and builds `jp.co.soramitsu.fearless-utils:fearless-utils` from source (requires network).
+- Building from source requires NDK and Rust toolchain installed (see README for versions).
+- This enables rapid testing of utils updates needed for specific Polkadot SDK releases.

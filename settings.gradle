@@ -31,14 +31,9 @@ include ':feature-nft-impl'
 include ':feature-liquiditypools-api'
 include ':feature-liquiditypools-impl'
 
-// Optionally include a local fearless-utils-Android checkout for composite build
-def localUtilsPath = System.getenv("FEARLESS_UTILS_PATH") ?: "/Users/williamrichter/Git/fearless-utils-Android"
-def localUtilsDir = new File(localUtilsPath)
-if (localUtilsDir.exists()) {
-    println("Including local fearless-utils from: ${localUtilsDir}")
-    includeBuild(localUtilsDir) {
-        dependencySubstitution {
-            substitute module("jp.co.soramitsu.fearless-utils:fearless-utils") using project(":fearless-utils")
-        }
+// Map fearless-utils-Android from GitHub as a source dependency (requires network access)
+sourceControl {
+    gitRepository("https://github.com/soramitsu/fearless-utils-Android.git") {
+        producesModule("jp.co.soramitsu.fearless-utils:fearless-utils")
     }
 }
