@@ -43,7 +43,7 @@ This document explains how the Android app is structured, how modules interact, 
 - Build types: `debug`, `release`, `staging`, `develop`, `pr`. R8/shrinker is enabled on remote builds for closer prod parity.
 - Static analysis: Detekt (`./gradlew detektAll`) with formatting (`detektFormat`).
 - Unit tests: `./gradlew runTest` aggregates checks and test reports.
-- Local utils development: `settings.gradle` includes a composite build for a local `fearless-utils-Android` checkout via `FEARLESS_UTILS_PATH`.
+- Utils integration: `settings.gradle` maps the GitHub repo `soramitsu/fearless-utils-Android` as a source dependency (via `sourceControl`).
 
 ## Where To Start
 - App lifecycle and global initialization: `app/src/main/java/jp/co/soramitsu/app/App.kt`.
@@ -51,4 +51,3 @@ This document explains how the Android app is structured, how modules interact, 
 - Chains and connections: `runtime/multiNetwork/*` and `core-db` chain entities.
 - Wallet features (send/receive/history): `feature-wallet-api` and `feature-wallet-impl`.
 - Accounts/onboarding: `feature-account-*`, `feature-onboarding-*`.
-

@@ -33,7 +33,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Target: polkadot-stable2503 (prepared via override keys).
 - How to align: set `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_OVERRIDE` to registries validated against stable2503. See `docs/samples/local.properties.stable2503`.
 - Optional: pin `shared_features` via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` if required by the SDK combo.
-- Utils integration: set `FEARLESS_UTILS_PATH=/abs/path/to/fearless-utils-Android` to use a local utils checkout supporting stable2503.
+- Utils integration: the build fetches `soramitsu/fearless-utils-Android` as a source dependency and builds it from source.
 - Debug: run `./gradlew printPolkadotSdkAlignment` to verify effective overrides.
 
 ## Health & Risks (Snapshot)

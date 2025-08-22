@@ -14,5 +14,4 @@ CHAINS_URL_OVERRIDE=https://<your>/chains.json
 #SHARED_FEATURES_VERSION_OVERRIDE=1.x.y
 
 # Optional: use a local checkout of fearless-utils-Android that supports stable2503
-#FEARLESS_UTILS_PATH=/abs/path/to/fearless-utils-Android
-
+# Utils are fetched from GitHub via sourceControl; no local path required.

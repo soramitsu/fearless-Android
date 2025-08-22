@@ -115,7 +115,6 @@ tasks.register('printPolkadotSdkAlignment') {
         def chainsUrlDebug = readSecret('CHAINS_URL_DEBUG_OVERRIDE') ?: (readSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlDebugDefault)
         def chainsUrlRelease = readSecret('CHAINS_URL_RELEASE_OVERRIDE') ?: (readSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlReleaseDefault)
         def sharedFeaturesVer = readSecret('SHARED_FEATURES_VERSION_OVERRIDE') ?: '(not pinned)'
-        def fearlessUtilsPath = System.getenv('FEARLESS_UTILS_PATH') ?: readSecret('FEARLESS_UTILS_PATH') ?: '(not set)'
 
         println("Polkadot SDK alignment (effective):")
         println(" - TYPES_URL: ${typesUrl}")
@@ -123,6 +122,5 @@ tasks.register('printPolkadotSdkAlignment') {
         println(" - CHAINS_URL (debug): ${chainsUrlDebug}")
         println(" - CHAINS_URL (release): ${chainsUrlRelease}")
         println(" - SHARED_FEATURES_VERSION_OVERRIDE: ${sharedFeaturesVer}")
-        println(" - FEARLESS_UTILS_PATH: ${fearlessUtilsPath}")
     }
 }

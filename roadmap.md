@@ -16,21 +16,26 @@ Suggested steps:
    - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
    - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
    - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (validated against stable2503)
-2) fearless-utils alignment: If needed, use a checkout/tag that supports stable2503
-   - `export FEARLESS_UTILS_PATH=/abs/path/to/fearless-utils-Android`
-   - Rebuild to use composite substitution.
-3) Build + checks:
+2) Utils integration (remote source): The build fetches `soramitsu/fearless-utils-Android` via sourceControl and compiles it from source. Ensure NDK 25.2.9519653 + Rust toolchain with Android targets are installed (see README).
+3) Optional: pin `shared_features` via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` if required by the SDK combo.
+4) Build + checks:
    - `./gradlew detektAll runTest :app:lint`
    - `./gradlew :app:assembleDebug`
-4) Runtime smoke tests (manual):
+5) Runtime smoke tests (manual):
    - Verify ChainRegistry establishes connections and loads metadata (logcat).
    - Wallet → Balances shows assets and fiat values.
    - Send: compute fee and submit a small transfer on Westend/Kusama dev if available.
    - Staking: validators/nominators decode, no crashes.
-5) Address API deltas:
+6) Address API deltas:
    - Update runtime-extrinsic assumptions and storage paths; add capability checks as needed.
-6) Update defaults (optional): If stable2503 becomes default, update `runtime/build.gradle` and docs with new registry URLs.
-7) Document: Add the exact registry URLs used to `docs/status.md` and a short note on verification results.
+7) Update defaults (optional): If stable2503 becomes default, update `runtime/build.gradle` and docs with new registry URLs.
+8) Document: Add the exact registry URLs used to `docs/status.md` and a short note on verification results.
+
+Bugfix backlog (from QA CSV):
+- [ ] TON: 'address' in HEX form — approval window missing; Wrong address format (code 1)
+- [ ] TON: user declined the transaction — error surfaced; SDK code 300
+- [ ] TON: 'validUntil' expired during confirmation — “Transaction has expired” (code 1)
+- [ ] TON: 'address' in non-bounceable form — processed with bounce=false; verify UI/SDK handling
 
 Verification matrix (execute manually or script):
 - Polkadot: balances load, transfer fee computed, send succeeds on test account.
@@ -41,4 +46,3 @@ Verification matrix (execute manually or script):
 —
 
 More roadmap items (P0/P1/P2), including technical debt and follow-ups, are maintained in `docs/roadmap.md`.
-
