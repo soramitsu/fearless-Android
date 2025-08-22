@@ -29,6 +29,13 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.
 - ChainRegistry coordinates runtime providers and connections. EVM handled via `EthereumEnvironmentConfigurator` and `EthereumConnectionPool`.
 
+## Polkadot SDK Alignment
+- Target: polkadot-stable2503 (prepared via override keys).
+- How to align: set `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_OVERRIDE` to registries validated against stable2503. See `docs/samples/local.properties.stable2503`.
+- Optional: pin `shared_features` via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` if required by the SDK combo.
+- Utils integration: set `FEARLESS_UTILS_PATH=/abs/path/to/fearless-utils-Android` to use a local utils checkout supporting stable2503.
+- Debug: run `./gradlew printPolkadotSdkAlignment` to verify effective overrides.
+
 ## Health & Risks (Snapshot)
 - Code quality: Detekt enforced in CI. Several TODO/FIXME markers remain in features and common utils.
 - Incomplete UI/logic areas:
@@ -69,3 +76,6 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Secrets: set Moonpay, EVM provider keys, and history provider keys in `local.properties` or env vars (see README).
 - WalletConnect: ensure `WALLET_CONNECT_PROJECT_ID` is correctly provided; observe init logs.
 
+Verification notes (stable2503):
+- Polkadot, Kusama: balances/fees load; small transfer succeeds; staking validators decode; no SCALE decode errors.
+- AssetHub, Westend: asset enumeration and basic transfer verified on test accounts.

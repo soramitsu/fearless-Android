@@ -82,6 +82,8 @@ run_gradle_tasks() {
   fi
   log "Gradle version…"
   ./gradlew --version --no-daemon --console=plain || true
+  log "Polkadot SDK alignment (overrides)…"
+  ./gradlew printPolkadotSdkAlignment --no-daemon --console=plain || true
   log "Running detektAll…"
   ./gradlew detektAll --no-daemon --console=plain
   log "Running unit tests + coverage (runTest)…"
@@ -99,4 +101,3 @@ main() {
 }
 
 main "$@"
-

@@ -1,0 +1,18 @@
+# Sample overrides for Polkadot SDK alignment: polkadot-stable2503
+# Copy to your local.properties and replace <your> URLs with verified registries.
+
+# Types registry (all chains) aligned with stable2503
+TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json
+
+# Default V13 types registry (used as fallback)
+DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json
+
+# Chains registry validated against stable2503 (dev/prod set consolidated)
+CHAINS_URL_OVERRIDE=https://<your>/chains.json
+
+# Optional: pin shared_features library family to a version compatible with stable2503
+#SHARED_FEATURES_VERSION_OVERRIDE=1.x.y
+
+# Optional: use a local checkout of fearless-utils-Android that supports stable2503
+#FEARLESS_UTILS_PATH=/abs/path/to/fearless-utils-Android
+

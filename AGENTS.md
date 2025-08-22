@@ -42,6 +42,7 @@
 - Naming: mirror class under test, e.g., `AccountRepositoryTest.kt`; methods `fun shouldDoX_whenY()`.
 - Run: module `testDebugUnitTest` (or `testDevelopDebugUnitTest`), or root `runTest`.
 - Coverage: maintain/raise JaCoCo coverage for changed code.
+- New code policy: every time you add a function, create at least one unit test for it (minimum), placed in the corresponding module under `src/test`.
 
 ## Commit & Pull Requests
 - Commits: imperative, concise subject; reference issues (`#123`). Prefer Conventional Commits (`feat:`, `fix:`, `refactor:`) when possible.
@@ -66,3 +67,8 @@
 - Gradle maps the GitHub repo `soramitsu/fearless-utils-Android` as a source dependency and builds `jp.co.soramitsu.fearless-utils:fearless-utils` from source (requires network).
 - Building from source requires NDK and Rust toolchain installed (see README for versions).
 - This enables rapid testing of utils updates needed for specific Polkadot SDK releases.
+
+## Documentation
+- Status: see `docs/status.md` for current health, coverage, and risks.
+- Roadmap: see `docs/roadmap.md` for prioritized tasks, acceptance criteria, and prompts.
+- Sync policy: update `docs/status.md` and `docs/roadmap.md` whenever code changes (in the same PR) so they stay in sync with the repository’s current state.
