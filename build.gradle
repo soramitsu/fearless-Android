@@ -54,12 +54,17 @@ allprojects {
         mavenCentral()
         maven { url "https://jitpack.io" }
 
-        maven {
-            url = readSecret("PAY_WINGS_REPOSITORY_URL")
-            credentials {
-                username = readSecret("PAY_WINGS_USERNAME")
-                password = readSecret("PAY_WINGS_PASSWORD")
+        def payRepoUrl = readSecret("PAY_WINGS_REPOSITORY_URL")
+        if (payRepoUrl) {
+            maven {
+                url = payRepoUrl
+                credentials {
+                    username = readSecret("PAY_WINGS_USERNAME") ?: ""
+                    password = readSecret("PAY_WINGS_PASSWORD") ?: ""
+                }
             }
+        } else {
+            println("Skipping PayWings repository: PAY_WINGS_REPOSITORY_URL is not set")
         }
     }
 
