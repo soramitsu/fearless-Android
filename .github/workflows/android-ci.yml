@@ -47,6 +47,21 @@ jobs:
             platforms;android-35
             build-tools;35.0.0
             platform-tools
+            ndk;25.2.9519653
+
+      - name: Export NDK environment
+        run: |
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Cache cargo registry and builds
+        uses: Swatinem/rust-cache@v2
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -62,4 +77,3 @@ jobs:
 
       - name: Android Lint (app)
         run: ./gradlew :app:lint --no-daemon --console=plain
-
