@@ -63,6 +63,11 @@
   - `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y`
   - Works via `local.properties` or environment variable.
 
+## Local Properties (private)
+- Create a root-level `local.properties` with the required secrets and service credentials. Do NOT commit this file.
+- See `docs/samples/local.properties.example` and create a private `local.properties` at the repo root; replace placeholders with your real values.
+- Typical keys include: MoonPay, PayWings (Sora Card), X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
+
 ## Utils Integration
 - Gradle maps the GitHub repo `soramitsu/fearless-utils-Android` as a source dependency and builds `jp.co.soramitsu.fearless-utils:fearless-utils` from source (requires network).
 - Building from source requires NDK and Rust toolchain installed (see README for versions).
