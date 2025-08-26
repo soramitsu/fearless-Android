@@ -43,6 +43,8 @@
 - Run: module `testDebugUnitTest` (or `testDevelopDebugUnitTest`), or root `runTest`.
 - Coverage: maintain/raise JaCoCo coverage for changed code.
 - New code policy: every time you add a function, create at least one unit test for it (minimum), placed in the corresponding module under `src/test`.
+- Integration (DOT): add instrumentation/integration tests that hit a reachable Polkadot node and log key responses (e.g., runtimeVersion, balances, fees). Guard with assumptions so tests skip when network is unavailable.
+- Logs: when testing DOT, log the raw RPC response and parsed model to aid debugging; never log secrets.
 
 ## Commit & Pull Requests
 - Commits: imperative, concise subject; reference issues (`#123`). Prefer Conventional Commits (`feat:`, `fix:`, `refactor:`) when possible.
@@ -67,6 +69,12 @@
 - Create a root-level `local.properties` with the required secrets and service credentials. Do NOT commit this file.
 - See `docs/samples/local.properties.example` and create a private `local.properties` at the repo root; replace placeholders with your real values.
 - Typical keys include: MoonPay, PayWings (Sora Card), X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
+- Formats: use `key=value` per line; avoid trailing spaces. Strings may be unquoted; if values contain special characters or spaces, wrap in double quotes. Set `sdk.dir=/absolute/path/to/Android/sdk` to avoid SDK lookup errors.
+- Runtime overrides (mirrors recommended for first run):
+  - `TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/all_chains_types_android.json`
+  - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/default_v13_types.json`
+  - `CHAINS_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/v13/chains.json`
+- Verify config: `./gradlew printPolkadotSdkAlignment` prints effective URLs and any shared_features pin before you run the app/tests.
 
 ## Utils Integration
 - Gradle maps the GitHub repo `soramitsu/fearless-utils-Android` as a source dependency and builds `jp.co.soramitsu.fearless-utils:fearless-utils` from source (requires network).
