@@ -39,18 +39,32 @@ android {
         buildConfig = true
     }
 
+    // Resolve duplicate META-INF resources in androidTest packaging (e.g., JUnit Jupiter artifacts)
+    packaging {
+        resources {
+            excludes += [
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE-notice.md",
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                    "META-INF/AL2.0",
+                    "META-INF/LGPL2.1",
+                    // Versioned META-INF resources from multi-release jars (e.g., BouncyCastle, jspecify)
+                    "META-INF/versions/**"
+            ]
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
 
     }
-    namespace 'jp.co.soramitsu.runtime'
+    namespace = 'jp.co.soramitsu.runtime'
 }
 
 dependencies {

@@ -39,12 +39,10 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
-    namespace 'jp.co.soramitsu.feature_onboarding_impl'
+    namespace = 'jp.co.soramitsu.feature_onboarding_impl'
 }
 
 dependencies {

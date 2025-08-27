@@ -19,7 +19,6 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
     compileOptions {
@@ -27,7 +26,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    namespace 'jp.co.soramitsu.feature_wallet_api'
+    namespace = 'jp.co.soramitsu.feature_wallet_api'
 }
 
 dependencies {

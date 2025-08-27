@@ -17,11 +17,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = '21'
     }
-    namespace 'jp.co.soramitsu.test_shared'
+    namespace = 'jp.co.soramitsu.test_shared'
 }
 
 

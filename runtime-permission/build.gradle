@@ -10,15 +10,13 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
     }
-    namespace 'jp.co.soramitsu.runtime_permission'
+    namespace = 'jp.co.soramitsu.runtime_permission'
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = '21'
     }
 }

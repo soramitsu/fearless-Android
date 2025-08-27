@@ -18,11 +18,9 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
-    namespace 'jp.co.soramitsu.core'
+    namespace = 'jp.co.soramitsu.core'
 }
 
 dependencies {

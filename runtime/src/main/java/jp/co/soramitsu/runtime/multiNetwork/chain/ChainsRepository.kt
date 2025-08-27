@@ -8,6 +8,7 @@ import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -44,8 +45,14 @@ class ChainsRepository(private val chainDao: ChainDao) {
     }
 
     suspend fun getChain(chainId: ChainId): Chain = withContext(Dispatchers.IO) {
-        val chainLocal = chainDao.getJoinChainInfo(chainId)
-        mapChainLocalToChain(chainLocal)
+        // Be resilient on fresh installs/after data clears: wait briefly for chain sync
+        repeat(50) { // ~15s at 300ms per attempt
+            val local = chainDao.getJoinChainInfo()
+            val found = local.firstOrNull { it.chain.id == chainId }
+            if (found != null) return@withContext mapChainLocalToChain(found)
+            delay(300)
+        }
+        throw IllegalStateException("Chain $chainId not available locally yet; sync pending or failed")
     }
 
     fun observeChainsPerAssetFlow(

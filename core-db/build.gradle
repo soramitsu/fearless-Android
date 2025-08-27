@@ -26,8 +26,6 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 

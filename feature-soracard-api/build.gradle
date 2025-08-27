@@ -23,8 +23,6 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = '21'
     }
 
@@ -55,7 +53,7 @@ android {
         buildConfig = true
     }
 
-    namespace "jp.co.soramitsu.feature_soracard_api"
+    namespace = "jp.co.soramitsu.feature_soracard_api"
 }
 
 dependencies {
@@ -68,5 +66,3 @@ dependencies {
 
     implementation libs.sora.soracard
 }
-
-

@@ -127,8 +127,6 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
     kotlin {
@@ -142,7 +140,7 @@ android {
     lint {
         disable 'Instantiatable'
     }
-    namespace 'jp.co.soramitsu.app'
+    namespace = 'jp.co.soramitsu.app'
 
     packagingOptions {
         resources.excludes.add("META-INF/**/*")
