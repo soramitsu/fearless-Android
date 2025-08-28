@@ -46,3 +46,7 @@ Verification matrix (execute manually or script):
 —
 
 More roadmap items (P0/P1/P2), including technical debt and follow-ups, are maintained in `docs/roadmap.md`.
+
+## Build & Play Compliance
+- Gradle/AGP update: bump Gradle wrapper and Android Gradle Plugin to the latest stable release; remove deprecations (e.g., use `url = uri(...)`, `namespace = '…'`). Verify builds with JDK 21 locally and in CI.
+- Google Play 16KB page size: ensure native libraries (e.g., sr25519) are built with an NDK that supports 16KB pages (r26+). Validate with `readelf -l` and address Play Console checks. Keep packaging compliant (uncompressed native libs or required flags).

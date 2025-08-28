@@ -77,3 +77,24 @@ jobs:
 
       - name: Android Lint (app)
         run: ./gradlew :app:lint --no-daemon --console=plain
+
+      - name: Gradle/AGP versions
+        run: |
+          echo "== Gradle =="
+          ./gradlew --version --no-daemon --console=plain || true
+          echo "\n== Android Gradle Plugin (declared) =="
+          grep -E '^android_plugin\s*=\s*"[0-9]+' gradle/libs.versions.toml || true
+
+      - name: Assemble debug to produce native libs
+        run: ./gradlew :app:assembleDebug --no-daemon --console=plain
+
+      - name: readelf sanity (native libs)
+        run: |
+          set +e
+          echo "== Scanning native libraries (.so) =="
+          mapfile -t sos < <(find app/build -type f -name "*.so" | head -n 10)
+          if [ ${#sos[@]} -eq 0 ]; then echo "No native libs found under app/build"; exit 0; fi
+          for so in "${sos[@]}"; do
+            echo "\n-- $so --"
+            readelf -l "$so" | sed -n '1,120p' || true
+          done

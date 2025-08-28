@@ -144,6 +144,24 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Prompt:
   - Template a README and populate for wallet, account, staking first.
 
+12) Gradle/AGP update and build hygiene
+- Why: Keep toolchain current, reduce deprecations, and ensure reproducible builds.
+- Acceptance:
+  - Update to latest stable Gradle and Android Gradle Plugin; no deprecation warnings in `./gradlew help`.
+  - Build works with JDK 21; CI green.
+- Prompt:
+  - Bump versions in `gradle/libs.versions.toml` and wrapper to the latest stable; fix any DSL changes.
+  - Verify `url = uri(...)`, `namespace = '…'`, and packaging excludes for test APKs.
+
+13) Google Play 16KB page-size compliance (native libs)
+- Why: Play requires 16KB page-size support on newer devices; native libs must be compatible.
+- Acceptance:
+  - Rebuild native artifacts (e.g., sr25519) with an NDK that supports 16KB pages (r26+).
+  - Verify with `readelf -l lib<name>.so` that segment alignment/page-size is compliant; no Play Console warnings.
+- Prompt:
+  - Ensure `ndk;25.2.9519653` or newer in CI/local; consider bumping to latest stable NDK if needed.
+  - Keep native libs uncompressed in the bundle or verify packaging flags as required by Play guidance.
+
 ## P2 — Lower Priority
 
 12) Centralize chain/type override docs and checks
