@@ -46,7 +46,7 @@ class ChainsRepository(private val chainDao: ChainDao) {
 
     suspend fun getChain(chainId: ChainId): Chain = withContext(Dispatchers.IO) {
         // Be resilient on fresh installs/after data clears: wait briefly for chain sync
-        repeat(50) { // ~15s at 300ms per attempt
+        repeat(200) { // ~60s at 300ms per attempt
             val local = chainDao.getJoinChainInfo()
             val found = local.firstOrNull { it.chain.id == chainId }
             if (found != null) return@withContext mapChainLocalToChain(found)

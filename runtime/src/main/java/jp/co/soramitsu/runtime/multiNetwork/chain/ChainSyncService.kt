@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import android.util.Log
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -32,18 +33,20 @@ class ChainSyncService(
     }
 
     private suspend fun configChainsSyncUp(): List<Chain> = supervisorScope {
+        val tag = "ChainRegistry"
         val localChainsJoinedInfo = dao.getJoinChainInfo()
         val localChainsJoinedInfoMap = localChainsJoinedInfo.associateBy { it.chain.id }
 
         val remoteChains = chainFetcher.getChains()
-            .filter {
-                !it.disabled && (it.assets?.isNotEmpty() == true)
-            }
+            .filter { !it.disabled }
             .map {
                 it.toChain()
             }
 
         val remoteMapping = remoteChains.associateBy(Chain::id)
+
+        Log.d(tag, "remote chains fetched: ${remoteChains.size}")
+        remoteChains.take(5).forEach { Log.d(tag, "remote chain id: ${it.id}") }
 
         val mappedRemoteChains = remoteChains.map { mapChainToChainLocal(it) }
         val chainsSyncDeferred = async {
@@ -161,6 +164,10 @@ class ChainSyncService(
         }.join()
 
         dao.deleteChains(chainsToDelete)
+
+        val postLocal = dao.getJoinChainInfo()
+        Log.d(tag, "local chains after sync: ${postLocal.size}")
+        postLocal.take(5).forEach { Log.d(tag, "local chain id: ${it.chain.id}") }
 
         remoteChains
     }
