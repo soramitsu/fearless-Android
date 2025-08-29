@@ -157,10 +157,10 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 13) Google Play 16KB page-size compliance (native libs)
 - Why: Play requires 16KB page-size support on newer devices; native libs must be compatible.
 - Acceptance:
-  - Rebuild native artifacts (e.g., sr25519) with an NDK that supports 16KB pages (r26+).
+  - Migrate native builds (e.g., sr25519) to NDK r28+ which compiles with 16 KB page sizes by default.
   - Verify with `readelf -l lib<name>.so` that segment alignment/page-size is compliant; no Play Console warnings.
 - Prompt:
-  - Ensure `ndk;25.2.9519653` or newer in CI/local; consider bumping to latest stable NDK if needed.
+  - Plan upgrade to NDK r28+ in CI/local; update SDK installation steps and toolchains accordingly.
   - Keep native libs uncompressed in the bundle or verify packaging flags as required by Play guidance.
   - Keep a CI step to run `readelf -l` on built .so files and surface any issues in logs.
 
