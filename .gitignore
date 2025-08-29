@@ -12,5 +12,8 @@ app/*.apk
 # ignore jacoco coverage reports
 /coverage
 
+# ignore local logs
+*.log
+
 fearless.jks
 /buildSrc/build
