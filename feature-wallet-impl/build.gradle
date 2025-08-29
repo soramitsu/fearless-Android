@@ -52,12 +52,10 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
-    namespace 'jp.co.soramitsu.feature_wallet_impl'
+    namespace = 'jp.co.soramitsu.feature_wallet_impl'
 }
 
 dependencies {

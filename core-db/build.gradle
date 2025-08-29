@@ -26,15 +26,13 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
-    namespace 'jp.co.soramitsu.core_db'
+    namespace = 'jp.co.soramitsu.core_db'
 }
 
 ksp {

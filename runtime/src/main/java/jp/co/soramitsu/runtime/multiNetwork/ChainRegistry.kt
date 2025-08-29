@@ -51,11 +51,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Holds the active runtime provider and connection for a chain.
+ */
 data class ChainService(
     val runtimeProvider: RuntimeProvider,
     val connection: ChainConnection
 )
 
+/**
+ * Central registry coordinating chain runtimes, connections, and sync lifecycle.
+ *
+ * Responsibilities:
+ * - Tracks the set of chains to keep in-sync (based on DB + enabled assets).
+ * - Creates/removes runtime providers and websocket/EVM connections.
+ * - Exposes flows for currently synced chains and nodes.
+ * - Persists node switch events via `ChainsRepository`.
+ */
 class ChainRegistry @Inject constructor(
     private val runtimeProviderPool: RuntimeProviderPool,
     private val connectionPool: ConnectionPool,
@@ -71,6 +83,7 @@ class ChainRegistry @Inject constructor(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : IChainRegistry {
 
+    // Background scope for registry work; uses Default dispatcher + supervisor for isolation
     val scope = CoroutineScope(dispatcher + SupervisorJob())
 
     val syncedChains = MutableStateFlow<List<Chain>>(emptyList())
@@ -83,6 +96,8 @@ class ChainRegistry @Inject constructor(
     private val enabledAssetsFlow = assetsCache.observeAllEnabledAssets()
         .onStart { emit(emptyList()) }
 
+    // Determines chains that should be actively synced based on popularity, user-enabled assets,
+    // and presence of staking/crowdloans/identity requirements.
     private val chainsToSync = chainDao.joinChainInfoFlow()
         .mapList(::mapChainLocalToChain)
         .combine(enabledAssetsFlow) { chains, enabledAssets ->
@@ -104,10 +119,11 @@ class ChainRegistry @Inject constructor(
         .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }
         .flowOn(dispatcher)
 
-//    init {
-//        syncUp()
-//    }
+    // Note: call `syncUp()` to start observing/maintaining chain connections.
 
+    /**
+     * Starts observing DB changes and (re)configuring connections and runtimes accordingly.
+     */
     fun syncUp() {
         chainsToSync.onEach { (removed, addedOrModified, all) ->
             coroutineScope {
@@ -145,6 +161,9 @@ class ChainRegistry @Inject constructor(
             .launchIn(scope)
     }
 
+    /**
+     * Stops and removes all resources for the given chain (EVM or Substrate).
+     */
     fun stopChain(chain: Chain) {
         val chainId = chain.id
         if (chain.isEthereumChain) {
@@ -157,11 +176,17 @@ class ChainRegistry @Inject constructor(
         connectionPool.removeConnection(chainId)
     }
 
+    /**
+     * Applies environment-specific configuration and establishes connections/runtime providers.
+     */
     suspend fun setupChain(chain: Chain) {
         kotlin.runCatching { chainEnvironmentConfiguratorProvider.provide(chain).configure(chain) }
             .onFailure { Log.d("ChainRegistry", "failed to setup  ${chain.name} chain") }
     }
 
+    /**
+     * Verifies whether a chain currently has an active connection and (for Substrate) a runtime.
+     */
     suspend fun checkChainSyncedUp(chain: Chain): Boolean {
         if (chain.isEthereumChain) {
             return ethereumConnectionPool.getOrNull(chain.id) != null
@@ -264,4 +289,3 @@ class ChainRegistry @Inject constructor(
         )
     }
 }
-

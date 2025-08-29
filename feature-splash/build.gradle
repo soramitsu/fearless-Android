@@ -24,12 +24,10 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
-    namespace 'jp.co.soramitsu.splash'
+    namespace = 'jp.co.soramitsu.splash'
 }
 
 dependencies {

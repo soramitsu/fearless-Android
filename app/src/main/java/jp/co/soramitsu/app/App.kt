@@ -14,6 +14,14 @@ import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 
+/**
+ * Application entry point.
+ *
+ * - Boots Hilt DI via `@HiltAndroidApp`.
+ * - Applies current locale using `ContextManager` and `LanguagesHolder`.
+ * - Publishes build metadata (version, build type) through `OptionsProvider`.
+ * - Initializes WalletConnect v2 (Reown SDK) for dApp connections.
+ */
 @HiltAndroidApp
 open class App : Application() {
 
@@ -38,9 +46,17 @@ open class App : Application() {
         OptionsProvider.CURRENT_VERSION_NAME = BuildConfig.VERSION_NAME
         OptionsProvider.CURRENT_BUILD_TYPE = BuildConfig.BUILD_TYPE
 
+        // WalletConnect v2 setup (requires BuildConfig.WALLET_CONNECT_PROJECT_ID)
         setupWalletConnect()
     }
 
+    /**
+     * Configure the WalletConnect v2 client.
+     *
+     * Uses the Reown SDK with `AUTOMATIC` connection type and the project ID from
+     * BuildConfig (`WALLET_CONNECT_PROJECT_ID`). When changing the relay or metadata
+     * fields (name, description, icons), ensure they match Brand/App Store guidelines.
+     */
     private fun setupWalletConnect() {
         val connectionType = ConnectionType.AUTOMATIC // ConnectionType.AUTOMATIC or ConnectionType.MANUAL
         val projectId = BuildConfig.WALLET_CONNECT_PROJECT_ID // Project ID at https://cloud.walletconnect.com/
@@ -68,7 +84,7 @@ open class App : Application() {
         val initParams = Wallet.Params.Init(core = CoreClient)
 
         WalletKit.initialize(initParams) { error ->
-            // Error will be thrown if there's an issue during initialization
+            // Will log exceptions if initialization fails (e.g., invalid project ID, network issues)
             error.throwable.printStackTrace()
         }
     }

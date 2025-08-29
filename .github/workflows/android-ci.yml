@@ -1,0 +1,109 @@
+name: Android CI
+
+on:
+  pull_request:
+  push:
+    branches: [ master, develop ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: true
+      USE_REMOTE_UTILS: "true"
+      # Provide safe stubs to avoid repository/config failures during resolution
+      PAY_WINGS_REPOSITORY_URL: https://maven.google.com
+      PAY_WINGS_USERNAME: ""
+      PAY_WINGS_PASSWORD: ""
+      MOONPAY_TEST_SECRET: stub
+      MOONPAY_PRODUCTION_SECRET: stub
+      FL_BLAST_API_ETHEREUM_KEY: stub
+      FL_BLAST_API_BSC_KEY: stub
+      FL_BLAST_API_SEPOLIA_KEY: stub
+      FL_BLAST_API_GOERLI_KEY: stub
+      FL_BLAST_API_POLYGON_KEY: stub
+      FL_ANDROID_ETHERSCAN_API_KEY: stub
+      FL_ANDROID_BSCSCAN_API_KEY: stub
+      FL_ANDROID_POLYGONSCAN_API_KEY: stub
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-35
+            build-tools;35.0.0
+            platform-tools
+            ndk;25.2.9519653
+
+      - name: Export NDK environment
+        run: |
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Cache cargo registry and builds
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Gradle version
+        run: ./gradlew --version --no-daemon --console=plain --stacktrace
+
+      - name: Static analysis (detekt)
+        run: ./gradlew detektAll --no-daemon --console=plain --stacktrace
+
+      - name: Unit tests + coverage
+        run: ./gradlew runTest --no-daemon --console=plain --stacktrace
+
+      - name: Android Lint (app)
+        run: ./gradlew :app:lint --no-daemon --console=plain --stacktrace
+
+      - name: Gradle/AGP versions
+        run: |
+          echo "== Gradle =="
+          ./gradlew --version --no-daemon --console=plain || true
+          echo "\n== Android Gradle Plugin (declared) =="
+          grep -E '^android_plugin\s*=\s*"[0-9]+' gradle/libs.versions.toml || true
+
+      - name: Assemble debug to produce native libs
+        run: ./gradlew :app:assembleDebug --no-daemon --console=plain --stacktrace
+
+      - name: readelf sanity (native libs)
+        run: |
+          if ! command -v readelf >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y binutils
+          fi
+          set +e
+          echo "== Scanning native libraries (.so) =="
+          mapfile -t sos < <(find app/build -type f -name "*.so" | head -n 10)
+          if [ ${#sos[@]} -eq 0 ]; then echo "No native libs found under app/build"; exit 0; fi
+          for so in "${sos[@]}"; do
+            echo "\n-- $so --"
+            readelf -l "$so" | sed -n '1,120p' || true
+          done
