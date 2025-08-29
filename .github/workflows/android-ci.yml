@@ -3,7 +3,10 @@ name: Android CI
 on:
   pull_request:
   push:
-    branches: [ main, develop ]
+    branches: [ master, develop ]
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java 21 (Temurin)
         uses: actions/setup-java@v4
@@ -68,16 +73,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Gradle version
-        run: ./gradlew --version --no-daemon --console=plain
+        run: ./gradlew --version --no-daemon --console=plain --stacktrace
 
       - name: Static analysis (detekt)
-        run: ./gradlew detektAll --no-daemon --console=plain
+        run: ./gradlew detektAll --no-daemon --console=plain --stacktrace
 
       - name: Unit tests + coverage
-        run: ./gradlew runTest --no-daemon --console=plain
+        run: ./gradlew runTest --no-daemon --console=plain --stacktrace
 
       - name: Android Lint (app)
-        run: ./gradlew :app:lint --no-daemon --console=plain
+        run: ./gradlew :app:lint --no-daemon --console=plain --stacktrace
 
       - name: Gradle/AGP versions
         run: |
@@ -87,10 +92,13 @@ jobs:
           grep -E '^android_plugin\s*=\s*"[0-9]+' gradle/libs.versions.toml || true
 
       - name: Assemble debug to produce native libs
-        run: ./gradlew :app:assembleDebug --no-daemon --console=plain
+        run: ./gradlew :app:assembleDebug --no-daemon --console=plain --stacktrace
 
       - name: readelf sanity (native libs)
         run: |
+          if ! command -v readelf >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y binutils
+          fi
           set +e
           echo "== Scanning native libraries (.so) =="
           mapfile -t sos < <(find app/build -type f -name "*.so" | head -n 10)
