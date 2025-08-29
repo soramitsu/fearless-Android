@@ -53,13 +53,21 @@ jobs:
             platforms;android-35
             build-tools;35.0.0
             platform-tools
+            ndk;28.0.12674087
             ndk;25.2.9519653
 
       - name: Export NDK environment
         run: |
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+      
+      - name: NDK revision
+        run: |
+          echo "== NDK (HOME) =="
+          cat "$ANDROID_NDK_HOME/source.properties" || true
+          echo "== Installed NDKs =="
+          ls -1 "$ANDROID_SDK_ROOT/ndk" || true
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
