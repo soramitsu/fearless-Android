@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 45
     env:
       CI: true
+      USE_REMOTE_UTILS: "true"
       # Provide safe stubs to avoid repository/config failures during resolution
       PAY_WINGS_REPOSITORY_URL: https://maven.google.com
       PAY_WINGS_USERNAME: ""

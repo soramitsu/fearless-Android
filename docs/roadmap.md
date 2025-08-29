@@ -147,11 +147,12 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 12) Gradle/AGP update and build hygiene
 - Why: Keep toolchain current, reduce deprecations, and ensure reproducible builds.
 - Acceptance:
-  - Update to latest stable Gradle and Android Gradle Plugin; no deprecation warnings in `./gradlew help`.
-  - Build works with JDK 21; CI green.
+  - Update to latest stable Gradle (e.g., 8.x) and Android Gradle Plugin (e.g., 8.x); no deprecation warnings in `./gradlew help`.
+  - Build works with JDK 21; CI green. CI prints Gradle/AGP versions for traceability.
 - Prompt:
   - Bump versions in `gradle/libs.versions.toml` and wrapper to the latest stable; fix any DSL changes.
   - Verify `url = uri(...)`, `namespace = '…'`, and packaging excludes for test APKs.
+  - Keep a CI step that prints Gradle/AGP versions (android-ci.yml).
 
 13) Google Play 16KB page-size compliance (native libs)
 - Why: Play requires 16KB page-size support on newer devices; native libs must be compatible.
@@ -161,6 +162,15 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Prompt:
   - Ensure `ndk;25.2.9519653` or newer in CI/local; consider bumping to latest stable NDK if needed.
   - Keep native libs uncompressed in the bundle or verify packaging flags as required by Play guidance.
+  - Keep a CI step to run `readelf -l` on built .so files and surface any issues in logs.
+
+14) Utils source mapping toggle
+- Why: Make remote source dependency for fearless-utils explicit and controllable.
+- Acceptance:
+  - `settings.gradle` maps the GitHub repository only when `USE_REMOTE_UTILS=true` (env or -P).
+  - CI sets `USE_REMOTE_UTILS=true` to build from source; local builds can rely on published artifacts by default.
+- Prompt:
+  - Add a settings flag and document it in AGENTS/README; enable flag in CI env.
 
 ## P2 — Lower Priority
 
