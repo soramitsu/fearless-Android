@@ -124,3 +124,26 @@ tasks.register('printPolkadotSdkAlignment') {
         println(" - SHARED_FEATURES_VERSION_OVERRIDE: ${sharedFeaturesVer}")
     }
 }
+
+// Aggregated post-merge checks to validate build and alignment (strict order, no cross-task lookups)
+tasks.register('postMergeCheck', GradleBuild) {
+    group = 'verification'
+    description = 'Print alignment, run tests, assemble debug, then lint in sequence.'
+    tasks = [
+            'printPolkadotSdkAlignment',
+            'runTest',
+            ':app:assembleDebug',
+            ':app:lint',
+    ]
+}
+
+// Jenkins-friendly alias that avoids nested Gradle builds.
+// Runs the same sequence but in-process via dependsOn for better task discovery.
+tasks.register('postMergeVerify') {
+    group = 'verification'
+    description = 'Alias: alignment -> tests -> assemble -> lint'
+    dependsOn('printPolkadotSdkAlignment')
+    dependsOn('runTest')
+    dependsOn(':app:assembleDebug')
+    dependsOn(':app:lint')
+}
