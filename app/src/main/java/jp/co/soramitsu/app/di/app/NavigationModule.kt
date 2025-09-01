@@ -15,7 +15,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.success.api.presentation.SuccessRouter
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import javax.inject.Singleton

@@ -25,6 +25,7 @@
 - Per-module unit tests: `./gradlew :core-db:testDebugUnitTest` (or `testDevelopDebugUnitTest` if present).
 - Android Lint: `./gradlew :app:lint`.
 - Coverage report: `./gradlew jacocoTestReport` (outputs under each module’s `build/reports/jacoco`).
+- Post-merge validation: `./gradlew postMergeCheck` or `bash scripts/post_merge_check.sh`.
 - App version: `./gradlew :app:printVersion`.
 - Local validation helper: `bash scripts/validate-local.sh`.
 

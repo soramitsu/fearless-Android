@@ -125,7 +125,7 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDeta
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.success.presentation.SuccessFragment
-import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.success.api.presentation.SuccessRouter
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.DappModel
