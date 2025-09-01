@@ -19,6 +19,7 @@ jobs:
     env:
       CI: true
       USE_REMOTE_UTILS: "true"
+      SHARED_FEATURES_VERSION_OVERRIDE: ""
       # Provide safe stubs to avoid repository/config failures during resolution
       PAY_WINGS_REPOSITORY_URL: https://maven.google.com
       PAY_WINGS_USERNAME: ""
