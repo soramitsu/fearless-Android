@@ -83,6 +83,9 @@ jobs:
       - name: Gradle version
         run: ./gradlew --version --no-daemon --console=plain --stacktrace
 
+      - name: Polkadot SDK alignment
+        run: ./gradlew printPolkadotSdkAlignment --no-daemon --console=plain --stacktrace
+
       - name: Static analysis (detekt)
         run: ./gradlew detektAll --no-daemon --console=plain --stacktrace
 
