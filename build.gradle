@@ -161,11 +161,11 @@ gradle.projectsEvaluated {
     }
 
     // Ensure strict order: tests -> assemble -> lint
-    tasks.named(':app:assembleDebug') {
+    project(':app').tasks.named('assembleDebug') {
         mustRunAfter(testTasks)
         mustRunAfter('detektAll')
     }
-    tasks.named(':app:lint') {
+    project(':app').tasks.named('lint') {
         mustRunAfter(':app:assembleDebug')
     }
 }
