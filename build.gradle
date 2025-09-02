@@ -124,3 +124,60 @@ tasks.register('printPolkadotSdkAlignment') {
         println(" - SHARED_FEATURES_VERSION_OVERRIDE: ${sharedFeaturesVer}")
     }
 }
+
+// Aggregated post-merge checks to validate build and alignment (strict order, no cross-task lookups)
+tasks.register('postMergeCheck', GradleBuild) {
+    group = 'verification'
+    description = 'Print alignment, run tests, assemble debug, then lint in sequence.'
+    tasks = [
+            'printPolkadotSdkAlignment',
+            'runTest',
+            ':app:assembleDebug',
+            ':app:lint',
+    ]
+}
+
+// Jenkins-friendly alias that avoids nested Gradle builds.
+// Runs: clean -> alignment -> detekt -> tests -> assemble -> lint (ordered, in-process)
+tasks.register('postMergeVerify') {
+    group = 'verification'
+    description = 'Alias: alignment -> tests -> assemble -> lint'
+    dependsOn('clean')
+    dependsOn('printPolkadotSdkAlignment')
+    dependsOn('detektAll')
+    dependsOn(':app:assembleDebug')
+    dependsOn(':app:lint')
+}
+
+// After all projects are evaluated, wire test tasks and ordering to the alias
+gradle.projectsEvaluated {
+    // Collect available per-module unit test tasks
+    def testTasks = subprojects.collect { p ->
+        p.tasks.findByName('testDevelopDebugUnitTest') ?: p.tasks.findByName('testDebugUnitTest')
+    }.findAll { it != null }
+
+    def appProject = project(':app')
+    // Prefer assembleDevelopDebug if present (custom build type), else assembleDebug, else fallback to assemble
+    def appAssembleTaskName = ['assembleDevelopDebug', 'assembleDebug', 'assemble']
+            .find { t -> appProject.tasks.findByName(t) != null } ?: 'assemble'
+
+    tasks.named('postMergeVerify') {
+        dependsOn(testTasks)
+        // Wire the chosen assemble task
+        dependsOn(":app:${appAssembleTaskName}")
+    }
+
+    // Ensure fast-fail order: detekt -> assemble -> lint -> tests
+    appProject.tasks.matching { it.name == appAssembleTaskName }.configureEach {
+        mustRunAfter(':detektAll')
+    }
+    appProject.tasks.matching { it.name == 'lint' }.configureEach {
+        mustRunAfter(":app:${appAssembleTaskName}")
+    }
+    // Run unit tests after lint to avoid wasting time if lint fails
+    testTasks.each { t ->
+        t.mustRunAfter(':detektAll')
+        t.mustRunAfter(":app:${appAssembleTaskName}")
+        t.mustRunAfter(":app:lint")
+    }
+}

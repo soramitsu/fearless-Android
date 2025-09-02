@@ -19,6 +19,7 @@ jobs:
     env:
       CI: true
       USE_REMOTE_UTILS: "true"
+      SHARED_FEATURES_VERSION_OVERRIDE: ""
       # Provide safe stubs to avoid repository/config failures during resolution
       PAY_WINGS_REPOSITORY_URL: https://maven.google.com
       PAY_WINGS_USERNAME: ""
@@ -53,13 +54,21 @@ jobs:
             platforms;android-35
             build-tools;35.0.0
             platform-tools
+            ndk;28.0.12674087
             ndk;25.2.9519653
 
       - name: Export NDK environment
         run: |
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+      
+      - name: NDK revision
+        run: |
+          echo "== NDK (HOME) =="
+          cat "$ANDROID_NDK_HOME/source.properties" || true
+          echo "== Installed NDKs =="
+          ls -1 "$ANDROID_SDK_ROOT/ndk" || true
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -74,6 +83,9 @@ jobs:
 
       - name: Gradle version
         run: ./gradlew --version --no-daemon --console=plain --stacktrace
+
+      - name: Polkadot SDK alignment
+        run: ./gradlew printPolkadotSdkAlignment --no-daemon --console=plain --stacktrace
 
       - name: Static analysis (detekt)
         run: ./gradlew detektAll --no-daemon --console=plain --stacktrace

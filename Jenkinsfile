@@ -6,6 +6,11 @@ def jobParams = [
   booleanParam(defaultValue: false, description: 'Upload builds to nexus(master,develop and staging branches upload always)', name: 'upload_to_nexus'),
 ]
 
+// Silence optional SDK pin warnings in CI
+env.SHARED_FEATURES_VERSION_OVERRIDE = ""
+// Avoid project-level parallelism to stabilize AGP data binding and transforms
+env.ORG_GRADLE_PARALLEL = "false"
+
 def pipeline = new org.android.AppPipeline(
     steps:            this,
     sonar:            true,
