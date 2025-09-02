@@ -167,12 +167,17 @@ gradle.projectsEvaluated {
         dependsOn(":app:${appAssembleTaskName}")
     }
 
-    // Ensure strict order: tests -> assemble -> lint
+    // Ensure fast-fail order: detekt -> assemble -> lint -> tests
     appProject.tasks.matching { it.name == appAssembleTaskName }.configureEach {
-        mustRunAfter(testTasks)
         mustRunAfter('detektAll')
     }
     appProject.tasks.matching { it.name == 'lint' }.configureEach {
         mustRunAfter(":app:${appAssembleTaskName}")
+    }
+    // Run unit tests after lint to avoid wasting time if lint fails
+    testTasks.each { t ->
+        t.mustRunAfter('detektAll')
+        t.mustRunAfter(":app:${appAssembleTaskName}")
+        t.mustRunAfter(":app:lint")
     }
 }
