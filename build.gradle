@@ -138,12 +138,34 @@ tasks.register('postMergeCheck', GradleBuild) {
 }
 
 // Jenkins-friendly alias that avoids nested Gradle builds.
-// Runs the same sequence but in-process via dependsOn for better task discovery.
+// Runs: clean -> alignment -> detekt -> tests -> assemble -> lint (ordered, in-process)
 tasks.register('postMergeVerify') {
     group = 'verification'
     description = 'Alias: alignment -> tests -> assemble -> lint'
+    dependsOn('clean')
     dependsOn('printPolkadotSdkAlignment')
-    dependsOn('runTest')
+    dependsOn('detektAll')
     dependsOn(':app:assembleDebug')
     dependsOn(':app:lint')
+}
+
+// After all projects are evaluated, wire test tasks and ordering to the alias
+gradle.projectsEvaluated {
+    // Collect available per-module unit test tasks
+    def testTasks = subprojects.collect { p ->
+        p.tasks.findByName('testDevelopDebugUnitTest') ?: p.tasks.findByName('testDebugUnitTest')
+    }.findAll { it != null }
+
+    tasks.named('postMergeVerify') {
+        dependsOn(testTasks)
+    }
+
+    // Ensure strict order: tests -> assemble -> lint
+    tasks.named(':app:assembleDebug') {
+        mustRunAfter(testTasks)
+        mustRunAfter('detektAll')
+    }
+    tasks.named(':app:lint') {
+        mustRunAfter(':app:assembleDebug')
+    }
 }
