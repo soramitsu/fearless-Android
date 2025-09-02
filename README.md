@@ -20,6 +20,7 @@ Track features development: [board link](https://soramitsucoltd.aha.io/shared/34
 - Current state: see `docs/CURRENT_STATE.md` for supported ecosystems, integrations, and TODO hotspots.
  - Status snapshot: see `docs/status.md` for health, risks, and what’s incomplete.
  - Roadmap: see `docs/roadmap.md` for prioritized, actionable tasks.
+ - Release process: see `docs/releases/PROCESS.md` for beta → stable steps and checklists.
 
 ## How to build
 
