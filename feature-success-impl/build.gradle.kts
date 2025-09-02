@@ -35,9 +35,6 @@ android {
 dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    // Lifecycle annotation processor for ViewModel/SavedStateHandle integration
-    ksp(libs.lifecycle.compiler)
-    implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)

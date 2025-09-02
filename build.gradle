@@ -156,16 +156,23 @@ gradle.projectsEvaluated {
         p.tasks.findByName('testDevelopDebugUnitTest') ?: p.tasks.findByName('testDebugUnitTest')
     }.findAll { it != null }
 
+    def appProject = project(':app')
+    // Prefer assembleDevelopDebug if present (custom build type), else assembleDebug, else fallback to assemble
+    def appAssembleTaskName = ['assembleDevelopDebug', 'assembleDebug', 'assemble']
+            .find { t -> appProject.tasks.findByName(t) != null } ?: 'assemble'
+
     tasks.named('postMergeVerify') {
         dependsOn(testTasks)
+        // Wire the chosen assemble task
+        dependsOn(":app:${appAssembleTaskName}")
     }
 
     // Ensure strict order: tests -> assemble -> lint
-    project(':app').tasks.named('assembleDebug') {
+    appProject.tasks.matching { it.name == appAssembleTaskName }.configureEach {
         mustRunAfter(testTasks)
         mustRunAfter('detektAll')
     }
-    project(':app').tasks.named('lint') {
-        mustRunAfter(':app:assembleDebug')
+    appProject.tasks.matching { it.name == 'lint' }.configureEach {
+        mustRunAfter(":app:${appAssembleTaskName}")
     }
 }
