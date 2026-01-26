@@ -94,6 +94,32 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   - Create `strings.xml` entries and a small mapper to user-friendly messages.
   - Replace TODOs with resource lookups.
 
+7) Solana compatibility & memecoin tagging in wallet
+- Why: Expand beyond Substrate/EVM by letting users add/manage a Solana account while keeping a single wallet UI; Solana SPL memecoins must be discoverable and visually distinct to reduce scams.
+- Files: `runtime/.../chains/ChainRegistry.kt`, `feature-account-impl/.../AccountsViewModel.kt`, `feature-wallet-impl/.../WalletViewModel.kt`, asset metadata ingestion scripts.
+- Acceptance:
+  - “Add account” entry points inside Substrate/EVM wallet tabs list Solana as a peer option and successfully derive/store a Solana keypair (ed25519/BIP44) in meta-accounts.
+  - Chain Registry exposes Solana under “All Networks” with RPC/WebSocket endpoints validated; balances load for SOL and at least three SPL tokens.
+  - Assets flagged as memecoins display a leading 🐸 emoji anywhere tickers appear (wallet list, search, send selector) without mislabeling non-meme tokens.
+  - No crashes for existing users without Solana data; migrations skip cleanly.
+- Prompt:
+  1) Extend chain metadata JSON + ChainRegistry parsing for Solana (chainId, symbol precision, RPC health checks) and add integration tests.
+  2) Add Solana key derivation/signing utilities (libsodium/ed25519) and hook into `MetaAccount` creation/import flows plus backups.
+  3) Merge Solana balances into wallet/all-networks viewmodels, gate UI by capability flag until RPC connectivity verified, and drive Compose/View adapters to show the 🐸 tag when `isMemecoin=true`.
+  4) Seed token metadata source with SPL memecoins plus flag propagation, add UI unit tests ensuring emoji rendering, and document QA steps (create/import, list assets, send SOL/memecoin).
+
+8) Solana DeFi actions with XOR maintenance fee
+- Why: Deliver parity DeFi features (swap/liquidity/staking) on Solana while funding maintenance via a transparent 0.5% fee routed through XOR, aligning with existing Polkaswap economics.
+- Files: `feature-liquiditypools-impl/...`, `feature-wallet-impl/.../defi`, pricing/fee services, telemetry.
+- Acceptance:
+  - Solana DeFi sheets list available pools/strategies; executing a transaction shows gross amount, the 0.5% maintenance fee converted to XOR, and the final net before submit.
+  - Fee engine automatically swaps the 0.5% share to XOR (via Polkaswap/Sora liquidity) and transfers it to the maintenance wallet within the same confirmation flow; failures block submission with actionable errors.
+  - Tests cover route quoting, fee math, and XOR transfer orchestration; analytics log each fee event.
+- Prompt:
+  1) Integrate a Solana aggregator SDK (e.g., Jupiter) behind existing DeFi abstractions and add mocks for unit tests.
+  2) Build a fee service that calculates 0.5% of the Solana transaction value, performs (or schedules) the XOR conversion/transfer, and surfaces the maintenance destination for transparency.
+  3) Update confirmation UI to surface fee line items, add telemetry/alerting for missing XOR settlements, and expand QA checklist (swap SOL↔SPL, provide liquidity, collect XOR fee evidence).
+
 ## P1 — Medium Priority
 
 6) Cleanup or implement `SocketSingleRequestExecutor`
