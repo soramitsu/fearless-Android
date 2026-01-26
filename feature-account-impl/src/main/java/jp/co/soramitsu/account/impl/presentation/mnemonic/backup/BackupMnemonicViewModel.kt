@@ -23,6 +23,7 @@ import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.MnemonicWordModel
 import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
+import jp.co.soramitsu.common.domain.SOLANA_DEFAULT_PATH
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
@@ -294,6 +295,8 @@ class BackupMnemonicViewModel @Inject constructor(
                 val substrateDerivationPath = substrateDerivationPath.value
                 val ethereumDerivationPath =
                     ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
+                val solanaDerivationPath = payload.createExtras?.solanaDerivationPath ?: SOLANA_DEFAULT_PATH
+
                 AddAccountPayload.SubstrateOrEvm(
                     payload.accountName,
                     mnemonicString,
@@ -301,6 +304,7 @@ class BackupMnemonicViewModel @Inject constructor(
                     substrateDerivationPath,
                     ethereumDerivationPath,
                     null,
+                    solanaDerivationPath,
                     false
                 )
             }
