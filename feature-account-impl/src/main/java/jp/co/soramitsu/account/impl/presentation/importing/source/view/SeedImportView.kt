@@ -43,7 +43,8 @@ class SeedImportView @JvmOverloads constructor(
     private fun setImportAccountType(type: WalletEcosystem) {
         when (type) {
             WalletEcosystem.Substrate -> binding.importSeedTitle.setText(R.string.account_import_substrate_raw_seed_placeholder)
-            WalletEcosystem.Ethereum -> binding.importSeedTitle.setText(R.string.account_import_ethereum_raw_seed_placeholder)
+            WalletEcosystem.Ethereum,
+            WalletEcosystem.Solana -> binding.importSeedTitle.setText(R.string.account_import_ethereum_raw_seed_placeholder)
             WalletEcosystem.Ton -> { /* not applicable */
             }
         }

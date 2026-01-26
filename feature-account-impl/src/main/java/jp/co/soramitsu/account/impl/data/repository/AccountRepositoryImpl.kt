@@ -612,6 +612,10 @@ class AccountRepositoryImpl(
                     return BackupAccountType.PASSPHRASE
                 }
             }
+
+            WalletEcosystem.Solana -> {
+                // Solana backups will be handled once dedicated secret storage is available.
+            }
         }
         return null
     }

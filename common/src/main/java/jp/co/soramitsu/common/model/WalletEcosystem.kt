@@ -3,7 +3,7 @@ package jp.co.soramitsu.common.model
 import jp.co.soramitsu.core.models.Ecosystem
 
 enum class WalletEcosystem {
-    Substrate, Ethereum, Ton
+    Substrate, Ethereum, Ton, Solana
 }
 
 fun Ecosystem.toAccountType() = when (this) {

@@ -44,7 +44,8 @@ class JsonImportView @JvmOverloads constructor(
     private fun setImportAccountType(type: WalletEcosystem) {
         when (type) {
             WalletEcosystem.Substrate -> binding.importJsonContent.setLabel(R.string.import_substrate_recovery)
-            WalletEcosystem.Ethereum -> binding.importJsonContent.setLabel(R.string.import_ethereum_recovery)
+            WalletEcosystem.Ethereum,
+            WalletEcosystem.Solana -> binding.importJsonContent.setLabel(R.string.import_ethereum_recovery)
             WalletEcosystem.Ton -> { /* not implemented */
             }
         }

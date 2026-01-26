@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaChainDefinition
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -53,6 +54,7 @@ class OptionsEcosystemAccountsViewModel @Inject constructor(
                     WalletEcosystem.Substrate -> polkadotChainId
                     WalletEcosystem.Ethereum -> ethereumChainId
                     WalletEcosystem.Ton -> tonChainId
+                    WalletEcosystem.Solana -> SolanaChainDefinition.CHAIN_ID
                 }
                 when (it) {
                     BackupAccountType.PASSPHRASE -> {

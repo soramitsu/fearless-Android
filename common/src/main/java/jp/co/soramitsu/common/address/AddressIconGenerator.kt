@@ -103,7 +103,8 @@ suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress
         val address = supportedEcosystemWithAddress.toList().sortedBy {
             when (it.first) {
                 WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Ethereum -> 2
+                WalletEcosystem.Ethereum,
+                WalletEcosystem.Solana -> 2
                 WalletEcosystem.Ton -> 3
             }
         }[0].second
@@ -122,7 +123,8 @@ suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddres
         val address = supportedEcosystemWithAddress.toList().sortedBy {
             when (it.first) {
                 WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Ethereum -> 2
+                WalletEcosystem.Ethereum,
+                WalletEcosystem.Solana -> 2
                 WalletEcosystem.Ton -> 3
             }
         }[0].second
@@ -214,7 +216,8 @@ class StatelessAddressIconGenerator(
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
         val icon = when (ecosystem) {
             WalletEcosystem.Substrate -> iconGenerator.getSubstrateWalletIcon(sizeInPx)
-            WalletEcosystem.Ethereum -> iconGenerator.getEvmWalletIcon(sizeInPx)
+            WalletEcosystem.Ethereum,
+            WalletEcosystem.Solana -> iconGenerator.getEvmWalletIcon(sizeInPx)
             WalletEcosystem.Ton -> iconGenerator.getTonWalletIcon(sizeInPx)
         }
         icon
