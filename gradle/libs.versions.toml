@@ -69,6 +69,7 @@ zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
 soramitsuAndroidFoundation = "0.0.4"
 tonVersion = "0.3.1"
+solanajVersion = "1.16"
 
 [libraries]
 security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
@@ -201,6 +202,7 @@ ton-tlb = { module = "org.ton:ton-kotlin-tlb", version.ref = "tonVersion" }
 ton-block-tlb = { module = "org.ton:ton-kotlin-block-tlb", version.ref = "tonVersion" }
 ton-tonapi = { module = "org.ton:ton-kotlin-tonapi-tl", version.ref = "tonVersion" }
 ton-contract = { module = "org.ton:ton-kotlin-contract", version.ref = "tonVersion" }
+solanaj = { module = "org.p2p.solanaj:solanaj", version.ref = "solanajVersion" }
 
 [bundles]
 compose = [

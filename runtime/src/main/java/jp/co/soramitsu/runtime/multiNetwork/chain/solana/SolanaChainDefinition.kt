@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.solana
 
+import jp.co.soramitsu.common.domain.SOLANA_CHAIN_ID
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainNode
@@ -9,7 +10,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 object SolanaChainDefinition {
 
-    const val CHAIN_ID: ChainId = "solana-mainnet"
+    const val CHAIN_ID: ChainId = SOLANA_CHAIN_ID
     private const val ICON_URL = "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/info/logo.png"
     private const val EXPLORER_URL = "https://solscan.io/"
 

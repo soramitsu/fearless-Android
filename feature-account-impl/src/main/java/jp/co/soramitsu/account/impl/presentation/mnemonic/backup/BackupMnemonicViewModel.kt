@@ -58,7 +58,9 @@ class BackupMnemonicViewModel @Inject constructor(
         savedStateHandle.get<BackupMnemonicPayload>(BackupMnemonicScreenKeys.PAYLOAD_KEY)!!
     val walletId = payload.walletId
 
-    val isEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Ethereum)
+    val isEthereumAccount = payload.accountTypes.any {
+        it == WalletEcosystem.Ethereum || it == WalletEcosystem.Solana
+    }
     val isSubstrateAccount = payload.accountTypes.contains(WalletEcosystem.Substrate)
     val isTonAccount = payload.accountTypes.contains(WalletEcosystem.Ton)
     val isSubstrateAndEthereumAccount = isSubstrateAccount && isEthereumAccount

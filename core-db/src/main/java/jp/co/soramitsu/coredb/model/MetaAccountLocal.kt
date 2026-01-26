@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import jp.co.soramitsu.common.domain.SOLANA_CHAIN_ID
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
@@ -17,7 +18,8 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
     indices = [
         Index(value = ["substrateAccountId"]),
         Index(value = ["ethereumAddress"]),
-        Index(value = ["tonPublicKey"])
+        Index(value = ["tonPublicKey"]),
+        Index(value = ["solanaPublicKey"])
     ]
 )
 class MetaAccountLocal(
@@ -27,6 +29,7 @@ class MetaAccountLocal(
     val ethereumPublicKey: ByteArray?,
     val ethereumAddress: ByteArray?,
     val tonPublicKey: ByteArray?,
+    val solanaPublicKey: ByteArray?,
     val name: String,
     val isSelected: Boolean,
     val position: Int,
@@ -119,6 +122,7 @@ class MetaAccountPositionUpdate(
 // similar to fun MetaAccount.accountId(chain: IChain)
 fun MetaAccountLocal.accountId(chain: IChain): ByteArray? {
     return when (chain.ecosystem) {
+        chain.id == SOLANA_CHAIN_ID -> solanaPublicKey
         Ecosystem.Ton -> tonPublicKey
         Ecosystem.Substrate -> substrateAccountId
         Ecosystem.Ethereum,

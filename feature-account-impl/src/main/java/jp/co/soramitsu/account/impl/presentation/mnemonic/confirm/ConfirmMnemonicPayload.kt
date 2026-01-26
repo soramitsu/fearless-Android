@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.confirm
 
 import android.os.Parcelable
+import jp.co.soramitsu.common.domain.SOLANA_DEFAULT_PATH
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.core.models.CryptoType
 import kotlinx.parcelize.Parcelize
@@ -17,6 +18,7 @@ class ConfirmMnemonicPayload(
         open val accountName: String,
         open val cryptoType: CryptoType,
         open val substrateDerivationPath: String,
-        open val ethereumDerivationPath: String
+        open val ethereumDerivationPath: String,
+        open val solanaDerivationPath: String = SOLANA_DEFAULT_PATH
     ) : Parcelable
 }

@@ -5,6 +5,8 @@ import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
@@ -22,7 +24,10 @@ import jp.co.soramitsu.shared_utils.encrypt.keypair.ethereum.EthereumKeypairFact
 import jp.co.soramitsu.shared_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.shared_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import kotlin.text.encodeToByteArray
 import org.ton.api.pk.PrivateKeyEd25519
+import jp.co.soramitsu.common.utils.solana.SolanaKeyFactory
+import jp.co.soramitsu.common.utils.solana.SolanaKeypair
 
 class AccountRepositoryDelegate(
     private val substrateOrEvmAccountRepository: SubstrateOrEvmAccountRepository,
@@ -40,7 +45,8 @@ class AccountRepositoryDelegate(
 class SubstrateOrEvmAccountRepository(
     private val metaAccountDao: MetaAccountDao,
     private val substrateSecretStore: SubstrateSecretStore,
-    private val ethereumSecretStore: EthereumSecretStore
+    private val ethereumSecretStore: EthereumSecretStore,
+    private val solanaSecretStore: SolanaSecretStore
 ) {
     suspend fun createAdditional(payload: AddAccountPayload.AdditionalEvm): Long {
         val decodedEthereumDerivationPath =
@@ -62,6 +68,7 @@ class SubstrateOrEvmAccountRepository(
             ethereumPublicKey = ethereumKeypair.publicKey,
             ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
             tonPublicKey = null,
+            solanaPublicKey = null,
             name = localMetaAccount.name,
             isSelected = localMetaAccount.isSelected,
             position = localMetaAccount.position,
@@ -114,6 +121,13 @@ class SubstrateOrEvmAccountRepository(
             junctions = decodedEthereumDerivationPath.junctions
         )
 
+        val solanaKeypair = runCatching {
+            SolanaKeyFactory.deriveKeypair(
+                mnemonicWords = payload.mnemonic.split(" "),
+                derivationPath = payload.solanaDerivationPath
+            )
+        }.getOrNull()
+
         val position = metaAccountDao.getNextPosition()
 
         val metaAccount = MetaAccountLocal(
@@ -123,6 +137,7 @@ class SubstrateOrEvmAccountRepository(
             ethereumPublicKey = ethereumKeypair.publicKey,
             ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
             tonPublicKey = null,
+            solanaPublicKey = solanaKeypair?.publicKey,
             name = payload.accountName,
             isSelected = true,
             position = position,
@@ -154,6 +169,15 @@ class SubstrateOrEvmAccountRepository(
 
         ethereumSecretStore.put(metaAccountId, ethereumSecrets)
 
+        solanaKeypair?.let {
+            val solanaSecrets = SolanaSecrets(
+                seed = payload.mnemonic.encodeToByteArray(),
+                solanaKeypair = Keypair(it.publicKey, it.privateKey),
+                derivationPath = payload.solanaDerivationPath
+            )
+            solanaSecretStore.put(metaAccountId, solanaSecrets)
+        }
+
         return metaAccountId
     }
 }
@@ -176,6 +200,7 @@ class TonAccountRepository(
             ethereumPublicKey = null,
             ethereumAddress = null,
             tonPublicKey = tonPublicKey.key.toByteArray(),
+            solanaPublicKey = null,
             name = payload.accountName,
             isSelected = true,
             position = position,

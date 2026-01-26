@@ -24,6 +24,8 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
@@ -91,6 +93,7 @@ class AccountRepositoryImpl(
     private val substrateSecretStore: SubstrateSecretStore,
     private val ethereumSecretStore: EthereumSecretStore,
     private val tonSecretStore: TonSecretStore,
+    private val solanaSecretStore: SolanaSecretStore,
     private val accountRepositoryDelegate: AccountRepositoryDelegate,
     private val assetDao: AssetDao,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -225,6 +228,7 @@ class AccountRepositoryImpl(
                 ethereumPublicKey = ethereumKeypair.publicKey,
                 ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
                 tonPublicKey = null,
+                solanaPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = localMetaAccount.googleBackupAddress,
                 initialized = false
@@ -278,6 +282,7 @@ class AccountRepositoryImpl(
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 tonPublicKey = null,
+                solanaPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = googleBackupAddress,
                 initialized = false
@@ -338,6 +343,7 @@ class AccountRepositoryImpl(
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 tonPublicKey = null,
+                solanaPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = googleBackupAddress,
                 initialized = false
@@ -385,6 +391,7 @@ class AccountRepositoryImpl(
                 ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
                 ethereumPublicKey = ethereumKeypair.publicKey,
                 tonPublicKey = null,
+                solanaPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = localMetaAccount.googleBackupAddress,
                 initialized = false
@@ -614,7 +621,10 @@ class AccountRepositoryImpl(
             }
 
             WalletEcosystem.Solana -> {
-                // Solana backups will be handled once dedicated secret storage is available.
+                val solanaSecrets = solanaSecretStore.get(walletId)
+                if (solanaSecrets != null) {
+                    return BackupAccountType.PASSPHRASE
+                }
             }
         }
         return null
@@ -624,6 +634,7 @@ class AccountRepositoryImpl(
         val substrateSecrets = substrateSecretStore.get(walletId)
         val ethereumSecrets = ethereumSecretStore.get(walletId)
         val tonSecrets = tonSecretStore.get(walletId)
+        val solanaSecrets = solanaSecretStore.get(walletId)
 
         val types = mutableSetOf<BackupAccountType>()
 
@@ -638,10 +649,13 @@ class AccountRepositoryImpl(
             }
 
             types.add(BackupAccountType.JSON)
-            return types
         }
 
         if (tonSecrets != null) {
+            types.add(BackupAccountType.PASSPHRASE)
+        }
+
+        if (solanaSecrets != null) {
             types.add(BackupAccountType.PASSPHRASE)
         }
 
@@ -701,5 +715,9 @@ class AccountRepositoryImpl(
 
     override suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>? {
         return tonSecretStore.get(metaId)
+    }
+
+    override suspend fun getSolanaSecrets(metaId: Long): EncodableStruct<SolanaSecrets>? {
+        return solanaSecretStore.get(metaId)
     }
 }

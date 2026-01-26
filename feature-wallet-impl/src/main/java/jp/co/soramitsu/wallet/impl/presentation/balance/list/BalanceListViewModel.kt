@@ -639,8 +639,9 @@ class BalanceListViewModel @Inject constructor(
 
         currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
             val showCurrenciesOrNftSelector =
-                metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
-                    .contains(WalletEcosystem.Substrate)
+                metaAccount.supportedEcosystems().any {
+                    it == WalletEcosystem.Ethereum || it == WalletEcosystem.Substrate || it == WalletEcosystem.Solana
+                }
 
             state.value = state.value.copy(
                 isBackedUp = metaAccount.isBackedUp,
@@ -678,7 +679,8 @@ class BalanceListViewModel @Inject constructor(
             val hasTonAccounts = wallets.any { it.tonPublicKey != null }
             val hasSubAccounts = wallets.any { it.substratePublicKey != null }
             val hasEthAccounts = wallets.any { it.ethereumPublicKey != null }
-            hasTonAccounts to (hasSubAccounts || hasEthAccounts)
+            val hasSolAccounts = wallets.any { it.solanaPublicKey != null }
+            hasTonAccounts to (hasSubAccounts || hasEthAccounts || hasSolAccounts)
         }.distinctUntilChanged().onEach { (hasTon, hasSubOrEvm) ->
             state.value = state.value.copy(
                 hasTonAccounts = hasTon,

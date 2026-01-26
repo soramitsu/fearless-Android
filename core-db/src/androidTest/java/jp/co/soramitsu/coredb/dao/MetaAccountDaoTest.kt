@@ -44,17 +44,18 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
     }
 
     private fun testMetaAccount() = MetaAccountLocal(
-        tonPublicKey = null,
         substratePublicKey = byteArrayOf(),
         substrateCryptoType = CryptoType.SR25519,
+        substrateAccountId = byteArrayOf(),
         ethereumPublicKey = null,
+        ethereumAddress = null,
+        tonPublicKey = null,
+        solanaPublicKey = null,
         name = "Test",
         isSelected = false,
-        substrateAccountId = byteArrayOf(),
-        ethereumAddress = null,
         position = 0,
-        googleBackupAddress = null,
         isBackedUp = false,
+        googleBackupAddress = null,
         initialized = false
     )
 }

@@ -22,6 +22,7 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -235,6 +236,12 @@ class CommonModule {
     fun provideTonSecretStore(
         encryptedPreferences: EncryptedPreferences
     ) = TonSecretStore(encryptedPreferences)
+
+    @Provides
+    @Singleton
+    fun provideSolanaSecretStore(
+        encryptedPreferences: EncryptedPreferences
+    ) = SolanaSecretStore(encryptedPreferences)
 
     @Provides
     @Singleton

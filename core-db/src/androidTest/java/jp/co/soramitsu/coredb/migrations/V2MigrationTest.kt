@@ -233,12 +233,13 @@ class V2MigrationTest {
         return cursor.map {
 
             val metaAccount = MetaAccountLocal(
-                substratePublicKey= getBlob(getColumnIndex(Column.SUBSTRATE_PUBKEY)),
+                substratePublicKey = getBlob(getColumnIndex(Column.SUBSTRATE_PUBKEY)),
                 substrateCryptoType = CryptoType.valueOf(getString(getColumnIndex(Column.SUBSTRATE_CRYPTO_TYPE))),
                 substrateAccountId = getBlob(getColumnIndex(Column.SUBSTRATE_ACCOUNT_ID)),
                 ethereumPublicKey = getBlob(getColumnIndex(Column.ETHEREUM_PUBKEY)),
                 ethereumAddress = getBlob(getColumnIndex(Column.ETHEREUM_ADDRESS)),
                 tonPublicKey = null,
+                solanaPublicKey = null,
                 name = getString(getColumnIndex(Column.NAME)),
                 isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1,
                 position = getInt(getColumnIndex(Column.POSITION)),

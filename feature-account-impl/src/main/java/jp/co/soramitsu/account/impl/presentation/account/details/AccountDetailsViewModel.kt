@@ -121,8 +121,8 @@ class AccountDetailsViewModel @Inject constructor(
     private fun mapTypeToTitle(type: WalletEcosystem): String {
         val resId = when (type) {
             WalletEcosystem.Substrate -> R.string.connected_accounts_substrate_title
-            WalletEcosystem.Ethereum,
-            WalletEcosystem.Solana -> R.string.connected_accounts_ethereum_title
+            WalletEcosystem.Ethereum -> R.string.connected_accounts_ethereum_title
+            WalletEcosystem.Solana -> R.string.connected_accounts_solana_title
             WalletEcosystem.Ton -> R.string.connected_accounts_ton_title
         }
         return resourceManager.getString(resId)

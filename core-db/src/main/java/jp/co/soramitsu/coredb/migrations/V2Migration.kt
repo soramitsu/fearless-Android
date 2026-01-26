@@ -85,6 +85,7 @@ class V2Migration(
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 tonPublicKey = null,
+                solanaPublicKey = null,
                 name = account.name,
                 isSelected = isSelected,
                 position = index,

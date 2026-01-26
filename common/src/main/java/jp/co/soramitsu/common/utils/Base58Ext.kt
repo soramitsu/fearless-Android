@@ -8,4 +8,6 @@ object Base58Ext {
     private val base58 = Base58()
 
     fun String.fromBase58Check() = base58.decodeChecked(this)
+
+    fun ByteArray.toBase58(): String = base58.encode(this)
 }

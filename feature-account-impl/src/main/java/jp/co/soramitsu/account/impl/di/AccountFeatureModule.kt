@@ -39,6 +39,7 @@ import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -91,6 +92,7 @@ class AccountFeatureModule {
         substrateSecretStore: SubstrateSecretStore,
         ethereumSecretStore: EthereumSecretStore,
         tonSecretStore: TonSecretStore,
+        solanaSecretStore: SolanaSecretStore,
         accountRepositoryDelegate: AccountRepositoryDelegate,
         assetDao: AssetDao
     ): AccountRepository {
@@ -106,6 +108,7 @@ class AccountFeatureModule {
             substrateSecretStore,
             ethereumSecretStore,
             tonSecretStore,
+            solanaSecretStore,
             accountRepositoryDelegate,
             assetDao
         )
@@ -125,12 +128,14 @@ class AccountFeatureModule {
     fun provideSubstrateOrEvmAccountRepository(
         metaAccountDao: MetaAccountDao,
         substrateSecretStore: SubstrateSecretStore,
-        ethereumSecretStore: EthereumSecretStore
+        ethereumSecretStore: EthereumSecretStore,
+        solanaSecretStore: SolanaSecretStore
     ): SubstrateOrEvmAccountRepository {
         return SubstrateOrEvmAccountRepository(
             metaAccountDao,
             substrateSecretStore,
-            ethereumSecretStore
+            ethereumSecretStore,
+            solanaSecretStore
         )
     }
 
@@ -149,13 +154,15 @@ class AccountFeatureModule {
         accountRepository: AccountRepository,
         substrateSecretStore: SubstrateSecretStore,
         ethereumSecretStore: EthereumSecretStore,
-        tonSecretStore: TonSecretStore
+        tonSecretStore: TonSecretStore,
+        solanaSecretStore: SolanaSecretStore
     ): KeypairProvider {
         return KeyPairRepository(
             secretStoreV2,
             ethereumSecretStore,
             substrateSecretStore,
             tonSecretStore,
+            solanaSecretStore,
             accountRepository
         )
     }

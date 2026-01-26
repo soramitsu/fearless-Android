@@ -10,6 +10,7 @@ import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.model.WalletEcosystem
@@ -140,4 +141,5 @@ interface AccountRepository {
     suspend fun getSubstrateSecrets(metaId: Long) : EncodableStruct<SubstrateSecrets>?
     suspend fun getEthereumSecrets(metaId: Long) : EncodableStruct<EthereumSecrets>?
     suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>?
+    suspend fun getSolanaSecrets(metaId: Long): EncodableStruct<SolanaSecrets>?
 }

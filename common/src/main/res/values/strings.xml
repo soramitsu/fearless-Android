@@ -357,6 +357,7 @@
   <string name="connected_accounts_common">Connected Accounts</string>
   <string name="connected_accounts_ethereum_title">EVM chain accounts</string>
   <string name="connected_accounts_substrate_title">Substrate chain accounts</string>
+  <string name="connected_accounts_solana_title">Solana accounts</string>
   <string name="connected_accounts_ton_title">TON chain accounts</string>
   <string name="connection_account_not_supported_warning">Cannot proceed: Your wallet does not have the necessary accounts. Please make sure you have the required accounts set up before continuing</string>
   <string name="connection_add_already_exists_error">The node has been added previously. Please try another node.</string>
