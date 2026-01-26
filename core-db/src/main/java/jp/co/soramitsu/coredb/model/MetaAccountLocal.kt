@@ -122,11 +122,11 @@ class MetaAccountPositionUpdate(
 
 // similar to fun MetaAccount.accountId(chain: IChain)
 fun MetaAccountLocal.accountId(chain: IChain): ByteArray? {
-    return when (chain.ecosystem) {
+    return when {
         chain.id == SOLANA_CHAIN_ID -> solanaPublicKey
-        Ecosystem.Ton -> tonPublicKey
-        Ecosystem.Substrate -> substrateAccountId
-        Ecosystem.Ethereum,
-        Ecosystem.EthereumBased -> ethereumAddress
+        chain.ecosystem == Ecosystem.Ton -> tonPublicKey
+        chain.ecosystem == Ecosystem.Substrate -> substrateAccountId
+        chain.ecosystem == Ecosystem.Ethereum || chain.ecosystem == Ecosystem.EthereumBased -> ethereumAddress
+        else -> null
     }
 }
