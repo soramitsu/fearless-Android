@@ -49,6 +49,7 @@ class MetaAccountLocal(
             const val ETHEREUM_PUBKEY = "ethereumPublicKey"
             const val ETHEREUM_ADDRESS = "ethereumAddress"
             const val TON_PUBKEY = "tonPublicKey"
+            const val SOLANA_PUBKEY = "solanaPublicKey"
 
             const val NAME = "name"
             const val IS_SELECTED = "isSelected"

@@ -126,6 +126,8 @@ class V2Migration(
             ContentValues().apply {
                 put(MetaAccountLocal.Table.Column.ETHEREUM_ADDRESS, ethereumAddress)
                 put(MetaAccountLocal.Table.Column.ETHEREUM_PUBKEY, ethereumPublicKey)
+                put(MetaAccountLocal.Table.Column.TON_PUBKEY, tonPublicKey)
+                put(MetaAccountLocal.Table.Column.SOLANA_PUBKEY, solanaPublicKey)
                 put(MetaAccountLocal.Table.Column.NAME, name)
                 put(MetaAccountLocal.Table.Column.SUBSTRATE_ACCOUNT_ID, substrateAccountId)
                 put(MetaAccountLocal.Table.Column.SUBSTRATE_CRYPTO_TYPE, cryptoTypeConverters.from(substrateCryptoType))
