@@ -30,6 +30,7 @@ private val fiatAmountFormatter = FiatFormatter()
 private val fiatSmallAmountFormatter = FiatSmallFormatter()
 private val percentAmountFormatter = FixedPrecisionFormatter(MAX_DECIMALS_2)
 private val cryptoAmountShortFormatter = FixedPrecisionFormatter(MAX_DECIMALS_3)
+private val cryptoAmountMediumFormatter = FixedPrecisionFormatter(6)
 private val cryptoAmountDetailFormatter = FixedPrecisionFormatter(MAX_DECIMALS_8)
 
 private val fiatAbbreviatedFormatter = fiatAbbreviatedFormatter()
@@ -126,7 +127,7 @@ fun cryptoDetailAbbreviatedFormatter() = CompoundNumberFormatter(
         NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", cryptoAmountDetailFormatter),
         NumberAbbreviation(BigDecimal.ONE, BigDecimal.ONE, "", cryptoAmountDetailFormatter),
         NumberAbbreviation(BigDecimal("1E+3"), BigDecimal.ONE, "", cryptoAmountShortFormatter),
-        NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", cryptoAmountMediumFormatter),
         NumberAbbreviation(BigDecimal("1E+9"), BigDecimal("1E+9"), "B", cryptoAmountShortFormatter),
         NumberAbbreviation(BigDecimal("1E+12"), BigDecimal("1E+12"), "T", cryptoAmountShortFormatter),
         NumberAbbreviation(BigDecimal("1E+15"), BigDecimal("1E+12"), "T", cryptoAmountShortFormatter)
