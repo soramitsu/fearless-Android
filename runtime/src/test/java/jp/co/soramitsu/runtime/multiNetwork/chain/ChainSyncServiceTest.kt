@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import android.util.Log
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -11,16 +12,20 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaChainDefinition
+import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaDevnetChainDefinition
 import jp.co.soramitsu.testshared.argThat
 import jp.co.soramitsu.testshared.eq
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mockStatic
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.MockedStatic
 
 @RunWith(MockitoJUnitRunner::class)
 class ChainSyncServiceTest {
@@ -68,6 +73,10 @@ class ChainSyncServiceTest {
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(REMOTE_CHAIN.toChain())
+    private val LOCAL_SOLANA = mapChainToChainLocal(SolanaChainDefinition.chain)
+    private val LOCAL_SOLANA_DEVNET = mapChainToChainLocal(SolanaDevnetChainDefinition.chain)
+
+    private lateinit var logMock: MockedStatic<Log>
 
     @Mock
     lateinit var dao: ChainDao
@@ -88,8 +97,16 @@ class ChainSyncServiceTest {
 
     @Before
     fun setup() {
+        logMock = mockStatic(Log::class.java).apply {
+            `when`<Int> { Log.d(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()) }.thenReturn(0)
+        }
         chainSyncService = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager)
         `when`(metaAccountDao.getMetaAccounts()).thenReturn(emptyList())
+    }
+
+    @After
+    fun tearDown() {
+        logMock.close()
     }
 
     @Test
@@ -110,7 +127,7 @@ class ChainSyncServiceTest {
     @Test
     fun `should not insert the same chain`() {
         runBlocking {
-            localReturns(listOf(LOCAL_CHAIN))
+            localReturns(listOf(LOCAL_CHAIN, LOCAL_SOLANA, LOCAL_SOLANA_DEVNET))
             remoteReturns(listOf(REMOTE_CHAIN))
 
             chainSyncService.syncUp()
@@ -125,7 +142,7 @@ class ChainSyncServiceTest {
     @Test
     fun `should update chain`() {
         runBlocking {
-            localReturns(listOf(LOCAL_CHAIN))
+            localReturns(listOf(LOCAL_CHAIN, LOCAL_SOLANA, LOCAL_SOLANA_DEVNET))
 
 
             remoteReturns(listOf(REMOTE_CHAIN.copy(name = "new name")))
@@ -142,7 +159,7 @@ class ChainSyncServiceTest {
     @Test
     fun `should remove chain`() {
         runBlocking {
-            localReturns(listOf(LOCAL_CHAIN))
+            localReturns(listOf(LOCAL_CHAIN, LOCAL_SOLANA, LOCAL_SOLANA_DEVNET))
 
             val secondChain = REMOTE_CHAIN.copy(chainId = "0x001")
 
@@ -167,7 +184,10 @@ class ChainSyncServiceTest {
             chainSyncService.syncUp()
 
             verify(dao).updateChains(
-                chainsToAdd = containsChainLocalWithId(SolanaChainDefinition.CHAIN_ID),
+                chainsToAdd = containsChains(
+                    SolanaChainDefinition.CHAIN_ID,
+                    SolanaDevnetChainDefinition.CHAIN_ID
+                ),
                 chainsToUpdate = eq(emptyList<ChainLocal>())
             )
         }
@@ -187,5 +207,9 @@ class ChainSyncServiceTest {
 
     private fun containsChainLocalWithId(id: String) = argThat<List<ChainLocal>> {
         it.any { chain -> chain.id == id }
+    }
+
+    private fun containsChains(vararg ids: String) = argThat<List<ChainLocal>> {
+        ids.all { id -> it.any { chain -> chain.id == id } }
     }
 }

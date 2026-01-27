@@ -136,6 +136,7 @@ class WelcomeViewModel @Inject constructor(
         when (accountType) {
             AccountType.SubstrateOrEvm -> router.openCreateAccountFromOnboarding(accountType)
             AccountType.Ton -> silentCreateTonAccount()
+            AccountType.Solana -> router.openCreateAccountFromOnboarding(accountType)
         }
     }
 
@@ -158,6 +159,11 @@ class WelcomeViewModel @Inject constructor(
 
             AccountType.Ton -> router.openImportAccountScreen(
                 walletEcosystem = WalletEcosystem.Ton,
+                importMode = ImportMode.MnemonicPhrase
+            )
+
+            AccountType.Solana -> router.openImportAccountScreen(
+                walletEcosystem = WalletEcosystem.Solana,
                 importMode = ImportMode.MnemonicPhrase
             )
         }
@@ -198,6 +204,10 @@ class WelcomeViewModel @Inject constructor(
 
     override fun tonClick() {
         _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.Ton))
+    }
+
+    override fun solanaClick() {
+        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.Solana))
     }
 
     override fun privacyClicked() {

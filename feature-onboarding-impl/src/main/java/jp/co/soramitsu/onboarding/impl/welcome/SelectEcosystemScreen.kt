@@ -41,6 +41,7 @@ interface SelectEcosystemScreenCallbacks {
     fun termsClicked()
     fun substrateEvmClick()
     fun tonClick()
+    fun solanaClick()
 }
 
 @Suppress("FunctionName")
@@ -86,6 +87,13 @@ private fun SelectEcosystemScreenContent(
             stringResource(R.string.onboarding_banner_regular_ecosystem_button_title),
             R.drawable.background_banner_substrate,
             onClick = callbacks::substrateEvmClick
+        )
+        MarginVertical(12.dp)
+        EcosystemCard(
+            stringResource(R.string.onboarding_banner_solana_ecosystem_title),
+            stringResource(R.string.onboarding_banner_solana_ecosystem_button_title),
+            R.drawable.background_banner_solana,
+            onClick = callbacks::solanaClick
         )
         MarginVertical(12.dp)
         EcosystemCard(
@@ -168,6 +176,7 @@ fun SelectEcosystemScreenPreview() {
             override fun termsClicked() = Unit
             override fun substrateEvmClick() = Unit
             override fun tonClick() = Unit
+            override fun solanaClick() = Unit
         })
     }
 }

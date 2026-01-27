@@ -15,7 +15,7 @@ import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.model.AssetKey
-import jp.co.soramitsu.common.domain.SOLANA_CHAIN_ID
+import jp.co.soramitsu.common.domain.isSolanaChainId
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.models.Ecosystem
@@ -105,7 +105,7 @@ class AccountDetailsInteractor(
         ) { metaAccount, chains ->
             metaAccount to chains.filter { chain ->
                 when {
-                    chain.id == SOLANA_CHAIN_ID -> metaAccount.hasSolana
+                    isSolanaChainId(chain.id) -> metaAccount.hasSolana
                     chain.ecosystem == Ecosystem.Substrate -> metaAccount.hasSubstrate
                     chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> metaAccount.hasEthereum
                     chain.ecosystem == Ecosystem.Ton -> metaAccount.hasTon
@@ -113,7 +113,7 @@ class AccountDetailsInteractor(
                 } || metaAccount.hasChainAccount(chain.id)
             }.groupBy { chain ->
                 when {
-                    chain.id == SOLANA_CHAIN_ID -> WalletEcosystem.Solana
+                    isSolanaChainId(chain.id) -> WalletEcosystem.Solana
                     chain.ecosystem == Ecosystem.Substrate -> WalletEcosystem.Substrate
                     chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> WalletEcosystem.Ethereum
                     chain.ecosystem == Ecosystem.Ton -> WalletEcosystem.Ton

@@ -80,8 +80,13 @@ class CreateAccountViewModel @Inject constructor(
 
     fun screenshotWarningConfirmed() {
         val accountTypes = when (accountMode) {
-            AccountType.SubstrateOrEvm -> listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum, WalletEcosystem.Solana)
+            AccountType.SubstrateOrEvm -> listOf(
+                WalletEcosystem.Substrate,
+                WalletEcosystem.Ethereum,
+                WalletEcosystem.Solana
+            )
             AccountType.Ton -> listOf(WalletEcosystem.Ton)
+            AccountType.Solana -> listOf(WalletEcosystem.Solana)
         }
         router.openMnemonicScreen(walletNickname.value, accountTypes)
     }

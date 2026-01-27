@@ -4,6 +4,8 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-enum class AccountType: Parcelable {
-    SubstrateOrEvm, Ton
+enum class AccountType : Parcelable {
+    SubstrateOrEvm,
+    Ton,
+    Solana
 }

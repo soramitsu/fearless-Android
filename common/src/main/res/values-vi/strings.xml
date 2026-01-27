@@ -615,6 +615,8 @@
   <string name="notification">Thông báo</string>
   <string name="onboarding_banner_regular_ecosystem_button_title">Tham gia EVM hoặc Substrate</string>
   <string name="onboarding_banner_regular_ecosystem_title">Tạo hoặc nhập tài khoản Substrate hoặc EVM</string>
+  <string name="onboarding_banner_solana_ecosystem_button_title">Use Solana networks</string>
+  <string name="onboarding_banner_solana_ecosystem_title">Create or import Solana accounts</string>
   <string name="onboarding_banner_ton_ecosystem_button_title">Tham gia TON</string>
   <string name="onboarding_banner_ton_ecosystem_title">Kết nối với hệ sinh thái phát triển nhanh nhất từ trước đến nay</string>
   <string name="onboarding_connect_with_google">Tiếp tục với Google</string>

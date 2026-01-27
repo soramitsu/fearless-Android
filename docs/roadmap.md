@@ -120,7 +120,24 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Prompt:
   1) Integrate a Solana aggregator SDK (e.g., Jupiter) behind existing DeFi abstractions and add mocks for unit tests.
   2) Build a fee service that calculates 0.5% of the Solana transaction value, performs (or schedules) the XOR conversion/transfer, and surfaces the maintenance destination for transparency.
-  3) Update confirmation UI to surface fee line items, add telemetry/alerting for missing XOR settlements, and expand QA checklist (swap SOL↔SPL, provide liquidity, collect XOR fee evidence).
+ 3) Update confirmation UI to surface fee line items, add telemetry/alerting for missing XOR settlements, and expand QA checklist (swap SOL↔SPL, provide liquidity, collect XOR fee evidence).
+
+## UI Updates
+
+**Milestone 1 – Solana Devnet Support**
+- Extend chain metadata and registry wiring to include `solana-devnet` (nodes, explorers, icons, ecosystem flags) so wallets can target the network.
+- Surface Solana explicitly in create/import flows (new `AccountType` or toggle) so users can generate/import Solana-only accounts.
+- Verify both Solana networks appear in chain selectors and wallet views without regressions.
+
+**Milestone 2 – Navigation Refresh**
+- Update bottom navigation to `Wallet – Staking – Polkaswap – NFT – Settings`, removing the crowdloans entry and spacing the icons evenly.
+- Remove the NFT toggle tab from the wallet screen; route NFT content through the new bottom tab instead.
+- Ensure the FAB and Polkaswap navigation continue to behave correctly.
+
+**Milestone 3 – Settings Cleanup & Donate CTA**
+- Remove crowdloan entries from Settings.
+- Add a “Donate to SORAMITSU” option that opens the Send screen prefilled for SORA Mainnet with the donation address (`cnVRSRjJmpVaRKhhYt6eKDbpRi1FUdKSi7VkWQTUXobqrwCTd`) sourced from a single configurable constant.
+- Verify the new option works end-to-end and is easy to update if the address changes.
 
 ## P1 — Medium Priority
 

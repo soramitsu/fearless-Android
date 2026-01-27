@@ -10,6 +10,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.mapToPriceProvider
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaChainDefinition
+import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaDevnetChainDefinition
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +24,15 @@ class ChainInteractor(
     private val xcmEntitiesFetcher: XcmEntitiesFetcher
 ) {
     fun getChainsFlow() = chainDao.joinChainInfoFlow().mapList { mapChainLocalToChain(it) }.map { chains ->
-        val hasSolana = chains.any { it.id == SolanaChainDefinition.CHAIN_ID }
-        val augmented = if (hasSolana) chains else chains + SolanaChainDefinition.chain
+        val augmented = chains.toMutableList()
+        listOf(
+            SolanaChainDefinition.chain,
+            SolanaDevnetChainDefinition.chain
+        ).forEach { fallback ->
+            if (augmented.none { it.id == fallback.id }) {
+                augmented += fallback
+            }
+        }
 
         augmented.sortedWith(chainDefaultSort())
     }

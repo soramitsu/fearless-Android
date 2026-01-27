@@ -1,6 +1,6 @@
 package jp.co.soramitsu.account.api.domain.model
 
-import jp.co.soramitsu.common.domain.SOLANA_CHAIN_ID
+import jp.co.soramitsu.common.domain.isSolanaChainId
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.Base58Ext.toBase58
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
@@ -155,7 +155,7 @@ fun MetaAccount.address(chain: Chain): String? {
     return kotlin.runCatching {
         when {
             hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
-            chain.id == SOLANA_CHAIN_ID -> solanaPublicKey?.toBase58()
+            isSolanaChainId(chain.id) -> solanaPublicKey?.toBase58()
             chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> ethereumAddress?.ethereumAddressToHex()
             chain.ecosystem == Ecosystem.Ton -> {
                 tonPublicKey?.v4r2tonAddress(chain.isTestNet)
@@ -169,7 +169,7 @@ fun MetaAccount.address(chain: Chain): String? {
 fun LightMetaAccount.address(chain: Chain): String? {
     return kotlin.runCatching {
         when {
-            chain.id == SOLANA_CHAIN_ID -> solanaPublicKey?.toBase58()
+            isSolanaChainId(chain.id) -> solanaPublicKey?.toBase58()
             chain.ecosystem == Ecosystem.Substrate -> substrateAccountId?.toAddress(chain.addressPrefix.toShort())
             chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> ethereumAddress?.ethereumAddressToHex()
             chain.ecosystem == Ecosystem.Ton -> tonPublicKey?.v4r2tonAddress(chain.isTestNet)
@@ -202,7 +202,7 @@ fun MetaAccount.chainAddress(chain: Chain): String? {
 fun MetaAccount.accountId(chain: IChain): ByteArray? {
     return when {
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
-        chain.id == SOLANA_CHAIN_ID -> solanaPublicKey
+        isSolanaChainId(chain.id) -> solanaPublicKey
         chain.ecosystem == Ecosystem.Substrate -> substrateAccountId
         chain.ecosystem == Ecosystem.Ethereum || chain.ecosystem == Ecosystem.EthereumBased -> ethereumAddress
         //Attention!!! Use tonPublicKey as accountId only internally in fearless wallet. For api requests use ByteArray.tonAccountId(): String function extension

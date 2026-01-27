@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import jp.co.soramitsu.common.domain.SOLANA_CHAIN_ID
+import jp.co.soramitsu.common.domain.isSolanaChainId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
@@ -123,7 +123,7 @@ class MetaAccountPositionUpdate(
 // similar to fun MetaAccount.accountId(chain: IChain)
 fun MetaAccountLocal.accountId(chain: IChain): ByteArray? {
     return when {
-        chain.id == SOLANA_CHAIN_ID -> solanaPublicKey
+        isSolanaChainId(chain.id) -> solanaPublicKey
         chain.ecosystem == Ecosystem.Ton -> tonPublicKey
         chain.ecosystem == Ecosystem.Substrate -> substrateAccountId
         chain.ecosystem == Ecosystem.Ethereum || chain.ecosystem == Ecosystem.EthereumBased -> ethereumAddress

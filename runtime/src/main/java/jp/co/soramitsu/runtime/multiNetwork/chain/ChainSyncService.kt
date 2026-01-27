@@ -15,6 +15,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaChainDefinition
+import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaDevnetChainDefinition
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
@@ -31,7 +32,12 @@ class ChainSyncService(
 ) {
 
     suspend fun syncUp() {
-        kotlin.runCatching { configChainsSyncUp() }.onFailure { it.printStackTrace() }.getOrNull() ?: return
+        kotlin.runCatching { configChainsSyncUp() }
+            .onFailure {
+                it.printStackTrace()
+                throw it
+            }
+            .getOrNull() ?: return
     }
 
     private suspend fun configChainsSyncUp(): List<Chain> = supervisorScope {
@@ -39,17 +45,21 @@ class ChainSyncService(
         val localChainsJoinedInfo = dao.getJoinChainInfo()
         val localChainsJoinedInfoMap = localChainsJoinedInfo.associateBy { it.chain.id }
 
+        val fallbackChains = listOf(
+            SolanaChainDefinition.chain,
+            SolanaDevnetChainDefinition.chain
+        )
+
         val remoteChains = chainFetcher.getChains()
             .filter { !it.disabled }
             .map {
                 it.toChain()
             }
             .let { chains ->
-                if (chains.any { it.id == SolanaChainDefinition.CHAIN_ID }) {
-                    chains
-                } else {
-                    chains + SolanaChainDefinition.chain
+                val missingFallbacks = fallbackChains.filter { fallback ->
+                    chains.none { it.id == fallback.id }
                 }
+                chains + missingFallbacks
             }
 
         val remoteMapping = remoteChains.associateBy(Chain::id)
@@ -76,6 +86,7 @@ class ChainSyncService(
                     localChain != remoteChain -> chainsToUpdate.add(remoteChain) // updated
                 }
             }
+            println("ChainSyncService: updateChains add=${chainsToAdd.size} update=${chainsToUpdate.size}")
             dao.updateChains(chainsToAdd, chainsToUpdate)
             chainsToRemove
         }

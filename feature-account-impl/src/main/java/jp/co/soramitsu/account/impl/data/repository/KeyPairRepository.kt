@@ -21,7 +21,7 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.common.domain.SOLANA_CHAIN_ID
+import jp.co.soramitsu.common.domain.isSolanaChainId
 
 class KeyPairRepository(
     private val secretStoreV2: SecretStoreV2,
@@ -47,7 +47,7 @@ class KeyPairRepository(
             secretStoreV2.hasChainSecrets(metaAccount.id, accountId) -> {
                 secretStoreV2.getChainAccountKeypair(metaAccount.id, accountId)
             }
-            chain.id == SOLANA_CHAIN_ID -> {
+            isSolanaChainId(chain.id) -> {
                 solanaSecretStore.get(metaAccount.id)?.let {
                     Keypair(it[SolanaSecrets.PublicKey], it[SolanaSecrets.PrivateKey])
                 }
