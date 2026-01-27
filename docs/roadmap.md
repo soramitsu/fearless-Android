@@ -139,7 +139,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Fetch/decode validator vote accounts and APY data; surface staking state in wallet/staking screens with Solana-specific copy.
 - Ensure fee estimation, nonce handling, and signer selection all work for SOL staking transactions; add integration tests against devnet/mainnet RPCs.
 
-**Milestone 3 – Settings Cleanup & Donate CTA**
+**Milestone 4 – Settings Cleanup & Donate CTA**
 - Remove crowdloan entries from Settings.
 - Add a “Donate to SORAMITSU” option that opens the Send screen prefilled for SORA Mainnet with the donation address (`cnVRSRjJmpVaRKhhYt6eKDbpRi1FUdKSi7VkWQTUXobqrwCTd`) sourced from a single configurable constant.
 - Verify the new option works end-to-end and is easy to update if the address changes.
