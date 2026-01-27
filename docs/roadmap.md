@@ -134,6 +134,11 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Remove the NFT toggle tab from the wallet screen; route NFT content through the new bottom tab instead.
 - Ensure the FAB and Polkaswap navigation continue to behave correctly.
 
+**Milestone 3 – Solana Native Staking (LOE: 40)**
+- Add Solana stake account management (create, delegate, deactivate, withdraw) wired through the existing staking abstractions.
+- Fetch/decode validator vote accounts and APY data; surface staking state in wallet/staking screens with Solana-specific copy.
+- Ensure fee estimation, nonce handling, and signer selection all work for SOL staking transactions; add integration tests against devnet/mainnet RPCs.
+
 **Milestone 3 – Settings Cleanup & Donate CTA**
 - Remove crowdloan entries from Settings.
 - Add a “Donate to SORAMITSU” option that opens the Send screen prefilled for SORA Mainnet with the donation address (`cnVRSRjJmpVaRKhhYt6eKDbpRi1FUdKSi7VkWQTUXobqrwCTd`) sourced from a single configurable constant.
