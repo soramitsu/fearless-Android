@@ -22,22 +22,26 @@ class ChainEnvironmentConfiguratorProvider(
     private val ethereumConnectionPool: EthereumConnectionPool
 ) {
     fun provide(chain: Chain): ChainEnvironmentConfigurator {
-        return when (chain.ecosystem) {
-           Ecosystem.Substrate,
-           Ecosystem.EthereumBased -> SubstrateEnvironmentConfigurator(
+        return when {
+            chain.isEthereumChain || chain.ecosystem == Ecosystem.Ethereum -> EthereumEnvironmentConfigurator(
+                ethereumConnectionPool,
+                chainsRepository
+            )
+            chain.ecosystem == Ecosystem.Substrate || chain.ecosystem == Ecosystem.EthereumBased -> SubstrateEnvironmentConfigurator(
                 connectionPool,
                 runtimeProviderPool,
                 runtimeSyncService,
                 runtimeSubscriptionPool,
                 chainsRepository
             )
-
-            Ecosystem.Ethereum -> EthereumEnvironmentConfigurator(
-                ethereumConnectionPool,
+            chain.ecosystem == Ecosystem.Ton -> TonEnvironmentConfigurator()
+            else -> SubstrateEnvironmentConfigurator(
+                connectionPool,
+                runtimeProviderPool,
+                runtimeSyncService,
+                runtimeSubscriptionPool,
                 chainsRepository
             )
-
-            Ecosystem.Ton -> TonEnvironmentConfigurator()
         }
     }
 }
