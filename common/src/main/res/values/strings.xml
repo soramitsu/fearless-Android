@@ -1144,6 +1144,7 @@
   <string name="tabbar_extrinsics_title">Extrinsics</string>
   <string name="tabbar_governance_title">Governance</string>
   <string name="tabbar_polkaswap_title">Polkaswap</string>
+  <string name="tabbar_nft_title">NFT</string>
   <string name="tabbar_profile_title">Profile</string>
   <string name="tabbar_staking_title">Staking</string>
   <string name="tabbar_wallet_title">Wallet</string>

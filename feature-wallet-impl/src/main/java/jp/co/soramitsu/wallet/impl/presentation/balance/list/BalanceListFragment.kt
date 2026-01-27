@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import com.journeyapps.barcodescanner.ScanOptions
@@ -40,6 +40,7 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -48,7 +49,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     @Inject
     lateinit var imageLoader: ImageLoader
 
-    override val viewModel: BalanceListViewModel by viewModels()
+    override val viewModel: BalanceListViewModel by activityViewModels()
 
     private val barcodeLauncher: ActivityResultLauncher<ScanOptions> =
         registerForActivityResult(ScanTextContract()) { result ->
@@ -59,6 +60,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.assetTypeChanged(AssetType.Currencies)
         viewModel.onResume()
     }
 

@@ -588,10 +588,6 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(assetsState = it)
         }.launchIn(viewModelScope)
 
-        assetTypeSelectorState.onEach {
-            state.value = state.value.copy(multiToggleButtonState = it)
-        }.launchIn(viewModelScope)
-
         state.update { prevState ->
             prevState.copy(
                 soraCardState = prevState.soraCardState.copy(
@@ -638,15 +634,9 @@ class BalanceListViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
-            val showCurrenciesOrNftSelector =
-                metaAccount.supportedEcosystems().any {
-                    it == WalletEcosystem.Ethereum || it == WalletEcosystem.Substrate || it == WalletEcosystem.Solana
-                }
-
             state.value = state.value.copy(
                 isBackedUp = metaAccount.isBackedUp,
-                scrollToTopEvent = Event(Unit),
-                showCurrenciesOrNftSelector = showCurrenciesOrNftSelector
+                scrollToTopEvent = Event(Unit)
             )
 
 
@@ -1086,7 +1076,7 @@ class BalanceListViewModel @Inject constructor(
         _openPlayMarket.value = Event(Unit)
     }
 
-    override fun assetTypeChanged(type: AssetType) {
+    fun assetTypeChanged(type: AssetType) {
         assetTypeSelectorState.value = assetTypeSelectorState.value.copy(currentSelection = type)
     }
 
