@@ -295,7 +295,7 @@ class BackupMnemonicViewModel @Inject constructor(
                 val substrateDerivationPath = substrateDerivationPath.value
                 val ethereumDerivationPath =
                     ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
-                val solanaDerivationPath = payload.createExtras?.solanaDerivationPath ?: SOLANA_DEFAULT_PATH
+                val solanaDerivationPath = SOLANA_DEFAULT_PATH
 
                 AddAccountPayload.SubstrateOrEvm(
                     payload.accountName,
@@ -331,6 +331,7 @@ class BackupMnemonicViewModel @Inject constructor(
                 val substrateDerivationPath = substrateDerivationPath.value
                 val ethereumDerivationPath =
                     ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
+                val solanaDerivationPath = SOLANA_DEFAULT_PATH
                 AddAccountPayload.SubstrateOrEvm(
                     payload.accountName,
                     mnemonicString,
@@ -338,6 +339,7 @@ class BackupMnemonicViewModel @Inject constructor(
                     substrateDerivationPath,
                     ethereumDerivationPath,
                     null,
+                    solanaDerivationPath,
                     false
                 )
             }
