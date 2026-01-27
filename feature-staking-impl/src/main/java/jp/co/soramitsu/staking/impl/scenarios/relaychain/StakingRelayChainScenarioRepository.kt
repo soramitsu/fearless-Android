@@ -197,11 +197,11 @@ class StakingRelayChainScenarioRepository(
     }
 
     fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
-        return localStorage.observeNonNull(
+        return localStorage.observe(
             chainId = chainId,
             keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
-            binding = { scale, runtime -> bindActiveEra(scale, runtime) }
-        )
+            binder = { scale, runtime -> scale?.let { bindActiveEra(it, runtime) } }
+        ).filterNotNull()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
