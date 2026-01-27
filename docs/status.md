@@ -28,6 +28,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.
 - ChainRegistry coordinates runtime providers and connections. EVM handled via `EthereumEnvironmentConfigurator` and `EthereumConnectionPool`.
+- Solana fallback metadata is now injected from the bundled definition whenever the remote registry omits it, so SOL and the initial memecoin set always appear in “All Networks” (dedicated RPC health checks and UI tagging remain to-do).
 
 ## Polkadot SDK Alignment
 - Target: polkadot-stable2503 (prepared via override keys).

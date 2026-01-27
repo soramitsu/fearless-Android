@@ -107,6 +107,8 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   2) Add Solana key derivation/signing utilities (libsodium/ed25519) and hook into `MetaAccount` creation/import flows plus backups.
   3) Merge Solana balances into wallet/all-networks viewmodels, gate UI by capability flag until RPC connectivity verified, and drive Compose/View adapters to show the 🐸 tag when `isMemecoin=true`.
   4) Seed token metadata source with SPL memecoins plus flag propagation, add UI unit tests ensuring emoji rendering, and document QA steps (create/import, list assets, send SOL/memecoin).
+- Progress:
+  - Chain sync now injects the bundled Solana definition whenever the remote registry omits it, ensuring the chain (with SOL + memecoin assets) is always visible in “All Networks.”
 
 8) Solana DeFi actions with XOR maintenance fee
 - Why: Deliver parity DeFi features (swap/liquidity/staking) on Solana while funding maintenance via a transparent 0.5% fee routed through XOR, aligning with existing Polkaswap economics.

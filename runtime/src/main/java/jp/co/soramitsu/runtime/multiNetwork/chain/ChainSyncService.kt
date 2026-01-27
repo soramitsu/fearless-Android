@@ -14,6 +14,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
+import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaChainDefinition
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
@@ -42,6 +43,13 @@ class ChainSyncService(
             .filter { !it.disabled }
             .map {
                 it.toChain()
+            }
+            .let { chains ->
+                if (chains.any { it.id == SolanaChainDefinition.CHAIN_ID }) {
+                    chains
+                } else {
+                    chains + SolanaChainDefinition.chain
+                }
             }
 
         val remoteMapping = remoteChains.associateBy(Chain::id)

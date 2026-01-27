@@ -10,6 +10,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.solana.SolanaChainDefinition
 import jp.co.soramitsu.testshared.argThat
 import jp.co.soramitsu.testshared.eq
 import kotlinx.coroutines.runBlocking
@@ -46,7 +47,8 @@ class ChainSyncServiceTest {
                 isNative = null,
                 ethereumType = null,
                 priceProvider = null,
-                tonType = null
+                tonType = null,
+                coinbaseUrl = null
             )
         ),
         nodes = listOf(
@@ -87,6 +89,7 @@ class ChainSyncServiceTest {
     @Before
     fun setup() {
         chainSyncService = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager)
+        `when`(metaAccountDao.getMetaAccounts()).thenReturn(emptyList())
     }
 
     @Test
@@ -97,7 +100,10 @@ class ChainSyncServiceTest {
 
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId))
+            verify(dao).updateChains(
+                chainsToAdd = containsChainLocalWithId(REMOTE_CHAIN.chainId),
+                chainsToUpdate = eq(emptyList<ChainLocal>())
+            )
         }
     }
 
@@ -109,7 +115,10 @@ class ChainSyncServiceTest {
 
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = eq(emptyList()))
+            verify(dao).updateChains(
+                chainsToAdd = eq(emptyList<ChainLocal>()),
+                chainsToUpdate = eq(emptyList<ChainLocal>())
+            )
         }
     }
 
@@ -123,7 +132,10 @@ class ChainSyncServiceTest {
 
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId))
+            verify(dao).updateChains(
+                chainsToAdd = eq(emptyList<ChainLocal>()),
+                chainsToUpdate = containsChainLocalWithId(REMOTE_CHAIN.chainId)
+            )
         }
     }
 
@@ -138,9 +150,25 @@ class ChainSyncServiceTest {
 
             chainSyncService.syncUp()
 
-            verify(dao).update(
-                removed = removesChainWithId(REMOTE_CHAIN.chainId),
-                newOrUpdated = insertsChainWithId(secondChain.chainId)
+            verify(dao).updateChains(
+                chainsToAdd = containsChainLocalWithId(secondChain.chainId),
+                chainsToUpdate = eq(emptyList<ChainLocal>())
+            )
+            verify(dao).deleteChains(removesChainWithId(REMOTE_CHAIN.chainId))
+        }
+    }
+
+    @Test
+    fun `should append solana chain when remote does not expose it`() {
+        runBlocking {
+            localReturns(emptyList())
+            remoteReturns(emptyList())
+
+            chainSyncService.syncUp()
+
+            verify(dao).updateChains(
+                chainsToAdd = containsChainLocalWithId(SolanaChainDefinition.CHAIN_ID),
+                chainsToUpdate = eq(emptyList<ChainLocal>())
             )
         }
     }
@@ -154,10 +182,10 @@ class ChainSyncServiceTest {
     }
 
     private fun removesChainWithId(id: String) = argThat<List<ChainLocal>> {
-        it.size == 1 && it.first().id == id
+        it.any { chain -> chain.id == id }
     }
 
-    private fun insertsChainWithId(id: String) = argThat<List<JoinedChainInfo>> {
-        it.size == 1 && it.first().chain.id == id
+    private fun containsChainLocalWithId(id: String) = argThat<List<ChainLocal>> {
+        it.any { chain -> chain.id == id }
     }
 }

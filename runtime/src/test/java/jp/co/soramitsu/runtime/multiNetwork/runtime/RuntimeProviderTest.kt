@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.testshared.any
@@ -63,6 +64,9 @@ class RuntimeProviderTest {
 
             whenever(constructedRuntime.runtime).thenReturn(runtime)
             whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenReturn(constructedRuntime)
+            whenever(chainDao.runtimeInfo(chain.id)).thenReturn(ChainRuntimeInfoLocal(chain.id, 1, 1))
+            whenever(chainDao.getTypes(chain.id)).thenReturn("types")
+            whenever(runtimeFilesCache.getChainMetadata(chain.id)).thenReturn("metadata")
 
             whenever(runtimeSyncService.syncResultFlow(eq(chain.id))).thenAnswer { chainSyncFlow }
         }
