@@ -23,7 +23,11 @@ class ChainEnvironmentConfiguratorProvider(
 ) {
     fun provide(chain: Chain): ChainEnvironmentConfigurator {
         return when {
-            chain.isEthereumChain || chain.ecosystem == Ecosystem.Ethereum -> EthereumEnvironmentConfigurator(
+            chain.isEthereumChain -> EthereumEnvironmentConfigurator(
+                ethereumConnectionPool,
+                chainsRepository
+            )
+            chain.ecosystem == Ecosystem.Ethereum -> EthereumEnvironmentConfigurator(
                 ethereumConnectionPool,
                 chainsRepository
             )
