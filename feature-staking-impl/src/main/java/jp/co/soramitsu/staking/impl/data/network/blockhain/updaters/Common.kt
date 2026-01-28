@@ -14,14 +14,14 @@ import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindActiveEra
 import java.math.BigInteger
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 
 fun RuntimeMetadata.activeEraStorageKeyOrNull() = moduleOrNull(Modules.STAKING)?.storage("ActiveEra")?.storageKey()
 fun RuntimeMetadata.stakingRoundKey() = parachainStaking().storage("Round").storageKey()
 
 suspend fun StorageCache.observeActiveEraIndex(runtime: RuntimeSnapshot, chainId: String): Flow<BigInteger> {
     return observeEntry(runtime.metadata.activeEraStorageKeyOrNull(), chainId)
-        .map { entry ->
+        .mapNotNull { entry ->
             entry.content?.let { bindActiveEra(it, runtime) }
         }
 }
