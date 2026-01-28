@@ -31,13 +31,6 @@ class ChainEnvironmentConfiguratorProvider(
                 ethereumConnectionPool,
                 chainsRepository
             )
-            chain.ecosystem == Ecosystem.Substrate || chain.ecosystem == Ecosystem.EthereumBased -> SubstrateEnvironmentConfigurator(
-                connectionPool,
-                runtimeProviderPool,
-                runtimeSyncService,
-                runtimeSubscriptionPool,
-                chainsRepository
-            )
             chain.ecosystem == Ecosystem.Ton -> TonEnvironmentConfigurator()
             else -> SubstrateEnvironmentConfigurator(
                 connectionPool,
