@@ -27,7 +27,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -197,11 +196,11 @@ class StakingRelayChainScenarioRepository(
     }
 
     fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
-        return localStorage.observeNonNull(
+        return localStorage.observe(
             chainId = chainId,
             keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
-            binding = { scale, runtime -> bindActiveEra(scale, runtime) }
-        )
+            binder = { scale, runtime -> scale?.let { bindActiveEra(it, runtime) } }
+        ).filterNotNull()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
