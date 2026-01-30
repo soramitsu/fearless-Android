@@ -96,10 +96,8 @@ data class ListDiff<T>(
 
 fun <T> Flow<Collection<T>>.diffed(): Flow<ListDiff<T>> {
     return zipWithPrevious().map { (previous, new) ->
-        val previousSet = previous.orEmpty().toSet()
-        val newSet = new.toSet()
-        val addedOrModified = new.filter { it !in previousSet }
-        val removed = previous?.filter { it !in newSet } ?: emptyList()
+        val addedOrModified = new - previous.orEmpty().toSet()
+        val removed = previous?.let { it - new.toSet() } ?: emptyList()
 
         ListDiff(removed = removed, addedOrModified = addedOrModified, all = new.toList())
     }
