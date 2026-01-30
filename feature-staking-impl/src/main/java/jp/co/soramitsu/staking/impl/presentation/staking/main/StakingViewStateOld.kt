@@ -78,6 +78,8 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 sealed class StakingViewStateOld
 
+data class SolanaComingSoonViewState(val address: String) : StakingViewStateOld()
+
 data class ReturnsModel(
     val monthly: RewardEstimation,
     val yearly: RewardEstimation

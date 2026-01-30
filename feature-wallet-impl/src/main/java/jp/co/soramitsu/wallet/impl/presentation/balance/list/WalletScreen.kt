@@ -1,13 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,8 +35,6 @@ import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.MultiToggleButton
-import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SoraCardFiatCard
 import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
 import jp.co.soramitsu.common.compose.component.SoraCardProgress
@@ -49,8 +44,6 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
-import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NFTScreen
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 import jp.co.soramitsu.wallet.impl.presentation.common.NetworkIssue
@@ -70,7 +63,6 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onJoinSubOrEvmCloseClick()
     fun onJoinTonClicked()
     fun onJoinTonCloseClick()
-    fun assetTypeChanged(type: AssetType)
     fun onRefresh()
     fun onManageAssetClick()
     fun onRetry()
@@ -120,25 +112,7 @@ fun WalletScreen(
             onBalanceClick = callback::onBalanceClicked
         )
 
-        MarginVertical(margin = 16.dp)
-        AnimatedVisibility(
-            visible = data.showCurrenciesOrNftSelector,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-
-            MultiToggleButton(
-                state = data.multiToggleButtonState,
-                onToggleChange = callback::assetTypeChanged
-            )
-        }
-
-
         when (data.assetsState) {
-            is WalletAssetsState.NftAssets -> {
-                NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
-            }
-
             is WalletAssetsState.Assets -> {
                 val header: @Composable () -> Unit = { Banners(data, callback) }
                 val footer: @Composable () -> Unit =
@@ -155,6 +129,7 @@ fun WalletScreen(
             is WalletAssetsState.NetworkIssue -> {
                 NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
             }
+            is WalletAssetsState.NftAssets -> Unit
         }
     }
 }
@@ -332,7 +307,6 @@ private fun PreviewWalletScreen() {
         override fun onJoinSubOrEvmCloseClick() {}
         override fun onJoinTonClicked() {}
         override fun onJoinTonCloseClick() {}
-        override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(state: AssetListItemViewState) {}
         override fun actionItemClicked(
             actionType: ActionItemType,
@@ -374,10 +348,6 @@ private fun PreviewWalletScreen() {
         Column {
             WalletScreen(
                 data = WalletState(
-                    multiToggleButtonState = MultiToggleButtonState(
-                        AssetType.Currencies,
-                        listOf(AssetType.Currencies, AssetType.NFTs)
-                    ),
                     assetsState = WalletAssetsState.Assets(AssetsLoadingState.Loaded(assets), isHideVisible = true),
                     balance = AssetBalanceViewState(
                         "TRANSFERABLE BALANCE",
@@ -397,7 +367,6 @@ private fun PreviewWalletScreen() {
                     isBackedUp = false,
                     hasTonAccounts = false,
                     hasSubOrEvmAccounts = false,
-                    showCurrenciesOrNftSelector = false,
                     scrollToTopEvent = null,
                     scrollToBottomEvent = null
                 ),

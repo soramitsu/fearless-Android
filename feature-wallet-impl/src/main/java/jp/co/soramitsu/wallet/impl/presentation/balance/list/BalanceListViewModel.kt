@@ -588,10 +588,6 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(assetsState = it)
         }.launchIn(viewModelScope)
 
-        assetTypeSelectorState.onEach {
-            state.value = state.value.copy(multiToggleButtonState = it)
-        }.launchIn(viewModelScope)
-
         state.update { prevState ->
             prevState.copy(
                 soraCardState = prevState.soraCardState.copy(
@@ -638,14 +634,9 @@ class BalanceListViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
-            val showCurrenciesOrNftSelector =
-                metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
-                    .contains(WalletEcosystem.Substrate)
-
             state.value = state.value.copy(
                 isBackedUp = metaAccount.isBackedUp,
-                scrollToTopEvent = Event(Unit),
-                showCurrenciesOrNftSelector = showCurrenciesOrNftSelector
+                scrollToTopEvent = Event(Unit)
             )
 
 
@@ -678,7 +669,8 @@ class BalanceListViewModel @Inject constructor(
             val hasTonAccounts = wallets.any { it.tonPublicKey != null }
             val hasSubAccounts = wallets.any { it.substratePublicKey != null }
             val hasEthAccounts = wallets.any { it.ethereumPublicKey != null }
-            hasTonAccounts to (hasSubAccounts || hasEthAccounts)
+            val hasSolAccounts = wallets.any { it.solanaPublicKey != null }
+            hasTonAccounts to (hasSubAccounts || hasEthAccounts || hasSolAccounts)
         }.distinctUntilChanged().onEach { (hasTon, hasSubOrEvm) ->
             state.value = state.value.copy(
                 hasTonAccounts = hasTon,
@@ -1084,7 +1076,7 @@ class BalanceListViewModel @Inject constructor(
         _openPlayMarket.value = Event(Unit)
     }
 
-    override fun assetTypeChanged(type: AssetType) {
+    fun assetTypeChanged(type: AssetType) {
         assetTypeSelectorState.value = assetTypeSelectorState.value.copy(currentSelection = type)
     }
 

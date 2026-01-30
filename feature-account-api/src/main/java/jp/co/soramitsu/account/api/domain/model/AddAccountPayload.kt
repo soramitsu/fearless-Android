@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.api.domain.model
 
 import android.os.Parcelable
+import jp.co.soramitsu.common.domain.SOLANA_DEFAULT_PATH
 import jp.co.soramitsu.core.models.CryptoType
 import kotlinx.parcelize.Parcelize
 
@@ -17,6 +18,7 @@ sealed interface AddAccountPayload : Parcelable {
         val substrateDerivationPath: String,
         val ethereumDerivationPath: String,
         val googleBackupAddress: String?,
+        val solanaDerivationPath: String = SOLANA_DEFAULT_PATH,
         override val isBackedUp: Boolean
     ) : AddAccountPayload, Parcelable
 

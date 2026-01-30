@@ -10,10 +10,10 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/crowdloanFragment"
+        android:id="@+id/stakingFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_nav_crowdloans"
-        android:title="@string/crowdloan_crowdloan"
+        android:icon="@drawable/ic_nav_staking"
+        android:title="@string/tabbar_staking_title"
         app:showAsAction="ifRoom" />
 
     <item
@@ -23,10 +23,10 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/stakingFragment"
+        android:id="@+id/nftCollectionsFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_nav_staking"
-        android:title="@string/tabbar_staking_title"
+        android:icon="@drawable/ic_nav_nft"
+        android:title="@string/tabbar_nft_title"
         app:showAsAction="ifRoom" />
 
 <!--

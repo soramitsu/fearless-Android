@@ -9,11 +9,13 @@ import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.api.domain.model.hasTon
+import jp.co.soramitsu.account.api.domain.model.hasSolana
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.domain.isSolanaChainId
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.models.Ecosystem
@@ -45,6 +47,9 @@ class AccountDetailsInteractor(
 
     suspend fun hasReplacedAccounts(metaId: Long, type: WalletEcosystem): Boolean {
         val wallet = getMetaAccount(metaId)
+        if (type == WalletEcosystem.Solana) {
+            return wallet.hasSolana
+        }
         return wallet.chainAccounts.values.mapNotNull { it.chain }.any {
             if (it.isEthereumChain) {
                 type == WalletEcosystem.Ethereum
@@ -99,25 +104,29 @@ class AccountDetailsInteractor(
             flowOf { chainRegistry.getChains() }
         ) { metaAccount, chains ->
             metaAccount to chains.filter { chain ->
-                when (chain.ecosystem) {
-                    Ecosystem.Substrate -> metaAccount.hasSubstrate
-                    Ecosystem.EthereumBased,
-                    Ecosystem.Ethereum -> metaAccount.hasEthereum
-
-                    Ecosystem.Ton -> metaAccount.hasTon
+                when {
+                    isSolanaChainId(chain.id) -> metaAccount.hasSolana
+                    chain.ecosystem == Ecosystem.Substrate -> metaAccount.hasSubstrate
+                    chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> metaAccount.hasEthereum
+                    chain.ecosystem == Ecosystem.Ton -> metaAccount.hasTon
+                    else -> false
                 } || metaAccount.hasChainAccount(chain.id)
             }.groupBy { chain ->
-                when (chain.ecosystem) {
-                    Ecosystem.Substrate -> WalletEcosystem.Substrate
-                    Ecosystem.EthereumBased,
-                    Ecosystem.Ethereum -> WalletEcosystem.Ethereum
-
-                    Ecosystem.Ton -> WalletEcosystem.Ton
+                when {
+                    isSolanaChainId(chain.id) -> WalletEcosystem.Solana
+                    chain.ecosystem == Ecosystem.Substrate -> WalletEcosystem.Substrate
+                    chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> WalletEcosystem.Ethereum
+                    chain.ecosystem == Ecosystem.Ton -> WalletEcosystem.Ton
+                    else -> WalletEcosystem.Substrate
                 }
             }
         }.mapNotNull { (metaAccount, grouped) ->
-            if (metaAccount.hasEthereum || metaAccount.hasSubstrate) {
-                return@mapNotNull listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum).map {
+            if (metaAccount.hasEthereum || metaAccount.hasSubstrate || metaAccount.hasSolana) {
+                return@mapNotNull listOf(
+                    WalletEcosystem.Substrate,
+                    WalletEcosystem.Ethereum,
+                    WalletEcosystem.Solana
+                ).map {
                     it to grouped[it].orEmpty().size
                 }
             }

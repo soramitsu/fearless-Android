@@ -1,6 +1,8 @@
 package jp.co.soramitsu.account.api.domain.model
 
+import jp.co.soramitsu.common.domain.isSolanaChainId
 import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.utils.Base58Ext.toBase58
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.common.utils.v4r2tonAddress
 import jp.co.soramitsu.core.models.CryptoType
@@ -24,6 +26,7 @@ interface LightMetaAccount {
     val ethereumAddress: ByteArray?
     val ethereumPublicKey: ByteArray?
     val tonPublicKey: ByteArray?
+    val solanaPublicKey: ByteArray?
     val isSelected: Boolean
     val name: String
     val isBackedUp: Boolean
@@ -38,6 +41,7 @@ fun LightMetaAccount(
     ethereumAddress: ByteArray?,
     ethereumPublicKey: ByteArray?,
     tonPublicKey: ByteArray?,
+    solanaPublicKey: ByteArray?,
     isSelected: Boolean,
     name: String,
     isBackedUp: Boolean,
@@ -50,6 +54,7 @@ fun LightMetaAccount(
     override val ethereumAddress: ByteArray? = ethereumAddress
     override val ethereumPublicKey: ByteArray? = ethereumPublicKey
     override val tonPublicKey: ByteArray? = tonPublicKey
+    override val solanaPublicKey: ByteArray? = solanaPublicKey
     override val isSelected: Boolean = isSelected
     override val name: String = name
     override val isBackedUp: Boolean = isBackedUp
@@ -66,6 +71,7 @@ data class MetaAccount(
     override val ethereumAddress: ByteArray?,
     override val ethereumPublicKey: ByteArray?,
     override val tonPublicKey: ByteArray?,
+    override val solanaPublicKey: ByteArray?,
     override val isSelected: Boolean,
     override val isBackedUp: Boolean,
     val googleBackupAddress: String?,
@@ -107,6 +113,10 @@ data class MetaAccount(
             if (other.ethereumPublicKey == null) return false
             if (!ethereumPublicKey.contentEquals(other.ethereumPublicKey)) return false
         } else if (other.ethereumPublicKey != null) return false
+        if (solanaPublicKey != null) {
+            if (other.solanaPublicKey == null) return false
+            if (!solanaPublicKey.contentEquals(other.solanaPublicKey)) return false
+        } else if (other.solanaPublicKey != null) return false
         if (isSelected != other.isSelected) return false
         if (name != other.name) return false
         if (initialized != other.initialized) return false
@@ -123,6 +133,7 @@ data class MetaAccount(
         result = 31 * result + substrateAccountId.contentHashCode()
         result = 31 * result + (ethereumAddress?.contentHashCode() ?: 0)
         result = 31 * result + (ethereumPublicKey?.contentHashCode() ?: 0)
+        result = 31 * result + (solanaPublicKey?.contentHashCode() ?: 0)
         result = 31 * result + isSelected.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + initialized.hashCode()
@@ -144,6 +155,7 @@ fun MetaAccount.address(chain: Chain): String? {
     return kotlin.runCatching {
         when {
             hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
+            isSolanaChainId(chain.id) -> solanaPublicKey?.toBase58()
             chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> ethereumAddress?.ethereumAddressToHex()
             chain.ecosystem == Ecosystem.Ton -> {
                 tonPublicKey?.v4r2tonAddress(chain.isTestNet)
@@ -156,13 +168,12 @@ fun MetaAccount.address(chain: Chain): String? {
 
 fun LightMetaAccount.address(chain: Chain): String? {
     return kotlin.runCatching {
-        when (chain.ecosystem) {
-            Ecosystem.Substrate -> substrateAccountId?.toAddress(chain.addressPrefix.toShort())
-            Ecosystem.EthereumBased,
-            Ecosystem.Ethereum -> ethereumAddress?.ethereumAddressToHex()
-            Ecosystem.Ton -> {
-                tonPublicKey?.v4r2tonAddress(chain.isTestNet)
-            }
+        when {
+            isSolanaChainId(chain.id) -> solanaPublicKey?.toBase58()
+            chain.ecosystem == Ecosystem.Substrate -> substrateAccountId?.toAddress(chain.addressPrefix.toShort())
+            chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> ethereumAddress?.ethereumAddressToHex()
+            chain.ecosystem == Ecosystem.Ton -> tonPublicKey?.v4r2tonAddress(chain.isTestNet)
+            else -> null
         }
     }.getOrNull()
 }
@@ -170,12 +181,14 @@ fun LightMetaAccount.address(chain: Chain): String? {
 fun LightMetaAccount.supportedEcosystemWithIconAddress(): Map<WalletEcosystem, String> = listOfNotNull(
     tonPublicKey?.let { WalletEcosystem.Ton to it.v4r2tonAddress(false) },
     substratePublicKey?.let { WalletEcosystem.Substrate to it.toAddress(0.toShort()) }, // 0 = polkadotAddressPrefix
+    solanaPublicKey?.let { WalletEcosystem.Solana to it.toBase58() },
     ethereumPublicKey?.let { WalletEcosystem.Ethereum to it.ethereumAddressToHex() }
 ).toMap()
 
 fun LightMetaAccount.supportedEcosystems(): Set<WalletEcosystem> = setOfNotNull(
     tonPublicKey?.let { WalletEcosystem.Ton },
     substratePublicKey?.let { WalletEcosystem.Substrate },
+    solanaPublicKey?.let { WalletEcosystem.Solana },
     ethereumPublicKey?.let { WalletEcosystem.Ethereum }
 )
 
@@ -189,6 +202,7 @@ fun MetaAccount.chainAddress(chain: Chain): String? {
 fun MetaAccount.accountId(chain: IChain): ByteArray? {
     return when {
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
+        isSolanaChainId(chain.id) -> solanaPublicKey
         chain.ecosystem == Ecosystem.Substrate -> substrateAccountId
         chain.ecosystem == Ecosystem.Ethereum || chain.ecosystem == Ecosystem.EthereumBased -> ethereumAddress
         //Attention!!! Use tonPublicKey as accountId only internally in fearless wallet. For api requests use ByteArray.tonAccountId(): String function extension
@@ -206,6 +220,9 @@ val MetaAccount.hasEthereum
 val MetaAccount.hasTon
     get() = tonPublicKey != null
 
+val MetaAccount.hasSolana
+    get() = solanaPublicKey != null
+
 val LightMetaAccount.hasSubstrate
     get() = substrateAccountId != null
 
@@ -214,3 +231,6 @@ val LightMetaAccount.hasEthereum
 
 val LightMetaAccount.hasTon
     get() = tonPublicKey != null
+
+val LightMetaAccount.hasSolana
+    get() = solanaPublicKey != null

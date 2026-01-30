@@ -52,6 +52,7 @@ import jp.co.soramitsu.staking.impl.domain.EraTimeCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.GetIdentitiesUseCase
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
+import jp.co.soramitsu.staking.impl.domain.solana.SolanaStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.staking.impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendatorFactory
@@ -125,6 +126,13 @@ class StakingFeatureModule {
         walletRepository: WalletRepository,
         chainsRepository: ChainsRepository
     ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, chainsRepository)
+
+    @Provides
+    @Singleton
+    fun provideSolanaStakingInteractor(
+        stakingSharedState: StakingSharedState,
+        accountRepository: AccountRepository
+    ): SolanaStakingInteractor = SolanaStakingInteractor(stakingSharedState, accountRepository)
 
     @Provides
     @Singleton

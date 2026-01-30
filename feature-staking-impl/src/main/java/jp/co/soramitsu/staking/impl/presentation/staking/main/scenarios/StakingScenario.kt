@@ -10,6 +10,7 @@ import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingS
 import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
+import jp.co.soramitsu.staking.impl.domain.solana.SolanaStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
@@ -31,7 +32,8 @@ class StakingScenario(
     private val stakingViewStateFactory: StakingViewStateFactory,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
-    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl
+    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl,
+    private val solanaStakingInteractor: SolanaStakingInteractor
 ) {
 
     private val parachainViewModel by lazy {
@@ -65,13 +67,20 @@ class StakingScenario(
             baseViewModel
         )
     }
+    private val solanaStakingViewModel by lazy {
+        SolanaStakingScenarioViewModel(
+            solanaStakingInteractor,
+            resourceManager,
+            baseViewModel
+        )
+    }
 
     fun getViewModel(stakingType: StakingType): StakingScenarioViewModel {
         return when (stakingType) {
             StakingType.PARACHAIN -> parachainViewModel
             StakingType.RELAYCHAIN -> relaychainViewModel
             StakingType.POOL -> stakingPoolViewModel
-            else -> error("StakingScenario.getViewModel")
+            StakingType.SOLANA -> solanaStakingViewModel
         }
     }
 

@@ -19,6 +19,7 @@ import jp.co.soramitsu.backup.domain.models.Json
 import jp.co.soramitsu.backup.domain.models.Seed
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -365,6 +366,13 @@ class AccountInteractorImpl(
                             entropy = byteArrayOf()
                         )
                     }
+                    WalletEcosystem.Solana -> accountRepository.getSolanaSecrets(metaId)?.get(SolanaSecrets.Seed)?.decodeToString()?.let { words ->
+                        Mnemonic(
+                            words = words,
+                            wordList = words.split(EnglishWordList.INSTANCE.space.toString()),
+                            entropy = byteArrayOf()
+                        )
+                    }
                 }
             }
         }.mapNotNull {
@@ -382,10 +390,12 @@ class AccountInteractorImpl(
                 get(SubstrateSecrets.Seed) ?: seedFromMnemonic()
             }?.toHexString(true)
             val ethSeed = accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+            val solanaSeed = accountRepository.getSolanaSecrets(metaId)?.get(SolanaSecrets.PrivateKey)?.toHexString(withPrefix = true)
             ComponentHolder(
                 listOf(
                     substrateSeed,
-                    ethSeed
+                    ethSeed,
+                    solanaSeed
                 )
             )
         }
@@ -401,10 +411,12 @@ class AccountInteractorImpl(
             val ethereumDerivationPath  = accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.EthereumDerivationPath).takeIf { path ->
                 path != BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
             }
+            val solanaDerivationPath = accountRepository.getSolanaSecrets(metaId)?.get(SolanaSecrets.DerivationPath)
             ComponentHolder(
                 listOf(
                     substrateDerivationPath,
-                    ethereumDerivationPath
+                    ethereumDerivationPath,
+                    solanaDerivationPath
                 )
             )
         }

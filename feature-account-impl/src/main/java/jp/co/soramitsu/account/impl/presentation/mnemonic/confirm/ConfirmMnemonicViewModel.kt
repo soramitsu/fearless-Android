@@ -132,7 +132,10 @@ class ConfirmMnemonicViewModel @Inject constructor(
         val payloadExtras = payload.createExtras ?: return
         val mnemonicString = originMnemonic.joinToString(" ")
 
-        val isSubstrateOrEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Substrate) || payload.accountTypes.contains(WalletEcosystem.Ethereum)
+        val isSolanaAccount = payload.accountTypes.contains(WalletEcosystem.Solana)
+        val isSubstrateOrEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Substrate) ||
+            payload.accountTypes.contains(WalletEcosystem.Ethereum) ||
+            isSolanaAccount
         val isTonAccount = payload.accountTypes.contains(WalletEcosystem.Ton)
 
         launch {
@@ -155,6 +158,7 @@ class ConfirmMnemonicViewModel @Inject constructor(
                         payloadExtras.substrateDerivationPath,
                         payloadExtras.ethereumDerivationPath,
                         null,
+                        payloadExtras.solanaDerivationPath,
                         isBackedUp
                     )
                 }

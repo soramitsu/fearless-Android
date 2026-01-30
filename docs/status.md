@@ -19,6 +19,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - TON Connect: Present (`feature-tonconnect-*`).
 - Sora Card: Present but requires credentials via Gradle props.
 - NFTs: Present; details screen has TODO placeholders.
+- Solana staking: selection now loads live validator/APY data from Solana RPC and exposes delegate/deactivate/withdraw action entry points (with CLI-ready commands) while full transaction signing continues in parallel.
 
 ## Build & CI
 - CI Pipeline: `.github/workflows/android-ci.yml` runs detekt, unit tests (`runTest`), and app lint on push/PR.
@@ -28,6 +29,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.
 - ChainRegistry coordinates runtime providers and connections. EVM handled via `EthereumEnvironmentConfigurator` and `EthereumConnectionPool`.
+- Solana fallback metadata is now injected from the bundled definition whenever the remote registry omits it, so SOL and the initial memecoin set always appear in “All Networks” (dedicated RPC health checks and UI tagging remain to-do).
 
 ## Polkadot SDK Alignment
 - Target: polkadot-stable2503 (prepared via override keys).

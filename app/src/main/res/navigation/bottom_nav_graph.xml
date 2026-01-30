@@ -27,6 +27,11 @@
         android:label="StakingFragment" />
 
     <fragment
+        android:id="@+id/nftCollectionsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NftCollectionsFragment"
+        android:label="NftCollectionsFragment" />
+
+    <fragment
         android:id="@+id/walletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListFragment"
         android:label="WalletFragment" />

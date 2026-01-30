@@ -2,6 +2,7 @@ package jp.co.soramitsu.onboarding.impl.welcome
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -41,6 +43,7 @@ interface SelectEcosystemScreenCallbacks {
     fun termsClicked()
     fun substrateEvmClick()
     fun tonClick()
+    fun solanaClick()
 }
 
 @Suppress("FunctionName")
@@ -89,6 +92,16 @@ private fun SelectEcosystemScreenContent(
         )
         MarginVertical(12.dp)
         EcosystemCard(
+            stringResource(R.string.onboarding_banner_solana_ecosystem_title),
+            stringResource(R.string.onboarding_banner_solana_ecosystem_button_title),
+            banner = null,
+            gradient = Brush.linearGradient(
+                colors = listOf(Color(0xFF9945FF), Color(0xFF14F195))
+            ),
+            onClick = callbacks::solanaClick
+        )
+        MarginVertical(12.dp)
+        EcosystemCard(
             stringResource(R.string.onboarding_banner_ton_ecosystem_title),
             stringResource(R.string.onboarding_banner_ton_ecosystem_button_title),
             R.drawable.background_banner_ton,
@@ -101,14 +114,25 @@ private fun SelectEcosystemScreenContent(
 }
 
 @Composable
-fun EcosystemCard(text: String, buttonText: String, @DrawableRes banner: Int, onClick: () -> Unit) {
+fun EcosystemCard(
+    text: String,
+    buttonText: String,
+    @DrawableRes banner: Int? = null,
+    gradient: Brush? = null,
+    onClick: () -> Unit
+) {
+    val baseModifier = Modifier.fillMaxWidth()
+    val decoratedModifier = when {
+        banner != null -> baseModifier.paint(
+            painter = painterResource(banner),
+            contentScale = ContentScale.FillWidth
+        )
+        gradient != null -> baseModifier.background(gradient)
+        else -> baseModifier
+    }
+
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .paint(
-                painter = painterResource(banner),
-                contentScale = ContentScale.FillWidth
-            )
+        modifier = decoratedModifier
             .padding(24.dp)
             .clickableWithNoIndication { onClick() }
     ) {
@@ -168,6 +192,7 @@ fun SelectEcosystemScreenPreview() {
             override fun termsClicked() = Unit
             override fun substrateEvmClick() = Unit
             override fun tonClick() = Unit
+            override fun solanaClick() = Unit
         })
     }
 }

@@ -151,7 +151,8 @@ class AdvancedBlockView @JvmOverloads constructor(
                 configureSubstrate(FieldState.NORMAL)
                 configureEthereum(FieldState.HIDDEN)
             }
-            WalletEcosystem.Ethereum -> {
+            WalletEcosystem.Ethereum,
+            WalletEcosystem.Solana -> {
                 configure(FieldState.HIDDEN)
                 configure(ethereumEncryptionTypeField, FieldState.DISABLED)
             }

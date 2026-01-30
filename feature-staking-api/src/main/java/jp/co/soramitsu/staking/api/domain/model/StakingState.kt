@@ -92,6 +92,12 @@ sealed class StakingState(
         class Nominator(chain: Chain, accountId: AccountId) : Pool(chain, accountId)
         class StateToggler(chain: Chain, accountId: AccountId) : Pool(chain, accountId)
     }
+
+    class Solana(
+        chain: Chain,
+        accountId: AccountId,
+        val stakeAccountAddress: String?
+    ) : StakingState(chain, accountId)
 }
 
 data class CollatorDelegation(

@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -29,6 +30,7 @@ private val fiatAmountFormatter = FiatFormatter()
 private val fiatSmallAmountFormatter = FiatSmallFormatter()
 private val percentAmountFormatter = FixedPrecisionFormatter(MAX_DECIMALS_2)
 private val cryptoAmountShortFormatter = FixedPrecisionFormatter(MAX_DECIMALS_3)
+private val cryptoAmountMediumFormatter = FixedPrecisionFormatter(6)
 private val cryptoAmountDetailFormatter = FixedPrecisionFormatter(MAX_DECIMALS_8)
 
 private val fiatAbbreviatedFormatter = fiatAbbreviatedFormatter()
@@ -105,7 +107,7 @@ fun Long.formatDateTime(): String = SimpleDateFormat.getDateInstance().format(Da
 
 fun Long.formatTime(): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(this))
 
-fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern).apply {
+fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern, DecimalFormatSymbols(Locale.US)).apply {
     roundingMode = RoundingMode.FLOOR
 }
 

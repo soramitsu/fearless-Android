@@ -60,7 +60,7 @@ class BackupWalletViewModel @Inject constructor(
 
     val isAllowGoogleBackupFlow = wallet.map { wallet ->
         wallet.supportedEcosystemWithIconAddress().keys.any {
-            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
+            it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum, WalletEcosystem.Solana)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

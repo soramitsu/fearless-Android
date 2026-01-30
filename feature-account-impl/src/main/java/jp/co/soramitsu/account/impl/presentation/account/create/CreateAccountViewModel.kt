@@ -71,7 +71,7 @@ class CreateAccountViewModel @Inject constructor(
         if (isFromGoogleBackup) {
             router.openMnemonicAgreementsDialogForGoogleBackup(
                 accountName = walletNickname.value,
-                accountTypes = listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
+                accountTypes = listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum, WalletEcosystem.Solana)
             )
         } else {
             _showScreenshotsWarningEvent.value = Event(Unit)
@@ -80,8 +80,13 @@ class CreateAccountViewModel @Inject constructor(
 
     fun screenshotWarningConfirmed() {
         val accountTypes = when (accountMode) {
-            AccountType.SubstrateOrEvm -> listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
+            AccountType.SubstrateOrEvm -> listOf(
+                WalletEcosystem.Substrate,
+                WalletEcosystem.Ethereum,
+                WalletEcosystem.Solana
+            )
             AccountType.Ton -> listOf(WalletEcosystem.Ton)
+            AccountType.Solana -> listOf(WalletEcosystem.Solana)
         }
         router.openMnemonicScreen(walletNickname.value, accountTypes)
     }

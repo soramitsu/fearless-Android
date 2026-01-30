@@ -81,6 +81,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_69_70
 import jp.co.soramitsu.coredb.migrations.Migration_70_71
 import jp.co.soramitsu.coredb.migrations.Migration_72_73
 import jp.co.soramitsu.coredb.migrations.Migration_73_74
+import jp.co.soramitsu.coredb.migrations.Migration_74_75
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -110,7 +111,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 
 @Database(
-    version = 74,
+    version = 75,
     entities = [
         AddressBookContact::class,
         AssetLocal::class,
@@ -211,6 +212,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(TonMigration(storeV2, substrateSecretStore, ethereumSecretStore, encryptedPreferences))
                     .addMigrations(Migration_72_73)
                     .addMigrations(Migration_73_74)
+                    .addMigrations(Migration_74_75)
                     .build()
             }
             return instance!!

@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.data.secrets.v2.getChainAccountKeypair
 import jp.co.soramitsu.common.data.secrets.v2.mapKeypairStructToKeypair
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SolanaSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
@@ -19,12 +21,14 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.common.domain.isSolanaChainId
 
 class KeyPairRepository(
     private val secretStoreV2: SecretStoreV2,
     private val ethereumSecretStore: EthereumSecretStore,
     private val substrateSecretStore: SubstrateSecretStore,
     private val tonSecretStore: TonSecretStore,
+    private val solanaSecretStore: SolanaSecretStore,
     private val accountRepository: AccountRepository
 ) : KeypairProvider {
 
@@ -42,6 +46,11 @@ class KeyPairRepository(
         val keypair = when {
             secretStoreV2.hasChainSecrets(metaAccount.id, accountId) -> {
                 secretStoreV2.getChainAccountKeypair(metaAccount.id, accountId)
+            }
+            isSolanaChainId(chain.id) -> {
+                solanaSecretStore.get(metaAccount.id)?.let {
+                    Keypair(it[SolanaSecrets.PublicKey], it[SolanaSecrets.PrivateKey])
+                }
             }
 
             chain.ecosystem == Ecosystem.Substrate -> substrateSecretStore.get(metaAccount.id)?.get(SubstrateSecrets.SubstrateKeypair)?.let { mapKeypairStructToKeypair(it) }

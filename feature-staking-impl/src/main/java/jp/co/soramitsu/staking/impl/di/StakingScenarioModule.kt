@@ -26,6 +26,7 @@ class StakingScenarioModule {
                 StakingType.RELAYCHAIN -> stakingRelayChainScenarioInteractor
                 StakingType.PARACHAIN -> stakingParachainScenarioInteractor
                 StakingType.POOL -> stakingRelayChainScenarioInteractor
+                StakingType.SOLANA -> stakingRelayChainScenarioInteractor
             }
 
             is SetupStakingProcess.ReadyToSubmit.Stash,

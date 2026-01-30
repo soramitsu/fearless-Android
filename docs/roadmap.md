@@ -94,6 +94,67 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   - Create `strings.xml` entries and a small mapper to user-friendly messages.
   - Replace TODOs with resource lookups.
 
+7) Solana compatibility & memecoin tagging in wallet
+- Why: Expand beyond Substrate/EVM by letting users add/manage a Solana account while keeping a single wallet UI; Solana SPL memecoins must be discoverable and visually distinct to reduce scams.
+- Files: `runtime/.../chains/ChainRegistry.kt`, `feature-account-impl/.../AccountsViewModel.kt`, `feature-wallet-impl/.../WalletViewModel.kt`, asset metadata ingestion scripts.
+- Acceptance:
+  - “Add account” entry points inside Substrate/EVM wallet tabs list Solana as a peer option and successfully derive/store a Solana keypair (ed25519/BIP44) in meta-accounts.
+  - Chain Registry exposes Solana under “All Networks” with RPC/WebSocket endpoints validated; balances load for SOL and at least three SPL tokens.
+  - Assets flagged as memecoins display a leading 🐸 emoji anywhere tickers appear (wallet list, search, send selector) without mislabeling non-meme tokens.
+  - No crashes for existing users without Solana data; migrations skip cleanly.
+- Prompt:
+  1) Extend chain metadata JSON + ChainRegistry parsing for Solana (chainId, symbol precision, RPC health checks) and add integration tests.
+  2) Add Solana key derivation/signing utilities (libsodium/ed25519) and hook into `MetaAccount` creation/import flows plus backups.
+  3) Merge Solana balances into wallet/all-networks viewmodels, gate UI by capability flag until RPC connectivity verified, and drive Compose/View adapters to show the 🐸 tag when `isMemecoin=true`.
+  4) Seed token metadata source with SPL memecoins plus flag propagation, add UI unit tests ensuring emoji rendering, and document QA steps (create/import, list assets, send SOL/memecoin).
+- Progress:
+  - Chain sync now injects the bundled Solana definition whenever the remote registry omits it, ensuring the chain (with SOL + memecoin assets) is always visible in “All Networks.”
+
+8) Solana DeFi actions with XOR maintenance fee
+- Why: Deliver parity DeFi features (swap/liquidity/staking) on Solana while funding maintenance via a transparent 0.5% fee routed through XOR, aligning with existing Polkaswap economics.
+- Files: `feature-liquiditypools-impl/...`, `feature-wallet-impl/.../defi`, pricing/fee services, telemetry.
+- Acceptance:
+  - Solana DeFi sheets list available pools/strategies; executing a transaction shows gross amount, the 0.5% maintenance fee converted to XOR, and the final net before submit.
+  - Fee engine automatically swaps the 0.5% share to XOR (via Polkaswap/Sora liquidity) and transfers it to the maintenance wallet within the same confirmation flow; failures block submission with actionable errors.
+  - Tests cover route quoting, fee math, and XOR transfer orchestration; analytics log each fee event.
+- Prompt:
+  1) Integrate a Solana aggregator SDK (e.g., Jupiter) behind existing DeFi abstractions and add mocks for unit tests.
+  2) Build a fee service that calculates 0.5% of the Solana transaction value, performs (or schedules) the XOR conversion/transfer, and surfaces the maintenance destination for transparency.
+ 3) Update confirmation UI to surface fee line items, add telemetry/alerting for missing XOR settlements, and expand QA checklist (swap SOL↔SPL, provide liquidity, collect XOR fee evidence).
+
+## UI Updates
+
+**Milestone 1 – Solana Devnet Support**
+- Extend chain metadata and registry wiring to include `solana-devnet` (nodes, explorers, icons, ecosystem flags) so wallets can target the network.
+- Surface Solana explicitly in create/import flows (new `AccountType` or toggle) so users can generate/import Solana-only accounts.
+- Verify both Solana networks appear in chain selectors and wallet views without regressions.
+
+**Milestone 2 – Navigation Refresh**
+- Update bottom navigation to `Wallet – Staking – Polkaswap – NFT – Settings`, removing the crowdloans entry and spacing the icons evenly.
+- Remove the NFT toggle tab from the wallet screen; route NFT content through the new bottom tab instead.
+- Ensure the FAB and Polkaswap navigation continue to behave correctly.
+
+**Milestone 3 – Solana Native Staking (LOE: 40)**
+- Add Solana stake account management (create, delegate, deactivate, withdraw) wired through the existing staking abstractions.
+- Fetch/decode validator vote accounts and APY data; surface staking state in wallet/staking screens with Solana-specific copy.
+- Ensure fee estimation, nonce handling, and signer selection all work for SOL staking transactions; add integration tests against devnet/mainnet RPCs.
+- Progress: Solana staking assets can now be selected, live validator data/APY is fetched from RPC, and the Staking tab exposes delegate/deactivate/withdraw entry points (CLI-ready) while full transaction support is built.
+
+**Milestone 4 – Settings Cleanup & Donate CTA**
+- Remove crowdloan entries from Settings.
+- Add a “Donate to SORAMITSU” option that opens the Send screen prefilled for SORA Mainnet with the donation address (`cnVRSRjJmpVaRKhhYt6eKDbpRi1FUdKSi7VkWQTUXobqrwCTd`) sourced from a single configurable constant.
+- Verify the new option works end-to-end and is easy to update if the address changes.
+
+**Milestone 5 – pump.fun Trading Integration (LOE: 30)**
+- Extend Solana asset/chain metadata so pump.fun listings can be surfaced with memecoin tagging from wallet search and the Polkaswap entry point.
+- Implement a trading interactor that consumes pump.fun quote/trade APIs, maps quotes to Solana extrinsics, and reuses the DeFi maintenance fee UI/telemetry paths defined above.
+- Harden key handling and slippage/compute limits via unit tests + end-to-end QA on devnet/mainnet; blockers must be raised if Solana account creation/import (Milestone 1) or navigation refresh (Milestone 2) slip.
+
+**Milestone 6 – pump.fun Memecoin Creation (LOE: 40)**
+- Introduce a guided creation flow (token config, bonding curve, final review) that builds the pump.fun program instructions and enforces compliance copy + DoS protections.
+- Persist generated SPL metadata inside `MetaAccount`/wallet stores so new tokens inherit memecoin tagging, and surface progress/error status in Settings once Milestone 4 ships.
+- Add deeper signing/fee regression tests plus manual QA scripts that cover abuse scenarios (spam creation, invalid metadata) before enabling in production.
+
 ## P1 — Medium Priority
 
 6) Cleanup or implement `SocketSingleRequestExecutor`

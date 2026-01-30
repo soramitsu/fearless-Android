@@ -171,6 +171,13 @@ class JsonImportSource(
                 CryptoType.ECDSA -> return
             }
 
+            WalletEcosystem.Solana -> when (parsedJsonEncryptionType) {
+                CryptoType.ED25519 -> return
+
+                CryptoType.SR25519,
+                CryptoType.ECDSA -> throw WrongBlockchainImportJsonException()
+            }
+
             WalletEcosystem.Ton -> return
         }
     }

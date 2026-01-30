@@ -4,6 +4,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.SOLANA_CHAIN_ID
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -74,6 +75,7 @@ class StakingSharedStateTest {
         chainAsset = mock(jp.co.soramitsu.core.models.Asset::class.java).apply {
             given(id).willReturn(testAssetId)
             given(staking).willReturn(StakingType.RELAYCHAIN)
+            given(isNative).willReturn(true)
             given(supportStakingPool).willReturn(true)
         }
 
@@ -130,6 +132,20 @@ class StakingSharedStateTest {
         stakingSharedState.selectionItem.first()
         stakingSharedState.assetWithChain.first()
         stakingSharedState.currentAssetFlow().first()
+    }
+
+    @Test
+    fun `should include solana staking when account has solana key`() = runTest(testDispatcher, timeout = 5.seconds) {
+        given(chain.id).willReturn(SOLANA_CHAIN_ID)
+        given(chain.assets).willReturn(listOf(chainAsset))
+        given(chainAsset.id).willReturn("SOL")
+        given(chainAsset.staking).willReturn(StakingType.UNSUPPORTED)
+        given(metaAccount.solanaPublicKey).willReturn(byteArrayOf(1, 2, 3))
+        metaAccountFlow.value = metaAccount
+
+        val selections = stakingSharedState.availableToSelect()
+
+        assertTrue(selections.any { it is StakingAssetSelection.Solana })
     }
 
     @After

@@ -126,7 +126,7 @@ fun AssetListItem(
                     }
                     Row {
                         Text(
-                            text = state.assetSymbol.uppercase(),
+                            text = state.decoratedSymbol,
                             style = MaterialTheme.customTypography.header3,
                             modifier = Modifier
                                 .padding(vertical = 4.dp)

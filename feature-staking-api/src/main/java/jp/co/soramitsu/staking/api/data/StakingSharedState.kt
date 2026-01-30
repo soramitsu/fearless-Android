@@ -1,9 +1,11 @@
 package jp.co.soramitsu.staking.api.data
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.holders.ChainIdHolder
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.isSolanaChainId
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -35,7 +37,10 @@ import kotlinx.coroutines.flow.shareIn
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 enum class StakingType {
-    PARACHAIN, RELAYCHAIN, POOL
+    PARACHAIN,
+    RELAYCHAIN,
+    POOL,
+    SOLANA
 }
 
 enum class SyntheticStakingType {
@@ -74,7 +79,9 @@ class StakingSharedState(
 
     private val cachedStakingAssetsFlow = accountRepository.selectedMetaAccountFlow()
         .map { metaAccount ->
-            val relevantChains = chains.await().filter { metaAccount.accountId(it) != null }
+            val relevantChains = chains.await().filter {
+                metaAccount.accountId(it) != null || (metaAccount.solanaPublicKey != null && isSolanaChainId(it.id))
+            }
             val assets = walletRepository.getAssets(metaAccount.id)
 
             assets.mapNotNull { asset ->
@@ -82,7 +89,7 @@ class StakingSharedState(
                     chain.assets.any { chainAsset ->
                         chainAsset.id == asset.token.configuration.id &&
                         chain.id == asset.token.configuration.chainId &&
-                        chainAsset.staking != CoreAsset.StakingType.UNSUPPORTED
+                        chainAsset.supportsFearlessStaking(metaAccount)
                     }
                 }
                 if (chain != null) asset to chain else null
@@ -140,21 +147,21 @@ class StakingSharedState(
     }
 
     suspend fun availableToSelect(): List<StakingAssetSelection> {
-//        val wallet = accountRepository.getSelectedMetaAccount()
-
-        val allChains = cachedStakingAssetsFlow.first{ it.isNotEmpty() }.map { it.second }
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val allChains = cachedStakingAssetsFlow.first { it.isNotEmpty() }.map { it.second }
 
         return allChains.map { chain ->
             val staking = chain.assets.filter { chainAsset ->
-                chainAsset.staking != CoreAsset.StakingType.UNSUPPORTED
+                chainAsset.supportsFearlessStaking(metaAccount)
             }.map {
-                when (it.staking) {
-                    CoreAsset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(
+                when {
+                    it.isSolanaStaking(metaAccount) -> StakingAssetSelection.Solana(chain.id, it.id)
+                    it.staking == CoreAsset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(
                         chain.id,
                         it.id
                     )
 
-                    CoreAsset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(
+                    it.staking == CoreAsset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(
                         chain.id,
                         it.id
                     )
@@ -220,12 +227,26 @@ sealed class StakingAssetSelection(open val chainId: ChainId, open val chainAsse
         override val type = StakingType.POOL
     }
 
+    data class Solana(override val chainId: ChainId, override val chainAssetId: String) :
+        StakingAssetSelection(chainId, chainAssetId) {
+        override val type = StakingType.SOLANA
+    }
+
     companion object {
         fun from(chainId: ChainId, chainAssetId: String, type: String) = when (type) {
             StakingType.RELAYCHAIN.name -> RelayChainStaking(chainId, chainAssetId)
             StakingType.PARACHAIN.name -> ParachainStaking(chainId, chainAssetId)
             StakingType.POOL.name -> Pool(chainId, chainAssetId)
+            StakingType.SOLANA.name -> Solana(chainId, chainAssetId)
             else -> error("StakingAssetSelection.from Unknown staking type: $type")
         }
     }
+}
+
+private fun CoreAsset.supportsFearlessStaking(metaAccount: LightMetaAccount?): Boolean {
+    return staking != CoreAsset.StakingType.UNSUPPORTED || isSolanaStaking(metaAccount)
+}
+
+private fun CoreAsset.isSolanaStaking(metaAccount: LightMetaAccount?): Boolean {
+    return isSolanaChainId(chainId) && isNative && metaAccount?.solanaPublicKey != null
 }

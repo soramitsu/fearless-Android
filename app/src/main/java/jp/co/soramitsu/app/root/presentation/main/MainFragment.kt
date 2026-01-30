@@ -78,7 +78,12 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         binding.bottomNavigationViewWithFab.setupWithNavController(navController!!)
 
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
-            onNavDestinationSelected(item, navController!!)
+            if (item.itemId == R.id.swapTokensFragment) {
+                viewModel.navigateToSwapScreen()
+                false
+            } else {
+                onNavDestinationSelected(item, navController!!)
+            }
         }
         binding.bottomNavigationViewWithFab.setOnItemSelectedListener { item ->
             onNavDestinationSelected(item, navController!!)

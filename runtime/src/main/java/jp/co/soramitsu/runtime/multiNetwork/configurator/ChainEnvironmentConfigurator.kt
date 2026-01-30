@@ -39,6 +39,7 @@ class ChainEnvironmentConfiguratorProvider(
                 runtimeSubscriptionPool,
                 chainsRepository
             )
+
         }
     }
 }

@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.domain.model.MemecoinTagger
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 
 data class BalanceListItemModel(
@@ -35,5 +36,6 @@ fun BalanceListItemModel.toAssetState(index: Int? = null) = AssetListItemViewSta
     chainAssetId = asset.id,
     isSupported = chain?.isSupported != false,
     isHidden = isHidden,
-    isTestnet = chain?.isTestNet == true
+    isTestnet = chain?.isTestNet == true,
+    isMemecoin = chain?.id?.let { MemecoinTagger.isMemecoin(it, asset.id) } == true
 )

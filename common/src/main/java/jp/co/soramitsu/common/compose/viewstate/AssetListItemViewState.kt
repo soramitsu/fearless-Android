@@ -15,7 +15,14 @@ data class AssetListItemViewState(
     val chainAssetId: String,
     val isSupported: Boolean,
     val isHidden: Boolean,
-    val isTestnet: Boolean
+    val isTestnet: Boolean,
+    val isMemecoin: Boolean = false
 ) {
     val key = listOf(index ?: 0, chainAssetId, chainId, isHidden).joinToString()
+
+    val decoratedSymbol: String
+        get() = buildString {
+            if (isMemecoin) append("\uD83D\uDC38 ")
+            append(assetSymbol.uppercase())
+        }
 }
