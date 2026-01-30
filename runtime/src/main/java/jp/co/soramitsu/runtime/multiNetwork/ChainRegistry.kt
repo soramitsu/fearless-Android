@@ -127,7 +127,10 @@ class ChainRegistry @Inject constructor(
     fun syncUp() {
         chainsToSync.onEach { (removed, addedOrModified, all) ->
             coroutineScope {
-                val removedDeferred = removed.map {
+                val addedIds = addedOrModified.map(Chain::id).toSet()
+                val removedTrue = removed.filterNot { it.id in addedIds }
+
+                val removedDeferred = removedTrue.map {
                     async { connectionPool.getConnectionOrNull(it.id)?.socketService?.pause() }
                 }
 

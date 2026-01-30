@@ -144,6 +144,16 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Add a “Donate to SORAMITSU” option that opens the Send screen prefilled for SORA Mainnet with the donation address (`cnVRSRjJmpVaRKhhYt6eKDbpRi1FUdKSi7VkWQTUXobqrwCTd`) sourced from a single configurable constant.
 - Verify the new option works end-to-end and is easy to update if the address changes.
 
+**Milestone 5 – pump.fun Trading Integration (LOE: 30)**
+- Extend Solana asset/chain metadata so pump.fun listings can be surfaced with memecoin tagging from wallet search and the Polkaswap entry point.
+- Implement a trading interactor that consumes pump.fun quote/trade APIs, maps quotes to Solana extrinsics, and reuses the DeFi maintenance fee UI/telemetry paths defined above.
+- Harden key handling and slippage/compute limits via unit tests + end-to-end QA on devnet/mainnet; blockers must be raised if Solana account creation/import (Milestone 1) or navigation refresh (Milestone 2) slip.
+
+**Milestone 6 – pump.fun Memecoin Creation (LOE: 40)**
+- Introduce a guided creation flow (token config, bonding curve, final review) that builds the pump.fun program instructions and enforces compliance copy + DoS protections.
+- Persist generated SPL metadata inside `MetaAccount`/wallet stores so new tokens inherit memecoin tagging, and surface progress/error status in Settings once Milestone 4 ships.
+- Add deeper signing/fee regression tests plus manual QA scripts that cover abuse scenarios (spam creation, invalid metadata) before enabling in production.
+
 ## P1 — Medium Priority
 
 6) Cleanup or implement `SocketSingleRequestExecutor`
