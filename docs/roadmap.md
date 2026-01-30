@@ -138,6 +138,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Add Solana stake account management (create, delegate, deactivate, withdraw) wired through the existing staking abstractions.
 - Fetch/decode validator vote accounts and APY data; surface staking state in wallet/staking screens with Solana-specific copy.
 - Ensure fee estimation, nonce handling, and signer selection all work for SOL staking transactions; add integration tests against devnet/mainnet RPCs.
+- Progress: Solana staking assets can now be selected, live validator data/APY is fetched from RPC, and the Staking tab exposes delegate/deactivate/withdraw entry points (CLI-ready) while full transaction support is built.
 
 **Milestone 4 – Settings Cleanup & Donate CTA**
 - Remove crowdloan entries from Settings.

@@ -19,6 +19,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - TON Connect: Present (`feature-tonconnect-*`).
 - Sora Card: Present but requires credentials via Gradle props.
 - NFTs: Present; details screen has TODO placeholders.
+- Solana staking: selection now loads live validator/APY data from Solana RPC and exposes delegate/deactivate/withdraw action entry points (with CLI-ready commands) while full transaction signing continues in parallel.
 
 ## Build & CI
 - CI Pipeline: `.github/workflows/android-ci.yml` runs detekt, unit tests (`runTest`), and app lint on push/PR.

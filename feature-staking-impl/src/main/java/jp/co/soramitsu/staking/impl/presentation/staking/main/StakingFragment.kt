@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
@@ -48,6 +49,8 @@ import jp.co.soramitsu.staking.impl.domain.model.NominatorStatus
 import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarnings
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.SolanaStakingOverview
+import jp.co.soramitsu.staking.impl.presentation.staking.main.SolanaActionPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingAssetInfo
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
@@ -213,6 +216,10 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                     binding.stakingNetworkInfo.isVisible = false
                     binding.parachainStakingNetworkInfo.isVisible = false
                 }
+                stakingType == StakingType.SOLANA -> {
+                    binding.stakingNetworkInfo.isVisible = false
+                    binding.parachainStakingNetworkInfo.isVisible = false
+                }
                 state is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     when (val model = state.data) {
                         is StakingNetworkInfoModel.Parachain -> {
@@ -222,6 +229,10 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             setupNetworkInfo(model)
                         }
                         is StakingNetworkInfoModel.Pool -> Unit
+                        is StakingNetworkInfoModel.Solana -> {
+                            binding.stakingNetworkInfo.isVisible = false
+                            binding.parachainStakingNetworkInfo.isVisible = false
+                        }
                     }
                 }
             }
@@ -286,6 +297,15 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                                         )
                                         MarginVertical(margin = Dp(16f))
                                     }
+                                    is StakingViewState.Solana -> {
+                                        MarginVertical(margin = Dp(16f))
+                                        SolanaStakingOverview(
+                                            viewState = stakingViewState.viewState,
+                                            onActionClick = viewModel::onSolanaActionClicked,
+                                            onValidatorSelected = viewModel::onSolanaValidatorSelected
+                                        )
+                                        MarginVertical(margin = Dp(16f))
+                                    }
                                 }
                             }
                         }
@@ -302,6 +322,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                 onClicked = viewModel.assetSelectorMixin::assetChosen
             ).show()
         }
+        viewModel.solanaActionEvent.observeEvent(::showSolanaActionDialog)
 
         binding.quickInput.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -510,5 +531,19 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         returnsJob?.cancel()
         observeDelegationsJob?.cancel()
         observeAlertsJob?.cancel()
+    }
+
+    private fun showSolanaActionDialog(payload: SolanaActionPayload) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(payload.action.titleRes))
+            .setMessage(getString(payload.action.descriptionRes, payload.stakeAccountAddress))
+            .setPositiveButton(R.string.staking_solana_action_copy_command) { _, _ ->
+                viewModel.copySolanaCommand(payload.command)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .setNeutralButton(R.string.staking_solana_action_open_docs) { _, _ ->
+                viewModel.openSolanaDocs(payload.docsUrl)
+            }
+            .show()
     }
 }

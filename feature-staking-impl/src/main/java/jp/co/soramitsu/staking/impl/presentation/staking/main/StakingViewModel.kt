@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.presentation.StakingStoryModel
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsPercentage
@@ -33,6 +34,7 @@ import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDat
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
+import jp.co.soramitsu.staking.impl.domain.solana.SolanaStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
@@ -73,6 +75,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -107,7 +110,9 @@ class StakingViewModel @Inject constructor(
     private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
     private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl,
     private val setupStakingInteractor: SetupStakingInteractor,
-    private val quickInputsUseCase: QuickInputsUseCase
+    private val quickInputsUseCase: QuickInputsUseCase,
+    private val solanaStakingInteractor: SolanaStakingInteractor,
+    private val clipboardManager: ClipboardManager
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -129,7 +134,8 @@ class StakingViewModel @Inject constructor(
         stakingViewStateFactory,
         stakingPoolInteractor,
         stakingParachainStoriesDataSourceImpl,
-        stakingStoriesDataSourceImpl
+        stakingStoriesDataSourceImpl,
+        solanaStakingInteractor
     )
 
     val assetSelectorMixin = StakingAssetSelector(stakingSharedState, this)
@@ -141,6 +147,11 @@ class StakingViewModel @Inject constructor(
 
     private val _enteredAmountEvent = MutableSharedFlow<Event<BigDecimal>>()
     override val enteredAmountEvent: Flow<Event<BigDecimal>> = _enteredAmountEvent
+
+    private val _solanaActionEvent = MutableLiveData<Event<SolanaActionPayload>>()
+    val solanaActionEvent: LiveData<Event<SolanaActionPayload>> = _solanaActionEvent
+
+    private val solanaSnapshots = solanaStakingInteractor.snapshotFlow().share()
 
     private val scenarioViewModelFlow = stakingSharedState.selectionItem
         .onEach {
@@ -397,6 +408,24 @@ class StakingViewModel @Inject constructor(
         }
     }
 
+    fun onSolanaActionClicked(action: SolanaStakeAction) {
+        viewModelScope.launch {
+            val snapshot = solanaSnapshots.firstOrNull() ?: return@launch
+            val command = action.commandTemplate(snapshot.address)
+            _solanaActionEvent.value = Event(SolanaActionPayload(action, snapshot.address, command, action.docsUrl))
+        }
+    }
+
+    fun copySolanaCommand(command: String) {
+        clipboardManager.addToClipboard(command)
+        showMessage(resourceManager.getString(R.string.common_copied))
+    }
+
+    fun onSolanaValidatorSelected(voteAccount: String) {
+        clipboardManager.addToClipboard(voteAccount)
+        showMessage(resourceManager.getString(R.string.common_copied))
+    }
+
     private suspend fun prepareStakingPoolState() {
         val asset = stakingSharedState.currentAssetFlow().first()
         val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
@@ -414,6 +443,10 @@ class StakingViewModel @Inject constructor(
             prepareStakingPoolState()
             router.openStakingPoolWelcome()
         }
+    }
+
+    fun openSolanaDocs(url: String) {
+        router.openWebViewer(resourceManager.getString(R.string.staking_solana_placeholder_title), url)
     }
 
     private fun transformStories(story: StoryGroup.Staking): StakingStoryModel = with(story) {
@@ -454,4 +487,13 @@ sealed class StakingViewState {
         data class Welcome(val estimatedEarnings: EstimatedEarningsViewState) : Pool()
         data class PoolMember(val stakeInfoViewState: StakeInfoViewState) : Pool()
     }
+
+    data class Solana(val viewState: SolanaStakingViewState) : StakingViewState()
 }
+
+data class SolanaActionPayload(
+    val action: SolanaStakeAction,
+    val stakeAccountAddress: String,
+    val command: String,
+    val docsUrl: String
+)

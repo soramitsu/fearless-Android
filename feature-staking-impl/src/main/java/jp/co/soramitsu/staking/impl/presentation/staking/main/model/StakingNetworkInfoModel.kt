@@ -26,4 +26,10 @@ sealed class StakingNetworkInfoModel {
         val maxMembersInPool: String,
         val maxPoolsMembers: String?
     ) : StakingNetworkInfoModel()
+
+    data class Solana(
+        val apy: String,
+        val delegatedStake: String,
+        val validatorsVisible: String
+    ) : StakingNetworkInfoModel()
 }
