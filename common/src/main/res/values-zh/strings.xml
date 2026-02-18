@@ -865,7 +865,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">显示所选： %d （最多%d ）</string>
   <string name="staking_custom_validators_list_title">选择验证人</string>
   <string name="staking_custom_validators_settings_filters">显示</string>
-  <string name="staking_custom_validators_settings_sort_apy">预计奖励（% APY）</string>
+  <string name="staking_custom_validators_settings_sort_apy">预计奖励（%% APY）</string>
   <string name="staking_custom_validators_settings_sort_total_stake">质押总数 ( %s )</string>
   <string name="staking_custom_validators_title">选择自定义验证人</string>
   <string name="staking_custom_validators_update_list">更新你的清单</string>
@@ -1036,7 +1036,7 @@
   <string name="staking_unbonding_limit_reached_title">取消质押请求已达到限制</string>
   <string name="staking_unbondings_placeholder">解除质押的交易将显示在此处</string>
   <string name="staking_unstaking_period">解除质押期</string>
-  <string name="staking_validator_apy_percent">预计奖励（% APY）</string>
+  <string name="staking_validator_apy_percent">预计奖励（%% APY）</string>
   <string name="staking_validator_estimated_reward">预计奖励</string>
   <string name="staking_validator_info_title">验证人信息</string>
   <string name="staking_validator_my_oversubscribed_message">超额抵押。在这个时间段，您将无法从验证人那里获得奖励。</string>

@@ -865,7 +865,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">選択したものを表示： %d (最大 %d)</string>
   <string name="staking_custom_validators_list_title">バリデーターの選択</string>
   <string name="staking_custom_validators_settings_filters">表示</string>
-  <string name="staking_custom_validators_settings_sort_apy">推定報酬 (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy">推定報酬 (%% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">総ステーク (%s)</string>
   <string name="staking_custom_validators_title">カスタム・バリデーターを選択する</string>
   <string name="staking_custom_validators_update_list">リストを更新</string>
@@ -1036,7 +1036,7 @@
   <string name="staking_unbonding_limit_reached_title">ステーキング解除リクエストの制限に達しました</string>
   <string name="staking_unbondings_placeholder">ステーキング解除トランザクション履歴がここに表示されます</string>
   <string name="staking_unstaking_period">ステーキング解除期間</string>
-  <string name="staking_validator_apy_percent">推定報酬 (% APY)</string>
+  <string name="staking_validator_apy_percent">推定報酬 (%% APY)</string>
   <string name="staking_validator_estimated_reward">推定報酬</string>
   <string name="staking_validator_info_title">バリデーター情報</string>
   <string name="staking_validator_my_oversubscribed_message">申し込み殺到、この時代ではバリデーターから報酬を受け取れません</string>

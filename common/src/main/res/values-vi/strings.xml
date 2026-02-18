@@ -900,7 +900,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Hiện đã chọn: %d (tối đa %d)</string>
   <string name="staking_custom_validators_list_title">Chọn validator</string>
   <string name="staking_custom_validators_settings_filters">Hiển thị</string>
-  <string name="staking_custom_validators_settings_sort_apy">Phần thưởng ước tính (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy">Phần thưởng ước tính (%% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Tổng số stake (%s)</string>
   <string name="staking_custom_validators_title">Chọn các validator tùy chỉnh</string>
   <string name="staking_custom_validators_update_list">Cập nhật danh sách của bạn</string>
@@ -1072,7 +1072,7 @@
   <string name="staking_unbonding_limit_reached_title">Đã đạt đến giới hạn yêu cầu unstaking</string>
   <string name="staking_unbondings_placeholder">Các giao dịch unstaking sẽ xuất hiện tại đây</string>
   <string name="staking_unstaking_period">Khoảng thời gian unstake</string>
-  <string name="staking_validator_apy_percent">Phần thưởng ước tính (% APY)</string>
+  <string name="staking_validator_apy_percent">Phần thưởng ước tính (%% APY)</string>
   <string name="staking_validator_estimated_reward">Phần thưởng ước tính</string>
   <string name="staking_validator_info_title">Thông tin validator</string>
   <string name="staking_validator_my_oversubscribed_message">Đã đăng ký quá hạn mức. Bạn sẽ không nhận được phần thưởng từ validator trong thời gian này.</string>

@@ -813,7 +813,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Tampilkan yang dipilih: %d (maks %d)</string>
   <string name="staking_custom_validators_list_title">Pilih validator</string>
   <string name="staking_custom_validators_settings_filters">Tampilkan</string>
-  <string name="staking_custom_validators_settings_sort_apy">Estimasi imbalan (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy">Estimasi imbalan (%% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Jumlah stake (%s)</string>
   <string name="staking_custom_validators_title">Pilih validator khusus</string>
   <string name="staking_custom_validators_update_list">Perbarui daftar Anda</string>
@@ -985,7 +985,7 @@
   <string name="staking_unbonding_limit_reached_title">Batas permintaan tidak terikat tercapai</string>
   <string name="staking_unbondings_placeholder">Transaksi unstaking akan muncul di sini</string>
   <string name="staking_unstaking_period">Periode unstaking</string>
-  <string name="staking_validator_apy_percent">Estimasi imbalan (% APY)</string>
+  <string name="staking_validator_apy_percent">Estimasi imbalan (%% APY)</string>
   <string name="staking_validator_estimated_reward">Estimasi hadiah</string>
   <string name="staking_validator_info_title">Info validator</string>
   <string name="staking_validator_my_oversubscribed_message">Oversubscribed. Anda tidak akan menerima hadiah dari validator di era ini.</string>

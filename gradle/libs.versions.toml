@@ -69,6 +69,7 @@ zxingVersion = "3.5.3"
 jnrVersion = "1.0.2"
 soramitsuAndroidFoundation = "0.0.4"
 tonVersion = "0.3.1"
+r8 = "8.8.34"
 
 [libraries]
 security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
@@ -192,6 +193,7 @@ web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 reownBomDep = { module = "com.reown:android-bom", version.ref = "reownBom" }
 reownCoreDep = { module = "com.reown:android-core" }
 reownWalletKitDep = { module = "com.reown:walletkit" }
+r8 = { module = "com.android.tools:r8", version.ref = "r8" }
 
 jnr-x86asm = { module = "com.github.jnr:jnr-x86asm", version.ref = "jnrVersion" }
 

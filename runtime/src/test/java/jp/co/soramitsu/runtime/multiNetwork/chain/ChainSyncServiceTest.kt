@@ -46,7 +46,8 @@ class ChainSyncServiceTest {
                 isNative = null,
                 ethereumType = null,
                 priceProvider = null,
-                tonType = null
+                tonType = null,
+                coinbaseUrl = null
             )
         ),
         nodes = listOf(
@@ -97,7 +98,10 @@ class ChainSyncServiceTest {
 
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId))
+            verify(dao).update(
+                removed = eq(emptyList<ChainLocal>()),
+                newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId)
+            )
         }
     }
 
@@ -109,7 +113,10 @@ class ChainSyncServiceTest {
 
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = eq(emptyList()))
+            verify(dao).update(
+                removed = eq(emptyList<ChainLocal>()),
+                newOrUpdated = eq(emptyList<JoinedChainInfo>())
+            )
         }
     }
 
@@ -123,7 +130,10 @@ class ChainSyncServiceTest {
 
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId))
+            verify(dao).update(
+                removed = eq(emptyList<ChainLocal>()),
+                newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId)
+            )
         }
     }
 
