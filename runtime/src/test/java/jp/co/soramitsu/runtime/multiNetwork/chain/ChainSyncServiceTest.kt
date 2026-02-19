@@ -10,14 +10,17 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
-import jp.co.soramitsu.testshared.argThat
-import jp.co.soramitsu.testshared.eq
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import jp.co.soramitsu.testshared.any
+import jp.co.soramitsu.testshared.whenever
 import org.mockito.Mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 
@@ -88,71 +91,70 @@ class ChainSyncServiceTest {
     @Before
     fun setup() {
         chainSyncService = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager)
+        `when`(metaAccountDao.getMetaAccounts()).thenReturn(emptyList())
     }
 
     @Test
-    fun `should insert new chain`() {
-        runBlocking {
-            localReturns(emptyList())
-            remoteReturns(listOf(REMOTE_CHAIN))
+    fun `should insert new chain`() = runBlocking {
+        localReturns(emptyList())
+        remoteReturns(listOf(REMOTE_CHAIN))
 
-            chainSyncService.syncUp()
+        val updateResult = expectUpdateChains()
 
-            verify(dao).update(
-                removed = eq(emptyList<ChainLocal>()),
-                newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId)
-            )
-        }
+        chainSyncService.syncUp()
+
+        val (adds, updates) = updateResult.await()
+
+        assertEquals(listOf(REMOTE_CHAIN.chainId), adds.ids())
+        assertTrue(updates.isEmpty())
     }
 
     @Test
-    fun `should not insert the same chain`() {
-        runBlocking {
-            localReturns(listOf(LOCAL_CHAIN))
-            remoteReturns(listOf(REMOTE_CHAIN))
+    fun `should not insert the same chain`() = runBlocking {
+        localReturns(listOf(LOCAL_CHAIN))
+        remoteReturns(listOf(REMOTE_CHAIN))
 
-            chainSyncService.syncUp()
+        val updateResult = expectUpdateChains()
 
-            verify(dao).update(
-                removed = eq(emptyList<ChainLocal>()),
-                newOrUpdated = eq(emptyList<JoinedChainInfo>())
-            )
-        }
+        chainSyncService.syncUp()
+
+        val (adds, updates) = updateResult.await()
+        assertTrue(adds.isEmpty())
+        assertTrue(updates.isEmpty())
     }
 
     @Test
-    fun `should update chain`() {
-        runBlocking {
-            localReturns(listOf(LOCAL_CHAIN))
+    fun `should update chain`() = runBlocking {
+        localReturns(listOf(LOCAL_CHAIN))
+        remoteReturns(listOf(REMOTE_CHAIN.copy(name = "new name")))
 
+        val updateResult = expectUpdateChains()
 
-            remoteReturns(listOf(REMOTE_CHAIN.copy(name = "new name")))
+        chainSyncService.syncUp()
 
-            chainSyncService.syncUp()
-
-            verify(dao).update(
-                removed = eq(emptyList<ChainLocal>()),
-                newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId)
-            )
-        }
+        val (adds, updates) = updateResult.await()
+        assertTrue(adds.isEmpty())
+        assertEquals(listOf(REMOTE_CHAIN.chainId), updates.ids())
     }
 
     @Test
-    fun `should remove chain`() {
-        runBlocking {
-            localReturns(listOf(LOCAL_CHAIN))
+    fun `should remove chain`() = runBlocking {
+        localReturns(listOf(LOCAL_CHAIN))
 
-            val secondChain = REMOTE_CHAIN.copy(chainId = "0x001")
+        val secondChain = REMOTE_CHAIN.copy(chainId = "0x001")
+        remoteReturns(listOf(secondChain))
 
-            remoteReturns(listOf(secondChain))
+        val updateResult = expectUpdateChains()
+        val deleteResult = expectDeleteChains()
 
-            chainSyncService.syncUp()
+        chainSyncService.syncUp()
 
-            verify(dao).update(
-                removed = removesChainWithId(REMOTE_CHAIN.chainId),
-                newOrUpdated = insertsChainWithId(secondChain.chainId)
-            )
-        }
+        val (adds, updates) = updateResult.await()
+        val removed = deleteResult.await()
+
+        assertEquals(listOf(secondChain.chainId), adds.ids())
+        assertTrue(updates.isEmpty())
+        assertEquals(listOf(REMOTE_CHAIN.chainId), removed.ids())
     }
 
     private suspend fun remoteReturns(chains: List<ChainRemote>) {
@@ -163,11 +165,33 @@ class ChainSyncServiceTest {
         `when`(dao.getJoinChainInfo()).thenReturn(chains)
     }
 
-    private fun removesChainWithId(id: String) = argThat<List<ChainLocal>> {
-        it.size == 1 && it.first().id == id
+    private suspend fun expectUpdateChains(): Deferred<Pair<List<ChainLocal>, List<ChainLocal>>> {
+        val result = CompletableDeferred<Pair<List<ChainLocal>, List<ChainLocal>>>()
+
+        whenever(dao.updateChains(any(), any())).thenAnswer { invocation ->
+            val adds = invocation.getArgument<List<ChainLocal>>(0)
+            val updates = invocation.getArgument<List<ChainLocal>>(1)
+
+            result.complete(adds to updates)
+
+            Unit
+        }
+
+        return result
     }
 
-    private fun insertsChainWithId(id: String) = argThat<List<JoinedChainInfo>> {
-        it.size == 1 && it.first().chain.id == id
+    private suspend fun expectDeleteChains(): Deferred<List<ChainLocal>> {
+        val result = CompletableDeferred<List<ChainLocal>>()
+
+        whenever(dao.deleteChains(any())).thenAnswer { invocation ->
+            val removed = invocation.getArgument<List<ChainLocal>>(0)
+            result.complete(removed)
+
+            Unit
+        }
+
+        return result
     }
+
+    private fun List<ChainLocal>.ids() = map { it.id }
 }
