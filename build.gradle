@@ -32,8 +32,6 @@ buildscript {
         classpath libs.gradleplugins.compose
         classpath libs.org.jacoco.core
         classpath libs.sonarqube.gradle.plugin
-        // Force R8 version compatible with Kotlin 2.1.x metadata
-        classpath libs.r8
     }
 
     configurations.configureEach {
