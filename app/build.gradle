@@ -48,6 +48,8 @@ android {
                 def candidate = file(keystorePath)
                 if (candidate.exists()) {
                     resolvedStoreFile = candidate
+                } else {
+                    throw new GradleException("Provided CI keystore path does not exist: ${candidate.absolutePath}")
                 }
             }
             if (resolvedStoreFile == null && releaseKeystore.exists()) {
