@@ -40,15 +40,27 @@ android {
     signingConfigs {
         ci {
             def keystorePath = envOrLocalProp("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH")
-            def localKeystore = rootProject.file("fearless-upload.jks")
-            def resolvedStoreFile = keystorePath ? file(keystorePath) : localKeystore
-            if (!resolvedStoreFile.exists()) {
-                resolvedStoreFile = localKeystore
+            def releaseKeystore = rootProject.file("fearless-upload.jks")
+            def debugKeystore = rootProject.file("debug-keystore.jks")
+
+            def resolvedStoreFile = null
+            if (keystorePath) {
+                def candidate = file(keystorePath)
+                if (candidate.exists()) {
+                    resolvedStoreFile = candidate
+                }
             }
+            if (resolvedStoreFile == null && releaseKeystore.exists()) {
+                resolvedStoreFile = releaseKeystore
+            }
+            if (resolvedStoreFile == null) {
+                resolvedStoreFile = debugKeystore
+            }
+
             storeFile resolvedStoreFile
 
             storePassword envOrLocalProp("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD") ?: "00000000"
-            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: "fearless-upload"
+            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: "fearless"
             keyPassword envOrLocalProp("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD") ?: "00000000"
         }
         debug {
@@ -167,6 +179,8 @@ android {
     packagingOptions {
         resources.excludes.add("META-INF/**/*")
         resources.excludes.add("META-INF/*")
+        resources.excludes.add("META-INF/services/org.w3c.dom.DOMImplementationSourceList")
+        resources.excludes.add("META-INF/services/org.xml.sax.driver")
     }
 }
 
