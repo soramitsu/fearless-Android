@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
-import com.google.gson.Gson
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.ton.AccountEventAction
 import jp.co.soramitsu.common.utils.toUserFriendly
@@ -33,11 +32,37 @@ class TonHistorySource(
     ): CursorPage<Operation> {
         val tonPublicKey = PublicKeyEd25519(accountId)
         val contract = V4R2WalletContract(tonPublicKey)
-        val beforeLt = kotlin.runCatching { cursor?.toLong() }.getOrNull()
-        val accountEvents =
-            tonRemoteSource.getAccountEvents(historyUrl, contract.getAccountId(chain.isTestNet), beforeLt)
+        val (beforeLt, beforeHash) = if (cursor.isNullOrBlank()) {
+            null to null
+        } else {
+            val trimmedCursor = cursor.trim()
+            val separator = trimmedCursor.indexOf(':')
+            if (separator <= 0 || separator >= trimmedCursor.lastIndex) {
+                trimmedCursor.toLongOrNull() to null
+            } else {
+                val lt = trimmedCursor.substring(0, separator).toLongOrNull()
+                val hash = trimmedCursor.substring(separator + 1).trim().takeIf { it.isNotEmpty() }
+                lt to hash
+            }
+        }
+        val accountEvents = tonRemoteSource.getAccountEvents(
+            chain = chain,
+            historyUrl = historyUrl,
+            accountId = contract.getAccountId(chain.isTestNet),
+            beforeLt = beforeLt,
+            beforeHash = beforeHash,
+            limit = pageSize
+        )
 
-        val nextCursor = accountEvents.events.minByOrNull { it.timestamp }?.lt.toString()
+        val nextCursor = accountEvents.events.minByOrNull { it.timestamp }?.let { oldestEvent ->
+            val trimmedEventId = oldestEvent.eventId.trim()
+            val eventIdLt = trimmedEventId.substringBefore(':').toLongOrNull()
+            if (eventIdLt != null && trimmedEventId.contains(':')) {
+                trimmedEventId
+            } else {
+                oldestEvent.lt.toString()
+            }
+        }
 
         val filteredActions = if (chainAsset.type == ChainAssetType.Normal) {
             accountEvents.events.filter { event -> event.actions.any { !it.isJetton() } }

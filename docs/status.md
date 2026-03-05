@@ -1,6 +1,6 @@
 # Status Summary
 
-Last updated: 2025-08-22
+Last updated: 2026-03-05
 
 This snapshot summarizes the current health, feature coverage, and key risks of the Fearless Wallet Android codebase.
 
@@ -37,6 +37,18 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Debug: run `./gradlew printPolkadotSdkAlignment` to verify effective overrides.
 
 ## Health & Risks (Snapshot)
+- Security hardening delivered on 2026-03-05: TonConnect manifest origin validation, TonAPI header/logging protections, WebView mixed-content restrictions, AES-GCM encrypted preferences migration path, PIN lockout backoff, and internal-cache JSON export cleanup.
+- TonConnect URL controls were tightened further: `tonapi.fetch` now enforces HTTPS + `tonapi.io` host allowlist with default TLS port, and TON API auth header host matching now correctly handles `*.tonapi.io` subdomains.
+- TonConnect URL validator now rejects IP-like numeric host aliases (for example `2130706433`, `127.1`, `*.localhost`) to close localhost/private-network bypasses.
+- TonConnect in-app browser navigation now enforces strict same-origin policy (scheme + host + port) for loaded dApps instead of host-only checks.
+- TonConnect `tonapi.fetch` bridge is now backed by the hardened TON API HTTP client and limited to `GET` requests, executed on IO dispatcher.
+- Encrypted preferences key recovery now regenerates the wrapped AES key if Android keystore unwrap returns invalid bytes, avoiding crash loops on corrupted key material.
+- TON data path now uses `ton-indexer` first for account state, balances, seqno/public key, and account transaction history, with automatic fallback to TonAPI on indexer errors.
+- TonAPI fallback for TON data reads is now pinned to `https://tonapi.io` (including cases where chain node configuration does not include a TonAPI URL), ensuring indexer-first + TonAPI-only fallback behavior.
+- TON transfer send/fee/time flows now use ton-indexer JSON-RPC (`/jsonRPC`: `sendBoc`, `estimateFee`, `getAddressInformation`) as primary path, with TonAPI retained strictly as fallback.
+- TonConnect jetton transfer payload lookup now uses ton-indexer first (`/api/indexer/v1/jettons/{jetton}/transfer/{owner}/payload`) and falls back to TonAPI only when indexer is unavailable.
+- TON history cursor handling now supports `lt:hash` when indexer transaction IDs are available, enabling cursor-based indexer pagination before page-scan fallback.
+- TON indexer fallback now preserves coroutine cancellation semantics (`CancellationException` is rethrown), preventing cancellation bypass during indexer outages.
 - Code quality: Detekt enforced in CI. Several TODO/FIXME markers remain in features and common utils.
 - Incomplete UI/logic areas:
   - NFT details screen placeholders.

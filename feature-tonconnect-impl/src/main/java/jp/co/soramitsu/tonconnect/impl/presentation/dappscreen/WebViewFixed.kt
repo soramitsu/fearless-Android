@@ -70,9 +70,12 @@ open class WebViewFixed @JvmOverloads constructor(
 
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
-        settings.javaScriptCanOpenWindowsAutomatically = true
-        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        settings.javaScriptCanOpenWindowsAutomatically = false
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         settings.allowFileAccess = false
+        settings.allowContentAccess = false
+        settings.allowFileAccessFromFileURLs = false
+        settings.allowUniversalAccessFromFileURLs = false
         settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
         super.setRendererPriorityPolicy(RENDERER_PRIORITY_IMPORTANT, false)

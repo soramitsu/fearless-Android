@@ -1,7 +1,6 @@
 package jp.co.soramitsu.tonconnect.impl.domain
 
 import android.util.Base64
-import androidx.core.net.toUri
 import io.ktor.util.encodeBase64
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.Keypair
@@ -47,6 +46,7 @@ import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.api.model.Security.secureRandom
 import jp.co.soramitsu.tonconnect.api.model.TONProof
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectUrlValidator
 import jp.co.soramitsu.tonconnect.api.model.optStringCompat
 import jp.co.soramitsu.tonconnect.api.model.optStringCompatJS
 import jp.co.soramitsu.tonconnect.api.model.post
@@ -88,7 +88,6 @@ import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
-import java.net.URL
 import javax.inject.Named
 
 @Suppress("LargeClass")
@@ -203,15 +202,23 @@ class TonConnectInteractorImpl(
             address = AddrStd(wallet.tonPublicKey!!.tonAccountId(chain.isTestNet)),
             secretKey = privateKey,
             payload = proofPayload,
-            domain = app.url.toUri().host!!
+            domain = TonConnectUrlValidator.host(app.url) ?: error("Invalid dApp URL")
         )
     }
 
     override suspend fun readManifest(url: String): AppEntity {
-        val response = tonApi.getManifest(url)
+        val normalizedManifestUrl = TonConnectUrlValidator.normalizeManifestUrl(url)
+        val manifestOrigin = TonConnectUrlValidator.origin(normalizedManifestUrl)
+        val response = tonApi.getManifest(normalizedManifestUrl)
+
+        val trustedDappUrl = runCatching {
+            TonConnectUrlValidator.normalizeDappUrl(response.url)
+        }.getOrNull()?.takeIf {
+            TonConnectUrlValidator.isSameOrigin(it, manifestOrigin)
+        } ?: manifestOrigin
 
         return AppEntity(
-            response.url,
+            trustedDappUrl,
             response.name,
             response.iconUrl,
             response.termsOfUseUrl,
@@ -516,7 +523,7 @@ class TonConnectInteractorImpl(
     }
 
     override suspend fun getConnection(url: String, source: ConnectionSource): TonConnectionLocal? {
-        val formatted = URL(url).host
+        val formatted = TonConnectUrlValidator.host(url) ?: return null
         val metaAccount = accountRepository.getSelectedMetaAccount()
         return tonConnectRepository.getConnection(metaAccount.id, formatted, source)
     }

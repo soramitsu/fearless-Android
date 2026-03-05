@@ -26,21 +26,35 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
+import jp.co.soramitsu.tonconnect.api.model.TonConnectUrlValidator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.Response
+import org.json.JSONObject
+import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Named
 
 @AndroidEntryPoint
 class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewModel>() {
 
     override val viewModel: DappScreenViewModel by viewModels()
 
+    @Inject
+    @Named("tonApiHttpClient")
+    lateinit var tonApiHttpClient: OkHttpClient
+
     @Suppress("LateinitUsage")
     private lateinit var webView: BridgeWebView
     private var isLoading = false
+    private var allowedOrigin: String? = null
 
     private val webViewCallback = object : WebViewFixed.Callback() {
         override fun shouldOverrideUrlLoading(request: WebResourceRequest): Boolean {
-            val scheme = request.url.scheme ?: ""
-            return scheme != "https"
+            val trustedOrigin = allowedOrigin ?: return true
+            return !TonConnectUrlValidator.isSameOrigin(request.url.toString(), trustedOrigin)
         }
 
         override fun onPageStarted(url: String, favicon: Bitmap?) {
@@ -119,12 +133,30 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
             connect = viewModel::connect,
             restoreConnection = { viewModel.restoreConnection(webView.url) },
             disconnect = viewModel::disconnect,
-            tonapiFetch = { _, _ -> Response.Builder().build() }, // api::tonapiFetch,
+            tonapiFetch = { url, options ->
+                val method = if (options.isBlank()) {
+                    "GET"
+                } else {
+                    JSONObject(options).optString("method", "GET")
+                }.uppercase(Locale.ROOT)
+                require(method == "GET") { "Only GET method is supported" }
+
+                withContext(Dispatchers.IO) {
+                    val request = Request.Builder()
+                        .url(url)
+                        .get()
+                        .build()
+                    tonApiHttpClient.newCall(request).execute()
+                }
+            },
         )
 
-        state.url?.let {
-            webView.loadUrl(it)
-        }
+        val initialUrl = state.url?.let {
+            runCatching { TonConnectUrlValidator.normalizeDappUrl(it) }.getOrNull()
+        } ?: return
+
+        allowedOrigin = TonConnectUrlValidator.origin(initialUrl)
+        webView.loadUrl(initialUrl)
     }
 
     private fun back() {

@@ -10,11 +10,40 @@ import retrofit2.http.Query
 import retrofit2.http.Url
 
 interface TonApi {
-    @GET()//"/v2/accounts/{account_id}")
+    @GET
     suspend fun getAccountData(@Url url: String): TonAccountData
 
-    @GET()//"//v2/accounts/{account_id}/jettons")
+    @GET
     suspend fun getJettonBalances(@Url url: String, @Query("currencies") currencies: List<String>?): JettonsBalances
+
+    @GET
+    suspend fun getIndexerBalances(@Url url: String): TonIndexerBalancesResponse
+
+    @GET
+    suspend fun getIndexerState(@Url url: String): TonIndexerStateResponse
+
+    @POST
+    suspend fun runIndexerGetMethod(
+        @Url url: String,
+        @Body body: TonIndexerRunGetMethodRequest
+    ): TonIndexerRunGetMethodResponse
+
+    @GET
+    suspend fun getIndexerTransactions(
+        @Url url: String,
+        @Query("page") page: Int? = null,
+        @Query("cursor_lt") cursorLt: String? = null,
+        @Query("cursor_hash") cursorHash: String? = null
+    ): TonIndexerTransactionsResponse
+
+    @GET
+    suspend fun getIndexerJettonTransferPayload(@Url url: String): JettonTransferPayloadRemote
+
+    @POST
+    suspend fun callIndexerJsonRpc(
+        @Url url: String,
+        @Body body: TonIndexerJsonRpcRequest
+    ): TonIndexerJsonRpcResponse
 
     @GET
     suspend fun getRequest(@Url url: String): String
@@ -37,10 +66,7 @@ interface TonApi {
     ): AccountEvents
 
     @GET
-    suspend fun getManifest(
-        @Url url: String,
-//        @Header("Connection") value: String = "close"
-    ): TonAppManifest
+    suspend fun getManifest(@Url url: String): TonAppManifest
 
     @POST
     suspend fun tonconnectSend(
