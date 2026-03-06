@@ -29,8 +29,9 @@ object TonConnectUrlValidator {
     fun normalizeDappUrl(value: String): String {
         val parsed = parseAndValidateHttpsUri(value)
         val path = normalizePath(parsed)
+        val query = parsed.rawQuery?.let { "?$it" }.orEmpty()
 
-        return "${originFromParsed(parsed)}$path"
+        return "${originFromParsed(parsed)}$path$query"
     }
 
     fun origin(value: String): String {
@@ -88,9 +89,10 @@ object TonConnectUrlValidator {
 
     private fun originFromParsed(uri: URI): String {
         val host = uri.canonicalHost()
+        val bracketedHost = if (host.contains(':')) "[$host]" else host
         val portSuffix = if (uri.canonicalPort() == HTTPS_PORT) "" else ":${uri.canonicalPort()}"
 
-        return "https://$host$portSuffix"
+        return "https://$bracketedHost$portSuffix"
     }
 
     private fun URI.canonicalHost(): String {
