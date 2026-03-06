@@ -1,6 +1,7 @@
 package jp.co.soramitsu.tonconnect.api.model
 
 import java.net.IDN
+import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.URI
 import java.util.Locale
@@ -13,6 +14,9 @@ object TonConnectUrlValidator {
     private val hexIpv4Regex = Regex("^0x[0-9a-f]+$", RegexOption.IGNORE_CASE)
     private const val TON_API_HOST = "tonapi.io"
     private const val HTTPS_PORT = 443
+    private const val BYTE_MASK = 0xFF
+    private const val IPV6_UNIQUE_LOCAL_MASK = 0xFE
+    private const val IPV6_UNIQUE_LOCAL_VALUE = 0xFC
 
     fun normalizeManifestUrl(value: String): String {
         val parsed = parseAndValidateHttpsUri(value)
@@ -119,7 +123,13 @@ object TonConnectUrlValidator {
             require(!address.isLinkLocalAddress) { "Link-local address is not allowed" }
             require(!address.isSiteLocalAddress) { "Private address is not allowed" }
             require(!address.isMulticastAddress) { "Multicast address is not allowed" }
+            require(address !is Inet6Address || !address.isUniqueLocal()) { "Unique local address is not allowed" }
         }
+    }
+
+    private fun Inet6Address.isUniqueLocal(): Boolean {
+        val firstByte = address.firstOrNull()?.toInt()?.and(BYTE_MASK) ?: return false
+        return firstByte and IPV6_UNIQUE_LOCAL_MASK == IPV6_UNIQUE_LOCAL_VALUE
     }
 
     private fun String.isIpLiteral(): Boolean {

@@ -445,6 +445,44 @@ class TonRemoteSourceTest {
     }
 
     @Test
+    fun `getAccountEvents should map indexer fee into event extra`() {
+        kotlinx.coroutines.runBlocking {
+            tonApi.indexerTransactionsResults[1] = Result.success(
+                TonIndexerTransactionsResponse(
+                    page = 1,
+                    pageSize = 50,
+                    totalTxs = 1,
+                    totalPages = 1,
+                    historyComplete = true,
+                    txs = listOf(
+                        TonIndexerTransaction(
+                            txId = "300:hash-fee",
+                            utime = 3000L,
+                            status = "success",
+                            txType = "Transfer",
+                            lt = "300",
+                            hash = "hash-fee",
+                            fee = "100",
+                            inMessage = TonIndexerMessage(
+                                source = "sender",
+                                destination = "recipient",
+                                value = "10"
+                            )
+                        )
+                    )
+                )
+            )
+
+            val extra = source.getAccountEvents(chain, "https://tonapi.io", "addr", beforeLt = null, limit = 10)
+                .events
+                .first()
+                .extra
+
+            assertEquals(-100L, extra)
+        }
+    }
+
+    @Test
     fun `getAccountEvents should use indexer cursor parameters when hash is provided`() {
         kotlinx.coroutines.runBlocking {
             tonApi.defaultIndexerTransactionsResult = Result.success(

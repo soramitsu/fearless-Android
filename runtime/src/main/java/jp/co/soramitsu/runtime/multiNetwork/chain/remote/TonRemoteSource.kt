@@ -521,6 +521,8 @@ class TonRemoteSource(
         val recipient = resolvedTonTransfer?.recipient ?: jettonAction?.recipient
         val previewAccounts = listOfNotNull(sender, recipient).distinctBy { it.address }
 
+        val feeAmount = feeAmount()
+
         return AccountEvent(
             eventId = uniqueKey(),
             account = fallbackAccountId.toAccountAddress(),
@@ -542,7 +544,7 @@ class TonRemoteSource(
             isScam = false,
             lt = ltAsLongOrNull(),
             inProgress = status.equals("pending", ignoreCase = true),
-            extra = 0
+            extra = feeAmount?.takeIf { it > 0 }?.let { -it } ?: 0L
         )
     }
 
@@ -603,6 +605,11 @@ class TonRemoteSource(
 
     private fun TonIndexerTransaction.uniqueKey(): String {
         return txId.takeIfNotBlank() ?: "${ltAsLongOrNull()}:${hash.takeIfNotBlank().orEmpty()}"
+    }
+
+    private fun TonIndexerTransaction.feeAmount(): Long? {
+        val feeCandidate = fee.takeIfNotBlank() ?: totalFees.takeIfNotBlank()
+        return parseLongAmountOrNull(feeCandidate)
     }
 
     private fun TonIndexerTransactionDetail.isJettonTransferDetail(): Boolean {
@@ -704,12 +711,18 @@ class TonRemoteSource(
     }
 
     private fun parseLongAmount(value: String): Long {
+        return parseLongAmountOrNull(value) ?: 0L
+    }
+
+    private fun parseLongAmountOrNull(value: String?): Long? {
+        val normalized = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+
         return runCatching {
-            BigInteger(value)
+            BigInteger(normalized)
                 .coerceAtLeast(BigInteger.ZERO)
                 .coerceAtMost(BigInteger.valueOf(Long.MAX_VALUE))
                 .toLong()
-        }.getOrDefault(0L)
+        }.getOrNull()
     }
 
     private fun encodePathSegment(value: String): String {

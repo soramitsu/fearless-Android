@@ -122,7 +122,11 @@ data class TonIndexerTransaction(
     @SerializedName("inMessage")
     val inMessage: TonIndexerMessage? = null,
     @SerializedName("outMessages")
-    val outMessages: List<TonIndexerMessage>? = null
+    val outMessages: List<TonIndexerMessage>? = null,
+    @SerializedName("fee")
+    val fee: String? = null,
+    @SerializedName("total_fees")
+    val totalFees: String? = null
 )
 
 data class TonIndexerTransactionDetail(
