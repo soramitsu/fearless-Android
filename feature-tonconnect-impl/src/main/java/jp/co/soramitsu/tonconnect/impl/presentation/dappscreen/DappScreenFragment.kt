@@ -31,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
 import org.json.JSONObject
 import java.util.Locale
 import javax.inject.Inject
@@ -44,10 +43,10 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
 
     @Inject
     @Named("tonApiHttpClient")
+    @Suppress("LateinitUsage")
     lateinit var tonApiHttpClient: OkHttpClient
 
-    @Suppress("LateinitUsage")
-    private lateinit var webView: BridgeWebView
+    private var webView: BridgeWebView? = null
     private var isLoading = false
     private var allowedOrigin: String? = null
 
@@ -92,14 +91,15 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
                 ) {
                     AndroidView(
                         factory = { context ->
-                            webView = BridgeWebView(context).apply {
+                            val createdWebView = BridgeWebView(context).apply {
                                 layoutParams = ViewGroup.LayoutParams(
                                     ViewGroup.LayoutParams.MATCH_PARENT,
                                     ViewGroup.LayoutParams.MATCH_PARENT
                                 )
                             }
-                            webViewSetup(webView, state)
-                            webView
+                            webView = createdWebView
+                            webViewSetup(createdWebView, state)
+                            createdWebView
                         },
                         update = {}
                     )
@@ -131,7 +131,7 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
             deviceInfo = JsonBuilder.device(tonContractMaxMessages, appVersionName).toString(),
             send = viewModel::send,
             connect = viewModel::connect,
-            restoreConnection = { viewModel.restoreConnection(webView.url) },
+            restoreConnection = { viewModel.restoreConnection(webView?.url) },
             disconnect = viewModel::disconnect,
             tonapiFetch = { url, options ->
                 val method = if (options.isBlank()) {
@@ -160,8 +160,9 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
     }
 
     private fun back() {
-        if (webView.canGoBack()) {
-            webView.goBack()
+        val currentWebView = webView
+        if (currentWebView?.canGoBack() == true) {
+            currentWebView.goBack()
         } else {
             dismiss()
         }

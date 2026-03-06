@@ -12,6 +12,7 @@ object TonConnectUrlValidator {
     private val shortIpv4Regex = Regex("^\\d+(\\.\\d+){1,3}$")
     private val hexIpv4Regex = Regex("^0x[0-9a-f]+$", RegexOption.IGNORE_CASE)
     private const val TON_API_HOST = "tonapi.io"
+    private const val HTTPS_PORT = 443
 
     fun normalizeManifestUrl(value: String): String {
         val parsed = parseAndValidateHttpsUri(value)
@@ -54,7 +55,7 @@ object TonConnectUrlValidator {
         val port = parsed.canonicalPort()
 
         require(host == TON_API_HOST || host.endsWith(".$TON_API_HOST")) { "Unsupported host" }
-        require(port == 443) { "Unsupported port" }
+        require(port == HTTPS_PORT) { "Unsupported port" }
 
         val path = normalizePath(parsed)
         val query = parsed.rawQuery?.let { "?$it" }.orEmpty()
@@ -83,7 +84,7 @@ object TonConnectUrlValidator {
 
     private fun originFromParsed(uri: URI): String {
         val host = uri.canonicalHost()
-        val portSuffix = if (uri.canonicalPort() == 443) "" else ":${uri.canonicalPort()}"
+        val portSuffix = if (uri.canonicalPort() == HTTPS_PORT) "" else ":${uri.canonicalPort()}"
 
         return "https://$host$portSuffix"
     }
@@ -103,7 +104,7 @@ object TonConnectUrlValidator {
     }
 
     private fun URI.canonicalPort(): Int {
-        return if (port == -1) 443 else port
+        return if (port == -1) HTTPS_PORT else port
     }
 
     private fun validateHost(host: String) {

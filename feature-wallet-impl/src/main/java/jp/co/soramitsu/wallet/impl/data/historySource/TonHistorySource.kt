@@ -57,10 +57,11 @@ class TonHistorySource(
         val nextCursor = accountEvents.events.minByOrNull { it.timestamp }?.let { oldestEvent ->
             val trimmedEventId = oldestEvent.eventId.trim()
             val eventIdLt = trimmedEventId.substringBefore(':').toLongOrNull()
-            if (eventIdLt != null && trimmedEventId.contains(':')) {
-                trimmedEventId
-            } else {
-                oldestEvent.lt.toString()
+            val hasHashPart = trimmedEventId.substringAfter(':', missingDelimiterValue = "").isNotBlank()
+
+            when {
+                eventIdLt != null && hasHashPart -> trimmedEventId
+                else -> oldestEvent.lt.toString()
             }
         }
 

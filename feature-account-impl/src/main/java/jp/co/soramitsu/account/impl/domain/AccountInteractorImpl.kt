@@ -263,7 +263,7 @@ class AccountInteractorImpl(
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> =
         runCatching {
-            fileProvider.getFileInInternalCacheStorage(fileName)
+            fileProvider.getFileInExternalCacheStorage(fileName)
         }
 
     private fun registerPinFailure(nowMs: Long) {
