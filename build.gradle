@@ -25,7 +25,7 @@ def releaseTaskMatchers = [
 
 boolean isReleaseBuildRequested = normalizedTasks.any { task ->
     if (task == null) return false
-    return releaseTaskMatchers.contains(task) || (task.startsWith(":app:") && task.contains("release"))
+    return releaseTaskMatchers.contains(task)
 }
 
 boolean skipAutoBump = (System.getenv("SKIP_AUTO_VERSION_BUMP") ?: (project.hasProperty("skipAutoVersionBump") ? project.property("skipAutoVersionBump") : null))?.toString()?.toBoolean() ?: false
