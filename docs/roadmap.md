@@ -4,6 +4,19 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Recent Updates
+- 2026-03-05: Completed security remediation batch for TON and account flows (TonConnect origin validation, TON network client hardening, WebView restrictions, encrypted preferences migration to AES-GCM, PIN lockout throttling, and internal-cache JSON export hygiene).
+- 2026-03-05: Expanded TON indexer-first integration to include account transaction history ingestion with automatic TonAPI fallback, plus additional runtime tests for indexer/fallback behavior.
+- 2026-03-05: Added TON history cursor normalization (`lt[:hash]`) so indexer requests can use `cursor_lt/cursor_hash` directly when available.
+- 2026-03-05: Tightened TonConnect `tonapi.fetch` URL validation (HTTPS + `tonapi.io` allowlist + default port), fixed TON API header host matching for `*.tonapi.io`, and added regression tests.
+- 2026-03-05: Hardened TonConnect dApp WebView navigation policy from host-only to strict same-origin checks to block cross-port and cross-origin hops.
+- 2026-03-05: Re-enabled TonConnect `tonapi.fetch` through the hardened TON API client with strict `GET`-only execution on IO dispatcher.
+- 2026-03-05: Fixed TON indexer fallback cancellation handling so `CancellationException` is not swallowed when indexer requests are interrupted.
+- 2026-03-05: Added TonConnect URL hardening against localhost bypass aliases (`*.localhost`, decimal/short IPv4 forms like `2130706433` and `127.1`) and made WebView connection restore parsing resilient to malformed URLs.
+- 2026-03-05: Pinned TON fallback reads to `https://tonapi.io` when indexer fails, even if chain nodes do not include TonAPI hosts, to keep ton-indexer primary and TonAPI fallback-only.
+- 2026-03-05: Added ton-indexer JSON-RPC client support in Android (`sendBoc`, `estimateFee`, `getAddressInformation`) and switched TON transfer send/fee/time paths to indexer-first with TonAPI fallback.
+- 2026-03-05: Added ton-indexer jetton transfer payload API integration for TonConnect signing (`/api/indexer/v1/jettons/{jetton}/transfer/{owner}/payload`) with TonAPI fallback.
+
 ## P0 — High Priority
 
 1) Full support for Polkadot SDK release: polkadot-stable2503 (TOP PRIORITY)

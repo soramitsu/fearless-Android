@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.io.File
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
@@ -55,6 +56,12 @@ private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
 private const val TON_SSE_TIMEOUT_SECONDS = 120L
 private const val NOMIS_TIMEOUT_MINUTES = 2L
+private const val TON_API_HOST = "tonapi.io"
+
+internal fun isTonApiHost(host: String): Boolean {
+    val normalizedHost = host.lowercase(Locale.ROOT)
+    return normalizedHost == TON_API_HOST || normalizedHost.endsWith(".$TON_API_HOST")
+}
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -257,21 +264,28 @@ class NetworkModule {
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
-            .addInterceptor {
-                if(it.request().url.host.contains("tonapi.io")) {
-                    val request = it.request().newBuilder().apply {
-                        addHeader(
-                            "Authorization",
-                            "Bearer ${BuildConfig.FL_ANDROID_TON_API_KEY}"
-                        )
-                        addHeader("Accept", "application/json")
-                    }.build()
-                    it.proceed(request)
+            .addInterceptor { chain ->
+                val request = chain.request()
+
+                if (isTonApiHost(request.url.host)) {
+                    val requestWithHeaders = request.newBuilder()
+                        .addHeader("Authorization", "Bearer ${BuildConfig.FL_ANDROID_TON_API_KEY}")
+                        .addHeader("Accept", "application/json")
+                        .build()
+                    chain.proceed(requestWithHeaders)
                 } else {
-                    it.proceed(it.request())
+                    chain.proceed(request)
                 }
             }
-            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+
+        if (BuildConfig.DEBUG) {
+            val logging = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BASIC
+                redactHeader("Authorization")
+            }
+            builder.addInterceptor(logging)
+        }
+
         return builder.build()
     }
 
@@ -297,7 +311,6 @@ class NetworkModule {
             .followRedirects(true)
             .build()
     }
-
     @Provides
     @Singleton
     fun provideTonApi(

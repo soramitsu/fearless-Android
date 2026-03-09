@@ -52,13 +52,20 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
+private const val PREFS_PIN_FAILED_ATTEMPTS = "prefs_pin_failed_attempts"
+private const val PREFS_PIN_LOCK_UNTIL_MS = "prefs_pin_lock_until_ms"
+private const val PIN_FREE_ATTEMPTS = 5
+private const val PIN_LOCK_BASE_SECONDS = 30L
+private const val PIN_LOCK_MAX_SECONDS = 15 * 60L
+
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
     private val fileProvider: FileProvider,
     private val preferences: Preferences,
     private val backupService: BackupService,
     private val walletInteractor: WalletInteractor,
-    private val context: CoroutineContext = Dispatchers.Default
+    private val context: CoroutineContext = Dispatchers.Default,
+    private val nowProvider: () -> Long = { System.currentTimeMillis() }
 ) : AccountInteractor {
 
     override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
@@ -133,13 +140,32 @@ class AccountInteractorImpl(
     }
 
     override suspend fun savePin(code: String) {
-        return accountRepository.savePinCode(code)
+        accountRepository.savePinCode(code)
+        resetPinLockoutState()
     }
 
     override suspend fun isPinCorrect(code: String): Boolean {
-        val pinCode = accountRepository.getPinCode()
+        val nowMs = nowProvider()
+        val lockUntil = preferences.getLong(PREFS_PIN_LOCK_UNTIL_MS, 0L)
 
-        return pinCode == code
+        if (lockUntil > nowMs) {
+            return false
+        }
+
+        if (lockUntil != 0L && lockUntil <= nowMs) {
+            resetPinLockoutState()
+        }
+
+        val pinCode = accountRepository.getPinCode()
+        val isCorrect = pinCode == code
+
+        if (isCorrect) {
+            resetPinLockoutState()
+            return true
+        }
+
+        registerPinFailure(nowMs)
+        return false
     }
 
     override suspend fun isBiometricEnabled(): Boolean {
@@ -239,6 +265,22 @@ class AccountInteractorImpl(
         runCatching {
             fileProvider.getFileInExternalCacheStorage(fileName)
         }
+
+    private fun registerPinFailure(nowMs: Long) {
+        val attempts = preferences.getInt(PREFS_PIN_FAILED_ATTEMPTS, 0) + 1
+        preferences.putInt(PREFS_PIN_FAILED_ATTEMPTS, attempts)
+
+        if (attempts >= PIN_FREE_ATTEMPTS) {
+            val exponent = (attempts - PIN_FREE_ATTEMPTS).coerceAtLeast(0).coerceAtMost(10)
+            val lockSeconds = (PIN_LOCK_BASE_SECONDS * (1L shl exponent)).coerceAtMost(PIN_LOCK_MAX_SECONDS)
+            preferences.putLong(PREFS_PIN_LOCK_UNTIL_MS, nowMs + lockSeconds * 1000)
+        }
+    }
+
+    private fun resetPinLockoutState() {
+        preferences.removeField(PREFS_PIN_FAILED_ATTEMPTS)
+        preferences.removeField(PREFS_PIN_LOCK_UNTIL_MS)
+    }
 
     override suspend fun updateAccountName(metaId: Long, name: String) {
         accountRepository.updateMetaAccountName(metaId, name)

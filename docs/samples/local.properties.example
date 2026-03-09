@@ -69,3 +69,4 @@ FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY=<your_alchemy_api_eth_key>
 FL_DWELLIR_API_KEY=<your_dwellir_api_key>
 
 FL_ANDROID_TON_API_KEY=<your_ton_api_key>
+FL_ANDROID_TON_INDEXER_URL=<your_ton_indexer_base_url>

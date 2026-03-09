@@ -30,23 +30,15 @@ afterEvaluate {
 
         dependsOn runTestsTask
 
-        def outputFileName = "coverage/coverage-${project.name}.xml"
-        def outputFileNameHtml = "coverage/coverage-${project.name}.html"
-
-        def file = new File("coverage/")
-        if (!file.exists()) file.mkdirs()
+        def xmlReportFile = file(layout.projectDirectory.file("coverage/coverage-${project.name}.xml"))
+        def htmlReportFile = file(layout.projectDirectory.file("coverage/coverage-${project.name}.html"))
+        xmlReportFile.parentFile.mkdirs()
 
         reports {
-            xml.required = true
-            html.required = true
-            html {
-                enabled true
-                destination = new File(outputFileNameHtml)
-            }
-            xml {
-                enabled true
-                destination = new File(outputFileName)
-            }
+            xml.required.set(true)
+            xml.outputLocation.set(xmlReportFile)
+            html.required.set(true)
+            html.outputLocation.set(htmlReportFile)
         }
 
         outputs.upToDateWhen { false }

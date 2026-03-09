@@ -870,7 +870,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Seçilenleri göster: %d (maks %d )</string>
   <string name="staking_custom_validators_list_title">Doğrulayıcıları seçin.</string>
   <string name="staking_custom_validators_settings_filters">Göster</string>
-  <string name="staking_custom_validators_settings_sort_apy">Tahmini ödüller (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy">Tahmini ödüller (%% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Toplam stake (%s)</string>
   <string name="staking_custom_validators_title">Özel doğrulayıcıları seçin</string>
   <string name="staking_custom_validators_update_list">Listenizi güncelleyin</string>
@@ -1042,7 +1042,7 @@
   <string name="staking_unbonding_limit_reached_title">Stake kaldırma istekleri sınırına ulaşıldı</string>
   <string name="staking_unbondings_placeholder">Stake kaldırma işlemleri burada görünecek</string>
   <string name="staking_unstaking_period">Unstake dönemi</string>
-  <string name="staking_validator_apy_percent">Tahmini ödüller (% APY)</string>
+  <string name="staking_validator_apy_percent">Tahmini ödüller (%% APY)</string>
   <string name="staking_validator_estimated_reward">Tahmini ödül</string>
   <string name="staking_validator_info_title">Doğrulayıcı bilgileri</string>
   <string name="staking_validator_my_oversubscribed_message">Fazla abone var. Bu dönemde doğrulayıcıdan ödül almayacaksınız</string>

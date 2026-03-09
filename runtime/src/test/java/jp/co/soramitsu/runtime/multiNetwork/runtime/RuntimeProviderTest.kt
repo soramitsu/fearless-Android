@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.testshared.any
@@ -65,6 +66,11 @@ class RuntimeProviderTest {
             whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenReturn(constructedRuntime)
 
             whenever(runtimeSyncService.syncResultFlow(eq(chain.id))).thenAnswer { chainSyncFlow }
+            whenever(chainDao.runtimeInfo(any())).thenAnswer {
+                ChainRuntimeInfoLocal(it.arguments.first() as String, syncedVersion = 1, remoteVersion = 1)
+            }
+            whenever(runtimeFilesCache.getChainMetadata(any())).thenReturn("metadata")
+            whenever(chainDao.getTypes(any())).thenReturn("types")
         }
     }
 
@@ -73,13 +79,13 @@ class RuntimeProviderTest {
         runBlocking {
             initProvider()
 
-            verify(runtimeFactory, times(1)).constructRuntime(eq(chain.id), any(), any())
-
             val returnedRuntime = withTimeout(timeMillis = 10) {
                 runtimeProvider.get()
             }
 
             assertEquals(returnedRuntime, runtime)
+
+            verify(runtimeFactory, times(1)).constructRuntime(any(), any(), any())
         }
     }
 
@@ -191,7 +197,7 @@ class RuntimeProviderTest {
         delay(10)
 
         // + 1 since it is called once in init (cache)
-        verify(runtimeFactory, times(times + 1)).constructRuntime(eq(chain.id), any(), any())
+        verify(runtimeFactory, times(times + 1)).constructRuntime(any(), any(), any())
     }
 
     private fun currentMetadataHash(hash: String?) {

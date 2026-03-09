@@ -16,4 +16,5 @@ app/*.apk
 *.log
 
 fearless.jks
+fearless-upload.jks
 /buildSrc/build

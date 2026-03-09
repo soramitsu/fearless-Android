@@ -1,6 +1,7 @@
 package jp.co.soramitsu.tonconnect.impl.presentation.dappscreen
 
 import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectUrlValidator
 import okhttp3.Headers
 import okhttp3.Response
 import org.json.JSONArray
@@ -32,12 +33,17 @@ class DAppBridge(
             "restoreConnection" -> restoreConnection().toString()
             "disconnect" -> disconnect()
             "tonapi.fetch" -> {
-                val response = tonapiFetch(args.getString(0), args.optString(1) ?: "")
+                val tonApiUrl = validateTonApiUrl(args.getString(0))
+                val response = tonapiFetch(tonApiUrl, args.optString(1) ?: "")
                 webAPIResponse(response).toString()
             }
 
             else -> null
         }
+    }
+
+    private fun validateTonApiUrl(url: String): String {
+        return TonConnectUrlValidator.validateTonApiFetchUrl(url)
     }
 
     private fun webAPIResponse(response: Response): JSONObject {

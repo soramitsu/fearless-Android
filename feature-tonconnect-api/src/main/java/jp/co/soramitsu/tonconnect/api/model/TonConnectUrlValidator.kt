@@ -1,0 +1,144 @@
+package jp.co.soramitsu.tonconnect.api.model
+
+import java.net.IDN
+import java.net.Inet6Address
+import java.net.InetAddress
+import java.net.URI
+import java.util.Locale
+
+object TonConnectUrlValidator {
+
+    private val ipv4Regex = Regex("^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$")
+    private val decimalIpv4Regex = Regex("^\\d+$")
+    private val shortIpv4Regex = Regex("^\\d+(\\.\\d+){1,3}$")
+    private val hexIpv4Regex = Regex("^0x[0-9a-f]+$", RegexOption.IGNORE_CASE)
+    private const val TON_API_HOST = "tonapi.io"
+    private const val HTTPS_PORT = 443
+    private const val BYTE_MASK = 0xFF
+    private const val IPV6_UNIQUE_LOCAL_MASK = 0xFE
+    private const val IPV6_UNIQUE_LOCAL_VALUE = 0xFC
+
+    fun normalizeManifestUrl(value: String): String {
+        val parsed = parseAndValidateHttpsUri(value)
+        val path = normalizePath(parsed)
+        val query = parsed.rawQuery?.let { "?$it" }.orEmpty()
+
+        return "${originFromParsed(parsed)}$path$query"
+    }
+
+    fun normalizeDappUrl(value: String): String {
+        val parsed = parseAndValidateHttpsUri(value)
+        val path = normalizePath(parsed)
+        val query = parsed.rawQuery?.let { "?$it" }.orEmpty()
+
+        return "${originFromParsed(parsed)}$path$query"
+    }
+
+    fun origin(value: String): String {
+        val parsed = parseAndValidateHttpsUri(value)
+        return originFromParsed(parsed)
+    }
+
+    fun host(value: String): String? {
+        return runCatching {
+            parseAndValidateHttpsUri(value).canonicalHost()
+        }.getOrNull()
+    }
+
+    fun isSameOrigin(first: String, second: String): Boolean {
+        return runCatching {
+            val firstUri = parseAndValidateHttpsUri(first)
+            val secondUri = parseAndValidateHttpsUri(second)
+
+            firstUri.canonicalHost() == secondUri.canonicalHost() && firstUri.canonicalPort() == secondUri.canonicalPort()
+        }.getOrDefault(false)
+    }
+
+    fun validateTonApiFetchUrl(value: String): String {
+        val parsed = parseAndValidateHttpsUri(value)
+        val host = parsed.canonicalHost()
+        val port = parsed.canonicalPort()
+
+        require(host == TON_API_HOST || host.endsWith(".$TON_API_HOST")) { "Unsupported host" }
+        require(port == HTTPS_PORT) { "Unsupported port" }
+
+        val path = normalizePath(parsed)
+        val query = parsed.rawQuery?.let { "?$it" }.orEmpty()
+
+        return "${originFromParsed(parsed)}$path$query"
+    }
+
+    private fun parseAndValidateHttpsUri(value: String): URI {
+        val sanitized = value.trim()
+        require(sanitized.isNotBlank()) { "URL is empty" }
+
+        val parsed = URI(sanitized).normalize()
+        val scheme = parsed.scheme?.lowercase(Locale.ROOT)
+        require(scheme == "https") { "Only https URLs are allowed" }
+        require(parsed.userInfo == null) { "URL with userinfo is not allowed" }
+
+        parsed.canonicalHost()
+
+        return parsed
+    }
+
+    private fun normalizePath(uri: URI): String {
+        val rawPath = uri.rawPath?.takeIf { it.isNotBlank() } ?: "/"
+        return if (rawPath.length > 1) rawPath.removeSuffix("/") else rawPath
+    }
+
+    private fun originFromParsed(uri: URI): String {
+        val host = uri.canonicalHost()
+        val bracketedHost = if (host.contains(':')) "[$host]" else host
+        val portSuffix = if (uri.canonicalPort() == HTTPS_PORT) "" else ":${uri.canonicalPort()}"
+
+        return "https://$bracketedHost$portSuffix"
+    }
+
+    private fun URI.canonicalHost(): String {
+        val rawHost = requireNotNull(host?.trim()?.trimEnd('.')?.lowercase(Locale.ROOT)) { "Missing host" }
+        require(rawHost.isNotBlank()) { "Missing host" }
+
+        val host = if (rawHost.isIpLiteral()) {
+            requireNotNull(InetAddress.getByName(rawHost).hostAddress) { "Missing host" }.lowercase(Locale.ROOT)
+        } else {
+            IDN.toASCII(rawHost, IDN.ALLOW_UNASSIGNED).lowercase(Locale.ROOT)
+        }
+        validateHost(host)
+
+        return host
+    }
+
+    private fun URI.canonicalPort(): Int {
+        return if (port == -1) HTTPS_PORT else port
+    }
+
+    private fun validateHost(host: String) {
+        require(host != "localhost") { "localhost is not allowed" }
+        require(!host.endsWith(".localhost")) { "Local hosts are not allowed" }
+        require(!host.endsWith(".local")) { "Local hosts are not allowed" }
+
+        if (host.isIpLiteral()) {
+            val address = InetAddress.getByName(host)
+            require(!address.isAnyLocalAddress) { "Wildcard address is not allowed" }
+            require(!address.isLoopbackAddress) { "Loopback address is not allowed" }
+            require(!address.isLinkLocalAddress) { "Link-local address is not allowed" }
+            require(!address.isSiteLocalAddress) { "Private address is not allowed" }
+            require(!address.isMulticastAddress) { "Multicast address is not allowed" }
+            require(address !is Inet6Address || !address.isUniqueLocal()) { "Unique local address is not allowed" }
+        }
+    }
+
+    private fun Inet6Address.isUniqueLocal(): Boolean {
+        val firstByte = address.firstOrNull()?.toInt()?.and(BYTE_MASK) ?: return false
+        return firstByte and IPV6_UNIQUE_LOCAL_MASK == IPV6_UNIQUE_LOCAL_VALUE
+    }
+
+    private fun String.isIpLiteral(): Boolean {
+        return ipv4Regex.matches(this) ||
+            contains(':') ||
+            decimalIpv4Regex.matches(this) ||
+            shortIpv4Regex.matches(this) ||
+            hexIpv4Regex.matches(this)
+    }
+}

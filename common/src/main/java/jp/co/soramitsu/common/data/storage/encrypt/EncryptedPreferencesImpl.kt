@@ -12,8 +12,14 @@ class EncryptedPreferencesImpl(
     }
 
     override fun getDecryptedString(field: String): String? {
-        val encryptedString = preferences.getString(field)
-        return encryptedString?.let { encryptionUtil.decrypt(it) }
+        val encryptedString = preferences.getString(field) ?: return null
+        val decrypted = encryptionUtil.decrypt(encryptedString)
+
+        if (decrypted.isNotEmpty() && !encryptionUtil.isModernCiphertext(encryptedString)) {
+            preferences.putString(field, encryptionUtil.encrypt(decrypted))
+        }
+
+        return decrypted
     }
 
     override fun hasKey(field: String): Boolean {
