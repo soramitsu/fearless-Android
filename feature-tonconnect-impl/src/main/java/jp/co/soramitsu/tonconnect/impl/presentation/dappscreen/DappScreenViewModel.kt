@@ -41,7 +41,11 @@ class DappScreenViewModel @Inject constructor(
         if (version != 2) {
             return JsonBuilder.connectEventError(BridgeError.BAD_REQUEST)
         }
-        val app = interactor.readManifest(request.manifestUrl)
+        val app = kotlin.runCatching {
+            interactor.readManifest(request.manifestUrl)
+        }.getOrElse {
+            return JsonBuilder.connectEventError(BridgeError.UNKNOWN_APP)
+        }
 
         val signedRequest =
             tonConnectRouter.openTonConnectionAndWaitForResult(app, request.proofPayload)

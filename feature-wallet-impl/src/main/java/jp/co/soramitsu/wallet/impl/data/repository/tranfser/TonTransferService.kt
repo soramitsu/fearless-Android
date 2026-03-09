@@ -124,7 +124,8 @@ class TonTransferService(
             transfer.copy(recipient = fakeRecipientAddress),
             stateInit,
             seqno,
-            senderSmartContract
+            senderSmartContract,
+            senderAccountId
         )
         val info = ExtInMsgInfo(
             src = AddrNone,
@@ -226,7 +227,7 @@ class TonTransferService(
             customPayloadStateInit
         }
 
-        val transferUnsignedBody = createUnsignedBody(transfer, stateInit, seqno, senderSmartContract)
+        val transferUnsignedBody = createUnsignedBody(transfer, stateInit, seqno, senderSmartContract, senderAccountId)
 
         val info = ExtInMsgInfo(
             src = AddrNone,
@@ -280,9 +281,10 @@ class TonTransferService(
         stateInit: StateInit?,
         seqno: Int,
         senderSmartContract: V4R2WalletContract,
+        senderAccountId: String
     ): Cell = coroutineScope {
         val validUntilDeferred = async {
-            val time = runCatching { tonRemoteSource.getRawTime(chain) }.getOrNull()
+            val time = runCatching { tonRemoteSource.getRawTime(chain, senderAccountId) }.getOrNull()
                 ?: (System.currentTimeMillis() / 1000).toInt()
             time + (5 * 30L)
         }

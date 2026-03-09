@@ -23,6 +23,7 @@ import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
 import javax.crypto.NoSuchPaddingException
 import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
@@ -40,8 +41,12 @@ class EncryptionUtil @Inject constructor(
         private const val KEY_STORE_PROVIDER = "AndroidKeyStore"
         private const val TRANSFORMATION = "RSA/ECB/PKCS1Padding"
         private const val KEY_ALIAS = "key_alias"
-        private const val BLOCK_SIZE = 16
+        private const val LEGACY_BLOCK_SIZE = 16
         private const val AES_KEY_LENGTH = 256
+        private const val GCM_IV_SIZE = 12
+        private const val GCM_TAG_SIZE_BITS = 128
+        private const val MODERN_CIPHER_PREFIX = "v2:"
+
         private var second = false
 
         private var privateKey: PrivateKey? = null
@@ -57,18 +62,31 @@ class EncryptionUtil @Inject constructor(
     }
 
     fun getPrerenceAesKey(): Key {
-        val secretKey: SecretKey
-        val encryptedKey = context.getSharedPreferences(KEY_ALIAS, Context.MODE_PRIVATE).getString(SECRET_KEY, "")
-        if (encryptedKey!!.isEmpty()) {
+        val prefs = context.getSharedPreferences(KEY_ALIAS, Context.MODE_PRIVATE)
+        val encryptedKey = prefs.getString(SECRET_KEY, "")
+
+        if (encryptedKey.isNullOrEmpty()) {
             val keyGenerator = KeyGenerator.getInstance(AES)
             keyGenerator.init(AES_KEY_LENGTH, secureRandom)
-            secretKey = keyGenerator.generateKey()
-            context.getSharedPreferences(KEY_ALIAS, Context.MODE_PRIVATE).edit().putString(SECRET_KEY, encryptRsa(secretKey.encoded)).apply()
-        } else {
-            val key = decryptRsa(encryptedKey)
-            secretKey = SecretKeySpec(key, 0, key!!.size, AES)
+            val secretKey = keyGenerator.generateKey()
+            prefs.edit().putString(SECRET_KEY, encryptRsa(secretKey.encoded)).apply()
+            return secretKey
         }
-        return secretKey
+
+        val key = decryptRsa(encryptedKey)
+        if (key == null || key.size !in setOf(16, 24, 32)) {
+            val keyGenerator = KeyGenerator.getInstance(AES)
+            keyGenerator.init(AES_KEY_LENGTH, secureRandom)
+            val regeneratedKey = keyGenerator.generateKey()
+            prefs.edit().putString(SECRET_KEY, encryptRsa(regeneratedKey.encoded)).apply()
+            return regeneratedKey
+        }
+
+        return SecretKeySpec(key, AES)
+    }
+
+    fun isModernCiphertext(value: String?): Boolean {
+        return value?.startsWith(MODERN_CIPHER_PREFIX) == true
     }
 
     private fun initKeystore() {
@@ -128,7 +146,7 @@ class EncryptionUtil @Inject constructor(
         if (cleartext != null && cleartext.isNotEmpty()) {
             try {
                 return encrypt(getPrerenceAesKey().encoded, cleartext)
-            } catch (e: NoSuchAlgorithmException) {
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
@@ -136,42 +154,76 @@ class EncryptionUtil @Inject constructor(
     }
 
     fun encrypt(key: ByteArray, cleartext: String): String {
-        try {
-            val result = encrypt(key, cleartext.toByteArray())
-            return Base64.toBase64String(result)
+        return try {
+            val encrypted = encryptModern(key, cleartext.toByteArray())
+            MODERN_CIPHER_PREFIX + Base64.toBase64String(encrypted)
         } catch (e: Exception) {
             e.printStackTrace()
+            ""
         }
-        return ""
     }
 
     fun decrypt(encryptedBase64: String): String {
-        try {
-            return decrypt(getPrerenceAesKey().encoded, encryptedBase64)
-        } catch (e: NoSuchAlgorithmException) {
+        return try {
+            decrypt(getPrerenceAesKey().encoded, encryptedBase64)
+        } catch (e: Exception) {
             e.printStackTrace()
+            ""
         }
-
-        return ""
     }
 
     fun decrypt(key: ByteArray, encryptedBase64: String): String {
-        try {
-            val encrypted = Base64.decode(encryptedBase64)
-            val result = decrypt(key, encrypted)
-            return String(result)
+        return try {
+            if (isModernCiphertext(encryptedBase64)) {
+                val payload = encryptedBase64.removePrefix(MODERN_CIPHER_PREFIX)
+                val encrypted = Base64.decode(payload)
+                val result = decryptModern(key, encrypted)
+                String(result)
+            } else {
+                val encrypted = Base64.decode(encryptedBase64)
+                val result = decryptLegacy(key, encrypted)
+                String(result)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
+            ""
         }
-
-        return ""
     }
 
     @Throws(Exception::class)
-    private fun encrypt(key: ByteArray, clear: ByteArray): ByteArray {
-        val skeySpec = SecretKeySpec(key, "AES")
+    private fun encryptModern(key: ByteArray, clear: ByteArray): ByteArray {
+        val iv = ByteArray(GCM_IV_SIZE)
+        secureRandom.nextBytes(iv)
+
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, AES), GCMParameterSpec(GCM_TAG_SIZE_BITS, iv), secureRandom)
+
+        return Arrays.concatenate(iv, cipher.doFinal(clear))
+    }
+
+    @Throws(
+        NoSuchPaddingException::class,
+        NoSuchAlgorithmException::class,
+        InvalidAlgorithmParameterException::class,
+        InvalidKeyException::class,
+        BadPaddingException::class,
+        IllegalBlockSizeException::class
+    )
+    private fun decryptModern(key: ByteArray, encrypted: ByteArray): ByteArray {
+        val iv = Arrays.copyOfRange(encrypted, 0, GCM_IV_SIZE)
+        val cipherText = Arrays.copyOfRange(encrypted, GCM_IV_SIZE, encrypted.size)
+
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key, AES), GCMParameterSpec(GCM_TAG_SIZE_BITS, iv), secureRandom)
+
+        return cipher.doFinal(cipherText)
+    }
+
+    @Throws(Exception::class)
+    private fun encryptLegacy(key: ByteArray, clear: ByteArray): ByteArray {
+        val skeySpec = SecretKeySpec(key, AES)
         val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, IvParameterSpec(generateIVBytes()), secureRandom)
+        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, IvParameterSpec(generateLegacyIVBytes()), secureRandom)
         return Arrays.concatenate(cipher.iv, cipher.doFinal(clear))
     }
 
@@ -183,15 +235,15 @@ class EncryptionUtil @Inject constructor(
         BadPaddingException::class,
         IllegalBlockSizeException::class
     )
-    private fun decrypt(key: ByteArray, encrypted: ByteArray): ByteArray {
+    private fun decryptLegacy(key: ByteArray, encrypted: ByteArray): ByteArray {
         val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
         cipher.init(
             Cipher.DECRYPT_MODE,
-            SecretKeySpec(key, "AES"),
-            IvParameterSpec(Arrays.copyOfRange(encrypted, 0, BLOCK_SIZE)),
+            SecretKeySpec(key, AES),
+            IvParameterSpec(Arrays.copyOfRange(encrypted, 0, LEGACY_BLOCK_SIZE)),
             secureRandom
         )
-        return cipher.doFinal(Arrays.copyOfRange(encrypted, BLOCK_SIZE, encrypted.size))
+        return cipher.doFinal(Arrays.copyOfRange(encrypted, LEGACY_BLOCK_SIZE, encrypted.size))
     }
 
     private fun encryptRsa(input: ByteArray): String {
@@ -238,8 +290,8 @@ class EncryptionUtil @Inject constructor(
         return null
     }
 
-    private fun generateIVBytes(): ByteArray {
-        val ivBytes = ByteArray(BLOCK_SIZE)
+    private fun generateLegacyIVBytes(): ByteArray {
+        val ivBytes = ByteArray(LEGACY_BLOCK_SIZE)
         secureRandom.nextBytes(ivBytes)
         return ivBytes
     }

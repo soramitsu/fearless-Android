@@ -38,4 +38,6 @@ dependencies {
     implementation(libs.security.crypto)
     implementation(libs.bundles.ton)
     implementation(libs.okhttp.sse)
+
+    testImplementation(libs.junit)
 }

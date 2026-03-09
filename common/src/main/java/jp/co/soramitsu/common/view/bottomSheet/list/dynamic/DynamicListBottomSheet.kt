@@ -43,7 +43,6 @@ abstract class DynamicListBottomSheet<T : Any>(
         }
 
         val listContent = findViewById<RecyclerView>(R.id.dynamicListSheetContent)
-        listContent?.setHasFixedSize(true)
 
         val adapter = DynamicListSheetAdapter(payload.selected, this, diffCallback, holderCreator())
         listContent?.adapter = adapter

@@ -915,7 +915,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Show selected: %d (max %d)</string>
   <string name="staking_custom_validators_list_title">Select validators</string>
   <string name="staking_custom_validators_settings_filters">Show</string>
-  <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy" formatted="false">Estimated rewards (% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Total stake (%s)</string>
   <string name="staking_custom_validators_title">Select custom validators</string>
   <string name="staking_custom_validators_update_list">Update your list</string>
@@ -1087,7 +1087,7 @@
   <string name="staking_unbonding_limit_reached_title">Unstaking requests limit reached</string>
   <string name="staking_unbondings_placeholder">Unstaking transactions will appear here</string>
   <string name="staking_unstaking_period">Unstaking period</string>
-  <string name="staking_validator_apy_percent">Estimated reward (% APY)</string>
+  <string name="staking_validator_apy_percent" formatted="false">Estimated reward (% APY)</string>
   <string name="staking_validator_estimated_reward">Estimated reward</string>
   <string name="staking_validator_info_title">Validator info</string>
   <string name="staking_validator_my_oversubscribed_message">Oversubscribed. You will not receive rewards from the validator in this era.</string>

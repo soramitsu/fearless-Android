@@ -1,5 +1,6 @@
 //file:noinspection GroovyImplicitNullArgumentCall
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+import java.util.Properties
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
@@ -11,6 +12,20 @@ apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'com.google.firebase.appdistribution'
 apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
+
+def localKeystoreProperties = new Properties()
+def localKeystorePropertiesFile = rootProject.file("local.properties")
+if (localKeystorePropertiesFile.exists()) {
+    localKeystoreProperties.load(localKeystorePropertiesFile.newDataInputStream())
+}
+
+def envOrLocalProp = { envKey, propKey ->
+    def envValue = System.getenv(envKey)
+    if (envValue != null && !envValue.trim().isEmpty()) {
+        return envValue
+    }
+    return localKeystoreProperties.getProperty(propKey)
+}
 
 android {
     compileSdk rootProject.compileSdkVersion
@@ -24,10 +39,31 @@ android {
     }
     signingConfigs {
         ci {
-            storeFile file(System.env.CI_KEYSTORE_PATH ?: "../debug-keystore.jks")
-            storePassword System.env.CI_KEYSTORE_PASS ?: "00000000"
-            keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: "fearless"
-            keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: "00000000"
+            def keystorePath = envOrLocalProp("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH")
+            def releaseKeystore = rootProject.file("fearless-upload.jks")
+            def debugKeystore = rootProject.file("debug-keystore.jks")
+
+            def resolvedStoreFile = null
+            if (keystorePath) {
+                def candidate = file(keystorePath)
+                if (candidate.exists()) {
+                    resolvedStoreFile = candidate
+                } else {
+                    throw new GradleException("Provided CI keystore path does not exist: ${candidate.absolutePath}")
+                }
+            }
+            if (resolvedStoreFile == null && releaseKeystore.exists()) {
+                resolvedStoreFile = releaseKeystore
+            }
+            if (resolvedStoreFile == null) {
+                resolvedStoreFile = debugKeystore
+            }
+
+            storeFile resolvedStoreFile
+
+            storePassword envOrLocalProp("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD") ?: "00000000"
+            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: "fearless"
+            keyPassword envOrLocalProp("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD") ?: "00000000"
         }
         debug {
             storeFile file("../debug-keystore.jks")
@@ -145,6 +181,8 @@ android {
     packagingOptions {
         resources.excludes.add("META-INF/**/*")
         resources.excludes.add("META-INF/*")
+        resources.excludes.add("META-INF/services/org.w3c.dom.DOMImplementationSourceList")
+        resources.excludes.add("META-INF/services/org.xml.sax.driver")
     }
 }
 
