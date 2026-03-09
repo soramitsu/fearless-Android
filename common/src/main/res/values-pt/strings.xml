@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="ECDSA_crypto_type">Compatível com ECDSA | BTC/ETH</string>
   <string name="about_announcement">Receber Alertas</string>
@@ -34,6 +34,20 @@
   <string name="account_export_password_change">Alterar senha</string>
   <string name="account_export_warning_message">Partilhar ou copiar o seu segredo é uma operação de alto risco, não o envie a ninguém. Gostaria de continuar com o processo de partilhar/copiar?</string>
   <string name="account_export_warning_title">Seja cuidadoso</string>
+  <string name="account_stats_description_text">Sua Pontuação Multichain é baseada na sua jornada on-chain através de 3 ecossistemas: Ethereum, Polygon e Binance Smart Chain</string>
+  <string name="account_stats_error_message">Não foi possível obter a pontuação da conta. Tente novamente mais tarde.</string>
+  <string name="account_stats_hold_tokens_usd_title">Tokens mantidos em USD</string>
+  <string name="account_stats_avg_transaction_time_title">Tempo médio de transação</string>
+  <string name="account_stats_max_transaction_time_title">Tempo máximo de transação</string>
+  <string name="account_stats_min_transaction_time_title">Tempo mínimo de transação</string>
+  <string name="account_stats_native_balance_usd_title">Saldo nativo em USD</string>
+  <string name="account_stats_rejected_transactions_title">Transações rejeitadas</string>
+  <string name="account_stats_title">Sua pontuação</string>
+  <string name="account_stats_total_transactions_title">Total de transações</string>
+  <string name="account_stats_unavailable_text">Você não possui uma conta compatível com EVM. Se quiser ver a pontuação, adicione-a pela opção \"Importar carteira\".</string>
+  <string name="account_stats_updated_title">Atualizado</string>
+  <string name="account_stats_wallet_age_title">Idade da carteira</string>
+  <string name="account_stats_wallet_option_title">Mostrar pontuação da carteira</string>
   <string name="account_import_ethereum_raw_seed_placeholder">A seed original para contas da ETH (64 símbolos hexadecimais)</string>
   <string name="account_import_invalid_keystore">Restauro do JSON inválido. Por favor, certifique-se de que a entrada contém um JSON válido.</string>
   <string name="account_import_invalid_seed">A seed é inválida. Por favor, certifique-se de que a sua entrada contém 64 símbolos hexadecimais.</string>
@@ -558,8 +572,8 @@
   <string name="pincode_title_create">Defina o seu código PIN</string>
   <string name="pincode_touch_fingerprint_scanner">Toque no leitor de impressão digital</string>
   <plurals name="plus_others_template">
-    <item quantity="one">outro</item>
-    <item quantity="other">outros</item>
+    <item quantity="one">+ %d outro</item>
+    <item quantity="other">+ %d outros</item>
   </plurals>
   <string name="polkaswap_btn_reset_to_default">Redefinir para o padrão</string>
   <string name="polkaswap_confirmation_swap_stub">Trocar</string>
@@ -731,7 +745,7 @@
   <string name="social_media">Mídia social</string>
   <string name="sora_card_annual_service_fee">€0 de taxa de serviço anual</string>
   <string name="sora_card_blacklisted_countires_title">Excluído do aplicativo</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residentes de <b>determinados países<br>não podem solicitar</b> o Cartão SORA neste momento<br><a href=\"https://soracard.com/blacklist/\">Veja a lista</a>]]></string>
+  <string name="sora_card_blacklisted_countires_warning">Residentes de &lt;b&gt;determinados países&lt;br&gt;não podem solicitar&lt;/b&gt; o Cartão SORA neste momento&lt;br&gt;&lt;a href=\"https://soracard.com/blacklist/\"&gt;Veja a lista&lt;/a&gt;</string>
   <string name="sora_card_enable_card_title">Habilitar cartão</string>
   <string name="sora_card_get_sora_card">Obter o cartão SORA</string>
   <string name="sora_card_title">Recarregue o cartão SORA com moeda fiduciária ou cripto e pague online, na loja ou saque em caixa eletrônico</string>
@@ -793,7 +807,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Mostrar selecionados: %d (max %d)</string>
   <string name="staking_custom_validators_list_title">Selecione validadores</string>
   <string name="staking_custom_validators_settings_filters">Mostrar</string>
-  <string name="staking_custom_validators_settings_sort_apy">Recompensas estimadas (%% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy" formatted="false">Recompensas estimadas (% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Stake total (%s)</string>
   <string name="staking_custom_validators_title">Escolher validadores personalizados</string>
   <string name="staking_custom_validators_update_list">Atualize a sua lista</string>
@@ -965,7 +979,7 @@
   <string name="staking_unbonding_limit_reached_title">Limite de pedidos de unstaking atingido</string>
   <string name="staking_unbondings_placeholder">As transações de unstaking aparecerão aqui</string>
   <string name="staking_unstaking_period">Período de Unstaking</string>
-  <string name="staking_validator_apy_percent">Recompensa estimada (%% APY)</string>
+  <string name="staking_validator_apy_percent" formatted="false">Recompensa estimada (% APY)</string>
   <string name="staking_validator_estimated_reward">Recompensa estimada</string>
   <string name="staking_validator_info_title">Informação do validador</string>
   <string name="staking_validator_my_oversubscribed_message">Excesso de subscrições. Não receberá recompensas do validador nesta era.</string>
@@ -1106,4 +1120,251 @@
   <string name="what_accounts_for_export">Que contas na carteira pretende exportar?</string>
   <string name="yesterday">Ontem</string>
   <string name="your_collator">Seu coletor</string>
+  <string name="balance_locks_blocked_row_title">Bloqueado</string>
+  <string name="balance_locks_governance_row_title">Governança</string>
+  <string name="balance_locks_nomination_pools_row_title">Pools de nomeação</string>
+  <string name="balance_locks_screen_title">Detalhes de bloqueio</string>
+
+
+  <string name="banner_addwallet_regular_button_title">Сreate or import</string>
+
+  <string name="banner_addwallet_regular_subtitle">Join the ecosystems with more than 90+ chains and fascinating features</string>
+
+  <string name="banner_addwallet_regular_title">EVM/Substrate accounts</string>
+
+  <string name="banner_addwallet_ton_button_title">Join now</string>
+
+  <string name="banner_addwallet_ton_title">Join the fastest growing ecosystem ever</string>
+
+  <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
+
+  <string name="banners_demeter_title">Demeter Protocol</string>
+
+  <string name="banners_liquidity_pools_title">Liquidity Pools</string>
+
+  <string name="common_and_others_placeholder">%s &amp; others</string>
+
+  <string name="common_available_networks">Available networks</string>
+
+  <string name="common_commission">Commission</string>
+
+  <string name="common_contacts">Contacts</string>
+
+  <string name="common_host">Host</string>
+
+  <plurals name="common_months_format">
+    <item quantity="one">%d month</item>
+    <item quantity="other">%d months</item>
+  </plurals>
+
+  <string name="common_more">More</string>
+
+  <string name="common_my_networks">My networks</string>
+
+  <string name="common_network_hash">%s Hash</string>
+
+  <plurals name="common_networks_format">
+    <item quantity="one">%d network</item>
+    <item quantity="other">%d networks</item>
+  </plurals>
+
+  <string name="common_price">Price</string>
+
+  <string name="common_refund">Refund</string>
+
+  <string name="common_see_all">See all</string>
+
+  <string name="common_show_details">Show details</string>
+
+  <string name="common_show_more">Show more</string>
+
+  <string name="common_start">Start</string>
+
+  <string name="common_transaction_sent">Transaction sent</string>
+
+  <string name="connected_accounts_common">Connected Accounts</string>
+
+  <string name="connected_accounts_ethereum_title">EVM chain accounts</string>
+
+  <string name="connected_accounts_substrate_title">Substrate chain accounts</string>
+
+  <string name="connected_accounts_ton_title">TON chain accounts</string>
+
+  <string name="connection_details_title">Connection details</string>
+
+  <string name="contacts_empty_message">No contacts found</string>
+
+  <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
+
+  <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
+
+  <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>
+
+  <string name="cross_chain_tx_status_done_title">All done</string>
+
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %s asset cross the bridge from the %s to the %s network.</string>
+
+  <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
+
+  <string name="cross_chain_tx_status_source_fail_description">Transaction failed on the %s network. Please, try again.</string>
+
+  <string name="cross_chain_tx_status_source_fail_title">Transaction failed</string>
+
+  <string name="dapp_category_connected_title">Connected</string>
+
+  <string name="dapp_category_defi_title">DeFi</string>
+
+  <string name="dapp_category_featured_title">Featured</string>
+
+  <string name="dapp_category_nft_title">NFT</string>
+
+  <string name="dapp_category_utilities_title">Utilities</string>
+
+  <string name="dapp_connected_title">Connected</string>
+
+  <string name="dapp_discover_title">Discover dApp</string>
+
+  <string name="dapp_no_connected_dapps_title">No connected dApps</string>
+
+  <string name="dapp_not_found_title">No dApps were found</string>
+
+  <string name="ecosystem_options_backup_title">Backup chain accounts</string>
+
+  <string name="ecosystem_options_details_title">Chain accounts</string>
+
+  <string name="ecosystem_options_title">Account options</string>
+
+  <string name="fee_calculation_error">Something went wrong while calculating the fee. Please try again later.</string>
+
+  <string name="fee_calculation_error_inactive_account">Your account is inactive. Top up your balance to calculate the fee.</string>
+
+  <string name="lp_apy_alert_text">Farming reward for liquidity provision</string>
+
+  <string name="lp_apy_title">Strategic Bonus APY</string>
+
+  <string name="lp_available_pools_title">Available pools</string>
+
+  <string name="lp_banner_text">Join Liquidity Pools\nand gain rewards</string>
+
+  <string name="lp_confirm_liquidity_screen_title">Confirm Liquidity</string>
+
+  <string name="lp_confirm_liquidity_warning_text">Output is estimated. If the price changes more than 0.5% your transaction will revert.</string>
+
+  <string name="lp_liquidity_add_complete_text">Your supply to Liquidity pools has been successfully completed</string>
+
+  <string name="lp_network_fee_alert_text">Network fee is used to ensure SORA system’s growth and stable performance.</string>
+
+  <string name="lp_pool_details_title">Pool details</string>
+
+  <string name="lp_pool_remove_warning_text">Removing pool tokens converts your position back into underlying tokens at the current rate, proportional to your share of the pool. Accrued fees are included in the amounts you receive.</string>
+
+  <string name="lp_pool_remove_warning_title">NOTE</string>
+
+  <string name="lp_remove_button_title">Remove Liquidity</string>
+
+  <string name="lp_remove_liquidity_screen_title">Remove Liquidity</string>
+
+  <string name="lp_reward_token_text">Earn %s</string>
+
+  <string name="lp_reward_token_title">Rewards Payout In</string>
+
+  <string name="lp_slippage_title">Slippage</string>
+
+  <string name="lp_supply_button_title">Supply Liquidity</string>
+
+  <string name="lp_supply_liquidity_screen_title">Supply Liquidity</string>
+
+  <string name="lp_user_pools_title">User pools</string>
+
+  <string name="lp_your_pooled_format">Your %s Pooled</string>
+
+  <string name="network_issue_main">Connection Error: Unable to connect to the network. Please try again.</string>
+
+  <string name="nft_choose_recipient_title">Choose recipient</string>
+
+  <string name="nft_collection_available_nfts">Available NFTs in the %s collection</string>
+
+  <string name="nft_collection_my_nfts">My NFTs</string>
+
+  <string name="nft_creator_title">Creator</string>
+
+  <string name="nft_list_empty_message">There aren\'t any NFTs yet. Buy or mint NFTs to see them here.</string>
+
+  <string name="nft_load_error">Failed to load NFTs</string>
+
+  <string name="nft_token_type_title">Token type</string>
+
+  <string name="nfts_collection_count" formatted="false">Quantity: %d/%d</string>
+
+  <string name="onboarding_banner_regular_ecosystem_button_title">Join EVM or Substrate</string>
+
+  <string name="onboarding_banner_regular_ecosystem_title">Create or import Substrate or EVM accounts</string>
+
+  <string name="onboarding_banner_ton_ecosystem_button_title">Join TON</string>
+
+  <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
+
+  <string name="profile_account_score_title">Nomis multichain score</string>
+
+  <string name="profile_tonconnect_title">Ton connect</string>
+
+  <string name="profile_walletconnect_title">WalletConnect</string>
+
+  <string name="scam_description_lowscore_text">The address you are about to transfer to has low onchain activity, which may indicate a potential scammer or sybil attacker</string>
+
+  <string name="scam_info_nomis_name">Nomis multi-chain score</string>
+
+  <string name="scam_info_nomis_reason_text">Low network activity</string>
+
+  <string name="scam_info_nomis_subtype_text">Proceed with caution</string>
+
+  <string name="send_all_and_reap_account">Send all tokens and reap the account</string>
+
+  <string name="set_max_amount">Set max amount</string>
+
+  <string name="sora_bridge_amount_less_fee">The amount you\'re trying to transfer is insufficient to cover the transaction fees on the %s network. Although the transaction won\'t process, you\'ll still be charged the fees on the Sora network.</string>
+
+  <string name="sora_bridge_low_amount_format_alert">Currently, there\'s a min. amount %s for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
+
+  <string name="sora_bridge_low_amount_format_alert_2">Currently, there\'s a min. amount %s for bridging to ensure the stability and security. We appreciate your understanding.</string>
+
+  <string name="success_message_transaction_sent">Your transaction has been successfully sent to the blockchain</string>
+
+  <string name="tc_connected_dapp">Connected</string>
+
+  <string name="tc_discover_dapp">Discover dApp</string>
+
+  <string name="tc_review_dapp_info">Review dApp info</string>
+
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="tc_see_all">See all</string>
+
+  <string name="tc_service_address">Service address</string>
+
+  <string name="ton_connect_alert_description">Service address</string>
+
+  <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="ton_connect_alert_title">Review dApp info</string>
+
+  <string name="ton_tonviewer_action_title">View in Tonviewer</string>
+
+  <string name="tranaction_history_others_tab_title">Others</string>
+
+  <string name="transaction_details_view_reefscan">View in Reefscan</string>
+
+  <string name="validator_info_min_stake_alert_text">Minimum stake among active nominators is %s. To get rewards you have to stake more.</string>
+
+  <string name="validator_info_min_stake_among_active_nominators_text">Minimum stake among active nominators</string>
+
+  <string name="vesting_claim_disclaimer_text">Due to the unique vesting schedules of each parachain, our app is unable to display the quantity of locked tokens eligible for claiming. Please be advised that initiating a claim may be impractical if the prospective amount is marginal and comparable to the transaction fee involved. For comprehensive insights into your locked balances, consult the Subscan blockexplorer. We urge you to assess the information carefully and proceed at your own discretion.</string>
+
+  <string name="vesting_claim_disclaimer_title">Important Notice Regarding Token Claims:</string>
+
+  <string name="vesting_locked_title">Vesting Locked</string>
+
+  <string name="wallet_send_dead_recipient_message_v2">Your transfer will fail since the final amount (%1$s) on the destination account will be less than the minimal balance (%2$s). Please increase the amount by %3$s</string>
+
+  <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
 </resources>
