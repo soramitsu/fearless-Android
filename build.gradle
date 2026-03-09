@@ -1,9 +1,56 @@
+import java.util.Locale
+import java.util.Properties
+
+def versionPropsFile = file("versioning/version.properties")
+if (!versionPropsFile.exists()) {
+    throw new GradleException("Missing versioning/version.properties. Please create it with versionName and versionCode entries.")
+}
+
+def versionProps = new Properties()
+versionPropsFile.withInputStream { versionProps.load(it) }
+
+def requestedTasks = gradle.startParameter.taskNames
+def normalizedTasks = requestedTasks.collect { it?.toLowerCase(Locale.ROOT) }
+def releaseTaskMatchers = [
+        ":app:assemblerelease",
+        ":app:bundlerelease",
+        ":app:publishrelease",
+        ":app:publishreleasebundle",
+        ":app:appdistributionuploadrelease",
+        "assemblerelease",
+        "bundlerelease",
+        "publishrelease",
+        "publishreleasebundle"
+]
+
+boolean isReleaseBuildRequested = normalizedTasks.any { task ->
+    if (task == null) return false
+    return releaseTaskMatchers.contains(task) || (task.startsWith(":app:") && task.contains("release"))
+}
+
+boolean skipAutoBump = (System.getenv("SKIP_AUTO_VERSION_BUMP") ?: (project.hasProperty("skipAutoVersionBump") ? project.property("skipAutoVersionBump") : null))?.toString()?.toBoolean() ?: false
+boolean autoBumpAllowed = !skipAutoBump && System.getenv("CI_BUILD_ID") == null
+
+if (autoBumpAllowed && isReleaseBuildRequested) {
+    def currentCode = versionProps["versionCode"]?.toInteger()
+    def bumpedCode = currentCode + 1
+    versionProps["versionCode"] = bumpedCode.toString()
+    versionPropsFile.withOutputStream { os ->
+        versionProps.store(os, "Auto-bumped versionCode on ${new Date()}")
+    }
+    println("Auto-bumped versionCode to ${bumpedCode} because an app release build was requested.")
+}
+
+def configuredVersionName = versionProps["versionName"]
+def configuredVersionCode = versionProps["versionCode"]?.toInteger()
+
+ext {
+    versionName = configuredVersionName
+    versionCode = configuredVersionCode
+}
+
 buildscript {
     ext {
-        // App version
-        versionName = '4.2.0'
-        versionCode = 218
-
         // SDK and tools
         compileSdkVersion = 35
         minSdkVersion = 26

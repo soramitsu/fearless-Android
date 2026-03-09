@@ -6,7 +6,8 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
 
 - Versioning: semantic with optional pre-release suffix.
   - Beta: `4.2.0-beta.1`, Stable: `4.2.0`.
-  - Update in root `build.gradle`: `versionName`, increment `versionCode`.
+  - Update `versioning/version.properties` → `versionName=...`.
+  - `versionCode` is auto-bumped whenever `:app:assembleRelease`/`bundleRelease`/publish release tasks run (unless `CI_BUILD_ID` is provided). Commit the updated `versioning/version.properties` after the release artifact is generated so the new code is tracked.
 - Branching:
   - Work branch: feature/stabilization or release/docs-x.y.z
   - Open a PR to `develop` (or the release branch if used), then merge to `master` when promoted.
@@ -88,4 +89,3 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - Version changes, tags planned.
   - Links to release docs and changelog.
   - Evidence of detekt/tests/lint runs (local or CI).
-
