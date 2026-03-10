@@ -183,6 +183,9 @@ android {
         resources.excludes.add("META-INF/*")
         resources.excludes.add("META-INF/services/org.w3c.dom.DOMImplementationSourceList")
         resources.excludes.add("META-INF/services/org.xml.sax.driver")
+
+        // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
+        jniLibs.useLegacyPackaging true
     }
 }
 
