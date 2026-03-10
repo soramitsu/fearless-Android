@@ -18,7 +18,6 @@ Configs & Secrets (see README for details)
 - WalletConnect: `WALLET_CONNECT_PROJECT_ID` in `BuildConfig`.
 - Moonpay: `MOONPAY_TEST_SECRET`, `MOONPAY_PRODUCTION_SECRET`.
 - EVM/API keys: `FL_BLAST_API_*`, `FL_ANDROID_*SCAN_API_KEY`.
-- SoraCard & X1: multiple Gradle properties required (test/prod creds).
 
 Common Tasks
 - Add a new feature screen:
@@ -37,4 +36,3 @@ Troubleshooting
 - WalletConnect init errors: verify `WALLET_CONNECT_PROJECT_ID` and network reachability.
 - Missing features at runtime: ensure `matchingFallbacks` and proper build type are used.
 - Local utils: set `FEARLESS_UTILS_PATH` to include local `fearless-utils-Android` in the composite build.
-

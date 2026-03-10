@@ -4,42 +4,12 @@
 MOONPAY_TEST_SECRET="<your_moonpay_test_secret>"
 MOONPAY_PRODUCTION_SECRET="<your_moonpay_production_secret>"
 
-PAY_WINGS_REPOSITORY_URL=https://maven.pkg.github.com/paywings/integration
-PAY_WINGS_USERNAME=<your_paywings_username>
-PAY_WINGS_PASSWORD=<your_paywings_password_or_token>
-
-# Sora CARD API key
-SORA_CARD_API_KEY_TEST=<your_soracard_api_key_test>
-SORA_CARD_API_KEY_PROD=<your_soracard_api_key_prod>
-
-SORA_CARD_DOMAIN_TEST=<your_soracard_domain_test>
-SORA_CARD_DOMAIN_PROD=<your_soracard_domain_prod>
-
-# Sora CARD KYC credentials
-SORA_CARD_KYC_ENDPOINT_URL_TEST=<your_kyc_endpoint_url_test>
-SORA_CARD_KYC_ENDPOINT_URL_PROD=<your_kyc_endpoint_url_prod>
-
-SORA_CARD_KYC_USERNAME_TEST=<your_kyc_username_test>
-SORA_CARD_KYC_USERNAME_PROD=<your_kyc_username_prod>
-
-SORA_CARD_KYC_PASSWORD_TEST=<your_kyc_password_test>
-SORA_CARD_KYC_PASSWORD_PROD=<your_kyc_password_prod>
-
-FL_SORA_CARD_RECAPTCHA_KEY_ANDROID_TEST=<your_recaptcha_key_android_test>
-FL_SORA_CARD_RECAPTCHA_KEY_ANDROID_PROD=<your_recaptcha_key_android_prod>
-
-FL_SORA_CARD_APP_PLATFORM_ID_ANDROID_TEST=<your_app_platform_id_android_test>
-FL_SORA_CARD_APP_PLATFORM_ID_ANDROID_PROD=<your_app_platform_id_android_prod>
-
 # X1 plugin
 X1_ENDPOINT_URL_DEBUG=<your_x1_endpoint_url_debug>
 X1_ENDPOINT_URL_RELEASE=<your_x1_endpoint_url_release>
 
 X1_WIDGET_ID_DEBUG=<your_x1_widget_id_debug>
 X1_WIDGET_ID_RELEASE=<your_x1_widget_id_release>
-
-SORA_BACKEND_DEBUG=<your_sora_backend_debug>
-SORA_BACKEND_RELEASE=<your_sora_backend_release>
 
 # Web Client ID
 WEB_CLIENT_ID_DEBUG=<your_google_web_client_id_debug>

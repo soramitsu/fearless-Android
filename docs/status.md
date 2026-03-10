@@ -17,7 +17,6 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Swaps & Pools: Polkaswap and liquidity pools present (`feature-polkaswap-*`, `feature-liquiditypools-*`).
 - WalletConnect v2: Initialized in `App.setupWalletConnect()` with Reown SDK.
 - TON Connect: Present (`feature-tonconnect-*`).
-- Sora Card: Present but requires credentials via Gradle props.
 - NFTs: Present; details screen has TODO placeholders.
 
 ## Build & CI
@@ -52,7 +51,6 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Code quality: Detekt enforced in CI. Several TODO/FIXME markers remain in features and common utils.
 - Incomplete UI/logic areas:
   - NFT details screen placeholders.
-  - Sora Card details screen multiple TODOs.
   - Staking validator oversubscription/slashed logic marked FIXME.
   - Substrate balance loader contains a hardcoded `chainAssetId` fallback.
   - Meta-account/EVM nullability handling flagged in multiple call sites (`accountId(chain)!!`).
@@ -70,8 +68,6 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   - `feature-staking-impl/.../StakingRelayChainScenarioInteractor.kt` — EVM nullability.
 - Crowdloan:
   - `feature-crowdloan-impl/.../KaruraContributeInteractor.kt` — TODO marker.
-- Sora Card:
-  - `feature-soracard-impl/.../SoraCardDetailsScreen.kt` — multiple TODO placeholders.
 - NFTs:
   - `feature-nft-impl/.../DetailsScreen.kt` — TODO placeholder.
 - Common:

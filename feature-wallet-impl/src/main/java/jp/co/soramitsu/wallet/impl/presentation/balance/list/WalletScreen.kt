@@ -30,19 +30,14 @@ import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.BannerBackup
-import jp.co.soramitsu.common.compose.component.BannerBuyXor
 import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
 import jp.co.soramitsu.common.compose.component.BannerJoinTon
-import jp.co.soramitsu.common.compose.component.BannerGetSoraCard
 import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.component.SoraCardFiatCard
-import jp.co.soramitsu.common.compose.component.SoraCardItemViewState
-import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -60,10 +55,6 @@ import kotlinx.coroutines.delay
 interface WalletScreenInterface : AssetsListInterface {
     fun onAddressClick()
     fun onBalanceClicked()
-    fun soraCardClicked()
-    fun soraCardClose()
-    fun buyXorClick()
-    fun buyXorClose()
     fun onBackupClicked()
     fun onBackupCloseClick()
     fun onJoinSubOrEvmClicked()
@@ -165,40 +156,6 @@ private fun Banners(
     callback: WalletScreenInterface,
     autoPlay: Boolean = true
 ) {
-    val soraCardFiatItem: @Composable (() -> Unit)? =
-        if (data.soraCardState.soraCardProgress == SoraCardProgress.KYC_IBAN) {
-            {
-                SoraCardFiatCard(
-                    state = data.soraCardState,
-                    modifier = Modifier,
-                    onClick = callback::soraCardClicked,
-                )
-            }
-        } else {
-            null
-        }
-    val buyXorBanner: @Composable (() -> Unit)? = data.soraCardState.buyXor?.let { state ->
-        {
-            BannerBuyXor(
-                onBuyXorClick = callback::buyXorClick,
-                onBuyXorCloseClick = callback::buyXorClose,
-                enabled = state.enabled,
-            )
-        }
-    }
-
-    val getSoraCardBanner: @Composable (() -> Unit)? =
-        if (data.soraCardState.soraCardProgress == SoraCardProgress.START && data.soraCardState.visible) {
-            {
-                BannerGetSoraCard(
-                    onClose = callback::soraCardClose,
-                    onViewDetails = callback::soraCardClicked,
-                )
-            }
-        } else {
-            null
-        }
-
     val backupBanner: @Composable (() -> Unit)? = if (!data.isBackedUp) {
         {
             BannerBackup(
@@ -232,7 +189,7 @@ private fun Banners(
         null
     }
 
-    val banners = listOfNotNull(getSoraCardBanner, buyXorBanner, backupBanner, joinSubOrEvmBanner, joinTonBanner)
+    val banners = listOfNotNull(backupBanner, joinSubOrEvmBanner, joinTonBanner)
     val bannersCount = banners.size
     val pagerState = rememberPagerState { bannersCount }
 
@@ -274,12 +231,7 @@ private fun Banners(
                 }
             }
         }
-    if (soraCardFiatItem != null || bannersCarousel != null) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            bannersCarousel?.invoke()
-            soraCardFiatItem?.invoke()
-        }
-    }
+    bannersCarousel?.invoke()
 }
 
 @Composable
@@ -320,10 +272,6 @@ fun WalletScreenFooter(
 private fun PreviewWalletScreen() {
     @OptIn(ExperimentalMaterialApi::class)
     val emptyCallback = object : WalletScreenInterface {
-        override fun soraCardClicked() {}
-        override fun soraCardClose() {}
-        override fun buyXorClick() {}
-        override fun buyXorClose() {}
         override fun onAddressClick() {}
         override fun onBalanceClicked() {}
         override fun onBackupClicked() {}
@@ -386,14 +334,6 @@ private fun PreviewWalletScreen() {
                         ChangeBalanceViewState("+100%", "+50$")
                     ),
                     hasNetworkIssues = true,
-                    soraCardState = SoraCardItemViewState(
-                        null,
-                        true,
-                        success = true,
-                        iban = null,
-                        soraCardProgress = SoraCardProgress.START,
-                        loading = false,
-                    ),
                     isBackedUp = false,
                     hasTonAccounts = false,
                     hasSubOrEvmAccounts = false,

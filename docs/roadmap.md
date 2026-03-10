@@ -87,9 +87,9 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   - Introduce utilities to safely obtain chain-specific account IDs with null-safe flows.
   - Update call sites; add tests covering Substrate/EVM differences.
 
-5) Replace TODO placeholders in UI (Sora Card, NFTs)
+5) Replace TODO placeholders in NFT UI
 - Why: Visible TODOs degrade UX and block validation of flows.
-- Files: `feature-soracard-impl/.../SoraCardDetailsScreen.kt` (multiple), `feature-nft-impl/.../DetailsScreen.kt`.
+- Files: `feature-nft-impl/.../DetailsScreen.kt`.
 - Acceptance:
   - Replace all `TODO("Not yet implemented")` with minimal functional UI or feature flags hiding incomplete screens.
   - Provide tracking issues for any scoped-down functionality.

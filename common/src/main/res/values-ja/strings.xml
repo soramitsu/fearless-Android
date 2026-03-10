@@ -730,7 +730,6 @@
   <string name="profile_network_title">通信網</string>
   <string name="profile_pincode_change_title">PINコードを変更する</string>
   <string name="profile_settings_title">設定</string>
-  <string name="profile_soracard_title">SORAカード</string>
   <string name="profile_title">アカウント</string>
   <string name="profile_walletconnect_title">ウォレットコネクト</string>
   <string name="profile_wallets_title">ウォレット</string>
@@ -801,13 +800,6 @@
   <string name="sora_bridge_amount_less_fee">転送しようとしている金額は、%s ネットワーク上の取引手数料をカバーするには不十分です。トランザクションは処理されませんが、それでも Sora ネットワークの手数料が請求されます。</string>
   <string name="sora_bridge_low_amount_format_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低%sが設定されています。ご理解のほどよろしくお願いいたします。</string>
   <string name="sora_bridge_low_amount_format_alert_2">現在、安定性と安全性を確保するために、ブリッジングには最低限の額%sが必要です。ご了承ください。</string>
-  <string name="sora_card_annual_service_fee">年間サービス料€0</string>
-  <string name="sora_card_blacklisted_countires_title">適用除外</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[現在SORAカードは<b>特定の国</b>の居住者は<b>申請できません</b><br><a href=\"https://soracard.com/blacklist/\">特定の国を見る</a>]]></string>
-  <string name="sora_card_enable_card_title">カードを有効にする</string>
-  <string name="sora_card_get_sora_card">SORAカードを入手</string>
-  <string name="sora_card_title">SORAカードに法定通貨や暗号資産を補充し、オンラインや店舗で支払ったり、ATMで引き出すことができます</string>
-  <string name="sora_card_verification_successful">カードは準備中です</string>
   <string name="specify_network">ネットワークの指定</string>
   <string name="specify_network_description">アドレスの冒頭文字列が複数のネットワークに一致するため、ネットワークを指定してください</string>
   <string name="sr25519_selection_subtitle">sr25519（推奨）</string>

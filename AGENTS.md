@@ -69,7 +69,7 @@
 ## Local Properties (private)
 - Create a root-level `local.properties` with the required secrets and service credentials. Do NOT commit this file.
 - See `docs/samples/local.properties.example` and create a private `local.properties` at the repo root; replace placeholders with your real values.
-- Typical keys include: MoonPay, PayWings (Sora Card), X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
+- Typical keys include: MoonPay, X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
 - Formats: use `key=value` per line; avoid trailing spaces. Strings may be unquoted; if values contain special characters or spaces, wrap in double quotes. Set `sdk.dir=/absolute/path/to/Android/sdk` to avoid SDK lookup errors.
 - Runtime overrides (mirrors recommended for first run):
   - `TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/all_chains_types_android.json`

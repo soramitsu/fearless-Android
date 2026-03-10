@@ -766,7 +766,6 @@
   <string name="profile_network_title">Mạng</string>
   <string name="profile_pincode_change_title">Thay đổi mã pin</string>
   <string name="profile_settings_title">Cài đặt</string>
-  <string name="profile_soracard_title">Thẻ SORA</string>
   <string name="profile_title">Tài khoản</string>
   <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Ví</string>
@@ -836,13 +835,6 @@
   <string name="social_media">Truyền thông xã hội</string>
   <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng %s . Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>
   <string name="sora_bridge_low_amount_format_alert">Hiện tại, cần số tiền tối thiếu là %s để bắc cầu nhằm đảm bảo tính ổn định và bảo mật của Mạng SORA. Cảm ơn vì sự thông cảm của bạn.</string>
-  <string name="sora_card_annual_service_fee">0 € phí dịch vụ hàng năm</string>
-  <string name="sora_card_blacklisted_countires_title">Không bao gồm ứng dụng</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[Cư dân từ <b>một số quốc gia<br>không thể đăng ký</b> Thẻ SORA tại thời điểm<br> này<a href=\"https://soracard.com/blacklist/\">Xem danh sách</a>]]></string>
-  <string name="sora_card_enable_card_title">Kích hoạt thẻ</string>
-  <string name="sora_card_get_sora_card">Nhận thẻ SORA</string>
-  <string name="sora_card_title">Nạp thẻ SORA bằng fiat hoặc tiền điện tử và thanh toán trực tuyến, tại cửa hàng hoặc rút tiền bằng ATM</string>
-  <string name="sora_card_verification_successful">Thẻ của bạn đang trên đường đến</string>
   <string name="specify_network">Chỉ định mạng</string>
   <string name="specify_network_description">Tiền tố địa chỉ khớp với một số mạng, vui lòng chỉ định mạng</string>
   <string name="sr25519_selection_subtitle">sr25519 (khuyến nghị)</string>

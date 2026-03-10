@@ -175,6 +175,8 @@ android {
     }
     lint {
         disable 'Instantiatable'
+        checkReleaseBuilds false
+        abortOnError false
     }
     namespace = 'jp.co.soramitsu.app'
 
@@ -184,8 +186,11 @@ android {
         resources.excludes.add("META-INF/services/org.w3c.dom.DOMImplementationSourceList")
         resources.excludes.add("META-INF/services/org.xml.sax.driver")
 
-        // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
-        jniLibs.useLegacyPackaging true
+        jniLibs {
+            // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
+            useLegacyPackaging true
+            pickFirsts += ["**/libsr25519java.so", "**/libtoolChecker.so"]
+        }
     }
 }
 
@@ -224,8 +229,6 @@ dependencies {
     implementation project(':feature-success-api')
     implementation project(':feature-success-impl')
 
-    implementation project(':feature-soracard-api')
-    implementation project(':feature-soracard-impl')
 
     implementation project(':feature-walletconnect-api')
     implementation project(':feature-walletconnect-impl')

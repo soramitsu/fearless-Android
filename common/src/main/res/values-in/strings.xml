@@ -699,7 +699,6 @@
   <string name="profile_network_title">Jaringan</string>
   <string name="profile_pincode_change_title">Masukkan PIN</string>
   <string name="profile_settings_title">Pengaturan</string>
-  <string name="profile_soracard_title">Kartu SORA</string>
   <string name="profile_title">Akun</string>
   <string name="profile_walletconnect_title">HubungkanDompet</string>
   <string name="profile_wallets_title">Dompet</string>
@@ -765,13 +764,6 @@
   <string name="social_media">Sosial media</string>
   <string name="sora_bridge_amount_less_fee">Jumlah yang Anda coba transfer tidak cukup untuk menutupi biaya transaksi di %s jaringan. Meskipun transaksi tidak dapat diproses, Anda tetap akan dikenakan biaya di jaringan Sora.</string>
   <string name="sora_bridge_low_amount_format_alert">Saat ini,ada jumlah minimal%suntuk menjembatani guna menjamin stabilitas dan keamanan jaringan SORA. Kami menghargai pengertian anda.</string>
-  <string name="sora_card_annual_service_fee">€0 biaya layanan tahunan</string>
-  <string name="sora_card_blacklisted_countires_title">Tidak termasuk aplikasi</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[Penduduk dari <b>negara tertentu<br>tidak dapat mengajukan</b> untuk Kartu SORA saat ini<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
-  <string name="sora_card_enable_card_title">Aktifkan kartu</string>
-  <string name="sora_card_get_sora_card">Dapatkan kartu SORA</string>
-  <string name="sora_card_title">Isi ulang Kartu SORA dengan fiat atau kripto dan bayar secara online, di toko, atau tarik di ATM</string>
-  <string name="sora_card_verification_successful">Kartu Anda sedang dalam perjalanan</string>
   <string name="specify_network">Tentukan jaringan</string>
   <string name="specify_network_description">Awalan alamat cocok dengan beberapa jaringan, harap tentukan jaringannya</string>
   <string name="sr25519_selection_subtitle">sr25519 (disarankan)</string>

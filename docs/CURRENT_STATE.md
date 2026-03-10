@@ -14,7 +14,6 @@ This document summarizes the current state of the codebase as observed in this r
 - Swaps & Pools: `feature-polkaswap-*`, `feature-liquiditypools-*`.
 - NFTs: `feature-nft-*`.
 - Connectors: `feature-walletconnect-*` (WalletConnect v2), `feature-tonconnect-*` (TON Connect).
-- Sora Card: `feature-soracard-*` (requires credentials via Gradle properties; see README).
 
 These features vary in maturity; consult TODOs below and module code for specifics.
 
@@ -25,7 +24,6 @@ These features vary in maturity; consult TODOs below and module code for specifi
 ## Configuration & Secrets
 - Place integration keys in environment variables or `local.properties` as described in README.
 - Common keys include Moonpay, Ethereum blast API keys, and Etherscan/Polygonscan keys.
-- Sora Card requires repository credentials and API keys; see README.
 
 ## Build Types
 - `debug`, `release`, `staging`, `develop`, `pr` — see `app/build.gradle` for differences (R8/shrinker, suffixes, Firebase App Distribution setup on CI builds).
@@ -38,7 +36,6 @@ These features vary in maturity; consult TODOs below and module code for specifi
 Ripgrep shows TODO/FIXME markers in these areas (non-exhaustive):
 - Account models and meta-account adoption
 - NFT details screen placeholders
-- Sora Card details screen placeholders
 - Crowdloan interactors (Karura) TODO marker
 - Error text TODOs (`FearlessException`)
 - Substrate balance loader hardcoded defaults

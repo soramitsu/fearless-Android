@@ -7,18 +7,6 @@ val Migration_73_74 = object : Migration(73, 74) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE chain_assets ADD COLUMN `coinbaseUrl` TEXT NULL DEFAULT NULL")
         db.execSQL("DROP TABLE IF EXISTS `sora_card`")
-        db.execSQL(
-            """
-             CREATE TABLE IF NOT EXISTS `sora_card` (
-             `id` TEXT NOT NULL, 
-             `accessToken` TEXT NOT NULL, 
-             `refreshToken` TEXT NOT NULL, 
-             `accessTokenExpirationTime` INTEGER NOT NULL, 
-             `kycStatus` TEXT NOT NULL,
-             PRIMARY KEY(`id`)
-             )
-            """.trimIndent()
-        )
     }
 }
 
@@ -824,18 +812,7 @@ val Migration_51_52 = object : Migration(51, 52) {
 
 val Migration_50_51 = object : Migration(50, 51) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            """
-             CREATE TABLE IF NOT EXISTS `sora_card` (
-             `id` TEXT NOT NULL, 
-             `accessToken` TEXT NOT NULL, 
-             `refreshToken` TEXT NOT NULL, 
-             `accessTokenExpirationTime` INTEGER NOT NULL, 
-             `kycStatus` TEXT NOT NULL,
-             PRIMARY KEY(`id`)
-             )
-            """.trimIndent()
-        )
+        db.execSQL("DROP TABLE IF EXISTS `sora_card`")
     }
 }
 

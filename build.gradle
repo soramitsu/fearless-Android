@@ -101,18 +101,6 @@ allprojects {
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
 
-        def payRepoUrl = readSecret("PAY_WINGS_REPOSITORY_URL")
-        if (payRepoUrl) {
-            maven {
-                url = uri(payRepoUrl)
-                credentials {
-                    username = readSecret("PAY_WINGS_USERNAME") ?: ""
-                    password = readSecret("PAY_WINGS_PASSWORD") ?: ""
-                }
-            }
-        } else {
-            println("Skipping PayWings repository: PAY_WINGS_REPOSITORY_URL is not set")
-        }
     }
 
     configurations {
@@ -134,6 +122,23 @@ allprojects {
                 force "jp.co.soramitsu.shared_features:xcm:${sharedFeaturesVer}"
                 force "jp.co.soramitsu.shared_features:backup:${sharedFeaturesVer}"
                 println("Using SHARED_FEATURES_VERSION_OVERRIDE=${sharedFeaturesVer}")
+            }
+
+            // Force native-heavy dependencies to versions built with 16 KB page support.
+            def forcedTensorflowVersion = "2.16.1"
+            force "org.tensorflow:tensorflow-lite:${forcedTensorflowVersion}"
+            force "org.tensorflow:tensorflow-lite-api:${forcedTensorflowVersion}"
+
+            def forcedCameraVersion = "1.4.0"
+            [
+                    "camera-core",
+                    "camera-camera2",
+                    "camera-extensions",
+                    "camera-lifecycle",
+                    "camera-video",
+                    "camera-view"
+            ].each { moduleName ->
+                force "androidx.camera:${moduleName}:${forcedCameraVersion}"
             }
         }
     }
