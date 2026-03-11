@@ -93,7 +93,7 @@ The build maps the GitHub repository as a source dependency and builds the modul
 
 Gradle will fetch https://github.com/soramitsu/fearless-utils-Android and build module `jp.co.soramitsu.fearless-utils:fearless-utils` from source.
 
-Prereqs for building the utils from source: NDK (25.2.9519653) and Rust toolchain available on PATH (`rustup`, `cargo`).
+Prereqs for building the utils from source: NDK r28 (android-ndk-r28 / 28.0.x) and Rust toolchain available on PATH (`rustup`, `cargo`).
 
 ## Contributing
 

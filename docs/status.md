@@ -23,6 +23,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - CI Pipeline: `.github/workflows/android-ci.yml` runs detekt, unit tests (`runTest`), and app lint on push/PR.
 - Secrets in CI: Stubbed keys for Moonpay, EVM providers, and history providers to keep resolution stable; real keys required locally.
 - Local validation: `scripts/validate-local.sh` runs the same checks and ensures SDK packages.
+- Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.

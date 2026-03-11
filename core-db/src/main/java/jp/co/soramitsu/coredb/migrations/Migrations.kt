@@ -10,6 +10,12 @@ val Migration_73_74 = object : Migration(73, 74) {
     }
 }
 
+val Migration_74_75 = object : Migration(74, 75) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `sora_card`")
+    }
+}
+
 val Migration_72_73 = object : Migration(72, 73) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

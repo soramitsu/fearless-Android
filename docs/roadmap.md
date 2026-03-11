@@ -5,6 +5,7 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Recent Updates
+- 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.
 - 2026-03-05: Completed security remediation batch for TON and account flows (TonConnect origin validation, TON network client hardening, WebView restrictions, encrypted preferences migration to AES-GCM, PIN lockout throttling, and internal-cache JSON export hygiene).
 - 2026-03-05: Expanded TON indexer-first integration to include account transaction history ingestion with automatic TonAPI fallback, plus additional runtime tests for indexer/fallback behavior.
 - 2026-03-05: Added TON history cursor normalization (`lt[:hash]`) so indexer requests can use `cursor_lt/cursor_hash` directly when available.
@@ -34,7 +35,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
      - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
      - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (points to chain list validated against stable2503)
   2) Utils alignment (remote source): The build fetches `soramitsu/fearless-utils-Android` as a source dependency.
-     - Ensure NDK 25.2.9519653 and Rust toolchain with Android targets are installed (see README and CI config).
+     - Ensure NDK r28 (android-ndk-r28 / 28.0.x) and Rust toolchain with Android targets are installed (see README and CI config).
      - Build will compile utils from source; no local path configuration is needed.
   3) Library version pinning (shared_features): If required, pin via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` in `local.properties` or env.
   4) Build + quick checks:
@@ -167,17 +168,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   - Verify `url = uri(...)`, `namespace = '…'`, and packaging excludes for test APKs.
   - Keep a CI step that prints Gradle/AGP versions (android-ci.yml).
 
-13) Google Play 16KB page-size compliance (native libs)
-- Why: Play requires 16KB page-size support on newer devices; native libs must be compatible.
-- Acceptance:
-  - Migrate native builds (e.g., sr25519) to NDK r28+ which compiles with 16 KB page sizes by default.
-  - Verify with `readelf -l lib<name>.so` that segment alignment/page-size is compliant; no Play Console warnings.
-- Prompt:
-  - Plan upgrade to NDK r28+ in CI/local; update SDK installation steps and toolchains accordingly.
-  - Keep native libs uncompressed in the bundle or verify packaging flags as required by Play guidance.
-  - Keep a CI step to run `readelf -l` on built .so files and surface any issues in logs.
-
-14) Utils source mapping toggle
+13) Utils source mapping toggle
 - Why: Make remote source dependency for fearless-utils explicit and controllable.
 - Acceptance:
   - `settings.gradle` maps the GitHub repository only when `USE_REMOTE_UTILS=true` (env or -P).
