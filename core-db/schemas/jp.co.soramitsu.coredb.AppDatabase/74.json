@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 74,
-    "identityHash": "3909ad504e3e6dfada04d2bfca064870",
+    "identityHash": "76cc9e898252bb6822f7da6d30ce604e",
     "entities": [
       {
         "tableName": "address_book",
@@ -1227,6 +1227,48 @@
         ]
       },
       {
+        "tableName": "sora_card",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `accessToken` TEXT NOT NULL, `refreshToken` TEXT NOT NULL, `accessTokenExpirationTime` INTEGER NOT NULL, `kycStatus` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accessToken",
+            "columnName": "accessToken",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "refreshToken",
+            "columnName": "refreshToken",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accessTokenExpirationTime",
+            "columnName": "accessTokenExpirationTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kycStatus",
+            "columnName": "kycStatus",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
         "tableName": "chain_types",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chainId` TEXT NOT NULL, `typesConfig` TEXT NOT NULL, PRIMARY KEY(`chainId`))",
         "fields": [
@@ -1526,7 +1568,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3909ad504e3e6dfada04d2bfca064870')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '76cc9e898252bb6822f7da6d30ce604e')"
     ]
   }
 }
