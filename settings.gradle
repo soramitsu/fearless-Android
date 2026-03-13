@@ -29,13 +29,25 @@ include ':feature-nft-impl'
 include ':feature-liquiditypools-api'
 include ':feature-liquiditypools-impl'
 
-// Optionally map fearless-utils-Android from GitHub as a source dependency.
-// Enable by setting -PUSE_REMOTE_UTILS=true or USE_REMOTE_UTILS=true in the environment.
+// Prefer a local fearless-utils-Android checkout when available.
+def localUtilsPath = System.getenv("FEARLESS_UTILS_PATH")
+if (localUtilsPath == null || localUtilsPath.trim().isEmpty()) {
+    localUtilsPath = new File(rootDir, "../fearless-utils-Android").canonicalPath
+}
+def localUtilsDir = new File(localUtilsPath)
+// Enable Git source dependency fallback by setting -PUSE_REMOTE_UTILS=true or USE_REMOTE_UTILS=true
 def useRemoteUtils = (
         providers.gradleProperty("USE_REMOTE_UTILS").orNull?.toBoolean() ?: false
 ) || (System.getenv("USE_REMOTE_UTILS") == "true")
 
-if (useRemoteUtils) {
+if (localUtilsDir.exists()) {
+    println("Including local fearless-utils from: ${localUtilsDir}")
+    includeBuild(localUtilsDir) {
+        dependencySubstitution {
+            substitute module("jp.co.soramitsu.fearless-utils:fearless-utils") using project(":fearless-utils")
+        }
+    }
+} else if (useRemoteUtils) {
     println("Including remote fearless-utils from GitHub via sourceControl")
     sourceControl {
         gitRepository("https://github.com/soramitsu/fearless-utils-Android.git") {
@@ -43,5 +55,5 @@ if (useRemoteUtils) {
         }
     }
 } else {
-    println("USE_REMOTE_UTILS not set; using published artifacts for fearless-utils")
+    println("No local fearless-utils checkout found; using published artifacts")
 }

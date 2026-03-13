@@ -36,6 +36,9 @@ android {
         versionCode computeVersionCode()
         versionName computeVersionName()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
     }
     signingConfigs {
         ci {
@@ -189,7 +192,8 @@ android {
         jniLibs {
             // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
             useLegacyPackaging true
-            pickFirsts += ["**/libsr25519java.so", "**/libtoolChecker.so"]
+            excludes += ["**/armeabi/**"]
+            pickFirsts += ["**/libsr25519java.so", "**/libtoolChecker.so", "**/libsodium.so"]
         }
     }
 }
@@ -290,9 +294,9 @@ dependencies {
     implementation(libs.soramitsu.android.foundation)
 
     implementation platform(libs.reownBomDep)
-    // Exclude JNA from Reown libraries to prevent class duplication - using direct JNA dependency above
+    // Exclude JNA (and WalletConnect Pay) to prevent duplicate natives and page-size incompatible libs
     implementation libs.reownCoreDep, withoutJna
-    implementation libs.reownWalletKitDep, withoutJna
+    implementation libs.reownWalletKitDep, withoutJnaAndPay
 
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules
