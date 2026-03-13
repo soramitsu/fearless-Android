@@ -41,5 +41,7 @@ dependencies {
     implementation(libs.reownWalletKitDep) {
         // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
         exclude(group = "net.java.dev.jna")
+        // Exclude WalletConnect Pay until its native dependencies ship with 16 KB page support
+        exclude(group = "com.walletconnect", module = "pay")
     }
 }

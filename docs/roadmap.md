@@ -5,6 +5,8 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Recent Updates
+- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
+- 2026-03-12: Temporarily excluded the WalletConnect Pay dependency (and its `yttrium-wcpay` natives) until Reown publishes 16 KB–aligned builds.
 - 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.
 - 2026-03-05: Completed security remediation batch for TON and account flows (TonConnect origin validation, TON network client hardening, WebView restrictions, encrypted preferences migration to AES-GCM, PIN lockout throttling, and internal-cache JSON export hygiene).
 - 2026-03-05: Expanded TON indexer-first integration to include account transaction history ingestion with automatic TonAPI fallback, plus additional runtime tests for indexer/fallback behavior.

@@ -52,7 +52,7 @@ ext {
 buildscript {
     ext {
         // SDK and tools
-        compileSdkVersion = 35
+        compileSdkVersion = 36
         minSdkVersion = 26
         targetSdkVersion = 35
 
@@ -60,6 +60,11 @@ buildscript {
         // Closure to exclude JNA from 3rd party dependencies to prevent class duplication
         // JNA is added as direct dependency where needed to avoid "missing class" errors
         withoutJna = { exclude group: 'net.java.dev.jna' }
+        withoutPay = { exclude group: 'com.walletconnect', module: 'pay' }
+        withoutJnaAndPay = {
+            exclude group: 'net.java.dev.jna'
+            exclude group: 'com.walletconnect', module: 'pay'
+        }
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
     }
 
@@ -148,8 +153,10 @@ tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
 
-tasks.register('runTest', GradleBuild) {
-    tasks = ['clean', 'detektAll', 'runModuleTests', 'jacocoTestReport']
+tasks.register('runTest') {
+    group = 'verification'
+    description = 'Runs clean -> detekt -> module tests -> jacoco in order.'
+    dependsOn 'clean', 'detektAll'
 }
 
 // Helper: print effective Polkadot SDK alignment overrides and defaults
@@ -178,15 +185,34 @@ tasks.register('printPolkadotSdkAlignment') {
 }
 
 // Aggregated post-merge checks to validate build and alignment (strict order, no cross-task lookups)
-tasks.register('postMergeCheck', GradleBuild) {
+tasks.register('postMergeCheck') {
     group = 'verification'
     description = 'Print alignment, run tests, assemble debug, then lint in sequence.'
-    tasks = [
-            'printPolkadotSdkAlignment',
-            'runTest',
-            ':app:assembleDebug',
-            ':app:lint',
-    ]
+    dependsOn 'printPolkadotSdkAlignment', 'runTest', ':app:assembleDebug', ':app:lint'
+}
+
+gradle.projectsEvaluated {
+    def moduleRunTests = []
+    def moduleJacocoReports = []
+
+    subprojects.each { proj ->
+        proj.tasks.matching { it.name == 'runModuleTests' }.configureEach { moduleRunTests += it }
+        proj.tasks.matching { it.name == 'jacocoTestReport' }.configureEach { moduleJacocoReports += it }
+    }
+
+    tasks.named('runTest').configure {
+        dependsOn moduleJacocoReports
+        mustRunAfter('printPolkadotSdkAlignment')
+    }
+
+    tasks.named('detektAll').configure { mustRunAfter('clean') }
+    moduleRunTests.each { it.mustRunAfter(tasks.named('detektAll').get()) }
+    moduleJacocoReports.each { report ->
+        report.mustRunAfter(moduleRunTests)
+    }
+
+    project(':app').tasks.named('assembleDebug').configure { mustRunAfter(':runTest') }
+    project(':app').tasks.named('lint').configure { mustRunAfter(':app:assembleDebug') }
 }
 
 // Jenkins-friendly alias that avoids nested Gradle builds.

@@ -73,9 +73,9 @@ dependencies {
     implementation project(':feature-tonconnect-api')
 
     implementation platform(libs.reownBomDep)
-    // Exclude JNA from Reown libraries to prevent class duplication - using direct JNA dependency below
+    // Exclude JNA (and WalletConnect Pay) from Reown libraries to prevent duplicate natives and page-size incompatible libs
     implementation libs.reownCoreDep, withoutJna
-    implementation libs.reownWalletKitDep, withoutJna
+    implementation libs.reownWalletKitDep, withoutJnaAndPay
 
     implementation libs.kotlin.stdlib.jdk7
 

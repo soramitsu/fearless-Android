@@ -23,6 +23,8 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - CI Pipeline: `.github/workflows/android-ci.yml` runs detekt, unit tests (`runTest`), and app lint on push/PR.
 - Secrets in CI: Stubbed keys for Moonpay, EVM providers, and history providers to keep resolution stable; real keys required locally.
 - Local validation: `scripts/validate-local.sh` runs the same checks and ensures SDK packages.
+- WalletConnect/Reown SDK: BOM bumped to 1.6.9 (requires AGP 8.9.1 + compileSdk 36) so the bundled UniFFI native libs ship with 16 KB page alignment.
+- WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
 - Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
 
 ## Runtime & Chains
