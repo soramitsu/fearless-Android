@@ -1,3 +1,23 @@
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+
+// Gradle 9 removed the jcenter() helper but fearless-utils still calls it.
+// Provide a shim so the included build keeps working until upstream is updated.
+if (!DefaultRepositoryHandler.metaClass.respondsTo(DefaultRepositoryHandler, "jcenter")) {
+    DefaultRepositoryHandler.metaClass.jcenter << { Closure config = null ->
+        MavenArtifactRepository repo = delegate.maven {
+            name = "jcenter-compat"
+            url = uri("https://jcenter.bintray.com/")
+        }
+        if (config != null) {
+            config.delegate = repo
+            config.resolveStrategy = Closure.DELEGATE_FIRST
+            config()
+        }
+        repo
+    }
+}
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "fearlessWallet"

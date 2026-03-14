@@ -26,6 +26,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - WalletConnect/Reown SDK: BOM bumped to 1.6.9 (requires AGP 8.9.1 + compileSdk 36) so the bundled UniFFI native libs ship with 16 KB page alignment.
 - WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
 - Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
+- Utils composite build: `settings.gradle` now shims the removed `jcenter()` repository helper so Gradle 9+ can still include the local `fearless-utils-Android` checkout until it is updated upstream.
 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.
