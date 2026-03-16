@@ -1,7 +1,7 @@
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.artifacts.dsl.DependencyHandler
 
 // Gradle 9 removed the jcenter() helper but fearless-utils still calls it.
 // Provide a shim so the included build keeps working until upstream is updated.
@@ -102,9 +102,27 @@ def useRemoteUtils = (
         providers.gradleProperty("USE_REMOTE_UTILS").orNull?.toBoolean() ?: false
 ) || (System.getenv("USE_REMOTE_UTILS") == "true")
 
-if (localUtilsDir.exists()) {
+def forceLocalUtils = (
+        providers.gradleProperty("FORCE_LOCAL_UTILS").orNull?.toBoolean() ?: false
+) || (System.getenv("FORCE_LOCAL_UTILS") == "true")
+def gradleMajorVersion = gradle.gradleVersion.tokenize('.').first().toInteger()
+def localUtilsSupported = gradleMajorVersion < 9
+
+if (localUtilsDir.exists() && (localUtilsSupported || forceLocalUtils)) {
     println("Including local fearless-utils from: ${localUtilsDir}")
     includeBuild(localUtilsDir)
+} else if (localUtilsDir.exists() && !forceLocalUtils && !localUtilsSupported) {
+    println("Skipping local fearless-utils because Gradle ${gradle.gradleVersion} is incompatible with its build scripts. Set FORCE_LOCAL_UTILS=true to override.")
+    if (useRemoteUtils) {
+        println("Using remote fearless-utils from GitHub via sourceControl")
+        sourceControl {
+            gitRepository("https://github.com/soramitsu/fearless-utils-Android.git") {
+                producesModule("jp.co.soramitsu.fearless-utils:fearless-utils")
+            }
+        }
+    } else {
+        println("No remote fallback configured; published artifacts will be used.")
+    }
 } else if (useRemoteUtils) {
     println("Including remote fearless-utils from GitHub via sourceControl")
     sourceControl {
