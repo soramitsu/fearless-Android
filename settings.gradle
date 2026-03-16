@@ -1,7 +1,6 @@
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.DefaultDependencyHandler
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.tasks.JavaExec
 
 // Gradle 9 removed the jcenter() helper but fearless-utils still calls it.
@@ -33,11 +32,19 @@ if (!JavaExec.metaClass.respondsTo(JavaExec, "getMain")) {
     }
 }
 
+def tryLoadClass(String name) {
+    try {
+        return Class.forName(name)
+    } catch (Throwable ignored) {
+        return null
+    }
+}
+
 // Gradle 9 removed DependencyHandler.module(Object); keep it for legacy utils scripts.
 def dependencyHandlerMetaTargets = [
         DependencyHandler,
-        DefaultDependencyHandler
-]
+        tryLoadClass("org.gradle.api.internal.artifacts.dsl.DefaultDependencyHandler")
+].findAll { it != null }
 dependencyHandlerMetaTargets.each { handlerClass ->
     if (!handlerClass.metaClass.respondsTo(handlerClass, "module", Object)) {
         handlerClass.metaClass.module << { Object notation ->
