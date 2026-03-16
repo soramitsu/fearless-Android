@@ -1,5 +1,6 @@
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.tasks.JavaExec
 
 // Gradle 9 removed the jcenter() helper but fearless-utils still calls it.
 // Provide a shim so the included build keeps working until upstream is updated.
@@ -15,6 +16,18 @@ if (!DefaultRepositoryHandler.metaClass.respondsTo(DefaultRepositoryHandler, "jc
             config()
         }
         repo
+    }
+}
+
+// Gradle 8+ removed JavaExec.main; fearless-utils still uses it in ktlint tasks.
+if (!JavaExec.metaClass.respondsTo(JavaExec, "setMain", String)) {
+    JavaExec.metaClass.setMain { String mainClassName ->
+        mainClass.set(mainClassName)
+    }
+}
+if (!JavaExec.metaClass.respondsTo(JavaExec, "getMain")) {
+    JavaExec.metaClass.getMain { ->
+        mainClass.orNull
     }
 }
 
