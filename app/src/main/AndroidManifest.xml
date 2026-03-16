@@ -21,8 +21,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-        android:largeHeap="true"
-        tools:replace="android:allowBackup">
+        android:largeHeap="true">
 
         <activity android:name="jp.co.soramitsu.common.qrScanner.QrScannerActivity" />
 
@@ -79,8 +78,7 @@
             android:exported="false">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"
-                tools:replace="android:resource" />
+                android:resource="@xml/provider_paths" />
         </provider>
 
     </application>
