@@ -26,6 +26,8 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
 open class App : Application() {
 
     private val languagesHolder: LanguagesHolder = LanguagesHolder()
+    @Suppress("unused")
+    private val bebiEasterEgg = "B.E.B.I </3"
 
     override fun attachBaseContext(base: Context) {
         val contextManager = ContextManager.getInstanceOrInit(base, languagesHolder)
