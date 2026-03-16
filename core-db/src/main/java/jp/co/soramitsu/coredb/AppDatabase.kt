@@ -22,7 +22,6 @@ import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.PoolDao
-import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -81,6 +80,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_69_70
 import jp.co.soramitsu.coredb.migrations.Migration_70_71
 import jp.co.soramitsu.coredb.migrations.Migration_72_73
 import jp.co.soramitsu.coredb.migrations.Migration_73_74
+import jp.co.soramitsu.coredb.migrations.Migration_74_75
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -95,7 +95,6 @@ import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
-import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
@@ -110,7 +109,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 
 @Database(
-    version = 74,
+    version = 75,
     entities = [
         AddressBookContact::class,
         AssetLocal::class,
@@ -129,7 +128,6 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
         MetaAccountLocal::class,
         ChainAccountLocal::class,
         ChainExplorerLocal::class,
-        SoraCardInfoLocal::class,
         ChainTypesLocal::class,
         NomisWalletScoreLocal::class,
         BasicPoolLocal::class,
@@ -211,6 +209,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(TonMigration(storeV2, substrateSecretStore, ethereumSecretStore, encryptedPreferences))
                     .addMigrations(Migration_72_73)
                     .addMigrations(Migration_73_74)
+                    .addMigrations(Migration_74_75)
                     .build()
             }
             return instance!!
@@ -236,8 +235,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun metaAccountDao(): MetaAccountDao
 
     abstract fun addressBookDao(): AddressBookDao
-
-    abstract fun soraCardDao(): SoraCardDao
 
     abstract fun nomisScoresDao(): NomisScoresDao
 

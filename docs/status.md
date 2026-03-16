@@ -17,13 +17,17 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Swaps & Pools: Polkaswap and liquidity pools present (`feature-polkaswap-*`, `feature-liquiditypools-*`).
 - WalletConnect v2: Initialized in `App.setupWalletConnect()` with Reown SDK.
 - TON Connect: Present (`feature-tonconnect-*`).
-- Sora Card: Present but requires credentials via Gradle props.
 - NFTs: Present; details screen has TODO placeholders.
 
 ## Build & CI
 - CI Pipeline: `.github/workflows/android-ci.yml` runs detekt, unit tests (`runTest`), and app lint on push/PR.
 - Secrets in CI: Stubbed keys for Moonpay, EVM providers, and history providers to keep resolution stable; real keys required locally.
-- Local validation: `scripts/validate-local.sh` runs the same checks and ensures SDK packages.
+- Local validation: `scripts/validate-local.sh` runs the same checks and now installs Android platform/build-tools 36 to match the compile SDK, along with NDK r28 and platform-tools.
+- WalletConnect/Reown SDK: BOM bumped to 1.6.9 (requires AGP 8.9.1 + compileSdk 36) so the bundled UniFFI native libs ship with 16 KB page alignment.
+- WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
+- Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
+- Native crypto rebuild tooling: `scripts/build-libsodium.sh` now auto-detects the host-specific `toolchains/llvm/prebuilt` directory (darwin/linux/windows) so libsodium can be rebuilt on non-macOS hosts without manual tweaks.
+- Utils composite build: `settings.gradle` now shims the removed `jcenter()` repository helper plus the deprecated `JavaExec.main` API so Gradle 9+ can still include the local `fearless-utils-Android` checkout until it is updated upstream. Because that repo still targets AGP/Gradle 8, Gradle 9 builds skip the local include by default and fall back to the published artifact unless `FORCE_LOCAL_UTILS=true` is supplied.
 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.
@@ -52,7 +56,6 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Code quality: Detekt enforced in CI. Several TODO/FIXME markers remain in features and common utils.
 - Incomplete UI/logic areas:
   - NFT details screen placeholders.
-  - Sora Card details screen multiple TODOs.
   - Staking validator oversubscription/slashed logic marked FIXME.
   - Substrate balance loader contains a hardcoded `chainAssetId` fallback.
   - Meta-account/EVM nullability handling flagged in multiple call sites (`accountId(chain)!!`).
@@ -70,8 +73,6 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   - `feature-staking-impl/.../StakingRelayChainScenarioInteractor.kt` — EVM nullability.
 - Crowdloan:
   - `feature-crowdloan-impl/.../KaruraContributeInteractor.kt` — TODO marker.
-- Sora Card:
-  - `feature-soracard-impl/.../SoraCardDetailsScreen.kt` — multiple TODO placeholders.
 - NFTs:
   - `feature-nft-impl/.../DetailsScreen.kt` — TODO placeholder.
 - Common:

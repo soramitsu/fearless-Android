@@ -2,8 +2,9 @@
 set -euo pipefail
 
 REQUIRED_JAVA=21
-REQUIRED_API=35
-REQUIRED_BUILD_TOOLS=35.0.0
+REQUIRED_API=36
+REQUIRED_BUILD_TOOLS=36.0.0
+REQUIRED_NDK=28.0.12674087
 
 log() { echo -e "[validate] $*"; }
 warn() { echo -e "[validate][warn] $*" >&2; }
@@ -72,8 +73,8 @@ prepare_android_packages() {
   fi
   log "Accepting licenses (if any)…"
   yes | "$sm" --licenses >/dev/null || true
-  log "Ensuring required SDK packages (platforms;android-${REQUIRED_API}, build-tools;${REQUIRED_BUILD_TOOLS}, platform-tools)…"
-  "$sm" --install "platforms;android-${REQUIRED_API}" "build-tools;${REQUIRED_BUILD_TOOLS}" "platform-tools"
+  log "Ensuring required SDK packages (platforms;android-${REQUIRED_API}, build-tools;${REQUIRED_BUILD_TOOLS}, platform-tools, ndk;${REQUIRED_NDK})…"
+  "$sm" --install "platforms;android-${REQUIRED_API}" "build-tools;${REQUIRED_BUILD_TOOLS}" "platform-tools" "ndk;${REQUIRED_NDK}"
 }
 
 run_gradle_tasks() {

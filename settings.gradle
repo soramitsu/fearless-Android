@@ -1,3 +1,90 @@
+import org.gradle.api.GradleException
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.artifacts.dsl.DependencyHandler
+
+// Gradle 9 removed the jcenter() helper but fearless-utils still calls it.
+// Provide a shim so the included build keeps working until upstream is updated.
+if (!DefaultRepositoryHandler.metaClass.respondsTo(DefaultRepositoryHandler, "jcenter")) {
+    DefaultRepositoryHandler.metaClass.jcenter << { Closure config = null ->
+        MavenArtifactRepository repo = delegate.maven {
+            name = "jcenter-compat"
+            url = uri("https://jcenter.bintray.com/")
+        }
+        if (config != null) {
+            config.delegate = repo
+            config.resolveStrategy = Closure.DELEGATE_FIRST
+            config()
+        }
+        repo
+    }
+}
+
+// Gradle 8+ removed JavaExec.main; fearless-utils still uses it in ktlint tasks.
+if (!JavaExec.metaClass.respondsTo(JavaExec, "setMain", String)) {
+    JavaExec.metaClass.setMain { String mainClassName ->
+        mainClass.set(mainClassName)
+    }
+}
+if (!JavaExec.metaClass.respondsTo(JavaExec, "getMain")) {
+    JavaExec.metaClass.getMain { ->
+        mainClass.orNull
+    }
+}
+
+def tryLoadClass(String name) {
+    try {
+        return Class.forName(name)
+    } catch (Throwable ignored) {
+        return null
+    }
+}
+
+// Gradle 9 removed DependencyHandler.module(Object); keep it for legacy utils scripts.
+def dependencyHandlerMetaTargets = [
+        DependencyHandler,
+        tryLoadClass("org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
+].findAll { it != null }
+dependencyHandlerMetaTargets.each { handlerClass ->
+    if (!handlerClass.metaClass.respondsTo(handlerClass, "module", Object)) {
+        handlerClass.metaClass.module << { Object notation ->
+            delegate.create(notation)
+        }
+        handlerClass.metaClass.module << { Object notation, Closure config ->
+            def dependency = delegate.create(notation)
+            config.delegate = dependency
+            config.resolveStrategy = Closure.DELEGATE_FIRST
+            config.call(dependency)
+            dependency
+        }
+    }
+}
+
+def moduleSelectorFactoryMethod = tryLoadClass("org.gradle.internal.component.external.model.DefaultModuleComponentSelector")?.declaredMethods?.find {
+    it.name == "newSelector" && it.parameterCount == 3
+}
+moduleSelectorFactoryMethod?.setAccessible(true)
+
+def createModuleSelector = { Object notation ->
+    if (moduleSelectorFactoryMethod == null) {
+        throw new GradleException("Legacy module() shim unavailable: DefaultModuleComponentSelector not found")
+    }
+    def parts = notation.toString().split(":", 3)
+    if (parts.length < 2) {
+        throw new GradleException("module notation '$notation' must be 'group:name[:version]'")
+    }
+    def version = parts.length == 3 ? parts[2] : null
+    moduleSelectorFactoryMethod.invoke(null, parts[0], parts[1], version)
+}
+
+def dependencySubstitutionsClass = tryLoadClass("org.gradle.api.artifacts.DependencySubstitutions")
+if (dependencySubstitutionsClass != null && !dependencySubstitutionsClass.metaClass.respondsTo(dependencySubstitutionsClass, "module", Object)) {
+    dependencySubstitutionsClass.metaClass.module << { Object notation ->
+        createModuleSelector(notation)
+    }
+}
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "fearlessWallet"
@@ -18,8 +105,6 @@ include ':feature-polkaswap-api'
 include ':feature-polkaswap-impl'
 include ':feature-success-api'
 include ':feature-success-impl'
-include ':feature-soracard-api'
-include ':feature-soracard-impl'
 include ':runtime-permission'
 
 include ':feature-tonconnect-api'
@@ -31,13 +116,40 @@ include ':feature-nft-impl'
 include ':feature-liquiditypools-api'
 include ':feature-liquiditypools-impl'
 
-// Optionally map fearless-utils-Android from GitHub as a source dependency.
-// Enable by setting -PUSE_REMOTE_UTILS=true or USE_REMOTE_UTILS=true in the environment.
+// Prefer a local fearless-utils-Android checkout when available.
+def localUtilsPath = System.getenv("FEARLESS_UTILS_PATH")
+if (localUtilsPath == null || localUtilsPath.trim().isEmpty()) {
+    localUtilsPath = new File(rootDir, "../fearless-utils-Android").canonicalPath
+}
+def localUtilsDir = new File(localUtilsPath)
+// Enable Git source dependency fallback by setting -PUSE_REMOTE_UTILS=true or USE_REMOTE_UTILS=true
 def useRemoteUtils = (
         providers.gradleProperty("USE_REMOTE_UTILS").orNull?.toBoolean() ?: false
 ) || (System.getenv("USE_REMOTE_UTILS") == "true")
 
-if (useRemoteUtils) {
+def forceLocalUtils = (
+        providers.gradleProperty("FORCE_LOCAL_UTILS").orNull?.toBoolean() ?: false
+) || (System.getenv("FORCE_LOCAL_UTILS") == "true")
+
+def gradleMajorVersion = gradle.gradleVersion.tokenize('.').first().toInteger()
+def localUtilsSupported = gradleMajorVersion < 9
+
+if (localUtilsDir.exists() && (localUtilsSupported || forceLocalUtils)) {
+    println("Including local fearless-utils from: ${localUtilsDir}")
+    includeBuild(localUtilsDir)
+} else if (localUtilsDir.exists() && !forceLocalUtils && !localUtilsSupported) {
+    println("Skipping local fearless-utils because Gradle ${gradle.gradleVersion} is incompatible with its build scripts. Set FORCE_LOCAL_UTILS=true to override.")
+    if (useRemoteUtils) {
+        println("Using remote fearless-utils from GitHub via sourceControl")
+        sourceControl {
+            gitRepository("https://github.com/soramitsu/fearless-utils-Android.git") {
+                producesModule("jp.co.soramitsu.fearless-utils:fearless-utils")
+            }
+        }
+    } else {
+        println("No remote fallback configured; published artifacts will be used.")
+    }
+} else if (useRemoteUtils) {
     println("Including remote fearless-utils from GitHub via sourceControl")
     sourceControl {
         gitRepository("https://github.com/soramitsu/fearless-utils-Android.git") {
@@ -45,5 +157,5 @@ if (useRemoteUtils) {
         }
     }
 } else {
-    println("USE_REMOTE_UTILS not set; using published artifacts for fearless-utils")
+    println("No local fearless-utils checkout found; using published artifacts")
 }

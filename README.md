@@ -34,35 +34,6 @@ MOONPAY_PRODUCTION_SECRET=stub
 
 Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
 
-### Sora CARD SDK
-
-For starting Sora CARD SDK initial data have to be provided via gradle properties due to security purpose.
-
-````
-// PayWings repo credentials properties for getting artifacts
-PAY_WINGS_REPOSITORY_URL
-PAY_WINGS_USERNAME
-PAY_WINGS_PASSWORD
-
-// Sora CARD API key
-SORA_CARD_API_KEY_TEST
-SORA_CARD_API_KEY_PROD
-SORA_CARD_DOMAIN_TEST
-SORA_CARD_DOMAIN_PROD
-
-// Sora CARD KYC credentials
-SORA_CARD_KYC_ENDPOINT_URL_TEST
-SORA_CARD_KYC_ENDPOINT_URL_PROD
-SORA_CARD_KYC_USERNAME_TEST
-SORA_CARD_KYC_USERNAME_PROD
-SORA_CARD_KYC_PASSWORD_TEST
-SORA_CARD_KYC_PASSWORD_PROD
-
-// Sora CARD backend
-SORA_BACKEND_DEBUG
-SORA_BACKEND_RELEASE
-````
-
 ### X1 plugin
 
 X1 is a plugin which is embedded into webView. It requires url and id for launching.
@@ -111,18 +82,30 @@ Manual equivalents if you prefer:
 
 Prerequisites: JDK 21 (Temurin/Adoptium) and Android SDK with API 35 + build-tools 35.0.0. The script will try to locate `ANDROID_SDK_ROOT` and install missing packages if `sdkmanager` is available.
 
-### Use fearless-utils-Android (remote source dependency)
+### Use fearless-utils-Android (local or remote source dependency)
 
-The build maps the GitHub repository as a source dependency and builds the module from source.
+The build now prefers a local checkout of `fearless-utils-Android`. By default it looks for `../fearless-utils-Android`, or you can override it with `FEARLESS_UTILS_PATH`:
 
 ```
-# Requires network access during Gradle configuration
+export FEARLESS_UTILS_PATH=/absolute/path/to/fearless-utils-Android
 ./gradlew :app:assembleDebug
 ```
 
-Gradle will fetch https://github.com/soramitsu/fearless-utils-Android and build module `jp.co.soramitsu.fearless-utils:fearless-utils` from source.
+Gradle includes the local project via a composite build and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils` automatically.  
+If no local checkout is found and you need to build from source, set `USE_REMOTE_UTILS=true` (env var or `-PUSE_REMOTE_UTILS=true`) and Gradle will fetch `https://github.com/soramitsu/fearless-utils-Android` instead.  
+Prereqs for building the utils from source: NDK r28 (android-ndk-r28 / 28.0.x) and a Rust toolchain on `PATH` (`rustup`, `cargo`).
 
-Prereqs for building the utils from source: NDK (25.2.9519653) and Rust toolchain available on PATH (`rustup`, `cargo`).
+### Rebuild libsodium with 16 KB alignment
+
+We vendor libsodium sources under `third_party/libsodium` and ship aligned binaries under `app/src/main/jniLibs`.  
+If you need to refresh them (e.g., after pulling upstream changes), run:
+
+```
+ANDROID_NDK_HOME=/Users/<you>/Library/Android/sdk/ndk/28.0.12674087 \
+./scripts/build-libsodium.sh
+```
+
+The script rebuilds `libsodium.so` for arm64-v8a, armeabi-v7a, x86, and x86_64 with the Google Play-required `-Wl,-z,common-page-size=4096 -Wl,-z,max-page-size=16384` flags and copies them into `app/src/main/jniLibs`.
 
 ## Contributing
 

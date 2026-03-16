@@ -734,7 +734,6 @@
   <string name="profile_network_title">Ağlar</string>
   <string name="profile_pincode_change_title">PIN kodunu değiştir.</string>
   <string name="profile_settings_title">Ayarlar</string>
-  <string name="profile_soracard_title">SORA Kartı</string>
   <string name="profile_title">Hesap</string>
   <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Cüzdanlar</string>
@@ -806,13 +805,6 @@
   <string name="sora_bridge_amount_less_fee">Aktarmaya çalıştığınız tutar, işlem ücretlerini karşılamaya yetmiyor. %sAğ İşlem gerçekleşmese de Sora ağındaki ücretler sizden yine de tahsil edilecektir.</string>
   <string name="sora_bridge_low_amount_format_alert">Şu anda bir dk. miktar%sSORA Ağının istikrarını ve güvenliğini sağlamak amacıyla köprü oluşturmak için. Anlayışınız için minnettarız.</string>
   <string name="sora_bridge_low_amount_format_alert_2">Şu anda istikrar ve güvenliği sağlamak için köprüleme için minimum %s miktarı var. Anlayışınız için teşekkür ederiz.</string>
-  <string name="sora_card_annual_service_fee">0 € yıllık hizmet ücreti</string>
-  <string name="sora_card_blacklisted_countires_title">Uygulama dışı</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[<b>Belirli ülkelerde<br>sakinler şu anda SORA Kartına başvuramaz</b><br><a href=\"https://soracard.com/blacklist/\">Bkz. listele</a>]]></string>
-  <string name="sora_card_enable_card_title">Kartı etkinleştir</string>
-  <string name="sora_card_get_sora_card">SORA Kartını Alın</string>
-  <string name="sora_card_title">SORA Kartına itibari para veya kripto para yükleyin ve çevrimiçi, mağazada ödeme yapın veya ATM\'den para çekin</string>
-  <string name="sora_card_verification_successful">Kartınız yolda</string>
   <string name="specify_network">Ağı Belirt</string>
   <string name="specify_network_description">Adres öneki birden fazla ağla eşleşiyor, lütfen ağı belirtin</string>
   <string name="sr25519_selection_subtitle">sr25519 (önerilen)</string>

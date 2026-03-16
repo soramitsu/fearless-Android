@@ -22,7 +22,6 @@ Each feature is split into `-api` (interfaces, contracts) and `-impl` (implement
 - `feature-polkaswap-api` / `feature-polkaswap-impl`: Swap functionality and related liquidity operations.
 - `feature-liquiditypools-api` / `feature-liquiditypools-impl`: Liquidity pool management UIs.
 - `feature-nft-api` / `feature-nft-impl`: NFT browsing/details.
-- `feature-soracard-api` / `feature-soracard-impl`: Sora Card integration; requires credentials via Gradle props.
 - `feature-walletconnect-api` / `feature-walletconnect-impl`: WalletConnect v2 flows.
 - `feature-tonconnect-api` / `feature-tonconnect-impl`: TON Connect flows.
 - `feature-success-api` / `feature-success-impl`: Generic success/confirmation screens and flows.
@@ -32,4 +31,3 @@ Each feature is split into `-api` (interfaces, contracts) and `-impl` (implement
 - `buildSrc/`: Gradle convention plugins, versions catalogs wiring, and build logic.
 - `scripts/`: Helper scripts (e.g., `validate-local.sh`) and Gradle snippets (e.g., `secrets.gradle`, versions setup).
 - `detekt/`: Static analysis configuration.
-

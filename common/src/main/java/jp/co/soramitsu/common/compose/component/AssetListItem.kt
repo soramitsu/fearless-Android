@@ -46,8 +46,6 @@ import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.oauth.base.sdk.contract.IbanInfo
-import jp.co.soramitsu.oauth.base.sdk.contract.IbanStatus
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -373,12 +371,6 @@ private fun PreviewAssetListItem() {
                         assetIconUrl,
                         assetChainUrlsMap.values.toList()
                     )
-                )
-                MarginVertical(margin = 8.dp)
-                SoraCardFiatCard(
-                    state = previewSoraCardItemViewState,
-                    modifier = Modifier,
-                    onClick = {},
                 )
             }
         }

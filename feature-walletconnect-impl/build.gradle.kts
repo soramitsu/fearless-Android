@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.reownWalletKitDep) {
         // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
         exclude(group = "net.java.dev.jna")
+        // Exclude WalletConnect Pay until 16 KB native builds are available
+        exclude(group = "com.walletconnect", module = "pay")
     }
 
     implementation(libs.zxing.core)

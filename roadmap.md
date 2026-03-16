@@ -16,7 +16,7 @@ Suggested steps:
    - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
    - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
    - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (validated against stable2503)
-2) Utils integration (remote source): The build fetches `soramitsu/fearless-utils-Android` via sourceControl and compiles it from source. Ensure NDK 25.2.9519653 + Rust toolchain with Android targets are installed (see README).
+2) Utils integration (remote source): The build fetches `soramitsu/fearless-utils-Android` via sourceControl and compiles it from source. Ensure NDK r28 (android-ndk-r28 / 28.0.x) + Rust toolchain with Android targets are installed (see README).
 3) Optional: pin `shared_features` via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` if required by the SDK combo.
 4) Build + checks:
    - `./gradlew detektAll runTest :app:lint`
@@ -49,4 +49,4 @@ More roadmap items (P0/P1/P2), including technical debt and follow-ups, are main
 
 ## Build & Play Compliance
 - Gradle/AGP update: bump Gradle wrapper and Android Gradle Plugin to the latest stable release; remove deprecations (e.g., use `url = uri(...)`, `namespace = '…'`). Verify builds with JDK 21 locally and in CI.
-- Google Play 16KB page size: migrate native libraries (e.g., sr25519) to NDK r28+ (16 KB pages by default). Validate with `readelf -l` and address Play Console checks. Keep packaging compliant (uncompressed native libs or required flags).
+- Google Play 16KB page size: completed — native libraries (sr25519, TonConnect helpers, toolChecker) now build with NDK r28 (16 KB pages), CI runs `readelf -l` to verify alignment, and Play Console page-size warnings are cleared.

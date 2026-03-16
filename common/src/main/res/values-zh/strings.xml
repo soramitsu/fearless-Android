@@ -730,7 +730,6 @@
   <string name="profile_network_title">网路</string>
   <string name="profile_pincode_change_title">更改PIN码</string>
   <string name="profile_settings_title">设置</string>
-  <string name="profile_soracard_title">SORA卡</string>
   <string name="profile_title">账户</string>
   <string name="profile_walletconnect_title">钱包连接</string>
   <string name="profile_wallets_title">钱包</string>
@@ -801,13 +800,6 @@
   <string name="sora_bridge_amount_less_fee">您尝试转账的金额不足以支付%s网络上的交易费用。尽管交易无法完成，您仍将在Sora网络上被收取费用。</string>
   <string name="sora_bridge_low_amount_format_alert">目前，为了确保SORA网络的稳定性和安全性，跨链桥转账的最低金额为%s。感谢您的理解。</string>
   <string name="sora_bridge_low_amount_format_alert_2">目前，为了确保稳定性和安全性，跨链的最低金额为 %s。感谢您的理解。</string>
-  <string name="sora_card_annual_service_fee">0欧元年服务费</string>
-  <string name="sora_card_blacklisted_countires_title">申请被排除</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[目前，来自<b>某些国家的居民<br>无法申请</b>SORA卡片。<br><a href=\"https://soracard.com/blacklist/\">查看名单</a>]]></string>
-  <string name="sora_card_enable_card_title">启用卡片</string>
-  <string name="sora_card_get_sora_card">获取SORA卡</string>
-  <string name="sora_card_title">使用法币或加密货币充值SORA卡，并可在线支付、实体店消费或在ATM机上取款。</string>
-  <string name="sora_card_verification_successful">您的卡已在路上</string>
   <string name="specify_network">指定网络</string>
   <string name="specify_network_description">地址前缀匹配了多个网络，请指定网络。</string>
   <string name="sr25519_selection_subtitle">sr25519（推荐）</string>

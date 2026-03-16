@@ -24,7 +24,6 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
-import jp.co.soramitsu.common.compose.component.SoraCardProgress
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -33,10 +32,6 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
-import jp.co.soramitsu.soracard.api.domain.SoraCardBasicStatus
-import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
-import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -115,12 +110,6 @@ class BalanceListViewModelTests {
     private lateinit var walletConnectInteractor: WalletConnectInteractor
 
     @MockK
-    private lateinit var soraCardInteractor: SoraCardInteractor
-
-    @MockK
-    private lateinit var soraCardRouter: SoraCardRouter
-
-    @MockK
     private lateinit var picture: PictureDrawable
 
     @MockK
@@ -137,8 +126,6 @@ class BalanceListViewModelTests {
         every { coroutineManager.io } returns this.coroutineContext[CoroutineDispatcher]!!
         every { coroutineManager.default } returns this.coroutineContext[CoroutineDispatcher]!!
         coEvery { chainInteractor.getChainAssets() } returns listOf(createAsset())
-        every { soraCardInteractor.basicStatus } returns MutableStateFlow(createSoraCard())
-        every { soraCardInteractor.getSoraCardProgress() } returns SoraCardProgress.START
         every { walletInteractor.assetsFlowAndAccount() } returns flowOf(123L to emptyList())
         every { chainInteractor.getChainsFlow() } returns flowOf(emptyList())
         every { walletInteractor.selectedMetaAccountFlow() } returns flowOf(createMetaAccount())
@@ -167,10 +154,6 @@ class BalanceListViewModelTests {
             )
         )
         every { nomisScoreInteractor.observeCurrentAccountScore() } returns flowOf(createNomis())
-        every { walletInteractor.isShowGetSoraCard() } returns true
-        every { soraCardInteractor.observeBuyXorVisibility() } returns flowOf(true)
-        every { walletInteractor.observeIsShowSoraCard() } returns flowOf(true)
-        coEvery { soraCardInteractor.initialize() } just runs
         every { walletInteractor.networkIssuesFlow() } returns flowOf(emptyMap())
         every { selectedFiat.flow() } returns flowOf("selected fiat")
         every { getAvailableFiatCurrencies.flow() } returns flowOf(emptyList())
@@ -213,8 +196,6 @@ class BalanceListViewModelTests {
             pendulumPreInstalledAccountsScenario = pendulumPreInstalledAccountsScenario,
             nftInteractor = nFTInteractor,
             walletConnectInteractor = walletConnectInteractor,
-            soraCardInteractor = soraCardInteractor,
-            soraCardRouter = soraCardRouter,
             coroutineManager = coroutineManager,
             tonConnectInteractor = tonConnectInteractor
         )
@@ -225,7 +206,7 @@ class BalanceListViewModelTests {
         advanceUntilIdle()
         val state = vm.state.value
 
-        assertEquals(true, state.soraCardState.visible)
+        assertEquals(true, state.isBackedUp)
     }
 
     private fun createNomis() = NomisScoreData(
@@ -272,17 +253,6 @@ class BalanceListViewModelTests {
         googleBackupAddress = "",
         name = "",
         initialized = true,
-    )
-
-    private fun createSoraCard() = SoraCardBasicStatus(
-        initialized = true,
-        initError = null,
-        availabilityInfo = null,
-        verification = SoraCardCommonVerification.Started,
-        needInstallUpdate = false,
-        applicationFee = null,
-        ibanInfo = null,
-        phone = "+123",
     )
 
     private fun createAsset() = Asset(

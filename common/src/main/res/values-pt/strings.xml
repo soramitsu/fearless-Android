@@ -681,7 +681,6 @@
   <string name="profile_network_title">Redes</string>
   <string name="profile_pincode_change_title">Alterar código PIN</string>
   <string name="profile_settings_title">Configurações</string>
-  <string name="profile_soracard_title">Cartão SORA</string>
   <string name="profile_title">Conta</string>
   <string name="profile_wallets_title">Carteiras</string>
   <string name="reason">Razão</string>
@@ -743,13 +742,6 @@
   <string name="settings_hide_zero_balances">Ocultar saldos nulos</string>
   <string name="share_referral_code">Partilhar código de referência</string>
   <string name="social_media">Mídia social</string>
-  <string name="sora_card_annual_service_fee">€0 de taxa de serviço anual</string>
-  <string name="sora_card_blacklisted_countires_title">Excluído do aplicativo</string>
-  <string name="sora_card_blacklisted_countires_warning">Residentes de &lt;b&gt;determinados países&lt;br&gt;não podem solicitar&lt;/b&gt; o Cartão SORA neste momento&lt;br&gt;&lt;a href=\"https://soracard.com/blacklist/\"&gt;Veja a lista&lt;/a&gt;</string>
-  <string name="sora_card_enable_card_title">Habilitar cartão</string>
-  <string name="sora_card_get_sora_card">Obter o cartão SORA</string>
-  <string name="sora_card_title">Recarregue o cartão SORA com moeda fiduciária ou cripto e pague online, na loja ou saque em caixa eletrônico</string>
-  <string name="sora_card_verification_successful">Seu cartão está a caminho</string>
   <string name="specify_network">Especifique a rede</string>
   <string name="specify_network_description">O prefixo do endereço corresponde a várias redes por favor especifique a rede</string>
   <string name="sr25519_selection_subtitle">sr25519 (recomendado)</string>

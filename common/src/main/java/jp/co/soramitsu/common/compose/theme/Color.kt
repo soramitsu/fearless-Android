@@ -33,8 +33,6 @@ val blurColor = Color(0x8C000000)
 val blurColorLight = Color(0x66000000)
 val backgroundBlurColor = Color(0x0AFFFFFF)
 val selectedGreen = Color(0xFF09C8A1)
-val soracardDialog = Color(0xFF1e1e1e)
-
 val white = Color(0xFFFFFFFF)
 val white04 = Color(0x0AFFFFFF)
 val white08 = Color(0x14FFFFFF)

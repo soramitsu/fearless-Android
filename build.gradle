@@ -52,7 +52,7 @@ ext {
 buildscript {
     ext {
         // SDK and tools
-        compileSdkVersion = 35
+        compileSdkVersion = 36
         minSdkVersion = 26
         targetSdkVersion = 35
 
@@ -60,6 +60,11 @@ buildscript {
         // Closure to exclude JNA from 3rd party dependencies to prevent class duplication
         // JNA is added as direct dependency where needed to avoid "missing class" errors
         withoutJna = { exclude group: 'net.java.dev.jna' }
+        withoutPay = { exclude group: 'com.walletconnect', module: 'pay' }
+        withoutJnaAndPay = {
+            exclude group: 'net.java.dev.jna'
+            exclude group: 'com.walletconnect', module: 'pay'
+        }
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
     }
 
@@ -101,18 +106,6 @@ allprojects {
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
 
-        def payRepoUrl = readSecret("PAY_WINGS_REPOSITORY_URL")
-        if (payRepoUrl) {
-            maven {
-                url = uri(payRepoUrl)
-                credentials {
-                    username = readSecret("PAY_WINGS_USERNAME") ?: ""
-                    password = readSecret("PAY_WINGS_PASSWORD") ?: ""
-                }
-            }
-        } else {
-            println("Skipping PayWings repository: PAY_WINGS_REPOSITORY_URL is not set")
-        }
     }
 
     configurations {
@@ -123,8 +116,10 @@ allprojects {
     configurations.configureEach {
         resolutionStrategy {
             // add dependency substitution rules
-            dependencySubstitution {
-                substitute module('org.bouncycastle:bcprov-jdk15on') using module('org.bouncycastle:bcprov-jdk18on:1.78')
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk15on') {
+                    details.useTarget("org.bouncycastle:bcprov-jdk18on:1.78")
+                }
             }
 
             // Optional: pin shared_features libs to a specific version (e.g., for Polkadot SDK alignment)
@@ -135,6 +130,23 @@ allprojects {
                 force "jp.co.soramitsu.shared_features:backup:${sharedFeaturesVer}"
                 println("Using SHARED_FEATURES_VERSION_OVERRIDE=${sharedFeaturesVer}")
             }
+
+            // Force native-heavy dependencies to versions built with 16 KB page support.
+            def forcedTensorflowVersion = "2.16.1"
+            force "org.tensorflow:tensorflow-lite:${forcedTensorflowVersion}"
+            force "org.tensorflow:tensorflow-lite-api:${forcedTensorflowVersion}"
+
+            def forcedCameraVersion = "1.4.0"
+            [
+                    "camera-core",
+                    "camera-camera2",
+                    "camera-extensions",
+                    "camera-lifecycle",
+                    "camera-video",
+                    "camera-view"
+            ].each { moduleName ->
+                force "androidx.camera:${moduleName}:${forcedCameraVersion}"
+            }
         }
     }
 }
@@ -143,8 +155,10 @@ tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
 
-tasks.register('runTest', GradleBuild) {
-    tasks = ['clean', 'detektAll', 'runModuleTests', 'jacocoTestReport']
+tasks.register('runTest') {
+    group = 'verification'
+    description = 'Runs clean -> detekt -> module tests -> jacoco in order.'
+    dependsOn 'clean', 'detektAll'
 }
 
 // Helper: print effective Polkadot SDK alignment overrides and defaults
@@ -173,15 +187,34 @@ tasks.register('printPolkadotSdkAlignment') {
 }
 
 // Aggregated post-merge checks to validate build and alignment (strict order, no cross-task lookups)
-tasks.register('postMergeCheck', GradleBuild) {
+tasks.register('postMergeCheck') {
     group = 'verification'
     description = 'Print alignment, run tests, assemble debug, then lint in sequence.'
-    tasks = [
-            'printPolkadotSdkAlignment',
-            'runTest',
-            ':app:assembleDebug',
-            ':app:lint',
-    ]
+    dependsOn 'printPolkadotSdkAlignment', 'runTest', ':app:assembleDebug', ':app:lint'
+}
+
+gradle.projectsEvaluated {
+    def moduleRunTests = []
+    def moduleJacocoReports = []
+
+    subprojects.each { proj ->
+        proj.tasks.matching { it.name == 'runModuleTests' }.configureEach { moduleRunTests += it }
+        proj.tasks.matching { it.name == 'jacocoTestReport' }.configureEach { moduleJacocoReports += it }
+    }
+
+    tasks.named('runTest').configure {
+        dependsOn moduleJacocoReports
+        mustRunAfter('printPolkadotSdkAlignment')
+    }
+
+    tasks.named('detektAll').configure { mustRunAfter('clean') }
+    moduleRunTests.each { it.mustRunAfter(tasks.named('detektAll').get()) }
+    moduleJacocoReports.each { report ->
+        report.mustRunAfter(moduleRunTests)
+    }
+
+    project(':app').tasks.named('assembleDebug').configure { mustRunAfter(':runTest') }
+    project(':app').tasks.named('lint').configure { mustRunAfter(':app:assembleDebug') }
 }
 
 // Jenkins-friendly alias that avoids nested Gradle builds.

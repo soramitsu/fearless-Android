@@ -46,8 +46,6 @@ android {
         buildConfigField "String", "STAKING_POOL_WIKI", "\"https://wiki.polkadot.network/docs/learn-nomination-pools\""
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"https://polkagate.xyz/\""
 
-        buildConfigField "String", "SORA_CARD_BLACKLIST",  "\"https://soracard.com/blacklist/\""
-
         buildConfigField "String", "BLAST_API_ETHEREUM_KEY", readSecretInQuotes("FL_BLAST_API_ETHEREUM_KEY")
         buildConfigField "String", "BLAST_API_BSC_KEY", readSecretInQuotes("FL_BLAST_API_BSC_KEY")
         buildConfigField "String", "BLAST_API_SEPOLIA_KEY", readSecretInQuotes("FL_BLAST_API_SEPOLIA_KEY")
@@ -154,8 +152,6 @@ dependencies {
 
     implementation libs.sora.ui
     implementation libs.soramitsu.android.foundation
-    implementation libs.sora.soracard
-
     api libs.coil
     api libs.coil.gif
     api libs.coil.svg

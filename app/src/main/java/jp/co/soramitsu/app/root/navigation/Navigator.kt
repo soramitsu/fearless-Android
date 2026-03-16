@@ -90,7 +90,6 @@ import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragmen
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -217,7 +216,6 @@ class Navigator :
     CrowdloanRouter,
     PolkaswapRouter,
     SuccessRouter,
-    SoraCardRouter,
     WalletConnectRouter,
     TonConnectRouter,
     NFTRouter,
@@ -887,10 +885,6 @@ class Navigator :
         navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
-    override fun showBuyCrypto() {
-        navController?.navigate(R.id.buyCryptoFragment)
-    }
-
     override fun openSelectChain(
         assetId: String,
         chainId: ChainId?,
@@ -1453,14 +1447,6 @@ class Navigator :
 
     override fun openEditPoolConfirm() {
         navController?.navigate(R.id.editPoolConfirmFragment)
-    }
-
-    override fun openGetSoraCard() {
-        navController?.navigate(R.id.getSoraCardFragment)
-    }
-
-    override fun openSoraCardDetails() {
-        navController?.navigate(R.id.soraCardDetailsFragment)
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>

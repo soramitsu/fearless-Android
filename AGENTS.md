@@ -69,7 +69,7 @@
 ## Local Properties (private)
 - Create a root-level `local.properties` with the required secrets and service credentials. Do NOT commit this file.
 - See `docs/samples/local.properties.example` and create a private `local.properties` at the repo root; replace placeholders with your real values.
-- Typical keys include: MoonPay, PayWings (Sora Card), X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
+- Typical keys include: MoonPay, X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
 - Formats: use `key=value` per line; avoid trailing spaces. Strings may be unquoted; if values contain special characters or spaces, wrap in double quotes. Set `sdk.dir=/absolute/path/to/Android/sdk` to avoid SDK lookup errors.
 - Runtime overrides (mirrors recommended for first run):
   - `TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/all_chains_types_android.json`
@@ -78,9 +78,15 @@
 - Verify config: `./gradlew printPolkadotSdkAlignment` prints effective URLs and any shared_features pin before you run the app/tests.
 
 ## Utils Integration
-- Gradle maps the GitHub repo `soramitsu/fearless-utils-Android` as a source dependency and builds `jp.co.soramitsu.fearless-utils:fearless-utils` from source (requires network).
-- Building from source requires NDK and Rust toolchain installed (see README for versions).
-- This enables rapid testing of utils updates needed for specific Polkadot SDK releases.
+- Gradle now prefers a local checkout of `fearless-utils-Android` (defaults to `../fearless-utils-Android` or `FEARLESS_UTILS_PATH`). It uses a composite build to substitute `jp.co.soramitsu.fearless-utils:fearless-utils`.
+- If no local checkout is found, set `USE_REMOTE_UTILS=true` (env or `-P`) to fetch the GitHub repo `soramitsu/fearless-utils-Android` as a source dependency (requires network).
+- Building from source requires NDK r28 and a Rust toolchain installed (see README for versions).
+- This enables rapid testing of utils updates needed for specific Polkadot SDK releases without waiting for published artifacts.
+
+## Native Crypto (libsodium)
+- `app/src/main/jniLibs/*/libsodium.so` is built from `third_party/libsodium` using `scripts/build-libsodium.sh`.
+- The script enforces Google Play’s 16 KB page requirements via `-Wl,-z,common-page-size=4096 -Wl,-z,max-page-size=16384`.
+- Run it after pulling upstream changes or bumping libsodium to refresh all ABIs (arm64-v8a, armeabi-v7a, x86, x86_64).
 
 ## Documentation
 - Status: see `docs/status.md` for current health, coverage, and risks.

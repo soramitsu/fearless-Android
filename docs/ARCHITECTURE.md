@@ -37,7 +37,6 @@ This document explains how the Android app is structured, how modules interact, 
 ## External Integrations
 - WalletConnect v2: Initialized in `App.setupWalletConnect()` using the Reown WalletConnect SDK. Project ID set via `BuildConfig.WALLET_CONNECT_PROJECT_ID`.
 - TON Connect: Dedicated feature modules `feature-tonconnect-api` and `feature-tonconnect-impl` with persistence in `core-db` (`TonConnectDao`).
-- Sora Card: `feature-soracard-*` modules; requires credentials via Gradle properties.
 
 ## Build Types & Tooling
 - Build types: `debug`, `release`, `staging`, `develop`, `pr`. R8/shrinker is enabled on remote builds for closer prod parity.
