@@ -7,7 +7,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 ## Recent Updates
 - 2026-03-12: `scripts/build-libsodium.sh` now detects the correct host-specific NDK toolchain directory (darwin/linux/windows) instead of hardcoding macOS paths, so rebuilding libsodium works on Linux and CI hosts.
 - 2026-03-12: Local validation script now installs Android platform/build-tools 36 so fresh environments match the Gradle compileSdk configuration before running tasks.
-- 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main` + `DependencyHandler.module`) so composite builds that include `fearless-utils-Android` keep working on Gradle 9+ until the upstream repository removes the legacy APIs.
+- 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) so composite builds that include `fearless-utils-Android` keep working on Gradle 9+ until the upstream repository removes the legacy APIs.
 - 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
 - 2026-03-12: Temporarily excluded the WalletConnect Pay dependency (and its `yttrium-wcpay` natives) until Reown publishes 16 KB–aligned builds.
 - 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.

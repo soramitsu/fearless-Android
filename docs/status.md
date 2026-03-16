@@ -27,7 +27,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
 - Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
 - Native crypto rebuild tooling: `scripts/build-libsodium.sh` now auto-detects the host-specific `toolchains/llvm/prebuilt` directory (darwin/linux/windows) so libsodium can be rebuilt on non-macOS hosts without manual tweaks.
-- Utils composite build: `settings.gradle` now shims the removed `jcenter()` repository helper plus the deprecated `JavaExec.main` and `DependencyHandler.module` APIs so Gradle 9+ can still include the local `fearless-utils-Android` checkout (ktlint + dependency substitution) until it is updated upstream.
+- Utils composite build: `settings.gradle` now shims the removed `jcenter()` repository helper plus the deprecated `JavaExec.main` API so Gradle 9+ can still include the local `fearless-utils-Android` checkout until it is updated upstream.
 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.

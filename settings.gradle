@@ -1,4 +1,3 @@
-import org.gradle.api.GradleException
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
@@ -61,31 +60,6 @@ dependencyHandlerMetaTargets.each { handlerClass ->
     }
 }
 
-def moduleSelectorFactoryMethod = tryLoadClass("org.gradle.internal.component.external.model.DefaultModuleComponentSelector")?.declaredMethods?.find {
-    it.name == "newSelector" && it.parameterCount == 3
-}
-moduleSelectorFactoryMethod?.setAccessible(true)
-
-def createModuleSelector = { Object notation ->
-    if (moduleSelectorFactoryMethod == null) {
-        throw new GradleException("Legacy module() shim unavailable: DefaultModuleComponentSelector not found")
-    }
-    def parts = notation.toString().split(":", 3)
-    if (parts.length < 2) {
-        throw new GradleException("module notation '$notation' must be 'group:name[:version]'")
-    }
-    def version = parts.length == 3 ? parts[2] : null
-    moduleSelectorFactoryMethod.invoke(null, parts[0], parts[1], version)
-}
-
-def dependencySubstitutionsClass = tryLoadClass("org.gradle.api.artifacts.DependencySubstitutions")
-if (dependencySubstitutionsClass != null && !dependencySubstitutionsClass.metaClass.respondsTo(dependencySubstitutionsClass, "module", Object)) {
-    dependencySubstitutionsClass.metaClass.module << { Object notation ->
-        def selector = createModuleSelector(notation)
-        delegate.substitute(selector)
-    }
-}
-
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "fearlessWallet"
@@ -130,11 +104,7 @@ def useRemoteUtils = (
 
 if (localUtilsDir.exists()) {
     println("Including local fearless-utils from: ${localUtilsDir}")
-    includeBuild(localUtilsDir) {
-        dependencySubstitution {
-            substitute module("jp.co.soramitsu.fearless-utils:fearless-utils") using project(":fearless-utils")
-        }
-    }
+    includeBuild(localUtilsDir)
 } else if (useRemoteUtils) {
     println("Including remote fearless-utils from GitHub via sourceControl")
     sourceControl {
