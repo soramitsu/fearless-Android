@@ -17,7 +17,69 @@ if [[ ! -d "${ANDROID_NDK_HOME}" ]]; then
   exit 1
 fi
 
-TOOLCHAIN="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/darwin-x86_64"
+PREBUILT_BASE="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt"
+if [[ ! -d "${PREBUILT_BASE}" ]]; then
+  echo "error: LLVM toolchain base not found under ${PREBUILT_BASE}" >&2
+  exit 1
+fi
+
+detect_host_tag() {
+  local base="$1"
+  if [[ -n "${NDK_HOST_TAG:-}" && -d "${base}/${NDK_HOST_TAG}" ]]; then
+    echo "${NDK_HOST_TAG}"
+    return 0
+  fi
+
+  local uname_s uname_m
+  uname_s="$(uname -s)"
+  uname_m="$(uname -m)"
+  local -a candidates=()
+  case "${uname_s}" in
+    Darwin)
+      if [[ "${uname_m}" == "arm64" ]]; then
+        candidates=("darwin-arm64" "darwin-x86_64")
+      else
+        candidates=("darwin-x86_64")
+      fi
+      ;;
+    Linux)
+      candidates=("linux-x86_64")
+      ;;
+    MINGW*|MSYS*|CYGWIN*|Windows_NT)
+      candidates=("windows-x86_64")
+      ;;
+  esac
+
+  for tag in "${candidates[@]}"; do
+    if [[ -d "${base}/${tag}" ]]; then
+      echo "${tag}"
+      return 0
+    fi
+  done
+
+  local -a dirs=()
+  shopt -s nullglob
+  for dir in "${base}"/*; do
+    [[ -d "${dir}" ]] && dirs+=("$(basename "${dir}")")
+  done
+  shopt -u nullglob
+
+  if [[ ${#dirs[@]} -eq 1 ]]; then
+    echo "${dirs[0]}"
+    return 0
+  fi
+
+  echo "error: unable to determine NDK host tag automatically; set NDK_HOST_TAG or install a supported prebuilt under ${base}" >&2
+  if [[ ${#dirs[@]} -gt 0 ]]; then
+    echo "       available entries: ${dirs[*]}" >&2
+  else
+    echo "       no toolchains found under ${base}" >&2
+  fi
+  return 1
+}
+
+HOST_TAG="$(detect_host_tag "${PREBUILT_BASE}")" || exit 1
+TOOLCHAIN="${PREBUILT_BASE}/${HOST_TAG}"
 if [[ ! -d "${TOOLCHAIN}" ]]; then
   echo "error: LLVM toolchain not found under ${TOOLCHAIN}" >&2
   exit 1
