@@ -178,8 +178,8 @@ android {
     }
     lint {
         disable 'Instantiatable'
-        checkReleaseBuilds false
-        abortOnError false
+        checkReleaseBuilds true
+        abortOnError true
     }
     namespace = 'jp.co.soramitsu.app'
 
