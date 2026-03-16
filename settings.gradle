@@ -43,7 +43,7 @@ def tryLoadClass(String name) {
 // Gradle 9 removed DependencyHandler.module(Object); keep it for legacy utils scripts.
 def dependencyHandlerMetaTargets = [
         DependencyHandler,
-        tryLoadClass("org.gradle.api.internal.artifacts.dsl.DefaultDependencyHandler")
+        tryLoadClass("org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
 ].findAll { it != null }
 dependencyHandlerMetaTargets.each { handlerClass ->
     if (!handlerClass.metaClass.respondsTo(handlerClass, "module", Object)) {
