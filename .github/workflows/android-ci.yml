@@ -51,8 +51,8 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: |
-            platforms;android-35
-            build-tools;35.0.0
+            platforms;android-36
+            build-tools;36.0.0
             platform-tools
             ndk;28.0.12674087
             ndk;25.2.9519653
