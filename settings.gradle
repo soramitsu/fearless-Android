@@ -81,8 +81,7 @@ def createModuleSelector = { Object notation ->
 def dependencySubstitutionsClass = tryLoadClass("org.gradle.api.artifacts.DependencySubstitutions")
 if (dependencySubstitutionsClass != null && !dependencySubstitutionsClass.metaClass.respondsTo(dependencySubstitutionsClass, "module", Object)) {
     dependencySubstitutionsClass.metaClass.module << { Object notation ->
-        def selector = createModuleSelector(notation)
-        delegate.substitute(selector)
+        createModuleSelector(notation)
     }
 }
 
