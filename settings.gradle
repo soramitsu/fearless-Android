@@ -1,6 +1,7 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.DefaultDependencyHandler
 import org.gradle.api.tasks.JavaExec
 
 // Gradle 9 removed the jcenter() helper but fearless-utils still calls it.
@@ -33,16 +34,22 @@ if (!JavaExec.metaClass.respondsTo(JavaExec, "getMain")) {
 }
 
 // Gradle 9 removed DependencyHandler.module(Object); keep it for legacy utils scripts.
-if (!DependencyHandler.metaClass.respondsTo(DependencyHandler, "module", Object)) {
-    DependencyHandler.metaClass.module << { Object notation ->
-        delegate.create(notation)
-    }
-    DependencyHandler.metaClass.module << { Object notation, Closure config ->
-        def dependency = delegate.create(notation)
-        config.delegate = dependency
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call(dependency)
-        dependency
+def dependencyHandlerMetaTargets = [
+        DependencyHandler,
+        DefaultDependencyHandler
+]
+dependencyHandlerMetaTargets.each { handlerClass ->
+    if (!handlerClass.metaClass.respondsTo(handlerClass, "module", Object)) {
+        handlerClass.metaClass.module << { Object notation ->
+            delegate.create(notation)
+        }
+        handlerClass.metaClass.module << { Object notation, Closure config ->
+            def dependency = delegate.create(notation)
+            config.delegate = dependency
+            config.resolveStrategy = Closure.DELEGATE_FIRST
+            config.call(dependency)
+            dependency
+        }
     }
 }
 
