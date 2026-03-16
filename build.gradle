@@ -116,8 +116,10 @@ allprojects {
     configurations.configureEach {
         resolutionStrategy {
             // add dependency substitution rules
-            dependencySubstitution {
-                substitute module('org.bouncycastle:bcprov-jdk15on') using module('org.bouncycastle:bcprov-jdk18on:1.78')
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk15on') {
+                    details.useTarget("org.bouncycastle:bcprov-jdk18on:1.78")
+                }
             }
 
             // Optional: pin shared_features libs to a specific version (e.g., for Polkadot SDK alignment)
