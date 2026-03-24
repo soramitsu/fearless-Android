@@ -240,7 +240,13 @@ abstract class ChainDao {
     @Query(
         """
             SELECT c.*, a.*, tp.* FROM chains c
-            JOIN chain_assets ca ON ca.chainId = c.id AND ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
+            JOIN chain_assets ca ON ca.chainId = c.id AND ca.id = (
+                SELECT ca_inner.id FROM chain_assets ca_inner
+                WHERE ca_inner.chainId = c.id
+                AND ca_inner.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
+                ORDER BY CASE WHEN ca_inner.symbol = :assetSymbol THEN 0 ELSE 1 END, ca_inner.id
+                LIMIT 1
+            )
             LEFT JOIN assets a ON a.chainId = c.id AND a.id = ca.id AND a.metaId = :accountMetaId AND a.enabled = 1
             LEFT JOIN token_price tp ON tp.priceId = a.tokenPriceId
         """
