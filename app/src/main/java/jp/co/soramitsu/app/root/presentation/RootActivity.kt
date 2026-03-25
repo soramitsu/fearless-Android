@@ -9,6 +9,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
@@ -45,6 +46,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @AndroidEntryPoint
 class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
@@ -168,6 +170,19 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         animation = null
 
         navigator.detach()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        return try {
+            super.dispatchKeyEvent(event)
+        } catch (e: IllegalStateException) {
+            if (e.isFocusSearchFailure()) {
+                Timber.w(e, "Ignored key event because focus target could not take focus")
+                false
+            } else {
+                throw e
+            }
+        }
     }
 
     override fun layoutResource(): Int {

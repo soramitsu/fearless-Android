@@ -646,7 +646,7 @@ class Navigator :
     }
 
     override fun openStakingPoolWelcome() {
-        navController?.navigate(R.id.action_mainFragment_to_startStakingPoolFragment)
+        navController?.navigateSafe(R.id.action_global_startStakingPoolFragment, null)
     }
 
     override fun openSetupStakingPool() {

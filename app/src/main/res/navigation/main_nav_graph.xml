@@ -78,6 +78,14 @@
         app:popUpTo="@+id/accountDetailsDialog" />
 
     <action
+        android:id="@+id/action_global_startStakingPoolFragment"
+        app:destination="@id/startStakingPoolFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+    <action
         android:id="@+id/action_export_mnemonic"
         app:destination="@id/exportMnemonicFragment" />
 
