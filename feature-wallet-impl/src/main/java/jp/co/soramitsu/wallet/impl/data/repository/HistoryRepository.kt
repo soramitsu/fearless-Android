@@ -6,10 +6,19 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.ext.bitcoinAddressFromPublicKey
+import jp.co.soramitsu.runtime.ext.irohaAddressFromPublicKey
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
+import jp.co.soramitsu.runtime.ext.normalizedBitcoinAddress
+import jp.co.soramitsu.runtime.ext.normalizedIrohaAddress
+import jp.co.soramitsu.runtime.ext.normalizedSolanaAddress
+import jp.co.soramitsu.runtime.ext.solanaAddressFromPublicKey
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
@@ -45,7 +54,8 @@ class HistoryRepository(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Asset
+        chainAsset: Asset,
+        accountAddress: String? = null
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
@@ -62,7 +72,10 @@ class HistoryRepository(
                 throw HistoryNotSupportedException()
             }
 
-            val accountAddress = chain.addressOf(accountId)
+            val resolvedAccountAddress = resolveAccountAddress(chain, accountId, accountAddress) ?: return@withContext CursorPage(
+                null,
+                emptyList()
+            )
 
             val historySource = historySourceProvider(historyUrl, historyType)
             val operations = historySource?.getOperations(
@@ -72,7 +85,7 @@ class HistoryRepository(
                 accountId,
                 chain,
                 chainAsset,
-                accountAddress
+                resolvedAccountAddress
             )
             return@withContext operations ?: CursorPage(
                 null,
@@ -86,9 +99,13 @@ class HistoryRepository(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Asset
+        chainAsset: Asset,
+        accountAddress: String? = null
     ): CursorPage<Operation> {
-        val accountAddress = chain.addressOf(accountId)
+        val resolvedAccountAddress = resolveAccountAddress(chain, accountId, accountAddress) ?: return CursorPage(
+            null,
+            emptyList()
+        )
         val elements: MutableList<OperationLocal> = mutableListOf()
 
         var page: CursorPage<Operation> = CursorPage(null, emptyList())
@@ -97,7 +114,7 @@ class HistoryRepository(
 
         while (elements.size <= pageSize.div(2) && hasNextPage) {
             page = kotlin.runCatching {
-                getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset)
+                getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset, resolvedAccountAddress)
             }.getOrDefault(CursorPage(null, emptyList()))
             nextCursor = page.nextCursor
             hasNextPage = nextCursor != null && page.items.isNotEmpty()
@@ -108,7 +125,7 @@ class HistoryRepository(
                 )
             })
         }
-        operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
+        operationDao.insertFromSubquery(resolvedAccountAddress, chain.id, chainAsset.id, elements)
 
         cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
         return page
@@ -117,10 +134,14 @@ class HistoryRepository(
     fun operationsFirstPageFlow(
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Asset
+        chainAsset: Asset,
+        accountAddress: String? = null
     ): Flow<CursorPage<Operation>> {
-        val accountAddress = chain.addressOf(accountId)
-        return operationDao.observe(accountAddress, chain.id, chainAsset.id)
+        val resolvedAccountAddress = resolveAccountAddress(chain, accountId, accountAddress) ?: return flow {
+            emit(CursorPage(null, emptyList()))
+        }
+
+        return operationDao.observe(resolvedAccountAddress, chain.id, chainAsset.id)
             .mapList {
                 mapOperationLocalToOperation(it, chainAsset, chain)
             }
@@ -129,6 +150,22 @@ class HistoryRepository(
 
                 CursorPage(cursor, operations)
             }
+    }
+
+    private fun resolveAccountAddress(
+        chain: Chain,
+        accountId: AccountId,
+        suppliedAddress: String?
+    ): String? {
+        return if (chain.isUniversalWalletBitcoin()) {
+            suppliedAddress?.let(chain::normalizedBitcoinAddress) ?: chain.bitcoinAddressFromPublicKey(accountId)
+        } else if (chain.isUniversalWalletSolana()) {
+            suppliedAddress?.let(chain::normalizedSolanaAddress) ?: chain.solanaAddressFromPublicKey(accountId)
+        } else if (chain.isUniversalWalletIroha()) {
+            suppliedAddress?.let(chain::normalizedIrohaAddress) ?: chain.irohaAddressFromPublicKey(accountId)
+        } else {
+            suppliedAddress ?: chain.addressOf(accountId)
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

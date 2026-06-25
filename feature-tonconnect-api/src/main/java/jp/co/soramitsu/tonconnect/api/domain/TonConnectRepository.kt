@@ -2,7 +2,7 @@ package jp.co.soramitsu.tonconnect.api.domain
 
 import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
-import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.tonconnect.api.model.TonDappConnection
 import kotlinx.coroutines.flow.Flow
 

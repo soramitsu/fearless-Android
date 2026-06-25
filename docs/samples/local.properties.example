@@ -3,6 +3,13 @@
 
 MOONPAY_TEST_SECRET="<your_moonpay_test_secret>"
 MOONPAY_PRODUCTION_SECRET="<your_moonpay_production_secret>"
+MOONPAY_TEST_PUBLIC_KEY=<your_moonpay_test_public_key>
+MOONPAY_PRODUCTION_PUBLIC_KEY=<your_moonpay_production_public_key>
+
+# Buy provider partner config
+RAMP_TOKEN_DEBUG=<your_ramp_debug_token>
+RAMP_TOKEN_RELEASE=<your_ramp_release_token>
+COINBASE_APP_ID=<your_coinbase_app_id>
 
 # X1 plugin
 X1_ENDPOINT_URL_DEBUG=<your_x1_endpoint_url_debug>
@@ -39,4 +46,5 @@ FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY=<your_alchemy_api_eth_key>
 FL_DWELLIR_API_KEY=<your_dwellir_api_key>
 
 FL_ANDROID_TON_API_KEY=<your_ton_api_key>
+# Optional for local or non-mainnet TON testing. Mainnet always uses https://ti.soramitsu.io.
 FL_ANDROID_TON_INDEXER_URL=<your_ton_indexer_base_url>

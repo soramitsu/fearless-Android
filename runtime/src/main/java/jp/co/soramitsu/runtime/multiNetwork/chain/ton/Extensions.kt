@@ -4,7 +4,7 @@ import android.util.Base64
 import jp.co.soramitsu.common.data.network.ton.AccountStatus
 import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.common.utils.Punycode
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
 import org.ton.block.Coins

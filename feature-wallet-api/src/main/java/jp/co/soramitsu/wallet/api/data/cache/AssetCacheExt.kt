@@ -14,8 +14,8 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccount
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.AssetLocal
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import java.math.BigInteger
 
 suspend fun AssetCache.updateAsset(

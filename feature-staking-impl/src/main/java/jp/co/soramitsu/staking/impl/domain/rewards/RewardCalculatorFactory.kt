@@ -5,8 +5,8 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository

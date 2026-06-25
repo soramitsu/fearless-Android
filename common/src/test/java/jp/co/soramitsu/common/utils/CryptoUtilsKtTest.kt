@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.utils
 
-import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 

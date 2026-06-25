@@ -6,8 +6,8 @@ import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 
 class PendulumPreInstalledAccountsScenario(
     private val accountRepository: AccountRepository,

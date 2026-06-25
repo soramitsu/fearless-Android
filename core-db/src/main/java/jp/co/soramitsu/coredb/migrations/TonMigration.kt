@@ -13,10 +13,10 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
-import jp.co.soramitsu.shared_utils.scale.Schema
-import jp.co.soramitsu.shared_utils.scale.byteArray
-import jp.co.soramitsu.shared_utils.scale.schema
-import jp.co.soramitsu.shared_utils.scale.string
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.byteArray
+import jp.co.soramitsu.fearless_utils.scale.schema
+import jp.co.soramitsu.fearless_utils.scale.string
 import kotlinx.coroutines.runBlocking
 
 class TonMigration(

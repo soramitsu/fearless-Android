@@ -167,7 +167,8 @@ class SetControllerViewModel @Inject constructor(
             val asset = requireNotNull(stakingInteractor.getUtilityAsset(chain))
 
             val feeResult = runCatching {
-                interactor.estimateFee(controllerAddress(), chain.id)
+                val stakingState = accountStakingFlow.first()
+                interactor.estimateFee(stakingState.stashAddress, controllerAddress(), chain.id)
             }
 
             val value = if (feeResult.isSuccess) {

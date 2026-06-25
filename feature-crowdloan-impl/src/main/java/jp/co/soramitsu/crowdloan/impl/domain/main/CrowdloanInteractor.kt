@@ -11,7 +11,7 @@ import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
 import jp.co.soramitsu.crowdloan.api.data.repository.getContributions
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow

@@ -18,7 +18,11 @@ jobs:
     timeout-minutes: 45
     env:
       CI: true
-      USE_REMOTE_UTILS: "true"
+      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
+      FORCE_LOCAL_UTILS: "true"
+      FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
       # Provide safe stubs to avoid repository/config failures during resolution
       PAY_WINGS_REPOSITORY_URL: https://maven.google.com
@@ -41,6 +45,65 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Checkout fearless-utils-Android
+        uses: actions/checkout@v4
+        with:
+          repository: soramitsu/fearless-utils-Android
+          ref: ${{ env.FEARLESS_UTILS_COMMIT }}
+          path: fearless-utils-Android
+          fetch-depth: 0
+
+      - name: Verify fearless-utils source
+        run: ./scripts/ensure-fearless-utils.sh
+
+      - name: Branch flow audit
+        run: |
+          bash ./scripts/audit-branch-flow.sh
+          bash ./scripts/test-branch-flow-audit.sh
+
+      - name: Public artifact audit
+        run: ./scripts/audit-public-artifacts.sh
+
+      - name: TODO debt audit
+        run: |
+          bash ./scripts/test-todo-debt-audit.sh
+          bash ./scripts/audit-todo-debt.sh
+
+      - name: XCM registry metadata audit
+        run: |
+          bash ./scripts/test-xcm-registry-metadata-audit.sh
+          bash ./scripts/audit-xcm-registry-metadata.sh --require-executable \
+            --write-gap-report build/reports/xcm-registry-gap-report.json \
+            --require-route-file scripts/xcm-required-routes.tsv \
+            --require-gap-file scripts/xcm-discovery-only-routes.tsv
+          bash ./scripts/test-xcm-production-evidence-audit.sh
+          bash ./scripts/audit-xcm-production-evidence.sh
+
+      - name: Upload XCM registry gap report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcm-registry-gap-report
+          path: build/reports/xcm-registry-gap-report.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Iroha mobile SDK release asset contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IROHA_MOBILE_SDK_RELEASE_TAG: ${{ vars.IROHA_MOBILE_SDK_RELEASE_TAG }}
+          IROHA_MOBILE_SDK_RELEASE_REPO: ${{ vars.IROHA_MOBILE_SDK_RELEASE_REPO }}
+        run: |
+          bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --self-test
+          if [[ -n "${IROHA_MOBILE_SDK_RELEASE_TAG:-}" ]]; then
+            bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --download --tag "$IROHA_MOBILE_SDK_RELEASE_TAG"
+          else
+            echo "IROHA_MOBILE_SDK_RELEASE_TAG is not configured; real release asset validation skipped."
+          fi
+
+      - name: Private overlay audit self-test
+        run: bash ./scripts/test-private-overlay-boundary.sh
+
       - name: Setup Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
@@ -48,21 +111,44 @@ jobs:
           java-version: '21'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platforms;android-36
-            build-tools;36.0.0
-            platform-tools
-            ndk;28.0.12674087
-            ndk;25.2.9519653
+        run: |
+          set -euo pipefail
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+
+          sdkmanager_bin="$(command -v sdkmanager || true)"
+          if [[ -z "$sdkmanager_bin" ]]; then
+            for candidate in \
+              "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then
+                sdkmanager_bin="$candidate"
+                break
+              fi
+            done
+          fi
+          if [[ -z "$sdkmanager_bin" ]]; then
+            echo "sdkmanager not found under ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >&2
+            exit 1
+          fi
+
+          yes | "$sdkmanager_bin" --licenses >/dev/null || true
+          "$sdkmanager_bin" --install \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "platform-tools" \
+            "ndk;28.0.12674087" \
+            "ndk;25.2.9519653"
 
       - name: Export NDK environment
         run: |
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
           echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
           echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-      
+
       - name: NDK revision
         run: |
           echo "== NDK (HOME) =="
@@ -71,15 +157,14 @@ jobs:
           ls -1 "$ANDROID_SDK_ROOT/ndk" || true
 
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-
-      - name: Cache cargo registry and builds
-        uses: Swatinem/rust-cache@v2
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add \
+            aarch64-linux-android \
+            armv7-linux-androideabi \
+            i686-linux-android \
+            x86_64-linux-android
 
       - name: Gradle version
         run: ./gradlew --version --no-daemon --console=plain --stacktrace

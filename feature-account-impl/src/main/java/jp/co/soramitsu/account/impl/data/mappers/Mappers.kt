@@ -23,7 +23,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 
 fun mapCryptoTypeToCryptoTypeModel(
     resourceManager: ResourceManager,
@@ -65,6 +65,18 @@ fun mapNodeToNodeModel(node: ChainNode): NodeModel {
 
 fun mapMetaAccountLocalToLightMetaAccount(
     metaAccountLocal: MetaAccountLocal
+): LightMetaAccount = mapMetaAccountLocalToLightMetaAccount(metaAccountLocal, emptyList())
+
+fun mapJoinedMetaAccountInfoToLightMetaAccount(
+    joinedMetaAccountInfo: JoinedMetaAccountInfo
+): LightMetaAccount = mapMetaAccountLocalToLightMetaAccount(
+    joinedMetaAccountInfo.metaAccount,
+    joinedMetaAccountInfo.chainAccounts
+)
+
+private fun mapMetaAccountLocalToLightMetaAccount(
+    metaAccountLocal: MetaAccountLocal,
+    chainAccounts: List<ChainAccountLocal>
 ): LightMetaAccount = with(metaAccountLocal) {
     LightMetaAccount(
         id = id,
@@ -74,6 +86,16 @@ fun mapMetaAccountLocalToLightMetaAccount(
         ethereumAddress = ethereumAddress,
         ethereumPublicKey = ethereumPublicKey,
         tonPublicKey = tonPublicKey,
+        universalWalletChainAccounts = chainAccounts.associateBy(
+            keySelector = ChainAccountLocal::chainId,
+            valueTransform = {
+                LightMetaAccount.UniversalWalletChainAccount(
+                    publicKey = it.publicKey,
+                    accountId = it.accountId,
+                    cryptoType = it.cryptoType
+                )
+            }
+        ),
         isSelected = isSelected,
         name = name,
         isBackedUp = isBackedUp,

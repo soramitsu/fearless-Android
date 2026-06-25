@@ -42,7 +42,9 @@ import jp.co.soramitsu.common.data.network.ton.TonTransferAction
 import jp.co.soramitsu.common.data.network.ton.Trace
 import jp.co.soramitsu.common.data.network.ton.Transaction
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.model.JettonTransferPayload
 import kotlinx.coroutines.CancellationException
 
@@ -59,6 +61,7 @@ class TonRemoteSource(
 
     suspend fun loadAccountData(chain: Chain, accountId: String): TonAccountData {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val encodedAccountId = encodePathSegment(accountId)
                 val balances = tonApi.getIndexerBalances("$indexerBase/api/indexer/v1/accounts/$encodedAccountId/balances")
@@ -74,6 +77,7 @@ class TonRemoteSource(
 
     suspend fun loadJettonBalances(chain: Chain, accountId: String): JettonsBalances {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val encodedAccountId = encodePathSegment(accountId)
                 val balances = tonApi.getIndexerBalances("$indexerBase/api/indexer/v1/accounts/$encodedAccountId/balances")
@@ -89,6 +93,7 @@ class TonRemoteSource(
 
     suspend fun getSeqno(chain: Chain, accountId: String): Int {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val encodedAccountId = encodePathSegment(accountId)
                 val state = tonApi.getIndexerState("$indexerBase/api/indexer/v1/accounts/$encodedAccountId/state")
@@ -112,6 +117,7 @@ class TonRemoteSource(
 
     suspend fun getRawTime(chain: Chain, accountId: String? = null): Int {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val resolvedAccountId = accountId.takeIfNotBlank()
                     ?: error("Account id is required for indexer time lookup")
@@ -145,6 +151,7 @@ class TonRemoteSource(
 
     suspend fun getPublicKey(chain: Chain, accountId: String): String {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val response = tonApi.runIndexerGetMethod(
                     "$indexerBase/api/indexer/v1/runGetMethod",
@@ -165,6 +172,7 @@ class TonRemoteSource(
 
     suspend fun getJettonTransferPayload(chain: Chain, accountId: String, jettonId: String): JettonTransferPayload {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val encodedJettonId = encodePathSegment(jettonId)
                 val encodedAccountId = encodePathSegment(accountId)
@@ -184,6 +192,7 @@ class TonRemoteSource(
 
     suspend fun sendBlockchainMessage(chain: Chain, request: SendBlockchainMessageRequest): String {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val bocs = request.batch.orEmpty().mapNotNull { it.takeIfNotBlank() }
                     .ifEmpty { listOfNotNull(request.boc.takeIfNotBlank()) }
@@ -207,6 +216,7 @@ class TonRemoteSource(
 
     suspend fun emulateBlockchainMessageRequest(chain: Chain, request: EmulateMessageToWalletRequest): MessageConsequences {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val estimate = estimateMessageFeeViaIndexer(indexerBase, request)
                 buildSyntheticMessageConsequences(
@@ -230,6 +240,7 @@ class TonRemoteSource(
         limit: Int = 100
     ): AccountEvents {
         return withIndexerFallback(
+            chain = chain,
             block = { indexerBase ->
                 val transactions = loadIndexerTransactions(
                     indexerBase = indexerBase,
@@ -729,7 +740,11 @@ class TonRemoteSource(
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
     }
 
-    private fun indexerBaseUrlOrNull(): String? {
+    private fun indexerBaseUrlOrNull(chain: Chain): String? {
+        if (chain.id == tonMainnetChainId && !chain.isTestNet) {
+            return UniversalWalletRegistry.TON_INDEXER_BASE_URL
+        }
+
         val normalized = tonIndexerUrl.trim().removeSuffix("/")
         return normalized.takeIf { it.isNotEmpty() }
     }
@@ -751,10 +766,11 @@ class TonRemoteSource(
     }
 
     private suspend fun <T> withIndexerFallback(
+        chain: Chain,
         block: suspend (indexerBaseUrl: String) -> T,
         fallback: suspend () -> T
     ): T {
-        val indexerBaseUrl = indexerBaseUrlOrNull()
+        val indexerBaseUrl = indexerBaseUrlOrNull(chain)
 
         if (indexerBaseUrl != null) {
             val indexerResult = try {

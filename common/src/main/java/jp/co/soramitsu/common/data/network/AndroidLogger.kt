@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network
 
 import jp.co.soramitsu.common.BuildConfig
-import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 
 const val TAG = "AndroidLogger"
 

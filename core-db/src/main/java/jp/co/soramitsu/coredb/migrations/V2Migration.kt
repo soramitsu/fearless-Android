@@ -18,10 +18,10 @@ import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.converters.CryptoTypeConverters
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.shared_utils.encrypt.seed.ethereum.EthereumSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import kotlinx.coroutines.runBlocking
 
 internal class MigratingAccount(

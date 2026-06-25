@@ -4,9 +4,9 @@ import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bondExtra
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.claimPayout
@@ -30,12 +30,15 @@ class StakingPoolApi(
     private val chainRegistry: ChainRegistry
 ) {
     suspend fun estimateJoinFee(
+        accountAddress: String,
         amountInPlanks: BigInteger,
         poolId: BigInteger
     ): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
-            extrinsicService.estimateFee(chain) {
+            val accountId = chain.accountIdOf(accountAddress)
+
+            extrinsicService.estimateFee(chain, accountId) {
                 joinPool(amountInPlanks, poolId)
             }
         }
@@ -68,15 +71,16 @@ class StakingPoolApi(
             val rootMultiAddress = chain.multiAddressOf(rootAddress)
             val nominatorMultiAddress = chain.multiAddressOf(nominatorAddress)
             val stateTogglerMultiAddress = chain.multiAddressOf(stateTogglerAddress)
+            val root = chain.accountIdOf(rootAddress)
             val version = chainRegistry.getRemoteRuntimeVersion(chain.id)!!
 
             if (version < 9390) {
-                extrinsicService.estimateFee(chain, useBatchAll = true) {
+                extrinsicService.estimateFee(chain, root, useBatchAll = true) {
                     createPoolStateToggler(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
                     setPoolMetadata(poolId, name.encodeToByteArray())
                 }
             } else {
-                extrinsicService.estimateFee(chain, useBatchAll = true) {
+                extrinsicService.estimateFee(chain, root, useBatchAll = true) {
                     createPoolBouncer(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
                     setPoolMetadata(poolId, name.encodeToByteArray())
                 }
@@ -116,13 +120,15 @@ class StakingPoolApi(
     }
 
     suspend fun estimateNominatePoolFee(
+        accountAddress: String,
         poolId: BigInteger,
         vararg validators: AccountId
     ): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
+            val accountId = chain.accountIdOf(accountAddress)
 
-            extrinsicService.estimateFee(chain) {
+            extrinsicService.estimateFee(chain, accountId) {
                 nominatePool(poolId, validators.toList())
             }
         }
@@ -143,11 +149,12 @@ class StakingPoolApi(
         }
     }
 
-    suspend fun estimateClaimPayoutFee(): BigInteger {
+    suspend fun estimateClaimPayoutFee(accountAddress: String): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
+            val accountId = chain.accountIdOf(accountAddress)
 
-            extrinsicService.estimateFee(chain) {
+            extrinsicService.estimateFee(chain, accountId) {
                 claimPayout()
             }
         }
@@ -171,11 +178,11 @@ class StakingPoolApi(
             val accountId = chain.accountIdOf(accountAddress)
             // todo temporary fix until all runtimes will be updated
             try {
-                extrinsicService.estimateFee(chain) {
+                extrinsicService.estimateFee(chain, accountId) {
                     withdrawUnbondedFromPool(multiAddress)
                 }
             } catch (e: Exception) {
-                extrinsicService.estimateFee(chain) {
+                extrinsicService.estimateFee(chain, accountId) {
                     withdrawUnbondedFromPool(accountId)
                 }
             }
@@ -214,11 +221,11 @@ class StakingPoolApi(
             val accountId = chain.accountIdOf(accountAddress)
             // todo temporary fix until all runtimes will be updated
             try {
-                extrinsicService.estimateFee(chain) {
+                extrinsicService.estimateFee(chain, accountId) {
                     unbondFromPool(multiAddress, unbondingAmount)
                 }
             } catch (e: Exception) {
-                extrinsicService.estimateFee(chain) {
+                extrinsicService.estimateFee(chain, accountId) {
                     unbondFromPool(accountId, unbondingAmount)
                 }
             }
@@ -250,10 +257,12 @@ class StakingPoolApi(
         }
     }
 
-    suspend fun estimateBondExtraFee(extraAmount: BigInteger): BigInteger {
+    suspend fun estimateBondExtraFee(accountAddress: String, extraAmount: BigInteger): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
-            extrinsicService.estimateFee(chain) {
+            val accountId = chain.accountIdOf(accountAddress)
+
+            extrinsicService.estimateFee(chain, accountId) {
                 bondExtra(extraAmount)
             }
         }
@@ -270,19 +279,20 @@ class StakingPoolApi(
         }
     }
 
-    suspend fun estimateEditPool(state: EditPoolFlowState): BigInteger {
+    suspend fun estimateEditPool(state: EditPoolFlowState, address: String): BigInteger {
         return withContext(Dispatchers.IO) {
             val poolId = state.poolId
             val chain = stakingSharedState.chain()
+            val accountId = chain.accountIdOf(address)
 
             val version = chainRegistry.getRemoteRuntimeVersion(chain.id)!!
             if (version < 9390) {
-                extrinsicService.estimateFee(chain) {
+                extrinsicService.estimateFee(chain, accountId) {
                     state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
                     updateRolesStateToggler(state)
                 }
             } else {
-                extrinsicService.estimateFee(chain) {
+                extrinsicService.estimateFee(chain, accountId) {
                     state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
                     updateRolesBouncer(state)
                 }

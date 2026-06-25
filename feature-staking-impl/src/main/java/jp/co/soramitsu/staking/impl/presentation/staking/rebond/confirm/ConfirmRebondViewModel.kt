@@ -129,7 +129,9 @@ class ConfirmRebondViewModel @Inject constructor(
             coroutineScope = viewModelScope,
             feeConstructor = { token ->
                 val amountInPlanks = token.planksFromAmount(payload.amount)
-                rebondInteractor.estimateFee {
+                val stakingState = accountStakingFlow.first()
+
+                rebondInteractor.estimateFee(stakingState) {
                     stakingScenarioInteractor.rebond(
                         this,
                         amountInPlanks,

@@ -11,6 +11,10 @@ import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
+import jp.co.soramitsu.fearless_utils.encrypt.json.copyBytes
+import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.Keys
+import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.SecretBox
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
@@ -30,10 +34,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeOpCode
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeQueryId
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeSeqAndValidUntil
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeStringTail
-import jp.co.soramitsu.shared_utils.encrypt.json.copyBytes
-import jp.co.soramitsu.shared_utils.encrypt.xsalsa20poly1305.Keys
-import jp.co.soramitsu.shared_utils.encrypt.xsalsa20poly1305.SecretBox
-import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRepository
 import jp.co.soramitsu.tonconnect.api.model.AppEntity

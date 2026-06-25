@@ -16,12 +16,12 @@ import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
-import jp.co.soramitsu.shared_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
-import jp.co.soramitsu.shared_utils.encrypt.seed.ethereum.EthereumSeedFactory
-import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import org.ton.api.pk.PrivateKeyEd25519
 
 class AccountRepositoryDelegate(

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.staking.redeem
 
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ class RedeemInteractor(
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
     ): BigInteger {
         return withContext(Dispatchers.IO) {
-            extrinsicService.estimateFee(stashState.chain) {
+            extrinsicService.estimateFee(stashState.chain, stashState.executionAddressId) {
                 formExtrinsic.invoke(this)
             }
         }

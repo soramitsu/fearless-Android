@@ -127,11 +127,13 @@ class XcmInteractor(
     }
 
     suspend fun getDestinationFee(
+        originChainId: ChainId,
         destinationChainId: ChainId,
         tokenConfiguration: Asset
     ): BigDecimal? {
         return runCatching {
             xcmService.getXcmDestinationFee(
+                originChainId = originChainId,
                 destinationChainId = destinationChainId,
                 asset = tokenConfiguration
             )
@@ -145,12 +147,13 @@ class XcmInteractor(
         amount: BigDecimal
     ): BigDecimal? {
         return runCatching {
-            val chain = chainRegistry.getChain(destinationNetworkId)
+            val originChain = chainRegistry.getChain(originNetworkId)
+            val destinationChain = chainRegistry.getChain(destinationNetworkId)
             xcmService.getXcmOriginFee(
-                originChainId = originNetworkId,
+                originChain = originChain,
                 destinationChainId = destinationNetworkId,
                 asset = asset,
-                address = chain.fakeAddress(),
+                address = destinationChain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)
             )
         }.getOrNull()

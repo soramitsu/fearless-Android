@@ -16,7 +16,7 @@ class ChangeRewardDestinationInteractor(
         stashState: StakingState.Stash,
         rewardDestination: RewardDestination
     ): BigInteger = withContext(Dispatchers.IO) {
-        extrinsicService.estimateFee(stashState.chain) {
+        extrinsicService.estimateFee(stashState.chain, stashState.controllerId) {
             setPayee(rewardDestination)
         }
     }

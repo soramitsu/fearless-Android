@@ -17,8 +17,8 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
-import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 
 class KeyPairRepository(
     private val secretStoreV2: SecretStoreV2,

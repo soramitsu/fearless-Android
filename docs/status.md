@@ -27,7 +27,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
 - Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
 - Native crypto rebuild tooling: `scripts/build-libsodium.sh` now auto-detects the host-specific `toolchains/llvm/prebuilt` directory (darwin/linux/windows) so libsodium can be rebuilt on non-macOS hosts without manual tweaks.
-- Utils composite build: `settings.gradle` now shims the removed `jcenter()` repository helper plus the deprecated `JavaExec.main` API so Gradle 9+ can still include the local `fearless-utils-Android` checkout until it is updated upstream. Because that repo still targets AGP/Gradle 8, Gradle 9 builds skip the local include by default and fall back to the published artifact unless `FORCE_LOCAL_UTILS=true` is supplied.
+- Utils composite build: public CI checks out `soramitsu/fearless-utils-Android` at `7500809f33243ee47ecb2ec8563fc284ac4de0d6`, verifies it with `scripts/ensure-fearless-utils.sh`, and forces the local composite include. `settings.gradle` keeps Gradle 9 shims for the upstream build until that repo upgrades.
 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.
@@ -37,7 +37,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Target: polkadot-stable2503 (prepared via override keys).
 - How to align: set `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_OVERRIDE` to registries validated against stable2503. See `docs/samples/local.properties.stable2503`.
 - Optional: pin `shared_features` via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` if required by the SDK combo.
-- Utils integration: the build fetches `soramitsu/fearless-utils-Android` as a source dependency and builds it from source.
+- Utils integration: the build uses a pinned `soramitsu/fearless-utils-Android` checkout as a composite source dependency.
 - Debug: run `./gradlew printPolkadotSdkAlignment` to verify effective overrides.
 
 ## Health & Risks (Snapshot)

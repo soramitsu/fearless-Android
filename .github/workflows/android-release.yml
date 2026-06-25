@@ -1,0 +1,150 @@
+name: Android Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_task:
+        description: Gradle task to run after release overlays are restored.
+        required: true
+        default: :app:bundleRelease
+      strict_provenance:
+        description: Fail if any tracked binary still lacks source/reproducible provenance.
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CI: true
+      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
+      FORCE_LOCAL_UTILS: "true"
+      FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      USE_REMOTE_UTILS: "false"
+      SHARED_FEATURES_VERSION_OVERRIDE: ""
+
+      GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}
+      ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
+      PLAY_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
+      CI_KEYSTORE_PASS: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+      CI_KEYSTORE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
+      CI_KEYSTORE_KEY_PASS: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+
+      RAMP_TOKEN_RELEASE: ${{ secrets.RAMP_TOKEN_RELEASE }}
+      COINBASE_APP_ID: ${{ secrets.COINBASE_APP_ID }}
+      MOONPAY_PRODUCTION_SECRET: ${{ secrets.MOONPAY_PRODUCTION_SECRET }}
+      MOONPAY_PRODUCTION_PUBLIC_KEY: ${{ secrets.MOONPAY_PRODUCTION_PUBLIC_KEY }}
+      X1_ENDPOINT_URL_RELEASE: ${{ secrets.X1_ENDPOINT_URL_RELEASE }}
+      X1_WIDGET_ID_RELEASE: ${{ secrets.X1_WIDGET_ID_RELEASE }}
+      WEB_CLIENT_ID_RELEASE: ${{ secrets.WEB_CLIENT_ID_RELEASE }}
+      FL_BLAST_API_ETHEREUM_KEY: ${{ secrets.FL_BLAST_API_ETHEREUM_KEY }}
+      FL_BLAST_API_BSC_KEY: ${{ secrets.FL_BLAST_API_BSC_KEY }}
+      FL_BLAST_API_SEPOLIA_KEY: ${{ secrets.FL_BLAST_API_SEPOLIA_KEY }}
+      FL_BLAST_API_GOERLI_KEY: ${{ secrets.FL_BLAST_API_GOERLI_KEY }}
+      FL_BLAST_API_POLYGON_KEY: ${{ secrets.FL_BLAST_API_POLYGON_KEY }}
+      FL_ANDROID_ETHERSCAN_API_KEY: ${{ secrets.FL_ANDROID_ETHERSCAN_API_KEY }}
+      FL_ANDROID_BSCSCAN_API_KEY: ${{ secrets.FL_ANDROID_BSCSCAN_API_KEY }}
+      FL_ANDROID_POLYGONSCAN_API_KEY: ${{ secrets.FL_ANDROID_POLYGONSCAN_API_KEY }}
+      FL_ANDROID_OKLINK_API_KEY: ${{ secrets.FL_ANDROID_OKLINK_API_KEY }}
+      FL_ANDROID_OPMAINNET_API_KEY: ${{ secrets.FL_ANDROID_OPMAINNET_API_KEY }}
+      FL_WALLET_CONNECT_PROJECT_ID: ${{ secrets.FL_WALLET_CONNECT_PROJECT_ID }}
+      WALLET_CONNECT_PROJECT_ID: ${{ secrets.FL_WALLET_CONNECT_PROJECT_ID }}
+      FL_DWELLIR_API_KEY: ${{ secrets.FL_DWELLIR_API_KEY }}
+      FL_ANDROID_TON_API_KEY: ${{ secrets.FL_ANDROID_TON_API_KEY }}
+      FL_ANDROID_TON_INDEXER_URL: ${{ secrets.FL_ANDROID_TON_INDEXER_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout fearless-utils-Android
+        uses: actions/checkout@v4
+        with:
+          repository: soramitsu/fearless-utils-Android
+          ref: ${{ env.FEARLESS_UTILS_COMMIT }}
+          path: fearless-utils-Android
+          fetch-depth: 0
+
+      - name: Verify fearless-utils source
+        run: ./scripts/ensure-fearless-utils.sh
+
+      - name: Setup Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Android SDK
+        run: |
+          set -euo pipefail
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+
+          sdkmanager_bin="$(command -v sdkmanager || true)"
+          if [[ -z "$sdkmanager_bin" ]]; then
+            for candidate in \
+              "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then
+                sdkmanager_bin="$candidate"
+                break
+              fi
+            done
+          fi
+          if [[ -z "$sdkmanager_bin" ]]; then
+            echo "sdkmanager not found under ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >&2
+            exit 1
+          fi
+
+          yes | "$sdkmanager_bin" --licenses >/dev/null || true
+          "$sdkmanager_bin" --install \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "platform-tools" \
+            "ndk;28.0.12674087" \
+            "ndk;25.2.9519653"
+
+      - name: Export NDK environment
+        run: |
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+
+      - name: Setup Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add \
+            aarch64-linux-android \
+            armv7-linux-androideabi \
+            i686-linux-android \
+            x86_64-linux-android
+
+      - name: Restore release overlays
+        run: ./scripts/restore-release-overlays.sh
+
+      - name: Release artifact audit
+        run: |
+          flags=(--release)
+          if [ "${{ inputs.strict_provenance }}" = "true" ]; then
+            flags+=(--strict-provenance)
+          fi
+          ./scripts/audit-public-artifacts.sh "${flags[@]}"
+
+      - name: Build release artifact
+        run: ./gradlew "${{ inputs.build_task }}" --no-daemon --console=plain --stacktrace

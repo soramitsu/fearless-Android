@@ -45,5 +45,5 @@ These markers indicate areas where behavior may be incomplete or needs refinemen
 
 ## What To Verify Locally
 - Secrets and endpoints present: Without keys, some flows (Moonpay, history providers) won’t fully function.
-- Utils integration: The build maps `soramitsu/fearless-utils-Android` as a source dependency; no local path required.
+- Utils integration: The build uses a pinned `soramitsu/fearless-utils-Android` checkout as a composite build. CI checks it out automatically; local builds should clone it next to this repo or set `FEARLESS_UTILS_PATH`.
 - Android SDK/NDK and JDK versions: See README and `scripts/validate-local.sh`.

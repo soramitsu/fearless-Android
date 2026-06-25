@@ -14,9 +14,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.network.executeAsyncCatching
-import jp.co.soramitsu.shared_utils.runtime.metadata.GetMetadataRequest
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

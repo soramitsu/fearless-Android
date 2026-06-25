@@ -87,6 +87,22 @@ class TonRemoteSourceTest {
         ecosystem = "Ton"
     ).toChain()
 
+    private val tonTestnetChain: Chain = ChainRemote(
+        chainId = "ton:testnet",
+        paraId = null,
+        rank = null,
+        name = "TON Testnet",
+        minSupportedVersion = null,
+        assets = emptyList(),
+        nodes = listOf(ChainNodeRemote(url = "https://history.example", name = "history")),
+        externalApi = null,
+        icon = null,
+        addressPrefix = 0,
+        options = listOf("ethereumBased", "testnet"),
+        parentId = null,
+        ecosystem = "Ton"
+    ).toChain()
+
     @Before
     fun setup() {
         tonApi = FakeTonApi()
@@ -121,6 +137,42 @@ class TonRemoteSourceTest {
             assertEquals(123L, result.balance)
             assertEquals(AccountStatus.active, result.status)
             assertEquals(null, tonApi.lastAccountDataUrl)
+        }
+    }
+
+    @Test
+    fun `mainnet indexer should ignore configured override and use shared TI endpoint`() {
+        kotlinx.coroutines.runBlocking {
+            tonApi.indexerJsonRpcResults["getAddressInformation"] = Result.success(
+                TonIndexerJsonRpcResponse(
+                    result = JsonParser.parseString("""{"sync_utime":1700000000}""")
+                )
+            )
+            val sourceWithOverride = TonRemoteSource(
+                tonApi = tonApi,
+                availableFiatCurrencies = GetAvailableFiatCurrencies(FakeCoingeckoApi()),
+                gson = Gson(),
+                tonIndexerUrl = "https://evil.example"
+            )
+
+            sourceWithOverride.getRawTime(chainWithoutTonApi, "addr")
+
+            assertEquals("https://ti.soramitsu.io/jsonRPC", tonApi.lastIndexerJsonRpcUrl)
+        }
+    }
+
+    @Test
+    fun `non mainnet indexer should use configured endpoint`() {
+        kotlinx.coroutines.runBlocking {
+            tonApi.indexerJsonRpcResults["getAddressInformation"] = Result.success(
+                TonIndexerJsonRpcResponse(
+                    result = JsonParser.parseString("""{"sync_utime":1700000000}""")
+                )
+            )
+
+            source.getRawTime(tonTestnetChain, "addr")
+
+            assertEquals("https://indexer.example/jsonRPC", tonApi.lastIndexerJsonRpcUrl)
         }
     }
 
@@ -194,7 +246,7 @@ class TonRemoteSourceTest {
             val time = source.getRawTime(chain, "addr")
 
             assertEquals(1700000000, time)
-            assertEquals("https://indexer.example/jsonRPC", tonApi.lastIndexerJsonRpcUrl)
+            assertEquals("https://ti.soramitsu.io/jsonRPC", tonApi.lastIndexerJsonRpcUrl)
             assertEquals("getAddressInformation", tonApi.lastIndexerJsonRpcMethod)
             assertEquals(null, tonApi.lastGetRequestUrl)
         }
@@ -224,7 +276,7 @@ class TonRemoteSourceTest {
 
             source.sendBlockchainMessage(chain, SendBlockchainMessageRequest(boc = "boc-data"))
 
-            assertEquals("https://indexer.example/jsonRPC", tonApi.lastIndexerJsonRpcUrl)
+            assertEquals("https://ti.soramitsu.io/jsonRPC", tonApi.lastIndexerJsonRpcUrl)
             assertEquals("sendBoc", tonApi.lastIndexerJsonRpcMethod)
             assertEquals(null, tonApi.lastSendBlockchainMessageUrl)
         }
@@ -243,7 +295,7 @@ class TonRemoteSourceTest {
             source.getJettonTransferPayload(chain, "owner", "jetton")
 
             assertEquals(
-                "https://indexer.example/api/indexer/v1/jettons/jetton/transfer/owner/payload",
+                "https://ti.soramitsu.io/api/indexer/v1/jettons/jetton/transfer/owner/payload",
                 tonApi.lastIndexerJettonTransferPayloadUrl
             )
             assertEquals(null, tonApi.lastGetRequestUrl)
@@ -349,7 +401,7 @@ class TonRemoteSourceTest {
             val events = source.getAccountEvents(chain, "https://tonapi.io", "addr", beforeLt = null, limit = 10)
 
             assertEquals(1, events.events.size)
-            assertEquals("https://indexer.example/api/indexer/v1/accounts/addr/txs", tonApi.lastIndexerTransactionsUrl)
+            assertEquals("https://ti.soramitsu.io/api/indexer/v1/accounts/addr/txs", tonApi.lastIndexerTransactionsUrl)
             assertEquals(null, tonApi.lastAccountEventsUrl)
             assertEquals("100:hash1", events.events.first().eventId)
             assertEquals("sender", events.events.first().actions.first().tonTransfer?.sender?.address)

@@ -3,6 +3,7 @@ package jp.co.soramitsu.account.impl.domain
 import android.util.Log
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.toLocal
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
@@ -22,8 +23,11 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -101,12 +105,16 @@ class WalletSyncService(
                     val syncedChains = mutableSetOf<ChainId>()
                     supervisorScope {
                         val chainsBalancesDeferred = chainsRepository.getChains().map { chain ->
-                            val filteredMetaAccounts = when(chain.ecosystem) {
-                                Ecosystem.Substrate,
-                                Ecosystem.Ethereum,
-                                Ecosystem.EthereumBased -> metaAccounts.asSequence().filter { it.substratePublicKey != null || it.ethereumPublicKey != null }
-                                Ecosystem.Ton -> metaAccounts.asSequence().filter { it.tonPublicKey != null }
-                            }.toSet()
+                            val filteredMetaAccounts = if (chain.isUniversalWalletBitcoin() || chain.isUniversalWalletSolana() || chain.isUniversalWalletIroha()) {
+                                metaAccounts.asSequence().filter { it.hasChainAccount(chain.id) }.toSet()
+                            } else {
+                                when(chain.ecosystem) {
+                                    Ecosystem.Substrate,
+                                    Ecosystem.Ethereum,
+                                    Ecosystem.EthereumBased -> metaAccounts.asSequence().filter { it.substratePublicKey != null || it.ethereumPublicKey != null }
+                                    Ecosystem.Ton -> metaAccounts.asSequence().filter { it.tonPublicKey != null }
+                                }.toSet()
+                            }
                             val chainSyncDeferred = async {
                                 val provider = balanceLoaderProvider.invoke(chain)
                                 val balances = withTimeoutOrNull(15_000) {

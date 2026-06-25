@@ -25,8 +25,8 @@ import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination

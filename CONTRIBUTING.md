@@ -29,7 +29,25 @@ If you think you miss some functionality on our application, please open issue o
 * (OPTIONAL) If possible, provide complete description of functionality you suggest
 * (OPTIONAL) Provide your telegram username, and be sure to join [Our Community Channel](https://t.me/fearlesshappiness) on Telegram, so our team can get in touch with you to retrieve more information about your vision
 
-Even if you provide mockups, please understand that our design team will review it and might implement this in very different way. 
+Even if you provide mockups, please understand that our design team will review it and might implement this in very different way.
+
+### Git flow
+
+All normal work starts from `develop` and is submitted back to `develop`.
+Use short-lived branches named `feature/<ticket>-<slug>`, `fix/<ticket>-<slug>`,
+`chore/<slug>`, or `refactor/<slug>`.
+
+`master` is the releasable branch. Do not target `master` except for release
+pull requests from `develop` or urgent `hotfix/<version-or-slug>` branches.
+Every commit on `master` must be safe to release, and release tags must point at
+commits already merged to `master`.
+
+Feature PRs are squash-merged after review and green CI. Release PRs to
+`master` use merge commits so the release boundary remains visible.
+
+The `Branch Flow` GitHub Actions workflow validates PR targets automatically:
+normal work must target `develop`, while `master` accepts only `develop`,
+`release/*`, or `hotfix/*` branches.
 
 ### 💻 Opening Pull Requests
 
@@ -38,10 +56,10 @@ If you would like to help us by contributing writing the code, please follow nex
 * Always create and issue prior to opening Pull Request (hereinafter the PR), or your PR less likely to be reviewed
 * Remember, that in that case you are required to provide full description of your feature in created issue, otherwise it would be hard for us to understand what you're trying to add to our codebase
 * Follow the coding standards guidelines (TO BE PROVIDED LATER), or you will be asked to make changes to follow them
-* Please avoid huge PRs, and if your contribution really requires lots of files, please make a base branch with series of small PRs on your fork, and then provide link to those PRs in your big one PR in our repository 
+* Please avoid huge PRs, and if your contribution really requires lots of files, please make a base branch with series of small PRs on your fork, and then provide link to those PRs in your big one PR in our repository
 * Provide steps for QA engineer to test your functionality (they should cover requirements from your issue)
 
-Even if you provide mockups, please understand that our design team will review it and might implement this in very different way. 
+Even if you provide mockups, please understand that our design team will review it and might implement this in very different way.
 
 ### Telegram links
 

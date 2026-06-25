@@ -11,7 +11,7 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountPositionUpdate
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.Flow
  * or there is a child chain account which have child.accountId = accountId
  */
 private const val FIND_BY_ADDRESS_QUERY = """
-        SELECT * FROM meta_accounts 
+        SELECT * FROM meta_accounts
         WHERE substrateAccountId = :accountId
         OR ethereumAddress = :accountId
         OR  id = (
@@ -59,6 +59,14 @@ interface MetaAccountDao {
     @Query("SELECT * FROM meta_accounts")
     @Transaction
     fun observeJoinedMetaAccountsInfo(): Flow<List<RelationJoinedMetaAccountInfo>>
+
+    @Query("SELECT * FROM meta_accounts ORDER BY position")
+    @Transaction
+    fun observeOrderedJoinedMetaAccountsInfo(): Flow<List<RelationJoinedMetaAccountInfo>>
+
+    @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
+    @Transaction
+    fun observeJoinedMetaAccountInfo(metaId: Long): Flow<RelationJoinedMetaAccountInfo?>
 
     @Query("SELECT * FROM meta_accounts ORDER BY position")
     fun metaAccountsFlow(): Flow<List<MetaAccountLocal>>

@@ -6,6 +6,7 @@ import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.api.domain.model.AndroidUniversalWalletMigrationSnapshotBuilder
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
@@ -23,6 +24,8 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.model.UNIVERSAL_WALLET_CUTOFF_AT_MILLIS
+import jp.co.soramitsu.common.model.UniversalWalletMigrationSnapshot
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
@@ -34,20 +37,21 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.EnglishWordList
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.EnglishWordList
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -65,7 +69,9 @@ class AccountInteractorImpl(
     private val backupService: BackupService,
     private val walletInteractor: WalletInteractor,
     private val context: CoroutineContext = Dispatchers.Default,
-    private val nowProvider: () -> Long = { System.currentTimeMillis() }
+    private val nowProvider: () -> Long = { System.currentTimeMillis() },
+    private val migrationSnapshotBuilder: AndroidUniversalWalletMigrationSnapshotBuilder =
+        AndroidUniversalWalletMigrationSnapshotBuilder(UNIVERSAL_WALLET_CUTOFF_AT_MILLIS)
 ) : AccountInteractor {
 
     override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
@@ -305,6 +311,18 @@ class AccountInteractorImpl(
             }.flowOn(Dispatchers.IO)
     }
 
+    override fun universalWalletMigrationSnapshotFlow(): Flow<UniversalWalletMigrationSnapshot> {
+        return accountRepository.lightMetaAccountsFlow()
+            .map(migrationSnapshotBuilder::build)
+            .flowOn(context)
+    }
+
+    override suspend fun universalWalletMigrationSnapshot(): UniversalWalletMigrationSnapshot {
+        return withContext(context) {
+            migrationSnapshotBuilder.build(accountRepository.lightMetaAccountsFlow().first())
+        }
+    }
+
     override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String) {
         withContext(Dispatchers.IO) {
             val wallet = getMetaAccount(metaId)
@@ -407,6 +425,10 @@ class AccountInteractorImpl(
                             entropy = byteArrayOf()
                         )
                     }
+
+                    WalletEcosystem.Bitcoin,
+                    WalletEcosystem.Solana,
+                    WalletEcosystem.Iroha -> null
                 }
             }
         }.mapNotNull {

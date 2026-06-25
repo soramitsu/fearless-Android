@@ -17,6 +17,27 @@ import jp.co.soramitsu.coredb.model.BasicPoolLocal
 import jp.co.soramitsu.coredb.model.UserPoolJoinedLocal
 import jp.co.soramitsu.coredb.model.UserPoolJoinedLocalNullable
 import jp.co.soramitsu.coredb.model.UserPoolLocal
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
+import jp.co.soramitsu.fearless_utils.scale.sizedByteArray
+import jp.co.soramitsu.fearless_utils.scale.uint128
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojoList
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.scale
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.liquiditypools.data.PoolDataDto
 import jp.co.soramitsu.liquiditypools.data.PoolsRepository
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
@@ -28,31 +49,11 @@ import jp.co.soramitsu.liquiditypools.impl.data.network.liquidityAdd
 import jp.co.soramitsu.liquiditypools.impl.data.network.register
 import jp.co.soramitsu.liquiditypools.impl.data.network.removeLiquidity
 import jp.co.soramitsu.liquiditypools.impl.util.PolkaswapFormulas
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
-import jp.co.soramitsu.shared_utils.runtime.metadata.module
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.shared_utils.scale.Schema
-import jp.co.soramitsu.shared_utils.scale.dataType.uint32
-import jp.co.soramitsu.shared_utils.scale.sizedByteArray
-import jp.co.soramitsu.shared_utils.scale.uint128
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojoList
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.scale
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.GetStorageRequest
-import jp.co.soramitsu.shared_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.async
@@ -325,8 +326,9 @@ class PoolsRepositoryImpl constructor(
         val amountToMin = PolkaswapFormulas.calculateMinAmount(tokenTargetAmount, slippageTolerance)
         val dexId = getPoolBaseTokenDexId(chainId, tokenBase.currencyId)
         val chain = chainRegistry.getChain(chainId)
+        val accountId = chain.accountIdOf(address)
 
-        val fee = extrinsicService.estimateFee(chain) {
+        val fee = extrinsicService.estimateFee(chain, accountId) {
             liquidityAdd(
                 dexId = dexId,
                 baseTokenId = tokenBase.currencyId,
@@ -352,8 +354,9 @@ class PoolsRepositoryImpl constructor(
         val chain = chainRegistry.getChain(chainId)
         val baseTokenId = tokenBase.currencyId ?: return null
         val targetTokenId = tokenTarget.currencyId ?: return null
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId ?: return null
 
-        val fee = extrinsicService.estimateFee(chain) {
+        val fee = extrinsicService.estimateFee(chain, accountId) {
             removeLiquidity(
                 dexId = getPoolBaseTokenDexId(chainId, baseTokenId),
                 outputAssetIdA = baseTokenId,

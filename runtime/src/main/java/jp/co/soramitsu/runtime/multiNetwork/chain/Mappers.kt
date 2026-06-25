@@ -16,6 +16,14 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmAssetRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmBridgeRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmDestinationFeeRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmDestinationRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmExecutionRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmMultiLocationRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmWeightLimitRemote
 
 private const val ETHEREUM_BASED_OPTION = "ethereumBased"
 private const val ETHEREUM_OPTION = "ethereum"
@@ -42,6 +50,9 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "vicscan" -> Chain.ExternalApi.Section.Type.VICSCAN
     "zchain" -> Chain.ExternalApi.Section.Type.ZCHAINS
     "ton" -> Chain.ExternalApi.Section.Type.TON
+    "bitcoin" -> Chain.ExternalApi.Section.Type.BITCOIN
+    "solana" -> Chain.ExternalApi.Section.Type.SOLANA
+    "iroha" -> Chain.ExternalApi.Section.Type.IROHA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
@@ -158,6 +169,68 @@ private fun mapSectionToSectionLocal(sectionLocal: Chain.ExternalApi.Section?) =
 
 private const val DEFAULT_PRECISION = 10
 
+private fun ChainXcmAssetRemote.toXcmAsset() = Chain.Xcm.Asset(
+    id = id,
+    symbol = symbol,
+    minAmount = minAmount
+)
+
+private fun ChainXcmMultiLocationRemote.toXcmMultiLocation() =
+    Chain.Xcm.MultiLocation(
+        parents = parents,
+        interior = interior
+    )
+
+private fun ChainXcmWeightLimitRemote.toXcmWeightLimit() =
+    Chain.Xcm.WeightLimit(
+        type = type,
+        refTime = refTime,
+        proofSize = proofSize
+    )
+
+private fun ChainXcmDestinationFeeRemote.toXcmDestinationFee() =
+    Chain.Xcm.DestinationFee(
+        mode = mode,
+        assetSymbol = assetSymbol,
+        amount = amount
+    )
+
+private fun ChainXcmBridgeRemote.toXcmBridge() =
+    Chain.Xcm.Bridge(
+        parachainId = parachainId,
+        feeAssetLocation = feeAssetLocation?.toXcmMultiLocation(),
+        feeAssetItem = feeAssetItem
+    )
+
+private fun ChainXcmExecutionRemote.toXcmExecution() =
+    Chain.Xcm.Execution(
+        palletName = palletName,
+        callName = callName,
+        transferType = transferType,
+        destinationLocation = destinationLocation?.toXcmMultiLocation(),
+        assetLocation = assetLocation?.toXcmMultiLocation(),
+        beneficiaryLocation = beneficiaryLocation?.toXcmMultiLocation(),
+        feeAssetLocation = feeAssetLocation?.toXcmMultiLocation(),
+        feeAssetItem = feeAssetItem,
+        weightLimit = weightLimit?.toXcmWeightLimit(),
+        destinationFee = destinationFee?.toXcmDestinationFee(),
+        bridge = bridge?.toXcmBridge()
+    )
+
+private fun ChainXcmDestinationRemote.toXcmDestination() = Chain.Xcm.Destination(
+    chainId = chainId,
+    assets = assets?.map { it.toXcmAsset() },
+    bridgeParachainId = bridgeParachainId,
+    execution = execution?.toXcmExecution()
+)
+
+private fun ChainXcmRemote.toXcm() = Chain.Xcm(
+    chainId = chainId,
+    xcmVersion = xcmVersion,
+    availableAssets = availableAssets?.map { it.toXcmAsset() },
+    availableDestinations = availableDestinations?.map { it.toXcmDestination() }
+)
+
 fun ChainRemote.toChain(): Chain {
     val nodes = this.nodes?.mapIndexed { index, node ->
         ChainNode(
@@ -211,7 +284,8 @@ fun ChainRemote.toChain(): Chain {
             else -> null
         },
         ecosystem = Ecosystem.fromString(ecosystem),
-        tonBridgeUrl = tonBridgeUrl
+        tonBridgeUrl = tonBridgeUrl,
+        xcm = xcm?.toXcm()
     )
 }
 
@@ -255,6 +329,7 @@ fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = ChainNode(
 )
 
 fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
+    val gson by lazy { Gson() }
     val nodes = chainLocal.nodes.map(::mapNodeLocalToNode)
 
     val assets = chainLocal.assets.map {
@@ -324,7 +399,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             identityChain = identityChain,
             remoteAssetsSource = remoteAssetsSource?.let { Chain.RemoteAssetsSource.valueOf(it) },
             ecosystem = Ecosystem.fromString(ecosystem),
-            tonBridgeUrl = tonBridgeUrl
+            tonBridgeUrl = tonBridgeUrl,
+            xcm = xcm?.let { runCatching { gson.fromJson(it, Chain.Xcm::class.java) }.getOrNull() }
         )
     }
 }
@@ -404,7 +480,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             remoteAssetsSource = remoteAssetsSource?.name,
             ecosystem = ecosystem.name,
             androidMinAppVersion = null,
-            tonBridgeUrl = tonBridgeUrl
+            tonBridgeUrl = tonBridgeUrl,
+            xcm = xcm?.let { gson.toJson(it) }
         )
     }
 

@@ -62,6 +62,9 @@ class CustomRebondViewModel @Inject constructor(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
+    private val accountStakingFlow = stakingScenarioInteractor.selectedAccountStakingStateFlow()
+        .share()
+
     val assetModelFlow = assetFlow
         .map { mapAssetToAssetModel(it, resourceManager, Asset::unbonding, R.string.staking_unbonding_format) }
         .inBackground()
@@ -102,7 +105,9 @@ class CustomRebondViewModel @Inject constructor(
             coroutineScope = viewModelScope,
             feeConstructor = { token ->
                 val amountInPlanks = token.planksFromAmount(amount)
-                rebondInteractor.estimateFee {
+                val stakingState = accountStakingFlow.first()
+
+                rebondInteractor.estimateFee(stakingState) {
                     stakingScenarioInteractor.rebond(
                         this,
                         amountInPlanks,

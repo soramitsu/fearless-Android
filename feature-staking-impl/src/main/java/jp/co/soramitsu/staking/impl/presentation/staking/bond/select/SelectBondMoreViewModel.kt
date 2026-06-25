@@ -133,7 +133,7 @@ class SelectBondMoreViewModel @Inject constructor(
                     stakingScenarioInteractor.getAvailableForBondMoreBalance()
                 },
                 calculateFee = { amountInPlanks ->
-                    bondMoreInteractor.estimateFee {
+                    bondMoreInteractor.estimateFee(stashAddress()) {
                         stakingScenarioInteractor.stakeMore(
                             this,
                             amountInPlanks,
@@ -172,7 +172,7 @@ class SelectBondMoreViewModel @Inject constructor(
             feeConstructor = { token ->
                 val amountInPlanks = token.planksFromAmount(amount)
 
-                bondMoreInteractor.estimateFee {
+                bondMoreInteractor.estimateFee(stashAddress()) {
                     stakingScenarioInteractor.stakeMore(this, amountInPlanks, payload.collatorAddress)
                 }
             },

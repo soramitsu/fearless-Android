@@ -29,7 +29,7 @@ fun Detekt.setup(autoCorrect: Boolean) {
     setSource(file(projectDir))
     config.setFrom(files("$rootDir/detekt/detekt.yml"))
     include("**/*.kt")
-    exclude("**/resources/**", "**/build/**")
+    exclude("**/resources/**", "**/build/**", "**/fearless-utils-Android/**")
 
     // TODO: Remove exclude paths after merge detekt to develop
     exclude(

@@ -30,7 +30,12 @@ fi
 
 run ./gradlew -version "${GRADLE_FLAGS[@]}" || true
 
-# 2) Polkadot SDK alignment print
+# 2) Verify branch-flow guards and staging branch deprecation readiness
+echo "[post-merge] Auditing branch flow..."
+run bash ./scripts/audit-branch-flow.sh
+run bash ./scripts/test-branch-flow-audit.sh
+
+# 3) Polkadot SDK alignment print
 echo "[post-merge] Checking Polkadot SDK alignment output..."
 ALIGN_OUT=$(./gradlew printPolkadotSdkAlignment "${GRADLE_FLAGS[@]}" --no-parallel | tee /dev/stderr)
 echo "$ALIGN_OUT" | grep -q "Polkadot SDK alignment (effective):" || {
@@ -41,17 +46,17 @@ echo "$ALIGN_OUT" | grep -q "CHAINS_URL (debug):" || { echo "CHAINS_URL (debug) 
 echo "$ALIGN_OUT" | grep -q "CHAINS_URL (release):" || { echo "CHAINS_URL (release) not printed"; exit 1; }
 echo "$ALIGN_OUT" | grep -q "SHARED_FEATURES_VERSION_OVERRIDE:" || { echo "SHARED_FEATURES_VERSION_OVERRIDE not printed"; exit 1; }
 
-# 3) Verify fearless-utils source mapping toggle messaging
-echo "[post-merge] Verifying fearless-utils source mapping toggle..."
-UTILS_OFF=$(./gradlew -q help --no-parallel "${GRADLE_FLAGS[@]}" 2>&1 | tee /dev/stderr || true)
-echo "$UTILS_OFF" | grep -q "USE_REMOTE_UTILS not set; using published artifacts for fearless-utils" || {
-  echo "Expected message for USE_REMOTE_UTILS=false not found"; exit 1; }
+# 4) Verify pinned fearless-utils source checkout
+echo "[post-merge] Verifying fearless-utils source checkout..."
+export FORCE_LOCAL_UTILS="${FORCE_LOCAL_UTILS:-true}"
+export FEARLESS_UTILS_LIBRARY_ONLY="${FEARLESS_UTILS_LIBRARY_ONLY:-true}"
+run ./scripts/ensure-fearless-utils.sh
 
-UTILS_ON=$(USE_REMOTE_UTILS=true ./gradlew -q help --no-parallel "${GRADLE_FLAGS[@]}" 2>&1 | tee /dev/stderr || true)
-echo "$UTILS_ON" | grep -q "Including remote fearless-utils from GitHub via sourceControl" || {
-  echo "Expected message for USE_REMOTE_UTILS=true not found"; exit 1; }
+# 5) Verify release overlay boundary guard behavior
+echo "[post-merge] Testing private overlay boundary guard..."
+run bash ./scripts/test-private-overlay-boundary.sh
 
-# 4) Static analysis + tests, then assemble, then lint (order matters)
+# 6) Static analysis + tests, then assemble, then lint (order matters)
 echo "[post-merge] Running detekt + unit tests..."
 run ./gradlew runTest "${GRADLE_FLAGS[@]}" --stacktrace --info --no-parallel
 

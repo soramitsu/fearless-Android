@@ -29,8 +29,8 @@ import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -71,11 +71,7 @@ class BackupMnemonicViewModel @Inject constructor(
     val isShowSkipButton = isTonAccount
 
     val mnemonic = flow {
-        val mnemonicLength = if (isSubstrateOrEthereumAccount) {
-            Mnemonic.Length.TWELVE
-        } else {
-            Mnemonic.Length.TWENTY_FOUR
-        }
+        val mnemonicLength = BackupMnemonicDefaults.mnemonicLengthForNewWallet(payload.accountTypes)
         emit(generateMnemonic(mnemonicLength))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

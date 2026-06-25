@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
 import android.annotation.SuppressLint
 import android.util.Log
+import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.api.domain.model.hasTon
@@ -12,8 +13,11 @@ import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +61,10 @@ class BalancesUpdateSystem(
             .map { (chains, metaAccount) ->
                 scope.launch {
                     val supportedChains = chains.filter {
-                        it.ecosystem == Ecosystem.Ton && metaAccount.hasTon ||
+                        it.isUniversalWalletBitcoin() && metaAccount.hasChainAccount(it.id) ||
+                                it.isUniversalWalletSolana() && metaAccount.hasChainAccount(it.id) ||
+                                it.isUniversalWalletIroha() && metaAccount.hasChainAccount(it.id) ||
+                                it.ecosystem == Ecosystem.Ton && metaAccount.hasTon ||
                                 it.ecosystem == Ecosystem.Ethereum && metaAccount.hasEthereum ||
                                 it.ecosystem == Ecosystem.Substrate && metaAccount.hasSubstrate
                     }

@@ -53,6 +53,9 @@ class OptionsEcosystemAccountsViewModel @Inject constructor(
                     WalletEcosystem.Substrate -> polkadotChainId
                     WalletEcosystem.Ethereum -> ethereumChainId
                     WalletEcosystem.Ton -> tonChainId
+                    WalletEcosystem.Bitcoin,
+                    WalletEcosystem.Solana,
+                    WalletEcosystem.Iroha -> return@let
                 }
                 when (it) {
                     BackupAccountType.PASSPHRASE -> {

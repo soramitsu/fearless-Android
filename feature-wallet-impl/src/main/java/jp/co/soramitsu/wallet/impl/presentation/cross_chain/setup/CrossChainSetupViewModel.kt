@@ -219,13 +219,16 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private val hasDestinationFeeAmountFlow = MutableStateFlow(false)
     private val destinationFeeAmountFlow: StateFlow<BigDecimal?> = combine(
+        chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
         assetFlow
-    ) { _destinationChainId, _asset ->
+    ) { _originChainId, _destinationChainId, _asset ->
         hasDestinationFeeAmountFlow.value = false
+        val originChainId = _originChainId ?: return@combine null
         val destinationChainId = _destinationChainId ?: return@combine null
         val tokenConfiguration = _asset?.token?.configuration ?: return@combine null
         val fee = xcmInteractor.getDestinationFee(
+            originChainId = originChainId,
             destinationChainId = destinationChainId,
             tokenConfiguration = tokenConfiguration
         )

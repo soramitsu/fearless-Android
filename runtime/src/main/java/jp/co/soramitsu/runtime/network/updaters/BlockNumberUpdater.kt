@@ -6,9 +6,9 @@ import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.GlobalUpdaterScope
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 
 class BlockNumberUpdater(
     chainRegistry: ChainRegistry,

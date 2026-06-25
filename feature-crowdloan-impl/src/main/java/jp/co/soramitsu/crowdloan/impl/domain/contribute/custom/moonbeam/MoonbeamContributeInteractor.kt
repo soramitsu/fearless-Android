@@ -16,10 +16,10 @@ import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.SignatureRequest
 import jp.co.soramitsu.crowdloan.impl.data.network.blockhain.extrinsic.addMemo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -74,8 +74,10 @@ class MoonbeamContributeInteractor(
 
     suspend fun doSystemRemark(apiUrl: String, apiKey: String, chainId: ChainId): Boolean {
         val remark = requireNotNull(moonbeamRemark)
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId ?: return false
         val result = extrinsicService.submitAndWatchExtrinsic(
             chain = chainRegistry.getChain(chainId),
+            accountId = accountId,
             formExtrinsic = {
                 call(
                     moduleName = "System",
@@ -93,7 +95,7 @@ class MoonbeamContributeInteractor(
                     apiUrl,
                     apiKey,
                     RemarkVerifyRequest(
-                        accountRepository.getSelectedMetaAccount().substrateAccountId?.toAddress(0.toShort())!!,
+                        accountId.toAddress(0.toShort()),
                         result.second,
                         result.first
                     )
@@ -110,11 +112,12 @@ class MoonbeamContributeInteractor(
 
     suspend fun getSystemRemarkFee(apiUrl: String, apiKey: String, chainId: ChainId): BigInteger {
         val sign = requireNotNull(termsSigned)
+        val accountId = requireNotNull(accountRepository.getSelectedMetaAccount().substrateAccountId)
         val remarkResponse = moonbeamApi.agreeRemark(
             apiUrl,
             apiKey,
             RemarkStoreRequest(
-                accountRepository.getSelectedMetaAccount().substrateAccountId?.toAddress(0.toShort())!!,
+                accountId.toAddress(0.toShort()),
                 sign
             )
         )
@@ -122,7 +125,8 @@ class MoonbeamContributeInteractor(
         moonbeamRemark = remark
         val chain = chainRegistry.getChain(chainId)
         return extrinsicService.estimateFee(
-            chain,
+            chain = chain,
+            accountId = accountId,
             formExtrinsic = {
                 call(
                     moduleName = "System",

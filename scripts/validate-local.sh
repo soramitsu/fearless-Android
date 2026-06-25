@@ -38,7 +38,7 @@ ensure_java() {
 ensure_android_sdk() {
   if [[ -z "${ANDROID_SDK_ROOT:-}" ]]; then
     # Try common locations
-    local candidates=("$HOME/Library/Android/sdk" "$HOME/Android/Sdk")
+    local candidates=("$HOME/Library/Android/sdk" "$HOME/Android/Sdk" "/opt/homebrew/share/android-commandlinetools" "/usr/local/share/android-commandlinetools")
     for d in "${candidates[@]}"; do
       if [[ -d "$d" ]]; then export ANDROID_SDK_ROOT="$d"; break; fi
     done
@@ -48,15 +48,23 @@ ensure_android_sdk() {
     warn "Docs: https://developer.android.com/studio#command-tools"
     return 1
   fi
+  if [[ -z "${ANDROID_HOME:-}" ]]; then
+    export ANDROID_HOME="$ANDROID_SDK_ROOT"
+  fi
   log "Using ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
 }
 
 find_sdkmanager() {
   if command -v sdkmanager >/dev/null 2>&1; then echo "$(command -v sdkmanager)"; return; fi
+  local sdk_root="${ANDROID_SDK_ROOT:-}"
+  if [[ -z "$sdk_root" ]]; then
+    echo ""
+    return
+  fi
   local paths=(
-    "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-    "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager"
-    "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+    "$sdk_root/cmdline-tools/latest/bin/sdkmanager"
+    "$sdk_root/cmdline-tools/bin/sdkmanager"
+    "$sdk_root/tools/bin/sdkmanager"
   )
   for p in "${paths[@]}"; do
     [[ -x "$p" ]] && { echo "$p"; return; }
@@ -77,6 +85,28 @@ prepare_android_packages() {
   "$sm" --install "platforms;android-${REQUIRED_API}" "build-tools;${REQUIRED_BUILD_TOOLS}" "platform-tools" "ndk;${REQUIRED_NDK}"
 }
 
+ensure_fearless_utils() {
+  export FORCE_LOCAL_UTILS="${FORCE_LOCAL_UTILS:-true}"
+  export FEARLESS_UTILS_LIBRARY_ONLY="${FEARLESS_UTILS_LIBRARY_ONLY:-true}"
+  ./scripts/ensure-fearless-utils.sh
+}
+
+check_iroha_mobile_sdk_release_assets() {
+  log "Checking Iroha mobile SDK release asset contract..."
+  bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --self-test
+  if [[ -n "${IROHA_MOBILE_SDK_RELEASE_TAG:-}" ]]; then
+    bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --download --tag "$IROHA_MOBILE_SDK_RELEASE_TAG"
+  else
+    warn "IROHA_MOBILE_SDK_RELEASE_TAG is not set; skipping real release asset validation."
+  fi
+}
+
+audit_xcm_registry_metadata() {
+  log "Checking XCM registry metadata contract..."
+  bash ./scripts/test-xcm-registry-metadata-audit.sh
+  bash ./scripts/audit-xcm-registry-metadata.sh
+}
+
 run_gradle_tasks() {
   if [[ ! -x "./gradlew" ]]; then
     err "Gradle wrapper not found. Run from repo root."; return 1
@@ -95,6 +125,12 @@ run_gradle_tasks() {
 }
 
 main() {
+  ./scripts/audit-public-artifacts.sh
+  bash ./scripts/test-todo-debt-audit.sh
+  bash ./scripts/audit-todo-debt.sh
+  audit_xcm_registry_metadata
+  check_iroha_mobile_sdk_release_assets
+  ensure_fearless_utils
   ensure_java || exit 1
   ensure_android_sdk || warn "SDK not fully configured; continuing if tasks do not require it."
   prepare_android_packages || warn "Could not ensure SDK packages; unit tests may still run."

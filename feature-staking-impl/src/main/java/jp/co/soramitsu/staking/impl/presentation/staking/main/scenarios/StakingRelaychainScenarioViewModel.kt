@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSource

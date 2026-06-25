@@ -14,9 +14,15 @@ import jp.co.soramitsu.account.impl.presentation.account.mixin.impl.AccountListi
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinTransactionHistorySync
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
+import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
+import jp.co.soramitsu.common.data.network.solana.SolanaRpcClient
+import jp.co.soramitsu.common.data.network.solana.SolanaTransactionHistorySync
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
@@ -24,6 +30,7 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
+import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
@@ -99,6 +106,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.xcm.ExtrinsicServiceXcmSubmitter
+import jp.co.soramitsu.xcm.SubstrateXcmTransferEngine
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
@@ -257,12 +266,18 @@ class WalletFeatureModule {
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
         historyInfoRemoteLoader: HistoryInfoRemoteLoader,
-        tonRemoteSource: TonRemoteSource
+        tonRemoteSource: TonRemoteSource,
+        bitcoinTransactionHistorySync: BitcoinTransactionHistorySync,
+        solanaTransactionHistorySync: SolanaTransactionHistorySync,
+        irohaToriiClient: IrohaToriiClient
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
         historyInfoRemoteLoader,
         tonRemoteSource,
+        bitcoinTransactionHistorySync,
+        solanaTransactionHistorySync,
+        irohaToriiClient
     )
 
     @Provides
@@ -350,8 +365,20 @@ class WalletFeatureModule {
 
     @Provides
     @Singleton
-    fun provideXcmService(chainRegistry: ChainRegistry): XcmService {
-        return XcmService(chainRegistry)
+    fun provideXcmService(
+        chainRegistry: ChainRegistry,
+        rpcCalls: RpcCalls,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory
+    ): XcmService {
+        return XcmService(
+            chainRegistry,
+            SubstrateXcmTransferEngine(
+                ExtrinsicServiceXcmSubmitter(
+                    rpcCalls = rpcCalls,
+                    extrinsicBuilderFactory = extrinsicBuilderFactory
+                )
+            )
+        )
     }
 
     @Provides
@@ -387,8 +414,8 @@ class WalletFeatureModule {
     ): ChainInteractor = ChainInteractor(chainDao, xcmEntitiesFetcher)
 
     @Provides
-    fun provideXcmEntitiesFetcher(): XcmEntitiesFetcher {
-        return XcmEntitiesFetcher()
+    fun provideXcmEntitiesFetcher(chainRegistry: ChainRegistry): XcmEntitiesFetcher {
+        return XcmEntitiesFetcher(chainRegistry)
     }
 
     @Provides
@@ -444,7 +471,10 @@ class WalletFeatureModule {
         operationDao: OperationDao,
         tonRemoteSource: TonRemoteSource,
         chainsRepository: ChainsRepository,
-        tonSyncDataRepository: TonSyncDataRepository
+        tonSyncDataRepository: TonSyncDataRepository,
+        bitcoinIndexerClient: BitcoinIndexerClient,
+        solanaBalanceSync: SolanaBalanceSync,
+        irohaToriiClient: IrohaToriiClient
     ): BalanceLoader.Provider {
         return BalanceLoaderProvider(
             chainRegistry,
@@ -454,7 +484,10 @@ class WalletFeatureModule {
             operationDao,
             tonRemoteSource,
             chainsRepository,
-            tonSyncDataRepository
+            tonSyncDataRepository,
+            bitcoinIndexerClient,
+            solanaBalanceSync,
+            irohaToriiClient
         )
     }
 
@@ -597,7 +630,11 @@ class WalletFeatureModule {
         keyPairRepository: KeypairProvider,
         accountRepository: AccountRepository,
         tonRemoteSource: TonRemoteSource,
-        assetDao: AssetDao
+        assetDao: AssetDao,
+        bitcoinIndexerClient: BitcoinIndexerClient,
+        solanaRpcClient: SolanaRpcClient,
+        solanaBalanceSync: SolanaBalanceSync,
+        irohaToriiClient: IrohaToriiClient
     ): TransferServiceProvider {
         return TransferServiceProvider(
             substrateSource,
@@ -605,7 +642,11 @@ class WalletFeatureModule {
             keyPairRepository,
             accountRepository,
             tonRemoteSource,
-            assetDao
+            assetDao,
+            bitcoinIndexerClient,
+            solanaRpcClient,
+            solanaBalanceSync,
+            irohaToriiClient
         )
     }
 }

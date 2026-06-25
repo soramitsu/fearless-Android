@@ -11,10 +11,10 @@ import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Identity
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
@@ -275,11 +275,11 @@ class StakingPoolInteractor(
 
     suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)
 
-    suspend fun estimateJoinFee(amount: BigInteger, poolId: BigInteger = BigInteger.ZERO) = api.estimateJoinFee(amount, poolId)
+    suspend fun estimateJoinFee(address: String, amount: BigInteger, poolId: BigInteger = BigInteger.ZERO) = api.estimateJoinFee(address, amount, poolId)
 
     suspend fun joinPool(address: String, amount: BigInteger, poolId: BigInteger) = api.joinPool(address, amount, poolId)
 
-    suspend fun estimateBondMoreFee(amount: BigInteger) = api.estimateBondExtraFee(amount)
+    suspend fun estimateBondMoreFee(address: String, amount: BigInteger) = api.estimateBondExtraFee(address, amount)
 
     suspend fun bondMore(address: String, amount: BigInteger) = api.bondExtra(address, amount)
 
@@ -291,7 +291,7 @@ class StakingPoolInteractor(
 
     suspend fun redeem(address: String) = api.withdrawUnbonded(address)
 
-    suspend fun estimateClaimFee() = api.estimateClaimPayoutFee()
+    suspend fun estimateClaimFee(address: String) = api.estimateClaimPayoutFee(address)
 
     suspend fun claim(address: String) = api.claimPayout(address)
 
@@ -314,9 +314,10 @@ class StakingPoolInteractor(
     ) = api.createPool(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
 
     suspend fun estimateNominateFee(
+        address: String,
         poolId: BigInteger,
         vararg validators: AccountId
-    ) = api.estimateNominatePoolFee(poolId, *validators)
+    ) = api.estimateNominatePoolFee(address, poolId, *validators)
 
     suspend fun nominate(
         poolId: BigInteger,
@@ -324,7 +325,7 @@ class StakingPoolInteractor(
         vararg validators: AccountId
     ) = api.nominatePool(poolId, accountAddress, *validators)
 
-    suspend fun estimateEditFee(state: EditPoolFlowState) = api.estimateEditPool(state)
+    suspend fun estimateEditFee(state: EditPoolFlowState, address: String) = api.estimateEditPool(state, address)
 
     suspend fun edit(state: EditPoolFlowState, address: String) = api.editPool(state, address)
 }

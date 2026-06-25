@@ -38,7 +38,7 @@ class ConfirmSelectValidatorsViewModel @Inject constructor(
         val poolId = poolSharedStateProvider.requireSelectValidatorsState.requirePoolId
         val validators = poolSharedStateProvider.requireSelectValidatorsState.selectedValidators.toTypedArray()
         require(validators.isNotEmpty())
-        stakingPoolInteractor.estimateNominateFee(poolId, *validators)
+        stakingPoolInteractor.estimateNominateFee(poolSharedStateProvider.requireMainState.requireAddress, poolId, *validators)
     },
     executeOperation = { address, _ ->
         val poolId = poolSharedStateProvider.requireSelectValidatorsState.requirePoolId

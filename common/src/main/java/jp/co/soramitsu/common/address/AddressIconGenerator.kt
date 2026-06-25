@@ -5,12 +5,12 @@ import androidx.annotation.ColorRes
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.shared_utils.exceptions.AddressFormatException
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.icon.IconGenerator
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.exceptions.AddressFormatException
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
@@ -101,11 +101,7 @@ suspend fun AddressIconGenerator.createAddressIcon(supportedEcosystemWithAddress
         createWalletIcon(ecosystem, sizeInDp)
     } else {
         val address = supportedEcosystemWithAddress.toList().sortedBy {
-            when (it.first) {
-                WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Ethereum -> 2
-                WalletEcosystem.Ton -> 3
-            }
+            it.first.iconSortOrder()
         }[0].second
 
         createAddressIcon(address, sizeInDp)
@@ -120,11 +116,7 @@ suspend fun AddressIconGenerator.createAddressModel(supportedEcosystemWithAddres
         return AddressModel(address, icon, accountName)
     } else {
         val address = supportedEcosystemWithAddress.toList().sortedBy {
-            when (it.first) {
-                WalletEcosystem.Substrate -> 1
-                WalletEcosystem.Ethereum -> 2
-                WalletEcosystem.Ton -> 3
-            }
+            it.first.iconSortOrder()
         }[0].second
 
         val icon = createAddressIcon(address, sizeInDp)
@@ -213,10 +205,33 @@ class StatelessAddressIconGenerator(
     override suspend fun createWalletIcon(ecosystem: WalletEcosystem, sizeInDp: Int): PictureDrawable = withContext(Dispatchers.Default) {
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
         val icon = when (ecosystem) {
-            WalletEcosystem.Substrate -> iconGenerator.getSubstrateWalletIcon(sizeInPx)
-            WalletEcosystem.Ethereum -> iconGenerator.getEvmWalletIcon(sizeInPx)
-            WalletEcosystem.Ton -> iconGenerator.getTonWalletIcon(sizeInPx)
+            WalletEcosystem.Substrate -> iconGenerator.getSvgImage(WALLET_ICON_SUBSTRATE_SEED, sizeInPx)
+            WalletEcosystem.Ethereum -> iconGenerator.generateEthereumAddressIcon(WALLET_ICON_EVM_SEED, sizeInPx)
+            WalletEcosystem.Ton -> iconGenerator.getSvgImage(WALLET_ICON_TON_SEED, sizeInPx, isAlternative = true)
+            WalletEcosystem.Bitcoin -> iconGenerator.getSvgImage(WALLET_ICON_BITCOIN_SEED, sizeInPx)
+            WalletEcosystem.Solana -> iconGenerator.getSvgImage(WALLET_ICON_SOLANA_SEED, sizeInPx)
+            WalletEcosystem.Iroha -> iconGenerator.getSvgImage(WALLET_ICON_IROHA_SEED, sizeInPx)
         }
         icon
+    }
+
+    private companion object {
+        val WALLET_ICON_SUBSTRATE_SEED = "fearless-wallet-substrate".encodeToByteArray()
+        val WALLET_ICON_EVM_SEED = "fearless-wallet-evm".encodeToByteArray()
+        val WALLET_ICON_TON_SEED = "fearless-wallet-ton".encodeToByteArray()
+        val WALLET_ICON_BITCOIN_SEED = "fearless-wallet-bitcoin".encodeToByteArray()
+        val WALLET_ICON_SOLANA_SEED = "fearless-wallet-solana".encodeToByteArray()
+        val WALLET_ICON_IROHA_SEED = "fearless-wallet-iroha".encodeToByteArray()
+    }
+}
+
+private fun WalletEcosystem.iconSortOrder(): Int {
+    return when (this) {
+        WalletEcosystem.Substrate -> 1
+        WalletEcosystem.Ethereum -> 2
+        WalletEcosystem.Ton -> 3
+        WalletEcosystem.Bitcoin -> 4
+        WalletEcosystem.Solana -> 5
+        WalletEcosystem.Iroha -> 6
     }
 }

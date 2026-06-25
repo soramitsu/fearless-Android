@@ -39,7 +39,7 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

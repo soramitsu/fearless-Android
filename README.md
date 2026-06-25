@@ -30,9 +30,28 @@ To build Fearless Wallet Android project, you need to provide several keys eithe
 ``` 
 MOONPAY_TEST_SECRET=stub
 MOONPAY_PRODUCTION_SECRET=stub
+MOONPAY_TEST_PUBLIC_KEY=stub
+MOONPAY_PRODUCTION_PUBLIC_KEY=stub
 ```
 
 Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
+
+### Buy provider partner properties
+```
+RAMP_TOKEN_DEBUG=stub
+RAMP_TOKEN_RELEASE=stub
+COINBASE_APP_ID=stub
+```
+
+Partner identifiers are loaded from `local.properties` or environment variables
+so public builds do not require committed release config.
+
+### Firebase properties
+
+The checked-in `app/src/*/google-services.json` files are public placeholders
+with real package names but no live Firebase project IDs, API keys, OAuth
+clients, or certificate hashes. Release and distribution builds must replace
+them from the private CI overlay before publishing.
 
 ### X1 plugin
 
@@ -82,17 +101,21 @@ Manual equivalents if you prefer:
 
 Prerequisites: JDK 21 (Temurin/Adoptium) and Android SDK with API 35 + build-tools 35.0.0. The script will try to locate `ANDROID_SDK_ROOT` and install missing packages if `sdkmanager` is available.
 
-### Use fearless-utils-Android (local or remote source dependency)
+### Use fearless-utils-Android
 
-The build now prefers a local checkout of `fearless-utils-Android`. By default it looks for `../fearless-utils-Android`, or you can override it with `FEARLESS_UTILS_PATH`:
+Public builds use a checked-out copy of `fearless-utils-Android` as a composite build. CI pins that checkout to `7500809f33243ee47ecb2ec8563fc284ac4de0d6`. Locally, clone the repo next to this checkout or set `FEARLESS_UTILS_PATH`:
 
 ```
+git clone https://github.com/soramitsu/fearless-utils-Android.git ../fearless-utils-Android
+git -C ../fearless-utils-Android checkout 7500809f33243ee47ecb2ec8563fc284ac4de0d6
 export FEARLESS_UTILS_PATH=/absolute/path/to/fearless-utils-Android
+export FORCE_LOCAL_UTILS=true
+export FEARLESS_UTILS_LIBRARY_ONLY=true
 ./gradlew :app:assembleDebug
 ```
 
 Gradle includes the local project via a composite build and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils` automatically.  
-If no local checkout is found and you need to build from source, set `USE_REMOTE_UTILS=true` (env var or `-PUSE_REMOTE_UTILS=true`) and Gradle will fetch `https://github.com/soramitsu/fearless-utils-Android` instead.  
+Run `./scripts/ensure-fearless-utils.sh` to verify the checkout and pinned commit before building. The Gradle `USE_REMOTE_UTILS=true` source-control fallback remains experimental and is not the public CI contract.
 Prereqs for building the utils from source: NDK r28 (android-ndk-r28 / 28.0.x) and a Rust toolchain on `PATH` (`rustup`, `cargo`).
 
 ### Rebuild libsodium with 16 KB alignment
@@ -106,6 +129,11 @@ ANDROID_NDK_HOME=/Users/<you>/Library/Android/sdk/ndk/28.0.12674087 \
 ```
 
 The script rebuilds `libsodium.so` for arm64-v8a, armeabi-v7a, x86, and x86_64 with the Google Play-required `-Wl,-z,common-page-size=4096 -Wl,-z,max-page-size=16384` flags and copies them into `app/src/main/jniLibs`.
+
+Tracked native/vendor binary provenance is documented in
+`docs/binary-provenance.md`.
+Public dependency provenance and current Soramitsu artifact blockers are tracked
+in `docs/public-dependency-audit.md`.
 
 ## Contributing
 

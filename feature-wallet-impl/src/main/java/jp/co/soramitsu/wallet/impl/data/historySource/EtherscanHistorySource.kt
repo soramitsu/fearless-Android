@@ -13,8 +13,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.goerliChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonTestnetChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation

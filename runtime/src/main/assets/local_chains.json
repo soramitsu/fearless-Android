@@ -77,7 +77,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 0,
+              "interior": "X1(Parachain(1000))"
+            },
+            "assetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
@@ -86,7 +115,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 0,
+              "interior": "X1(Parachain(2004))"
+            },
+            "assetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountKey20({network: Any, key: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
@@ -95,7 +153,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 0,
+              "interior": "X1(Parachain(2000))"
+            },
+            "assetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "e61a41c53f5dcd0beb09df93b34402aada44cb05117b71059cce40a2723a4e97",
@@ -104,7 +191,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 0,
+              "interior": "X1(Parachain(2012))"
+            },
+            "assetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
@@ -213,7 +329,36 @@
               "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
               "symbol": "KSM"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 0,
+              "interior": "X1(Parachain(1000))"
+            },
+            "assetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "KSM"
+            }
+          }
         },
         {
           "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
@@ -222,7 +367,36 @@
               "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
               "symbol": "KSM"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 0,
+              "interior": "X1(Parachain(2023))"
+            },
+            "assetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountKey20({network: Any, key: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "KSM"
+            }
+          }
         },
         {
           "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
@@ -231,7 +405,36 @@
               "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
               "symbol": "KSM"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 0,
+              "interior": "X1(Parachain(2000))"
+            },
+            "assetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 0,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "KSM"
+            }
+          }
         },
         {
           "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
@@ -411,7 +614,36 @@
               "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
               "symbol": "KSM"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "KSM"
+            }
+          }
         },
         {
           "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
@@ -580,7 +812,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
@@ -827,7 +1088,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
@@ -1286,7 +1576,36 @@
               "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
               "symbol": "KSM"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "KSM"
+            }
+          }
         },
         {
           "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
@@ -1519,7 +1838,36 @@
               "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
               "symbol": "KSM"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "KSM"
+            }
+          }
         },
         {
           "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
@@ -1838,7 +2186,36 @@
               "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
               "symbol": "KSM"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "KSM"
+            }
+          }
         },
         {
           "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
@@ -2778,7 +3155,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
@@ -3074,7 +3480,36 @@
               "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
               "symbol": "DOT"
             }
-          ]
+          ],
+          "execution": {
+            "palletName": "PolkadotXcm",
+            "callName": "limitedReserveTransferAssets",
+            "transferType": "limitedReserveTransferAssets",
+            "destinationLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "assetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "beneficiaryLocation": {
+              "parents": 0,
+              "interior": "X1(AccountId32({network: Any, id: <account>}))"
+            },
+            "feeAssetLocation": {
+              "parents": 1,
+              "interior": "Here"
+            },
+            "feeAssetItem": 0,
+            "weightLimit": {
+              "type": "Unlimited"
+            },
+            "destinationFee": {
+              "mode": "Included",
+              "assetSymbol": "DOT"
+            }
+          }
         },
         {
           "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
@@ -5606,7 +6041,7 @@
         "currencyId": "0x02000a0000000000000000000000000000000000000000000000000000000000",
         "precision": 18,
         "icon": "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/tokens/coloured/TBCD.svg",
-        "color":"6D8954",
+        "color": "6D8954",
         "type": "soraAsset",
         "isNative": true,
         "priceProvider": {
@@ -5621,7 +6056,7 @@
         "currencyId": "0x002d4e9e03f192cc33b128319a049f353db98fbf4d98f717fd0b7f66a0462142",
         "precision": 18,
         "icon": "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/tokens/coloured/HMX.svg",
-        "color":"FFFFFF",
+        "color": "FFFFFF",
         "type": "soraAsset",
         "isNative": true,
         "priceProvider": {
@@ -8878,7 +9313,7 @@
     "externalApi": {
       "history": {
         "type": "ton",
-        "url": "https://keeper.tonapi.io"
+        "url": "https://ti.soramitsu.io"
       },
       "explorers": [
         {
@@ -8906,13 +9341,15 @@
     ],
     "nodes": [
       {
-        "url": "https://keeper.tonapi.io",
-        "name": "Keeper api"
+        "url": "https://ti.soramitsu.io",
+        "name": "Soramitsu TON indexer"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/TON.svg",
     "addressPrefix": 0,
-    "options": ["remoteAssets"]
+    "options": [
+      "remoteAssets"
+    ]
   },
   {
     "disabled": false,
@@ -8923,7 +9360,7 @@
     "externalApi": {
       "history": {
         "type": "ton",
-        "url": "https://keeper.tonapi.io"
+        "url": "https://ti.soramitsu.io"
       },
       "explorers": [
         {

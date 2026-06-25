@@ -3,13 +3,13 @@ package jp.co.soramitsu.common.data.secrets.v3
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.invoke
-import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
-import jp.co.soramitsu.shared_utils.scale.Schema
-import jp.co.soramitsu.shared_utils.scale.byteArray
-import jp.co.soramitsu.shared_utils.scale.schema
-import jp.co.soramitsu.shared_utils.scale.string
-import jp.co.soramitsu.shared_utils.scale.toHexString
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.byteArray
+import jp.co.soramitsu.fearless_utils.scale.schema
+import jp.co.soramitsu.fearless_utils.scale.string
+import jp.co.soramitsu.fearless_utils.scale.toHexString
 
 private const val ETHEREUM_SECRETS = "ETHEREUM_SECRETS"
 

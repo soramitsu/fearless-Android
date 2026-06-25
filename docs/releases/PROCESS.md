@@ -17,7 +17,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
 
 ## Preconditions
 
-- Toolchain: JDK 21, Android SDK 35 + build-tools 35.0.0, NDK r28 (and legacy r25 if needed), Rust toolchain.
+- Toolchain: JDK 21, Android SDK 36 + build-tools 36.0.0, NDK r28 (and legacy r25 if needed), Rust toolchain.
 - Secrets: configured via env or `local.properties` (see README / docs samples).
 - Optional alignment overrides (first run mirrors): `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE`.
 
@@ -26,6 +26,10 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
 - Alignment print:
   - `./gradlew printPolkadotSdkAlignment`
   - Confirm effective URLs and shared_features pin (or "(not pinned)").
+- Public artifact audit:
+  - `./scripts/audit-public-artifacts.sh`
+  - Confirm checked-in Firebase files use the `fearless-public` placeholder
+    project, no signing material is tracked, and pinned binary checksums match.
 - Static analysis:
   - `./gradlew detektAll`
 - Unit tests + coverage:
@@ -54,6 +58,12 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
 ## Stable Release
 
 - Bump version to `x.y.z` (remove `-beta.*`).
+- Restore release overlays in CI:
+  - `./scripts/restore-release-overlays.sh`
+  - `./scripts/audit-public-artifacts.sh --release --strict-provenance`
+  - Required CI secrets include `GOOGLE_SERVICES_RELEASE_JSON_B64`,
+    `ANDROID_RELEASE_KEYSTORE_B64`, `PLAY_SERVICE_ACCOUNT_JSON_B64`, signing
+    passwords, and partner-provider keys.
 - Tag and push (signed):
   - `git tag -s x.y.z -m "fearless-Android x.y.z" && git push origin x.y.z`
 - Staged rollout:

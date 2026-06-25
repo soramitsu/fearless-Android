@@ -1,0 +1,25 @@
+# Owners must have write access to this repository.
+
+* @soramitsu/fearless
+
+/.github/ @soramitsu/devops-team
+/AGENTS.md @soramitsu/fearless @soramitsu/android-developers
+/CONTRIBUTING.md @soramitsu/fearless @soramitsu/android-developers
+/README.md @soramitsu/fearless @soramitsu/android-developers
+/docs/release-checklist.md @soramitsu/fearless @soramitsu/devops-team
+/docs/rollback-checklist.md @soramitsu/fearless @soramitsu/devops-team
+
+/app/ @soramitsu/fearless @soramitsu/android-developers
+/common/ @soramitsu/fearless @soramitsu/android-developers
+/runtime/ @soramitsu/fearless @soramitsu/android-developers
+/feature-wallet-api/ @soramitsu/fearless @soramitsu/android-developers
+/feature-wallet-impl/ @soramitsu/fearless @soramitsu/android-developers
+/feature-walletconnect-api/ @soramitsu/fearless @soramitsu/android-developers
+/feature-walletconnect-impl/ @soramitsu/fearless @soramitsu/android-developers
+
+/key/ @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
+/common/src/main/java/jp/co/soramitsu/common/model/ @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
+/common/src/main/java/jp/co/soramitsu/common/wallet/ @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
+/**/*Key* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
+/**/*Keystore* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
+/**/*Signer* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security

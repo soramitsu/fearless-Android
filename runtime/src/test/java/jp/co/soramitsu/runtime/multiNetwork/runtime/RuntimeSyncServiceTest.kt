@@ -16,10 +16,10 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
-import jp.co.soramitsu.shared_utils.runtime.metadata.GetMetadataRequest
-import jp.co.soramitsu.shared_utils.wsrpc.SocketService
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
-import jp.co.soramitsu.shared_utils.wsrpc.response.RpcResponse
+import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first

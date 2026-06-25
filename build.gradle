@@ -102,8 +102,10 @@ allprojects {
     repositories {
         google()
         mavenLocal()
-        maven { url = uri("https://nexus.iroha.tech/repository/maven-soramitsu/") }
         mavenCentral()
+        if (readOptionalSecret("INCLUDE_SORAMITSU_NEXUS") == "1") {
+            maven { url = uri("https://nexus.iroha.tech/repository/maven-soramitsu/") }
+        }
         maven { url = uri("https://jitpack.io") }
 
     }
@@ -115,6 +117,15 @@ allprojects {
 
     configurations.configureEach {
         resolutionStrategy {
+            dependencySubstitution {
+                substitute module('jp.co.soramitsu:android-foundation') using project(':public-android-foundation')
+                substitute module('jp.co.soramitsu:ui-core') using project(':public-ui-core')
+                substitute module('jp.co.soramitsu.xnetworking:lib-android') using project(':public-xnetworking')
+                substitute module('jp.co.soramitsu.shared_features:core') using project(':public-shared-features-core')
+                substitute module('jp.co.soramitsu.shared_features:xcm') using project(':public-shared-features-xcm')
+                substitute module('jp.co.soramitsu.shared_features:backup') using project(':public-shared-features-backup')
+            }
+
             // add dependency substitution rules
             eachDependency { DependencyResolveDetails details ->
                 if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk15on') {
@@ -123,7 +134,7 @@ allprojects {
             }
 
             // Optional: pin shared_features libs to a specific version (e.g., for Polkadot SDK alignment)
-            def sharedFeaturesVer = readSecret("SHARED_FEATURES_VERSION_OVERRIDE")
+            def sharedFeaturesVer = readOptionalSecret("SHARED_FEATURES_VERSION_OVERRIDE")
             if (sharedFeaturesVer) {
                 force "jp.co.soramitsu.shared_features:core:${sharedFeaturesVer}"
                 force "jp.co.soramitsu.shared_features:xcm:${sharedFeaturesVer}"
@@ -155,10 +166,33 @@ tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
 
+def unitTestTaskPaths = [
+        ':app:testDebugUnitTest',
+        ':common:testDebugUnitTest',
+        ':core-db:testDebugUnitTest',
+        ':feature-account-impl:testDebugUnitTest',
+        ':feature-crowdloan-impl:testDebugUnitTest',
+        ':feature-onboarding-impl:testDebugUnitTest',
+        ':feature-staking-impl:testDebugUnitTest',
+        ':feature-tonconnect-api:testDebugUnitTest',
+        ':feature-wallet-impl:testDebugUnitTest',
+        ':feature-walletconnect-impl:testDebugUnitTest',
+        ':runtime:testDebugUnitTest'
+]
+def jacocoReportTaskPaths = [
+        ':feature-account-impl:jacocoTestReport',
+        ':feature-crowdloan-impl:jacocoTestReport',
+        ':feature-onboarding-impl:jacocoTestReport',
+        ':feature-staking-impl:jacocoTestReport',
+        ':feature-wallet-impl:jacocoTestReport'
+]
+
 tasks.register('runTest') {
     group = 'verification'
     description = 'Runs clean -> detekt -> module tests -> jacoco in order.'
     dependsOn 'clean', 'detektAll'
+    dependsOn unitTestTaskPaths
+    dependsOn jacocoReportTaskPaths
 }
 
 // Helper: print effective Polkadot SDK alignment overrides and defaults
@@ -171,11 +205,11 @@ tasks.register('printPolkadotSdkAlignment') {
         def chainsUrlDebugDefault = 'https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v13/chains_dev_prod.json'
         def chainsUrlReleaseDefault = 'https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json'
 
-        def typesUrl = readSecret('TYPES_URL_OVERRIDE') ?: typesUrlDefault
-        def defaultV13TypesUrl = readSecret('DEFAULT_V13_TYPES_URL_OVERRIDE') ?: defaultV13TypesUrlDefault
-        def chainsUrlDebug = readSecret('CHAINS_URL_DEBUG_OVERRIDE') ?: (readSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlDebugDefault)
-        def chainsUrlRelease = readSecret('CHAINS_URL_RELEASE_OVERRIDE') ?: (readSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlReleaseDefault)
-        def sharedFeaturesVer = readSecret('SHARED_FEATURES_VERSION_OVERRIDE') ?: '(not pinned)'
+        def typesUrl = readOptionalSecret('TYPES_URL_OVERRIDE') ?: typesUrlDefault
+        def defaultV13TypesUrl = readOptionalSecret('DEFAULT_V13_TYPES_URL_OVERRIDE') ?: defaultV13TypesUrlDefault
+        def chainsUrlDebug = readOptionalSecret('CHAINS_URL_DEBUG_OVERRIDE') ?: (readOptionalSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlDebugDefault)
+        def chainsUrlRelease = readOptionalSecret('CHAINS_URL_RELEASE_OVERRIDE') ?: (readOptionalSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlReleaseDefault)
+        def sharedFeaturesVer = readOptionalSecret('SHARED_FEATURES_VERSION_OVERRIDE') ?: '(not pinned)'
 
         println("Polkadot SDK alignment (effective):")
         println(" - TYPES_URL: ${typesUrl}")
@@ -190,31 +224,35 @@ tasks.register('printPolkadotSdkAlignment') {
 tasks.register('postMergeCheck') {
     group = 'verification'
     description = 'Print alignment, run tests, assemble debug, then lint in sequence.'
-    dependsOn 'printPolkadotSdkAlignment', 'runTest', ':app:assembleDebug', ':app:lint'
+    dependsOn 'printPolkadotSdkAlignment', 'runTest', ':app:lint'
 }
 
 gradle.projectsEvaluated {
-    def moduleRunTests = []
-    def moduleJacocoReports = []
-
-    subprojects.each { proj ->
-        proj.tasks.matching { it.name == 'runModuleTests' }.configureEach { moduleRunTests += it }
-        proj.tasks.matching { it.name == 'jacocoTestReport' }.configureEach { moduleJacocoReports += it }
-    }
-
     tasks.named('runTest').configure {
-        dependsOn moduleJacocoReports
         mustRunAfter('printPolkadotSdkAlignment')
     }
 
     tasks.named('detektAll').configure { mustRunAfter('clean') }
-    moduleRunTests.each { it.mustRunAfter(tasks.named('detektAll').get()) }
-    moduleJacocoReports.each { report ->
-        report.mustRunAfter(moduleRunTests)
+    unitTestTaskPaths.each { taskPath ->
+        tasks.findByPath(taskPath)?.mustRunAfter(tasks.named('detektAll').get())
+    }
+    jacocoReportTaskPaths.each { taskPath ->
+        tasks.findByPath(taskPath)?.mustRunAfter(unitTestTaskPaths)
     }
 
-    project(':app').tasks.named('assembleDebug').configure { mustRunAfter(':runTest') }
-    project(':app').tasks.named('lint').configure { mustRunAfter(':app:assembleDebug') }
+    def appProject = project(':app')
+    def appAssembleTaskName = ['assembleDevelopDebug', 'assembleDebug', 'assemble']
+            .find { taskName -> appProject.tasks.findByName(taskName) != null }
+
+    if (appAssembleTaskName != null) {
+        tasks.named('postMergeCheck').configure {
+            dependsOn(":app:${appAssembleTaskName}")
+        }
+        appProject.tasks.named(appAssembleTaskName).configure { mustRunAfter(':runTest') }
+        appProject.tasks.named('lint').configure { mustRunAfter(":app:${appAssembleTaskName}") }
+    } else {
+        logger.warn("No app assemble task found for postMergeCheck ordering.")
+    }
 }
 
 // Jenkins-friendly alias that avoids nested Gradle builds.
@@ -225,7 +263,6 @@ tasks.register('postMergeVerify') {
     dependsOn('clean')
     dependsOn('printPolkadotSdkAlignment')
     dependsOn('detektAll')
-    dependsOn(':app:assembleDebug')
     dependsOn(':app:lint')
 }
 
@@ -239,25 +276,34 @@ gradle.projectsEvaluated {
     def appProject = project(':app')
     // Prefer assembleDevelopDebug if present (custom build type), else assembleDebug, else fallback to assemble
     def appAssembleTaskName = ['assembleDevelopDebug', 'assembleDebug', 'assemble']
-            .find { t -> appProject.tasks.findByName(t) != null } ?: 'assemble'
+            .find { t -> appProject.tasks.findByName(t) != null }
 
     tasks.named('postMergeVerify') {
         dependsOn(testTasks)
-        // Wire the chosen assemble task
-        dependsOn(":app:${appAssembleTaskName}")
+        if (appAssembleTaskName != null) {
+            dependsOn(":app:${appAssembleTaskName}")
+        } else {
+            logger.warn("No app assemble task found for postMergeVerify ordering.")
+        }
     }
 
     // Ensure fast-fail order: detekt -> assemble -> lint -> tests
-    appProject.tasks.matching { it.name == appAssembleTaskName }.configureEach {
-        mustRunAfter(':detektAll')
+    if (appAssembleTaskName != null) {
+        appProject.tasks.matching { it.name == appAssembleTaskName }.configureEach {
+            mustRunAfter(':detektAll')
+        }
     }
     appProject.tasks.matching { it.name == 'lint' }.configureEach {
-        mustRunAfter(":app:${appAssembleTaskName}")
+        if (appAssembleTaskName != null) {
+            mustRunAfter(":app:${appAssembleTaskName}")
+        }
     }
     // Run unit tests after lint to avoid wasting time if lint fails
     testTasks.each { t ->
         t.mustRunAfter(':detektAll')
-        t.mustRunAfter(":app:${appAssembleTaskName}")
+        if (appAssembleTaskName != null) {
+            t.mustRunAfter(":app:${appAssembleTaskName}")
+        }
         t.mustRunAfter(":app:lint")
     }
 }

@@ -24,6 +24,11 @@ android {
 }
 
 dependencies {
-    implementation libs.coroutines.core
-    implementation libs.sharedFeaturesCoreDep
+    api libs.coroutines.core
+    api libs.kotlinx.serialization.json
+    api libs.sharedFeaturesCoreDep
+
+    implementation libs.gson
+
+    testImplementation libs.junit
 }

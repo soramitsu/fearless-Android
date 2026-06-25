@@ -60,7 +60,8 @@ data class Chain(
     override val ecosystem: Ecosystem,
     val androidMinAppVersion: String? = null,
     val remoteAssetsSource: RemoteAssetsSource?,
-    val tonBridgeUrl: String? = null
+    val tonBridgeUrl: String? = null,
+    val xcm: Xcm? = null
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -74,9 +75,9 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, UNKNOWN, GITHUB, TON;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, UNKNOWN, GITHUB, TON, BITCOIN, SOLANA, IROHA;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, TON)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, TON, BITCOIN, SOLANA)
             }
         }
     }
@@ -124,6 +125,7 @@ data class Chain(
         if (supportNft != other.supportNft) return false
         if (isUsesAppId != other.isUsesAppId) return false
         if (identityChain != other.identityChain) return false
+        if (xcm != other.xcm) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -158,7 +160,65 @@ data class Chain(
         result = 31 * result + supportNft.hashCode()
         result = 31 * result + isUsesAppId.hashCode()
         result = 31 * result + (identityChain?.hashCode() ?: 0)
+        result = 31 * result + (xcm?.hashCode() ?: 0)
         return result
+    }
+
+    data class Xcm(
+        val chainId: String?,
+        val xcmVersion: String?,
+        val availableAssets: List<Asset>?,
+        val availableDestinations: List<Destination>?
+    ) {
+        data class Asset(
+            val id: String?,
+            val symbol: String?,
+            val minAmount: String?
+        )
+
+        data class Destination(
+            val chainId: String?,
+            val assets: List<Asset>?,
+            val bridgeParachainId: String?,
+            val execution: Execution? = null
+        )
+
+        data class Execution(
+            val palletName: String?,
+            val callName: String?,
+            val transferType: String?,
+            val destinationLocation: MultiLocation?,
+            val assetLocation: MultiLocation?,
+            val beneficiaryLocation: MultiLocation?,
+            val feeAssetLocation: MultiLocation?,
+            val feeAssetItem: Int?,
+            val weightLimit: WeightLimit?,
+            val destinationFee: DestinationFee?,
+            val bridge: Bridge?
+        )
+
+        data class MultiLocation(
+            val parents: Int?,
+            val interior: String?
+        )
+
+        data class WeightLimit(
+            val type: String?,
+            val refTime: String?,
+            val proofSize: String?
+        )
+
+        data class DestinationFee(
+            val mode: String?,
+            val assetSymbol: String?,
+            val amount: String?
+        )
+
+        data class Bridge(
+            val parachainId: String?,
+            val feeAssetLocation: MultiLocation?,
+            val feeAssetItem: Int?
+        )
     }
 }
 

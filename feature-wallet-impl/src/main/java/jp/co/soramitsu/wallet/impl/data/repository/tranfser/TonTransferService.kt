@@ -77,22 +77,23 @@ class TonTransferService(
     @SuppressLint("LogNotTimber")
     override suspend fun getTransferFee(transfer: Transfer): BigDecimal = withContext(Dispatchers.Default + SupervisorJob()) {
         val selectedMetaAccount = async { accountRepository.getSelectedMetaAccount() }
+        val metaAccount = selectedMetaAccount.await()
+        val tonPublicKey = metaAccount.tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
+        val senderAccountId = tonPublicKey.tonAccountId(chain.isTestNet)
 
-        val senderAccountId =
-            selectedMetaAccount.await().tonPublicKey?.tonAccountId(chain.isTestNet) ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
+        requireMatchingSender(transfer, tonPublicKey, senderAccountId)
 
         val utilityAsset = chain.utilityAsset ?: throw IllegalStateException(
             "Can't find utility asset for ${chain.name}"
         )
 
-        val accountId = selectedMetaAccount.await().tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
-        val tonAsset = assetDao.getAsset(selectedMetaAccount.await().id, accountId, chain.id, utilityAsset.id)
+        val tonAsset = assetDao.getAsset(metaAccount.id, tonPublicKey, chain.id, utilityAsset.id)
 
         if (transfer.chainAsset.type == ChainAssetType.Jetton && tonAsset?.asset?.freeInPlanks.lessThanOrEquals(BigInteger.ZERO)) {
             throw RuntimeException("Can't calculate fee: Not enough tokens for fee")
         }
 
-        val senderSmartContract = V4R2WalletContract(selectedMetaAccount.await().tonPublicKey!!)
+        val senderSmartContract = V4R2WalletContract(tonPublicKey)
 
         val seqnoDeferred = async { tonRemoteSource.getSeqno(chain, senderAccountId) }
 
@@ -173,7 +174,7 @@ class TonTransferService(
         } catch (e: Throwable) {
             val account = tonRemoteSource.loadAccountData(
                 chain,
-                selectedMetaAccount.await().tonPublicKey!!.tonAccountId(chain.isTestNet)
+                senderAccountId
             )
             val initializedAccount =
                 account.status != AccountStatus.uninit && account.status != AccountStatus.nonexist
@@ -198,13 +199,17 @@ class TonTransferService(
 
     override suspend fun transfer(transfer: Transfer): String = withContext(Dispatchers.Default) {
         val selectedMetaAccount = async { accountRepository.getSelectedMetaAccount() }
-        val senderAccountId =
-            selectedMetaAccount.await().tonPublicKey?.tonAccountId(chain.isTestNet) ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
-        val senderSmartContract = V4R2WalletContract(selectedMetaAccount.await().tonPublicKey!!)
+        val metaAccount = selectedMetaAccount.await()
+        val tonPublicKey = metaAccount.tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
+        val senderAccountId = tonPublicKey.tonAccountId(chain.isTestNet)
+
+        requireMatchingSender(transfer, tonPublicKey, senderAccountId)
+
+        val senderSmartContract = V4R2WalletContract(tonPublicKey)
         val seqnoDeferred = async { tonRemoteSource.getSeqno(chain, senderAccountId) }
 
         val keypair =
-            keyPairRepository.getKeypairFor(chain, selectedMetaAccount.await().tonPublicKey!!)
+            keyPairRepository.getKeypairFor(chain, tonPublicKey)
         val privateKey = PrivateKeyEd25519.of(keypair.privateKey)
 
         val seqno = seqnoDeferred.await()
@@ -274,6 +279,18 @@ class TonTransferService(
 
         val hashHex = hash.toHex()
         return@withContext hashHex
+    }
+
+    private fun requireMatchingSender(transfer: Transfer, tonPublicKey: ByteArray, senderAccountId: String) {
+        val sender = transfer.sender.trim()
+        val matchesSelectedAccount =
+            sender == tonPublicKey.v4r2tonAddress(chain.isTestNet) ||
+                sender == tonPublicKey.v4r2tonAddress(chain.isTestNet, bounceable = true) ||
+                sender.equals(senderAccountId, ignoreCase = true)
+
+        require(matchesSelectedAccount) {
+            "Transfer sender does not match selected TON account"
+        }
     }
 
     private suspend fun createUnsignedBody(

@@ -1,0 +1,353 @@
+diff --git a/build.gradle b/build.gradle
+index 20a5d27..b66ede9 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -18,10 +18,10 @@ buildscript {
+         }
+     }
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:8.0.0'
++        classpath 'com.android.tools.build:gradle:8.9.1'
+         classpath 'org.mozilla.rust-android-gradle:plugin:0.9.0'
+-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20"
+-        classpath "org.jetbrains.kotlin:kotlin-serialization:1.8.20"
++        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10"
++        classpath "org.jetbrains.kotlin:kotlin-serialization:2.1.10"
+         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:4.4.1.3373"
+     }
+ }
+diff --git a/fearless-utils/build.gradle b/fearless-utils/build.gradle
+index 299edac..c97da66 100644
+--- a/fearless-utils/build.gradle
++++ b/fearless-utils/build.gradle
+@@ -2,9 +2,18 @@ apply plugin: 'com.android.library'
+ apply plugin: 'kotlin-android'
+ apply plugin: 'kotlin-kapt'
+ apply plugin: 'kotlinx-serialization'
+-apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
+ apply from: '../maven-publish-helper.gradle'
+ 
++def skipRustPlugin = (
++        System.getenv("FEARLESS_UTILS_SKIP_RUST_PLUGIN")
++                ?: System.getenv("FEARLESS_UTILS_LIBRARY_ONLY")
++                ?: "false"
++).toBoolean()
++
++if (!skipRustPlugin) {
++    apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
++}
++
+ publishing {
+     publications {
+         release(MavenPublication) {
+@@ -51,16 +60,24 @@ android {
+     namespace 'jp.co.soramitsu.fearless_utils'
+ }
+ 
+-cargo {
+-    module = "../sr25519-java/"
+-    libname = "sr25519java"
+-    targets = ["arm", "arm64", "x86", "x86_64"]
+-    profile = "release"
++tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
++    compilerOptions {
++        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
++    }
+ }
+ 
+-tasks.whenTaskAdded { task ->
+-    if ((task.name == 'javaPreCompileDebug' || task.name == 'javaPreCompileRelease')) {
+-        task.dependsOn 'cargoBuild'
++if (!skipRustPlugin) {
++    cargo {
++        module = "../sr25519-java/"
++        libname = "sr25519java"
++        targets = ["arm", "arm64", "x86", "x86_64"]
++        profile = "release"
++    }
++
++    tasks.whenTaskAdded { task ->
++        if ((task.name == 'javaPreCompileDebug' || task.name == 'javaPreCompileRelease')) {
++            task.dependsOn 'cargoBuild'
++        }
+     }
+ }
+ 
+@@ -78,14 +95,12 @@ task createJar(type: Copy) {
+ createJar.dependsOn(deleteJar, build)
+ 
+ dependencies {
+-    implementation fileTree(dir: 'libs', include: ['*.jar'])
++    api fileTree(dir: 'libs', include: ['*.jar'])
+ 
+     implementation "com.madgag.spongycastle:bcpkix-jdk15on:1.58.0.0"
+     implementation "com.madgag.spongycastle:bcpg-jdk15on:1.58.0.0"
+     implementation "net.i2p.crypto:eddsa:0.3.0"
+     implementation "com.caverock:androidsvg-aar:1.4"
+-    implementation "io.github.novacrypto:BIP39:2019.01.27"
+-    implementation "io.github.novacrypto:securestring:2019.01.27@jar"
+     implementation "com.neovisionaries:nv-websocket-client:2.14"
+     implementation "com.google.code.gson:gson:2.10.1"
+     implementation "org.web3j:crypto:4.6.0-android"
+@@ -96,6 +111,8 @@ dependencies {
+     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0"
+ 
+     testImplementation "junit:junit:4.13.2"
++    testImplementation "net.bytebuddy:byte-buddy:1.18.10"
++    testImplementation "net.bytebuddy:byte-buddy-agent:1.18.10"
+     testImplementation "org.mockito:mockito-inline:5.2.0"
+ 
+     androidTestImplementation "androidx.test:runner:1.5.2"
+diff --git a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/EnglishWordList.kt b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/EnglishWordList.kt
+index 645fd95..113edac 100644
+--- a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/EnglishWordList.kt
++++ b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/EnglishWordList.kt
+@@ -1,11 +1,9 @@
+ package jp.co.soramitsu.fearless_utils.encrypt.mnemonic
+ 
+-import io.github.novacrypto.bip39.WordList
+-
+-enum class EnglishWordList : WordList {
++enum class EnglishWordList {
+     INSTANCE;
+ 
+-    override fun getWord(index: Int): String {
++    fun getWord(index: Int): String {
+         return words[index]
+     }
+ 
+@@ -13,9 +11,7 @@ enum class EnglishWordList : WordList {
+         return words.indexOf(word)
+     }
+ 
+-    override fun getSpace(): Char {
+-        return ' '
+-    }
++    val space = ' '
+ 
+     companion object {
+         private val words = arrayOf(
+diff --git a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/MnemonicCreator.kt b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/MnemonicCreator.kt
+index 0b766bc..6ee28f3 100644
+--- a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/MnemonicCreator.kt
++++ b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/mnemonic/MnemonicCreator.kt
+@@ -1,9 +1,7 @@
+ package jp.co.soramitsu.fearless_utils.encrypt.mnemonic
+ 
+-import io.github.novacrypto.SecureCharBuffer
+-import io.github.novacrypto.bip39.MnemonicGenerator
+-import io.github.novacrypto.hashing.Sha256
+ import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
++import java.security.MessageDigest
+ import java.security.SecureRandom
+ import java.text.Normalizer
+ import java.text.Normalizer.normalize
+@@ -15,17 +13,15 @@ private val SPACE = EnglishWordList.INSTANCE.space.toString()
+ 
+ object MnemonicCreator {
+ 
+-    fun randomMnemonic(length: Mnemonic.Length): Mnemonic = SecureCharBuffer().use { secure ->
++    fun randomMnemonic(length: Mnemonic.Length): Mnemonic {
+         val entropy = ByteArray(length.byteLength)
+ 
+-        SecureRandom().nextBytes(entropy)
+-        MnemonicGenerator(EnglishWordList.INSTANCE)
+-            .createMnemonic(entropy, secure::append)
+-        Arrays.fill(entropy, 0.toByte())
+-
+-        val words = secure.toStringAble().toString()
+-
+-        fromWords(words)
++        return try {
++            SecureRandom().nextBytes(entropy)
++            fromEntropy(entropy)
++        } finally {
++            Arrays.fill(entropy, 0.toByte())
++        }
+     }
+ 
+     fun fromWords(words: String): Mnemonic {
+@@ -39,12 +35,13 @@ object MnemonicCreator {
+     }
+ 
+     fun fromEntropy(entropy: ByteArray): Mnemonic {
+-        val words = generateWords(entropy)
++        val entropyCopy = entropy.copyOf()
++        val words = generateWords(entropyCopy)
+ 
+         return Mnemonic(
+             words = words,
+             wordList = toWordList(words),
+-            entropy = entropy
++            entropy = entropyCopy
+         )
+     }
+ 
+@@ -56,16 +53,23 @@ object MnemonicCreator {
+         val startIndex = normalized.indexOfFirst { it.isLetter() }
+         val endIndex = normalized.indexOfLast { it.isLetter() }
+ 
++        if (startIndex == -1 || endIndex == -1) {
++            throw Bip39Exception()
++        }
++
+         return normalized.substring(startIndex, endIndex + 1)
+             .replace(DELIMITER_REGEX, SPACE)
+     }
+ 
+     private fun generateWords(entropy: ByteArray): String {
+-        SecureCharBuffer().use { secure ->
+-            MnemonicGenerator(EnglishWordList.INSTANCE)
+-                .createMnemonic(entropy, secure::append)
+-            Arrays.fill(entropy, 0.toByte())
+-            return secure.toStringAble().toString()
++        validateEntropySize(entropy)
++
++        val entropyBits = bytesToBinaryString(entropy)
++        val checksumBits = deriveChecksumBits(entropy)
++        val mnemonicBits = entropyBits + checksumBits
++
++        return mnemonicBits.chunked(11).joinToString(SPACE) { bits ->
++            EnglishWordList.INSTANCE.getWord(Integer.parseInt(bits, 2))
+         }
+     }
+ 
+@@ -140,11 +144,17 @@ object MnemonicCreator {
+     private fun deriveChecksumBits(entropy: ByteArray): String {
+         val ent = entropy.size * 8
+         val cs = ent / 32
+-        val hash = Sha256.sha256(entropy)
++        val hash = MessageDigest.getInstance("SHA-256").digest(entropy)
+ 
+         return bytesToBinaryString(hash).substring(0, cs)
+     }
+ 
++    private fun validateEntropySize(entropy: ByteArray) {
++        if (entropy.size < 16 || entropy.size > 32 || entropy.size % 4 != 0) {
++            throw Bip39Exception()
++        }
++    }
++
+     private fun bytesToBinaryString(bytes: ByteArray): String {
+         return bytes.toUByteArray().joinToString("") { x ->
+             x.toString(2).padStart(length = 8, padChar = '0')
+diff --git a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/definitions/types/generics/ExtrinsicExt.kt b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/definitions/types/generics/ExtrinsicExt.kt
+index aeadc36..ea36057 100644
+--- a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/definitions/types/generics/ExtrinsicExt.kt
++++ b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/definitions/types/generics/ExtrinsicExt.kt
+@@ -2,6 +2,7 @@ package jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics
+ 
+ import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
++import java.util.Locale
+ 
+ class MultiSignature(val encryptionType: EncryptionType, val value: ByteArray)
+ 
+@@ -10,13 +11,15 @@ fun Extrinsic.Signature.tryExtractMultiSignature(): MultiSignature? {
+     val value = enumEntry.value as? ByteArray ?: return null
+ 
+     val encryptionType =
+-        EncryptionType.fromStringOrNull(enumEntry.name.toLowerCase()) ?: return null
++        EncryptionType.fromStringOrNull(enumEntry.name.lowercase(Locale.ROOT)) ?: return null
+ 
+     return MultiSignature(encryptionType, value)
+ }
+ 
+ private val EncryptionType.multiSignatureName
+-    get() = rawName.capitalize()
++    get() = rawName.replaceFirstChar {
++        if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
++    }
+ 
+ fun MultiSignature.prepareForEncoding(): Any {
+     return DictEnum.Entry(encryptionType.multiSignatureName, value)
+diff --git a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/extrinsic/ExtrinsicBuilder.kt b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/extrinsic/ExtrinsicBuilder.kt
+index 006ba0c..dc78d5b 100644
+--- a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/extrinsic/ExtrinsicBuilder.kt
++++ b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/extrinsic/ExtrinsicBuilder.kt
+@@ -37,6 +37,7 @@ class ExtrinsicBuilder(
+     private val blockHash: ByteArray = genesisHash,
+     private val era: Era = Era.Immortal,
+     private val tip: BigInteger = DEFAULT_TIP,
++    private val appId: BigInteger? = null,
+     private val signatureConstructor: Type.InstanceConstructor<SignatureWrapper> = SignatureInstanceConstructor
+ ) {
+ 
+@@ -100,7 +101,7 @@ class ExtrinsicBuilder(
+             SignedExtras.ERA to era,
+             SignedExtras.NONCE to nonce,
+             SignedExtras.TIP to tip,
+-            SignedExtras.ASSET_TX_PAYMENT to listOf(DEFAULT_TIP, null)
++            SignedExtras.ASSET_TX_PAYMENT to assetTxPayment()
+         )
+ 
+         val additionalExtrasInstance = mapOf(
+@@ -144,7 +145,9 @@ class ExtrinsicBuilder(
+     private fun buildSignedExtras(): ExtrinsicPayloadExtrasInstance = mapOf(
+         SignedExtras.ERA to era,
+         SignedExtras.TIP to tip,
+-        SignedExtras.ASSET_TX_PAYMENT to listOf(DEFAULT_TIP, null),
++        SignedExtras.ASSET_TX_PAYMENT to assetTxPayment(),
+         SignedExtras.NONCE to nonce
+     )
++
++    private fun assetTxPayment(): List<Any?> = listOf(tip, appId)
+ }
+diff --git a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/socket/RpcSocket.kt b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/socket/RpcSocket.kt
+index 73ce3ad..f8c7b53 100644
+--- a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/socket/RpcSocket.kt
++++ b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/socket/RpcSocket.kt
+@@ -11,6 +11,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+ import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
+ import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
+ import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
++import java.util.Locale
+ import java.util.concurrent.TimeUnit
+ 
+ interface RpcSocketListener {
+@@ -106,7 +107,7 @@ class RpcSocket(
+     }
+ 
+     private fun log(topic: String, message: Any?) {
+-        logger?.log("\t[SOCKET][${topic.toUpperCase()}] $message")
++        logger?.log("\t[SOCKET][${topic.uppercase(Locale.ROOT)}] $message")
+     }
+ 
+     private fun isSubscriptionChange(string: String): Boolean {
+diff --git a/settings.gradle b/settings.gradle
+index cf3e82f..9637431 100644
+--- a/settings.gradle
++++ b/settings.gradle
+@@ -54,5 +54,9 @@ if (dependencySubstitutionsClass != null && !dependencySubstitutionsClass.metaCl
+ }
+ 
+ include ':fearless-utils'
+-include ':app'
++
++def libraryOnly = (System.getenv("FEARLESS_UTILS_LIBRARY_ONLY") ?: "false").toBoolean()
++if (!libraryOnly) {
++    include ':app'
++}
+ rootProject.name = "fearless-utils-android"
+diff --git a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/request/CoroutinesRequestExecutor.kt b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/request/CoroutinesRequestExecutor.kt
+new file mode 100644
+index 0000000..a2afbc8
+--- /dev/null
++++ b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/request/CoroutinesRequestExecutor.kt
+@@ -0,0 +1,3 @@
++package jp.co.soramitsu.fearless_utils.wsrpc.request
++
++typealias CoroutinesRequestExecutor = RequestExecutor
+diff --git a/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/request/runtime/chain/StateRuntimeVersionRequest.kt b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/request/runtime/chain/StateRuntimeVersionRequest.kt
+new file mode 100644
+index 0000000..97b4410
+--- /dev/null
++++ b/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/request/runtime/chain/StateRuntimeVersionRequest.kt
+@@ -0,0 +1,7 @@
++package jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain
++
++import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
++
++class StateRuntimeVersionRequest : RuntimeRequest("state_getRuntimeVersion", listOf())
++
++object SubscribeStateRuntimeVersionRequest : RuntimeRequest("state_subscribeRuntimeVersion", listOf())

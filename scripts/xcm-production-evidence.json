@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "scope": "android-xcm-production-readiness",
+  "status": "blocked",
+  "releaseEnabled": false,
+  "lastReviewed": "2026-06-26",
+  "currentState": {
+    "requiredExecutableRouteCount": 15,
+    "discoveryOnlyRouteCount": 34
+  },
+  "blockers": [
+    "e2e-transfer-evidence-missing",
+    "all-routes-executable-gate-not-green",
+    "discovery-only-routes-remain"
+  ],
+  "routeManifests": {
+    "requiredExecutableRoutes": "scripts/xcm-required-routes.tsv",
+    "discoveryOnlyRoutes": "scripts/xcm-discovery-only-routes.tsv",
+    "gapReport": "build/reports/xcm-registry-gap-report.json"
+  },
+  "readyVerificationCommands": [
+    "bash ./scripts/test-xcm-production-evidence-audit.sh",
+    "bash ./scripts/audit-xcm-production-evidence.sh --require-ready",
+    "bash ./scripts/test-xcm-registry-metadata-audit.sh",
+    "bash ./scripts/audit-xcm-registry-metadata.sh --require-executable --require-all-routes-executable --require-route-file scripts/xcm-required-routes.tsv --require-gap-file scripts/xcm-discovery-only-routes.tsv",
+    "./gradlew :public-shared-features-xcm:testDebugUnitTest --tests 'jp.co.soramitsu.xcm.XcmServiceTest' --tests 'jp.co.soramitsu.xcm.domain.XcmEntitiesFetcherTest' --tests 'jp.co.soramitsu.xcm.SubstrateXcmTransferEngineTest'",
+    "./gradlew :runtime:testDebugUnitTest --tests 'jp.co.soramitsu.runtime.multiNetwork.chain.remote.XcmLocalChainsRegistryTest'"
+  ],
+  "requiredEvidenceFields": [
+    "originChainId",
+    "destinationChainId",
+    "assetSymbol",
+    "extrinsicHash",
+    "sender",
+    "recipient",
+    "amount",
+    "timestamp",
+    "environment",
+    "operator"
+  ],
+  "evidence": []
+}

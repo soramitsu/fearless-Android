@@ -21,16 +21,16 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.shared_utils.wsrpc.exception.RpcException
-import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojoList
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.wsrpc.exception.RpcException
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojoList
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -167,7 +167,8 @@ class PolkaswapRepositoryImpl @Inject constructor(
     ): BigInteger {
 
         val chain = chainRegistry.getChain(chainId)
-        return extrinsicService.estimateFee(chain) {
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId!!
+        return extrinsicService.estimateFee(chain, accountId) {
             swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
         }
     }
