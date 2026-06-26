@@ -64,6 +64,7 @@ const fs = require('fs');
 const [evidenceFile, requiredRouteFile, discoveryGapFile, requireReadyRaw] = process.argv.slice(2);
 const requireReady = requireReadyRaw === 'true';
 const errors = [];
+const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 
 const REQUIRED_BLOCKERS = [
   'e2e-transfer-evidence-missing',
@@ -169,6 +170,15 @@ function isRepeatedHexPlaceholder(value) {
     .toLowerCase()
     .replace(/^0x/, '');
   return /^[0-9a-f]{8,}$/.test(normalized) && new Set(normalized).size === 1;
+}
+
+function isIsoUtcSecond(value) {
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(String(value || ''));
+}
+
+function isFutureTimestamp(value) {
+  const millis = Date.parse(value);
+  return Number.isFinite(millis) && millis > Date.now() + MAX_CLOCK_SKEW_MS;
 }
 
 function secretLikeKeyReason(value, path = '$') {
@@ -433,8 +443,10 @@ if (manifest) {
       fail(`evidence[${index}].amount must be greater than zero`);
     }
 
-    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(String(entry.timestamp || ''))) {
+    if (!isIsoUtcSecond(entry.timestamp)) {
       fail(`evidence[${index}].timestamp must be an ISO-8601 UTC second timestamp`);
+    } else if (isFutureTimestamp(entry.timestamp)) {
+      fail(`evidence[${index}].timestamp must not be in the future`);
     }
 
     if (!['mainnet', 'testnet'].includes(String(entry.environment || ''))) {

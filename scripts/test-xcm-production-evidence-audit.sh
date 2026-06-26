@@ -305,6 +305,11 @@ cp "$ready" "$ready_duplicate_hash"
 perl -0pi -e 's/0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210/0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef/' "$ready_duplicate_hash"
 expect_failure "ready evidence duplicate extrinsic hash" "duplicate E2E transfer extrinsicHash" run_audit "$ready_duplicate_hash" "$routes" "$empty_gaps" --require-ready
 
+ready_future_timestamp="$tmp_dir/ready-future-timestamp.json"
+cp "$ready" "$ready_future_timestamp"
+perl -0pi -e 's/2026-06-26T00:00:00Z/2999-01-01T00:00:00Z/g' "$ready_future_timestamp"
+expect_failure "ready evidence future timestamp" "timestamp must not be in the future" run_audit "$ready_future_timestamp" "$routes" "$empty_gaps" --require-ready
+
 ready_secret_key="$tmp_dir/ready-secret-key.json"
 cp "$ready" "$ready_secret_key"
 perl -0pi -e 's/"operator": "release"/"operator": "release",\n      "privateKey": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"/' "$ready_secret_key"
