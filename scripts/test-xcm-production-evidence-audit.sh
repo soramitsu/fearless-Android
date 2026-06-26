@@ -116,7 +116,7 @@ write_ready_manifest() {
       "originChainId": "origin",
       "destinationChainId": "destination",
       "assetSymbol": "DOT",
-      "extrinsicHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "extrinsicHash": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "sender": "sender-origin",
       "recipient": "recipient-destination",
       "amount": "1",
@@ -128,7 +128,7 @@ write_ready_manifest() {
       "originChainId": "destination",
       "destinationChainId": "origin",
       "assetSymbol": "DOT",
-      "extrinsicHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+      "extrinsicHash": "0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
       "sender": "sender-destination",
       "recipient": "recipient-origin",
       "amount": "1",
@@ -272,8 +272,13 @@ expect_failure "ready evidence without all required routes" "ready evidence miss
 
 ready_bad_hash="$tmp_dir/ready-bad-hash.json"
 cp "$ready" "$ready_bad_hash"
-perl -0pi -e 's/0x1111111111111111111111111111111111111111111111111111111111111111/0x1234/' "$ready_bad_hash"
+perl -0pi -e 's/0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef/0x1234/' "$ready_bad_hash"
 expect_failure "ready evidence malformed extrinsic hash" "extrinsicHash must be a 0x-prefixed 32-byte hash" run_audit "$ready_bad_hash" "$routes" "$empty_gaps" --require-ready
+
+ready_placeholder_hash="$tmp_dir/ready-placeholder-hash.json"
+cp "$ready" "$ready_placeholder_hash"
+perl -0pi -e 's/0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef/0x1111111111111111111111111111111111111111111111111111111111111111/' "$ready_placeholder_hash"
+expect_failure "ready evidence placeholder extrinsic hash" "extrinsicHash must not be a placeholder extrinsic hash" run_audit "$ready_placeholder_hash" "$routes" "$empty_gaps" --require-ready
 
 ready_bad_amount="$tmp_dir/ready-bad-amount.json"
 cp "$ready" "$ready_bad_amount"
@@ -297,7 +302,7 @@ expect_failure "ready evidence for untracked route" "route is not declared in re
 
 ready_duplicate_hash="$tmp_dir/ready-duplicate-hash.json"
 cp "$ready" "$ready_duplicate_hash"
-perl -0pi -e 's/0x2222222222222222222222222222222222222222222222222222222222222222/0x1111111111111111111111111111111111111111111111111111111111111111/' "$ready_duplicate_hash"
+perl -0pi -e 's/0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210/0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef/' "$ready_duplicate_hash"
 expect_failure "ready evidence duplicate extrinsic hash" "duplicate E2E transfer extrinsicHash" run_audit "$ready_duplicate_hash" "$routes" "$empty_gaps" --require-ready
 
 ready_secret_key="$tmp_dir/ready-secret-key.json"

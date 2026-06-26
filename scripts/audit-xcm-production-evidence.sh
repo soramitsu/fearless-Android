@@ -163,6 +163,14 @@ function normalizeAssetSymbol(value) {
     .toUpperCase();
 }
 
+function isRepeatedHexPlaceholder(value) {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^0x/, '');
+  return /^[0-9a-f]{8,}$/.test(normalized) && new Set(normalized).size === 1;
+}
+
 function secretLikeKeyReason(value, path = '$') {
   if (!value || typeof value !== 'object') {
     return null;
@@ -409,6 +417,9 @@ if (manifest) {
       fail(`evidence[${index}].extrinsicHash must be a 0x-prefixed 32-byte hash`);
     } else {
       const normalizedExtrinsicHash = String(entry.extrinsicHash).toLowerCase();
+      if (isRepeatedHexPlaceholder(normalizedExtrinsicHash)) {
+        fail(`evidence[${index}].extrinsicHash must not be a placeholder extrinsic hash`);
+      }
       if (extrinsicHashes.has(normalizedExtrinsicHash)) {
         fail(`duplicate E2E transfer extrinsicHash: ${normalizedExtrinsicHash}`);
       } else {
