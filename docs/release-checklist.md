@@ -45,7 +45,11 @@ procedure.
 - Run `bash ./scripts/test-xcm-production-evidence-audit.sh` and
   `bash ./scripts/audit-xcm-production-evidence.sh` to confirm the committed
   XCM production evidence manifest is internally consistent. Before enabling
-  broad production XCM, update `scripts/xcm-production-evidence.json` to
+  broad production XCM, run
+  `bash ./scripts/test-xcm-production-evidence-template.sh` and
+  `bash ./scripts/generate-xcm-production-evidence-template.sh --output build/reports/xcm-production-evidence-template.json`
+  to create the required-route evidence skeleton, update
+  `scripts/xcm-production-evidence.json` to
   `status: ready`, set `releaseEnabled: true`, remove every discovery-only
   route gap, attach E2E transfer evidence for every route in
   `scripts/xcm-required-routes.tsv`, and run

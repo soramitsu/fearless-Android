@@ -85,6 +85,7 @@ const REQUIRED_EVIDENCE_FIELDS = [
 ];
 
 const REQUIRED_READY_COMMAND_MARKERS = [
+  'test-xcm-production-evidence-template.sh',
   'test-xcm-production-evidence-audit.sh',
   'audit-xcm-production-evidence.sh --require-ready',
   'audit-xcm-registry-metadata.sh --require-executable --require-all-routes-executable',

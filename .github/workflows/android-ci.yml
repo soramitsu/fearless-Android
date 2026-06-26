@@ -76,6 +76,7 @@ jobs:
             --write-gap-report build/reports/xcm-registry-gap-report.json \
             --require-route-file scripts/xcm-required-routes.tsv \
             --require-gap-file scripts/xcm-discovery-only-routes.tsv
+          bash ./scripts/test-xcm-production-evidence-template.sh
           bash ./scripts/test-xcm-production-evidence-audit.sh
           bash ./scripts/audit-xcm-production-evidence.sh
 

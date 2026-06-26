@@ -49,6 +49,7 @@ write_blocked_manifest() {
     "gapReport": "build/reports/xcm-registry-gap-report.json"
   },
   "readyVerificationCommands": [
+    "bash ./scripts/test-xcm-production-evidence-template.sh",
     "bash ./scripts/test-xcm-production-evidence-audit.sh",
     "bash ./scripts/audit-xcm-production-evidence.sh --require-ready",
     "bash ./scripts/audit-xcm-registry-metadata.sh --require-executable --require-all-routes-executable --require-route-file scripts/xcm-required-routes.tsv --require-gap-file scripts/xcm-discovery-only-routes.tsv",
@@ -91,6 +92,7 @@ write_ready_manifest() {
     "gapReport": "build/reports/xcm-registry-gap-report.json"
   },
   "readyVerificationCommands": [
+    "bash ./scripts/test-xcm-production-evidence-template.sh",
     "bash ./scripts/test-xcm-production-evidence-audit.sh",
     "bash ./scripts/audit-xcm-production-evidence.sh --require-ready",
     "bash ./scripts/audit-xcm-registry-metadata.sh --require-executable --require-all-routes-executable --require-route-file scripts/xcm-required-routes.tsv --require-gap-file scripts/xcm-discovery-only-routes.tsv",
@@ -212,6 +214,11 @@ missing_all_routes_command="$tmp_dir/missing-all-routes-command.json"
 cp "$blocked" "$missing_all_routes_command"
 perl -0pi -e 's/ --require-all-routes-executable//' "$missing_all_routes_command"
 expect_failure "missing all-routes executable command" "readyVerificationCommands missing audit-xcm-registry-metadata.sh --require-executable --require-all-routes-executable" run_audit "$missing_all_routes_command" "$routes" "$gaps"
+
+missing_template_command="$tmp_dir/missing-template-command.json"
+cp "$blocked" "$missing_template_command"
+perl -0pi -e 's/    "bash \.\/scripts\/test-xcm-production-evidence-template\.sh",\n//' "$missing_template_command"
+expect_failure "missing evidence template self-test command" "readyVerificationCommands missing test-xcm-production-evidence-template.sh" run_audit "$missing_template_command" "$routes" "$gaps"
 
 missing_required_field="$tmp_dir/missing-required-field.json"
 cp "$blocked" "$missing_required_field"

@@ -19,6 +19,7 @@
     "gapReport": "build/reports/xcm-registry-gap-report.json"
   },
   "readyVerificationCommands": [
+    "bash ./scripts/test-xcm-production-evidence-template.sh",
     "bash ./scripts/test-xcm-production-evidence-audit.sh",
     "bash ./scripts/audit-xcm-production-evidence.sh --require-ready",
     "bash ./scripts/test-xcm-registry-metadata-audit.sh",
