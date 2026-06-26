@@ -137,6 +137,35 @@ function normalizeAssetSymbol(value) {
     .toUpperCase();
 }
 
+function secretLikeKeyReason(value, path = '$') {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      const reason = secretLikeKeyReason(value[index], `${path}[${index}]`);
+      if (reason) {
+        return reason;
+      }
+    }
+    return null;
+  }
+
+  for (const [key, nested] of Object.entries(value)) {
+    const nestedPath = `${path}.${key}`;
+    if (/(private[-_]?key|mnemonic|seed|secret|password|authorization|credential|clientDataJSON)/iu.test(key)) {
+      return `${nestedPath} must not be included in public XCM production evidence`;
+    }
+    const reason = secretLikeKeyReason(nested, nestedPath);
+    if (reason) {
+      return reason;
+    }
+  }
+
+  return null;
+}
+
 function parseRequiredRoutes(file) {
   const text = readText(file, 'required route file');
   if (text === null) {
@@ -222,6 +251,11 @@ const requiredRoutes = parseRequiredRoutes(requiredRouteFile);
 const discoveryGaps = parseDiscoveryGaps(discoveryGapFile);
 
 if (manifest) {
+  const secretReason = secretLikeKeyReason(manifest);
+  if (secretReason) {
+    fail(secretReason);
+  }
+
   if (manifest.schemaVersion !== 1) {
     fail('schemaVersion must be 1');
   }
@@ -262,14 +296,6 @@ if (manifest) {
   const requiredEvidenceFields = new Set(requireArray(manifest.requiredEvidenceFields, 'requiredEvidenceFields'));
   const evidence = requireArray(manifest.evidence, 'evidence');
 
-  if (manifest.status === 'blocked') {
-    for (const blocker of REQUIRED_BLOCKERS) {
-      if (!blockers.has(blocker)) {
-        fail(`blocked evidence missing blocker ${blocker}`);
-      }
-    }
-  }
-
   for (const marker of REQUIRED_READY_COMMAND_MARKERS) {
     if (!commands.includes(marker)) {
       fail(`readyVerificationCommands missing ${marker}`);
@@ -293,6 +319,7 @@ if (manifest) {
   const readyClaimed = manifest.status === 'ready' || manifest.releaseEnabled || requireReady;
   const evidenceByRoute = new Map();
   const requiredRouteKeys = new Set(requiredRoutes.map(routeKey));
+  const extrinsicHashes = new Set();
 
   evidence.forEach((entry, index) => {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
@@ -319,6 +346,13 @@ if (manifest) {
 
     if (!/^0x[0-9a-fA-F]{64}$/.test(String(entry.extrinsicHash || ''))) {
       fail(`evidence[${index}].extrinsicHash must be a 0x-prefixed 32-byte hash`);
+    } else {
+      const normalizedExtrinsicHash = String(entry.extrinsicHash).toLowerCase();
+      if (extrinsicHashes.has(normalizedExtrinsicHash)) {
+        fail(`duplicate E2E transfer extrinsicHash: ${normalizedExtrinsicHash}`);
+      } else {
+        extrinsicHashes.add(normalizedExtrinsicHash);
+      }
     }
 
     if (!/^\d+(\.\d+)?$/.test(String(entry.amount || ''))) {
@@ -336,19 +370,37 @@ if (manifest) {
     }
   });
 
+  const missingEvidenceRoutes = requiredRoutes.filter((route) => !evidenceByRoute.has(routeKey(route)));
+  const expectedBlockedReasons = new Map();
+  expectedBlockedReasons.set('e2e-transfer-evidence-missing', missingEvidenceRoutes.length > 0);
+  expectedBlockedReasons.set('all-routes-executable-gate-not-green', discoveryGaps.length > 0);
+  expectedBlockedReasons.set('discovery-only-routes-remain', discoveryGaps.length > 0);
+
+  if (manifest.status === 'blocked') {
+    for (const [blocker, active] of expectedBlockedReasons.entries()) {
+      if (active && !blockers.has(blocker)) {
+        fail(`blocked evidence missing blocker ${blocker}`);
+      }
+      if (!active && blockers.has(blocker)) {
+        fail(`blocked evidence has stale blocker ${blocker}`);
+      }
+    }
+  }
+
   if (readyClaimed) {
     if (!manifest.releaseEnabled) {
       fail('releaseEnabled must be true when status is ready or --require-ready is used');
+    }
+    if (Array.isArray(manifest.blockers) && manifest.blockers.length > 0) {
+      fail('blockers must be empty when XCM production evidence is ready');
     }
 
     if (discoveryGaps.length > 0) {
       fail(`ready evidence cannot have discovery-only routes remaining: ${discoveryGaps.length}`);
     }
 
-    for (const route of requiredRoutes) {
-      if (!evidenceByRoute.has(routeKey(route))) {
+    for (const route of missingEvidenceRoutes) {
         fail(`ready evidence missing E2E transfer evidence for route ${route.originChainId} -> ${route.destinationChainId} ${route.assetSymbol}`);
-      }
     }
   }
 }

@@ -84,11 +84,7 @@ write_ready_manifest() {
     "requiredExecutableRouteCount": 2,
     "discoveryOnlyRouteCount": 0
   },
-  "blockers": [
-    "e2e-transfer-evidence-missing",
-    "all-routes-executable-gate-not-green",
-    "discovery-only-routes-remain"
-  ],
+  "blockers": [],
   "routeManifests": {
     "requiredExecutableRoutes": "scripts/xcm-required-routes.tsv",
     "discoveryOnlyRoutes": "scripts/xcm-discovery-only-routes.tsv",
@@ -227,6 +223,11 @@ write_ready_manifest "$ready_with_gaps"
 perl -0pi -e 's/"discoveryOnlyRouteCount": 0/"discoveryOnlyRouteCount": 1/' "$ready_with_gaps"
 expect_failure "ready evidence with discovery-only routes" "ready evidence cannot have discovery-only routes remaining" run_audit "$ready_with_gaps" "$routes" "$gaps"
 
+ready_with_blocker="$tmp_dir/ready-with-blocker.json"
+cp "$ready" "$ready_with_blocker"
+perl -0pi -e 's/"blockers": \[\]/"blockers": ["e2e-transfer-evidence-missing"]/' "$ready_with_blocker"
+expect_failure "ready evidence carries blockers" "blockers must be empty when XCM production evidence is ready" run_audit "$ready_with_blocker" "$routes" "$empty_gaps" --require-ready
+
 ready_missing_route="$tmp_dir/ready-missing-route.json"
 cp "$ready" "$ready_missing_route"
 perl -0pi -e 's/,\n    \{\n      "originChainId": "destination".*?\n    \}\n  \]/\n  \]/s' "$ready_missing_route"
@@ -252,9 +253,26 @@ cp "$ready" "$ready_unknown_route"
 perl -0pi -e 's/"destinationChainId": "destination"/"destinationChainId": "unknown"/' "$ready_unknown_route"
 expect_failure "ready evidence for untracked route" "route is not declared in required route manifest" run_audit "$ready_unknown_route" "$routes" "$empty_gaps" --require-ready
 
+ready_duplicate_hash="$tmp_dir/ready-duplicate-hash.json"
+cp "$ready" "$ready_duplicate_hash"
+perl -0pi -e 's/0x2222222222222222222222222222222222222222222222222222222222222222/0x1111111111111111111111111111111111111111111111111111111111111111/' "$ready_duplicate_hash"
+expect_failure "ready evidence duplicate extrinsic hash" "duplicate E2E transfer extrinsicHash" run_audit "$ready_duplicate_hash" "$routes" "$empty_gaps" --require-ready
+
+ready_secret_key="$tmp_dir/ready-secret-key.json"
+cp "$ready" "$ready_secret_key"
+perl -0pi -e 's/"operator": "release"/"operator": "release",\n      "privateKey": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"/' "$ready_secret_key"
+expect_failure "secret-like XCM production evidence key" "must not be included in public XCM production evidence" run_audit "$ready_secret_key" "$routes" "$empty_gaps" --require-ready
+
 blocked_stale_counts="$tmp_dir/blocked-stale-counts.json"
 cp "$blocked" "$blocked_stale_counts"
 perl -0pi -e 's/"requiredExecutableRouteCount": 2/"requiredExecutableRouteCount": 1/' "$blocked_stale_counts"
 expect_failure "stale production evidence counts" "currentState.requiredExecutableRouteCount must match required route manifest count 2" run_audit "$blocked_stale_counts" "$routes" "$gaps"
+
+blocked_stale_discovery="$tmp_dir/blocked-stale-discovery.json"
+cp "$ready" "$blocked_stale_discovery"
+perl -0pi -e 's/"status": "ready"/"status": "blocked"/' "$blocked_stale_discovery"
+perl -0pi -e 's/"releaseEnabled": true/"releaseEnabled": false/' "$blocked_stale_discovery"
+perl -0pi -e 's/"blockers": \[\]/"blockers": ["discovery-only-routes-remain"]/' "$blocked_stale_discovery"
+expect_failure "blocked evidence stale discovery blocker" "blocked evidence has stale blocker discovery-only-routes-remain" run_audit "$blocked_stale_discovery" "$routes" "$empty_gaps"
 
 echo "[xcm-production-evidence-test] all assertions passed"
