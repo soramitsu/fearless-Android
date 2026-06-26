@@ -41,7 +41,7 @@ execution_json() {
   cat <<'JSON'
 ,
           "execution": {
-            "palletName": "XTokens",
+            "palletName": "PolkadotXcm",
             "callName": "limitedReserveTransferAssets",
             "transferType": "limitedReserveTransferAssets",
             "destinationLocation": { "parents": 1, "interior": "X1(Parachain(2000))" },
@@ -60,7 +60,7 @@ bridge_execution_json() {
 ,
           "bridgeParachainId": "expected",
           "execution": {
-            "palletName": "XTokens",
+            "palletName": "PolkadotXcm",
             "callName": "limitedReserveTransferAssets",
             "transferType": "limitedReserveTransferAssets",
             "destinationLocation": { "parents": 1, "interior": "X1(Parachain(2000))" },
@@ -75,6 +75,25 @@ bridge_execution_json() {
               "feeAssetLocation": { "parents": 1, "interior": "Here" },
               "feeAssetItem": 0
             }
+          }
+JSON
+}
+
+xtokens_execution_json() {
+  cat <<'JSON'
+,
+          "execution": {
+            "palletName": "XTokens",
+            "callName": "transferMultiasset",
+            "transferType": "xTokensTransferMultiasset",
+            "argumentShape": "xTokensTransferMultiasset",
+            "destinationLocation": { "parents": 1, "interior": "X1(Parachain(2000))" },
+            "assetLocation": { "parents": 1, "interior": "X2(Parachain(1000), GeneralKey(dot))" },
+            "beneficiaryLocation": { "parents": 0, "interior": "X1(AccountId32({network: Any, id: <account>}))" },
+            "feeAssetLocation": { "parents": 1, "interior": "Here" },
+            "feeAssetItem": 0,
+            "weightLimit": { "type": "Limited", "refTime": "1000000000", "proofSize": "65536" },
+            "destinationFee": { "mode": "Estimated", "assetSymbol": "DOT" }
           }
 JSON
 }
@@ -115,6 +134,10 @@ passing="$tmp_dir/passing.json"
 write_registry "$passing" "$(execution_json)"
 run_audit "$passing" --require-executable >/dev/null
 run_audit "$passing" --require-route origin destination DOT >/dev/null
+xtokens_passing="$tmp_dir/xtokens-passing.json"
+write_registry "$xtokens_passing" "$(xtokens_execution_json)"
+run_audit "$xtokens_passing" --require-executable >/dev/null
+run_audit "$xtokens_passing" --require-route origin destination DOT >/dev/null
 required_route_file="$tmp_dir/required-routes.tsv"
 cat >"$required_route_file" <<'ROUTES'
 # origin destination asset
@@ -247,6 +270,22 @@ expect_failure \
 all_routes_required="$tmp_dir/all-routes-required.json"
 write_registry "$all_routes_required" ""
 expect_failure "missing all-route execution" "$all_routes_required" "executable route metadata is required" --require-all-routes-executable
+
+bad_argument_shape="$tmp_dir/bad-argument-shape.json"
+write_registry "$bad_argument_shape" "$(execution_json)"
+perl -0pi -e 's/"transferType": "limitedReserveTransferAssets"/"transferType": "limitedReserveTransferAssets",\n            "argumentShape": "operatorAlias"/' "$bad_argument_shape"
+expect_failure "unsupported argument shape" "$bad_argument_shape" "argumentShape is unsupported" --require-executable
+
+bad_polkadot_call_shape="$tmp_dir/bad-polkadot-call-shape.json"
+write_registry "$bad_polkadot_call_shape" "$(execution_json)"
+perl -0pi -e 's/"callName": "limitedReserveTransferAssets"/"callName": "transferMultiasset"/' "$bad_polkadot_call_shape"
+expect_failure "mismatched PolkadotXcm shape" "$bad_polkadot_call_shape" "PolkadotXcm transfer-assets argumentShape callName must match transferType" --require-executable
+
+bad_xtokens_shape="$tmp_dir/bad-xtokens-shape.json"
+write_registry "$bad_xtokens_shape" "$(execution_json)"
+perl -0pi -e 's/"callName": "limitedReserveTransferAssets"/"callName": "transferMultiasset"/' "$bad_xtokens_shape"
+perl -0pi -e 's/"transferType": "limitedReserveTransferAssets"/"transferType": "xTokensTransferMultiasset",\n            "argumentShape": "xTokensTransferMultiasset"/' "$bad_xtokens_shape"
+expect_failure "mismatched XTokens shape" "$bad_xtokens_shape" "XTokens transferMultiasset argumentShape requires palletName XTokens" --require-executable
 
 bad_weight="$tmp_dir/bad-weight.json"
 write_registry "$bad_weight" "$(execution_json | sed 's/, "proofSize": "65536"//')"

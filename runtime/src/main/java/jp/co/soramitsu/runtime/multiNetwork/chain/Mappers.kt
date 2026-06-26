@@ -207,6 +207,7 @@ private fun ChainXcmExecutionRemote.toXcmExecution() =
         palletName = palletName,
         callName = callName,
         transferType = transferType,
+        argumentShape = argumentShape,
         destinationLocation = destinationLocation?.toXcmMultiLocation(),
         assetLocation = assetLocation?.toXcmMultiLocation(),
         beneficiaryLocation = beneficiaryLocation?.toXcmMultiLocation(),

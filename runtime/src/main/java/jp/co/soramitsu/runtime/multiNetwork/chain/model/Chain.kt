@@ -187,6 +187,7 @@ data class Chain(
             val palletName: String?,
             val callName: String?,
             val transferType: String?,
+            val argumentShape: String? = null,
             val destinationLocation: MultiLocation?,
             val assetLocation: MultiLocation?,
             val beneficiaryLocation: MultiLocation?,

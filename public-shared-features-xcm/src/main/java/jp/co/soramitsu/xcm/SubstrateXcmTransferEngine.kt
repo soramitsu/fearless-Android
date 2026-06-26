@@ -10,6 +10,7 @@ import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.xcm.domain.XcmArgumentShape
 import jp.co.soramitsu.xcm.domain.XcmDestinationFeeMode
 import jp.co.soramitsu.xcm.domain.XcmExecutionSpec
 import jp.co.soramitsu.xcm.domain.XcmJunctionSpec
@@ -184,6 +185,32 @@ class SubstrateXcmTransferEngine(
         require(recipientAddress.isNotBlank()) { "XCM recipient address must not be blank" }
         require(amount > BigInteger.ZERO) { "XCM transfer amount must be greater than zero" }
 
+        return when (executionSpec.argumentShape) {
+            XcmArgumentShape.POLKADOT_XCM_TRANSFER_ASSETS -> buildPolkadotXcmTransferAssetsCall(
+                executionSpec,
+                recipientAddress,
+                amount
+            )
+            XcmArgumentShape.X_TOKENS_TRANSFER_MULTIASSET -> buildXTokensTransferMultiassetCall(
+                executionSpec,
+                recipientAddress,
+                amount
+            )
+        }
+    }
+
+    private fun buildPolkadotXcmTransferAssetsCall(
+        executionSpec: XcmExecutionSpec,
+        recipientAddress: String,
+        amount: BigInteger
+    ): XcmExtrinsicCall {
+        require(executionSpec.palletName == "PolkadotXcm") {
+            "XCM PolkadotXcm transfer-assets call requires palletName PolkadotXcm"
+        }
+        require(executionSpec.callName == executionSpec.transferType.polkadotXcmCallName()) {
+            "XCM PolkadotXcm transfer-assets callName must match transferType"
+        }
+
         val arguments = linkedMapOf<String, Any?>(
             "dest" to versionedMultiLocation(executionSpec, executionSpec.destinationLocation, recipientAddress),
             "beneficiary" to versionedMultiLocation(executionSpec, executionSpec.beneficiaryLocation, recipientAddress),
@@ -210,6 +237,38 @@ class SubstrateXcmTransferEngine(
         )
     }
 
+    private fun buildXTokensTransferMultiassetCall(
+        executionSpec: XcmExecutionSpec,
+        recipientAddress: String,
+        amount: BigInteger
+    ): XcmExtrinsicCall {
+        require(executionSpec.palletName == "XTokens") {
+            "XCM XTokens transferMultiasset call requires palletName XTokens"
+        }
+        require(executionSpec.callName == "transferMultiasset") {
+            "XCM XTokens transferMultiasset call requires callName transferMultiasset"
+        }
+        require(executionSpec.transferType == XcmTransferType.X_TOKENS_TRANSFER_MULTIASSET) {
+            "XCM XTokens transferMultiasset call requires transferType xTokensTransferMultiasset"
+        }
+
+        return XcmExtrinsicCall(
+            moduleName = executionSpec.palletName,
+            callName = executionSpec.callName,
+            arguments = linkedMapOf(
+                "asset" to versioned(
+                    executionSpec,
+                    mapOf(
+                        "id" to versionedMultiLocation(executionSpec, executionSpec.assetLocation, recipientAddress),
+                        "fun" to mapOf("Fungible" to amount)
+                    )
+                ),
+                "dest" to versionedMultiLocation(executionSpec, executionSpec.beneficiaryLocation, recipientAddress),
+                "dest_weight_limit" to weightLimit(executionSpec)
+            )
+        )
+    }
+
     private fun requireKeypairProvider(chainId: ChainId): KeypairProvider {
         return keypairProviders[chainId]
             ?: error("XCM keypair provider missing for $chainId")
@@ -218,6 +277,16 @@ class SubstrateXcmTransferEngine(
     private fun XcmTransferType.requiresWeightLimit(): Boolean {
         return this == XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS ||
             this == XcmTransferType.LIMITED_TELEPORT_ASSETS
+    }
+
+    private fun XcmTransferType.polkadotXcmCallName(): String {
+        return when (this) {
+            XcmTransferType.RESERVE_TRANSFER_ASSETS -> "reserveTransferAssets"
+            XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS -> "limitedReserveTransferAssets"
+            XcmTransferType.TELEPORT_ASSETS -> "teleportAssets"
+            XcmTransferType.LIMITED_TELEPORT_ASSETS -> "limitedTeleportAssets"
+            XcmTransferType.X_TOKENS_TRANSFER_MULTIASSET -> ""
+        }
     }
 
     private fun versionedMultiLocation(

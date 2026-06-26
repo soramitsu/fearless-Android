@@ -9,6 +9,7 @@ data class XcmExecutionSpec(
     val palletName: String,
     val callName: String,
     val transferType: XcmTransferType,
+    val argumentShape: XcmArgumentShape,
     val xcmVersion: String,
     val destinationLocation: XcmMultiLocationSpec,
     val assetLocation: XcmMultiLocationSpec,
@@ -24,7 +25,13 @@ enum class XcmTransferType {
     RESERVE_TRANSFER_ASSETS,
     LIMITED_RESERVE_TRANSFER_ASSETS,
     TELEPORT_ASSETS,
-    LIMITED_TELEPORT_ASSETS
+    LIMITED_TELEPORT_ASSETS,
+    X_TOKENS_TRANSFER_MULTIASSET
+}
+
+enum class XcmArgumentShape {
+    POLKADOT_XCM_TRANSFER_ASSETS,
+    X_TOKENS_TRANSFER_MULTIASSET
 }
 
 data class XcmMultiLocationSpec(
@@ -102,10 +109,17 @@ internal object XcmExecutionSpecValidator {
             "XCM bridge execution spec must match bridgeParachainId for $assetSymbol from $originChainId to $destinationChainId"
         }
 
+        val palletName = execution.palletName.requiredField("palletName")
+        val callName = execution.callName.requiredField("callName")
+        val transferType = execution.transferType.requiredTransferType()
+        val argumentShape = execution.argumentShape.optionalArgumentShape()
+        requireValidCallShape(palletName, callName, transferType, argumentShape)
+
         return XcmExecutionSpec(
-            palletName = execution.palletName.requiredField("palletName"),
-            callName = execution.callName.requiredField("callName"),
-            transferType = execution.transferType.requiredTransferType(),
+            palletName = palletName,
+            callName = callName,
+            transferType = transferType,
+            argumentShape = argumentShape,
             xcmVersion = xcmVersion.requiredField("xcmVersion"),
             destinationLocation = execution.destinationLocation.requiredMultiLocation("destinationLocation"),
             assetLocation = execution.assetLocation.requiredMultiLocation("assetLocation"),
@@ -136,7 +150,56 @@ internal object XcmExecutionSpecValidator {
             "LIMITED_RESERVE_TRANSFER_ASSETS" -> XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS
             "TELEPORT_ASSETS" -> XcmTransferType.TELEPORT_ASSETS
             "LIMITED_TELEPORT_ASSETS" -> XcmTransferType.LIMITED_TELEPORT_ASSETS
+            "X_TOKENS_TRANSFER_MULTIASSET" -> XcmTransferType.X_TOKENS_TRANSFER_MULTIASSET
             else -> throw IllegalArgumentException("XCM execution spec transferType is unsupported")
+        }
+    }
+
+    private fun String?.optionalArgumentShape(): XcmArgumentShape {
+        return when (this?.trim().orEmpty().takeIf(String::isNotEmpty)?.normalizedEnumValue()) {
+            null -> XcmArgumentShape.POLKADOT_XCM_TRANSFER_ASSETS
+            "POLKADOT_XCM_TRANSFER_ASSETS" -> XcmArgumentShape.POLKADOT_XCM_TRANSFER_ASSETS
+            "X_TOKENS_TRANSFER_MULTIASSET" -> XcmArgumentShape.X_TOKENS_TRANSFER_MULTIASSET
+            else -> throw IllegalArgumentException("XCM execution spec argumentShape is unsupported")
+        }
+    }
+
+    private fun requireValidCallShape(
+        palletName: String,
+        callName: String,
+        transferType: XcmTransferType,
+        argumentShape: XcmArgumentShape
+    ) {
+        when (argumentShape) {
+            XcmArgumentShape.POLKADOT_XCM_TRANSFER_ASSETS -> {
+                require(palletName == "PolkadotXcm") {
+                    "XCM PolkadotXcm transfer-assets argument shape requires palletName PolkadotXcm"
+                }
+                require(callName == transferType.polkadotXcmCallName()) {
+                    "XCM PolkadotXcm transfer-assets argument shape callName must match transferType"
+                }
+            }
+            XcmArgumentShape.X_TOKENS_TRANSFER_MULTIASSET -> {
+                require(palletName == "XTokens") {
+                    "XCM XTokens transferMultiasset argument shape requires palletName XTokens"
+                }
+                require(callName == "transferMultiasset") {
+                    "XCM XTokens transferMultiasset argument shape requires callName transferMultiasset"
+                }
+                require(transferType == XcmTransferType.X_TOKENS_TRANSFER_MULTIASSET) {
+                    "XCM XTokens transferMultiasset argument shape requires transferType xTokensTransferMultiasset"
+                }
+            }
+        }
+    }
+
+    private fun XcmTransferType.polkadotXcmCallName(): String {
+        return when (this) {
+            XcmTransferType.RESERVE_TRANSFER_ASSETS -> "reserveTransferAssets"
+            XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS -> "limitedReserveTransferAssets"
+            XcmTransferType.TELEPORT_ASSETS -> "teleportAssets"
+            XcmTransferType.LIMITED_TELEPORT_ASSETS -> "limitedTeleportAssets"
+            XcmTransferType.X_TOKENS_TRANSFER_MULTIASSET -> ""
         }
     }
 

@@ -5,6 +5,7 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.xcm.domain.XcmArgumentShape
 import jp.co.soramitsu.xcm.domain.XcmDestinationFeeMode
 import jp.co.soramitsu.xcm.domain.XcmDestinationFeeSpec
 import jp.co.soramitsu.xcm.domain.XcmExecutionSpec
@@ -76,6 +77,60 @@ class SubstrateXcmTransferEngineTest {
 
         assertFalse(call.arguments.containsKey("weight_limit"))
         assertEquals("reserveTransferAssets", call.callName)
+    }
+
+    @Test
+    fun `builds XTokens transfer multiasset call with explicit argument shape`() {
+        val engine = SubstrateXcmTransferEngine(RecordingSubmitter())
+
+        val call = engine.buildTransferCall(
+            executionSpec = executionSpec(
+                palletName = "XTokens",
+                callName = "transferMultiasset",
+                transferType = XcmTransferType.X_TOKENS_TRANSFER_MULTIASSET,
+                argumentShape = XcmArgumentShape.X_TOKENS_TRANSFER_MULTIASSET
+            ),
+            recipientAddress = "5Destination",
+            amount = BigInteger.TEN
+        )
+
+        assertEquals("XTokens", call.moduleName)
+        assertEquals("transferMultiasset", call.callName)
+        assertTrue(call.arguments["asset"].toString().contains("Fungible=10"))
+        assertTrue(call.arguments["dest"].toString().contains("5Destination"))
+        assertTrue(call.arguments.containsKey("dest_weight_limit"))
+        assertFalse(call.arguments.containsKey("beneficiary"))
+        assertFalse(call.arguments.containsKey("assets"))
+        assertFalse(call.arguments.containsKey("fee_asset_item"))
+    }
+
+    @Test
+    fun `rejects XCM argument shape and pallet mismatches before building calls`() {
+        val engine = SubstrateXcmTransferEngine(RecordingSubmitter())
+
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.buildTransferCall(
+                executionSpec = executionSpec(
+                    palletName = "XTokens",
+                    callName = "limitedReserveTransferAssets"
+                ),
+                recipientAddress = "5Destination",
+                amount = BigInteger.TEN
+            )
+        }
+
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.buildTransferCall(
+                executionSpec = executionSpec(
+                    palletName = "PolkadotXcm",
+                    callName = "transferMultiasset",
+                    transferType = XcmTransferType.X_TOKENS_TRANSFER_MULTIASSET,
+                    argumentShape = XcmArgumentShape.X_TOKENS_TRANSFER_MULTIASSET
+                ),
+                recipientAddress = "5Destination",
+                amount = BigInteger.TEN
+            )
+        }
     }
 
     @Test
@@ -258,16 +313,19 @@ class SubstrateXcmTransferEngineTest {
     }
 
     private fun executionSpec(
+        palletName: String = "PolkadotXcm",
         transferType: XcmTransferType = XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS,
         callName: String = "limitedReserveTransferAssets",
+        argumentShape: XcmArgumentShape = XcmArgumentShape.POLKADOT_XCM_TRANSFER_ASSETS,
         xcmVersion: String = "v3",
         destinationFeeMode: XcmDestinationFeeMode = XcmDestinationFeeMode.ESTIMATED,
         destinationFeeAmount: BigInteger? = null,
         beneficiaryLocation: XcmMultiLocationSpec = multiLocation(0, "X1(AccountId32({network: Any, id: <account>}))")
     ) = XcmExecutionSpec(
-        palletName = "PolkadotXcm",
+        palletName = palletName,
         callName = callName,
         transferType = transferType,
+        argumentShape = argumentShape,
         xcmVersion = xcmVersion,
         destinationLocation = multiLocation(1, "X1(Parachain(2000))"),
         assetLocation = multiLocation(1, "X2(Parachain(1000), GeneralKey(dot))"),

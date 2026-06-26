@@ -45,6 +45,7 @@ data class ChainXcmExecutionRemote(
     val palletName: String?,
     val callName: String?,
     val transferType: String?,
+    val argumentShape: String?,
     val destinationLocation: ChainXcmMultiLocationRemote?,
     val assetLocation: ChainXcmMultiLocationRemote?,
     val beneficiaryLocation: ChainXcmMultiLocationRemote?,

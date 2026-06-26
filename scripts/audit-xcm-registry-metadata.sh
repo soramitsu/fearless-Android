@@ -320,6 +320,57 @@ function requiredEnum(value, field, allowed, context) {
   return normalized;
 }
 
+function optionalEnum(value, field, allowed, defaultValue, context) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return defaultValue;
+  }
+
+  const normalized = normalizedEnum(value);
+  if (!allowed.includes(normalized)) {
+    const fieldMessage = field === 'argumentShape' ? 'argumentShape is unsupported' : `${field} is unsupported`;
+    fail(`${context}: ${fieldMessage} (${value})`);
+    return null;
+  }
+
+  return normalized;
+}
+
+function polkadotXcmCallName(transferType) {
+  if (transferType === 'RESERVE_TRANSFER_ASSETS') return 'reserveTransferAssets';
+  if (transferType === 'LIMITED_RESERVE_TRANSFER_ASSETS') return 'limitedReserveTransferAssets';
+  if (transferType === 'TELEPORT_ASSETS') return 'teleportAssets';
+  if (transferType === 'LIMITED_TELEPORT_ASSETS') return 'limitedTeleportAssets';
+  return null;
+}
+
+function validateCallShape(palletName, callName, transferType, argumentShape, context) {
+  if ([palletName, callName, transferType, argumentShape].some((value) => value === null)) {
+    return;
+  }
+
+  if (argumentShape === 'POLKADOT_XCM_TRANSFER_ASSETS') {
+    if (palletName !== 'PolkadotXcm') {
+      fail(`${context}: PolkadotXcm transfer-assets argumentShape requires palletName PolkadotXcm`);
+    }
+    if (callName !== polkadotXcmCallName(transferType)) {
+      fail(`${context}: PolkadotXcm transfer-assets argumentShape callName must match transferType`);
+    }
+    return;
+  }
+
+  if (argumentShape === 'X_TOKENS_TRANSFER_MULTIASSET') {
+    if (palletName !== 'XTokens') {
+      fail(`${context}: XTokens transferMultiasset argumentShape requires palletName XTokens`);
+    }
+    if (callName !== 'transferMultiasset') {
+      fail(`${context}: XTokens transferMultiasset argumentShape requires callName transferMultiasset`);
+    }
+    if (transferType !== 'X_TOKENS_TRANSFER_MULTIASSET') {
+      fail(`${context}: XTokens transferMultiasset argumentShape requires transferType xTokensTransferMultiasset`);
+    }
+  }
+}
+
 function requiredMultiLocation(value, field, context) {
   const mlContext = `${context}: ${field}`;
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -477,14 +528,22 @@ function validateExecutionSpec(execution, destination, xcmVersion, context) {
   }
 
   requiredString(xcmVersion, 'xcmVersion', context);
-  requiredString(execution.palletName, 'palletName', context);
-  requiredString(execution.callName, 'callName', context);
-  requiredEnum(
+  const palletName = requiredString(execution.palletName, 'palletName', context);
+  const callName = requiredString(execution.callName, 'callName', context);
+  const transferType = requiredEnum(
     execution.transferType,
     'transferType',
-    ['RESERVE_TRANSFER_ASSETS', 'LIMITED_RESERVE_TRANSFER_ASSETS', 'TELEPORT_ASSETS', 'LIMITED_TELEPORT_ASSETS'],
+    ['RESERVE_TRANSFER_ASSETS', 'LIMITED_RESERVE_TRANSFER_ASSETS', 'TELEPORT_ASSETS', 'LIMITED_TELEPORT_ASSETS', 'X_TOKENS_TRANSFER_MULTIASSET'],
     context
   );
+  const argumentShape = optionalEnum(
+    execution.argumentShape,
+    'argumentShape',
+    ['POLKADOT_XCM_TRANSFER_ASSETS', 'X_TOKENS_TRANSFER_MULTIASSET'],
+    'POLKADOT_XCM_TRANSFER_ASSETS',
+    context
+  );
+  validateCallShape(palletName, callName, transferType, argumentShape, context);
   requiredMultiLocation(execution.destinationLocation, 'destinationLocation', context);
   requiredMultiLocation(execution.assetLocation, 'assetLocation', context);
   requiredMultiLocation(execution.beneficiaryLocation, 'beneficiaryLocation', context);

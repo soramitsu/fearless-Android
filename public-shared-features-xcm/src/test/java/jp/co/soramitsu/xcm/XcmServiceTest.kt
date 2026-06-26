@@ -4,6 +4,7 @@ import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.xcm.domain.XcmArgumentShape
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xcm.domain.XcmJunctionType
 import jp.co.soramitsu.xcm.domain.XcmTransferType
@@ -89,9 +90,10 @@ class XcmServiceTest {
         assertArrayEquals(senderAccountId, request.senderAccountId)
         assertEquals("5Destination", request.recipientAddress)
         assertEquals(BigInteger.TEN, request.amount)
-        assertEquals("XTokens", request.executionSpec.palletName)
+        assertEquals("PolkadotXcm", request.executionSpec.palletName)
         assertEquals("limitedReserveTransferAssets", request.executionSpec.callName)
         assertEquals(XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS, request.executionSpec.transferType)
+        assertEquals(XcmArgumentShape.POLKADOT_XCM_TRANSFER_ASSETS, request.executionSpec.argumentShape)
         assertEquals("v3", request.executionSpec.xcmVersion)
         assertEquals(XcmJunctionType.PARACHAIN, request.executionSpec.destinationLocation.junctions.single().type)
         assertEquals("X2(Parachain(1000), GeneralKey(dot))", request.executionSpec.assetLocation.interior)
@@ -164,6 +166,33 @@ class XcmServiceTest {
     }
 
     @Test
+    fun `public service rejects mismatched argument shape before engine call`() {
+        val engine = RecordingXcmTransferEngine()
+        val service = serviceWithRoute(
+            engine = engine,
+            execution = executableRouteSpec(
+                callName = "transferMultiasset",
+                transferType = "xTokensTransferMultiasset",
+                argumentShape = "xTokensTransferMultiasset"
+            )
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                service.transfer(
+                    originChain = chain("origin"),
+                    destinationChain = chain("destination"),
+                    asset = coreAsset("DOT"),
+                    senderAccountId = byteArrayOf(1),
+                    address = "5Destination",
+                    amount = BigInteger.TEN
+                )
+            }
+        }
+        assertEquals(null, engine.transferRequest)
+    }
+
+    @Test
     @Suppress("FunctionSignature")
     fun `does not advertise transfer support when execution spec is missing or malformed`() = runBlocking {
         val missingSpecService = serviceWithRoute(engine = RecordingXcmTransferEngine(), execution = null)
@@ -180,10 +209,15 @@ class XcmServiceTest {
                 )
             )
         )
+        val unsupportedArgumentShapeService = serviceWithRoute(
+            engine = RecordingXcmTransferEngine(),
+            execution = executableRouteSpec(argumentShape = "operatorAlias")
+        )
 
         assertFalse(missingSpecService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
         assertFalse(malformedSpecService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
         assertFalse(malformedMultilocationService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
+        assertFalse(unsupportedArgumentShapeService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
     }
 
     @Test
@@ -467,9 +501,10 @@ class XcmServiceTest {
     }
 
     private fun executableRouteSpec(
-        palletName: String? = "XTokens",
+        palletName: String? = "PolkadotXcm",
         callName: String? = "limitedReserveTransferAssets",
         transferType: String? = "limitedReserveTransferAssets",
+        argumentShape: String? = null,
         destinationLocation: Chain.Xcm.MultiLocation? = Chain.Xcm.MultiLocation(
             parents = 1,
             interior = "X1(Parachain(2000))"
@@ -502,6 +537,7 @@ class XcmServiceTest {
         palletName = palletName,
         callName = callName,
         transferType = transferType,
+        argumentShape = argumentShape,
         destinationLocation = destinationLocation,
         assetLocation = assetLocation,
         beneficiaryLocation = beneficiaryLocation,

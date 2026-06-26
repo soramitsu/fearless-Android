@@ -166,6 +166,7 @@ class XcmEntitiesFetcherTest {
 
         assertEquals("DOT", route.asset.symbol)
         assertEquals(XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS, route.executionSpec.transferType)
+        assertEquals(XcmArgumentShape.POLKADOT_XCM_TRANSFER_ASSETS, route.executionSpec.argumentShape)
         assertEquals("v3", route.executionSpec.xcmVersion)
         assertEquals(XcmWeightLimitType.LIMITED, route.executionSpec.weightLimit.type)
         assertEquals(XcmJunctionType.PARACHAIN, route.executionSpec.destinationLocation.junctions.single().type)
@@ -380,6 +381,56 @@ class XcmEntitiesFetcherTest {
         assertFalse(fetcher.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
     }
 
+    @Test
+    fun `execution argument shapes reject unsupported and mismatched call contracts`() = runBlocking {
+        val unsupportedShape = fetcher(
+            chain(
+                id = "origin",
+                xcm = xcm(
+                    destinations = listOf(
+                        destination(
+                            "destination",
+                            xcmAsset("DOT"),
+                            execution = executableRouteSpec(argumentShape = "operatorAlias")
+                        )
+                    )
+                )
+            )
+        )
+        val mismatchedXTokensShape = fetcher(
+            chain(
+                id = "origin",
+                xcm = xcm(
+                    destinations = listOf(
+                        destination(
+                            "destination",
+                            xcmAsset("DOT"),
+                            execution = executableRouteSpec(
+                                palletName = "PolkadotXcm",
+                                callName = "transferMultiasset",
+                                transferType = "xTokensTransferMultiasset",
+                                argumentShape = "xTokensTransferMultiasset"
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                unsupportedShape.getExecutableRoute("origin", "destination", "DOT")
+            }
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                mismatchedXTokensShape.getExecutableRoute("origin", "destination", "DOT")
+            }
+        }
+        assertFalse(unsupportedShape.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
+        assertFalse(mismatchedXTokensShape.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
+    }
+
     private fun fetcher(vararg chains: Chain) = XcmEntitiesFetcher { chains.toList() }
 
     private fun xcm(
@@ -405,6 +456,10 @@ class XcmEntitiesFetcherTest {
     )
 
     private fun executableRouteSpec(
+        palletName: String? = "PolkadotXcm",
+        callName: String? = "limitedReserveTransferAssets",
+        transferType: String? = "limitedReserveTransferAssets",
+        argumentShape: String? = null,
         destinationLocation: Chain.Xcm.MultiLocation? = Chain.Xcm.MultiLocation(
             parents = 1,
             interior = "X1(Parachain(2000))"
@@ -428,9 +483,10 @@ class XcmEntitiesFetcherTest {
         ),
         bridge: Chain.Xcm.Bridge? = null
     ) = Chain.Xcm.Execution(
-        palletName = "XTokens",
-        callName = "limitedReserveTransferAssets",
-        transferType = "limitedReserveTransferAssets",
+        palletName = palletName,
+        callName = callName,
+        transferType = transferType,
+        argumentShape = argumentShape,
         destinationLocation = destinationLocation,
         assetLocation = assetLocation,
         beneficiaryLocation = beneficiaryLocation,
