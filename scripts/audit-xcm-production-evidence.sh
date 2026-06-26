@@ -84,6 +84,31 @@ const REQUIRED_EVIDENCE_FIELDS = [
   'operator'
 ];
 
+const ALLOWED_MANIFEST_FIELDS = [
+  'schemaVersion',
+  'scope',
+  'status',
+  'releaseEnabled',
+  'lastReviewed',
+  'currentState',
+  'blockers',
+  'routeManifests',
+  'readyVerificationCommands',
+  'requiredEvidenceFields',
+  'evidence'
+];
+
+const ALLOWED_CURRENT_STATE_FIELDS = [
+  'requiredExecutableRouteCount',
+  'discoveryOnlyRouteCount'
+];
+
+const ALLOWED_ROUTE_MANIFEST_FIELDS = [
+  'requiredExecutableRoutes',
+  'discoveryOnlyRoutes',
+  'gapReport'
+];
+
 const REQUIRED_READY_COMMAND_MARKERS = [
   'test-xcm-production-evidence-template.sh',
   'test-xcm-production-evidence-audit.sh',
@@ -247,6 +272,19 @@ function requireObject(value, name) {
   return value;
 }
 
+function assertAllowedKeys(value, allowedKeys, unsupportedFieldPrefix) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return;
+  }
+
+  const allowed = new Set(allowedKeys);
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) {
+      fail(`${unsupportedFieldPrefix}: ${key}`);
+    }
+  }
+}
+
 const manifest = parseJson(evidenceFile, 'XCM production evidence manifest');
 const requiredRoutes = parseRequiredRoutes(requiredRouteFile);
 const discoveryGaps = parseDiscoveryGaps(discoveryGapFile);
@@ -256,6 +294,8 @@ if (manifest) {
   if (secretReason) {
     fail(secretReason);
   }
+
+  assertAllowedKeys(manifest, ALLOWED_MANIFEST_FIELDS, 'unsupported XCM production evidence manifest field');
 
   if (manifest.schemaVersion !== 1) {
     fail('schemaVersion must be 1');
@@ -273,7 +313,12 @@ if (manifest) {
     fail('releaseEnabled must be a boolean');
   }
 
+  if (manifest.lastReviewed !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(String(manifest.lastReviewed))) {
+    fail('lastReviewed must be YYYY-MM-DD when present');
+  }
+
   const currentState = requireObject(manifest.currentState, 'currentState');
+  assertAllowedKeys(currentState, ALLOWED_CURRENT_STATE_FIELDS, 'unsupported XCM currentState field');
   if (currentState.requiredExecutableRouteCount !== requiredRoutes.length) {
     fail(`currentState.requiredExecutableRouteCount must match required route manifest count ${requiredRoutes.length}`);
   }
@@ -282,6 +327,7 @@ if (manifest) {
   }
 
   const routeManifests = requireObject(manifest.routeManifests, 'routeManifests');
+  assertAllowedKeys(routeManifests, ALLOWED_ROUTE_MANIFEST_FIELDS, 'unsupported XCM routeManifests field');
   if (routeManifests.requiredExecutableRoutes !== 'scripts/xcm-required-routes.tsv') {
     fail('routeManifests.requiredExecutableRoutes must be scripts/xcm-required-routes.tsv');
   }
@@ -297,9 +343,21 @@ if (manifest) {
   const requiredEvidenceFields = new Set(requireArray(manifest.requiredEvidenceFields, 'requiredEvidenceFields'));
   const evidence = requireArray(manifest.evidence, 'evidence');
 
+  for (const blocker of blockers) {
+    if (!REQUIRED_BLOCKERS.includes(blocker)) {
+      fail(`unsupported XCM production evidence blocker: ${blocker}`);
+    }
+  }
+
   for (const marker of REQUIRED_READY_COMMAND_MARKERS) {
     if (!commands.includes(marker)) {
       fail(`readyVerificationCommands missing ${marker}`);
+    }
+  }
+
+  for (const field of requiredEvidenceFields) {
+    if (!REQUIRED_EVIDENCE_FIELDS.includes(field)) {
+      fail(`unsupported required XCM production evidence field: ${field}`);
     }
   }
 
@@ -327,6 +385,8 @@ if (manifest) {
       fail(`evidence[${index}] must be an object`);
       return;
     }
+
+    assertAllowedKeys(entry, REQUIRED_EVIDENCE_FIELDS, `unsupported XCM production evidence[${index}] field`);
 
     for (const field of REQUIRED_EVIDENCE_FIELDS) {
       if (!nonEmptyString(entry[field])) {

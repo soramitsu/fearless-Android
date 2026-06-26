@@ -200,6 +200,11 @@ cp "$blocked" "$bad_schema"
 perl -0pi -e 's/"schemaVersion": 1/"schemaVersion": 2/' "$bad_schema"
 expect_failure "bad schema" "schemaVersion must be 1" run_audit "$bad_schema" "$routes" "$gaps"
 
+bad_last_reviewed="$tmp_dir/bad-last-reviewed.json"
+cp "$blocked" "$bad_last_reviewed"
+perl -0pi -e 's/"releaseEnabled": false,/"releaseEnabled": false,\n  "lastReviewed": "today",/' "$bad_last_reviewed"
+expect_failure "bad lastReviewed date" "lastReviewed must be YYYY-MM-DD" run_audit "$bad_last_reviewed" "$routes" "$gaps"
+
 release_enabled_blocked="$tmp_dir/release-enabled-blocked.json"
 cp "$blocked" "$release_enabled_blocked"
 perl -0pi -e 's/"releaseEnabled": false/"releaseEnabled": true/' "$release_enabled_blocked"
@@ -224,6 +229,31 @@ missing_required_field="$tmp_dir/missing-required-field.json"
 cp "$blocked" "$missing_required_field"
 perl -0pi -e 's/"extrinsicHash",\n    //' "$missing_required_field"
 expect_failure "missing required evidence field" "requiredEvidenceFields missing extrinsicHash" run_audit "$missing_required_field" "$routes" "$gaps"
+
+unsupported_top_level_field="$tmp_dir/unsupported-top-level-field.json"
+cp "$blocked" "$unsupported_top_level_field"
+perl -0pi -e 's/"releaseEnabled": false,/"releaseEnabled": false,\n  "unsafeComment": "must fail",/' "$unsupported_top_level_field"
+expect_failure "unsupported top-level XCM production evidence field" "unsupported XCM production evidence manifest field" run_audit "$unsupported_top_level_field" "$routes" "$gaps"
+
+unsupported_current_state_field="$tmp_dir/unsupported-current-state-field.json"
+cp "$blocked" "$unsupported_current_state_field"
+perl -0pi -e 's/"discoveryOnlyRouteCount": 1/"discoveryOnlyRouteCount": 1,\n    "generatedRouteCount": 2/' "$unsupported_current_state_field"
+expect_failure "unsupported currentState XCM production evidence field" "unsupported XCM currentState field" run_audit "$unsupported_current_state_field" "$routes" "$gaps"
+
+unsupported_route_manifest_field="$tmp_dir/unsupported-route-manifest-field.json"
+cp "$blocked" "$unsupported_route_manifest_field"
+perl -0pi -e 's/"gapReport": "build\/reports\/xcm-registry-gap-report.json"/"gapReport": "build\/reports\/xcm-registry-gap-report.json",\n    "dashboardUrl": "https:\/\/example.invalid"/' "$unsupported_route_manifest_field"
+expect_failure "unsupported routeManifests XCM production evidence field" "unsupported XCM routeManifests field" run_audit "$unsupported_route_manifest_field" "$routes" "$gaps"
+
+unsupported_required_evidence_field="$tmp_dir/unsupported-required-evidence-field.json"
+cp "$blocked" "$unsupported_required_evidence_field"
+perl -0pi -e 's/"operator"\n  \]/"operator",\n    "receiptUrl"\n  \]/' "$unsupported_required_evidence_field"
+expect_failure "unsupported required XCM production evidence field" "unsupported required XCM production evidence field" run_audit "$unsupported_required_evidence_field" "$routes" "$gaps"
+
+unsupported_blocker="$tmp_dir/unsupported-blocker.json"
+cp "$blocked" "$unsupported_blocker"
+perl -0pi -e 's/"discovery-only-routes-remain"/"discovery-only-routes-remain",\n    "manual-approval-pending"/' "$unsupported_blocker"
+expect_failure "unsupported XCM production evidence blocker" "unsupported XCM production evidence blocker" run_audit "$unsupported_blocker" "$routes" "$gaps"
 
 ready_with_gaps="$tmp_dir/ready-with-gaps.json"
 write_ready_manifest "$ready_with_gaps"
@@ -254,6 +284,11 @@ ready_bad_environment="$tmp_dir/ready-bad-environment.json"
 cp "$ready" "$ready_bad_environment"
 perl -0pi -e 's/"environment": "mainnet"/"environment": "staging"/' "$ready_bad_environment"
 expect_failure "ready evidence bad environment" "environment must be mainnet or testnet" run_audit "$ready_bad_environment" "$routes" "$empty_gaps" --require-ready
+
+ready_unsupported_evidence_field="$tmp_dir/ready-unsupported-evidence-field.json"
+cp "$ready" "$ready_unsupported_evidence_field"
+perl -0pi -e 's/"operator": "release"/"operator": "release",\n      "receiptUrl": "https:\/\/example.invalid\/evidence"/' "$ready_unsupported_evidence_field"
+expect_failure "unsupported XCM production evidence record field" "unsupported XCM production evidence[0] field" run_audit "$ready_unsupported_evidence_field" "$routes" "$empty_gaps" --require-ready
 
 ready_unknown_route="$tmp_dir/ready-unknown-route.json"
 cp "$ready" "$ready_unknown_route"
