@@ -255,6 +255,11 @@ cp "$blocked" "$unsupported_blocker"
 perl -0pi -e 's/"discovery-only-routes-remain"/"discovery-only-routes-remain",\n    "manual-approval-pending"/' "$unsupported_blocker"
 expect_failure "unsupported XCM production evidence blocker" "unsupported XCM production evidence blocker" run_audit "$unsupported_blocker" "$routes" "$gaps"
 
+duplicate_blocker="$tmp_dir/duplicate-blocker.json"
+cp "$blocked" "$duplicate_blocker"
+perl -0pi -e 's/"discovery-only-routes-remain"/"discovery-only-routes-remain",\n    "discovery-only-routes-remain"/' "$duplicate_blocker"
+expect_failure "duplicate XCM production evidence blocker" "duplicate XCM production evidence blocker" run_audit "$duplicate_blocker" "$routes" "$gaps"
+
 ready_with_gaps="$tmp_dir/ready-with-gaps.json"
 write_ready_manifest "$ready_with_gaps"
 perl -0pi -e 's/"discoveryOnlyRouteCount": 0/"discoveryOnlyRouteCount": 1/' "$ready_with_gaps"

@@ -356,10 +356,15 @@ if (manifest) {
     fail('routeManifests.gapReport must be build/reports/xcm-registry-gap-report.json');
   }
 
-  const blockers = new Set(requireArray(manifest.blockers, 'blockers'));
+  const manifestBlockers = requireArray(manifest.blockers, 'blockers');
+  const blockers = new Set(manifestBlockers);
   const commands = requireArray(manifest.readyVerificationCommands, 'readyVerificationCommands').join('\n');
   const requiredEvidenceFields = new Set(requireArray(manifest.requiredEvidenceFields, 'requiredEvidenceFields'));
   const evidence = requireArray(manifest.evidence, 'evidence');
+
+  if (blockers.size !== manifestBlockers.length) {
+    fail('duplicate XCM production evidence blocker');
+  }
 
   for (const blocker of blockers) {
     if (!REQUIRED_BLOCKERS.includes(blocker)) {
