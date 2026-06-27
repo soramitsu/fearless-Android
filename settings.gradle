@@ -146,7 +146,10 @@ def forceLocalUtils = (
 ) || (System.getenv("FORCE_LOCAL_UTILS") == "true")
 
 def gradleMajorVersion = gradle.gradleVersion.tokenize('.').first().toInteger()
-def localUtilsSupported = gradleMajorVersion < 9
+// The compatibility shims above keep the pinned fearless-utils checkout usable
+// through Gradle 9. Future Gradle majors must opt in with FORCE_LOCAL_UTILS until
+// the included build is verified again.
+def localUtilsSupported = gradleMajorVersion < 10
 
 if (localUtilsDir.exists() && (localUtilsSupported || forceLocalUtils)) {
     println("Including local fearless-utils from: ${localUtilsDir}")
@@ -156,7 +159,7 @@ if (localUtilsDir.exists() && (localUtilsSupported || forceLocalUtils)) {
         }
     }
 } else if (localUtilsDir.exists() && !forceLocalUtils && !localUtilsSupported) {
-    println("Skipping local fearless-utils because Gradle ${gradle.gradleVersion} is incompatible with its build scripts. Set FORCE_LOCAL_UTILS=true to override.")
+    println("Skipping local fearless-utils because Gradle ${gradle.gradleVersion} is not verified with its build scripts. Set FORCE_LOCAL_UTILS=true to override.")
     if (useRemoteUtils) {
         println("Using remote fearless-utils from GitHub via sourceControl")
         sourceControl {

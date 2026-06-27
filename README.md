@@ -99,7 +99,7 @@ Manual equivalents if you prefer:
 ./gradlew :app:lint
 ```
 
-Prerequisites: JDK 21 (Temurin/Adoptium) and Android SDK with API 35 + build-tools 35.0.0. The script will try to locate `ANDROID_SDK_ROOT` and install missing packages if `sdkmanager` is available.
+Prerequisites: JDK 21 (Temurin/Adoptium) and Android SDK with API 36 + build-tools 36.0.0. The script will try to locate `ANDROID_SDK_ROOT` and install missing packages if `sdkmanager` is available.
 
 ### Use fearless-utils-Android
 
@@ -109,13 +109,13 @@ Public builds use a checked-out copy of `fearless-utils-Android` as a composite 
 git clone https://github.com/soramitsu/fearless-utils-Android.git ../fearless-utils-Android
 git -C ../fearless-utils-Android checkout 7500809f33243ee47ecb2ec8563fc284ac4de0d6
 export FEARLESS_UTILS_PATH=/absolute/path/to/fearless-utils-Android
-export FORCE_LOCAL_UTILS=true
 export FEARLESS_UTILS_LIBRARY_ONLY=true
+./scripts/ensure-fearless-utils.sh
 ./gradlew :app:assembleDebug
 ```
 
-Gradle includes the local project via a composite build and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils` automatically.  
-Run `./scripts/ensure-fearless-utils.sh` to verify the checkout and pinned commit before building. The Gradle `USE_REMOTE_UTILS=true` source-control fallback remains experimental and is not the public CI contract.
+Gradle includes the local project via a composite build through Gradle 9 and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils` automatically.
+Run `./scripts/ensure-fearless-utils.sh` to verify the checkout, pinned commit, and library-only overlay before building. The Gradle `USE_REMOTE_UTILS=true` source-control fallback remains experimental and is not the public CI contract.
 Prereqs for building the utils from source: NDK r28 (android-ndk-r28 / 28.0.x) and a Rust toolchain on `PATH` (`rustup`, `cargo`).
 
 ### Rebuild libsodium with 16 KB alignment
