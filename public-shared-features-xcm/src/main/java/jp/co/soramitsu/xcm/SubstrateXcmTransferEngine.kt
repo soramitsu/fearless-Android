@@ -172,15 +172,14 @@ class SubstrateXcmTransferEngine(
         val provider = requireKeypairProvider(originChainId)
         val call = buildTransferCall(executionSpec, address, amount)
 
-        return BigDecimal(
-            submitter.estimateFee(
-                chain = originChain,
-                accountId = ByteArray(FEE_ESTIMATE_ACCOUNT_ID_SIZE_BYTES),
-                keypairProvider = provider,
-                call = call
-            ),
-            originFeeAsset.precision
+        val estimatedOriginFeePlancks = submitter.estimateFee(
+            chain = originChain,
+            accountId = ByteArray(FEE_ESTIMATE_ACCOUNT_ID_SIZE_BYTES),
+            keypairProvider = provider,
+            call = call
         )
+
+        return BigDecimal(estimatedOriginFeePlancks, originFeeAsset.precision)
     }
 
     fun buildTransferCall(
