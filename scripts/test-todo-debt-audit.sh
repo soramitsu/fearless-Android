@@ -66,6 +66,15 @@ printf '%s\n' 'class CleanSource' > "$stale_root/app/src/main/java/CleanSource.k
 printf '%s\t%s\n' 'app/src/main/java/OldDebt.kt' 'class OldDebt { // TODO deleted marker' > "$stale_root/config/todo-debt-baseline.tsv"
 expect_failure "stale baseline fixture" "$stale_root" "Baseline entries no longer exist"
 
+duplicate_root="$tmp_dir/duplicate-baseline"
+make_fixture_root "$duplicate_root"
+printf '%s\n' 'class DuplicateDebt { // TODO duplicate baseline marker' 'class DuplicateDebt { // TODO duplicate baseline marker' > "$duplicate_root/app/src/main/java/DuplicateDebt.kt"
+printf '%s\t%s\n%s\t%s\n' \
+  'app/src/main/java/DuplicateDebt.kt' 'class DuplicateDebt { // TODO duplicate baseline marker' \
+  'app/src/main/java/DuplicateDebt.kt' 'class DuplicateDebt { // TODO duplicate baseline marker' \
+  > "$duplicate_root/config/todo-debt-baseline.tsv"
+expect_failure "duplicate baseline fixture" "$duplicate_root" "Duplicate TODO debt baseline entries are forbidden"
+
 executable_root="$tmp_dir/executable"
 make_fixture_root "$executable_root"
 printf '%s\n' 'class Crashy {' '    fun crash(): Nothing = TODO("boom")' '}' > "$executable_root/app/src/main/java/Crashy.kt"

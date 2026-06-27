@@ -19,13 +19,9 @@ feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/presentation
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/network/blockhain/calls/ExtrinsicBuilderExt.kt	// TODO rename to createPool when polkadot runtime upgrades to 9390
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingConstantsRepository.kt	// todo need research
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingPoolApi.kt	// todo temporary fix until all runtimes will be updated
-feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingPoolApi.kt	// todo temporary fix until all runtimes will be updated
-feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingPoolApi.kt	// todo temporary fix until all runtimes will be updated
-feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingPoolApi.kt	// todo temporary fix until all runtimes will be updated
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/domain/rewards/SoraStakingRewardsScenario.kt	// todo make better way to check that we support price provider
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/collators/change/custom/select/SelectCustomCollatorsViewModel.kt	// todo do we need apply selected collators when moving back?
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/common/SetupStakingSharedState.kt	//                        is Payload.Collators -> SelectBlockProducersStep.Payload.Collators //todo
-feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/confirm/ConfirmStakingViewModel.kt	is StakingState.Parachain.Collator -> 0 // todo add collators support
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/confirm/ConfirmStakingViewModel.kt	is StakingState.Parachain.Collator -> 0 // todo add collators support
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/mappers/Validator.kt	// FIXME Wrong logic for isOversubscribed & isSlashed - should not require elected state/nominator info
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/payouts/detail/PayoutDetailsFragment.kt	// TODO perform date formatting in viewModel
@@ -36,19 +32,16 @@ feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/sta
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/staking/main/StakingViewStateOld.kt	): Pair<String, String> { // todo fix
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/staking/main/StakingViewStateOld.kt	// todo stub
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/staking/main/compose/StakingAssetInfoViewState.kt	val stories: String, // todo stories view state
-feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/staking/main/compose/StakingAssetInfoViewState.kt	val stories: String, // todo stories view state
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/staking/main/scenarios/StakingPoolViewModel.kt	// todo hardcoded returns for demo
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/scenarios/parachain/StakingParachainScenarioInteractor.kt	// todo move to overrides parameter of chain_type.json
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/scenarios/relaychain/StakingRelayChainScenarioInteractor.kt	val accountId = metaAccount.accountId(chain)!! // TODO may be null for ethereum chains
 feature-wallet-api/src/main/java/jp/co/soramitsu/wallet/api/data/cache/AssetCache.kt	// todo make better way to check that we support price provider
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/historySource/GiantsquidHistorySource.kt	// todo complete history parse
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/network/blockchain/WssSubstrateSource.kt	val dest = when (typeRegistry["Address"]) { // this logic was added to support Moonbeam/Moonriver chains; todo separate assets in json like orml
-feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/network/blockchain/WssSubstrateSource.kt	val dest = when (typeRegistry["Address"]) { // this logic was added to support Moonbeam/Moonriver chains; todo separate assets in json like orml
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/network/blockchain/balance/SubstrateBalanceLoader.kt	chainAssetId = chain.utilityAsset?.id.orEmpty(), // TODO do not hardcode chain asset id
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/repository/tranfser/TonTransferService.kt	val sendMode = 3 // todo //if (max && isTon) (TonSendMode.CARRY_ALL_REMAINING_BALANCE.value + TonSendMode.IGNORE_ERRORS.value) else (TonSendMode.PAY_GAS_SEPARATELY.value + TonSendMode.IGNORE_ERRORS.value)
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/domain/XcmInteractor.kt	// todo remove this sora ksm check when https://github.com/sora-xor/sora2-network/issues/845 will be fixed
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/balance/list/BalanceListViewModel.kt	// todo check if it's OK to use the amount from QR code for evm chains/assets
-feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/balance/list/BalanceListViewModel.kt	// todo move error state to the ndt list screen
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/balance/list/BalanceListViewModel.kt	// todo move error state to the ndt list screen
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/beacon/main/BeaconViewModel.kt	// todo hardcoded westend
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/beacon/main/BeaconViewModel.kt	// todo think about multiple networks
