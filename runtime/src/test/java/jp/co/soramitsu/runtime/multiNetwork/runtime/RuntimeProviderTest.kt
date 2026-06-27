@@ -22,7 +22,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mock
+import org.mockito.Mockito.after
 import org.mockito.Mockito.times
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 
@@ -195,10 +197,15 @@ class RuntimeProviderTest {
     }
 
     private suspend fun verifyReconstructionAfterInit(times: Int) {
-        delay(10)
-
         // + 1 since it is called once in init (cache)
-        verify(runtimeFactory, times(times + 1)).constructRuntime(any(), any(), anyInt())
+        val expectedCalls = times + 1
+        val verification = if (times == 0) {
+            after(100).times(expectedCalls)
+        } else {
+            timeout(1_000).times(expectedCalls)
+        }
+
+        verify(runtimeFactory, verification).constructRuntime(any(), any(), anyInt())
     }
 
     private fun currentMetadataHash(hash: String?) {
