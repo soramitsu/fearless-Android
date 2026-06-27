@@ -126,6 +126,8 @@ run_gradle_tasks() {
 
 main() {
   ./scripts/audit-public-artifacts.sh
+  bash ./scripts/test-public-dependency-upstream-delta-export.sh
+  bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
   bash ./scripts/test-todo-debt-audit.sh
   bash ./scripts/audit-todo-debt.sh
   audit_xcm_registry_metadata

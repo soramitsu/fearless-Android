@@ -15,6 +15,11 @@ procedure.
 - Run `./scripts/audit-public-artifacts.sh` and confirm it passes.
 - Run `FEARLESS_UTILS_PATH=../fearless-utils-Android ./scripts/ensure-fearless-utils.sh`
   and confirm the public `fearless-utils-Android` checkout is still pinned.
+- Run `bash ./scripts/test-public-dependency-upstream-delta-export.sh` and
+  `bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta`;
+  review `build/reports/public-dependency-upstream-delta/handoff-manifest.json`
+  before the release PR so the carried `fearless-utils` overlay and public
+  compatibility-module hashes are ready for upstream handoff or removal.
 - For release artifact hardening, restore private overlays and run
   `./scripts/audit-public-artifacts.sh --release --strict-provenance`; the
   Android Release workflow runs the same strict provenance gate before building

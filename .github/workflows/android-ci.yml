@@ -56,6 +56,11 @@ jobs:
       - name: Verify fearless-utils source
         run: ./scripts/ensure-fearless-utils.sh
 
+      - name: Public dependency upstream handoff
+        run: |
+          bash ./scripts/test-public-dependency-upstream-delta-export.sh
+          bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
+
       - name: Branch flow audit
         run: |
           bash ./scripts/audit-branch-flow.sh
@@ -86,6 +91,15 @@ jobs:
         with:
           name: xcm-registry-gap-report
           path: build/reports/xcm-registry-gap-report.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload public dependency handoff
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-dependency-upstream-delta
+          path: build/reports/public-dependency-upstream-delta
           if-no-files-found: ignore
           retention-days: 14
 

@@ -64,6 +64,19 @@ Local developers can use the same contract by cloning the repo next to
 `USE_REMOTE_UTILS=true` source-control fallback is not used by public CI because
 it does not currently resolve the requested published module version.
 
+The carried upstream delta is exported with:
+
+```
+bash ./scripts/test-public-dependency-upstream-delta-export.sh
+bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
+```
+
+The generated `handoff-manifest.json` records the pinned
+`fearless-utils-Android` revision, the library-only overlay patch checksum and
+touched paths, and SHA-256 digests for all public compatibility modules. Release
+reviewers should attach or archive this bundle whenever the pinned dependency
+surface changes.
+
 ## Remaining Release Risks
 
 ### Compatibility-layer limits
