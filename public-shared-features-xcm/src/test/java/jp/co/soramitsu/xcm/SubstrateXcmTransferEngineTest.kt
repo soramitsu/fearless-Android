@@ -419,7 +419,11 @@ class SubstrateXcmTransferEngineTest {
         junctions = XcmMultiLocationParser.requireValidInterior(interior, "test")
     )
 
-    private fun coreAsset(symbol: String, precision: Int = 12, chainId: String = "origin") = CoreAsset(
+    private fun coreAsset(
+        symbol: String,
+        precision: Int = 12,
+        chainId: String = "origin"
+    ) = CoreAsset(
         id = "asset-$symbol",
         name = symbol,
         symbol = symbol,

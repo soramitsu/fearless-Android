@@ -34,6 +34,7 @@ interface XcmTransferEngine {
         executionSpec: XcmExecutionSpec
     ): BigDecimal
 
+    @Suppress("LongParameterList")
     suspend fun getOriginFee(
         originChain: Chain,
         originChainId: ChainId,
