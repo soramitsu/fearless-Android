@@ -162,6 +162,7 @@ class SubstrateXcmTransferEngineTest {
             originChainId = "origin",
             destinationChainId = "destination",
             asset = coreAsset("DOT"),
+            originFeeAsset = coreAsset("DOT"),
             address = "5Destination",
             amount = BigInteger.TEN,
             executionSpec = executionSpec()
@@ -171,6 +172,26 @@ class SubstrateXcmTransferEngineTest {
         assertEquals("origin", submitter.estimateChain!!.id)
         assertSame(provider, submitter.estimateKeypairProvider)
         assertTrue(requireNotNull(submitter.estimateCall).arguments["beneficiary"].toString().contains("5Destination"))
+    }
+
+    @Test
+    fun `scales origin fee with origin fee asset precision instead of transfer asset precision`() = runBlocking {
+        val submitter = RecordingSubmitter(estimatedFee = BigInteger("12345"))
+        val engine = SubstrateXcmTransferEngine(submitter)
+        engine.updateKeypairProvider("origin", FakeKeypairProvider())
+
+        val fee = engine.getOriginFee(
+            originChain = chain("origin"),
+            originChainId = "origin",
+            destinationChainId = "destination",
+            asset = coreAsset("USDT", precision = 6),
+            originFeeAsset = coreAsset("DOT", precision = 12),
+            address = "5Destination",
+            amount = BigInteger.TEN,
+            executionSpec = executionSpec()
+        )
+
+        assertEquals(BigDecimal("0.000000012345"), fee)
     }
 
     @Test
@@ -303,6 +324,7 @@ class SubstrateXcmTransferEngineTest {
                     originChainId = "origin",
                     destinationChainId = "destination",
                     asset = coreAsset("DOT"),
+                    originFeeAsset = coreAsset("DOT"),
                     address = "5Destination",
                     amount = BigInteger.TEN,
                     executionSpec = executionSpec()
@@ -324,7 +346,31 @@ class SubstrateXcmTransferEngineTest {
                     originChain = chain("origin"),
                     originChainId = "origin",
                     destinationChainId = "destination",
-                    asset = coreAsset("DOT", precision = -1),
+                    asset = coreAsset("DOT"),
+                    originFeeAsset = coreAsset("DOT", precision = -1),
+                    address = "5Destination",
+                    amount = BigInteger.TEN,
+                    executionSpec = executionSpec()
+                )
+            }
+        }
+        assertEquals(0, submitter.estimateCount)
+    }
+
+    @Test
+    fun `rejects origin fee asset from a different chain before submitter call`() {
+        val submitter = RecordingSubmitter()
+        val engine = SubstrateXcmTransferEngine(submitter)
+        engine.updateKeypairProvider("origin", FakeKeypairProvider())
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                engine.getOriginFee(
+                    originChain = chain("origin"),
+                    originChainId = "origin",
+                    destinationChainId = "destination",
+                    asset = coreAsset("DOT"),
+                    originFeeAsset = coreAsset("DOT", chainId = "other"),
                     address = "5Destination",
                     amount = BigInteger.TEN,
                     executionSpec = executionSpec()
@@ -373,13 +419,13 @@ class SubstrateXcmTransferEngineTest {
         junctions = XcmMultiLocationParser.requireValidInterior(interior, "test")
     )
 
-    private fun coreAsset(symbol: String, precision: Int = 12) = CoreAsset(
+    private fun coreAsset(symbol: String, precision: Int = 12, chainId: String = "origin") = CoreAsset(
         id = "asset-$symbol",
         name = symbol,
         symbol = symbol,
         iconUrl = "",
-        chainId = "origin",
-        chainName = "origin",
+        chainId = chainId,
+        chainName = chainId,
         chainIcon = null,
         isTestNet = false,
         priceId = null,

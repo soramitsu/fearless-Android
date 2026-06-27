@@ -16,6 +16,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
 import jp.co.soramitsu.core.utils.removedXcPrefix
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -153,6 +154,7 @@ class XcmInteractor(
                 originChain = originChain,
                 destinationChainId = destinationNetworkId,
                 asset = asset,
+                originFeeAsset = originChain.utilityAsset ?: asset,
                 address = destinationChain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)
             )

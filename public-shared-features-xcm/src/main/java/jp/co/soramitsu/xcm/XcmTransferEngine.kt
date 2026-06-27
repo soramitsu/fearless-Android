@@ -39,6 +39,7 @@ interface XcmTransferEngine {
         originChainId: ChainId,
         destinationChainId: ChainId,
         asset: Asset,
+        originFeeAsset: Asset,
         address: String,
         amount: BigInteger,
         executionSpec: XcmExecutionSpec
@@ -66,6 +67,7 @@ object UnavailableXcmTransferEngine : XcmTransferEngine {
         originChainId: ChainId,
         destinationChainId: ChainId,
         asset: Asset,
+        originFeeAsset: Asset,
         address: String,
         amount: BigInteger,
         executionSpec: XcmExecutionSpec

@@ -443,6 +443,7 @@ class XcmServiceTest {
                 originChain = chain("origin"),
                 destinationChainId = "destination",
                 asset = coreAsset("DOT"),
+                originFeeAsset = coreAsset("KSM"),
                 address = "5Destination",
                 amount = BigInteger.TEN
             )
@@ -452,7 +453,7 @@ class XcmServiceTest {
             engine.destinationFeeRequest
         )
         assertEquals(
-            OriginFeeRequest("origin", "destination", "DOT", "5Destination", BigInteger.TEN),
+            OriginFeeRequest("origin", "destination", "DOT", "KSM", "5Destination", BigInteger.TEN),
             engine.originFeeRequest
         )
         assertEquals(XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS, engine.originFeeExecutionSpec?.transferType)
@@ -609,6 +610,7 @@ class XcmServiceTest {
         val originChainId: ChainId,
         val destinationChainId: ChainId,
         val assetSymbol: String,
+        val originFeeAssetSymbol: String,
         val address: String,
         val amount: BigInteger
     )
@@ -658,11 +660,19 @@ class XcmServiceTest {
             originChainId: ChainId,
             destinationChainId: ChainId,
             asset: CoreAsset,
+            originFeeAsset: CoreAsset,
             address: String,
             amount: BigInteger,
             executionSpec: jp.co.soramitsu.xcm.domain.XcmExecutionSpec
         ): BigDecimal {
-            originFeeRequest = OriginFeeRequest(originChainId, destinationChainId, asset.symbol, address, amount)
+            originFeeRequest = OriginFeeRequest(
+                originChainId,
+                destinationChainId,
+                asset.symbol,
+                originFeeAsset.symbol,
+                address,
+                amount
+            )
             originFeeExecutionSpec = executionSpec
             return BigDecimal("0.02")
         }

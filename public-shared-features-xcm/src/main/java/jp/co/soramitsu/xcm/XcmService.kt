@@ -84,6 +84,7 @@ class XcmService internal constructor(
         originChain: Chain,
         destinationChainId: ChainId,
         asset: Asset,
+        originFeeAsset: Asset = asset,
         address: String,
         amount: BigInteger
     ): BigDecimal {
@@ -97,6 +98,7 @@ class XcmService internal constructor(
             originChainId = originChain.id,
             destinationChainId,
             asset,
+            originFeeAsset,
             address,
             amount,
             executableRoute.executionSpec
