@@ -167,7 +167,7 @@ class SubstrateXcmTransferEngineTest {
             executionSpec = executionSpec()
         )
 
-        assertEquals(BigDecimal("12345"), fee)
+        assertEquals(BigDecimal("0.000000012345"), fee)
         assertEquals("origin", submitter.estimateChain!!.id)
         assertSame(provider, submitter.estimateKeypairProvider)
         assertTrue(requireNotNull(submitter.estimateCall).arguments["beneficiary"].toString().contains("5Destination"))
@@ -312,6 +312,28 @@ class SubstrateXcmTransferEngineTest {
         assertEquals(0, submitter.estimateCount)
     }
 
+    @Test
+    fun `rejects negative origin fee asset precision before submitter call`() {
+        val submitter = RecordingSubmitter()
+        val engine = SubstrateXcmTransferEngine(submitter)
+        engine.updateKeypairProvider("origin", FakeKeypairProvider())
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                engine.getOriginFee(
+                    originChain = chain("origin"),
+                    originChainId = "origin",
+                    destinationChainId = "destination",
+                    asset = coreAsset("DOT", precision = -1),
+                    address = "5Destination",
+                    amount = BigInteger.TEN,
+                    executionSpec = executionSpec()
+                )
+            }
+        }
+        assertEquals(0, submitter.estimateCount)
+    }
+
     private fun executionSpec(
         palletName: String = "PolkadotXcm",
         transferType: XcmTransferType = XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS,
@@ -351,7 +373,7 @@ class SubstrateXcmTransferEngineTest {
         junctions = XcmMultiLocationParser.requireValidInterior(interior, "test")
     )
 
-    private fun coreAsset(symbol: String) = CoreAsset(
+    private fun coreAsset(symbol: String, precision: Int = 12) = CoreAsset(
         id = "asset-$symbol",
         name = symbol,
         symbol = symbol,
@@ -361,7 +383,7 @@ class SubstrateXcmTransferEngineTest {
         chainIcon = null,
         isTestNet = false,
         priceId = null,
-        precision = 12,
+        precision = precision,
         staking = CoreAsset.StakingType.UNSUPPORTED,
         purchaseProviders = null,
         supportStakingPool = false,

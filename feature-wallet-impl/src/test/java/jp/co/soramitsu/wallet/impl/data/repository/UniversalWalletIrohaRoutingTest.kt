@@ -13,6 +13,7 @@ import jp.co.soramitsu.runtime.ext.normalizedIrohaAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UniversalWalletIrohaRoutingTest {
@@ -66,6 +67,11 @@ class UniversalWalletIrohaRoutingTest {
         ).i105
 
         assertNull(taira.normalizedIrohaAddress(nexusAddress))
+    }
+
+    @Test
+    fun `iroha external api type is history capable`() {
+        assertTrue(Chain.ExternalApi.Section.Type.IROHA.isHistory())
     }
 
     private companion object {

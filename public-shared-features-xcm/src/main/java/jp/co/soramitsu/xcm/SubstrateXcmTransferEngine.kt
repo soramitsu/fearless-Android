@@ -164,6 +164,7 @@ class SubstrateXcmTransferEngine(
         require(originChain.id == originChainId) {
             "XCM origin fee chain object must match originChainId"
         }
+        require(asset.precision >= 0) { "XCM origin fee asset precision must not be negative" }
         val provider = requireKeypairProvider(originChainId)
         val call = buildTransferCall(executionSpec, address, amount)
 
@@ -173,7 +174,8 @@ class SubstrateXcmTransferEngine(
                 accountId = ByteArray(FEE_ESTIMATE_ACCOUNT_ID_SIZE_BYTES),
                 keypairProvider = provider,
                 call = call
-            )
+            ),
+            asset.precision
         )
     }
 
