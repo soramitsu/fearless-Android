@@ -358,12 +358,20 @@ if (manifest) {
 
   const manifestBlockers = requireArray(manifest.blockers, 'blockers');
   const blockers = new Set(manifestBlockers);
-  const commands = requireArray(manifest.readyVerificationCommands, 'readyVerificationCommands').join('\n');
-  const requiredEvidenceFields = new Set(requireArray(manifest.requiredEvidenceFields, 'requiredEvidenceFields'));
+  const commandList = requireArray(manifest.readyVerificationCommands, 'readyVerificationCommands');
+  const commands = commandList.join('\n');
+  const requiredEvidenceFieldList = requireArray(manifest.requiredEvidenceFields, 'requiredEvidenceFields');
+  const requiredEvidenceFields = new Set(requiredEvidenceFieldList);
   const evidence = requireArray(manifest.evidence, 'evidence');
 
   if (blockers.size !== manifestBlockers.length) {
     fail('duplicate XCM production evidence blocker');
+  }
+  if (new Set(commandList).size !== commandList.length) {
+    fail('duplicate XCM production evidence verification command');
+  }
+  if (requiredEvidenceFields.size !== requiredEvidenceFieldList.length) {
+    fail('duplicate XCM production evidence required field');
   }
 
   for (const blocker of blockers) {

@@ -225,10 +225,32 @@ cp "$blocked" "$missing_template_command"
 perl -0pi -e 's/    "bash \.\/scripts\/test-xcm-production-evidence-template\.sh",\n//' "$missing_template_command"
 expect_failure "missing evidence template self-test command" "readyVerificationCommands missing test-xcm-production-evidence-template.sh" run_audit "$missing_template_command" "$routes" "$gaps"
 
+duplicate_verification_command="$tmp_dir/duplicate-verification-command.json"
+cp "$blocked" "$duplicate_verification_command"
+node - "$duplicate_verification_command" <<'NODE'
+const fs = require('fs');
+const file = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+manifest.readyVerificationCommands.push('./gradlew :public-shared-features-xcm:testDebugUnitTest');
+fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+NODE
+expect_failure "duplicate XCM production evidence verification command" "duplicate XCM production evidence verification command" run_audit "$duplicate_verification_command" "$routes" "$gaps"
+
 missing_required_field="$tmp_dir/missing-required-field.json"
 cp "$blocked" "$missing_required_field"
 perl -0pi -e 's/"extrinsicHash",\n    //' "$missing_required_field"
 expect_failure "missing required evidence field" "requiredEvidenceFields missing extrinsicHash" run_audit "$missing_required_field" "$routes" "$gaps"
+
+duplicate_required_field="$tmp_dir/duplicate-required-field.json"
+cp "$blocked" "$duplicate_required_field"
+node - "$duplicate_required_field" <<'NODE'
+const fs = require('fs');
+const file = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+manifest.requiredEvidenceFields.push('operator');
+fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+NODE
+expect_failure "duplicate XCM production evidence required field" "duplicate XCM production evidence required field" run_audit "$duplicate_required_field" "$routes" "$gaps"
 
 unsupported_top_level_field="$tmp_dir/unsupported-top-level-field.json"
 cp "$blocked" "$unsupported_top_level_field"
