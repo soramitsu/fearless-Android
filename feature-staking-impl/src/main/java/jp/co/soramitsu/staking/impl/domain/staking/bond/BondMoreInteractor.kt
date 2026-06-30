@@ -2,7 +2,7 @@ package jp.co.soramitsu.staking.impl.domain.staking.bond
 
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,12 +14,14 @@ class BondMoreInteractor(
 ) {
 
     suspend fun estimateFee(
+        accountAddress: String,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
     ): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
+            val accountId = chain.accountIdOf(accountAddress)
 
-            extrinsicService.estimateFee(chain) {
+            extrinsicService.estimateFee(chain, accountId) {
                 formExtrinsic.invoke(this)
             }
         }

@@ -18,15 +18,33 @@ import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerApi
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinTransactionHistorySync
+import jp.co.soramitsu.common.data.network.bitcoin.RetrofitBitcoinIndexerClient
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiApi
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
+import jp.co.soramitsu.common.data.network.iroha.RetrofitIrohaToriiClient
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.network.solana.RetrofitSolanaIndexerClient
+import jp.co.soramitsu.common.data.network.solana.RetrofitSolanaRpcClient
+import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
+import jp.co.soramitsu.common.data.network.solana.SolanaIndexerApi
+import jp.co.soramitsu.common.data.network.solana.SolanaIndexerClient
+import jp.co.soramitsu.common.data.network.solana.SolanaRpcApi
+import jp.co.soramitsu.common.data.network.solana.SolanaRpcClient
+import jp.co.soramitsu.common.data.network.solana.SolanaTransactionHistorySync
 import jp.co.soramitsu.common.data.network.ton.TonApi
+import jp.co.soramitsu.common.data.network.ton.TonIndexerApi
+import jp.co.soramitsu.common.data.network.ton.TonIndexerClient
+import jp.co.soramitsu.common.data.network.ton.RetrofitTonIndexerClient
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.shared_utils.wsrpc.SocketService
-import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
-import jp.co.soramitsu.shared_utils.wsrpc.recovery.Reconnector
-import jp.co.soramitsu.shared_utils.wsrpc.request.CoroutinesRequestExecutor
-import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
+import jp.co.soramitsu.fearless_utils.wsrpc.request.CoroutinesRequestExecutor
+import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
 import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.api.BlockExplorerRepository
 import jp.co.soramitsu.xnetworking.lib.datasources.blockexplorer.impl.BlockExplorerRepositoryImpl
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
@@ -212,6 +230,84 @@ class NetworkModule {
         okHttpClient: OkHttpClient
     ): NetworkApiCreator {
         return NetworkApiCreator(okHttpClient, "https://placeholder.com")
+    }
+
+    @Provides
+    @Singleton
+    fun provideBitcoinIndexerApi(apiCreator: NetworkApiCreator): BitcoinIndexerApi {
+        return apiCreator.create(BitcoinIndexerApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBitcoinIndexerClient(api: BitcoinIndexerApi): BitcoinIndexerClient {
+        return RetrofitBitcoinIndexerClient(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBitcoinTransactionHistorySync(client: BitcoinIndexerClient): BitcoinTransactionHistorySync {
+        return BitcoinTransactionHistorySync(client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSolanaIndexerApi(apiCreator: NetworkApiCreator): SolanaIndexerApi {
+        return apiCreator.create(SolanaIndexerApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSolanaIndexerClient(api: SolanaIndexerApi): SolanaIndexerClient {
+        return RetrofitSolanaIndexerClient(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSolanaRpcApi(apiCreator: NetworkApiCreator): SolanaRpcApi {
+        return apiCreator.create(SolanaRpcApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSolanaRpcClient(api: SolanaRpcApi): SolanaRpcClient {
+        return RetrofitSolanaRpcClient(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSolanaBalanceSync(client: SolanaIndexerClient): SolanaBalanceSync {
+        return SolanaBalanceSync(client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSolanaTransactionHistorySync(client: SolanaIndexerClient): SolanaTransactionHistorySync {
+        return SolanaTransactionHistorySync(client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTonIndexerApi(apiCreator: NetworkApiCreator): TonIndexerApi {
+        return apiCreator.create(TonIndexerApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTonIndexerClient(api: TonIndexerApi): TonIndexerClient {
+        return RetrofitTonIndexerClient(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIrohaToriiApi(apiCreator: NetworkApiCreator): IrohaToriiApi {
+        return apiCreator.create(IrohaToriiApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIrohaToriiClient(api: IrohaToriiApi): IrohaToriiClient {
+        return RetrofitIrohaToriiClient(api)
     }
 
     @Provides

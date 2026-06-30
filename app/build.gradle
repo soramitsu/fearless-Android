@@ -44,7 +44,7 @@ android {
         ci {
             def keystorePath = envOrLocalProp("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH")
             def releaseKeystore = rootProject.file("fearless-upload.jks")
-            def debugKeystore = rootProject.file("debug-keystore.jks")
+            def debugSigningConfig = signingConfigs.getByName("debug")
 
             def resolvedStoreFile = null
             if (keystorePath) {
@@ -59,20 +59,14 @@ android {
                 resolvedStoreFile = releaseKeystore
             }
             if (resolvedStoreFile == null) {
-                resolvedStoreFile = debugKeystore
+                resolvedStoreFile = debugSigningConfig.storeFile
             }
 
             storeFile resolvedStoreFile
 
-            storePassword envOrLocalProp("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD") ?: "00000000"
-            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: "fearless"
-            keyPassword envOrLocalProp("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD") ?: "00000000"
-        }
-        debug {
-            storeFile file("../debug-keystore.jks")
-            storePassword "00000000"
-            keyAlias "fearless"
-            keyPassword "00000000"
+            storePassword envOrLocalProp("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD") ?: debugSigningConfig.storePassword
+            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: debugSigningConfig.keyAlias
+            keyPassword envOrLocalProp("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD") ?: debugSigningConfig.keyPassword
         }
     }
 

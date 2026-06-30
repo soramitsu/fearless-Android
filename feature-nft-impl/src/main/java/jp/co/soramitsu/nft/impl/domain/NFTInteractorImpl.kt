@@ -3,6 +3,7 @@ package jp.co.soramitsu.nft.impl.domain
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
@@ -13,7 +14,6 @@ import jp.co.soramitsu.nft.impl.domain.models.nft.NFTImpl
 import jp.co.soramitsu.nft.impl.domain.usecase.collections.CollectionsFetchingUseCase
 import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensFetchingUseCase
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigInteger

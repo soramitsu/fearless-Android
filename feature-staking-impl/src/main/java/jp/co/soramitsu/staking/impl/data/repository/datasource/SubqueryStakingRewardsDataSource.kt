@@ -9,8 +9,8 @@ import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.impl.data.mappers.mapSubqueryHistoryToTotalReward

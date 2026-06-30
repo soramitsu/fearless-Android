@@ -31,7 +31,7 @@ class ConfirmPoolClaimViewModel @Inject constructor(
     resourceManager = resourceManager,
     asset = requireNotNull(poolSharedStateProvider.mainState.get()?.asset),
     amountInPlanks = requireNotNull(poolSharedStateProvider.manageState.get()?.claimableInPlanks),
-    feeEstimator = { stakingPoolInteractor.estimateClaimFee() },
+    feeEstimator = { stakingPoolInteractor.estimateClaimFee(poolSharedStateProvider.requireMainState.requireAddress) },
     executeOperation = { address, _ -> stakingPoolInteractor.claim(address) },
     onOperationSuccess = { router.returnToManagePoolStake() },
     accountNameProvider = { stakingPoolInteractor.getAccountName(it) },

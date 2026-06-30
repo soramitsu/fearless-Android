@@ -1,8 +1,10 @@
 *.iml
 .gradle
+.kotlin/
 /local.properties
 .DS_Store
 /build
+**/build/
 /captures
 .externalNativeBuild
 app/src/main/aidl/
@@ -17,4 +19,10 @@ app/*.apk
 
 fearless.jks
 fearless-upload.jks
+debug-keystore.jks
+*.keystore
+*.p12
+*.p8
+*.pem
+/.release-overlays/
 /buildSrc/build

@@ -16,7 +16,7 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import kotlinx.coroutines.launch
 
 @HiltViewModel

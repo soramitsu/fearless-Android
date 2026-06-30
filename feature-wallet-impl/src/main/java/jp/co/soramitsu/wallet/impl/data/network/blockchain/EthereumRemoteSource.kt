@@ -11,8 +11,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.response.NewHeadsNotificationExtended
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.Dispatchers

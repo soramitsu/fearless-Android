@@ -5,8 +5,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
@@ -40,7 +40,7 @@ class EditPoolConfirmViewModel @Inject constructor(
     customIcon = R.drawable.ic_vector,
     accountNameProvider = { null },
     feeEstimator = {
-        stakingPoolInteractor.estimateEditFee(poolSharedStateProvider.requireEditPoolState)
+        stakingPoolInteractor.estimateEditFee(poolSharedStateProvider.requireEditPoolState, poolSharedStateProvider.requireMainState.requireAddress)
     },
     executeOperation = { address, _ ->
         stakingPoolInteractor.edit(poolSharedStateProvider.requireEditPoolState, address)

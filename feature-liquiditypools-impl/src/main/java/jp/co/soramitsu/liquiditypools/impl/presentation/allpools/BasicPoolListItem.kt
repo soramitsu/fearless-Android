@@ -101,7 +101,7 @@ fun BasicPoolListItem(
                     contentDescription = null,
                     loading = { Shimmer(Modifier.size(Size.ExtraSmall)) },
                     error = {
-                        Icon(painterResource(id = R.drawable.ic_token_default), null, modifier = Modifier.size(size = 32.dp))
+                        Icon(painterResource(id = jp.co.soramitsu.common.R.drawable.ic_token_undefined), null, modifier = Modifier.size(size = 32.dp))
                     }
                 )
             }
@@ -267,7 +267,7 @@ private fun PreviewBasicPoolListItem() {
         BasicPoolListItem(
             modifier = Modifier.background(transparent),
             state = BasicPoolListItemState(
-                ids = "0" to "1",
+                ids = StringPair("0", "1"),
                 token1Icon = "DEFAULT_ICON_URI",
                 token2Icon = "DEFAULT_ICON_URI",
                 text1 = "XOR-VAL",
@@ -279,7 +279,7 @@ private fun PreviewBasicPoolListItem() {
         BasicPoolListItem(
             modifier = Modifier.background(transparent),
             state = BasicPoolListItemState(
-                ids = "0" to "1",
+                ids = StringPair("0", "1"),
                 token1Icon = "DEFAULT_ICON_URI",
                 token2Icon = "DEFAULT_ICON_URI",
                 text1 = "text1",
@@ -291,7 +291,7 @@ private fun PreviewBasicPoolListItem() {
         BasicPoolListItem(
             modifier = Modifier.background(transparent),
             state = BasicPoolListItemState(
-                ids = "0" to "1",
+                ids = StringPair("0", "1"),
                 token1Icon = "DEFAULT_ICON_URI",
                 token2Icon = "DEFAULT_ICON_URI",
                 text1 = "text1",
@@ -303,7 +303,7 @@ private fun PreviewBasicPoolListItem() {
         BasicPoolListItem(
             modifier = Modifier.background(transparent),
             state = BasicPoolListItemState(
-                ids = "0" to "1",
+                ids = StringPair("0", "1"),
                 token1Icon = "DEFAULT_ICON_URI",
                 token2Icon = "DEFAULT_ICON_URI",
                 text1 = "text1",

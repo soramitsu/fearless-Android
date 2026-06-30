@@ -55,7 +55,7 @@
 
 ## Security & Configuration
 - Secrets are read via `scripts/secrets.gradle`; set in env vars or `local.properties` (see `README.md`).
-- Do not commit keys or `local.properties`. Use the provided debug keystore only for local builds.
+- Do not commit keys, keystores, provisioning files, or `local.properties`.
 - Polkadot runtime sources: to align with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
   - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE`
   - Example in `local.properties`:

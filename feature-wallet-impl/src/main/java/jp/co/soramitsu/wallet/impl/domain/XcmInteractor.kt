@@ -16,6 +16,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
 import jp.co.soramitsu.core.utils.removedXcPrefix
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -127,11 +128,13 @@ class XcmInteractor(
     }
 
     suspend fun getDestinationFee(
+        originChainId: ChainId,
         destinationChainId: ChainId,
         tokenConfiguration: Asset
     ): BigDecimal? {
         return runCatching {
             xcmService.getXcmDestinationFee(
+                originChainId = originChainId,
                 destinationChainId = destinationChainId,
                 asset = tokenConfiguration
             )
@@ -145,12 +148,14 @@ class XcmInteractor(
         amount: BigDecimal
     ): BigDecimal? {
         return runCatching {
-            val chain = chainRegistry.getChain(destinationNetworkId)
+            val originChain = chainRegistry.getChain(originNetworkId)
+            val destinationChain = chainRegistry.getChain(destinationNetworkId)
             xcmService.getXcmOriginFee(
-                originChainId = originNetworkId,
+                originChain = originChain,
                 destinationChainId = destinationNetworkId,
                 asset = asset,
-                address = chain.fakeAddress(),
+                originFeeAsset = originChain.utilityAsset ?: asset,
+                address = destinationChain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)
             )
         }.getOrNull()

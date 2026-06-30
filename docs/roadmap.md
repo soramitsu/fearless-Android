@@ -7,7 +7,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 ## Recent Updates
 - 2026-03-12: `scripts/build-libsodium.sh` now detects the correct host-specific NDK toolchain directory (darwin/linux/windows) instead of hardcoding macOS paths, so rebuilding libsodium works on Linux and CI hosts.
 - 2026-03-12: Local validation script now installs Android platform/build-tools 36 so fresh environments match the Gradle compileSdk configuration before running tasks.
-- 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) and disabled the local `fearless-utils-Android` include on Gradle 9+ by default (set `FORCE_LOCAL_UTILS=true` to override) so composite builds stay functional until the upstream repository upgrades from AGP 8.
+- 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) so the pinned `fearless-utils-Android` composite checkout remains buildable on the current Gradle stack until the upstream repository upgrades.
 - 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
 - 2026-03-12: Temporarily excluded the WalletConnect Pay dependency (and its `yttrium-wcpay` natives) until Reown publishes 16 KB–aligned builds.
 - 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.
@@ -39,9 +39,9 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
      - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
      - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
      - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (points to chain list validated against stable2503)
-  2) Utils alignment (remote source): The build fetches `soramitsu/fearless-utils-Android` as a source dependency.
+  2) Utils alignment (pinned source checkout): The build includes `soramitsu/fearless-utils-Android` as a composite source dependency.
      - Ensure NDK r28 (android-ndk-r28 / 28.0.x) and Rust toolchain with Android targets are installed (see README and CI config).
-     - Build will compile utils from source; no local path configuration is needed.
+     - CI checks out `7500809f33243ee47ecb2ec8563fc284ac4de0d6`; local builds should clone that repo next to this checkout or set `FEARLESS_UTILS_PATH`.
   3) Library version pinning (shared_features): If required, pin via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` in `local.properties` or env.
   4) Build + quick checks:
      - `./gradlew detektAll runTest :app:lint`
@@ -173,13 +173,14 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   - Verify `url = uri(...)`, `namespace = '…'`, and packaging excludes for test APKs.
   - Keep a CI step that prints Gradle/AGP versions (android-ci.yml).
 
-13) Utils source mapping toggle
-- Why: Make remote source dependency for fearless-utils explicit and controllable.
+13) Utils source checkout contract
+- Why: Keep `fearless-utils` open-source and reproducible without relying on private Maven artifacts.
 - Acceptance:
-  - `settings.gradle` maps the GitHub repository only when `USE_REMOTE_UTILS=true` (env or -P).
-  - CI sets `USE_REMOTE_UTILS=true` to build from source; local builds can rely on published artifacts by default.
+  - CI checks out `soramitsu/fearless-utils-Android` at the pinned commit and fails early if it drifts.
+  - `settings.gradle` includes the checked-out repo via composite build and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils`.
+  - README and validation scripts document the same local workflow.
 - Prompt:
-  - Add a settings flag and document it in AGENTS/README; enable flag in CI env.
+  - Update `FEARLESS_UTILS_COMMIT` intentionally when the source dependency changes, then rerun `scripts/ensure-fearless-utils.sh` and the Android build/test suite.
 
 ## P2 — Lower Priority
 

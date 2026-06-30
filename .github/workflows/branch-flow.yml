@@ -1,0 +1,51 @@
+name: Branch Flow
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Branch flow audit self-test
+        run: bash scripts/test-branch-flow-audit.sh
+
+      - name: Branch flow drift audit
+        run: bash scripts/audit-branch-flow.sh
+
+      - name: Validate PR target
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+
+          echo "PR branch flow: ${HEAD_BRANCH} -> ${BASE_BRANCH}"
+
+          if [[ "$BASE_BRANCH" == "develop" ]]; then
+            if [[ "$HEAD_BRANCH" == "master" ]]; then
+              echo "::error::Do not open normal work from master to develop. Use a feature/fix/chore/refactor, release, or hotfix branch."
+              exit 1
+            fi
+
+            exit 0
+          fi
+
+          if [[ "$BASE_BRANCH" == "master" ]]; then
+            if [[ "$HEAD_BRANCH" == "develop" || "$HEAD_BRANCH" == release/* || "$HEAD_BRANCH" == hotfix/* ]]; then
+              exit 0
+            fi
+
+            echo "::error::master is releasable. Only develop, release/*, or hotfix/* branches may target master."
+            exit 1
+          fi
+
+          echo "::error::Pull requests must target develop for normal work or master for release/hotfix promotion."
+          exit 1

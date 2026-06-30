@@ -10,7 +10,7 @@ import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 interface AccountDataSource : SecretStoreV1 {

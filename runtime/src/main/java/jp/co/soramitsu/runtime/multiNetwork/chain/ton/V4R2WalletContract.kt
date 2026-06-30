@@ -1,7 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.ton
 
 import jp.co.soramitsu.common.utils.toWalletAddress
-import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import org.ton.api.pub.PublicKeyEd25519
 import org.ton.block.AddrStd
 import org.ton.block.StateInit

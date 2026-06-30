@@ -6,7 +6,7 @@ import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.testshared.any
 import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.thenThrowUnsafe
@@ -20,8 +20,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mock
+import org.mockito.Mockito.after
 import org.mockito.Mockito.times
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 
@@ -63,7 +66,7 @@ class RuntimeProviderTest {
             chainSyncFlow = MutableSharedFlow()
 
             whenever(constructedRuntime.runtime).thenReturn(runtime)
-            whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenReturn(constructedRuntime)
+            whenever(runtimeFactory.constructRuntime(any(), any(), anyInt())).thenReturn(constructedRuntime)
 
             whenever(runtimeSyncService.syncResultFlow(eq(chain.id))).thenAnswer { chainSyncFlow }
             whenever(chainDao.runtimeInfo(any())).thenAnswer {
@@ -79,13 +82,13 @@ class RuntimeProviderTest {
         runBlocking {
             initProvider()
 
-            val returnedRuntime = withTimeout(timeMillis = 10) {
+            val returnedRuntime = withTimeout(timeMillis = 1_000) {
                 runtimeProvider.get()
             }
 
             assertEquals(returnedRuntime, runtime)
 
-            verify(runtimeFactory, times(1)).constructRuntime(any(), any(), any())
+            verify(runtimeFactory, times(1)).constructRuntime(any(), any(), anyInt())
         }
     }
 
@@ -149,7 +152,7 @@ class RuntimeProviderTest {
     @Test
     fun `should wait until current job is finished before consider reconstructing runtime on runtime sync event`() {
         runBlocking {
-            whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenAnswer {
+            whenever(runtimeFactory.constructRuntime(any(), any(), anyInt())).thenAnswer {
                 runBlocking { chainSyncFlow.first() }  // ensure runtime wont be returned until chainSyncFlow event
 
                 constructedRuntime
@@ -184,7 +187,7 @@ class RuntimeProviderTest {
     }
 
     private suspend fun withRuntimeFactoryFailing(exception: Exception = ChainInfoNotInCacheException, block: suspend () -> Unit) {
-        whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenThrowUnsafe(exception)
+        whenever(runtimeFactory.constructRuntime(any(), any(), anyInt())).thenThrowUnsafe(exception)
 
         initProvider()
 
@@ -194,10 +197,15 @@ class RuntimeProviderTest {
     }
 
     private suspend fun verifyReconstructionAfterInit(times: Int) {
-        delay(10)
-
         // + 1 since it is called once in init (cache)
-        verify(runtimeFactory, times(times + 1)).constructRuntime(any(), any(), any())
+        val expectedCalls = times + 1
+        val verification = if (times == 0) {
+            after(100).times(expectedCalls)
+        } else {
+            timeout(1_000).times(expectedCalls)
+        }
+
+        verify(runtimeFactory, verification).constructRuntime(any(), any(), anyInt())
     }
 
     private fun currentMetadataHash(hash: String?) {

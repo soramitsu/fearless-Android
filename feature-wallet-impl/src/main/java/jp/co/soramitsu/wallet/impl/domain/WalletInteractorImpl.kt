@@ -1,9 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import android.net.Uri
 import android.util.Log
-import com.mastercard.mpqr.pushpayment.model.PushPaymentData
-import com.mastercard.mpqr.pushpayment.parser.Parser
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -36,10 +33,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.data.repository.isSupported
@@ -60,6 +57,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
+import jp.co.soramitsu.wallet.impl.domain.qr.CbdcQrParser
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -76,7 +74,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.net.URLDecoder
 import kotlin.coroutines.CoroutineContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
@@ -85,8 +82,6 @@ const val QR_PREFIX_WALLET_CONNECT = "wc"
 const val QR_PREFIX_TON_CONNECT = "tc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
-private const val ACCOUNT_ID_MIN_TAG = 26
-private const val ACCOUNT_ID_MAX_TAG = 51
 private const val ASSET_SORTING_KEY = "ASSET_SORTING_KEY"
 private const val ASSET_MANAGEMENT_INTRO_PASSED_KEY = "ASSET_MANAGEMENT_INTRO_PASSED_KEY"
 
@@ -193,8 +188,9 @@ class WalletInteractorImpl(
         }.flatMapLatest { metaAccount ->
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
+            val accountAddress = metaAccount.address(chain)
 
-            historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex()
+            historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset, accountAddress).withIndex()
                 .map { (index, cursorPage) ->
                     OperationsPageChange(cursorPage, accountChanged = index == 0)
                 }
@@ -211,13 +207,15 @@ class WalletInteractorImpl(
             val metaAccount = accountRepository.getSelectedMetaAccount()
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
+            val accountAddress = metaAccount.address(chain)
 
             historyRepository.syncOperationsFirstPage(
                 pageSize,
                 filters,
                 accountId,
                 chain,
-                chainAsset
+                chainAsset,
+                accountAddress
             )
         }
     }
@@ -233,6 +231,7 @@ class WalletInteractorImpl(
             val metaAccount = accountRepository.getSelectedMetaAccount()
             val (chain, chainAsset) = chainsRepository.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
+            val accountAddress = metaAccount.address(chain)
 
             historyRepository.getOperations(
                 pageSize,
@@ -240,7 +239,8 @@ class WalletInteractorImpl(
                 filters,
                 accountId,
                 chain,
-                chainAsset
+                chainAsset,
+                accountAddress
             )
         }
     }
@@ -334,25 +334,7 @@ class WalletInteractorImpl(
     }
 
     override suspend fun tryReadCBDCAddressFormat(content: String): QrContentCBDC? {
-        val qrParamValue =
-            runCatching { Uri.parse(content).getQueryParameter("qr") }.getOrNull() ?: return null
-        val mastercardPushPaymentString = URLDecoder.decode(qrParamValue, "UTF-8")
-
-        val pushPaymentData = Parser.parseWithoutTagValidation(mastercardPushPaymentString)
-        val transactionAmount =
-            if (pushPaymentData.transactionAmount != null && pushPaymentData.transactionAmount > 0) {
-                pushPaymentData.transactionAmount.toBigDecimal()
-            } else {
-                BigDecimal.ZERO
-            }
-        return QrContentCBDC(
-            transactionAmount = transactionAmount,
-            transactionCurrencyCode = pushPaymentData.transactionCurrencyCode,
-            description = pushPaymentData.additionalData?.purpose,
-            name = pushPaymentData.merchantName,
-            billNumber = pushPaymentData.additionalData?.billNumber,
-            recipientId = getAccountId(pushPaymentData)
-        )
+        return CbdcQrParser.parse(content)
     }
 
     override fun extractTonAddress(input: String): String? = kotlin.runCatching {
@@ -370,16 +352,6 @@ class WalletInteractorImpl(
         val amountStr = regex.find(input)?.groupValues?.get(1)
         BigDecimal(amountStr)
     }.getOrNull()
-
-    private fun getAccountId(item: PushPaymentData): String {
-        for (i in ACCOUNT_ID_MIN_TAG..ACCOUNT_ID_MAX_TAG) {
-            item.getMAIData("$i")?.aid?.let {
-                return it
-            }
-        }
-
-        throw IllegalArgumentException("ACCOUNT_ID not found")
-    }
 
     override fun tryReadSoraFormat(content: String): QrContentSora? {
 //        substrate:[user address]:[user public key]:[user name]:[token id]:<amount>

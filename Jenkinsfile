@@ -3,7 +3,7 @@
 // Job properties
 def jobParams = [
   booleanParam(defaultValue: false, description: 'push to the dev profile', name: 'prDeployment'),
-  booleanParam(defaultValue: false, description: 'Upload builds to nexus(master,develop and staging branches upload always)', name: 'upload_to_nexus'),
+  booleanParam(defaultValue: false, description: 'Upload builds to nexus(master and develop branches upload always)', name: 'upload_to_nexus'),
 ]
 
 // Silence optional SDK pin warnings in CI
@@ -24,6 +24,6 @@ def pipeline = new org.android.AppPipeline(
     jobParams:        jobParams,
     appPushNoti:      true,
     dojoProductType:  'android',
-    uploadToNexusFor: ['master','develop','staging']
+    uploadToNexusFor: ['master','develop']
 )
 pipeline.runPipeline('fearless')

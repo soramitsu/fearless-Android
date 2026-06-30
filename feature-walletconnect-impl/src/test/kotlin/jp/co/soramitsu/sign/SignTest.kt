@@ -1,7 +1,7 @@
 package jp.co.soramitsu.sign
 
-import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.encrypt.SignatureWrapper
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.web3j.crypto.Credentials

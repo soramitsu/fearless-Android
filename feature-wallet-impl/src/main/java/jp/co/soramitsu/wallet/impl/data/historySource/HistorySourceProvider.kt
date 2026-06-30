@@ -1,17 +1,22 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinTransactionHistorySync
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
+import jp.co.soramitsu.common.data.network.solana.SolanaTransactionHistorySync
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
-import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.HistoryInfoRemoteLoader
 
 class HistorySourceProvider(
     private val walletOperationsApi: OperationsHistoryApi,
     private val chainRegistry: ChainRegistry,
     private val historyInfoRemoteLoader: HistoryInfoRemoteLoader,
-    private val tonRemoteSource: TonRemoteSource
+    private val tonRemoteSource: TonRemoteSource,
+    private val bitcoinTransactionHistorySync: BitcoinTransactionHistorySync,
+    private val solanaTransactionHistorySync: SolanaTransactionHistorySync,
+    private val irohaToriiClient: IrohaToriiClient
 ) {
     operator fun invoke(historyUrl: String, historyType: Chain.ExternalApi.Section.Type): HistorySource? {
         return when (historyType) {
@@ -28,6 +33,9 @@ class HistorySourceProvider(
             Chain.ExternalApi.Section.Type.VICSCAN -> VicscanHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.ZCHAINS -> ZchainsHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.TON -> TonHistorySource(tonRemoteSource, historyUrl)
+            Chain.ExternalApi.Section.Type.BITCOIN -> BitcoinHistorySource(bitcoinTransactionHistorySync, historyUrl)
+            Chain.ExternalApi.Section.Type.SOLANA -> SolanaHistorySource(solanaTransactionHistorySync, historyUrl)
+            Chain.ExternalApi.Section.Type.IROHA -> IrohaHistorySource(irohaToriiClient, historyUrl)
             else -> null
         }
     }

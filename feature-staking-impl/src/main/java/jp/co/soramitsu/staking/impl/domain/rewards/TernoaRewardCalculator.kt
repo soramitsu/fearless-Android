@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

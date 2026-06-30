@@ -28,7 +28,8 @@ data class ChainLocal(
     val ecosystem: String,
     val androidMinAppVersion: String?,
     val remoteAssetsSource: String?,
-    val tonBridgeUrl: String?
+    val tonBridgeUrl: String?,
+    val xcm: String?
 ) {
 
     class ExternalApi(

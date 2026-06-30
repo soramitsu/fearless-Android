@@ -27,7 +27,9 @@ class PoolBondMoreViewModel @Inject constructor(
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     resourceManager = resourceManager,
     quickInputsUseCase  = quickInputsUseCase,
-    feeEstimator = stakingPoolInteractor::estimateBondMoreFee,
+    feeEstimator = { amount ->
+        stakingPoolInteractor.estimateBondMoreFee(stakingPoolSharedStateProvider.requireMainState.requireAddress, amount)
+    },
     onNextStep = { amount ->
         stakingPoolSharedStateProvider.manageState.get()?.copy(amountInPlanks = amount)?.let { stakingPoolSharedStateProvider.manageState.set(it) }
         router.openPoolConfirmBondMore()

@@ -152,7 +152,9 @@ class SetupStakingViewModel @Inject constructor(
                     assetFlow.first().availableForStaking
                 }, calculateFee = {
                     if (asset.type == StakingType.PARACHAIN) {
-                        setupStakingInteractor.estimateParachainFee()
+                        interactor.getSelectedAccountProjection()?.address?.let { address ->
+                            setupStakingInteractor.estimateParachainFee(address)
+                        }.orZero()
                     } else {
                         interactor.getSelectedAccountProjection()?.address?.let { address ->
                             setupStakingInteractor.estimateMaxSetupStakingFee(address)
@@ -188,7 +190,9 @@ class SetupStakingViewModel @Inject constructor(
             coroutineScope = viewModelScope,
             feeConstructor = {
                 when (stakingSharedState.selectionItem.first().type) {
-                    StakingType.PARACHAIN -> setupStakingInteractor.estimateParachainFee()
+                    StakingType.PARACHAIN -> interactor.getSelectedAccountProjection()?.address?.let { address ->
+                        setupStakingInteractor.estimateParachainFee(address)
+                    }.orZero()
                     StakingType.RELAYCHAIN -> interactor.getSelectedAccountProjection()?.address?.let { address ->
                         setupStakingInteractor.estimateMaxSetupStakingFee(address)
                     }.orZero()

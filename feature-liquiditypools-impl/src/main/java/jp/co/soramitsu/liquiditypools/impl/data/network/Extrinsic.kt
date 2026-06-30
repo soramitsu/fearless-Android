@@ -1,9 +1,9 @@
 package jp.co.soramitsu.liquiditypools.impl.data.network
 
 import jp.co.soramitsu.common.utils.Modules
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import java.math.BigInteger
 
 fun ExtrinsicBuilder.register(

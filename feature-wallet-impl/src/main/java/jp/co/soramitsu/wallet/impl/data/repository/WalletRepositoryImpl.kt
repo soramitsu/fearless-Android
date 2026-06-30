@@ -39,15 +39,15 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
@@ -460,9 +460,14 @@ class WalletRepositoryImpl(
     override suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = chainsRepository.getChain(chainId)
+            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain)
 
-            extrinsicService.estimateFee(chain) {
-                claimRewards()
+            if (accountId == null) {
+                BigInteger.ZERO
+            } else {
+                extrinsicService.estimateFee(chain, accountId) {
+                    claimRewards()
+                }
             }
         }
     }
@@ -488,4 +493,3 @@ fun ExtrinsicBuilder.claimRewards(): ExtrinsicBuilder {
         this
     }
 }
-

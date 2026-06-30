@@ -8,7 +8,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

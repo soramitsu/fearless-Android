@@ -1,9 +1,15 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.balance
 
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
+import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
@@ -23,12 +29,18 @@ class BalanceLoaderProvider(
     private val tonRemoteSource: TonRemoteSource,
     private val chainsRepository: ChainsRepository,
     private val tonSyncDataRepository: TonSyncDataRepository,
+    private val bitcoinIndexerClient: BitcoinIndexerClient,
+    private val solanaBalanceSync: SolanaBalanceSync,
+    private val irohaToriiClient: IrohaToriiClient
 ): BalanceLoader.Provider {
 
     override fun invoke(chain: Chain): BalanceLoader {
         val isEquilibriumTypeChain = chain.utilityAsset != null && chain.utilityAsset!!.typeExtra == ChainAssetType.Equilibrium
 
         return when {
+            chain.isUniversalWalletBitcoin() -> BitcoinBalanceLoader(chain, bitcoinIndexerClient)
+            chain.isUniversalWalletSolana() -> SolanaBalanceLoader(chain, solanaBalanceSync)
+            chain.isUniversalWalletIroha() -> IrohaBalanceLoader(chain, irohaToriiClient)
             chain.ecosystem == Ecosystem.Ton -> TonBalanceLoader(chain, tonSyncDataRepository, chainsRepository)
             chain.ecosystem == Ecosystem.Ethereum -> EthereumBalanceLoader(chain, ethereumRemoteSource)
 

@@ -56,8 +56,8 @@ import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 
 @InstallIn(SingletonComponent::class)

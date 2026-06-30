@@ -38,10 +38,10 @@ private fun v4r2SmartContractAddress(publicKey: ByteArray): AddrStd {
     return AddrStd(workchain, hash)
 }
 
-fun ByteArray.v4r2tonAddress(isTestnet: Boolean): String {
+fun ByteArray.v4r2tonAddress(isTestnet: Boolean, bounceable: Boolean = false): String {
     val contractAddress = v4r2SmartContractAddress(this)
 
-    return contractAddress.toWalletAddress(isTestnet)
+    return contractAddress.toWalletAddress(testnet = isTestnet, bounceable = bounceable)
 }
 
 // Attention!!! Use the result of this function only with api requests. For internal fearless wallet purposes use tonPublicKey as accountId (MetaAccount.accountId(chain: IChain): ByteArray? function)
@@ -54,10 +54,10 @@ fun ByteArray.tonAccountId(isTestnet: Boolean): String {
     ).lowercase()
 }
 
-fun AddrStd.toWalletAddress(testnet: Boolean): String {
+fun AddrStd.toWalletAddress(testnet: Boolean, bounceable: Boolean = false): String {
     return toString(
         userFriendly = true,
-        bounceable = false,
+        bounceable = bounceable,
         testOnly = testnet
     )
 }

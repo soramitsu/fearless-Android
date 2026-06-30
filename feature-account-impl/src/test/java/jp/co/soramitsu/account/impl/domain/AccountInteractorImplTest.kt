@@ -4,15 +4,22 @@ import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.AndroidUniversalWalletMigrationSnapshotBuilder
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.data.storage.InitialValueProducer
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.model.UniversalWalletEcosystem
+import jp.co.soramitsu.common.model.UniversalWalletMigrationRequiredAction
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -107,6 +114,81 @@ class AccountInteractorImplTest {
         }
     }
 
+    @Test
+    fun `universalWalletMigrationSnapshotFlow maps public light accounts without secret access`() {
+        runBlocking {
+            val interactor = interactorWithLightAccounts(
+                listOf(
+                    lightAccount(
+                        substrateAccountId = ByteArray(32) { 1 }
+                    )
+                )
+            )
+
+            val snapshot = interactor.universalWalletMigrationSnapshotFlow().first()
+
+            assertEquals(UniversalWalletMigrationRequiredAction.MigrateBeforeAccess, snapshot.requiredAction())
+            assertEquals(listOf(UniversalWalletEcosystem.Substrate.id), snapshot.legacyVaults.map { it.ecosystem })
+            assertTrue(snapshot.validationErrors().isEmpty())
+        }
+    }
+
+    @Test
+    fun `universalWalletMigrationSnapshot returns create state for empty install`() {
+        runBlocking {
+            val interactor = interactorWithLightAccounts(emptyList())
+
+            val snapshot = interactor.universalWalletMigrationSnapshot()
+
+            assertEquals(UniversalWalletMigrationRequiredAction.CreateUniversalWallet, snapshot.requiredAction())
+            assertTrue(snapshot.legacyVaults.isEmpty())
+            assertTrue(snapshot.validationErrors().isEmpty())
+        }
+    }
+
+    private fun interactorWithLightAccounts(accounts: List<LightMetaAccount>): AccountInteractorImpl {
+        accountRepository = interfaceProxy { method, _ ->
+            when (method.name) {
+                "lightMetaAccountsFlow" -> flowOf(accounts)
+                else -> unexpectedCall(method)
+            }
+        }
+
+        return AccountInteractorImpl(
+            accountRepository = accountRepository,
+            fileProvider = fileProvider,
+            preferences = preferences,
+            backupService = backupService,
+            walletInteractor = walletInteractor,
+            migrationSnapshotBuilder = AndroidUniversalWalletMigrationSnapshotBuilder(
+                cutoffAtMillis = CUTOFF_AT,
+                clockMillis = { EVALUATED_AT }
+            )
+        )
+    }
+
+    private fun lightAccount(
+        substrateAccountId: ByteArray? = null,
+        ethereumAddress: ByteArray? = null,
+        tonPublicKey: ByteArray? = null,
+        name: String = "Wallet"
+    ): LightMetaAccount {
+        return LightMetaAccount(
+            id = 1,
+            substratePublicKey = substrateAccountId,
+            substrateCryptoType = substrateAccountId?.let { CryptoType.ED25519 },
+            substrateAccountId = substrateAccountId,
+            ethereumAddress = ethereumAddress,
+            ethereumPublicKey = ethereumAddress,
+            tonPublicKey = tonPublicKey,
+            universalWalletChainAccounts = emptyMap(),
+            isSelected = true,
+            name = name,
+            isBackedUp = true,
+            initialized = true
+        )
+    }
+
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T> interfaceProxy(
         crossinline handler: (Method, Array<out Any?>?) -> Any?
@@ -136,6 +218,11 @@ class AccountInteractorImplTest {
         val unsafe = unsafeField.get(null)
         val allocateInstance = unsafeClass.getMethod("allocateInstance", Class::class.java)
         return allocateInstance.invoke(unsafe, clazz) as T
+    }
+
+    private companion object {
+        const val CUTOFF_AT = 1_710_000_000_000L
+        const val EVALUATED_AT = 1_710_000_000_100L
     }
 
     private class InMemoryPreferences : Preferences {

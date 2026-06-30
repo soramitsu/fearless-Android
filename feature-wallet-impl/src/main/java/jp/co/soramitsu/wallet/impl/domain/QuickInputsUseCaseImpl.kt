@@ -157,6 +157,7 @@ class QuickInputsUseCaseImpl(
         val quickAmounts = inputValues.map { input ->
             async {
                 val destinationFee = xcmInteractor.getDestinationFee(
+                    originChainId = originChainId,
                     destinationChainId = destinationChainId,
                     tokenConfiguration = chainAsset
                 ) ?: BigDecimal.ZERO

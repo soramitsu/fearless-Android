@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.utils.lessThan
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.core.utils.utilityAsset
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset

@@ -8,7 +8,7 @@ import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.shared_utils.wsrpc.exception.RpcException
+import jp.co.soramitsu.fearless_utils.wsrpc.exception.RpcException
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 
 // Attention! Works only for the sora main net

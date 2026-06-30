@@ -11,8 +11,8 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.acala.Acala
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

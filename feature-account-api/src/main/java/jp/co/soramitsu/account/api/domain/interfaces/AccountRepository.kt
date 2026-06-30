@@ -18,9 +18,9 @@ import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 

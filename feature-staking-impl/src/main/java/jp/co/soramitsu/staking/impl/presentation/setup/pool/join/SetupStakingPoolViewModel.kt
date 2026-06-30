@@ -64,6 +64,7 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val chain: Chain
     private val asset: Asset
+    private val address: String
     private val initialAmount: BigDecimal
     private var quickInputs: Map<Double, BigDecimal> = emptyMap()
 
@@ -72,6 +73,7 @@ class SetupStakingPoolViewModel @Inject constructor(
 
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
+        address = mainState.requireAddress
         initialAmount = mainState.requireAmount
 
         viewModelScope.launch {
@@ -79,7 +81,7 @@ class SetupStakingPoolViewModel @Inject constructor(
                 chain.id,
                 asset.token.configuration.id,
                 calculateAvailableAmount = { asset.transferable },
-                calculateFee = { stakingPoolInteractor.estimateJoinFee(it) })
+                calculateFee = { stakingPoolInteractor.estimateJoinFee(address, it) })
         }
     }
 
@@ -120,7 +122,7 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val feeInPlanksFlow = enteredAmountFlow.map { amount ->
         val inPlanks = asset.token.planksFromAmount(amount)
-        stakingPoolInteractor.estimateJoinFee(inPlanks)
+        stakingPoolInteractor.estimateJoinFee(address, inPlanks)
     }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->

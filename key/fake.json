@@ -2,7 +2,7 @@
   "type": "null",
   "project_id": "null",
   "private_key_id": "null",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nnull\n-----END PRIVATE KEY-----\n",
+  "private_key": "null",
   "client_email": "null@null.iam.gserviceaccount.com",
   "client_id": "null",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",

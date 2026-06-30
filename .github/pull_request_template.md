@@ -6,6 +6,11 @@ Describe the change and why it’s needed.
 
 Closes #<issue-number> (or) Relates to #<issue-number>
 
+## Target Branch
+
+- [ ] This PR targets `develop`
+- [ ] This PR targets `master` and is a release or hotfix PR
+
 ## Type of Change
 
 - [ ] feat (new feature)
@@ -26,6 +31,7 @@ Commands run locally:
 ./gradlew detektAll
 ./gradlew runTest
 ./gradlew :app:lint
+./scripts/audit-public-artifacts.sh
 ```
 
 Additional checks and scenarios covered:
@@ -41,5 +47,5 @@ Potential impact, migrations, or config/secrets required.
 - [ ] Added/updated tests for changed code (where applicable)
 - [ ] Updated docs (README/AGENTS) when behavior or commands changed
 - [ ] Ran detektAll, runTest, and :app:lint locally (or via CI)
-- [ ] No secrets or local.properties committed
-
+- [ ] Public artifact audit passed; no secrets or local.properties committed
+- [ ] No direct-to-`master` workflow is introduced

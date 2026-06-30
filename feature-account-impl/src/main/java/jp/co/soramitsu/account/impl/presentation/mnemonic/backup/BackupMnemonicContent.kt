@@ -36,7 +36,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.model.WalletEcosystem
-import jp.co.soramitsu.shared_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 
 data class BackupMnemonicState(
     val mnemonicWords: List<MnemonicWordModel>,

@@ -7,7 +7,7 @@ import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.impl.data.mappers.mapChainAccountToAccount
-import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToLightMetaAccount
+import jp.co.soramitsu.account.impl.data.mappers.mapJoinedMetaAccountInfoToLightMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountToAccount
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
@@ -22,7 +22,7 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountPositionUpdate
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -123,20 +123,20 @@ class AccountDataSourceImpl(
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> = selectedMetaAccountFlow
 
     override fun selectedLightMetaAccount(): Flow<LightMetaAccount> {
-        return metaAccountDao.selectedLocalMetaAccountFlow().map { accountLocal ->
-            accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
+        return metaAccountDao.selectedMetaAccountInfoFlow().map { accountLocal ->
+            accountLocal?.let { mapJoinedMetaAccountInfoToLightMetaAccount(it) }
         }.filterNotNull().flowOn(Dispatchers.IO)
     }
 
     override fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount> {
-        return metaAccountDao.observeLocalMetaAccount(metaId).map { accountLocal ->
-            accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
+        return metaAccountDao.observeJoinedMetaAccountInfo(metaId).map { accountLocal ->
+            accountLocal?.let { mapJoinedMetaAccountInfoToLightMetaAccount(it) }
         }.filterNotNull().flowOn(Dispatchers.IO)
     }
 
     override suspend fun getSelectedLightMetaAccount(): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getSelectedLocalMetaAccount() }
-        return mapMetaAccountLocalToLightMetaAccount(local)
+        val local = withContext(Dispatchers.IO) { metaAccountDao.selectedMetaAccountInfo() }
+        return mapJoinedMetaAccountInfoToLightMetaAccount(local)
     }
 
     override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
@@ -165,8 +165,8 @@ class AccountDataSourceImpl(
     }
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
-        return metaAccountDao.metaAccountsFlow().mapList {
-            mapMetaAccountLocalToLightMetaAccount(it)
+        return metaAccountDao.observeOrderedJoinedMetaAccountsInfo().mapList {
+            mapJoinedMetaAccountInfoToLightMetaAccount(it)
         }
     }
 
@@ -205,8 +205,8 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getLocalMetaAccount(metaId) }
-        return mapMetaAccountLocalToLightMetaAccount(local)
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getJoinedMetaAccountInfo(metaId) }
+        return mapJoinedMetaAccountInfoToLightMetaAccount(local)
     }
 
     override suspend fun updateMetaAccountName(metaId: Long, newName: String) {

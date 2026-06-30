@@ -19,8 +19,8 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.staking.api.domain.model.Round

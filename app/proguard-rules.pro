@@ -7,7 +7,7 @@
 
 #-keep class ** { *; }
 #-dontobfuscate
--keep class jp.co.soramitsu.shared_utils.** { *; }
+-keep class jp.co.soramitsu.fearless_utils.** { *; }
 -keep class jp.co.soramitsu.runtime.** { *; }
 
 -keep class jp.co.soramitsu.wallet.impl.data.** { *; }

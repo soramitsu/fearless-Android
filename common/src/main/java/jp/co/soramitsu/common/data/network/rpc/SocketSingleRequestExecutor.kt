@@ -7,10 +7,10 @@ import com.neovisionaries.ws.client.WebSocketException
 import com.neovisionaries.ws.client.WebSocketFactory
 import jp.co.soramitsu.common.base.errors.FearlessException
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.ResponseMapper
-import jp.co.soramitsu.shared_utils.wsrpc.request.base.RpcRequest
-import jp.co.soramitsu.shared_utils.wsrpc.response.RpcResponse
+import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.ResponseMapper
+import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext

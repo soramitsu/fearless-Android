@@ -16,7 +16,11 @@ Build Types
 
 Configs & Secrets (see README for details)
 - WalletConnect: `WALLET_CONNECT_PROJECT_ID` in `BuildConfig`.
-- Moonpay: `MOONPAY_TEST_SECRET`, `MOONPAY_PRODUCTION_SECRET`.
+- Moonpay: `MOONPAY_TEST_SECRET`, `MOONPAY_PRODUCTION_SECRET`,
+  `MOONPAY_TEST_PUBLIC_KEY`, `MOONPAY_PRODUCTION_PUBLIC_KEY`.
+- Buy providers: `RAMP_TOKEN_DEBUG`, `RAMP_TOKEN_RELEASE`, `COINBASE_APP_ID`.
+- Firebase: checked-in `google-services.json` files are placeholders; real
+  Firebase project files must come from private CI or local overlay config.
 - EVM/API keys: `FL_BLAST_API_*`, `FL_ANDROID_*SCAN_API_KEY`.
 
 Common Tasks

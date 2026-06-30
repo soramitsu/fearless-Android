@@ -27,7 +27,7 @@ class PoolClaimViewModel @Inject constructor(
     },
     isInputActive = false,
     resourceManager = resourceManager,
-    feeEstimator = { stakingPoolInteractor.estimateClaimFee() },
+    feeEstimator = { stakingPoolInteractor.estimateClaimFee(stakingPoolSharedStateProvider.requireMainState.requireAddress) },
     onNextStep = { router.openPoolConfirmClaim() },
     buttonValidation = { true },
     errorAlertPresenter = {

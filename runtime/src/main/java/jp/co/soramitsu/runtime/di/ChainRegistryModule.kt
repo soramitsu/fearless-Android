@@ -30,7 +30,7 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
-import jp.co.soramitsu.shared_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 import javax.inject.Provider

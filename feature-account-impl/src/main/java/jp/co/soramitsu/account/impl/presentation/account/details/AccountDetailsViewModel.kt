@@ -123,6 +123,9 @@ class AccountDetailsViewModel @Inject constructor(
             WalletEcosystem.Substrate -> R.string.connected_accounts_substrate_title
             WalletEcosystem.Ethereum -> R.string.connected_accounts_ethereum_title
             WalletEcosystem.Ton -> R.string.connected_accounts_ton_title
+            WalletEcosystem.Bitcoin -> R.string.connected_accounts_bitcoin_title
+            WalletEcosystem.Solana -> R.string.connected_accounts_solana_title
+            WalletEcosystem.Iroha -> R.string.connected_accounts_iroha_title
         }
         return resourceManager.getString(resId)
     }

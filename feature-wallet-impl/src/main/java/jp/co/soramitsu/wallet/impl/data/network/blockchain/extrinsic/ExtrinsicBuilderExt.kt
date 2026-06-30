@@ -1,6 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.extrinsic
 
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 
 
 fun ExtrinsicBuilder.remark(remark: String): ExtrinsicBuilder = call(

@@ -22,7 +22,7 @@ import jp.co.soramitsu.crowdloan.impl.data.network.blockhain.extrinsic.contribut
 import jp.co.soramitsu.crowdloan.impl.domain.main.Crowdloan
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.state.chainAndAsset
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -92,10 +92,12 @@ class CrowdloanContributeInteractor(
         signature: String? = null
     ) = withContext(Dispatchers.Default) {
         val (chain, chainAsset) = crowdloanSharedState.chainAndAsset()
+        val selectedMetaAccount = accountRepository.getSelectedMetaAccount()
+        val accountId = selectedMetaAccount.accountId(chain)!!
 
-        val encryption = accountRepository.getSelectedMetaAccount().substrateCryptoType?.let { mapCryptoTypeToEncryption(it) }
+        val encryption = selectedMetaAccount.substrateCryptoType?.let { mapCryptoTypeToEncryption(it) }
         val contributionInPlanks = chainAsset.planksFromAmount(contribution)
-        extrinsicService.estimateFee(chain, batchAll) {
+        extrinsicService.estimateFee(chain, accountId, batchAll) {
             contribute(parachainId, contributionInPlanks, signature, encryption)
             additional?.invoke(this)
         }

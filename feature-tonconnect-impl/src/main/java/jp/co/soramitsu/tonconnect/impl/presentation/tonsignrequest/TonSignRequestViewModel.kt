@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.ktor.http.Url
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -159,7 +158,7 @@ class TonSignRequestViewModel @Inject constructor(
                 ),
                 TitleValueViewState(
                     resourceManager.getString(R.string.common_host),
-                    kotlin.runCatching { Url(dApp.url.orEmpty()).host }.getOrNull()
+                    kotlin.runCatching { URL(dApp.url.orEmpty()).host }.getOrNull()
                 ),
                 TitleValueViewState(
                     resourceManager.getString(R.string.common_network),

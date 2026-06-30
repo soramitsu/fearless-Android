@@ -24,7 +24,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
-import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.redeem.RedeemInteractor

@@ -20,9 +20,9 @@ import jp.co.soramitsu.common.utils.isNotEmpty
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
-import jp.co.soramitsu.shared_utils.exceptions.Bip39Exception
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
+import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -172,6 +172,9 @@ class JsonImportSource(
             }
 
             WalletEcosystem.Ton -> return
+            WalletEcosystem.Bitcoin,
+            WalletEcosystem.Solana,
+            WalletEcosystem.Iroha -> return
         }
     }
 

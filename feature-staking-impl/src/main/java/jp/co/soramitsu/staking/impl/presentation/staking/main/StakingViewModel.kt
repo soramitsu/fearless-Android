@@ -262,7 +262,9 @@ class StakingViewModel @Inject constructor(
                 calculateFee = {
                     when (selectionItem.type) {
                         StakingType.PARACHAIN -> {
-                            setupStakingInteractor.estimateParachainFee()
+                            interactor.getSelectedAccountProjection()?.address?.let { address ->
+                                setupStakingInteractor.estimateParachainFee(address)
+                            }.orZero()
                         }
                         else -> {
                             interactor.getSelectedAccountProjection()?.address?.let { address ->

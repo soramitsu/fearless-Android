@@ -8,11 +8,11 @@ import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
 import jp.co.soramitsu.common.utils.second
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import java.math.BigInteger
 
 typealias RewardPoint = BigInteger

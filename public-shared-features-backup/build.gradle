@@ -1,0 +1,36 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    namespace = 'jp.co.soramitsu.shared_features.backup'
+    compileSdkVersion rootProject.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_21.toString()
+    }
+}
+
+dependencies {
+    api libs.kotlin.stdlib.jdk7
+    api libs.activity
+    api libs.credentials
+    implementation libs.credentials.play.services.auth
+    implementation libs.coroutines.core
+    implementation libs.gson
+    implementation libs.okhttp
+    implementation libs.play.services.auth
+    api project(':core-api')
+
+    testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+}

@@ -85,9 +85,9 @@ class RuntimeModule {
     @Provides
     @Singleton
     fun provideMortalityProvider(
-        chainRegistry: ChainRegistry,
-        rpcCalls: RpcCalls
-    ) = MortalityConstructor(rpcCalls, chainRegistry)
+        rpcCalls: RpcCalls,
+        chainStateRepository: IChainStateRepository
+    ) = MortalityConstructor(rpcCalls, chainStateRepository)
 
     @Provides
     @Singleton

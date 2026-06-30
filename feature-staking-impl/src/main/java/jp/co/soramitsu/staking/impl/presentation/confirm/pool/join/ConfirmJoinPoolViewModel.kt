@@ -69,7 +69,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
 
     private val feeViewStateFlow = jp.co.soramitsu.common.utils.flowOf {
         val amountInPlanks = asset.token.planksFromAmount(amount)
-        val feeInPlanks = poolInteractor.estimateJoinFee(amountInPlanks, selectedPool.poolId)
+        val feeInPlanks = poolInteractor.estimateJoinFee(address, amountInPlanks, selectedPool.poolId)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
         val feeFiat = fee.formatFiat(asset.token.fiatSymbol)

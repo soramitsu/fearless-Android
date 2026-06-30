@@ -7,9 +7,9 @@ import jp.co.soramitsu.common.data.network.runtime.binding.fromHexOrIncompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.extrinsicHash
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.generics.Extrinsic
-import jp.co.soramitsu.shared_utils.runtime.metadata.call
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Extrinsic
+import jp.co.soramitsu.fearless_utils.runtime.metadata.call
 import java.math.BigInteger
 
 class TransferExtrinsic(

@@ -20,7 +20,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.referral.Re
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getAsBigDecimal
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine

@@ -34,18 +34,18 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.registry.TypeRegistry
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.primitives.FixedByteArray
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.runtime.metadata.module
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
@@ -189,9 +189,15 @@ class WssSubstrateSource(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): BigInteger {
+        val transferParams = transfer.additionalParams as? SubstrateTransferParams
+        val accountId = chain.accountIdOf(transfer.sender)
+
         return extrinsicService.estimateFee(
             chain = chain,
+            accountId = accountId,
             useBatchAll = batchAll,
+            tip = transferParams?.tipInPlanks,
+            appId = transferParams?.appId,
             formExtrinsic = {
                 transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)

@@ -247,10 +247,11 @@ class CrossChainConfirmViewModel @Inject constructor(
             val destinationChain = destinationNetworkFlow.value ?: return@launch
             val asset = originAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
+            val utilityAsset = utilityAssetFlow.firstOrNull() ?: return@launch
 
             val rawAmountInPlanks = token.planksFromAmount(transferDraft.amount)
             val destinationFeeInPlanks = token.planksFromAmount(transferDraft.destinationFee)
-            val originFee = token.planksFromAmount(transferDraft.originFee)
+            val originFee = utilityAsset.token.configuration.planksFromAmount(transferDraft.originFee)
             val recipientAddress = transferDraft.recipientAddress
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 

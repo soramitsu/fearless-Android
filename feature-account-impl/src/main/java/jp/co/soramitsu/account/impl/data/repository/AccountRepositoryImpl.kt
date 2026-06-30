@@ -50,19 +50,19 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
-import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
-import jp.co.soramitsu.shared_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -612,6 +612,10 @@ class AccountRepositoryImpl(
                     return BackupAccountType.PASSPHRASE
                 }
             }
+
+            WalletEcosystem.Bitcoin,
+            WalletEcosystem.Solana,
+            WalletEcosystem.Iroha -> return null
         }
         return null
     }
