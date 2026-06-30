@@ -317,6 +317,31 @@ cp "$ready" "$ready_bad_environment"
 perl -0pi -e 's/"environment": "mainnet"/"environment": "staging"/' "$ready_bad_environment"
 expect_failure "ready evidence bad environment" "environment must be mainnet or testnet" run_audit "$ready_bad_environment" "$routes" "$empty_gaps" --require-ready
 
+ready_testnet_environment="$tmp_dir/ready-testnet-environment.json"
+cp "$ready" "$ready_testnet_environment"
+perl -0pi -e 's/"environment": "mainnet"/"environment": "testnet"/' "$ready_testnet_environment"
+expect_failure "ready evidence testnet environment" "environment must be mainnet when XCM production evidence is ready" run_audit "$ready_testnet_environment" "$routes" "$empty_gaps" --require-ready
+
+ready_placeholder_sender="$tmp_dir/ready-placeholder-sender.json"
+cp "$ready" "$ready_placeholder_sender"
+perl -0pi -e 's/"sender": "sender-origin"/"sender": "TODO_sender_public_address"/' "$ready_placeholder_sender"
+expect_failure "ready evidence placeholder sender" "sender must not be a placeholder public address" run_audit "$ready_placeholder_sender" "$routes" "$empty_gaps" --require-ready
+
+ready_placeholder_recipient="$tmp_dir/ready-placeholder-recipient.json"
+cp "$ready" "$ready_placeholder_recipient"
+perl -0pi -e 's/"recipient": "recipient-destination"/"recipient": "TODO_recipient_public_address"/' "$ready_placeholder_recipient"
+expect_failure "ready evidence placeholder recipient" "recipient must not be a placeholder public address" run_audit "$ready_placeholder_recipient" "$routes" "$empty_gaps" --require-ready
+
+ready_same_parties="$tmp_dir/ready-same-parties.json"
+cp "$ready" "$ready_same_parties"
+perl -0pi -e 's/"recipient": "recipient-destination"/"recipient": "sender-origin"/' "$ready_same_parties"
+expect_failure "ready evidence same sender and recipient" "sender and recipient must differ" run_audit "$ready_same_parties" "$routes" "$empty_gaps" --require-ready
+
+ready_placeholder_operator="$tmp_dir/ready-placeholder-operator.json"
+cp "$ready" "$ready_placeholder_operator"
+perl -0pi -e 's/"operator": "release"/"operator": "TODO_operator_or_runbook_id"/' "$ready_placeholder_operator"
+expect_failure "ready evidence placeholder operator" "operator must not be a placeholder operator" run_audit "$ready_placeholder_operator" "$routes" "$empty_gaps" --require-ready
+
 ready_unsupported_evidence_field="$tmp_dir/ready-unsupported-evidence-field.json"
 cp "$ready" "$ready_unsupported_evidence_field"
 perl -0pi -e 's/"operator": "release"/"operator": "release",\n      "receiptUrl": "https:\/\/example.invalid\/evidence"/' "$ready_unsupported_evidence_field"

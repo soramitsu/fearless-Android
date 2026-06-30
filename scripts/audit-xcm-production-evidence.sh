@@ -172,6 +172,11 @@ function isRepeatedHexPlaceholder(value) {
   return /^[0-9a-f]{8,}$/.test(normalized) && new Set(normalized).size === 1;
 }
 
+function isPlaceholderText(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return /^(todo|tbd|placeholder|example|sample|dummy|unknown|n\/a)(?:$|[_\-\s:])/u.test(normalized);
+}
+
 function isIsoUtcSecond(value) {
   return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(String(value || ''));
 }
@@ -464,6 +469,21 @@ if (manifest) {
 
     if (!['mainnet', 'testnet'].includes(String(entry.environment || ''))) {
       fail(`evidence[${index}].environment must be mainnet or testnet`);
+    }
+    if (readyClaimed && entry.environment !== 'mainnet') {
+      fail(`evidence[${index}].environment must be mainnet when XCM production evidence is ready`);
+    }
+    if (isPlaceholderText(entry.sender)) {
+      fail(`evidence[${index}].sender must not be a placeholder public address`);
+    }
+    if (isPlaceholderText(entry.recipient)) {
+      fail(`evidence[${index}].recipient must not be a placeholder public address`);
+    }
+    if (String(entry.sender || '').trim() === String(entry.recipient || '').trim()) {
+      fail(`evidence[${index}].sender and recipient must differ`);
+    }
+    if (isPlaceholderText(entry.operator)) {
+      fail(`evidence[${index}].operator must not be a placeholder operator`);
     }
   });
 
