@@ -37,7 +37,8 @@
     "amount",
     "timestamp",
     "environment",
-    "operator"
+    "operator",
+    "androidCommit"
   ],
   "evidence": []
 }

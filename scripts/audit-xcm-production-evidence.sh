@@ -14,6 +14,8 @@ Usage: scripts/audit-xcm-production-evidence.sh [--evidence <path>] [--required-
 Validates the Android XCM production evidence manifest. The default audit allows
 the current blocked state, but rejects any release-enabled or ready claim unless
 all required route evidence is present and no discovery-only XCM gaps remain.
+Ready evidence must also record androidCommit for every route and match it to
+XCM_PRODUCTION_EXPECTED_COMMIT when set, otherwise the local Android git HEAD.
 
 --require-ready additionally fails unless the manifest is marked ready for broad
 production XCM release.
@@ -58,13 +60,15 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 
-node - "$EVIDENCE_FILE" "$REQUIRED_ROUTE_FILE" "$DISCOVERY_GAP_FILE" "$REQUIRE_READY" <<'NODE'
+node - "$ROOT_DIR" "$EVIDENCE_FILE" "$REQUIRED_ROUTE_FILE" "$DISCOVERY_GAP_FILE" "$REQUIRE_READY" <<'NODE'
+const childProcess = require('child_process');
 const fs = require('fs');
 
-const [evidenceFile, requiredRouteFile, discoveryGapFile, requireReadyRaw] = process.argv.slice(2);
+const [rootDir, evidenceFile, requiredRouteFile, discoveryGapFile, requireReadyRaw] = process.argv.slice(2);
 const requireReady = requireReadyRaw === 'true';
 const errors = [];
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
+const EXPECTED_ANDROID_COMMIT_ENV = 'XCM_PRODUCTION_EXPECTED_COMMIT';
 
 const REQUIRED_BLOCKERS = [
   'e2e-transfer-evidence-missing',
@@ -82,7 +86,8 @@ const REQUIRED_EVIDENCE_FIELDS = [
   'amount',
   'timestamp',
   'environment',
-  'operator'
+  'operator',
+  'androidCommit'
 ];
 
 const ALLOWED_MANIFEST_FIELDS = [
@@ -172,9 +177,41 @@ function isRepeatedHexPlaceholder(value) {
   return /^[0-9a-f]{8,}$/.test(normalized) && new Set(normalized).size === 1;
 }
 
+function isGitCommit(value) {
+  return /^[0-9a-fA-F]{40}$/.test(String(value || '').trim());
+}
+
 function isPlaceholderText(value) {
   const normalized = String(value || '').trim().toLowerCase();
   return /^(todo|tbd|placeholder|example|sample|dummy|unknown|n\/a)(?:$|[_\-\s:])/u.test(normalized);
+}
+
+function resolveExpectedAndroidCommit(readyClaimed) {
+  const override = process.env[EXPECTED_ANDROID_COMMIT_ENV];
+  if (override !== undefined && override.trim().length > 0) {
+    if (!isGitCommit(override)) {
+      fail(`${EXPECTED_ANDROID_COMMIT_ENV} must be a 40-character git commit`);
+      return null;
+    }
+    return override.trim().toLowerCase();
+  }
+
+  try {
+    const commit = childProcess.execFileSync('git', ['-C', rootDir, 'rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).trim();
+    if (!isGitCommit(commit)) {
+      fail('git -C root rev-parse HEAD did not return a 40-character Android release commit');
+      return null;
+    }
+    return commit.toLowerCase();
+  } catch (error) {
+    if (readyClaimed) {
+      fail('ready XCM production evidence requires XCM_PRODUCTION_EXPECTED_COMMIT or a local Android git HEAD source');
+    }
+    return null;
+  }
 }
 
 function isIsoUtcSecond(value) {
@@ -412,6 +449,7 @@ if (manifest) {
   }
 
   const readyClaimed = manifest.status === 'ready' || manifest.releaseEnabled || requireReady;
+  const expectedAndroidCommit = readyClaimed ? resolveExpectedAndroidCommit(readyClaimed) : null;
   const evidenceByRoute = new Map();
   const requiredRouteKeys = new Set(requiredRoutes.map(routeKey));
   const extrinsicHashes = new Set();
@@ -484,6 +522,18 @@ if (manifest) {
     }
     if (isPlaceholderText(entry.operator)) {
       fail(`evidence[${index}].operator must not be a placeholder operator`);
+    }
+
+    if (!isGitCommit(entry.androidCommit)) {
+      fail(`evidence[${index}].androidCommit must be a 40-character git commit`);
+    } else {
+      const normalizedAndroidCommit = String(entry.androidCommit).trim().toLowerCase();
+      if (isRepeatedHexPlaceholder(normalizedAndroidCommit)) {
+        fail(`evidence[${index}].androidCommit must not be a placeholder Android release commit`);
+      }
+      if (readyClaimed && expectedAndroidCommit && normalizedAndroidCommit !== expectedAndroidCommit) {
+        fail(`evidence[${index}].androidCommit must match expected Android release commit ${expectedAndroidCommit}`);
+      }
     }
   });
 

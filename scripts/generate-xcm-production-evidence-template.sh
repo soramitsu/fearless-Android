@@ -63,7 +63,8 @@ const REQUIRED_EVIDENCE_FIELDS = [
   'amount',
   'timestamp',
   'environment',
-  'operator'
+  'operator',
+  'androidCommit'
 ];
 
 function fail(message) {
@@ -131,6 +132,7 @@ if (!fs.existsSync(requiredRouteFile)) {
       instructions: [
         'Copy the evidence array into scripts/xcm-production-evidence.json only after replacing every TODO value.',
         'Do not include private keys, mnemonics, seeds, passwords, credentials, or authorization headers in public evidence.',
+        'Set androidCommit to the Android release commit under validation; for tagged release validation you may set XCM_PRODUCTION_EXPECTED_COMMIT when running the audit.',
         'After every route has evidence and no discovery-only gaps remain, set status to ready, releaseEnabled to true, clear blockers, and run bash ./scripts/audit-xcm-production-evidence.sh --require-ready.'
       ],
       requiredEvidenceFields: REQUIRED_EVIDENCE_FIELDS,
@@ -144,7 +146,8 @@ if (!fs.existsSync(requiredRouteFile)) {
         amount: 'TODO_positive_decimal_amount',
         timestamp: 'TODO_YYYY-MM-DDTHH:MM:SSZ',
         environment: 'mainnet',
-        operator: 'TODO_operator_or_runbook_id'
+        operator: 'TODO_operator_or_runbook_id',
+        androidCommit: 'TODO_android_release_commit'
       }))
     };
 
