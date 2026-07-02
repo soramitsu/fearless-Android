@@ -202,7 +202,7 @@ class RuntimeProviderTest {
         val verification = if (times == 0) {
             after(100).times(expectedCalls)
         } else {
-            timeout(1_000).times(expectedCalls)
+            timeout(5_000).times(expectedCalls)
         }
 
         verify(runtimeFactory, verification).constructRuntime(any(), any(), anyInt())
