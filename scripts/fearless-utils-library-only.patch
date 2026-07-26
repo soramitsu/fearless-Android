@@ -17,20 +17,22 @@ index 20a5d27..b66ede9 100644
      }
  }
 diff --git a/fearless-utils/build.gradle b/fearless-utils/build.gradle
-index 299edac..c97da66 100644
+index 299edac..d7adf31 100644
 --- a/fearless-utils/build.gradle
 +++ b/fearless-utils/build.gradle
-@@ -2,9 +2,18 @@ apply plugin: 'com.android.library'
+@@ -2,9 +2,20 @@ apply plugin: 'com.android.library'
  apply plugin: 'kotlin-android'
  apply plugin: 'kotlin-kapt'
  apply plugin: 'kotlinx-serialization'
 -apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
  apply from: '../maven-publish-helper.gradle'
  
++def libraryOnlyOverride = System.getenv("FEARLESS_UTILS_LIBRARY_ONLY")
++def compositeLibraryOnly = libraryOnlyOverride == null && gradle.parent != null
 +def skipRustPlugin = (
 +        System.getenv("FEARLESS_UTILS_SKIP_RUST_PLUGIN")
-+                ?: System.getenv("FEARLESS_UTILS_LIBRARY_ONLY")
-+                ?: "false"
++                ?: libraryOnlyOverride
++                ?: compositeLibraryOnly.toString()
 +).toBoolean()
 +
 +if (!skipRustPlugin) {
@@ -40,7 +42,7 @@ index 299edac..c97da66 100644
  publishing {
      publications {
          release(MavenPublication) {
-@@ -51,16 +60,24 @@ android {
+@@ -51,16 +62,24 @@ android {
      namespace 'jp.co.soramitsu.fearless_utils'
  }
  
@@ -73,7 +75,7 @@ index 299edac..c97da66 100644
      }
  }
  
-@@ -78,14 +95,12 @@ task createJar(type: Copy) {
+@@ -78,14 +97,12 @@ task createJar(type: Copy) {
  createJar.dependsOn(deleteJar, build)
  
  dependencies {
@@ -315,16 +317,22 @@ index 73ce3ad..f8c7b53 100644
  
      private fun isSubscriptionChange(string: String): Boolean {
 diff --git a/settings.gradle b/settings.gradle
-index cf3e82f..9637431 100644
+index cf3e82f..a9e2e3d 100644
 --- a/settings.gradle
 +++ b/settings.gradle
-@@ -54,5 +54,9 @@ if (dependencySubstitutionsClass != null && !dependencySubstitutionsClass.metaCl
+@@ -54,5 +54,15 @@ if (dependencySubstitutionsClass != null && !dependencySubstitutionsClass.metaCl
  }
  
  include ':fearless-utils'
 -include ':app'
 +
-+def libraryOnly = (System.getenv("FEARLESS_UTILS_LIBRARY_ONLY") ?: "false").toBoolean()
++// Composite consumers substitute only the library. Avoid configuring the sample
++// app unless a standalone build or an explicit environment override requests it.
++def libraryOnlyOverride = System.getenv("FEARLESS_UTILS_LIBRARY_ONLY")
++def libraryOnly = libraryOnlyOverride == null
++        ? gradle.parent != null
++        : libraryOnlyOverride.toBoolean()
++
 +if (!libraryOnly) {
 +    include ':app'
 +}

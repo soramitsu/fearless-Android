@@ -184,6 +184,9 @@ jobs:
       - name: Gradle version
         run: ./gradlew --version --no-daemon --console=plain --stacktrace
 
+      - name: Fearless-utils composite defaults
+        run: ./scripts/test-fearless-utils-composite-default.sh
+
       - name: Polkadot SDK alignment
         run: ./gradlew printPolkadotSdkAlignment --no-daemon --console=plain --stacktrace
 
