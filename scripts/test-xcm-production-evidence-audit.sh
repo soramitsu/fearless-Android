@@ -3,6 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 AUDIT_SCRIPT="$SCRIPT_DIR/audit-xcm-production-evidence.sh"
+ANDROID_COMMIT="0123456789abcdef0123456789abcdef01234567"
+STALE_ANDROID_COMMIT="89abcdef89abcdef89abcdef89abcdef89abcdef"
 
 fail() {
   echo "[xcm-production-evidence-test][error] $*" >&2
@@ -66,7 +68,8 @@ write_blocked_manifest() {
     "amount",
     "timestamp",
     "environment",
-    "operator"
+    "operator",
+    "androidCommit"
   ],
   "evidence": []
 }
@@ -109,7 +112,8 @@ write_ready_manifest() {
     "amount",
     "timestamp",
     "environment",
-    "operator"
+    "operator",
+    "androidCommit"
   ],
   "evidence": [
     {
@@ -122,7 +126,8 @@ write_ready_manifest() {
       "amount": "1",
       "timestamp": "2026-06-26T00:00:00Z",
       "environment": "mainnet",
-      "operator": "release"
+      "operator": "release",
+      "androidCommit": "0123456789abcdef0123456789abcdef01234567"
     },
     {
       "originChainId": "destination",
@@ -134,7 +139,8 @@ write_ready_manifest() {
       "amount": "1",
       "timestamp": "2026-06-26T00:00:00Z",
       "environment": "mainnet",
-      "operator": "release"
+      "operator": "release",
+      "androidCommit": "0123456789abcdef0123456789abcdef01234567"
     }
   ]
 }
@@ -146,7 +152,8 @@ run_audit() {
   local routes="$2"
   local gaps="$3"
   shift 3
-  bash "$AUDIT_SCRIPT" --evidence "$manifest" --required-route-file "$routes" --discovery-gap-file "$gaps" "$@"
+  XCM_PRODUCTION_EXPECTED_COMMIT="${XCM_PRODUCTION_EXPECTED_COMMIT:-$ANDROID_COMMIT}" \
+    bash "$AUDIT_SCRIPT" --evidence "$manifest" --required-route-file "$routes" --discovery-gap-file "$gaps" "$@"
 }
 
 expect_failure() {
@@ -241,6 +248,11 @@ cp "$blocked" "$missing_required_field"
 perl -0pi -e 's/"extrinsicHash",\n    //' "$missing_required_field"
 expect_failure "missing required evidence field" "requiredEvidenceFields missing extrinsicHash" run_audit "$missing_required_field" "$routes" "$gaps"
 
+missing_android_commit_field="$tmp_dir/missing-android-commit-field.json"
+cp "$blocked" "$missing_android_commit_field"
+perl -0pi -e 's/,\n    "androidCommit"//' "$missing_android_commit_field"
+expect_failure "missing Android commit evidence field" "requiredEvidenceFields missing androidCommit" run_audit "$missing_android_commit_field" "$routes" "$gaps"
+
 duplicate_required_field="$tmp_dir/duplicate-required-field.json"
 cp "$blocked" "$duplicate_required_field"
 node - "$duplicate_required_field" <<'NODE'
@@ -269,7 +281,7 @@ expect_failure "unsupported routeManifests XCM production evidence field" "unsup
 
 unsupported_required_evidence_field="$tmp_dir/unsupported-required-evidence-field.json"
 cp "$blocked" "$unsupported_required_evidence_field"
-perl -0pi -e 's/"operator"\n  \]/"operator",\n    "receiptUrl"\n  \]/' "$unsupported_required_evidence_field"
+perl -0pi -e 's/"androidCommit"\n  \]/"androidCommit",\n    "receiptUrl"\n  \]/' "$unsupported_required_evidence_field"
 expect_failure "unsupported required XCM production evidence field" "unsupported required XCM production evidence field" run_audit "$unsupported_required_evidence_field" "$routes" "$gaps"
 
 unsupported_blocker="$tmp_dir/unsupported-blocker.json"
@@ -356,6 +368,47 @@ ready_duplicate_hash="$tmp_dir/ready-duplicate-hash.json"
 cp "$ready" "$ready_duplicate_hash"
 perl -0pi -e 's/0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210/0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef/' "$ready_duplicate_hash"
 expect_failure "ready evidence duplicate extrinsic hash" "duplicate E2E transfer extrinsicHash" run_audit "$ready_duplicate_hash" "$routes" "$empty_gaps" --require-ready
+
+ready_malformed_android_commit="$tmp_dir/ready-malformed-android-commit.json"
+cp "$ready" "$ready_malformed_android_commit"
+node - "$ready_malformed_android_commit" <<'NODE'
+const fs = require('fs');
+const file = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+manifest.evidence[0].androidCommit = 'not-a-commit';
+fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+NODE
+expect_failure "ready evidence malformed Android commit" "androidCommit must be a 40-character git commit" run_audit "$ready_malformed_android_commit" "$routes" "$empty_gaps" --require-ready
+
+ready_placeholder_android_commit="$tmp_dir/ready-placeholder-android-commit.json"
+cp "$ready" "$ready_placeholder_android_commit"
+node - "$ready_placeholder_android_commit" <<'NODE'
+const fs = require('fs');
+const file = process.argv[2];
+const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+manifest.evidence[0].androidCommit = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+NODE
+expect_failure "ready evidence placeholder Android commit" "androidCommit must not be a placeholder Android release commit" run_audit "$ready_placeholder_android_commit" "$routes" "$empty_gaps" --require-ready
+
+ready_stale_android_commit="$tmp_dir/ready-stale-android-commit.json"
+cp "$ready" "$ready_stale_android_commit"
+node - "$ready_stale_android_commit" "$STALE_ANDROID_COMMIT" <<'NODE'
+const fs = require('fs');
+const [file, staleCommit] = process.argv.slice(2);
+const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+manifest.evidence[0].androidCommit = staleCommit;
+fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`);
+NODE
+expect_failure "ready evidence stale Android commit" "androidCommit must match expected Android release commit $ANDROID_COMMIT" run_audit "$ready_stale_android_commit" "$routes" "$empty_gaps" --require-ready
+
+expect_failure "malformed expected Android commit override" "XCM_PRODUCTION_EXPECTED_COMMIT must be a 40-character git commit" \
+  env XCM_PRODUCTION_EXPECTED_COMMIT=not-a-commit bash "$AUDIT_SCRIPT" --evidence "$ready" --required-route-file "$routes" --discovery-gap-file "$empty_gaps" --require-ready
+
+no_git_root="$tmp_dir/no-git-root"
+mkdir "$no_git_root"
+expect_failure "missing expected Android commit source" "ready XCM production evidence requires XCM_PRODUCTION_EXPECTED_COMMIT or a local Android git HEAD source" \
+  env -u XCM_PRODUCTION_EXPECTED_COMMIT XCM_PRODUCTION_EVIDENCE_ROOT="$no_git_root" bash "$AUDIT_SCRIPT" --evidence "$ready" --required-route-file "$routes" --discovery-gap-file "$empty_gaps" --require-ready
 
 ready_future_timestamp="$tmp_dir/ready-future-timestamp.json"
 cp "$ready" "$ready_future_timestamp"

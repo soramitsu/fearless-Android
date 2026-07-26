@@ -57,8 +57,12 @@ procedure.
   `scripts/xcm-production-evidence.json` to
   `status: ready`, set `releaseEnabled: true`, remove every discovery-only
   route gap, attach E2E transfer evidence for every route in
-  `scripts/xcm-required-routes.tsv`, and run
+  `scripts/xcm-required-routes.tsv`, set each evidence record `androidCommit`
+  to the Android release commit under validation, and run
   `bash ./scripts/audit-xcm-production-evidence.sh --require-ready`.
+  For validating a tagged release from a different checkout, set
+  `XCM_PRODUCTION_EXPECTED_COMMIT` to the intended 40-character Android commit
+  when running the audit.
 - Run `bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --self-test`.
   If `IROHA_MOBILE_SDK_RELEASE_TAG` is configured for the release, also run
   `bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --download --tag "$IROHA_MOBILE_SDK_RELEASE_TAG"`.

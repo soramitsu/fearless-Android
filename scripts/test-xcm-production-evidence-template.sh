@@ -74,7 +74,8 @@ assert.deepEqual(template.requiredEvidenceFields, [
   'amount',
   'timestamp',
   'environment',
-  'operator'
+  'operator',
+  'androidCommit'
 ]);
 assert.equal(template.evidence.length, 2);
 assert.deepEqual(template.evidence[0], {
@@ -87,9 +88,11 @@ assert.deepEqual(template.evidence[0], {
   amount: 'TODO_positive_decimal_amount',
   timestamp: 'TODO_YYYY-MM-DDTHH:MM:SSZ',
   environment: 'mainnet',
-  operator: 'TODO_operator_or_runbook_id'
+  operator: 'TODO_operator_or_runbook_id',
+  androidCommit: 'TODO_android_release_commit'
 });
 assert.equal(template.evidence[1].assetSymbol, 'KSM');
+assert.equal(template.evidence[1].androidCommit, 'TODO_android_release_commit');
 
 function assertNoSecretLikeKeys(value, path = '$') {
   if (!value || typeof value !== 'object') {
