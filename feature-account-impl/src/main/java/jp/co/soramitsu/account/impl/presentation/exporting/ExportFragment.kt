@@ -52,10 +52,18 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
     }
 }
 
-class SecurityWarningBottomSheet(
-    private val onConfirm: () -> Unit,
-    private val onDismiss: () -> Unit
-) : BottomSheetDialogFragment() {
+class SecurityWarningBottomSheet() : BottomSheetDialogFragment() {
+
+    constructor(
+        onConfirm: () -> Unit,
+        onDismiss: () -> Unit
+    ) : this() {
+        this.onConfirm = onConfirm
+        this.onDismissAction = onDismiss
+    }
+
+    private var onConfirm: () -> Unit = {}
+    private var onDismissAction: () -> Unit = {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +83,7 @@ class SecurityWarningBottomSheet(
                         dismiss()
                     },
                     onDismiss = {
-                        onDismiss()
+                        onDismissAction()
                         dismiss()
                     }
                 )

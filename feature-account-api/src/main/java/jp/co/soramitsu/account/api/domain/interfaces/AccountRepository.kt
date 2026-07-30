@@ -140,4 +140,6 @@ interface AccountRepository {
     suspend fun getSubstrateSecrets(metaId: Long) : EncodableStruct<SubstrateSecrets>?
     suspend fun getEthereumSecrets(metaId: Long) : EncodableStruct<EthereumSecrets>?
     suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>?
+    suspend fun isWalletRecoveryRequired(metaId: Long): Boolean
+    fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean>
 }

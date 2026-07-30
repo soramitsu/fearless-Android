@@ -14,7 +14,7 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
         buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
@@ -100,6 +100,15 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
+
+    packaging {
+        resources {
+            // JVM multi-release metadata is duplicated by transitive crypto
+            // dependencies but is not used by the Android runtime.
+            excludes += ["META-INF/versions/**"]
+        }
+    }
+
     namespace = 'jp.co.soramitsu.common'
 }
 
@@ -160,6 +169,10 @@ dependencies {
     testImplementation libs.junit
     testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
+
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
 
     api libs.sharedFeaturesCoreDep
 }

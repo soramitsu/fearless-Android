@@ -95,6 +95,11 @@ class RootViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        timerTask?.cancel()
+        timerTask = null
+        timer.cancel()
+        timer.purge()
+
         super.onCleared()
 
         externalConnectionRequirementFlow.value = ChainConnection.ExternalRequirement.FORBIDDEN
@@ -149,6 +154,7 @@ class RootViewModel @Inject constructor(
 
     fun onUserInteractedWithApp() {
         timerTask?.cancel()
+        timer.purge()
         timerTask = createTimerTask()
         timer.schedule(timerTask, IDLE_MINUTES.toDuration(DurationUnit.MINUTES).inWholeMilliseconds)
     }
@@ -213,7 +219,7 @@ class RootViewModel @Inject constructor(
                             }
                     }
                     BridgeMethod.DISCONNECT -> {
-                        tonConnectInteractor.disconnect(event.connection.clientId)
+                        tonConnectInteractor.disconnect(event.connection.identity())
                     }
                     BridgeMethod.UNKNOWN -> {}
                 }

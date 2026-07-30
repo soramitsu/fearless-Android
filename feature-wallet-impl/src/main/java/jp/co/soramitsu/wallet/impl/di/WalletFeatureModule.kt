@@ -63,7 +63,6 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvi
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.CoinbaseProvider
-import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
@@ -423,11 +422,6 @@ class WalletFeatureModule {
         return BuyTokenRegistry(
             availableProviders = listOf(
                 RampProvider(host = BuildConfig.RAMP_HOST, apiToken = BuildConfig.RAMP_TOKEN),
-                MoonPayProvider(
-                    host = BuildConfig.MOONPAY_HOST,
-                    publicKey = BuildConfig.MOONPAY_PUBLIC_KEY,
-                    privateKey = BuildConfig.MOONPAY_PRIVATE_KEY
-                ),
                 CoinbaseProvider(
                     host = BuildConfig.COINBASE_HOST,
                     appId = BuildConfig.COINBASE_APP_ID

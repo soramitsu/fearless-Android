@@ -1,6 +1,12 @@
 //file:noinspection GroovyImplicitNullArgumentCall
-import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+import java.nio.file.Files
+import java.security.KeyStore
+import java.security.MessageDigest
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
+import java.util.Locale
 import java.util.Properties
+import java.util.zip.ZipFile
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
@@ -10,7 +16,6 @@ apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'com.google.firebase.appdistribution'
-apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
 
 def localKeystoreProperties = new Properties()
@@ -27,6 +32,56 @@ def envOrLocalProp = { envKey, propKey ->
     return localKeystoreProperties.getProperty(propKey)
 }
 
+def presentConfigValue = { envKey, propKey ->
+    def value = envOrLocalProp(envKey, propKey)
+    return value != null && !value.toString().trim().isEmpty() ? value.toString() : null
+}
+
+def releaseSigningInputs = [
+    storePath    : presentConfigValue("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH"),
+    storePassword: presentConfigValue("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD"),
+    keyAlias     : presentConfigValue("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS"),
+    keyPassword  : presentConfigValue("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD")
+]
+def configuredReleaseKeystore = releaseSigningInputs.storePath == null
+    ? null
+    : rootProject.file(releaseSigningInputs.storePath)
+def unsignedReleaseBuildValue = System.getenv("ANDROID_UNSIGNED_RELEASE_BUILD")
+if (unsignedReleaseBuildValue != null && unsignedReleaseBuildValue != "true") {
+    throw new GradleException(
+        "ANDROID_UNSIGNED_RELEASE_BUILD must be unset or exactly true."
+    )
+}
+def unsignedReleaseBuild = unsignedReleaseBuildValue == "true"
+if (unsignedReleaseBuild && System.getenv("CI") != "true") {
+    throw new GradleException(
+        "ANDROID_UNSIGNED_RELEASE_BUILD=true is restricted to an explicit CI environment."
+    )
+}
+if (unsignedReleaseBuild &&
+    releaseSigningInputs.any { ignored, value -> value != null }) {
+    throw new GradleException(
+        "Unsigned release bundling forbids every release keystore and password input."
+    )
+}
+def injectedSigningProperties = project.properties.keySet().findAll { propertyName ->
+    propertyName.toString().startsWith("android.injected.signing.")
+}
+if (unsignedReleaseBuild && !injectedSigningProperties.isEmpty()) {
+    throw new GradleException(
+        "Unsigned release bundling forbids injected Android signing properties."
+    )
+}
+
+def expectedUploadCertificateSha256 =
+    "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
+def requestedReleaseCommit = System.getenv("RELEASE_COMMIT")?.trim()
+if (requestedReleaseCommit != null &&
+    !(requestedReleaseCommit ==~ /[0-9a-f]{40}/)) {
+    throw new GradleException(
+        "RELEASE_COMMIT must be an exact lowercase 40-character Git commit."
+    )
+}
 android {
     compileSdk rootProject.compileSdkVersion
     defaultConfig {
@@ -35,38 +90,26 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
         versionCode computeVersionCode()
         versionName computeVersionName()
+        manifestPlaceholders.releaseCommit = "development"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
         }
     }
     signingConfigs {
-        ci {
-            def keystorePath = envOrLocalProp("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH")
-            def releaseKeystore = rootProject.file("fearless-upload.jks")
-            def debugSigningConfig = signingConfigs.getByName("debug")
-
-            def resolvedStoreFile = null
-            if (keystorePath) {
-                def candidate = file(keystorePath)
-                if (candidate.exists()) {
-                    resolvedStoreFile = candidate
-                } else {
-                    throw new GradleException("Provided CI keystore path does not exist: ${candidate.absolutePath}")
-                }
+        releaseUpload {
+            if (configuredReleaseKeystore != null) {
+                storeFile configuredReleaseKeystore
             }
-            if (resolvedStoreFile == null && releaseKeystore.exists()) {
-                resolvedStoreFile = releaseKeystore
+            if (releaseSigningInputs.storePassword != null) {
+                storePassword releaseSigningInputs.storePassword
             }
-            if (resolvedStoreFile == null) {
-                resolvedStoreFile = debugSigningConfig.storeFile
+            if (releaseSigningInputs.keyAlias != null) {
+                keyAlias releaseSigningInputs.keyAlias
             }
-
-            storeFile resolvedStoreFile
-
-            storePassword envOrLocalProp("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD") ?: debugSigningConfig.storePassword
-            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: debugSigningConfig.keyAlias
-            keyPassword envOrLocalProp("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD") ?: debugSigningConfig.keyPassword
+            if (releaseSigningInputs.keyPassword != null) {
+                keyPassword releaseSigningInputs.keyPassword
+            }
         }
     }
 
@@ -98,7 +141,10 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.ci
+            if (!unsignedReleaseBuild) {
+                signingConfig signingConfigs.releaseUpload
+            }
+            manifestPlaceholders.releaseCommit = requestedReleaseCommit ?: "missing"
         }
         staging {
             initWith debug
@@ -178,10 +224,13 @@ android {
     namespace = 'jp.co.soramitsu.app'
 
     packagingOptions {
+        // Preserve the historical merge-time exclusion for duplicate nested
+        // metadata while explicitly removing the two service descriptors that
+        // R8 would otherwise retain after their provider classes are shrunk.
         resources.excludes.add("META-INF/**/*")
         resources.excludes.add("META-INF/*")
-        resources.excludes.add("META-INF/services/org.w3c.dom.DOMImplementationSourceList")
-        resources.excludes.add("META-INF/services/org.xml.sax.driver")
+        resources.excludes.add("/META-INF/services/org.w3c.dom.DOMImplementationSourceList")
+        resources.excludes.add("/META-INF/services/org.xml.sax.driver")
 
         jniLibs {
             // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
@@ -192,10 +241,189 @@ android {
     }
 }
 
-play {
-    serviceAccountCredentials = file(System.env.CI_PLAY_KEY ?: "../key/fake.json")
-    track = "production"
-    releaseStatus = ReleaseStatus.DRAFT
+def loadSigningKeyStore = { File storeFile, String password ->
+    Exception lastFailure = null
+    for (String type : ["JKS", "PKCS12"]) {
+        try {
+            def keyStore = KeyStore.getInstance(type)
+            storeFile.withInputStream { input ->
+                keyStore.load(input, password.toCharArray())
+            }
+            return keyStore
+        } catch (Exception failure) {
+            lastFailure = failure
+        }
+    }
+    throw new GradleException(
+        "Configured release keystore could not be opened as JKS or PKCS12.",
+        lastFailure
+    )
+}
+
+def certificateSha256 = { X509Certificate certificate ->
+    MessageDigest.getInstance("SHA-256")
+        .digest(certificate.encoded)
+        .collect { String.format("%02X", it & 0xff) }
+        .join()
+}
+
+def validateReleaseSigning = {
+    def missingInputs = releaseSigningInputs.findAll { ignored, value -> value == null }.keySet().sort()
+    if (!missingInputs.isEmpty()) {
+        throw new GradleException(
+            "Release signing is incomplete; all CI/local release keystore inputs are required."
+        )
+    }
+    if (!configuredReleaseKeystore.isFile() ||
+        Files.isSymbolicLink(configuredReleaseKeystore.toPath())) {
+        throw new GradleException(
+            "CI_KEYSTORE_PATH must identify a regular, non-symlink release keystore."
+        )
+    }
+
+    def debugSigning = android.signingConfigs.getByName("debug")
+    if (debugSigning.storeFile != null &&
+        configuredReleaseKeystore.canonicalFile == debugSigning.storeFile.canonicalFile) {
+        throw new GradleException("The Android debug keystore cannot sign a Play release.")
+    }
+
+    def releaseKeyStore = loadSigningKeyStore(
+        configuredReleaseKeystore,
+        releaseSigningInputs.storePassword
+    )
+    if (!releaseKeyStore.containsAlias(releaseSigningInputs.keyAlias)) {
+        throw new GradleException("The release keystore does not contain the configured key alias.")
+    }
+    def releaseKey
+    try {
+        releaseKey = releaseKeyStore.getKey(
+            releaseSigningInputs.keyAlias,
+            releaseSigningInputs.keyPassword.toCharArray()
+        )
+    } catch (Exception failure) {
+        throw new GradleException("The configured release key could not be unlocked.", failure)
+    }
+    if (!(releaseKey instanceof PrivateKey)) {
+        throw new GradleException("The configured release alias must identify a private key.")
+    }
+
+    def releaseCertificate = releaseKeyStore.getCertificate(releaseSigningInputs.keyAlias)
+    if (!(releaseCertificate instanceof X509Certificate)) {
+        throw new GradleException("The configured release alias must have an X.509 certificate.")
+    }
+    try {
+        releaseCertificate.checkValidity()
+    } catch (Exception failure) {
+        throw new GradleException("The configured release certificate is not currently valid.", failure)
+    }
+    if (certificateSha256(releaseCertificate) != expectedUploadCertificateSha256) {
+        throw new GradleException(
+            "The release certificate does not match the registered Google Play upload certificate."
+        )
+    }
+}
+
+def validateUnsignedReleaseBundleOutput = {
+    def outputDirectory = file("$buildDir/outputs/bundle/release")
+    def bundles = outputDirectory.listFiles()?.findAll { candidate ->
+        candidate.isFile() &&
+            !Files.isSymbolicLink(candidate.toPath()) &&
+            candidate.name.endsWith(".aab")
+    } ?: []
+    if (bundles.size() != 1) {
+        throw new GradleException(
+            "Unsigned release bundling must produce exactly one regular, non-symlink AAB."
+        )
+    }
+
+    def archive = new ZipFile(bundles.first())
+    try {
+        def entryNames = []
+        def entries = archive.entries()
+        while (entries.hasMoreElements()) {
+            entryNames.add(entries.nextElement().name)
+        }
+        if (entryNames.size() != entryNames.toSet().size()) {
+            throw new GradleException(
+                "The unsigned release AAB contains duplicate ZIP entries."
+            )
+        }
+        def signatureMetadata = entryNames.findAll { entryName ->
+            def upperName = entryName.toUpperCase(Locale.ROOT)
+            upperName == "META-INF/MANIFEST.MF" ||
+                upperName ==~ /META-INF\/[^\/]+\.(SF|RSA|DSA|EC)/
+        }
+        if (!signatureMetadata.isEmpty()) {
+            throw new GradleException(
+                "ANDROID_UNSIGNED_RELEASE_BUILD produced JAR signature metadata."
+            )
+        }
+    } finally {
+        archive.close()
+    }
+    logger.lifecycle(
+        "Unsigned release AAB verified as an intermediate only; " +
+            "external certificate-pinned signing is still required."
+    )
+}
+
+tasks.matching { task -> task.name == "bundleRelease" }.configureEach {
+    if (unsignedReleaseBuild) {
+        doLast {
+            validateUnsignedReleaseBundleOutput()
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def appTasks = taskGraph.allTasks.findAll { task -> task.project == project }
+    def releaseArtifactTasks = appTasks.findAll { task ->
+        def taskName = task.name.toLowerCase(Locale.ROOT)
+        taskName in [
+            "assemblerelease",
+            "bundlerelease",
+            "packagerelease",
+            "packagereleasebundle",
+            "packagereleaseuniversalapk",
+            "signreleasebundle"
+        ]
+    }
+    if (!releaseArtifactTasks.isEmpty() && requestedReleaseCommit == null) {
+        def resolvedTasks = releaseArtifactTasks.collect { task -> task.path }
+            .unique()
+            .sort()
+            .join(", ")
+        throw new GradleException(
+            "RELEASE_COMMIT is required whenever the resolved task graph can " +
+                "produce, sign, install, or publish a release artifact. Resolved: " +
+                resolvedTasks
+        )
+    }
+
+    if (unsignedReleaseBuild) {
+        def requestedTasks = gradle.startParameter.taskNames
+        if (requestedTasks != [":app:bundleRelease"]) {
+            throw new GradleException(
+                "ANDROID_UNSIGNED_RELEASE_BUILD=true permits only an exact, " +
+                    "source-bound :app:bundleRelease invocation; rejected requested tasks: " +
+                    requestedTasks.join(", ")
+            )
+        }
+        def exactUnsignedBundleTask = taskGraph.allTasks.find { task ->
+            task.path == ":app:bundleRelease"
+        }
+        if (exactUnsignedBundleTask == null ||
+            android.buildTypes.getByName("release").signingConfig != null) {
+            throw new GradleException(
+                "Unsigned release bundling must resolve exactly :app:bundleRelease " +
+                    "without an Android signing configuration."
+            )
+        }
+    }
+
+    if (!releaseArtifactTasks.isEmpty() && !unsignedReleaseBuild) {
+        validateReleaseSigning()
+    }
 }
 
 dependencies {
@@ -295,6 +523,7 @@ dependencies {
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules
     androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.compose.uiTestJunit4
 }
 
 tasks.register('printVersion') {

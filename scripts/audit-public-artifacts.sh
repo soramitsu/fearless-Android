@@ -2,15 +2,20 @@
 set -euo pipefail
 
 RELEASE_MODE=false
-STRICT_PROVENANCE=false
+UNSIGNED_RELEASE_MODE=false
 
 for arg in "$@"; do
   case "$arg" in
     --release)
       RELEASE_MODE=true
       ;;
+    --unsigned-release)
+      RELEASE_MODE=true
+      UNSIGNED_RELEASE_MODE=true
+      ;;
     --strict-provenance)
-      STRICT_PROVENANCE=true
+      # Binary provenance is always enforced; retain the explicit release flag
+      # for compatibility with existing CI and operator commands.
       ;;
     *)
       echo "Unknown argument: $arg" >&2
@@ -28,7 +33,7 @@ fail() {
 
 cd "$(dirname "$0")/.."
 
-if [[ ! -d .git ]]; then
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   fail "Run from a Git checkout."
 fi
 
@@ -103,15 +108,19 @@ check_release_google_services() {
 check_required_release_env() {
   local missing=()
   local name
-  for name in \
-    CI_KEYSTORE_PATH \
-    CI_KEYSTORE_PASS \
-    CI_KEYSTORE_KEY_ALIAS \
-    CI_KEYSTORE_KEY_PASS \
-    CI_PLAY_KEY \
-    MOONPAY_PRODUCTION_SECRET \
-    RAMP_TOKEN_RELEASE \
-    WALLET_CONNECT_PROJECT_ID; do
+  local required_names=(
+    RAMP_TOKEN_RELEASE
+    WALLET_CONNECT_PROJECT_ID
+  )
+  if [[ "$UNSIGNED_RELEASE_MODE" == false ]]; then
+    required_names+=(
+      CI_KEYSTORE_PATH
+      CI_KEYSTORE_PASS
+      CI_KEYSTORE_KEY_ALIAS
+      CI_KEYSTORE_KEY_PASS
+    )
+  fi
+  for name in "${required_names[@]}"; do
     if [[ -z "${!name:-}" ]]; then
       missing+=("$name")
     fi
@@ -121,8 +130,19 @@ check_required_release_env() {
     fail "Release mode is missing required environment variables: ${missing[*]}"
   fi
 
-  [[ -s "$CI_KEYSTORE_PATH" ]] || fail "CI_KEYSTORE_PATH does not point to a readable keystore."
-  [[ -s "$CI_PLAY_KEY" ]] || fail "CI_PLAY_KEY does not point to a readable Play service-account JSON."
+  if [[ "$UNSIGNED_RELEASE_MODE" == true ]]; then
+    for name in \
+      CI_KEYSTORE_PATH \
+      CI_KEYSTORE_PASS \
+      CI_KEYSTORE_KEY_ALIAS \
+      CI_KEYSTORE_KEY_PASS; do
+      [[ -z "${!name:-}" ]] ||
+        fail "Unsigned release audit forbids every signing input."
+    done
+  else
+    [[ -s "$CI_KEYSTORE_PATH" ]] ||
+      fail "CI_KEYSTORE_PATH does not point to a readable keystore."
+  fi
 }
 
 while IFS= read -r -d '' path; do

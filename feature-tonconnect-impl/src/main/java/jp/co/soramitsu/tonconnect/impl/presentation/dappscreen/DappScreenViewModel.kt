@@ -17,6 +17,7 @@ import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectionIdentity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -133,7 +134,15 @@ class DappScreenViewModel @Inject constructor(
 
     fun disconnect() {
         viewModelScope.launch {
-            interactor.disconnect(dapp.identifier)
+            val identity = dapp.connectionIdentityOrNull() ?: run {
+                val url = dapp.url ?: return@launch
+                val connection = interactor.getConnection(
+                    url,
+                    ConnectionSource.WEB
+                ) ?: return@launch
+                TonConnectionIdentity(connection)
+            }
+            interactor.disconnect(identity)
         }
     }
 }

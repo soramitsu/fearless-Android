@@ -24,12 +24,12 @@ jobs:
       FEARLESS_UTILS_LIBRARY_ONLY: "true"
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
       # Provide safe stubs to avoid repository/config failures during resolution
       PAY_WINGS_REPOSITORY_URL: https://maven.google.com
       PAY_WINGS_USERNAME: ""
       PAY_WINGS_PASSWORD: ""
-      MOONPAY_TEST_SECRET: stub
-      MOONPAY_PRODUCTION_SECRET: stub
       FL_BLAST_API_ETHEREUM_KEY: stub
       FL_BLAST_API_BSC_KEY: stub
       FL_BLAST_API_SEPOLIA_KEY: stub
@@ -41,17 +41,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout fearless-utils-Android
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: soramitsu/fearless-utils-Android
           ref: ${{ env.FEARLESS_UTILS_COMMIT }}
           path: fearless-utils-Android
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify fearless-utils source
         run: ./scripts/ensure-fearless-utils.sh
@@ -68,6 +70,20 @@ jobs:
 
       - name: Public artifact audit
         run: ./scripts/audit-public-artifacts.sh
+
+      - name: Android Play release guard contracts
+        run: |
+          bash ./scripts/test-android-release-signed-tag-policy.sh
+          bash ./scripts/test-android-release-governance.sh
+          bash ./scripts/test-android-play-release-guards.sh
+          bash ./scripts/test-android-release-build-log.sh
+          bash ./scripts/test-android-release-sdk.sh
+          bash ./scripts/test-release-overlay-interruption.sh
+          bash ./scripts/test-android-release-media-permissions.sh
+          bash ./scripts/test-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-release-media-permissions.sh \
+            app/src/main/AndroidManifest.xml
 
       - name: TODO debt audit
         run: |
@@ -87,7 +103,7 @@ jobs:
 
       - name: Upload XCM registry gap report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: xcm-registry-gap-report
           path: build/reports/xcm-registry-gap-report.json
@@ -96,7 +112,7 @@ jobs:
 
       - name: Upload public dependency handoff
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: public-dependency-upstream-delta
           path: build/reports/public-dependency-upstream-delta
@@ -120,10 +136,26 @@ jobs:
         run: bash ./scripts/test-private-overlay-boundary.sh
 
       - name: Setup Java 21 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Install checksum-pinned bundletool
+        run: |
+          set -euo pipefail
+          bundletool_jar="$RUNNER_TEMP/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          curl --fail --location --silent --show-error \
+            --retry 3 \
+            --output "$bundletool_jar" \
+            "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          actual_sha256="$(sha256sum "$bundletool_jar" | awk '{print $1}')"
+          [[ "$actual_sha256" == "$BUNDLETOOL_SHA256" ]] || {
+            echo "bundletool checksum mismatch" >&2
+            exit 1
+          }
+          chmod 0444 "$bundletool_jar"
+          echo "BUNDLETOOL_JAR=$bundletool_jar" >> "$GITHUB_ENV"
 
       - name: Setup Android SDK
         run: |
@@ -160,9 +192,11 @@ jobs:
 
       - name: Export NDK environment
         run: |
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          {
+            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+          } >> "$GITHUB_ENV"
 
       - name: NDK revision
         run: |
@@ -203,11 +237,34 @@ jobs:
         run: |
           echo "== Gradle =="
           ./gradlew --version --no-daemon --console=plain || true
-          echo "\n== Android Gradle Plugin (declared) =="
+          printf '\n== Android Gradle Plugin (declared) ==\n'
           grep -E '^android_plugin\s*=\s*"[0-9]+' gradle/libs.versions.toml || true
 
-      - name: Assemble debug to produce native libs
-        run: ./gradlew :app:assembleDebug --no-daemon --console=plain --stacktrace
+      - name: Assemble APK and AAB debug artifacts
+        run: |
+          ./gradlew \
+            :app:assembleDebug \
+            :app:bundleDebug \
+            --no-daemon \
+            --console=plain \
+            --stacktrace
+
+      - name: Verify source-bound complete AAB native payload
+        env:
+          AAB_IDENTITY_FIXTURE: ${{ github.workspace }}/app/build/outputs/bundle/debug/app-debug.aab
+          EXPECTED_AAB_SOURCE_COMMIT: development
+        run: |
+          set -euo pipefail
+          EXPECTED_AAB_PACKAGE=jp.co.soramitsu.fearless.debug \
+          EXPECTED_AAB_VERSION_NAME="$(
+            awk -F= '$1 == "versionName" { print $2 "-debug" }' \
+              versioning/version.properties
+          )" \
+          EXPECTED_AAB_VERSION_CODE="$(
+            awk -F= '$1 == "versionCode" { print $2 }' \
+              versioning/version.properties
+          )" \
+            bash ./scripts/test-android-aab-identity.sh
 
       - name: readelf sanity (native libs)
         run: |
@@ -217,8 +274,8 @@ jobs:
           set +e
           echo "== Scanning native libraries (.so) =="
           mapfile -t sos < <(find app/build -type f -name "*.so" | head -n 10)
-          if [ ${#sos[@]} -eq 0 ]; then echo "No native libs found under app/build"; exit 0; fi
+          if [ "${#sos[@]}" -eq 0 ]; then echo "No native libs found under app/build"; exit 0; fi
           for so in "${sos[@]}"; do
-            echo "\n-- $so --"
+            printf '\n-- %s --\n' "$so"
             readelf -l "$so" | sed -n '1,120p' || true
           done

@@ -351,6 +351,15 @@
   <string name="connection_methods_not_supported_warning">Metode tertentu yang diminta oleh Wallet Connect saat ini tidak didukung oleh Aplikasi. Meskipun koneksi dapat dibuat, fungsi tertentu dari dApp mungkin tidak tersedia.</string>
   <string name="connection_optional_networks">Jaringan opsional</string>
   <string name="connection_problems_alert_message">Gagal memuat data yang diperlukan untuk meluncurkan aplikasi. Silakan periksa koneksi internet Anda dan coba lagi.</string>
+  <string name="wallet_secure_storage_unavailable_title">Data dompet dilindungi</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless tidak dapat mengakses penyimpanan aman Android. Data dompet terenkripsi Anda tetap tersimpan dan tidak direset. Buka kunci perangkat Anda lalu coba lagi. Jika masalah berlanjut, hubungi dukungan Fearless.</string>
+  <string name="wallet_database_unavailable_title">Data dompet tidak dapat dibuka</string>
+  <string name="wallet_database_unavailable_message">Fearless tidak menghapus atau mereset data dompet apa pun. Coba buka dompet lagi. Jika masalah berlanjut, hubungi dukungan Fearless.</string>
+  <string name="wallet_recovery_required_title">Pemulihan dompet diperlukan</string>
+  <string name="wallet_recovery_required_message">Penandatanganan dan pencadangan dinonaktifkan untuk dompet ini karena rahasia terenkripsinya tidak dapat diverifikasi. Data terenkripsi asli Anda tetap tersimpan. Hubungi dukungan Fearless sebelum melakukan perubahan.</string>
+  <string name="wallet_startup_recovery_required_message">Fearless berhenti sebelum mengubah atau menghapus data dompet karena data yang tersimpan memerlukan pemulihan. Hubungi dukungan Fearless dan sertakan kode diagnostik: %1$s. Jangan hapus data aplikasi atau instal ulang sebelum dukungan membantu mempertahankan atau mengekspor dompet.</string>
+  <string name="wallet_startup_restart_required_title">Tutup dan buka kembali Fearless</string>
+  <string name="wallet_startup_restart_required_message">Fearless berhenti karena Android tidak dapat mengonfirmasi penulisan penyimpanan dompet. Tidak ada perubahan dompet tambahan yang akan dicoba dalam proses ini. Tutup aplikasi sekarang, lalu buka kembali untuk memverifikasi status tersimpan dengan aman. Jangan hapus data aplikasi atau instal ulang.</string>
   <string name="connection_reject">Tolak</string>
   <string name="connection_required_networks">Jaringan yang diperlukan</string>
   <string name="connection_review_optional_permissions">Tinjau izin opsional</string>
@@ -1188,6 +1197,12 @@
 
   <string name="connected_accounts_ton_title">TON chain accounts</string>
 
+  <string name="connected_accounts_bitcoin_title">Akun jaringan Bitcoin</string>
+
+  <string name="connected_accounts_solana_title">Akun jaringan Solana</string>
+
+  <string name="connected_accounts_iroha_title">Akun jaringan Iroha</string>
+
   <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
 
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
@@ -1196,7 +1211,7 @@
 
   <string name="cross_chain_tx_status_done_title">All done</string>
 
-  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %s asset cross the bridge from the %s to the %s network.</string>
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
 
   <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
 

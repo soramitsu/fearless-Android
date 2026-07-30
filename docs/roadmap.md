@@ -5,10 +5,46 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Recent Updates
+- 2026-07-27: Disabled the legacy MoonPay provider and removed all MoonPay
+  signing-secret BuildConfig fields and release requirements. Re-enabling
+  MoonPay now requires backend signing or a supported public mobile flow; the
+  secret exposed by previously released clients must be revoked/rotated. The
+  policy gate now scans tracked Android sources across every module plus all
+  build scripts, release scripts, and workflows, with alternate-module
+  adversarial fixtures.
+- 2026-07-27: Made release Firebase overlay backup creation crash-safe by
+  validating size, SHA-256, and `0600` permissions on a same-directory
+  temporary before atomic rename. Cleanup discards partial temporaries. The
+  finalized split-overlay suite covers 20 restore and 8 cleanup TERM/SIGKILL
+  cases, 2 independent positive phases, 20 phase/credential-isolation
+  negatives, and separate corruption and permission-negative cases.
+- 2026-07-27: Reserved Google Play version code 230 and replaced mutable
+  release versioning/debug-signing fallback with a fail-closed Play testing
+  artifact pipeline. A credential-free first job validates the signed tag,
+  prior CI, governance, adversarial controls, and exact source tree. The
+  protected build runner then creates only an exact CI/source-bound unsigned
+  Gradle AAB with no signing material and transfers its exact, individually
+  attested four-file evidence, including the bounded verified Gradle/R8 build
+  log, to a separate protected signing runner. That
+  runner revalidates every file digest, exact provenance, all attestations,
+  tag, `master`, and source tree before restoring the upload key and invoking
+  the standalone signer pinned to the registered upload certificate. It
+  derives identity and permissions from the signed bytes and separately
+  attests the exact final three-file artifact. CI performs no Play mutation
+  and receives no Play service-account credential; the final AAB is uploaded
+  manually to the existing Open Testing track after evidence review.
+- 2026-07-27: Pinned release dependency provenance with the Gradle 9.0
+  distribution SHA-256, strict verification metadata plus a tracked digest,
+  the strict root buildscript-classpath lock, and the production dependency
+  lock. CI/release graphs reject
+  `mavenLocal()`, verification-off flags, and metadata/lock rewrite attempts.
+- 2026-07-30: Advanced the release toolchain from AGP 8.9.1 to exact AGP
+  8.10.1 / R8 8.10.24 so Reown's Kotlin 2.2 metadata is parsed by a supported
+  shrinker; clean release logs and embedded AAB metadata are fail-closed.
 - 2026-03-12: `scripts/build-libsodium.sh` now detects the correct host-specific NDK toolchain directory (darwin/linux/windows) instead of hardcoding macOS paths, so rebuilding libsodium works on Linux and CI hosts.
 - 2026-03-12: Local validation script now installs Android platform/build-tools 36 so fresh environments match the Gradle compileSdk configuration before running tasks.
 - 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) so the pinned `fearless-utils-Android` composite checkout remains buildable on the current Gradle stack until the upstream repository upgrades.
-- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
+- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and initially bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
 - 2026-03-12: Temporarily excluded the WalletConnect Pay dependency (and its `yttrium-wcpay` natives) until Reown publishes 16 KB–aligned builds.
 - 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.
 - 2026-03-05: Completed security remediation batch for TON and account flows (TonConnect origin validation, TON network client hardening, WebView restrictions, encrypted preferences migration to AES-GCM, PIN lockout throttling, and internal-cache JSON export hygiene).

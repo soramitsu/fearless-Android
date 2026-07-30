@@ -1,6 +1,8 @@
 package jp.co.soramitsu.common.data.secrets.v1
 
+import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.MAX_WALLET_SECRET_PLAINTEXT_CHARS
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithDerivationPath
@@ -19,6 +21,11 @@ interface SecretStoreV1 {
 }
 
 private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
+
+class LegacyV1SecretCorruptionException(
+    message: String,
+    cause: Throwable? = null
+) : IllegalArgumentException(message, cause)
 
 class SecretStoreV1Impl(
     private val encryptedPreferences: EncryptedPreferences
@@ -52,25 +59,62 @@ class SecretStoreV1Impl(
     override suspend fun getSecuritySource(accountAddress: String): SecuritySource? = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
-        val raw = encryptedPreferences.getDecryptedString(key) ?: return@withContext null
-        val internalSource = SourceInternal.read(raw)
+        val raw = encryptedPreferences.getDecryptedString(key)
+            ?: return@withContext null
+        try {
+            if (
+                raw.isEmpty() ||
+                raw.length > MAX_WALLET_SECRET_PLAINTEXT_CHARS
+            ) {
+                throw LegacyV1SecretCorruptionException(
+                    "A legacy V1 wallet secret is empty or oversized"
+                )
+            }
+            WalletSecretScalePreflight.requireSourceV1(raw)
+            val internalSource = SourceInternal.read(raw)
 
-        val keypair = Keypair(
-            publicKey = internalSource[SourceInternal.PublicKey],
-            privateKey = internalSource[SourceInternal.PrivateKey],
-            nonce = internalSource[SourceInternal.Nonce]
-        )
+            val keypair = Keypair(
+                publicKey = internalSource[SourceInternal.PublicKey],
+                privateKey = internalSource[SourceInternal.PrivateKey],
+                nonce = internalSource[SourceInternal.Nonce]
+            )
 
-        val seed = internalSource[SourceInternal.Seed]
-        val mnemonic = internalSource[SourceInternal.Mnemonic]
-        val derivationPath = internalSource[SourceInternal.DerivationPath]
+            val seed = internalSource[SourceInternal.Seed]
+            val mnemonic = internalSource[SourceInternal.Mnemonic]
+            val derivationPath = internalSource[SourceInternal.DerivationPath]
 
-        when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
-            SourceType.CREATE -> SecuritySource.Specified.Create(seed, keypair, mnemonic!!, derivationPath)
-            SourceType.SEED -> SecuritySource.Specified.Seed(seed, keypair, derivationPath)
-            SourceType.JSON -> SecuritySource.Specified.Json(seed, keypair)
-            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, keypair, mnemonic!!, derivationPath)
-            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(keypair)
+            when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
+                SourceType.CREATE -> SecuritySource.Specified.Create(
+                    seed,
+                    keypair,
+                    checkNotNull(mnemonic) {
+                        "A legacy CREATE source is missing its mnemonic"
+                    },
+                    derivationPath
+                )
+
+                SourceType.SEED ->
+                    SecuritySource.Specified.Seed(seed, keypair, derivationPath)
+
+                SourceType.JSON -> SecuritySource.Specified.Json(seed, keypair)
+                SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(
+                    seed,
+                    keypair,
+                    checkNotNull(mnemonic) {
+                        "A legacy MNEMONIC source is missing its mnemonic"
+                    },
+                    derivationPath
+                )
+
+                SourceType.UNSPECIFIED -> SecuritySource.Unspecified(keypair)
+            }
+        } catch (failure: LegacyV1SecretCorruptionException) {
+            throw failure
+        } catch (failure: Exception) {
+            throw LegacyV1SecretCorruptionException(
+                "A legacy V1 wallet secret payload is malformed",
+                failure
+            )
         }
     }
 

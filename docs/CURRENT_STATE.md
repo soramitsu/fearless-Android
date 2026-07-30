@@ -23,7 +23,25 @@ These features vary in maturity; consult TODOs below and module code for specifi
 
 ## Configuration & Secrets
 - Place integration keys in environment variables or `local.properties` as described in README.
-- Common keys include Moonpay, Ethereum blast API keys, and Etherscan/Polygonscan keys.
+- Common keys include Ethereum blast API keys and Etherscan/Polygonscan keys.
+- MoonPay is disabled because its legacy client-side URL signature exposed the
+  signing secret in every APK/AAB. It must remain unavailable until signing is
+  moved to a backend or MoonPay provides a supported public mobile flow.
+- Production Firebase and upload-key material are never combined. A
+  credential-free `release-controls` job validates the signed tag, exact
+  source tree, governance, and prior CI before `release-build` restores
+  Firebase. The upload key appears only in a separate fresh
+  `release-signing` job. Gradle builds only the source-bound unsigned AAB and
+  never receives signing or Play credentials. Signing uses a standalone
+  certificate-pinned signer only after all four downloaded files, provenance,
+  attestations, tag, `master`, and source tree pass validation. CI never
+  receives a Play credential or mutates Play; an authorized operator uploads
+  the final attested AAB through Play Console.
+- CI/release dependency resolution is strict and pinned by the Gradle
+  distribution checksum, dependency-verification metadata plus its tracked
+  digest, the strict root buildscript-classpath lockfile, and the production
+  release lockfile. Local Maven repositories and provenance rewrites are
+  rejected for release graphs.
 
 ## Build Types
 - `debug`, `release`, `staging`, `develop`, `pr` — see `app/build.gradle` for differences (R8/shrinker, suffixes, Firebase App Distribution setup on CI builds).
@@ -44,6 +62,10 @@ Ripgrep shows TODO/FIXME markers in these areas (non-exhaustive):
 These markers indicate areas where behavior may be incomplete or needs refinement. Use `rg -n "TODO|FIXME"` to explore further.
 
 ## What To Verify Locally
-- Secrets and endpoints present: Without keys, some flows (Moonpay, history providers) won’t fully function.
+- Secrets and endpoints present: Without keys, some history-provider flows won’t fully function.
 - Utils integration: The build uses a pinned `soramitsu/fearless-utils-Android` checkout as a composite build. CI checks it out automatically; local builds should clone it next to this repo or set `FEARLESS_UTILS_PATH`.
 - Android SDK/NDK and JDK versions: See README and `scripts/validate-local.sh`.
+- Release controls: run the non-secret guard suites documented in
+  `docs/releases/PROCESS.md`. Do not materialize live signing or Play
+  credentials for routine local validation. Do not use an API or Gradle Play
+  publishing task; the final AAB is uploaded manually through Play Console.

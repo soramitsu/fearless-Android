@@ -359,6 +359,15 @@
   <string name="connection_methods_not_supported_warning">ウォレット・コネクトからリクエストされた特定のメソッドは、現在アプリではサポートされていません。接続は確立できますが、dAppの特定の機能が利用できない場合があります</string>
   <string name="connection_optional_networks">オプションのネットワーク</string>
   <string name="connection_problems_alert_message">アプリの起動に必要なデータの読み込みに失敗しました。インターネット接続を確認して、後でもう一度お試しください</string>
+  <string name="wallet_secure_storage_unavailable_title">ウォレットデータは保護されています</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless は Android の安全なストレージにアクセスできませんでした。暗号化されたウォレットデータは保持され、リセットされていません。デバイスのロックを解除して、もう一度お試しください。問題が解決しない場合は、Fearless サポートにお問い合わせください。</string>
+  <string name="wallet_database_unavailable_title">ウォレットデータを開けませんでした</string>
+  <string name="wallet_database_unavailable_message">Fearless はウォレットデータを削除またはリセットしていません。ウォレットをもう一度開いてください。問題が解決しない場合は、Fearless サポートにお問い合わせください。</string>
+  <string name="wallet_recovery_required_title">ウォレットの復旧が必要です</string>
+  <string name="wallet_recovery_required_message">このウォレットの暗号化されたシークレットを検証できなかったため、署名とバックアップは無効になっています。元の暗号化データは保持されています。変更を行う前に Fearless サポートにお問い合わせください。</string>
+  <string name="wallet_startup_recovery_required_message">保存データの復旧が必要なため、Fearless はウォレットデータを変更または削除する前に停止しました。Fearless サポートに連絡し、診断コード %1$s をお知らせください。サポートがウォレットの保全またはエクスポートを支援するまでは、アプリデータの消去や再インストールを行わないでください。</string>
+  <string name="wallet_startup_restart_required_title">Fearless を終了して再度開く</string>
+  <string name="wallet_startup_restart_required_message">Android がウォレットストレージへの書き込みを確認できなかったため、Fearless は停止しました。このプロセスでは、これ以上ウォレットの変更を試行しません。アプリを終了してから再度開き、保存された状態を安全に確認してください。アプリデータの消去や再インストールは行わないでください。</string>
   <string name="connection_reject">拒否</string>
   <string name="connection_required_networks">必要なネットワーク</string>
   <string name="connection_review_optional_permissions">オプションの権限を確認する</string>
@@ -1213,6 +1222,12 @@
 
   <string name="connected_accounts_ton_title">TON chain accounts</string>
 
+  <string name="connected_accounts_bitcoin_title">Bitcoinチェーンアカウント</string>
+
+  <string name="connected_accounts_solana_title">Solanaチェーンアカウント</string>
+
+  <string name="connected_accounts_iroha_title">Irohaチェーンアカウント</string>
+
   <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
 
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
@@ -1221,7 +1236,7 @@
 
   <string name="cross_chain_tx_status_done_title">All done</string>
 
-  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %s asset cross the bridge from the %s to the %s network.</string>
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
 
   <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
 

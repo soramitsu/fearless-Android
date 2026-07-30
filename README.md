@@ -24,17 +24,12 @@ Track features development: [board link](https://soramitsucoltd.aha.io/shared/34
 
 ## How to build
 
-To build Fearless Wallet Android project, you need to provide several keys either in environment variables or in `local.properties` file:
+To build Fearless Wallet Android project, you need to provide several keys either in environment variables or in `local.properties` file.
 
-### Moonpay properties
-``` 
-MOONPAY_TEST_SECRET=stub
-MOONPAY_PRODUCTION_SECRET=stub
-MOONPAY_TEST_PUBLIC_KEY=stub
-MOONPAY_PRODUCTION_PUBLIC_KEY=stub
-```
-
-Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
+MoonPay is intentionally disabled. Its widget URL requires a server-side
+signature, so a MoonPay signing secret must never be supplied to or compiled
+into the Android client. Re-enable it only through a backend-signed or
+MoonPay-supported public mobile integration.
 
 ### Buy provider partner properties
 ```
@@ -52,6 +47,39 @@ The checked-in `app/src/*/google-services.json` files are public placeholders
 with real package names but no live Firebase project IDs, API keys, OAuth
 clients, or certificate hashes. Release and distribution builds must replace
 them from the private CI overlay before publishing.
+
+### Play testing releases
+
+CI does not mutate Google Play. The `Android Signed Release Artifact` workflow
+produces the only approved upload artifact through three fresh-runner jobs:
+
+1. credential-free `release-controls` validates the signed tag, exact
+   `master` source tree, prior CI, governance, and adversarial release suites;
+2. `release-build` (`android-release-build`) restores only Firebase, runs the
+   exact CI-only/source-bound unsigned `:app:bundleRelease`, and uploads an
+   exact, individually attested four-file unsigned artifact: AAB, checksum,
+   provenance, and the bounded verified Gradle/R8 build log;
+3. `release-signing` (`android-release-signing`) downloads and revalidates
+   those four files, their digests, source, provenance, and attestations before
+   restoring the upload key. It signs with the certificate-pinned standalone
+   signer, verifies identity, native payloads, and permissions from the signed
+   bytes, and uploads a separately attested three-file final artifact.
+
+Release dispatch remains fail-closed until the sentinel in
+`.github/release/android-tag-signer-fingerprints.txt` is replaced by the exact
+reviewed OpenSSH Ed25519 `SHA256:...` fingerprint and the matching one-line
+public key is stored, base64 encoded, in the
+`ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64` repository variable.
+
+The build and signing environments require disjoint, exact User reviewer
+allowlists, so the artifact crosses two distinct environment approvals. Each
+allowlist must contain at least one User; two or more provides additional
+reviewer redundancy. No Play service-account credential, Android Publisher API
+client, or Gradle Play publishing task belongs in this workflow. An authorized
+operator downloads the final workflow artifact and uploads its AAB manually to
+the existing `beta`/Open Testing track, preserving the existing country and
+tester configuration. See `docs/releases/PROCESS.md` for the evidence and Play
+Console checklist.
 
 ### X1 plugin
 
