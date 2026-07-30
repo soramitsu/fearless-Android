@@ -153,11 +153,13 @@ input. Signed and `--signed-from` modes bind the checksum-pinned
 write its private snapshot to one new absolute output path.
 
 The frozen suites must report dependency provenance 2 positive / 40
-adversarial, IAS Gradle 8 positive / 39 behavioral negative / 621 static
-adversarial assertions, and the workflow's Linux public-certificate IAS AAB
-suite 7 positive / 47 adversarial artifacts. The AAB suite additionally expects
-7/45 in macOS certificate mode, 7/53 in macOS keystore mode, and 7/55 in Linux
-keystore mode. A changed total is a review event, not an automatic pass.
+adversarial, bounded Gradle coverage cleanup 4 positive / 12
+negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 624
+static adversarial assertions, and the workflow's Linux public-certificate IAS
+AAB suite 7 positive / 47 adversarial artifacts. The AAB suite additionally
+expects 7/45 in macOS certificate mode, 7/53 in macOS keystore mode, and 7/55
+in Linux keystore mode. A changed total is a review event, not an automatic
+pass.
 
 Only the eligible first-party, post-merge `develop` manual run may create a
 handoff. The qualifier first uploads it with an explicitly pending/untrusted

@@ -207,6 +207,8 @@ jobs:
           rm -rf \
             app/build/outputs/bundle/internalAppSharing \
             app/build/outputs/mapping/internalAppSharing
+          python3 ./scripts/remove-empty-gradle-coverage-directories.py \
+            "$GITHUB_WORKSPACE"
           if [[ -d app/build/outputs/bundle/release ]]; then
             find app/build/outputs/bundle/release -type f -print0 |
               sort -z |

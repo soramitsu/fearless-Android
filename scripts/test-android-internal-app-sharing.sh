@@ -6,6 +6,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="$ROOT_DIR/gradlew"
 PUBLIC_FIREBASE="$ROOT_DIR/app/src/release/google-services.json"
 FORBIDDEN_IAS_SOURCE="$ROOT_DIR/app/src/internalAppSharing"
+COVERAGE_CLEANER="$ROOT_DIR/scripts/remove-empty-gradle-coverage-directories.py"
+COVERAGE_CLEANER_TEST="$ROOT_DIR/scripts/test-android-gradle-coverage-cleanup.py"
 mkdir -p "$ROOT_DIR/build/test-tmp"
 temporary_dir="$(mktemp -d "$ROOT_DIR/build/test-tmp/android-ias-guards.XXXXXX")"
 
@@ -35,6 +37,10 @@ for command_name in awk cmp cp find git grep ln mktemp python3 sort; do
     fail "required command is unavailable: $command_name"
 done
 [[ -x "$GRADLEW" ]] || fail "Gradle wrapper is missing."
+for required_file in "$COVERAGE_CLEANER" "$COVERAGE_CLEANER_TEST"; do
+  [[ ! -L "$required_file" && -f "$required_file" && -s "$required_file" ]] ||
+    fail "coverage cleanup contract file is missing or unsafe: $required_file"
+done
 [[ ! -L "$PUBLIC_FIREBASE" && -f "$PUBLIC_FIREBASE" && -s "$PUBLIC_FIREBASE" ]] ||
   fail "public Firebase fixture is missing or unsafe."
 [[ ! -e "$FORBIDDEN_IAS_SOURCE" && ! -L "$FORBIDDEN_IAS_SOURCE" ]] ||
@@ -85,7 +91,14 @@ base_environment=(
   FEARLESS_UTILS_LIBRARY_ONLY=true
 )
 
+remove_empty_gradle_coverage_directories() {
+  local source_root="$1"
+  python3 "$COVERAGE_CLEANER" "$source_root" ||
+    fail "bounded Gradle coverage output cleanup failed."
+}
+
 run_gradle_with_env() {
+  remove_empty_gradle_coverage_directories "$ROOT_DIR"
   local default_ci=(CI=false)
   if [[ "${1:-}" == "__UNSET_CI__" ]]; then
     default_ci=()
@@ -151,6 +164,16 @@ expect_failure() {
   negative_count=$((negative_count + 1))
 }
 
+coverage_cleaner_test_log="$temporary_dir/coverage-cleaner-test.log"
+if ! PYTHONDONTWRITEBYTECODE=1 python3 \
+    "$COVERAGE_CLEANER_TEST" \
+    "$COVERAGE_CLEANER" \
+    --temp-parent "$temporary_dir" >"$coverage_cleaner_test_log" 2>&1; then
+  cat "$coverage_cleaner_test_log" >&2
+  fail "Gradle coverage cleanup adversarial tests failed."
+fi
+cat "$coverage_cleaner_test_log"
+remove_empty_gradle_coverage_directories "$ROOT_DIR"
 source_before="$temporary_dir/source-before"
 snapshot_source "$source_before"
 release_outputs_before="$temporary_dir/release-outputs-before"
@@ -247,7 +270,8 @@ required_workflow = [
     'pull_request:',
     'schedule:',
     'IAS_CANDIDATE_SHA',
-    'permissions:',
+    'python3 ./scripts/remove-empty-gradle-coverage-directories.py \\\n'
+    '            "$GITHUB_WORKSPACE"',
     'contents: read',
     'bundleInternalAppSharing',
     'Build exact non-cached unsigned IAS AAB',
@@ -282,13 +306,16 @@ required_verifier = [
     '"$unsigned_source_input" "$unsigned_source_identity" "unsigned IAS source AAB"',
 ]
 required_self_test = [
-    "local exit_code=$?",
-    'local cleanup_status=0\n  trap - EXIT\n  set +e\n  rm -rf "$temporary_dir"\n  cleanup_status=$?',
+    'local exit_code=$?\n  local cleanup_status=0\n  trap - EXIT\n  set +e\n'
+    '  rm -rf "$temporary_dir"\n  cleanup_status=$?',
     'if [[ "$exit_code" -eq 0 && "$cleanup_status" -ne 0 ]]; then\n'
     '    echo "[android-ias-gradle-test][error] unable to remove temporary directory." >&2\n'
     '    exit "$cleanup_status"\n'
     '  fi\n'
     '  exit "$exit_code"',
+    'if ! PYTHONDONTWRITEBYTECODE=1 python3 \\\n'
+    '    "$COVERAGE_CLEANER_TEST" \\\n'
+    '    "$COVERAGE_CLEANER"',
     "trap 'exit 130' HUP INT TERM",
     '${default_ci[@]+"${default_ci[@]}"}',
     '${environment[@]+"${environment[@]}"}',
@@ -366,8 +393,38 @@ def trust_contract_errors(text, count_assertion=None):
 
     context = step_block(text, "Require exact first-party workflow context")
     validation_only = step_block(text, "Mark pull request run validation-only")
+    source_cleanup = step_block(
+        text,
+        "Remove candidate outputs and prove clean source",
+    )
     require(context is not None and context in producer, "first-party workflow context gate must exist in producer")
     require(validation_only is not None and validation_only in producer, "PR validation-only marker must exist in producer")
+    cleaner_invocation = (
+        "python3 ./scripts/remove-empty-gradle-coverage-directories.py \\\n"
+        '            "$GITHUB_WORKSPACE"'
+    )
+    output_removal = (
+        "rm -rf \\\n"
+        "            app/build/outputs/bundle/internalAppSharing \\\n"
+        "            app/build/outputs/mapping/internalAppSharing"
+    )
+    source_verification = "./scripts/verify-android-release-source-tree.sh"
+    cleanup_contract = (
+        source_cleanup is not None
+        and source_cleanup in producer
+        and text.count(cleaner_invocation) == 1
+        and source_cleanup.count(output_removal) == 1
+        and source_cleanup.count(cleaner_invocation) == 1
+        and source_cleanup.count(source_verification) == 1
+        and source_cleanup.index(output_removal)
+        < source_cleanup.index(cleaner_invocation)
+        < source_cleanup.index(source_verification)
+    )
+    require(
+        cleanup_contract,
+        "candidate cleanup must run the exact bounded cleaner after output "
+        "removal and before source verification",
+    )
     if context is not None:
         require(
             '[[ "${GITHUB_REPOSITORY:-}" == "soramitsu/fearless-Android" ]]' in context
@@ -1099,6 +1156,21 @@ else:
     cleanup_name = "Remove qualifier candidates and local handoff"
     finalizer_name = "Keep only a fully download-back-qualified current artifact"
     janitor_name = "Retain only exact pending artifacts from successful qualified runs"
+    source_cleanup_name = "Remove candidate outputs and prove clean source"
+
+    add_step_contract(
+        "bounded coverage cleanup placement",
+        source_cleanup_name,
+        "          python3 ./scripts/remove-empty-gradle-coverage-directories.py \\\n"
+        '            "$GITHUB_WORKSPACE"\n',
+        "          ./scripts/verify-android-release-source-tree.sh \\\n"
+        '            "$IAS_CANDIDATE_SHA" "$IAS_SOURCE_TREE" '
+        "--allow-fearless-utils\n"
+        "          python3 ./scripts/remove-empty-gradle-coverage-directories.py \\\n"
+        '            "$GITHUB_WORKSPACE"\n',
+        "candidate cleanup must run the exact bounded cleaner after output "
+        "removal and before source verification",
+    )
 
     for label, old, changed, expected in (
         (
@@ -1913,8 +1985,8 @@ PY
   fail "IAS static contract failed."
 fi
 static_count="$(<"$static_count_file")"
-[[ "$static_count" == "621" ]] ||
-  fail "expected 621 static adversarial assertions; got $static_count."
+[[ "$static_count" == "624" ]] ||
+  fail "expected 624 static adversarial assertions; got $static_count."
 
 if [[ "${IAS_GRADLE_CONTRACT_ONLY:-false}" == "true" ]]; then
   assert_source_unchanged "$source_before" "static IAS contract"
@@ -2075,6 +2147,7 @@ restore_clone_firebase() {
 }
 
 run_clone_gradle() {
+  remove_empty_gradle_coverage_directories "$firebase_clone"
   env \
     -u ANDROID_UNSIGNED_RELEASE_BUILD \
     -u CI_KEYSTORE_PATH \
@@ -2246,6 +2319,7 @@ release_outputs_after="$temporary_dir/release-outputs-after"
 snapshot_release_outputs "$release_outputs_after"
 cmp -s "$release_outputs_before" "$release_outputs_after" ||
   fail "IAS guard tests changed production release outputs."
+remove_empty_gradle_coverage_directories "$ROOT_DIR"
 assert_source_unchanged "$source_before" "complete IAS guard suite"
 
 [[ "$positive_count" == "8" ]] ||

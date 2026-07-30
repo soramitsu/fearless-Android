@@ -237,9 +237,10 @@ CI qualification runs in this order:
    otherwise it must delete it. The scheduled janitor removes canceled, failed,
    stale, or ambiguous pending artifacts.
 
-Frozen totals are dependency provenance 2 positive / 40 adversarial, IAS
-Gradle 8 positive / 39 behavioral negative / 621 static adversarial assertions,
-and workflow Linux public-certificate IAS AAB 7 positive / 47 adversarial
+Frozen totals are dependency provenance 2 positive / 40 adversarial, bounded
+Gradle coverage cleanup 4 positive / 12 negative/adversarial, IAS Gradle 8
+positive / 39 behavioral negative / 624 static adversarial assertions, and
+workflow Linux public-certificate IAS AAB 7 positive / 47 adversarial
 artifacts. Local AAB expectations are 7/45 on macOS in certificate mode, 7/53
 on macOS in keystore mode, and 7/55 on Linux in keystore mode. Any total drift
 requires review. IAS handoff status remains pending until the eligible manual

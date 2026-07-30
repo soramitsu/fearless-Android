@@ -58,9 +58,10 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   artifacts. An operator may then manually upload its exact verified AAB to
   Play Console Internal App Sharing. CI must never upload IAS bytes to
   Google/Play or mutate a Play track. Frozen totals are dependency provenance
-  2 positive / 40 adversarial, IAS Gradle 8 positive / 39 behavioral negative /
-  621 static adversarial, and workflow Linux certificate-mode IAS AAB 7
-  positive / 47 adversarial.
+  2 positive / 40 adversarial, bounded Gradle coverage cleanup 4 positive / 12
+  negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 624
+  static adversarial, and workflow Linux certificate-mode IAS AAB 7 positive /
+  47 adversarial.
 - Signed Android release artifact pipeline:
   `.github/workflows/android-release.yml` builds
   only an immutable tagged `master` source after exact-head CI passes. CI has
