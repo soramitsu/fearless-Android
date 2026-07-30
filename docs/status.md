@@ -64,7 +64,9 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   2 positive / 40 adversarial, bounded Gradle coverage cleanup 4 positive / 12
   negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 645
   static adversarial, and workflow Linux certificate-mode IAS AAB 7 positive /
-  78 adversarial.
+  78 adversarial. The shared AAB identity harness separately freezes the R8
+  policy at 4 positive / 19 negative/adversarial and its exact fixture
+  synthesizer boundaries at 1 positive / 15 negative/adversarial.
 - Signed Android release artifact pipeline:
   `.github/workflows/android-release.yml` builds
   only an immutable tagged `master` source after exact-head CI passes. CI has

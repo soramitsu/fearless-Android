@@ -10,7 +10,7 @@ CLEANUP="$ROOT_DIR/scripts/cleanup-release-overlays.sh"
 SNAPSHOT="$ROOT_DIR/scripts/emit-verified-release-snapshot.sh"
 EXPECTED_UPLOAD_CERT_SHA256="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
 EXPECTED_POSITIVE_COUNT=4
-EXPECTED_NEGATIVE_COUNT=122
+EXPECTED_NEGATIVE_COUNT=123
 
 fail() {
   echo "[android-play-release-test][error] $*" >&2
@@ -83,6 +83,17 @@ require_exact_count() {
   local diagnostic="$4"
   local actual
   actual="$(grep -Foc -- "$text" "$path" || true)"
+  [[ "$actual" == "$expected" ]] ||
+    static_fail "$diagnostic (expected $expected, found $actual)"
+}
+
+require_exact_line_count() {
+  local path="$1"
+  local text="$2"
+  local expected="$3"
+  local diagnostic="$4"
+  local actual
+  actual="$(grep -Fxc -- "$text" "$path" || true)"
   [[ "$actual" == "$expected" ]] ||
     static_fail "$diagnostic (expected $expected, found $actual)"
 }
@@ -1680,6 +1691,91 @@ verify_static_contract() {
     "$identity_test" \
     "expected 135 negative cases" \
     "signed AAB identity test must fix its adversarial count"
+  require_exact_line_count \
+    "$identity_test" \
+    "# R8_FIXTURE_SYNTHESIZER_SOURCE_BEGIN" \
+    "1" \
+    "R8 synthesis boundary test must extract the exact synthesizer start"
+  require_exact_line_count \
+    "$identity_test" \
+    "# R8_FIXTURE_SYNTHESIZER_SOURCE_END" \
+    "1" \
+    "R8 synthesis boundary test must extract the exact synthesizer end"
+  for synthesis_bound in \
+    "maximum_aab_bytes = 262_144_000" \
+    "maximum_entry_count = 100_000" \
+    "maximum_entry_bytes = 134_217_728" \
+    "maximum_total_uncompressed_bytes = 536_870_912"; do
+    require_text \
+      "$identity_test" \
+      "$synthesis_bound" \
+      "R8 synthesis boundary test must retain every reviewed exact bound"
+  done
+  for synthesis_operator in \
+    "if output_size <= 0 or output_size > maximum_aab_bytes:" \
+    "or before.st_size > maximum_aab_bytes" \
+    "if not entries or len(entries) > maximum_entry_count:" \
+    "or entry.file_size > maximum_entry_bytes" \
+    "if total_uncompressed_bytes > maximum_total_uncompressed_bytes:"; do
+    require_text \
+      "$identity_test" \
+      "$synthesis_operator" \
+      "R8 synthesis boundary test must retain every reviewed strict bound"
+  done
+  require_text \
+    "$identity_test" \
+    'reviewed_bound_names = {' \
+    "R8 synthesis fixtures must derive bounds from the extracted source"
+  require_text \
+    "$identity_test" \
+    'maximum_aab_bytes = bound_values["maximum_aab_bytes"]' \
+    "R8 synthesis fixtures must use the extracted AAB byte bound"
+  require_text \
+    "$identity_test" \
+    'maximum_entry_count = bound_values["maximum_entry_count"]' \
+    "R8 synthesis fixtures must use the extracted ZIP entry-count bound"
+  require_text \
+    "$identity_test" \
+    'maximum_entry_bytes = bound_values["maximum_entry_bytes"]' \
+    "R8 synthesis fixtures must use the extracted per-entry byte bound"
+  require_text \
+    "$identity_test" \
+    'maximum_total_uncompressed_bytes = bound_values[' \
+    "R8 synthesis fixtures must use the extracted aggregate byte bound"
+  require_text \
+    "$identity_test" \
+    'aggregate_total_bytes = maximum_total_uncompressed_bytes + 1' \
+    "R8 synthesis aggregate fixture must exercise the first rejected byte"
+  require_text \
+    "$identity_test" \
+    'output_payload_total_bytes = maximum_aab_bytes + 1 - output_overhead_bytes' \
+    "R8 synthesis output fixture must derive the first rejected output byte"
+  require_text \
+    "$identity_test" \
+    'expected_size = maximum_aab_values[0] + 1' \
+    "R8 synthesis output fixture must verify the first rejected output byte"
+  require_exact_count \
+    "$identity_test" \
+    "synthesis destination already exists" \
+    "3" \
+    "R8 synthesis fixtures must use a stable exclusive-destination diagnostic"
+  require_exact_count \
+    "$identity_test" \
+    "source fixture could not be opened without following links" \
+    "2" \
+    "R8 synthesis fixtures must use a stable no-follow diagnostic"
+  require_text \
+    "$identity_test" \
+    "expected 1 R8-synthesis boundary positive case" \
+    "R8 synthesis boundary test must retain its positive case"
+  require_text \
+    "$identity_test" \
+    "expected 15 R8-synthesis boundary negative/adversarial cases" \
+    "R8 synthesis boundary test must fix its adversarial count"
+  require_text \
+    "$identity_test" \
+    "[android-aab-r8-synthesis-boundary-test]" \
+    "R8 synthesis boundary test must emit its fixed completion receipt"
   require_text \
     "$build_log_test" \
     '[[ "$positive_count" == "2" ]]' \
@@ -2746,6 +2842,15 @@ replace_once "$fixture/scripts/test-android-aab-identity.sh" \
 expect_static_failure \
   "AAB identity adversarial count weakened" \
   "identity test must fix its adversarial count" \
+  "$fixture"
+
+fixture="$(make_fixture r8-synthesis-boundary-count-weakened)"
+replace_once "$fixture/scripts/test-android-aab-identity.sh" \
+  "expected 15 R8-synthesis boundary negative/adversarial cases" \
+  "expected 14 R8-synthesis boundary negative/adversarial cases"
+expect_static_failure \
+  "R8 synthesis boundary adversarial count weakened" \
+  "R8 synthesis boundary test must fix its adversarial count" \
   "$fixture"
 
 fixture="$(make_fixture unsigned-count-weakened)"

@@ -74,7 +74,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     Gradle/build inputs, release scripts, and GitHub workflows. Its adversarial
     suite includes alternate modules, `buildSrc`, versioning properties, and
     alternate workflow files.
-  - The release-architecture guard fixes exactly 4 positive and 122
+  - The release-architecture guard fixes exactly 4 positive and 123
     deterministic negative/adversarial cases. It rejects legacy combined
     overlays, signing credential overlap with Gradle, every Play
     service-account/API/Gradle mutation path, build/signing reviewer overlap,
@@ -134,6 +134,10 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     Its explicit R8 policy suite fixes 4 positive and 19 negative/adversarial
     cases, including the legacy five-argument default, absent-versus-required
     mismatches, non-canonical aliases, and source-binding bypass attempts.
+    The exact fixture-synthesis boundary suite fixes 1 positive and 15
+    negative/adversarial cases, including source/output bytes, ZIP entry count,
+    per-entry expansion, aggregate expansion, encryption, compression,
+    duplicate metadata, symlinks, and exclusive destinations.
     The separate JAR-signature suite verifies the exact pinned self-signed
     upload certificate through an ephemeral truststore and rejects unsigned
     entries, tampering, the wrong certificate, multiple signers, and duplicate

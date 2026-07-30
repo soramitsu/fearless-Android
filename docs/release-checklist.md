@@ -39,7 +39,7 @@ procedure.
   Confirm the MoonPay audit scans every tracked Android module source set,
   Gradle/build input, release script, and GitHub workflow rather than only the
   former wallet provider paths, and rejects all 16 adversarial fixtures.
-  Confirm the release-architecture guard reports exactly 4 positive and 122
+  Confirm the release-architecture guard reports exactly 4 positive and 123
   deterministic negative/adversarial cases. It must reject a combined
   `RELEASE_OVERLAY_MODE=release`, signing credentials exposed to Gradle, every
   Play service-account/API/Gradle publisher path, reviewer overlap between
@@ -58,7 +58,10 @@ procedure.
   reports 2 positive and 10 adversarial cases. Confirm fearless-utils source
   integrity reports 4 positive and 7 adversarial cases, and exact signed-AAB
   identity reports 2 positive and 135 adversarial cases, while its explicit R8
-  policy suite reports 4 positive and 19 negative/adversarial cases. Confirm
+  policy suite reports 4 positive and 19 negative/adversarial cases. Its
+  source-to-policy fixture synthesizer must also report exactly 1 positive and
+  15 bounded negative/adversarial cases, including the exact source, output,
+  entry-count, per-entry, and aggregate-expansion limits. Confirm
   the release build-log suite reports 2 positive and 26 adversarial cases and rejects
   cached, skipped, or warning-bearing R8 evidence.
   Confirm Gradle dependency provenance is strict: the wrapper distribution

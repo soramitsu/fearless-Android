@@ -159,6 +159,12 @@ input. Signed and `--signed-from` modes bind the checksum-pinned
 `FEARLESS_UTILS_EFFECTIVE_TREE`, and `FEARLESS_UTILS_PATH`. Every mode may
 write its private snapshot to one new absolute output path.
 
+The identity harness also runs the exact extracted R8 fixture synthesizer
+through 1 positive and 15 bounded negative/adversarial cases. The cases cover
+source/output bytes, ZIP entry count, per-entry and aggregate expansion,
+encrypted or unsupported entries, duplicate canonical metadata, symlinks, and
+exclusive output creation.
+
 The frozen suites must report dependency provenance 2 positive / 40
 adversarial, bounded Gradle coverage cleanup 4 positive / 12
 negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 645

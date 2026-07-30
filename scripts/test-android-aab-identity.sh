@@ -94,7 +94,7 @@ case "$requested_r8_policy" in
 esac
 active_r8_policy="$requested_r8_policy"
 
-for command_name in cp grep java mktemp python3 unzip; do
+for command_name in cp grep java mktemp python3 sed unzip; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command is unavailable: $command_name"
 done
@@ -115,10 +115,11 @@ real_java="$(command -v java)"
 original_identity_fixture="$AAB_IDENTITY_FIXTURE"
 fixture_with_r8="$tmp_dir/fixture-with-r8.aab"
 fixture_without_r8="$tmp_dir/fixture-without-r8.aab"
-python3 - \
+python3 -I - \
   "$original_identity_fixture" \
   "$fixture_with_r8" \
   "$fixture_without_r8" <<'PY'
+# R8_FIXTURE_SYNTHESIZER_SOURCE_BEGIN
 import copy
 import json
 import os
@@ -155,11 +156,17 @@ def source_identity(metadata):
 
 
 def write_fixture(archive, entries, destination, include_r8, has_r8):
-    with zipfile.ZipFile(
-        destination,
-        "x",
-        allowZip64=True,
-    ) as output:
+    try:
+        output_archive = zipfile.ZipFile(
+            destination,
+            "x",
+            allowZip64=True,
+        )
+    except FileExistsError as error:
+        raise ValueError(
+            f"synthesis destination already exists: {destination}"
+        ) from error
+    with output_archive as output:
         for entry in entries:
             if entry.filename == r8_path and not include_r8:
                 continue
@@ -201,7 +208,12 @@ def write_fixture(archive, entries, destination, include_r8, has_r8):
         )
 
 
-source_fd = os.open(source, source_flags)
+try:
+    source_fd = os.open(source, source_flags)
+except OSError as error:
+    raise ValueError(
+        "source fixture could not be opened without following links"
+    ) from error
 try:
     before = os.fstat(source_fd)
     if (
@@ -266,7 +278,485 @@ try:
         raise ValueError("source fixture changed while it was synthesized")
 finally:
     os.close(source_fd)
+# R8_FIXTURE_SYNTHESIZER_SOURCE_END
 PY
+
+r8_synthesis_boundary_dir="$tmp_dir/r8-synthesis-boundaries"
+r8_synthesis_input_dir="$r8_synthesis_boundary_dir/input"
+mkdir -p "$r8_synthesis_input_dir"
+r8_synthesizer_source="$r8_synthesis_boundary_dir/synthesizer.py"
+sed -n \
+  '/^# R8_FIXTURE_SYNTHESIZER_SOURCE_BEGIN$/,/^# R8_FIXTURE_SYNTHESIZER_SOURCE_END$/p' \
+  "$0" >"$r8_synthesizer_source"
+[[ "$(grep -Fxc '# R8_FIXTURE_SYNTHESIZER_SOURCE_BEGIN' \
+  "$r8_synthesizer_source")" == "1" &&
+  "$(grep -Fxc '# R8_FIXTURE_SYNTHESIZER_SOURCE_END' \
+    "$r8_synthesizer_source")" == "1" ]] ||
+  fail "could not extract the exact R8 fixture synthesizer for boundary tests"
+
+python3 -I - \
+  "$r8_synthesis_input_dir" \
+  "$r8_synthesizer_source" <<'PY'
+import ast
+import copy
+import json
+import os
+import struct
+import sys
+import warnings
+import zipfile
+
+output_dir, synthesizer_source = sys.argv[1:]
+reviewed_bound_names = {
+    "maximum_aab_bytes",
+    "maximum_entry_count",
+    "maximum_entry_bytes",
+    "maximum_total_uncompressed_bytes",
+}
+with open(synthesizer_source, encoding="utf-8") as source_file:
+    synthesizer_tree = ast.parse(source_file.read(), synthesizer_source)
+bound_values = {}
+for node in ast.walk(synthesizer_tree):
+    if (
+        isinstance(node, ast.Assign)
+        and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+        and node.targets[0].id in reviewed_bound_names
+        and isinstance(node.value, ast.Constant)
+        and type(node.value.value) is int
+    ):
+        name = node.targets[0].id
+        if name in bound_values:
+            raise SystemExit(f"duplicate synthesizer bound assignment: {name}")
+        bound_values[name] = node.value.value
+if set(bound_values) != reviewed_bound_names:
+    raise SystemExit(
+        "synthesizer bound inventory differs from the reviewed source"
+    )
+if any(value <= 0 for value in bound_values.values()):
+    raise SystemExit("synthesizer bounds must all be positive")
+
+maximum_aab_bytes = bound_values["maximum_aab_bytes"]
+maximum_entry_count = bound_values["maximum_entry_count"]
+maximum_entry_bytes = bound_values["maximum_entry_bytes"]
+maximum_total_uncompressed_bytes = bound_values[
+    "maximum_total_uncompressed_bytes"
+]
+r8_path = "BUNDLE-METADATA/com.android.tools/r8.json"
+
+
+def archive_path(name):
+    return os.path.join(output_dir, name)
+
+
+def write_empty_entries(path, names):
+    with zipfile.ZipFile(path, "x", allowZip64=True) as archive:
+        for name in names:
+            archive.writestr(name, b"")
+
+
+def central_offsets(data):
+    offsets = []
+    cursor = 0
+    marker = b"PK\x01\x02"
+    while True:
+        cursor = data.find(marker, cursor)
+        if cursor < 0:
+            return offsets
+        offsets.append(cursor)
+        cursor += len(marker)
+
+
+def patch_central(source, destination, field_offset, field_format, values):
+    with open(source, "rb") as fixture:
+        data = bytearray(fixture.read())
+    offsets = central_offsets(data)
+    if len(offsets) != len(values):
+        raise SystemExit(
+            f"central-directory inventory mismatch: {len(offsets)} != "
+            f"{len(values)}"
+        )
+    for offset, value in zip(offsets, values):
+        struct.pack_into(field_format, data, offset + field_offset, value)
+    with open(destination, "xb") as fixture:
+        fixture.write(data)
+
+
+with zipfile.ZipFile(
+    archive_path("valid-small.aab"),
+    "x",
+    zipfile.ZIP_DEFLATED,
+) as archive:
+    archive.writestr("base/manifest/AndroidManifest.xml", b"manifest\n")
+
+with open(archive_path("zero-size.aab"), "xb"):
+    pass
+
+with open(archive_path("source-too-large.aab"), "xb") as fixture:
+    fixture.truncate(maximum_aab_bytes + 1)
+
+os.mkdir(archive_path("source-directory.aab"))
+os.symlink(
+    archive_path("valid-small.aab"),
+    archive_path("source-symlink.aab"),
+)
+
+with zipfile.ZipFile(archive_path("empty-archive.aab"), "x"):
+    pass
+
+with zipfile.ZipFile(
+    archive_path("too-many-entries.aab"),
+    "x",
+    compression=zipfile.ZIP_STORED,
+    allowZip64=True,
+) as archive:
+    for index in range(maximum_entry_count + 1):
+        archive.writestr(f"e/{index:06d}", b"")
+
+write_empty_entries(
+    archive_path("entry-template.aab"),
+    ["oversized-entry.bin"],
+)
+patch_central(
+    archive_path("entry-template.aab"),
+    archive_path("oversized-entry.aab"),
+    24,
+    "<I",
+    [maximum_entry_bytes + 1],
+)
+
+aggregate_names = [f"aggregate-{index}.bin" for index in range(5)]
+aggregate_total_bytes = maximum_total_uncompressed_bytes + 1
+aggregate_base_bytes, aggregate_remainder = divmod(
+    aggregate_total_bytes,
+    len(aggregate_names),
+)
+aggregate_entry_sizes = [
+    aggregate_base_bytes + (1 if index < aggregate_remainder else 0)
+    for index in range(len(aggregate_names))
+]
+if (
+    sum(aggregate_entry_sizes) != aggregate_total_bytes
+    or max(aggregate_entry_sizes) > maximum_entry_bytes
+):
+    raise SystemExit(
+        "aggregate test cannot isolate the aggregate bound from the per-entry "
+        "bound"
+    )
+write_empty_entries(
+    archive_path("aggregate-template.aab"),
+    aggregate_names,
+)
+patch_central(
+    archive_path("aggregate-template.aab"),
+    archive_path("aggregate-over-limit.aab"),
+    24,
+    "<I",
+    aggregate_entry_sizes,
+)
+
+write_empty_entries(
+    archive_path("metadata-template.aab"),
+    ["metadata.bin"],
+)
+metadata_template = archive_path("metadata-template.aab")
+patch_central(
+    metadata_template,
+    archive_path("compressed-size-over-limit.aab"),
+    20,
+    "<I",
+    [0xFFFFFFFF],
+)
+patch_central(
+    metadata_template,
+    archive_path("encrypted-entry.aab"),
+    8,
+    "<H",
+    [0x1],
+)
+patch_central(
+    metadata_template,
+    archive_path("unsupported-compression.aab"),
+    10,
+    "<H",
+    [zipfile.ZIP_BZIP2],
+)
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", UserWarning)
+    with zipfile.ZipFile(
+        archive_path("duplicate-r8.aab"),
+        "x",
+        zipfile.ZIP_DEFLATED,
+    ) as archive:
+        archive.writestr(r8_path, b'{"version":"8.10.24"}')
+        archive.writestr(r8_path, b'{"version":"8.10.24"}')
+
+output_payload_names = [f"payload-{index}.bin" for index in range(2)]
+output_overhead_source = archive_path("output-overhead-source.aab")
+output_overhead_destination = archive_path("output-overhead-with-r8.aab")
+with zipfile.ZipFile(
+    output_overhead_source,
+    "x",
+    compression=zipfile.ZIP_STORED,
+    allowZip64=True,
+) as archive:
+    for name in output_payload_names:
+        with archive.open(name, "w", force_zip64=True):
+            pass
+with zipfile.ZipFile(output_overhead_source, "r") as source_archive:
+    with zipfile.ZipFile(
+        output_overhead_destination,
+        "x",
+        allowZip64=True,
+    ) as output_archive:
+        for entry in source_archive.infolist():
+            with source_archive.open(entry, "r") as reader:
+                with output_archive.open(
+                    copy.copy(entry),
+                    "w",
+                    force_zip64=True,
+                ) as writer:
+                    writer.write(reader.read())
+        output_archive.writestr(
+            r8_path,
+            json.dumps(
+                {"version": "8.10.24"},
+                separators=(",", ":"),
+            ).encode("utf-8"),
+        )
+output_overhead_bytes = os.path.getsize(output_overhead_destination)
+os.unlink(output_overhead_destination)
+os.unlink(output_overhead_source)
+output_payload_total_bytes = maximum_aab_bytes + 1 - output_overhead_bytes
+output_payload_base_bytes, output_payload_remainder = divmod(
+    output_payload_total_bytes,
+    len(output_payload_names),
+)
+output_payload_sizes = [
+    output_payload_base_bytes + (1 if index < output_payload_remainder else 0)
+    for index in range(len(output_payload_names))
+]
+if (
+    output_payload_total_bytes <= 0
+    or sum(output_payload_sizes) != output_payload_total_bytes
+    or max(output_payload_sizes) > maximum_entry_bytes
+):
+    raise SystemExit(
+        "output-size test cannot isolate the output bound from the per-entry "
+        "bound"
+    )
+with zipfile.ZipFile(
+    archive_path("output-over-limit.aab"),
+    "x",
+    compression=zipfile.ZIP_STORED,
+    allowZip64=True,
+) as archive:
+    zero_chunk = b"\0" * (8 * 1024 * 1024)
+    for name, entry_size in zip(output_payload_names, output_payload_sizes):
+        with archive.open(
+            name,
+            "w",
+            force_zip64=True,
+        ) as writer:
+            remaining = entry_size
+            while remaining:
+                chunk = zero_chunk[: min(remaining, len(zero_chunk))]
+                writer.write(chunk)
+                remaining -= len(chunk)
+
+output_over_limit_size = os.path.getsize(
+    archive_path("output-over-limit.aab")
+)
+if not 0 < output_over_limit_size <= maximum_aab_bytes:
+    raise SystemExit(
+        f"output-limit source fixture has unsafe size: "
+        f"{output_over_limit_size}"
+    )
+PY
+
+r8_synthesis_positive_count=0
+r8_synthesis_negative_count=0
+
+run_r8_synthesizer() {
+  local source="$1"
+  local output_dir="$2"
+  mkdir -p "$output_dir"
+  python3 -I \
+    "$r8_synthesizer_source" \
+    "$source" \
+    "$output_dir/with-r8.aab" \
+    "$output_dir/without-r8.aab"
+}
+
+positive_synthesis_dir="$r8_synthesis_boundary_dir/positive"
+run_r8_synthesizer \
+  "$r8_synthesis_input_dir/valid-small.aab" \
+  "$positive_synthesis_dir"
+python3 -I - \
+  "$positive_synthesis_dir/with-r8.aab" \
+  "$positive_synthesis_dir/without-r8.aab" <<'PY'
+import sys
+import zipfile
+
+with_r8, without_r8 = sys.argv[1:]
+r8_path = "BUNDLE-METADATA/com.android.tools/r8.json"
+with zipfile.ZipFile(with_r8) as archive:
+    if archive.namelist().count(r8_path) != 1:
+        raise SystemExit("positive synthesis did not add exactly one R8 entry")
+with zipfile.ZipFile(without_r8) as archive:
+    if archive.namelist().count(r8_path) != 0:
+        raise SystemExit("positive synthesis did not remove the R8 entry")
+PY
+r8_synthesis_positive_count=$((r8_synthesis_positive_count + 1))
+
+expect_r8_synthesis_failure() {
+  local label="$1"
+  local expected_diagnostic="$2"
+  local source="$3"
+  local mode="${4:-ordinary}"
+  local case_dir="$r8_synthesis_boundary_dir/failure-$r8_synthesis_negative_count"
+  local output="$case_dir/output.log"
+  mkdir -p "$case_dir"
+  case "$mode" in
+    ordinary|exact-output-over-limit) ;;
+    preexisting-with-r8)
+      : >"$case_dir/with-r8.aab"
+      ;;
+    preexisting-without-r8)
+      : >"$case_dir/without-r8.aab"
+      ;;
+    *)
+      fail "$label has an unsupported test mode: $mode"
+      ;;
+  esac
+  if python3 -I \
+    "$r8_synthesizer_source" \
+    "$source" \
+    "$case_dir/with-r8.aab" \
+    "$case_dir/without-r8.aab" >"$output" 2>&1; then
+    fail "$label unexpectedly passed"
+  fi
+  grep -Fq "$expected_diagnostic" "$output" || {
+    sed -n '1,120p' "$output" >&2
+    fail "$label did not emit the expected diagnostic: $expected_diagnostic"
+  }
+  if [[ "$mode" == "exact-output-over-limit" ]]; then
+    python3 -I - \
+      "$r8_synthesizer_source" \
+      "$case_dir/with-r8.aab" \
+      "$case_dir/without-r8.aab" \
+      "$source" <<'PY'
+import ast
+import os
+import sys
+
+synthesizer_source, with_r8, without_r8, source = sys.argv[1:]
+with open(synthesizer_source, encoding="utf-8") as source_file:
+    synthesizer_tree = ast.parse(source_file.read(), synthesizer_source)
+maximum_aab_values = [
+    node.value.value
+    for node in ast.walk(synthesizer_tree)
+    if (
+        isinstance(node, ast.Assign)
+        and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+        and node.targets[0].id == "maximum_aab_bytes"
+        and isinstance(node.value, ast.Constant)
+        and type(node.value.value) is int
+    )
+]
+if len(maximum_aab_values) != 1:
+    raise SystemExit("could not recover the unique synthesized AAB byte bound")
+actual_size = os.path.getsize(with_r8)
+expected_size = maximum_aab_values[0] + 1
+if actual_size != expected_size:
+    raise SystemExit(
+        f"output-limit fixture missed the first rejected byte: "
+        f"{actual_size} != {expected_size}"
+    )
+for path in (with_r8, without_r8, source):
+    if os.path.lexists(path):
+        os.unlink(path)
+PY
+  fi
+  r8_synthesis_negative_count=$((r8_synthesis_negative_count + 1))
+}
+
+expect_r8_synthesis_failure \
+  "zero-byte source fixture" \
+  "source fixture has an unsafe size or file type" \
+  "$r8_synthesis_input_dir/zero-size.aab"
+expect_r8_synthesis_failure \
+  "source fixture over the exact AAB byte limit" \
+  "source fixture has an unsafe size or file type" \
+  "$r8_synthesis_input_dir/source-too-large.aab"
+expect_r8_synthesis_failure \
+  "non-regular source fixture" \
+  "source fixture has an unsafe size or file type" \
+  "$r8_synthesis_input_dir/source-directory.aab"
+expect_r8_synthesis_failure \
+  "symlink source fixture" \
+  "source fixture could not be opened without following links" \
+  "$r8_synthesis_input_dir/source-symlink.aab"
+expect_r8_synthesis_failure \
+  "empty ZIP source fixture" \
+  "source fixture has an unsafe ZIP entry count: 0" \
+  "$r8_synthesis_input_dir/empty-archive.aab"
+expect_r8_synthesis_failure \
+  "ZIP source fixture over the exact entry-count limit" \
+  "source fixture has an unsafe ZIP entry count: 100001" \
+  "$r8_synthesis_input_dir/too-many-entries.aab"
+expect_r8_synthesis_failure \
+  "ZIP entry over the exact uncompressed byte limit" \
+  "source fixture contains an unsafe ZIP entry: 'oversized-entry.bin'" \
+  "$r8_synthesis_input_dir/oversized-entry.aab"
+expect_r8_synthesis_failure \
+  "ZIP source fixture over the exact aggregate uncompressed byte limit" \
+  "source fixture exceeds the aggregate uncompressed size limit" \
+  "$r8_synthesis_input_dir/aggregate-over-limit.aab"
+expect_r8_synthesis_failure \
+  "ZIP entry with declared compressed size larger than its source" \
+  "source fixture contains an unsafe ZIP entry: 'metadata.bin'" \
+  "$r8_synthesis_input_dir/compressed-size-over-limit.aab"
+expect_r8_synthesis_failure \
+  "encrypted ZIP entry" \
+  "source fixture contains an unsafe ZIP entry: 'metadata.bin'" \
+  "$r8_synthesis_input_dir/encrypted-entry.aab"
+expect_r8_synthesis_failure \
+  "unsupported ZIP compression" \
+  "source fixture contains an unsafe ZIP entry: 'metadata.bin'" \
+  "$r8_synthesis_input_dir/unsupported-compression.aab"
+expect_r8_synthesis_failure \
+  "duplicate canonical R8 metadata" \
+  "source fixture contains duplicate canonical R8 metadata" \
+  "$r8_synthesis_input_dir/duplicate-r8.aab"
+expect_r8_synthesis_failure \
+  "synthesized fixture over the exact output byte limit" \
+  "synthesized fixture has unsafe size" \
+  "$r8_synthesis_input_dir/output-over-limit.aab" \
+  exact-output-over-limit
+expect_r8_synthesis_failure \
+  "preexisting exclusive without-R8 synthesis destination" \
+  "synthesis destination already exists" \
+  "$r8_synthesis_input_dir/valid-small.aab" \
+  preexisting-without-r8
+expect_r8_synthesis_failure \
+  "preexisting exclusive with-R8 synthesis destination" \
+  "synthesis destination already exists" \
+  "$r8_synthesis_input_dir/valid-small.aab" \
+  preexisting-with-r8
+
+[[ "$r8_synthesis_positive_count" == "1" ]] ||
+  fail \
+    "expected 1 R8-synthesis boundary positive case; got " \
+    "$r8_synthesis_positive_count"
+[[ "$r8_synthesis_negative_count" == "15" ]] ||
+  fail \
+    "expected 15 R8-synthesis boundary negative/adversarial cases; got " \
+    "$r8_synthesis_negative_count"
+printf '%s\n' \
+  "[android-aab-r8-synthesis-boundary-test] $r8_synthesis_positive_count positive + $r8_synthesis_negative_count negative/adversarial cases passed"
 
 run_verifier() {
   local artifact="$1"
@@ -335,7 +825,7 @@ chmod 700 "$fake_java_dir/java"
 write_manifest_fixture() {
   local mode="$1"
   local output="$2"
-  python3 - \
+  python3 -I - \
     "$output" \
     "$mode" \
     "$PRODUCTION_AAB_PACKAGE" \
@@ -1005,7 +1495,7 @@ mutate_artifact() {
   local mode="$1"
   local output="$2"
   local source="${3:-$AAB_IDENTITY_FIXTURE}"
-  python3 - "$source" "$output" "$mode" <<'PY'
+  python3 -I - "$source" "$output" "$mode" <<'PY'
 import sys
 import json
 import stat
@@ -1425,7 +1915,7 @@ expect_r8_policy_failure \
 write_build_config_fixture() {
   local mode="$1"
   local output="$2"
-  python3 - "$output" "$mode" <<'PY'
+  python3 -I - "$output" "$mode" <<'PY'
 import sys
 
 output, mode = sys.argv[1:]
