@@ -128,6 +128,13 @@ OAuth/sign-in, Google Drive or passkey backup/restore, Play upgrade, production
 database migration, or production signing. Empty or fake placeholder values
 must never be interpreted as successful coverage of those integrations.
 
+Pull-request validation is also deliberately WalletConnect-secretless and
+non-distributable. Only an eligible protected-`develop` manual dispatch binds
+`secrets.FL_WALLET_CONNECT_PROJECT_ID`, and only to the exact non-cached bundle
+step; that step fails closed unless it is 32 hexadecimal characters. The
+project ID is never printed. Trusted tester acceptance must scan a valid `wc:`
+pairing URI in addition to the cold-start/navigation soak.
+
 Each eligible manual run transfers the exact unsigned producer artifact by
 GitHub artifact ID and digest into a fresh qualifier. Disposable operating
 system users independently validate the unsigned bytes, create a mode-`0600`
@@ -154,7 +161,7 @@ write its private snapshot to one new absolute output path.
 
 The frozen suites must report dependency provenance 2 positive / 40
 adversarial, bounded Gradle coverage cleanup 4 positive / 12
-negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 633
+negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 643
 static adversarial assertions, and the workflow's Linux public-certificate IAS
 AAB suite 7 positive / 78 adversarial artifacts. The AAB suite additionally
 expects 7/76 in macOS certificate mode, 7/84 in macOS keystore mode, and 7/86

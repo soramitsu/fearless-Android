@@ -202,7 +202,7 @@ manual workflow run.
   deletes every unqualified one; the scheduled janitor removes stale pending
   artifacts.
 - Run `bash scripts/test-android-internal-app-sharing.sh` and require exactly 8
-  positive, 39 behavioral negative, and 633 static adversarial assertions.
+  positive, 39 behavioral negative, and 643 static adversarial assertions.
   Its bounded Gradle coverage-cleanup prerequisite must independently report
   exactly 4 positive and 12 negative/adversarial cases.
   Require the dependency-provenance suite to report exactly 2 positive and 40
@@ -217,6 +217,11 @@ manual workflow run.
   `ANDROID_UNSIGNED_RELEASE_BUILD`, injected signing properties, any release
   keystore/password, Play credential/control, or production Firebase overlay
   input.
+- Confirm pull-request validation received no WalletConnect project ID. For an
+  eligible protected-`develop` manual dispatch, require the exact build step to
+  receive a non-logged 32-hex `secrets.FL_WALLET_CONNECT_PROJECT_ID`; no other
+  step may reference it. Reject the handoff if a valid `wc:` pairing scan is
+  not exercised during the trusted device soak.
 - Confirm the variant retained release minification/resource shrinking,
   package ID, version code, source-bound manifest, component/permission
   surface, and native payloads. Confirm Gradle emitted an unsigned quarantine

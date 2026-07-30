@@ -319,6 +319,10 @@ required_self_test = [
     "trap 'exit 130' HUP INT TERM",
     '${default_ci[@]+"${default_ci[@]}"}',
     '${environment[@]+"${environment[@]}"}',
+    'if ! run_gradle_with_env -- :app:tasks --all >"$tasks_log" 2>&1; then\n'
+    '  cat "$tasks_log" >&2\n'
+    '  fail "could not enumerate app tasks."\n'
+    'fi',
 ]
 
 def step_block(text, name):
@@ -393,12 +397,43 @@ def trust_contract_errors(text, count_assertion=None):
 
     context = step_block(text, "Require exact first-party workflow context")
     validation_only = step_block(text, "Mark pull request run validation-only")
+    candidate_build = step_block(text, "Build exact non-cached unsigned IAS AAB")
     source_cleanup = step_block(
         text,
         "Remove candidate outputs and prove clean source",
     )
     require(context is not None and context in producer, "first-party workflow context gate must exist in producer")
     require(validation_only is not None and validation_only in producer, "PR validation-only marker must exist in producer")
+    walletconnect_secret_binding = (
+        "FL_WALLET_CONNECT_PROJECT_ID: "
+        "${{ github.event_name == 'workflow_dispatch' && "
+        "secrets.FL_WALLET_CONNECT_PROJECT_ID || '' }}"
+    )
+    require(
+        candidate_build is not None
+        and candidate_build in producer
+        and candidate_build.count(walletconnect_secret_binding) == 1
+        and text.count("secrets.FL_WALLET_CONNECT_PROJECT_ID") == 1,
+        "candidate build must bind WalletConnect only for trusted dispatch",
+    )
+    require(
+        candidate_build is not None
+        and 'workflow_dispatch)\n'
+        '              [[ "$FL_WALLET_CONNECT_PROJECT_ID" =~ '
+        '^[0-9A-Fa-f]{32}$ ]] || {' in candidate_build
+        and "Trusted IAS dispatch requires a 32-hex WalletConnect project ID."
+        in candidate_build,
+        "trusted IAS dispatch must require an exact 32-hex WalletConnect project ID",
+    )
+    require(
+        candidate_build is not None
+        and 'pull_request)\n'
+        '              [[ -z "$FL_WALLET_CONNECT_PROJECT_ID" ]] || {'
+        in candidate_build
+        and "IAS pull-request validation must not receive the WalletConnect project ID."
+        in candidate_build,
+        "IAS pull-request validation must keep WalletConnect secretless",
+    )
     cleaner_invocation = (
         "python3 ./scripts/remove-empty-gradle-coverage-directories.py \\\n"
         '            "$GITHUB_WORKSPACE"'
@@ -1363,6 +1398,7 @@ else:
     finalizer_name = "Keep only a fully download-back-qualified current artifact"
     janitor_name = "Retain only exact pending artifacts from successful qualified runs"
     source_cleanup_name = "Remove candidate outputs and prove clean source"
+    candidate_build_name = "Build exact non-cached unsigned IAS AAB"
 
     add_step_contract(
         "bounded coverage cleanup placement",
@@ -1376,6 +1412,31 @@ else:
         '            "$GITHUB_WORKSPACE"\n',
         "candidate cleanup must run the exact bounded cleaner after output "
         "removal and before source verification",
+    )
+    add_step_contract(
+        "dispatch-only WalletConnect secret binding",
+        candidate_build_name,
+        "          FL_WALLET_CONNECT_PROJECT_ID: "
+        "${{ github.event_name == 'workflow_dispatch' && "
+        "secrets.FL_WALLET_CONNECT_PROJECT_ID || '' }}\n",
+        "          FL_WALLET_CONNECT_PROJECT_ID: "
+        "${{ secrets.FL_WALLET_CONNECT_PROJECT_ID }}\n",
+        "bind WalletConnect only for trusted dispatch",
+    )
+    add_step_contract(
+        "exact WalletConnect project-ID format gate",
+        candidate_build_name,
+        '              [[ "$FL_WALLET_CONNECT_PROJECT_ID" =~ '
+        '^[0-9A-Fa-f]{32}$ ]] || {\n',
+        '              [[ -n "$FL_WALLET_CONNECT_PROJECT_ID" ]] || {\n',
+        "exact 32-hex WalletConnect project ID",
+    )
+    add_step_contract(
+        "secretless WalletConnect PR validation gate",
+        candidate_build_name,
+        '              [[ -z "$FL_WALLET_CONNECT_PROJECT_ID" ]] || {\n',
+        '              [[ -n "$FL_WALLET_CONNECT_PROJECT_ID" ]] || {\n',
+        "pull-request validation must keep WalletConnect secretless",
     )
 
     for label, old, changed, expected in (
@@ -2192,8 +2253,8 @@ PY
   fail "IAS static contract failed."
 fi
 static_count="$(<"$static_count_file")"
-[[ "$static_count" == "633" ]] ||
-  fail "expected 633 static adversarial assertions; got $static_count."
+[[ "$static_count" == "643" ]] ||
+  fail "expected 643 static adversarial assertions; got $static_count."
 
 if [[ "${IAS_GRADLE_CONTRACT_ONLY:-false}" == "true" ]]; then
   assert_source_unchanged "$source_before" "static IAS contract"
@@ -2207,8 +2268,10 @@ command -v keytool >/dev/null 2>&1 ||
 positive_count=1
 
 tasks_log="$temporary_dir/tasks.log"
-run_gradle_with_env -- :app:tasks --all >"$tasks_log" 2>&1 ||
+if ! run_gradle_with_env -- :app:tasks --all >"$tasks_log" 2>&1; then
+  cat "$tasks_log" >&2
   fail "could not enumerate app tasks."
+fi
 if grep -Eq '^(assemble|bundle|install).*InternalAppSharing([[:space:]]|$)' "$tasks_log"; then
   fail "the test-only IAS variant leaked into a normal task inventory."
 fi

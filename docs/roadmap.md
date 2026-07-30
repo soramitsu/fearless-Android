@@ -5,6 +5,16 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Recent Updates
+- 2026-07-30: Removed Reown delegate calls from `WCDelegate` static
+  initialization after a delayed release-like startup crash. Delegate
+  registration is now synchronized, idempotent, refreshes persisted sessions
+  when initialization succeeds, and safely retries partial readiness.
+  Recoverable synchronous SDK failures across pairing and session actions now
+  reach UI error callbacks; cancellation and fatal errors still propagate.
+  Stale proposal/session/request destinations route back without dereferencing
+  missing process-memory state. Pull-request IAS builds stay
+  WalletConnect-secretless, while a protected-`develop` manual dispatch binds
+  a required non-logged 32-hex project ID only to the exact bundle step.
 - 2026-07-27: Disabled the legacy MoonPay provider and removed all MoonPay
   signing-secret BuildConfig fields and release requirements. Re-enabling
   MoonPay now requires backend signing or a supported public mobile flow; the

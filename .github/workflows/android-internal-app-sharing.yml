@@ -220,8 +220,28 @@ jobs:
             "$IAS_CANDIDATE_SHA" "$IAS_SOURCE_TREE" --allow-fearless-utils
 
       - name: Build exact non-cached unsigned IAS AAB
+        env:
+          FL_WALLET_CONNECT_PROJECT_ID: ${{ github.event_name == 'workflow_dispatch' && secrets.FL_WALLET_CONNECT_PROJECT_ID || '' }}
         run: |
           set -euo pipefail
+          case "$GITHUB_EVENT_NAME" in
+            workflow_dispatch)
+              [[ "$FL_WALLET_CONNECT_PROJECT_ID" =~ ^[0-9A-Fa-f]{32}$ ]] || {
+                echo "Trusted IAS dispatch requires a 32-hex WalletConnect project ID." >&2
+                exit 1
+              }
+              ;;
+            pull_request)
+              [[ -z "$FL_WALLET_CONNECT_PROJECT_ID" ]] || {
+                echo "IAS pull-request validation must not receive the WalletConnect project ID." >&2
+                exit 1
+              }
+              ;;
+            *)
+              echo "Unsupported IAS producer event: $GITHUB_EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
           build_log="$RUNNER_TEMP/ias-build.log"
           ./gradlew :app:bundleInternalAppSharing \
             --no-build-cache \

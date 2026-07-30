@@ -13,6 +13,9 @@ All notable changes to this project will be documented in this file.
 - Lifecycle stability: discard incompatible saved fragment state at the wallet
   gate and restore security/export warnings through FragmentManager-safe
   constructors.
+- WalletConnect stability: defer Reown delegate registration until both clients
+  are ready, retry partial initialization safely, and keep startup, session
+  lookups, pairing, and actions nonfatal when the optional SDK is unavailable.
 - Release safety: add an isolated, source-bound Internal App Sharing candidate
   lane with zero-copy Firebase input, external one-run signing, and adversarial
   artifact verification.

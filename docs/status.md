@@ -57,9 +57,12 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   separate deletion finalizer; a scheduled janitor removes stale pending
   artifacts. An operator may then manually upload its exact verified AAB to
   Play Console Internal App Sharing. CI must never upload IAS bytes to
-  Google/Play or mutate a Play track. Frozen totals are dependency provenance
+  Google/Play or mutate a Play track. PR validation receives no WalletConnect
+  secret; only the exact protected-`develop` dispatch build step may receive a
+  required non-logged 32-hex project ID, and trusted device acceptance includes
+  a valid pairing scan. Frozen totals are dependency provenance
   2 positive / 40 adversarial, bounded Gradle coverage cleanup 4 positive / 12
-  negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 633
+  negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 643
   static adversarial, and workflow Linux certificate-mode IAS AAB 7 positive /
   78 adversarial.
 - Signed Android release artifact pipeline:

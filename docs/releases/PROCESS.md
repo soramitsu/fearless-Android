@@ -218,7 +218,10 @@ CI qualification runs in this order:
    run the static and full IAS Gradle suites.
 3. Remove prior IAS outputs, prove the source clean, and invoke only the exact
    source-bound unsigned
-   `:app:bundleInternalAppSharing --no-build-cache --rerun-tasks`. Recheck its
+   `:app:bundleInternalAppSharing --no-build-cache --rerun-tasks`. Pull-request
+   builds must remain WalletConnect-secretless. An eligible manual dispatch
+   binds the non-logged 32-hex `secrets.FL_WALLET_CONNECT_PROJECT_ID` only to
+   this build step and fails closed if it is missing or malformed. Recheck the
    exact outputs, production-output snapshot, app source, and utils.
 4. Only for an eligible manual run, upload the verified unsigned AAB as a
    one-day untrusted producer quarantine. A fresh qualifier downloads it by
@@ -239,7 +242,7 @@ CI qualification runs in this order:
 
 Frozen totals are dependency provenance 2 positive / 40 adversarial, bounded
 Gradle coverage cleanup 4 positive / 12 negative/adversarial, IAS Gradle 8
-positive / 39 behavioral negative / 633 static adversarial assertions, and
+positive / 39 behavioral negative / 643 static adversarial assertions, and
 workflow Linux public-certificate IAS AAB 7 positive / 78 adversarial
 artifacts. Local AAB expectations are 7/76 on macOS in certificate mode, 7/84
 on macOS in keystore mode, and 7/86 on Linux in keystore mode. Any total drift
@@ -263,7 +266,9 @@ Production upgrade/migration qualification remains separate: use a disposable,
 unfunded test wallet installed through Google Play and upgrade it with a newer
 Play-signed candidate through the intended Play testing track. Preserve the
 original app data and exercise the documented migration, recovery, and
-cold-start checks. IAS results may supplement feature smoke testing only.
+cold-start checks. Trusted IAS device acceptance must additionally scan a valid
+`wc:` URI and observe the app after the pair attempt. IAS results may supplement
+feature smoke testing only.
 
 ## Beta Release
 
