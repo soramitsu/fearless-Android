@@ -74,7 +74,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     Gradle/build inputs, release scripts, and GitHub workflows. Its adversarial
     suite includes alternate modules, `buildSrc`, versioning properties, and
     alternate workflow files.
-  - The release-architecture guard fixes exactly 4 positive and 119
+  - The release-architecture guard fixes exactly 4 positive and 122
     deterministic negative/adversarial cases. It rejects legacy combined
     overlays, signing credential overlap with Gradle, every Play
     service-account/API/Gradle mutation path, build/signing reviewer overlap,
@@ -131,6 +131,9 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     network policy, missing/extra/duplicate payloads, dynamic-module injection,
     disguised ELF assets, renamed ELF binaries, and substitutions of sodium,
     sr25519, SQLCipher, and AndroidX path binaries.
+    Its explicit R8 policy suite fixes 4 positive and 19 negative/adversarial
+    cases, including the legacy five-argument default, absent-versus-required
+    mismatches, non-canonical aliases, and source-binding bypass attempts.
     The separate JAR-signature suite verifies the exact pinned self-signed
     upload certificate through an ephemeral truststore and rejects unsigned
     entries, tampering, the wrong certificate, multiple signers, and duplicate
@@ -249,7 +252,7 @@ CI qualification runs in this order:
 
 Frozen totals are dependency provenance 2 positive / 40 adversarial, bounded
 Gradle coverage cleanup 4 positive / 12 negative/adversarial, IAS Gradle 8
-positive / 39 behavioral negative / 643 static adversarial assertions, and
+positive / 39 behavioral negative / 645 static adversarial assertions, and
 workflow Linux public-certificate IAS AAB 7 positive / 78 adversarial
 artifacts. Local AAB expectations are 7/76 on macOS in certificate mode, 7/84
 on macOS in keystore mode, and 7/86 on Linux in keystore mode. Any total drift

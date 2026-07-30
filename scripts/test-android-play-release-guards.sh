@@ -10,7 +10,7 @@ CLEANUP="$ROOT_DIR/scripts/cleanup-release-overlays.sh"
 SNAPSHOT="$ROOT_DIR/scripts/emit-verified-release-snapshot.sh"
 EXPECTED_UPLOAD_CERT_SHA256="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
 EXPECTED_POSITIVE_COUNT=4
-EXPECTED_NEGATIVE_COUNT=119
+EXPECTED_NEGATIVE_COUNT=122
 
 fail() {
   echo "[android-play-release-test][error] $*" >&2
@@ -658,6 +658,20 @@ verify_static_contract() {
     "$play_verifier" \
     $'"$AAB_IDENTITY_VERIFIER" \\\n    "$artifact_snapshot"' \
     "release verifier identity check must consume the same private snapshot"
+  require_file_sequence \
+    "$play_verifier" \
+    $'"$RELEASE_COMMIT" \\\n    required' \
+    "release verifier must explicitly require R8 metadata"
+  require_exact_count \
+    "$workflow" \
+    "AAB_IDENTITY_R8_POLICY=required" \
+    1 \
+    "release workflow must pin exactly one required R8 policy"
+  require_exact_count \
+    "$ci_workflow" \
+    "AAB_IDENTITY_R8_POLICY: absent" \
+    1 \
+    "unminified debug CI must pin exactly one absent R8 policy"
   require_text \
     "$play_verifier" \
     "The private release AAB snapshot changed during verification." \
@@ -2380,6 +2394,33 @@ replace_once "$fixture/scripts/verify-android-play-release.sh" \
 expect_static_failure \
   "signature verifier redirected away from private snapshot" \
   "signature check must consume the private snapshot" \
+  "$fixture"
+
+fixture="$(make_fixture play-r8-policy-weakened)"
+replace_once "$fixture/scripts/verify-android-play-release.sh" \
+  $'"$RELEASE_COMMIT" \\\n    required' \
+  $'"$RELEASE_COMMIT" \\\n    absent'
+expect_static_failure \
+  "Play verifier R8 policy weakened" \
+  "release verifier must explicitly require R8 metadata" \
+  "$fixture"
+
+fixture="$(make_fixture release-r8-policy-weakened)"
+replace_once "$fixture/.github/workflows/android-release.yml" \
+  "AAB_IDENTITY_R8_POLICY=required" \
+  "AAB_IDENTITY_R8_POLICY=absent"
+expect_static_failure \
+  "release workflow R8 policy weakened" \
+  "release workflow must pin exactly one required R8 policy" \
+  "$fixture"
+
+fixture="$(make_fixture debug-r8-policy-strengthened)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "AAB_IDENTITY_R8_POLICY: absent" \
+  "AAB_IDENTITY_R8_POLICY: required"
+expect_static_failure \
+  "debug workflow R8 policy changed" \
+  "unminified debug CI must pin exactly one absent R8 policy" \
   "$fixture"
 
 fixture="$(make_fixture key-cleanup-not-always)"

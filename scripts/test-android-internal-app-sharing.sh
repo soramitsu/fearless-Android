@@ -1174,6 +1174,15 @@ def app_cleanup_contract_errors(text):
     ]
 
 
+def verifier_r8_policy_errors(text):
+    required_call = (
+        '"$expected_version_code" "$expected_commit" required; then'
+    )
+    return [] if text.count(required_call) == 1 else [
+        "IAS verifier must explicitly require R8 metadata exactly once"
+    ]
+
+
 failures = []
 for needle in required_app:
     if needle not in app:
@@ -1187,6 +1196,27 @@ for needle in required_lock_configs:
 for needle in required_self_test:
     if needle not in self_test:
         failures.append(f"missing portable IAS self-test contract: {needle}")
+verifier_policy_assertion_count = 1
+failures.extend(verifier_r8_policy_errors(verifier))
+try:
+    weakened_verifier = replace_once(
+        verifier,
+        '"$expected_version_code" "$expected_commit" required; then',
+        '"$expected_version_code" "$expected_commit" absent; then',
+    )
+except ValueError as error:
+    failures.append(f"IAS R8-policy mutation precondition failed: {error}")
+else:
+    verifier_policy_assertion_count += 1
+    weakened_errors = verifier_r8_policy_errors(weakened_verifier)
+    if (
+        "IAS verifier must explicitly require R8 metadata exactly once"
+        not in weakened_errors
+    ):
+        failures.append(
+            "IAS verifier R8-policy mutation was not rejected: "
+            f"{weakened_errors!r}"
+        )
 if 'internalAppSharing' in ignore:
     failures.append("app/.gitignore still hides a mutable IAS source tree")
 if obsolete_helper.exists():
@@ -2246,6 +2276,7 @@ else:
         + len(required_self_test)
         + 8
         + app_cleanup_assertion_count
+        + verifier_policy_assertion_count
     )
     print(base_count + trust_assertion_count[0] + len(mutations))
     raise SystemExit(0)
@@ -2254,8 +2285,8 @@ PY
   fail "IAS static contract failed."
 fi
 static_count="$(<"$static_count_file")"
-[[ "$static_count" == "643" ]] ||
-  fail "expected 643 static adversarial assertions; got $static_count."
+[[ "$static_count" == "645" ]] ||
+  fail "expected 645 static adversarial assertions; got $static_count."
 
 if [[ "${IAS_GRADLE_CONTRACT_ONLY:-false}" == "true" ]]; then
   assert_source_unchanged "$source_before" "static IAS contract"

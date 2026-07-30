@@ -161,7 +161,7 @@ write its private snapshot to one new absolute output path.
 
 The frozen suites must report dependency provenance 2 positive / 40
 adversarial, bounded Gradle coverage cleanup 4 positive / 12
-negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 643
+negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 645
 static adversarial assertions, and the workflow's Linux public-certificate IAS
 AAB suite 7 positive / 78 adversarial artifacts. The AAB suite additionally
 expects 7/76 in macOS certificate mode, 7/84 in macOS keystore mode, and 7/86

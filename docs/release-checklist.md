@@ -39,7 +39,7 @@ procedure.
   Confirm the MoonPay audit scans every tracked Android module source set,
   Gradle/build input, release script, and GitHub workflow rather than only the
   former wallet provider paths, and rejects all 16 adversarial fixtures.
-  Confirm the release-architecture guard reports exactly 4 positive and 119
+  Confirm the release-architecture guard reports exactly 4 positive and 122
   deterministic negative/adversarial cases. It must reject a combined
   `RELEASE_OVERLAY_MODE=release`, signing credentials exposed to Gradle, every
   Play service-account/API/Gradle publisher path, reviewer overlap between
@@ -57,8 +57,9 @@ procedure.
   2 positive and 25 adversarial task-graph cases, and the source-binding gate
   reports 2 positive and 10 adversarial cases. Confirm fearless-utils source
   integrity reports 4 positive and 7 adversarial cases, and exact signed-AAB
-  identity reports 2 positive and 135 adversarial cases. Confirm the release
-  build-log suite reports 2 positive and 26 adversarial cases and rejects
+  identity reports 2 positive and 135 adversarial cases, while its explicit R8
+  policy suite reports 4 positive and 19 negative/adversarial cases. Confirm
+  the release build-log suite reports 2 positive and 26 adversarial cases and rejects
   cached, skipped, or warning-bearing R8 evidence.
   Confirm Gradle dependency provenance is strict: the wrapper distribution
   checksum, verification metadata plus its digest, the root buildscript lock,
@@ -209,7 +210,7 @@ manual workflow run.
   deletes every unqualified one; the scheduled janitor removes stale pending
   artifacts.
 - Run `bash scripts/test-android-internal-app-sharing.sh` and require exactly 8
-  positive, 39 behavioral negative, and 643 static adversarial assertions.
+  positive, 39 behavioral negative, and 645 static adversarial assertions.
   Its bounded Gradle coverage-cleanup prerequisite must independently report
   exactly 4 positive and 12 negative/adversarial cases.
   Require the dependency-provenance suite to report exactly 2 positive and 40

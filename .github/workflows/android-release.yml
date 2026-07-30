@@ -1500,6 +1500,7 @@ jobs:
             EXPECTED_AAB_VERSION_NAME="$RELEASE_VERSION_NAME" \
             EXPECTED_AAB_VERSION_CODE="$RELEASE_VERSION_CODE" \
             EXPECTED_AAB_SOURCE_COMMIT="$RELEASE_COMMIT" \
+            AAB_IDENTITY_R8_POLICY=required \
             bash ./scripts/test-android-aab-identity.sh
           [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
             "$SIGNED_RELEASE_AAB_SHA256" ]] || {

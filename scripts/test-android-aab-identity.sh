@@ -87,6 +87,13 @@ for name in \
   [[ -n "${!name:-}" ]] || fail "$name is required."
 done
 
+requested_r8_policy="${AAB_IDENTITY_R8_POLICY:-required}"
+case "$requested_r8_policy" in
+  required|absent) ;;
+  *) fail "AAB_IDENTITY_R8_POLICY must be exactly required or absent." ;;
+esac
+active_r8_policy="$requested_r8_policy"
+
 for command_name in cp grep java mktemp python3 unzip; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command is unavailable: $command_name"
@@ -105,19 +112,180 @@ real_java="$(command -v java)"
 
 "$SIGNATURE_TEST"
 
+original_identity_fixture="$AAB_IDENTITY_FIXTURE"
+fixture_with_r8="$tmp_dir/fixture-with-r8.aab"
+fixture_without_r8="$tmp_dir/fixture-without-r8.aab"
+python3 - \
+  "$original_identity_fixture" \
+  "$fixture_with_r8" \
+  "$fixture_without_r8" <<'PY'
+import copy
+import json
+import os
+import stat
+import sys
+import zipfile
+
+source, with_r8, without_r8 = sys.argv[1:]
+r8_path = "BUNDLE-METADATA/com.android.tools/r8.json"
+maximum_aab_bytes = 262_144_000
+maximum_entry_count = 100_000
+maximum_entry_bytes = 134_217_728
+maximum_total_uncompressed_bytes = 536_870_912
+copy_chunk_bytes = 1024 * 1024
+source_flags = (
+    os.O_RDONLY
+    | getattr(os, "O_NOFOLLOW", 0)
+    | getattr(os, "O_CLOEXEC", 0)
+)
+
+
+def source_identity(metadata):
+    return tuple(
+        getattr(metadata, field)
+        for field in (
+            "st_dev",
+            "st_ino",
+            "st_size",
+            "st_mtime_ns",
+            "st_ctime_ns",
+            "st_nlink",
+        )
+    )
+
+
+def write_fixture(archive, entries, destination, include_r8, has_r8):
+    with zipfile.ZipFile(
+        destination,
+        "x",
+        allowZip64=True,
+    ) as output:
+        for entry in entries:
+            if entry.filename == r8_path and not include_r8:
+                continue
+            destination_entry = copy.copy(entry)
+            with archive.open(entry, "r") as reader:
+                with output.open(
+                    destination_entry,
+                    "w",
+                    force_zip64=True,
+                ) as writer:
+                    copied = 0
+                    while True:
+                        chunk = reader.read(copy_chunk_bytes)
+                        if not chunk:
+                            break
+                        copied += len(chunk)
+                        if copied > entry.file_size:
+                            raise ValueError(
+                                f"ZIP entry expanded past its declared size: "
+                                f"{entry.filename!r}"
+                            )
+                        writer.write(chunk)
+                    if copied != entry.file_size:
+                        raise ValueError(
+                            f"ZIP entry size mismatch: {entry.filename!r}"
+                        )
+        if include_r8 and not has_r8:
+            output.writestr(
+                r8_path,
+                json.dumps(
+                    {"version": "8.10.24"},
+                    separators=(",", ":"),
+                ).encode("utf-8"),
+            )
+    output_size = os.path.getsize(destination)
+    if output_size <= 0 or output_size > maximum_aab_bytes:
+        raise ValueError(
+            f"synthesized fixture has unsafe size: {output_size} bytes"
+        )
+
+
+source_fd = os.open(source, source_flags)
+try:
+    before = os.fstat(source_fd)
+    if (
+        not stat.S_ISREG(before.st_mode)
+        or before.st_size <= 0
+        or before.st_size > maximum_aab_bytes
+    ):
+        raise ValueError("source fixture has an unsafe size or file type")
+    with os.fdopen(source_fd, "rb", closefd=False) as source_file:
+        with zipfile.ZipFile(source_file, "r") as archive:
+            entries = archive.infolist()
+            if not entries or len(entries) > maximum_entry_count:
+                raise ValueError(
+                    f"source fixture has an unsafe ZIP entry count: "
+                    f"{len(entries)}"
+                )
+            total_uncompressed_bytes = 0
+            for entry in entries:
+                if (
+                    entry.file_size < 0
+                    or entry.file_size > maximum_entry_bytes
+                    or entry.compress_size < 0
+                    or entry.compress_size > before.st_size
+                    or entry.flag_bits & 0x1
+                    or entry.compress_type
+                    not in {zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED}
+                ):
+                    raise ValueError(
+                        f"source fixture contains an unsafe ZIP entry: "
+                        f"{entry.filename!r}"
+                    )
+                total_uncompressed_bytes += entry.file_size
+                if total_uncompressed_bytes > maximum_total_uncompressed_bytes:
+                    raise ValueError(
+                        "source fixture exceeds the aggregate uncompressed "
+                        "size limit"
+                    )
+            r8_entries = [
+                entry for entry in entries if entry.filename == r8_path
+            ]
+            if len(r8_entries) > 1:
+                raise ValueError(
+                    "source fixture contains duplicate canonical R8 metadata"
+                )
+            has_r8 = bool(r8_entries)
+            write_fixture(
+                archive,
+                entries,
+                without_r8,
+                include_r8=False,
+                has_r8=has_r8,
+            )
+            write_fixture(
+                archive,
+                entries,
+                with_r8,
+                include_r8=True,
+                has_r8=has_r8,
+            )
+    after = os.fstat(source_fd)
+    if source_identity(before) != source_identity(after):
+        raise ValueError("source fixture changed while it was synthesized")
+finally:
+    os.close(source_fd)
+PY
+
 run_verifier() {
   local artifact="$1"
   local expected_package="${2:-$EXPECTED_AAB_PACKAGE}"
   local expected_version_name="${3:-$EXPECTED_AAB_VERSION_NAME}"
   local expected_version_code="${4:-$EXPECTED_AAB_VERSION_CODE}"
   local expected_source_commit="${5:-$EXPECTED_AAB_SOURCE_COMMIT}"
+  local expected_r8_policy="$active_r8_policy"
+  if [[ "$#" -ge 6 ]]; then
+    expected_r8_policy="$6"
+  fi
 
   BUNDLETOOL_JAR="$BUNDLETOOL_JAR" "$VERIFY" \
     "$artifact" \
     "$expected_package" \
     "$expected_version_name" \
     "$expected_version_code" \
-    "$expected_source_commit"
+    "$expected_source_commit" \
+    "$expected_r8_policy"
 }
 
 fake_java_dir="$tmp_dir/fake-java-bin"
@@ -790,6 +958,14 @@ PY
 run_fake_manifest_verifier() {
   local manifest_file="$1"
   local artifact="${2:-$AAB_IDENTITY_FIXTURE}"
+  local expected_r8_policy="$active_r8_policy"
+  local expected_source_commit="$EXPECTED_AAB_SOURCE_COMMIT"
+  if [[ "$#" -ge 3 ]]; then
+    expected_r8_policy="$3"
+  fi
+  if [[ "$#" -ge 4 ]]; then
+    expected_source_commit="$4"
+  fi
   PATH="$fake_java_dir:$PATH" \
     REAL_JAVA="$real_java" \
     FAKE_BUNDLETOOL_MANIFEST_FILE="$manifest_file" \
@@ -802,13 +978,34 @@ run_fake_manifest_verifier() {
       "$PRODUCTION_AAB_PACKAGE" \
       "$EXPECTED_AAB_VERSION_NAME" \
       "$EXPECTED_AAB_VERSION_CODE" \
+      "$expected_source_commit" \
+      "$expected_r8_policy"
+}
+
+run_fake_manifest_verifier_default_required() {
+  local manifest_file="$1"
+  local artifact="$2"
+  PATH="$fake_java_dir:$PATH" \
+    REAL_JAVA="$real_java" \
+    FAKE_BUNDLETOOL_MANIFEST_FILE="$manifest_file" \
+    FAKE_AAB_PACKAGE="$PRODUCTION_AAB_PACKAGE" \
+    FAKE_AAB_VERSION_CODE="$EXPECTED_AAB_VERSION_CODE" \
+    FAKE_AAB_VERSION_NAME="$EXPECTED_AAB_VERSION_NAME" \
+    FAKE_AAB_SOURCE_COMMIT="$EXPECTED_AAB_SOURCE_COMMIT" \
+    BUNDLETOOL_JAR="$BUNDLETOOL_JAR" \
+    "$VERIFY" \
+      "$artifact" \
+      "$PRODUCTION_AAB_PACKAGE" \
+      "$EXPECTED_AAB_VERSION_NAME" \
+      "$EXPECTED_AAB_VERSION_CODE" \
       "$EXPECTED_AAB_SOURCE_COMMIT"
 }
 
 mutate_artifact() {
   local mode="$1"
   local output="$2"
-  python3 - "$AAB_IDENTITY_FIXTURE" "$output" "$mode" <<'PY'
+  local source="${3:-$AAB_IDENTITY_FIXTURE}"
+  python3 - "$source" "$output" "$mode" <<'PY'
 import sys
 import json
 import stat
@@ -847,8 +1044,15 @@ manifest_agp_metadata = next(
 )
 if manifest_agp_metadata != agp_metadata:
     raise SystemExit("AGP metadata fixture copies are not byte-identical")
-r8_metadata = next(
+r8_payloads = [
     data for info, data in entries if info.filename == r8_metadata_entry
+]
+if len(r8_payloads) > 1:
+    raise SystemExit("R8 metadata fixture contains duplicate canonical entries")
+r8_metadata = (
+    r8_payloads[0]
+    if r8_payloads
+    else b'{"version":"8.10.24"}'
 )
 
 with zipfile.ZipFile(destination, "w") as archive:
@@ -1006,6 +1210,23 @@ with zipfile.ZipFile(destination, "w") as archive:
             "BUNDLE-METADATA\\com.android.tools\\r8.json",
             r8_metadata,
         )
+    elif mode == "casefold-r8-path":
+        archive.writestr(
+            "BUNDLE-METADATA/com.android.tools/R8.json",
+            r8_metadata,
+        )
+    elif mode == "alternate-r8-path":
+        archive.writestr(
+            "BUNDLE-METADATA/unreviewed/r8.json",
+            r8_metadata,
+        )
+    elif mode == "traversal-r8-path":
+        archive.writestr(
+            "BUNDLE-METADATA/com.android.tools/../com.android.tools/r8.json",
+            r8_metadata,
+        )
+    elif mode == "unexpected-r8-metadata":
+        archive.writestr(r8_metadata_entry, r8_metadata)
     elif mode == "dangling-dom-service":
         archive.writestr(
             "base/root/META-INF/services/"
@@ -1041,9 +1262,36 @@ PY
 
 positive_count=0
 negative_count=0
+r8_policy_positive_count=0
+r8_policy_negative_count=0
 
 valid_manifest="$tmp_dir/manifest-valid.xml"
 write_manifest_fixture valid "$valid_manifest"
+
+run_fake_manifest_verifier \
+  "$valid_manifest" \
+  "$original_identity_fixture" \
+  "$requested_r8_policy" >/dev/null
+r8_policy_positive_count=$((r8_policy_positive_count + 1))
+run_fake_manifest_verifier \
+  "$valid_manifest" \
+  "$fixture_with_r8" \
+  required >/dev/null
+r8_policy_positive_count=$((r8_policy_positive_count + 1))
+run_fake_manifest_verifier \
+  "$valid_manifest" \
+  "$fixture_without_r8" \
+  absent >/dev/null
+r8_policy_positive_count=$((r8_policy_positive_count + 1))
+run_fake_manifest_verifier_default_required \
+  "$valid_manifest" \
+  "$fixture_with_r8" >/dev/null
+r8_policy_positive_count=$((r8_policy_positive_count + 1))
+
+# The full historical identity suite remains strict release-mode coverage even
+# when its input came from the explicitly unminified debug CI lane.
+AAB_IDENTITY_FIXTURE="$fixture_with_r8"
+active_r8_policy="required"
 run_fake_manifest_verifier "$valid_manifest" >/dev/null
 positive_count=$((positive_count + 1))
 
@@ -1067,6 +1315,112 @@ expect_failure() {
   }
   negative_count=$((negative_count + 1))
 }
+
+expect_r8_policy_failure() {
+  local label="$1"
+  local expected_diagnostic="$2"
+  shift 2
+  local output="$tmp_dir/r8-policy-failure-$r8_policy_negative_count.log"
+
+  if "$@" >"$output" 2>&1; then
+    fail "$label unexpectedly passed"
+  fi
+  grep -Fq "$expected_diagnostic" "$output" || {
+    sed -n '1,120p' "$output" >&2
+    fail "$label did not emit the expected diagnostic: $expected_diagnostic"
+  }
+  r8_policy_negative_count=$((r8_policy_negative_count + 1))
+}
+
+expect_r8_policy_failure \
+  "required policy with absent R8 metadata" \
+  "exactly one R8 metadata entry" \
+  run_fake_manifest_verifier "$valid_manifest" "$fixture_without_r8" required
+expect_r8_policy_failure \
+  "absent policy with canonical R8 metadata" \
+  "must not contain R8 metadata" \
+  run_fake_manifest_verifier "$valid_manifest" "$fixture_with_r8" absent
+expect_r8_policy_failure \
+  "default required policy with absent R8 metadata" \
+  "exactly one R8 metadata entry" \
+  run_fake_manifest_verifier_default_required \
+    "$valid_manifest" \
+    "$fixture_without_r8"
+expect_r8_policy_failure \
+  "absent policy with wrong source commit" \
+  "AAB source commit mismatch" \
+  run_fake_manifest_verifier \
+    "$valid_manifest" \
+    "$fixture_without_r8" \
+    absent \
+    0000000000000000000000000000000000000000
+
+for invalid_r8_policy in "" optional Required " absent" "absent "; do
+  expect_r8_policy_failure \
+    "invalid R8 policy case $r8_policy_negative_count" \
+    "must be exactly required or absent" \
+    run_fake_manifest_verifier \
+      "$valid_manifest" \
+      "$fixture_with_r8" \
+      "$invalid_r8_policy"
+done
+
+for alias_mode in \
+  alternate-r8-path \
+  backslash-r8-path \
+  casefold-r8-path \
+  traversal-r8-path; do
+  alias_artifact="$tmp_dir/r8-policy-$alias_mode.aab"
+  mutate_artifact "$alias_mode" "$alias_artifact" "$fixture_without_r8"
+  expect_r8_policy_failure \
+    "absent policy with $alias_mode" \
+    "non-canonical path" \
+    run_fake_manifest_verifier "$valid_manifest" "$alias_artifact" absent
+done
+
+duplicate_r8_artifact="$tmp_dir/r8-policy-duplicate.aab"
+mutate_artifact \
+  duplicate-r8-metadata \
+  "$duplicate_r8_artifact" \
+  "$fixture_with_r8"
+expect_r8_policy_failure \
+  "absent policy with duplicate canonical R8 metadata" \
+  "must not contain R8 metadata" \
+  run_fake_manifest_verifier "$valid_manifest" "$duplicate_r8_artifact" absent
+
+for bypass_mode in \
+  missing-agp-metadata \
+  duplicate-agp-metadata \
+  missing-abi \
+  replace-sodium; do
+  bypass_artifact="$tmp_dir/r8-policy-bypass-$bypass_mode.aab"
+  mutate_artifact "$bypass_mode" "$bypass_artifact" "$fixture_without_r8"
+  case "$bypass_mode" in
+    missing-agp-metadata|duplicate-agp-metadata)
+      expected_diagnostic="exactly one Android Gradle plugin metadata entry"
+      ;;
+    missing-abi)
+      expected_diagnostic="Native payload entries differ from the exact allowlist"
+      ;;
+    replace-sodium)
+      expected_diagnostic="Embedded native library checksum mismatch"
+      ;;
+  esac
+  expect_r8_policy_failure \
+    "absent policy bypass attempt $bypass_mode" \
+    "$expected_diagnostic" \
+    run_fake_manifest_verifier "$valid_manifest" "$bypass_artifact" absent
+done
+
+broad_media_manifest="$tmp_dir/r8-policy-broad-media.xml"
+write_manifest_fixture broad-media "$broad_media_manifest"
+expect_r8_policy_failure \
+  "absent policy manifest bypass attempt" \
+  "forbidden broad media/storage permission" \
+  run_fake_manifest_verifier \
+    "$broad_media_manifest" \
+    "$fixture_without_r8" \
+    absent
 
 write_build_config_fixture() {
   local mode="$1"
@@ -1114,7 +1468,8 @@ run_config_fixture_verifier() {
       "$EXPECTED_AAB_PACKAGE" \
       "$EXPECTED_AAB_VERSION_NAME" \
       "$EXPECTED_AAB_VERSION_CODE" \
-      "$EXPECTED_AAB_SOURCE_COMMIT"
+      "$EXPECTED_AAB_SOURCE_COMMIT" \
+      "$active_r8_policy"
 }
 
 expect_failure \
@@ -1462,10 +1817,18 @@ done
     "not every declared component mutation mode executed: " \
     "$component_manifest_negative_count/${#component_manifest_modes[@]}"
 
+[[ "$r8_policy_positive_count" == "4" ]] ||
+  fail "expected 4 R8-policy positive cases; got $r8_policy_positive_count"
+[[ "$r8_policy_negative_count" == "19" ]] ||
+  fail \
+    "expected 19 R8-policy negative/adversarial cases; got " \
+    "$r8_policy_negative_count"
 [[ "$positive_count" == "2" ]] ||
   fail "expected 2 positive cases; got $positive_count"
 [[ "$negative_count" == "135" ]] ||
   fail "expected 135 negative cases; got $negative_count"
 
+printf '%s\n' \
+  "[android-aab-r8-policy-test] $r8_policy_positive_count positive + $r8_policy_negative_count negative/adversarial cases passed"
 echo \
   "[android-aab-identity-test] $positive_count positive + $negative_count adversarial cases passed"

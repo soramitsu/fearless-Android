@@ -1797,7 +1797,7 @@ if ! run_limited_command \
   "$identity_verification_log" "$identity_verification_log" \
   "$ROOT_DIR/scripts/verify-android-aab-identity.sh" \
   "$artifact" jp.co.soramitsu.fearless "$expected_version_name" \
-  "$expected_version_code" "$expected_commit"; then
+  "$expected_version_code" "$expected_commit" required; then
   sed -n '1,160p' "$identity_verification_log" >&2
   fail "bounded AAB identity verification failed."
 fi

@@ -323,6 +323,7 @@ jobs:
         env:
           AAB_IDENTITY_FIXTURE: ${{ github.workspace }}/app/build/outputs/bundle/debug/app-debug.aab
           EXPECTED_AAB_SOURCE_COMMIT: development
+          AAB_IDENTITY_R8_POLICY: absent
         run: |
           set -euo pipefail
           EXPECTED_AAB_PACKAGE=jp.co.soramitsu.fearless.debug \

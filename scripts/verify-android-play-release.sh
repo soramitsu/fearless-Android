@@ -188,7 +188,8 @@ verify_artifact() {
     "$EXPECTED_PACKAGE_NAME" \
     "$RELEASE_VERSION_NAME" \
     "$RELEASE_VERSION_CODE" \
-    "$RELEASE_COMMIT"
+    "$RELEASE_COMMIT" \
+    required
   test_checkpoint after-identity-verification
 
   [[ "$(sha256_file "$artifact_snapshot")" == "$expected_sha256" ]] ||

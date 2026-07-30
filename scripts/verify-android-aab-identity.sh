@@ -27,13 +27,18 @@ usage() {
 Usage:
   BUNDLETOOL_JAR=/path/to/pinned-bundletool.jar \
     scripts/verify-android-aab-identity.sh \
-      <bundle.aab> <package-name> <version-name> <version-code> <source-commit>
+      <bundle.aab> <package-name> <version-name> <version-code> <source-commit> \
+      [required|absent]
 
 This verifier derives the application identity from the AAB manifest and
 requires the exact source commit, production-safe application/SDK policy,
 exact reviewed application component/intent/authority surface, merged
 permission set, and complete allowlisted Fearless native payload for every
 supported ABI.
+The optional final argument is the exact R8 metadata policy. It defaults to
+`required` for release and Internal App Sharing artifacts. Pass `absent` only
+for an explicitly unminified test fixture; that mode requires zero canonical
+or aliased R8 metadata entries and does not relax any other verification.
 The caller remains responsible for verifying the bundletool binary and the AAB
 signature before treating the artifact as releasable.
 USAGE
@@ -191,7 +196,7 @@ PY
   printf '%s' "$value"
 }
 
-[[ "$#" -eq 5 ]] || {
+[[ "$#" -eq 5 || "$#" -eq 6 ]] || {
   usage
   exit 2
 }
@@ -201,6 +206,14 @@ expected_package="$2"
 expected_version_name="$3"
 expected_version_code="$4"
 expected_source_commit="$5"
+expected_r8_policy="required"
+if [[ "$#" -eq 6 ]]; then
+  expected_r8_policy="$6"
+fi
+case "$expected_r8_policy" in
+  required|absent) ;;
+  *) fail "The expected R8 metadata policy must be exactly required or absent." ;;
+esac
 
 [[ -n "${BUNDLETOOL_JAR:-}" ]] || fail "BUNDLETOOL_JAR is required."
 command -v java >/dev/null 2>&1 || fail "java is required."
@@ -217,13 +230,14 @@ if ! android_toolchain_evidence="$(
   python3 - \
     "$artifact" \
     "$EXPECTED_ANDROID_GRADLE_PLUGIN_VERSION" \
-    "$EXPECTED_R8_VERSION" <<'PY'
+    "$EXPECTED_R8_VERSION" \
+    "$expected_r8_policy" <<'PY'
 import json
 import stat
 import sys
 import zipfile
 
-artifact_path, expected_agp, expected_r8 = sys.argv[1:]
+artifact_path, expected_agp, expected_r8, expected_r8_policy = sys.argv[1:]
 agp_paths = (
     "BUNDLE-METADATA/"
     "com.android.tools.build.gradle/app-metadata.properties",
@@ -316,12 +330,25 @@ try:
                 "must be byte-identical."
             )
         agp_payload = agp_payloads[0]
-        r8_payload = read_exact_metadata(
-            archive,
-            "R8 metadata",
-            r8_path,
-            2 * 1024 * 1024,
-        )
+        if expected_r8_policy == "required":
+            r8_payload = read_exact_metadata(
+                archive,
+                "R8 metadata",
+                r8_path,
+                2 * 1024 * 1024,
+            )
+        else:
+            r8_matches = [
+                info
+                for info in archive.infolist()
+                if info.filename == r8_path
+            ]
+            if r8_matches:
+                fail(
+                    "The AAB must not contain R8 metadata when the exact "
+                    f"policy is absent; found {len(r8_matches)}."
+                )
+            r8_payload = None
 except (OSError, RuntimeError, zipfile.BadZipFile) as error:
     print(
         "[android-aab-identity][error] "
@@ -379,35 +406,42 @@ if agp_payload != expected_agp_payload:
         "two-line content."
     )
 
-try:
-    r8_text = r8_payload.decode("utf-8")
-except UnicodeDecodeError as error:
-    fail(f"R8 metadata is not valid UTF-8: {error}.")
-if r8_text.startswith("\ufeff") or "\x00" in r8_text:
-    fail("R8 metadata contains unsafe text encoding.")
-try:
-    r8_metadata = json.loads(
-        r8_text,
-        object_pairs_hook=reject_duplicate_keys,
-        parse_constant=lambda value: fail(
-            f"R8 metadata contains non-finite JSON value {value}."
-        ),
-    )
-except (json.JSONDecodeError, UnicodeError) as error:
-    fail(f"R8 metadata is not safe parseable JSON: {error}.")
-if not isinstance(r8_metadata, dict):
-    fail("R8 metadata must be a JSON object.")
-actual_r8 = r8_metadata.get("version")
-if actual_r8 != expected_r8:
-    fail(f"AAB R8 mismatch: expected {expected_r8}, got {actual_r8!r}.")
+if expected_r8_policy == "required":
+    try:
+        r8_text = r8_payload.decode("utf-8")
+    except UnicodeDecodeError as error:
+        fail(f"R8 metadata is not valid UTF-8: {error}.")
+    if r8_text.startswith("\ufeff") or "\x00" in r8_text:
+        fail("R8 metadata contains unsafe text encoding.")
+    try:
+        r8_metadata = json.loads(
+            r8_text,
+            object_pairs_hook=reject_duplicate_keys,
+            parse_constant=lambda value: fail(
+                f"R8 metadata contains non-finite JSON value {value}."
+            ),
+        )
+    except (json.JSONDecodeError, UnicodeError) as error:
+        fail(f"R8 metadata is not safe parseable JSON: {error}.")
+    if not isinstance(r8_metadata, dict):
+        fail("R8 metadata must be a JSON object.")
+    actual_r8 = r8_metadata.get("version")
+    if actual_r8 != expected_r8:
+        fail(f"AAB R8 mismatch: expected {expected_r8}, got {actual_r8!r}.")
+else:
+    actual_r8 = "absent"
 
 print(f"agp={actual_agp} r8={actual_r8}", end="")
 PY
 )"; then
   exit 1
 fi
+expected_r8_evidence="$EXPECTED_R8_VERSION"
+if [[ "$expected_r8_policy" == "absent" ]]; then
+  expected_r8_evidence="absent"
+fi
 [[ "$android_toolchain_evidence" == \
-  "agp=$EXPECTED_ANDROID_GRADLE_PLUGIN_VERSION r8=$EXPECTED_R8_VERSION" ]] ||
+  "agp=$EXPECTED_ANDROID_GRADLE_PLUGIN_VERSION r8=$expected_r8_evidence" ]] ||
   fail "Embedded Android toolchain evidence is malformed."
 
 build_config_file="$ROOT_DIR/build.gradle"
