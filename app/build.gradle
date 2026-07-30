@@ -190,6 +190,15 @@ def iasSourceTreeVerificationCommand = {
     command
 }
 
+def iasCoverageCleanupCommand = [
+    "python3",
+    new File(
+        rootProject.projectDir,
+        "scripts/remove-empty-gradle-coverage-directories.py"
+    ).absolutePath,
+    rootProject.projectDir.canonicalFile.toPath().toString()
+]
+
 if (internalAppSharingRequested) {
     if (!internalAppSharingBundleRequested &&
         !internalAppSharingVerificationRequested) {
@@ -315,6 +324,10 @@ if (internalAppSharingRequested) {
                 "Internal App Sharing fearless-utils commit/effective-tree binding failed."
             )
         }
+        runCheckedCommand(
+            iasCoverageCleanupCommand,
+            "IAS pre-build bounded coverage cleanup"
+        )
         runCheckedCommand(
             iasSourceTreeVerificationCommand(),
             "IAS pre-build source-tree verification"
@@ -674,6 +687,10 @@ if (internalAppSharingRequested) {
             false
         }
         doLast {
+            runCheckedCommand(
+                iasCoverageCleanupCommand,
+                "IAS post-build bounded coverage cleanup"
+            )
             runCheckedCommand(
                 iasSourceTreeVerificationCommand(),
                 "IAS post-build source-tree verification"

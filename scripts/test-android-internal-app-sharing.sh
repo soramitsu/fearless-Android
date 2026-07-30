@@ -1051,6 +1051,93 @@ def trust_contract_errors(text, count_assertion=None):
     require("IAS_AAB_VERIFIER_TEST_" not in text, "production workflow must not enable verifier test hooks")
     return errors
 
+
+def app_cleanup_contract_errors(text):
+    cleanup_definition = '''def iasCoverageCleanupCommand = [
+    "python3",
+    new File(
+        rootProject.projectDir,
+        "scripts/remove-empty-gradle-coverage-directories.py"
+    ).absolutePath,
+    rootProject.projectDir.canonicalFile.toPath().toString()
+]
+'''
+    pre_cleanup = '''        runCheckedCommand(
+            iasCoverageCleanupCommand,
+            "IAS pre-build bounded coverage cleanup"
+        )
+'''
+    pre_verification = '''        runCheckedCommand(
+            iasSourceTreeVerificationCommand(),
+            "IAS pre-build source-tree verification"
+        )
+'''
+    post_cleanup = '''            runCheckedCommand(
+                iasCoverageCleanupCommand,
+                "IAS post-build bounded coverage cleanup"
+            )
+'''
+    post_verification = '''            runCheckedCommand(
+                iasSourceTreeVerificationCommand(),
+                "IAS post-build source-tree verification"
+            )
+'''
+    bundle_guard_start = '''    if (internalAppSharingBundleRequested) {
+        if (System.getenv("CI") != "true") {
+'''
+    bundle_guard_end = "\n    }\n\n    def releasePath = releaseGoogleServicesFile.toPath()"
+    task_scope_start = '''    tasks.matching { task ->
+        task.name == "bundleInternalAppSharing"
+    }.configureEach { task ->
+'''
+    task_scope_end = "\n    }\n}\n\ndef loadSigningKeyStore"
+    bundle_guard = None
+    task_scope = None
+    do_last_scope = None
+    if text.count(bundle_guard_start) == 1 and text.count(bundle_guard_end) == 1:
+        bundle_guard = text.split(bundle_guard_start, 1)[1].split(
+            bundle_guard_end,
+            1,
+        )[0]
+    if text.count(task_scope_start) == 1 and text.count(task_scope_end) == 1:
+        task_scope = text.split(task_scope_start, 1)[1].split(
+            task_scope_end,
+            1,
+        )[0]
+        do_last_marker = "        doLast {\n"
+        do_last_end = "\n        }"
+        if (
+            task_scope.count(do_last_marker) == 1
+            and task_scope.endswith(do_last_end)
+        ):
+            do_last_scope = task_scope.split(do_last_marker, 1)[1].rsplit(
+                do_last_end,
+                1,
+            )[0]
+    scoped_pre_verification = pre_verification.rstrip("\n")
+    valid = (
+        text.count(cleanup_definition) == 1
+        and text.count(pre_cleanup) == 1
+        and text.count(pre_verification) == 1
+        and text.count(post_cleanup) == 1
+        and text.count(post_verification) == 1
+        and bundle_guard is not None
+        and bundle_guard.count(pre_cleanup) == 1
+        and bundle_guard.count(scoped_pre_verification) == 1
+        and bundle_guard.index(pre_cleanup)
+        < bundle_guard.index(scoped_pre_verification)
+        and task_scope is not None
+        and do_last_scope is not None
+        and do_last_scope.count(post_cleanup) == 1
+        and do_last_scope.count(post_verification) == 1
+        and do_last_scope.index(post_cleanup) < do_last_scope.index(post_verification)
+    )
+    return [] if valid else [
+        "app bundle must run the exact bounded coverage cleaner before both "
+        "source-tree verifications"
+    ]
+
+
 failures = []
 for needle in required_app:
     if needle not in app:
@@ -1068,6 +1155,125 @@ if 'internalAppSharing' in ignore:
     failures.append("app/.gitignore still hides a mutable IAS source tree")
 if obsolete_helper.exists():
     failures.append("obsolete atomic bridge helper still exists")
+
+app_cleanup_diagnostic = (
+    "app bundle must run the exact bounded coverage cleaner before both "
+    "source-tree verifications"
+)
+app_cleanup_assertion_count = 1
+failures.extend(app_cleanup_contract_errors(app))
+pre_cleanup_call = '''        runCheckedCommand(
+            iasCoverageCleanupCommand,
+            "IAS pre-build bounded coverage cleanup"
+        )
+'''
+pre_source_verification = '''        runCheckedCommand(
+            iasSourceTreeVerificationCommand(),
+            "IAS pre-build source-tree verification"
+        )
+'''
+post_cleanup_call = '''            runCheckedCommand(
+                iasCoverageCleanupCommand,
+                "IAS post-build bounded coverage cleanup"
+            )
+'''
+post_source_verification = '''            runCheckedCommand(
+                iasSourceTreeVerificationCommand(),
+                "IAS post-build source-tree verification"
+            )
+'''
+app_cleanup_mutations = [
+    ("delete pre-build cleanup", replace_once(app, pre_cleanup_call, "")),
+    ("delete post-build cleanup", replace_once(app, post_cleanup_call, "")),
+    (
+        "redirect cleanup helper",
+        replace_once(
+            app,
+            "scripts/remove-empty-gradle-coverage-directories.py",
+            "scripts/verify-android-release-source-tree.sh",
+        ),
+    ),
+    (
+        "move post-build cleanup after verification",
+        replace_once(
+            app,
+            post_cleanup_call + post_source_verification,
+            post_source_verification + post_cleanup_call,
+        ),
+    ),
+    (
+        "move pre-build cleanup after verification",
+        replace_once(
+            app,
+            pre_cleanup_call + pre_source_verification,
+            pre_source_verification + pre_cleanup_call,
+        ),
+    ),
+    (
+        "move pre-build cleanup pair outside bundle guard",
+        replace_once(
+            replace_once(
+                app,
+                pre_cleanup_call + pre_source_verification,
+                "",
+            ),
+            '''    if (internalAppSharingBundleRequested) {
+        if (System.getenv("CI") != "true") {
+''',
+            pre_cleanup_call
+            + pre_source_verification
+            + '''    if (internalAppSharingBundleRequested) {
+        if (System.getenv("CI") != "true") {
+''',
+        ),
+    ),
+    (
+        "move post-build cleanup pair outside doLast",
+        replace_once(
+            replace_once(
+                app,
+                post_cleanup_call + post_source_verification,
+                "",
+            ),
+            '''        outputs.cacheIf("IAS release-candidate output must never come from build cache") {
+            false
+        }
+        doLast {
+''',
+            post_cleanup_call
+            + post_source_verification
+            + '''        outputs.cacheIf("IAS release-candidate output must never come from build cache") {
+            false
+        }
+        doLast {
+''',
+        ),
+    ),
+    (
+        "move post-build cleanup pair after doLast",
+        replace_once(
+            replace_once(
+                app,
+                post_cleanup_call + post_source_verification,
+                "",
+            ),
+            "\n    }\n}\n\ndef loadSigningKeyStore",
+            "\n"
+            + post_cleanup_call
+            + post_source_verification
+            + "    }\n}\n\ndef loadSigningKeyStore",
+        ),
+    ),
+]
+for label, mutated_app in app_cleanup_mutations:
+    app_cleanup_assertion_count += 1
+    mutation_errors = app_cleanup_contract_errors(mutated_app)
+    if app_cleanup_diagnostic not in mutation_errors:
+        failures.append(
+            f"app cleanup mutation was not rejected ({label}): "
+            f"{mutation_errors!r}"
+        )
+
 if not workflow_path.is_file():
     failures.append("dedicated IAS workflow is missing")
 else:
@@ -1977,6 +2183,7 @@ else:
         + len(required_verifier)
         + len(required_self_test)
         + 8
+        + app_cleanup_assertion_count
     )
     print(base_count + trust_assertion_count[0] + len(mutations))
     raise SystemExit(0)
@@ -1985,8 +2192,8 @@ PY
   fail "IAS static contract failed."
 fi
 static_count="$(<"$static_count_file")"
-[[ "$static_count" == "624" ]] ||
-  fail "expected 624 static adversarial assertions; got $static_count."
+[[ "$static_count" == "633" ]] ||
+  fail "expected 633 static adversarial assertions; got $static_count."
 
 if [[ "${IAS_GRADLE_CONTRACT_ONLY:-false}" == "true" ]]; then
   assert_source_unchanged "$source_before" "static IAS contract"

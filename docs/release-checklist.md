@@ -202,7 +202,7 @@ manual workflow run.
   deletes every unqualified one; the scheduled janitor removes stale pending
   artifacts.
 - Run `bash scripts/test-android-internal-app-sharing.sh` and require exactly 8
-  positive, 39 behavioral negative, and 624 static adversarial assertions.
+  positive, 39 behavioral negative, and 633 static adversarial assertions.
   Its bounded Gradle coverage-cleanup prerequisite must independently report
   exactly 4 positive and 12 negative/adversarial cases.
   Require the dependency-provenance suite to report exactly 2 positive and 40
