@@ -64,8 +64,12 @@ printf '%s\n' \
   fail "AVDMANAGER_BIN must be an absolute executable under ANDROID_SDK_ROOT"
 readonly SDKMANAGER="$SDKMANAGER_BIN"
 readonly AVDMANAGER="$AVDMANAGER_BIN"
-readonly EMULATOR="$ANDROID_SDK_ROOT/emulator/emulator"
-readonly QEMU_SYSTEM="$ANDROID_SDK_ROOT/emulator/qemu/linux-x86_64/qemu-system-x86_64"
+readonly EMULATOR_ROOT="$ANDROID_SDK_ROOT/emulator"
+readonly EMULATOR="$EMULATOR_ROOT/emulator"
+readonly EMULATOR_LIB64="$EMULATOR_ROOT/lib64"
+readonly EMULATOR_QT_LIB="$EMULATOR_LIB64/qt/lib"
+readonly QEMU_SYSTEM="$EMULATOR_ROOT/qemu/linux-x86_64/qemu-system-x86_64"
+readonly QEMU_LD_LIBRARY_PATH="$EMULATOR_LIB64:$EMULATOR_QT_LIB"
 readonly ADB="$ANDROID_SDK_ROOT/platform-tools/adb"
 
 work_dir="$(mktemp -d "$RUNNER_TEMP/fearless-android-emulator-$API_LEVEL.XXXXXX")"
@@ -209,7 +213,11 @@ for executable in "$SDKMANAGER" "$AVDMANAGER" "$EMULATOR" "$QEMU_SYSTEM" "$ADB";
   [[ -x "$executable" && ! -L "$executable" ]] ||
     fail "required Android SDK executable is missing or symlinked: $executable"
 done
-for executable in timeout setsid awk sed ps ldd; do
+for directory in "$EMULATOR_LIB64" "$EMULATOR_QT_LIB"; do
+  [[ -d "$directory" && ! -L "$directory" ]] ||
+    fail "required Android emulator library directory is missing or symlinked: $directory"
+done
+for executable in timeout setsid awk sed ps ldd env; do
   command -v "$executable" >/dev/null ||
     fail "required host command is missing: $executable"
 done
@@ -223,8 +231,11 @@ fi
   fail "current CI user cannot read and write /dev/kvm"
 
 if ! {
-  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"
-  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"
+  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \
+    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"
+  env -u LD_PRELOAD LC_ALL=C \
+    LD_LIBRARY_PATH="$QEMU_LD_LIBRARY_PATH" \
+    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"
 } >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then
   fail "Android emulator shared-library inspection failed"
 fi

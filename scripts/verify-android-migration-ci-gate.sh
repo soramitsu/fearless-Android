@@ -217,15 +217,25 @@ required_emulator_runner_lines=(
   'readonly EMULATOR_SERIAL="emulator-5554"'
   '[[ -n "${SDKMANAGER_BIN:-}" && "$SDKMANAGER_BIN" == "$ANDROID_SDK_ROOT"/* ]] ||'
   '[[ -n "${AVDMANAGER_BIN:-}" && "$AVDMANAGER_BIN" == "$ANDROID_SDK_ROOT"/* ]] ||'
-  'readonly QEMU_SYSTEM="$ANDROID_SDK_ROOT/emulator/qemu/linux-x86_64/qemu-system-x86_64"'
+  'readonly EMULATOR_ROOT="$ANDROID_SDK_ROOT/emulator"'
+  'readonly EMULATOR="$EMULATOR_ROOT/emulator"'
+  'readonly EMULATOR_LIB64="$EMULATOR_ROOT/lib64"'
+  'readonly EMULATOR_QT_LIB="$EMULATOR_LIB64/qt/lib"'
+  'readonly QEMU_SYSTEM="$EMULATOR_ROOT/qemu/linux-x86_64/qemu-system-x86_64"'
+  'readonly QEMU_LD_LIBRARY_PATH="$EMULATOR_LIB64:$EMULATOR_QT_LIB"'
   'for executable in "$SDKMANAGER" "$AVDMANAGER" "$EMULATOR" "$QEMU_SYSTEM" "$ADB"; do'
+  'for directory in "$EMULATOR_LIB64" "$EMULATOR_QT_LIB"; do'
+  '    fail "required Android emulator library directory is missing or symlinked: $directory"'
   '  30:compatibility|31:compatibility|34:full|36:compatibility) ;;'
   '[[ -c /dev/kvm ]] || fail "/dev/kvm is not a character device"'
   '  sudo setfacl -m "u:$(id -un):rw" /dev/kvm'
   '  fail "current CI user cannot read and write /dev/kvm"'
-  'for executable in timeout setsid awk sed ps ldd; do'
-  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"'
-  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"'
+  'for executable in timeout setsid awk sed ps ldd env; do'
+  '  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \'
+  '    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"'
+  '  env -u LD_PRELOAD LC_ALL=C \'
+  '    LD_LIBRARY_PATH="$QEMU_LD_LIBRARY_PATH" \'
+  '    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"'
   '} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then'
   '  fail "Android emulator shared-library inspection failed"'
   'if grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then'
@@ -307,7 +317,7 @@ image_install_line="$(
     "$EMULATOR_RUNNER" | cut -d: -f1 || true
 )"
 shared_library_line="$(
-  grep -nF '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"' \
+  grep -nF '  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \' \
     "$EMULATOR_RUNNER" | cut -d: -f1 || true
 )"
 emulator_version_line="$(

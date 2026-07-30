@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-ci-gate.sh"
 EXPECTED_POSITIVE_COUNT=1
-EXPECTED_NEGATIVE_COUNT=88
+EXPECTED_NEGATIVE_COUNT=92
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -240,8 +240,8 @@ expect_failure \
 
 fixture="$(make_fixture missing-shared-library-inspection)"
 replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
-  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"' \
-  '  timeout "$COMMAND_TIMEOUT_SECONDS" true'
+  '    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"' \
+  '    timeout "$COMMAND_TIMEOUT_SECONDS" true'
 expect_failure \
   "missing emulator shared-library inspection" \
   "Android emulator lifecycle runner line" \
@@ -249,10 +249,46 @@ expect_failure \
 
 fixture="$(make_fixture missing-qemu-shared-library-inspection)"
 replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
-  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"' \
-  '  timeout "$COMMAND_TIMEOUT_SECONDS" true'
+  '    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"' \
+  '    timeout "$COMMAND_TIMEOUT_SECONDS" true'
 expect_failure \
   "missing qemu shared-library inspection" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture inherited-launcher-library-environment)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \' \
+  '  env -u LD_PRELOAD LC_ALL=C \'
+expect_failure \
+  "launcher inspection inherits library search path" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture localized-shared-library-inspection)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \' \
+  '  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL="${LC_ALL:-}" \'
+expect_failure \
+  "shared-library inspection inherits locale" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture unbound-qemu-library-environment)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '    LD_LIBRARY_PATH="$QEMU_LD_LIBRARY_PATH" \' \
+  '    LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" \'
+expect_failure \
+  "qemu inspection omits launcher library search path" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-qemu-qt-library-directory)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'readonly EMULATOR_QT_LIB="$EMULATOR_LIB64/qt/lib"' \
+  'readonly EMULATOR_QT_LIB="$EMULATOR_LIB64/qt-disabled/lib"'
+expect_failure \
+  "qemu inspection omits bundled Qt library directory" \
   "Android emulator lifecycle runner line" \
   "$fixture"
 
@@ -267,8 +303,8 @@ expect_failure \
 
 fixture="$(make_fixture late-shared-library-inspection)"
 replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
-  $'if ! {\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"\n} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then\n  fail "Android emulator shared-library inspection failed"\nfi\nif grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then\n  fail "Android emulator has unresolved shared-library dependencies"\nfi\n\ntimeout "$COMMAND_TIMEOUT_SECONDS" \\\n  "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1' \
-  $'timeout "$COMMAND_TIMEOUT_SECONDS" \\\n  "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1\n\nif ! {\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"\n} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then\n  fail "Android emulator shared-library inspection failed"\nfi\nif grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then\n  fail "Android emulator has unresolved shared-library dependencies"\nfi'
+  $'if ! {\n  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \\\n    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"\n  env -u LD_PRELOAD LC_ALL=C \\\n    LD_LIBRARY_PATH="$QEMU_LD_LIBRARY_PATH" \\\n    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"\n} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then\n  fail "Android emulator shared-library inspection failed"\nfi\nif grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then\n  fail "Android emulator has unresolved shared-library dependencies"\nfi\n\ntimeout "$COMMAND_TIMEOUT_SECONDS" \\\n  "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1' \
+  $'timeout "$COMMAND_TIMEOUT_SECONDS" \\\n  "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1\n\nif ! {\n  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \\\n    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"\n  env -u LD_PRELOAD LC_ALL=C \\\n    LD_LIBRARY_PATH="$QEMU_LD_LIBRARY_PATH" \\\n    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"\n} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then\n  fail "Android emulator shared-library inspection failed"\nfi\nif grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then\n  fail "Android emulator has unresolved shared-library dependencies"\nfi'
 expect_failure \
   "shared-library inspection after emulator execution" \
   "shared-library preflight must precede emulator execution" \
