@@ -140,6 +140,7 @@ run_gradle_with_env() {
     -u GIT_INDEX_FILE \
     -u GIT_OBJECT_DIRECTORY \
     -u GIT_ALTERNATE_OBJECT_DIRECTORIES \
+    -u RELEASE_COMMIT \
     -u CI \
     "${base_environment[@]}" \
     ${default_ci[@]+"${default_ci[@]}"} \

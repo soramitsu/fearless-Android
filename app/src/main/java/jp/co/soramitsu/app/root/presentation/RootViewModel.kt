@@ -232,7 +232,6 @@ class RootViewModel @Inject constructor(
     private fun observeWalletConnectEvents() {
         WCDelegate.registerDelegatesIfReady()
             .onSuccess { WCDelegate.refreshConnections() }
-            .onFailure(Throwable::printStackTrace)
 
         WCDelegate.walletEvents.onEach {
             when (it) {

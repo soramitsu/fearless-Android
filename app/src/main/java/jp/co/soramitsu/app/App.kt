@@ -93,7 +93,6 @@ open class App : Application() {
                     onSuccess = {
                         WCDelegate.registerDelegatesIfReady()
                             .onSuccess { WCDelegate.refreshConnections() }
-                            .onFailure(Throwable::printStackTrace)
                     },
                     onError = { error ->
                         // Will log exceptions if initialization fails (e.g., invalid project ID, network issues)

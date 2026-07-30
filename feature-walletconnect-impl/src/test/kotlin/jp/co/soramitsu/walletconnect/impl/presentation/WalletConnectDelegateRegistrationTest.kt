@@ -10,6 +10,8 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -50,6 +52,36 @@ class WalletConnectDelegateRegistrationTest {
         assertTrue(registration.registerIfReady().isSuccess)
         assertEquals(2, coreAttempts.get())
         assertEquals(1, walletAttempts.get())
+    }
+
+    @Test
+    fun `recoverable registration failure stays silent and retries successfully`() {
+        val originalErrorStream = System.err
+        val capturedErrorStream = ByteArrayOutputStream()
+        val coreAttempts = AtomicInteger()
+        val successCallbacks = AtomicInteger()
+        val registration = WalletConnectDelegateRegistration(
+            registerCoreDelegate = {
+                if (coreAttempts.incrementAndGet() == 1) {
+                    error("Core client is not initialized")
+                }
+            },
+            registerWalletDelegate = {}
+        )
+
+        try {
+            System.setErr(PrintStream(capturedErrorStream, true, Charsets.UTF_8.name()))
+            registration.registerIfReady()
+                .onSuccess { successCallbacks.incrementAndGet() }
+            registration.registerIfReady()
+                .onSuccess { successCallbacks.incrementAndGet() }
+        } finally {
+            System.setErr(originalErrorStream)
+        }
+
+        assertEquals("", capturedErrorStream.toString(Charsets.UTF_8.name()))
+        assertEquals(2, coreAttempts.get())
+        assertEquals(1, successCallbacks.get())
     }
 
     @Test
