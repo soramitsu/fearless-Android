@@ -173,11 +173,17 @@ allprojects {
     if (project.path == ":app") {
         def productionReleaseLockConfigurations = [
                 "hiltAnnotationProcessorRelease",
+                "hiltAnnotationProcessorInternalAppSharing",
                 "kotlinCompilerPluginClasspathRelease",
+                "kotlinCompilerPluginClasspathInternalAppSharing",
                 "kspReleaseKotlinProcessorClasspath",
+                "kspInternalAppSharingKotlinProcessorClasspath",
                 "releaseAnnotationProcessorClasspath",
                 "releaseCompileClasspath",
-                "releaseRuntimeClasspath"
+                "releaseRuntimeClasspath",
+                "internalAppSharingAnnotationProcessorClasspath",
+                "internalAppSharingCompileClasspath",
+                "internalAppSharingRuntimeClasspath"
         ] as Set
         dependencyLocking {
             lockMode = LockMode.STRICT

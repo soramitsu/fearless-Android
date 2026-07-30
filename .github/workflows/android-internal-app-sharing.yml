@@ -1,0 +1,1805 @@
+name: Android Internal App Sharing Candidate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [develop]
+  schedule:
+    - cron: "17,47 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fearless-android-ias-${{ github.event_name == 'workflow_dispatch' && 'trusted-develop' || github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'pending-artifact-janitor' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate-candidate:
+    name: Validate IAS candidate; trusted develop dispatch may hand off
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      producer_artifact_id: ${{ steps.upload-producer-quarantine.outputs.artifact-id }}
+      producer_artifact_digest: ${{ steps.upload-producer-quarantine.outputs.artifact-digest }}
+    env:
+      CI: true
+      SKIP_AUTO_VERSION_BUMP: "true"
+      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
+      FORCE_LOCAL_UTILS: "true"
+      FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      USE_REMOTE_UTILS: "false"
+      SHARED_FEATURES_VERSION_OVERRIDE: ""
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
+      PAY_WINGS_REPOSITORY_URL: https://maven.google.com
+      PAY_WINGS_USERNAME: ""
+      PAY_WINGS_PASSWORD: ""
+      FL_BLAST_API_ETHEREUM_KEY: stub
+      FL_BLAST_API_BSC_KEY: stub
+      FL_BLAST_API_SEPOLIA_KEY: stub
+      FL_BLAST_API_GOERLI_KEY: stub
+      FL_BLAST_API_POLYGON_KEY: stub
+      FL_ANDROID_ETHERSCAN_API_KEY: stub
+      FL_ANDROID_BSCSCAN_API_KEY: stub
+      FL_ANDROID_POLYGONSCAN_API_KEY: stub
+      IAS_CANDIDATE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+    steps:
+      - name: Require exact first-party workflow context
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_REF: ${{ github.ref }}
+          DISPATCH_REF_PROTECTED: ${{ github.ref_protected }}
+          PULL_REQUEST_BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          [[ "${GITHUB_REPOSITORY:-}" == "soramitsu/fearless-Android" ]] || {
+            echo "IAS validation is restricted to soramitsu/fearless-Android." >&2
+            exit 1
+          }
+          case "$EVENT_NAME" in
+            pull_request)
+              [[ "$PULL_REQUEST_BASE_REF" == "develop" ]] || {
+                echo "IAS pull-request validation must target develop." >&2
+                exit 1
+              }
+              ;;
+            workflow_dispatch)
+              [[ "$DISPATCH_REF" == "refs/heads/develop" ]] || {
+                echo "IAS handoff dispatches must target refs/heads/develop." >&2
+                exit 1
+              }
+              [[ "$DISPATCH_REF_PROTECTED" == "true" ]] || {
+                echo "IAS handoff dispatches require protected develop." >&2
+                exit 1
+              }
+              ;;
+            *)
+              echo "Unsupported IAS workflow event: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Mark pull request run validation-only
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "::warning::PR IAS runs are non-distributable validation only. No handoff or upload-artifact step may run."
+
+      - name: Checkout exact candidate without credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout exact fearless-utils source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: soramitsu/fearless-utils-Android
+          ref: ${{ env.FEARLESS_UTILS_COMMIT }}
+          path: fearless-utils-Android
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Bind candidate and dependency source
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$IAS_CANDIDATE_SHA" ]]
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            git fetch --no-tags origin \
+              develop:refs/remotes/origin/develop
+            [[ "$IAS_CANDIDATE_SHA" == \
+              "$(git rev-parse refs/remotes/origin/develop)" ]]
+          fi
+          source_tree="$(git rev-parse 'HEAD^{tree}')"
+          utils_output="$(./scripts/ensure-fearless-utils.sh)"
+          printf '%s\n' "$utils_output"
+          utils_tree="$(
+            sed -n 's/^\[fearless-utils\] Effective source tree \([0-9a-f]\{40\}\)$/\1/p' \
+              <<<"$utils_output"
+          )"
+          [[ "$utils_tree" =~ ^[0-9a-f]{40}$ ]]
+          {
+            echo "RELEASE_COMMIT=$IAS_CANDIDATE_SHA"
+            echo "IAS_SOURCE_TREE=$source_tree"
+            echo "FEARLESS_UTILS_EFFECTIVE_TREE=$utils_tree"
+          } >>"$GITHUB_ENV"
+          ./scripts/verify-android-release-source-tree.sh \
+            "$IAS_CANDIDATE_SHA" "$source_tree" --allow-fearless-utils
+
+      - name: Setup Java 21
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install checksum-pinned bundletool
+        run: |
+          set -euo pipefail
+          bundletool_jar="$RUNNER_TEMP/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          curl --fail --location --silent --show-error --retry 3 \
+            --output "$bundletool_jar" \
+            "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          [[ "$(sha256sum "$bundletool_jar" | awk '{print $1}')" == \
+            "$BUNDLETOOL_SHA256" ]]
+          chmod 0444 "$bundletool_jar"
+          echo "BUNDLETOOL_JAR=$bundletool_jar" >>"$GITHUB_ENV"
+
+      - name: Setup Android SDK and NDKs
+        run: |
+          set -euo pipefail
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          sdkmanager_bin="$(command -v sdkmanager || true)"
+          if [[ -z "$sdkmanager_bin" ]]; then
+            for candidate in \
+              "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"; do
+              [[ ! -x "$candidate" ]] || {
+                sdkmanager_bin="$candidate"
+                break
+              }
+            done
+          fi
+          [[ -n "$sdkmanager_bin" ]]
+          yes | "$sdkmanager_bin" --licenses >/dev/null || true
+          "$sdkmanager_bin" --install \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "platform-tools" \
+            "ndk;28.0.12674087" \
+            "ndk;25.2.9519653"
+          {
+            echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+          } >>"$GITHUB_ENV"
+
+      - name: Setup Rust Android targets
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add \
+            aarch64-linux-android \
+            armv7-linux-androideabi \
+            i686-linux-android \
+            x86_64-linux-android
+
+      - name: Verify IAS static and adversarial Gradle contract
+        env:
+          IAS_GRADLE_CONTRACT_ONLY: "true"
+        run: bash ./scripts/test-android-internal-app-sharing.sh
+
+      - name: Run full IAS Gradle guard suite
+        run: bash ./scripts/test-android-internal-app-sharing.sh
+
+      - name: Remove candidate outputs and prove clean source
+        run: |
+          set -euo pipefail
+          rm -rf \
+            app/build/outputs/bundle/internalAppSharing \
+            app/build/outputs/mapping/internalAppSharing
+          if [[ -d app/build/outputs/bundle/release ]]; then
+            find app/build/outputs/bundle/release -type f -print0 |
+              sort -z |
+              xargs -0r sha256sum >"$RUNNER_TEMP/release-output-before.txt"
+          else
+            : >"$RUNNER_TEMP/release-output-before.txt"
+          fi
+          ./scripts/verify-android-release-source-tree.sh \
+            "$IAS_CANDIDATE_SHA" "$IAS_SOURCE_TREE" --allow-fearless-utils
+
+      - name: Build exact non-cached unsigned IAS AAB
+        run: |
+          set -euo pipefail
+          build_log="$RUNNER_TEMP/ias-build.log"
+          ./gradlew :app:bundleInternalAppSharing \
+            --no-build-cache \
+            --rerun-tasks \
+            --no-daemon \
+            --console=plain \
+            --stacktrace 2>&1 | tee "$build_log"
+          grep -Eq '^> Task :app:bundleInternalAppSharing$' "$build_log"
+          ! grep -Eq '^> Task :app:bundleInternalAppSharing (UP-TO-DATE|FROM-CACHE|NO-SOURCE|SKIPPED)$' \
+            "$build_log"
+
+      - name: Verify exact unsigned outputs and unchanged sources
+        run: |
+          set -euo pipefail
+          aab="app/build/outputs/bundle/internalAppSharing/app-internalAppSharing.aab"
+          [[ ! -L "$aab" && -f "$aab" && -s "$aab" ]]
+          [[ "$(stat -c '%h' "$aab")" == "1" ]]
+          map_dir="app/build/outputs/mapping/internalAppSharing"
+          for name in configuration.txt mapping.txt resources.txt seeds.txt usage.txt; do
+            path="$map_dir/$name"
+            [[ ! -L "$path" && -f "$path" && -s "$path" ]]
+          done
+          [[ "$(find app/build/outputs/bundle/internalAppSharing \
+            -maxdepth 1 -type f -name '*.aab' | wc -l)" == "1" ]]
+          python3 - "$aab" <<'PY'
+          import re
+          import sys
+          import zipfile
+
+          signature = re.compile(
+              r"META-INF/(?:MANIFEST\.MF|[^/]+\.(?:SF|RSA|DSA|EC))\Z",
+              re.IGNORECASE,
+          )
+          with zipfile.ZipFile(sys.argv[1]) as archive:
+              names = [entry.filename for entry in archive.infolist()]
+          if any(signature.fullmatch(name) for name in names):
+              raise SystemExit("Gradle exposed signing metadata in the unsigned IAS AAB")
+          PY
+          if [[ -d app/build/outputs/bundle/release ]]; then
+            find app/build/outputs/bundle/release -type f -print0 |
+              sort -z |
+              xargs -0r sha256sum >"$RUNNER_TEMP/release-output-after.txt"
+          else
+            : >"$RUNNER_TEMP/release-output-after.txt"
+          fi
+          cmp "$RUNNER_TEMP/release-output-before.txt" \
+            "$RUNNER_TEMP/release-output-after.txt"
+          ./scripts/verify-android-release-source-tree.sh \
+            "$IAS_CANDIDATE_SHA" "$IAS_SOURCE_TREE" --allow-fearless-utils
+          utils_output="$(./scripts/ensure-fearless-utils.sh)"
+          grep -Fqx \
+            "[fearless-utils] Effective source tree $FEARLESS_UTILS_EFFECTIVE_TREE" \
+            <<<"$utils_output"
+
+      - name: Create untrusted producer quarantine
+        if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'soramitsu/fearless-Android' && github.ref == 'refs/heads/develop' && github.ref_protected == true }}
+        env:
+          PRODUCER_REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$GITHUB_REPOSITORY" == "soramitsu/fearless-Android" ]]
+          [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]
+          [[ "$GITHUB_REF" == "refs/heads/develop" ]]
+          [[ "$PRODUCER_REF_PROTECTED" == "true" ]]
+          git fetch --no-tags origin \
+            develop:refs/remotes/origin/develop
+          [[ "$IAS_CANDIDATE_SHA" == \
+            "$(git rev-parse refs/remotes/origin/develop)" ]]
+          quarantine_dir="$RUNNER_TEMP/fearless-ias-producer-quarantine"
+          mkdir -m 0700 "$quarantine_dir"
+          verified_unsigned_aab="$quarantine_dir/candidate-unsigned.aab"
+          verifier_log="$RUNNER_TEMP/ias-unsigned-verifier.log"
+          env \
+            -u ANDROID_IAS_DEBUG_KEYSTORE_PATH \
+            -u ANDROID_IAS_DEBUG_CERTIFICATE_PATH \
+            -u ANDROID_IAS_DEBUG_CERT_SHA256 \
+            -u EXPECTED_IAS_DEBUG_CERT_SHA256 \
+            ./scripts/verify-android-internal-app-sharing-aab.sh --unsigned \
+            app/build/outputs/bundle/internalAppSharing/app-internalAppSharing.aab \
+            "$IAS_CANDIDATE_SHA" \
+            "$verified_unsigned_aab" | tee "$verifier_log"
+          unsigned_aab_sha="$(
+            sed -n 's/^\[android-ias-aab\] IAS_AAB_SHA256=\([0-9a-f]\{64\}\)$/\1/p' \
+              "$verifier_log"
+          )"
+          bundletool_sha="$(
+            sed -n 's/^\[android-ias-aab\] BUNDLETOOL_SHA256=\([0-9a-f]\{64\}\)$/\1/p' \
+              "$verifier_log"
+          )"
+          [[ "$(grep -Fxc '[android-ias-aab] IAS_SIGNATURE_STATE=UNSIGNED' \
+            "$verifier_log")" == "1" ]]
+          [[ "$unsigned_aab_sha" == \
+            "$(sha256sum "$verified_unsigned_aab" | awk '{print $1}')" ]]
+          [[ "$bundletool_sha" == "$BUNDLETOOL_SHA256" ]]
+          [[ "$(stat -c '%a:%h:%u' "$verified_unsigned_aab")" == \
+            "400:1:$(id -u)" ]]
+          unsigned_aab_inode="$(stat -c '%d:%i:%s' "$verified_unsigned_aab")"
+          evidence="$quarantine_dir/producer-evidence.txt"
+          {
+            echo "schema_version=2"
+            echo "distribution_eligibility=unsigned-quarantine-only-not-installable"
+            echo "signature_state=unsigned"
+            echo "source_commit=$IAS_CANDIDATE_SHA"
+            echo "source_tree=$IAS_SOURCE_TREE"
+            echo "fearless_utils_commit=$FEARLESS_UTILS_COMMIT"
+            echo "fearless_utils_tree=$FEARLESS_UTILS_EFFECTIVE_TREE"
+            echo "unsigned_aab_sha256=$unsigned_aab_sha"
+            echo "bundletool_sha256=$bundletool_sha"
+            echo "workflow_repository=$GITHUB_REPOSITORY"
+            echo "workflow_event=$GITHUB_EVENT_NAME"
+            echo "workflow_ref=$GITHUB_REF"
+            echo "workflow_ref_protected=$PRODUCER_REF_PROTECTED"
+            echo "workflow_sha=$GITHUB_SHA"
+            echo "workflow_run_id=$GITHUB_RUN_ID"
+            echo "workflow_run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "producer_job=$GITHUB_JOB"
+          } >"$evidence"
+          chmod 0400 "$evidence"
+          [[ "$(find "$quarantine_dir" -mindepth 1 -maxdepth 1 | wc -l)" == "2" ]]
+          {
+            echo "IAS_PRODUCER_QUARANTINE_DIR=$quarantine_dir"
+            echo "IAS_PRODUCER_UNSIGNED_AAB=$verified_unsigned_aab"
+            echo "IAS_PRODUCER_UNSIGNED_AAB_SHA256=$unsigned_aab_sha"
+            echo "IAS_PRODUCER_UNSIGNED_AAB_INODE=$unsigned_aab_inode"
+          } >>"$GITHUB_ENV"
+
+      - name: Recheck untrusted producer quarantine
+        if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'soramitsu/fearless-Android' && github.ref == 'refs/heads/develop' && github.ref_protected == true }}
+        run: |
+          set -euo pipefail
+          [[ ! -L "$IAS_PRODUCER_UNSIGNED_AAB" && \
+            -f "$IAS_PRODUCER_UNSIGNED_AAB" ]]
+          [[ "$(stat -c '%a:%h:%u' "$IAS_PRODUCER_UNSIGNED_AAB")" == \
+            "400:1:$(id -u)" ]]
+          [[ "$(stat -c '%d:%i:%s' "$IAS_PRODUCER_UNSIGNED_AAB")" == \
+            "$IAS_PRODUCER_UNSIGNED_AAB_INODE" ]]
+          [[ "$(sha256sum "$IAS_PRODUCER_UNSIGNED_AAB" | awk '{print $1}')" == \
+            "$IAS_PRODUCER_UNSIGNED_AAB_SHA256" ]]
+          [[ "$(find "$IAS_PRODUCER_QUARANTINE_DIR" \
+            -mindepth 1 -maxdepth 1 | wc -l)" == "2" ]]
+          git fetch --no-tags origin \
+            develop:refs/remotes/origin/develop
+          [[ "$IAS_CANDIDATE_SHA" == \
+            "$(git rev-parse refs/remotes/origin/develop)" ]]
+          ./scripts/verify-android-release-source-tree.sh \
+            "$IAS_CANDIDATE_SHA" "$IAS_SOURCE_TREE" --allow-fearless-utils
+
+      - name: Upload untrusted producer quarantine
+        id: upload-producer-quarantine
+        if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'soramitsu/fearless-Android' && github.ref == 'refs/heads/develop' && github.ref_protected == true }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fearless-android-ias-UNTRUSTED-producer-${{ env.IAS_CANDIDATE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.IAS_PRODUCER_QUARANTINE_DIR }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+          include-hidden-files: false
+
+      - name: Post-upload producer quarantine check
+        if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'soramitsu/fearless-Android' && github.ref == 'refs/heads/develop' && github.ref_protected == true }}
+        env:
+          UPLOADED_ARTIFACT_ID: ${{ steps.upload-producer-quarantine.outputs.artifact-id }}
+          UPLOADED_ARTIFACT_DIGEST: ${{ steps.upload-producer-quarantine.outputs.artifact-digest }}
+        run: |
+          set -euo pipefail
+          [[ "$UPLOADED_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$UPLOADED_ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$(sha256sum "$IAS_PRODUCER_UNSIGNED_AAB" | awk '{print $1}')" == \
+            "$IAS_PRODUCER_UNSIGNED_AAB_SHA256" ]]
+          git fetch --no-tags origin \
+            develop:refs/remotes/origin/develop
+          [[ "$IAS_CANDIDATE_SHA" == \
+            "$(git rev-parse refs/remotes/origin/develop)" ]]
+          ./scripts/verify-android-release-source-tree.sh \
+            "$IAS_CANDIDATE_SHA" "$IAS_SOURCE_TREE" --allow-fearless-utils
+
+      - name: Remove producer quarantine
+        if: always()
+        run: |
+          set -euo pipefail
+          run_dir="$RUNNER_TEMP/fearless-ias-producer-quarantine"
+          case "$run_dir" in
+            "$RUNNER_TEMP"/*) ;;
+            *) exit 1 ;;
+          esac
+          rm -rf -- "$run_dir"
+          [[ ! -e "$run_dir" && ! -L "$run_dir" ]]
+
+  qualify-handoff:
+    name: Qualify IAS handoff across disposable UID boundaries
+    needs: validate-candidate
+    if: ${{ needs.validate-candidate.result == 'success' && github.event_name == 'workflow_dispatch' && github.repository == 'soramitsu/fearless-Android' && github.ref == 'refs/heads/develop' && github.ref_protected == true }}
+    permissions:
+      actions: read
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      pending_artifact_id: ${{ steps.upload-pending-handoff.outputs.artifact-id }}
+      pending_artifact_digest: ${{ steps.upload-pending-handoff.outputs.artifact-digest }}
+      qualification_complete: ${{ steps.complete-qualification.outputs.qualified }}
+    env:
+      CI: true
+      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
+      FORCE_LOCAL_UTILS: "true"
+      FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      USE_REMOTE_UTILS: "false"
+      SHARED_FEATURES_VERSION_OVERRIDE: ""
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
+      IAS_CANDIDATE_SHA: ${{ github.sha }}
+      IAS_PRODUCER_ARTIFACT_ID: ${{ needs.validate-candidate.outputs.producer_artifact_id }}
+      IAS_PRODUCER_ARTIFACT_DIGEST: ${{ needs.validate-candidate.outputs.producer_artifact_digest }}
+
+    steps:
+      - name: Require exact fresh-runner qualification context
+        env:
+          QUALIFIER_REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REPOSITORY" == "soramitsu/fearless-Android" ]]
+          [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]
+          [[ "$GITHUB_REF" == "refs/heads/develop" ]]
+          [[ "$QUALIFIER_REF_PROTECTED" == "true" ]]
+          [[ "$IAS_PRODUCER_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$IAS_PRODUCER_ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          for forbidden_name in \
+            ANDROID_IAS_DEBUG_KEYSTORE_PATH \
+            ANDROID_IAS_DEBUG_CERTIFICATE_PATH \
+            ANDROID_IAS_DEBUG_CERT_SHA256 \
+            EXPECTED_IAS_DEBUG_CERT_SHA256 \
+            ANDROID_UNSIGNED_RELEASE_BUILD \
+            ANDROID_RELEASE_KEYSTORE_B64 \
+            CI_KEYSTORE_PATH \
+            CI_KEYSTORE_PASS \
+            CI_KEYSTORE_KEY_ALIAS \
+            CI_KEYSTORE_KEY_PASS \
+            GOOGLE_SERVICES_RELEASE_PATH \
+            GOOGLE_SERVICES_RELEASE_JSON_B64 \
+            ANDROID_RELEASE_FIREBASE_JSON_SHA256 \
+            PLAY_SERVICE_ACCOUNT_JSON_B64 \
+            PLAY_SERVICE_ACCOUNT \
+            CI_PLAY_KEY \
+            PLAY_TRACK \
+            PLAY_RELEASE_STATUS \
+            PLAY_ARTIFACT_DIR \
+            ALLOW_PLAY_PRODUCTION_UPLOAD \
+            FIREBASE_TOKEN \
+            GOOGLE_APPLICATION_CREDENTIALS \
+            CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE; do
+            if printenv "$forbidden_name" >/dev/null 2>&1; then
+              echo "Fresh IAS qualifier forbids $forbidden_name." >&2
+              exit 1
+            fi
+          done
+
+      - name: Checkout exact trusted candidate without credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: soramitsu/fearless-Android
+          ref: ${{ env.IAS_CANDIDATE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout exact fearless-utils source for qualification
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: soramitsu/fearless-utils-Android
+          ref: ${{ env.FEARLESS_UTILS_COMMIT }}
+          path: fearless-utils-Android
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Bind qualifier source with trusted system tools only
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$IAS_CANDIDATE_SHA" ]]
+          git fetch --no-tags origin \
+            develop:refs/remotes/origin/develop
+          [[ "$IAS_CANDIDATE_SHA" == \
+            "$(git rev-parse refs/remotes/origin/develop)" ]]
+          source_tree="$(git rev-parse 'HEAD^{tree}')"
+          utils_path="$GITHUB_WORKSPACE/fearless-utils-Android"
+          patch_path="$GITHUB_WORKSPACE/scripts/fearless-utils-library-only.patch"
+          [[ ! -L "$utils_path" && -d "$utils_path/.git" ]]
+          [[ "$(git -C "$utils_path" rev-parse HEAD)" == \
+            "$FEARLESS_UTILS_COMMIT" ]]
+          [[ ! -L "$patch_path" && -f "$patch_path" && -s "$patch_path" ]]
+          if ! git -C "$utils_path" apply --reverse --check "$patch_path" \
+            >/dev/null 2>&1; then
+            git -C "$utils_path" apply --check "$patch_path"
+            git -C "$utils_path" apply "$patch_path"
+          fi
+          git -C "$utils_path" add -A -- .
+          utils_tree="$(git -C "$utils_path" write-tree)"
+          git -C "$utils_path" reset --mixed HEAD >/dev/null
+          [[ "$source_tree" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$utils_tree" =~ ^[0-9a-f]{40}$ ]]
+          {
+            echo "IAS_SOURCE_TREE=$source_tree"
+            echo "FEARLESS_UTILS_EFFECTIVE_TREE=$utils_tree"
+            echo "IAS_QUALIFIED_AT_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          } >>"$GITHUB_ENV"
+          [[ -z "$(git diff --name-only)" ]]
+          [[ -z "$(git diff --cached --name-only)" ]]
+
+      - name: Setup Java 21 for fresh qualification
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install checksum-pinned qualifier bundletool
+        run: |
+          set -euo pipefail
+          bundletool_jar="$RUNNER_TEMP/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          curl --fail --location --silent --show-error --retry 3 \
+            --output "$bundletool_jar" \
+            "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          [[ "$(sha256sum "$bundletool_jar" | awk '{print $1}')" == \
+            "$BUNDLETOOL_SHA256" ]]
+          chmod 0444 "$bundletool_jar"
+          echo "BUNDLETOOL_JAR=$bundletool_jar" >>"$GITHUB_ENV"
+
+      - name: Prepare private producer quarantine download
+        run: |
+          set -euo pipefail
+          quarantine_dir="$RUNNER_TEMP/fearless-ias-downloaded-quarantine"
+          mkdir -m 0700 "$quarantine_dir"
+          echo "IAS_DOWNLOADED_QUARANTINE_DIR=$quarantine_dir" >>"$GITHUB_ENV"
+
+      - name: Bind exact immutable producer artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_ARTIFACT_NAME: fearless-android-ias-UNTRUSTED-producer-${{ env.IAS_CANDIDATE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          metadata="$(
+            curl --fail --location --silent --show-error --retry 3 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$IAS_PRODUCER_ARTIFACT_ID"
+          )"
+          [[ "$(jq -r '.id' <<<"$metadata")" == \
+            "$IAS_PRODUCER_ARTIFACT_ID" ]]
+          [[ "$(jq -r '.name' <<<"$metadata")" == \
+            "$EXPECTED_ARTIFACT_NAME" ]]
+          [[ "$(jq -r '.digest // empty' <<<"$metadata")" == \
+            "sha256:$IAS_PRODUCER_ARTIFACT_DIGEST" ]]
+          [[ "$(jq -r '.expired' <<<"$metadata")" == "false" ]]
+          [[ "$(jq -r '.workflow_run.id' <<<"$metadata")" == \
+            "$GITHUB_RUN_ID" ]]
+          [[ "$(jq -r '.workflow_run.head_sha' <<<"$metadata")" == \
+            "$IAS_CANDIDATE_SHA" ]]
+          size="$(jq -r '.size_in_bytes' <<<"$metadata")"
+          [[ "$size" =~ ^[1-9][0-9]*$ && "$size" -le 262225920 ]]
+
+      - name: Download untrusted producer quarantine
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ env.IAS_PRODUCER_ARTIFACT_ID }}
+          path: ${{ env.IAS_DOWNLOADED_QUARANTINE_DIR }}
+
+      - name: Prepare root-owned read-only pre-sign boundary
+        run: |
+          set -euo pipefail
+          umask 077
+          principal=iaspresign
+          reserved_uid=61001
+          if getent passwd "$principal" >/dev/null; then
+            exit 1
+          fi
+          if getent group "$principal" >/dev/null; then
+            exit 1
+          fi
+          if getent passwd "$reserved_uid" >/dev/null; then
+            exit 1
+          fi
+          sudo useradd --system --user-group --no-create-home \
+            --uid "$reserved_uid" \
+            --home-dir /nonexistent \
+            --shell /usr/sbin/nologin "$principal"
+          principal_uid="$(id -u "$principal")"
+          principal_gid="$(id -g "$principal")"
+          [[ "$principal_uid" == "$reserved_uid" ]]
+          if id -nG "$principal" | tr ' ' '\n' | grep -Eq '^(sudo|admin)$'; then
+            exit 1
+          fi
+          boundary="$(sudo mktemp -d \
+            "/var/tmp/fearless-ias-presign-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.XXXXXX")"
+          sudo chmod 0711 "$boundary"
+          sudo install -d -o root -g root -m 0555 "$boundary/input"
+          sudo install -d -o root -g root -m 0555 "$boundary/tools"
+          sudo install -d -o "$principal_uid" -g "$principal_gid" -m 0700 \
+            "$boundary/home" "$boundary/tmp" "$boundary/output"
+          for source_and_name in \
+            "$IAS_DOWNLOADED_QUARANTINE_DIR/candidate-unsigned.aab:candidate-unsigned.aab" \
+            "$IAS_DOWNLOADED_QUARANTINE_DIR/producer-evidence.txt:producer-evidence.txt"; do
+            source_path="${source_and_name%%:*}"
+            destination_name="${source_and_name##*:}"
+            [[ ! -L "$source_path" && -f "$source_path" && -s "$source_path" ]]
+            [[ "$(stat -c '%h' "$source_path")" == "1" ]]
+            sudo install -o root -g root -m 0444 "$source_path" \
+              "$boundary/input/$destination_name"
+          done
+          sudo chown root:root "$BUNDLETOOL_JAR"
+          sudo chmod 0444 "$BUNDLETOOL_JAR"
+          sudo install -o root -g root -m 0444 "$BUNDLETOOL_JAR" \
+            "$boundary/tools/bundletool.jar"
+          runner_command_dir="${GITHUB_ENV%/*}"
+          [[ "$runner_command_dir" == "$RUNNER_TEMP"/* ]]
+          [[ ! -L "$runner_command_dir" && -d "$runner_command_dir" ]]
+          chmod 0700 "$runner_command_dir"
+          find "$runner_command_dir" -maxdepth 1 -type f -exec chmod 0600 {} +
+          sudo chown -R root:root "$GITHUB_WORKSPACE"
+          sudo find "$GITHUB_WORKSPACE" -xdev -type d -exec chmod a-w {} +
+          sudo find "$GITHUB_WORKSPACE" -xdev -type f -exec chmod a-w {} +
+          if sudo find "$GITHUB_WORKSPACE" -xdev \
+            \( -type d -o -type f \) -perm /022 -print -quit | grep -q .; then
+            exit 1
+          fi
+          {
+            echo "IAS_PRESIGN_PRINCIPAL=$principal"
+            echo "IAS_PRESIGN_UID=$principal_uid"
+            echo "IAS_PRESIGN_BOUNDARY=$boundary"
+          } >>"$GITHUB_ENV"
+
+      - name: Validate downloaded unsigned quarantine independently
+        id: isolated-unsigned-verification
+        run: |
+          set -euo pipefail
+          umask 077
+          log="$RUNNER_TEMP/ias-isolated-unsigned-verifier.log"
+          for runner_command_file in \
+            "$GITHUB_ENV" "$GITHUB_OUTPUT" "$GITHUB_PATH" "$GITHUB_STEP_SUMMARY"; do
+            if sudo -u "$IAS_PRESIGN_PRINCIPAL" test -w "$runner_command_file"; then
+              exit 1
+            fi
+          done
+          # The runner intentionally owns this private log.
+          # shellcheck disable=SC2024
+          if ! sudo -u "$IAS_PRESIGN_PRINCIPAL" /usr/bin/env -i \
+            HOME="$IAS_PRESIGN_BOUNDARY/home" \
+            TMPDIR="$IAS_PRESIGN_BOUNDARY/tmp" \
+            PATH="$JAVA_HOME/bin:/usr/bin:/bin" \
+            CI=true \
+            GIT_OPTIONAL_LOCKS=0 \
+            BUNDLETOOL_JAR="$IAS_PRESIGN_BOUNDARY/tools/bundletool.jar" \
+            FEARLESS_UTILS_COMMIT="$FEARLESS_UTILS_COMMIT" \
+            FEARLESS_UTILS_EFFECTIVE_TREE="$FEARLESS_UTILS_EFFECTIVE_TREE" \
+            FEARLESS_UTILS_LIBRARY_ONLY=true \
+            FEARLESS_UTILS_PATH="$GITHUB_WORKSPACE/fearless-utils-Android" \
+            /bin/bash -c '
+              set -euo pipefail
+              if /usr/bin/sudo -n -u root /usr/bin/true 2>/dev/null; then
+                echo "isolated pre-sign principal unexpectedly has sudo" >&2
+                exit 1
+              fi
+              /usr/bin/git config --global --add safe.directory "$1"
+              /usr/bin/git config --global --add safe.directory "$1/fearless-utils-Android"
+              input="$2/input"
+              unsigned="$input/candidate-unsigned.aab"
+              evidence="$input/producer-evidence.txt"
+              [[ "$(find "$input" -mindepth 1 -maxdepth 1 | wc -l)" == "2" ]]
+              for path in "$unsigned" "$evidence"; do
+                [[ ! -L "$path" && -f "$path" && -s "$path" ]]
+                [[ "$(stat -c "%a:%h:%u" "$path")" == "444:1:0" ]]
+              done
+              [[ "$(wc -c <"$unsigned" | tr -d "[:space:]")" -le 262144000 ]]
+              [[ "$(wc -c <"$evidence" | tr -d "[:space:]")" -le 16384 ]]
+              unsigned_sha="$(sha256sum "$unsigned" | awk "{print \$1}")"
+              required=(
+                "schema_version=2"
+                "distribution_eligibility=unsigned-quarantine-only-not-installable"
+                "signature_state=unsigned"
+                "source_commit=$3"
+                "source_tree=$4"
+                "fearless_utils_commit=$5"
+                "fearless_utils_tree=$6"
+                "unsigned_aab_sha256=$unsigned_sha"
+                "bundletool_sha256=$7"
+                "workflow_repository=$8"
+                "workflow_event=workflow_dispatch"
+                "workflow_ref=refs/heads/develop"
+                "workflow_ref_protected=true"
+                "workflow_sha=$3"
+                "workflow_run_id=$9"
+                "workflow_run_attempt=${10}"
+                "producer_job=validate-candidate"
+              )
+              [[ "$(wc -l <"$evidence" | tr -d "[:space:]")" == "${#required[@]}" ]]
+              for expected in "${required[@]}"; do
+                [[ "$(grep -Fxc "$expected" "$evidence")" == "1" ]]
+              done
+              exec /usr/bin/timeout --signal=KILL 30m \
+                /bin/bash "$1/scripts/verify-android-internal-app-sharing-aab.sh" \
+                  --unsigned "$unsigned" "$3" "$2/output/verified-unsigned.aab"
+            ' boundary-wrapper \
+            "$GITHUB_WORKSPACE" "$IAS_PRESIGN_BOUNDARY" \
+            "$IAS_CANDIDATE_SHA" "$IAS_SOURCE_TREE" \
+            "$FEARLESS_UTILS_COMMIT" "$FEARLESS_UTILS_EFFECTIVE_TREE" \
+            "$BUNDLETOOL_SHA256" "$GITHUB_REPOSITORY" \
+            "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" 2>&1 | \
+            /usr/bin/head -c 16777217 >"$log"; then
+            echo "Isolated unsigned IAS verification failed closed." >&2
+            exit 1
+          fi
+          [[ "$(wc -c <"$log" | tr -d '[:space:]')" -le 16777216 ]]
+          [[ "$(grep -Fxc '[android-ias-aab] IAS_SIGNATURE_STATE=UNSIGNED' \
+            "$log")" == "1" ]]
+
+      - name: Terminate pre-sign UID and transfer exact unsigned bytes
+        if: always()
+        env:
+          ISOLATED_OUTCOME: ${{ steps.isolated-unsigned-verification.outcome }}
+        run: |
+          set -euo pipefail
+          sudo pkill -KILL -u "$IAS_PRESIGN_UID" 2>/dev/null || true
+          for _ in {1..50}; do
+            if ! pgrep -u "$IAS_PRESIGN_UID" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.1
+          done
+          if pgrep -u "$IAS_PRESIGN_UID" >/dev/null 2>&1; then
+            exit 1
+          fi
+          if [[ "$ISOLATED_OUTCOME" != "success" ]]; then
+            sudo rm -rf -- "$IAS_PRESIGN_BOUNDARY"
+            sudo find "$RUNNER_TEMP" /tmp /var/tmp /dev/shm -xdev \
+              -uid "$IAS_PRESIGN_UID" -depth -delete
+            sudo userdel "$IAS_PRESIGN_PRINCIPAL" 2>/dev/null || true
+            sudo groupdel "$IAS_PRESIGN_PRINCIPAL" 2>/dev/null || true
+            exit 1
+          fi
+          isolated="$IAS_PRESIGN_BOUNDARY/output/verified-unsigned.aab"
+          if sudo test -L "$isolated"; then
+            exit 1
+          fi
+          sudo test -f "$isolated"
+          [[ "$(sudo stat -c '%h:%u' "$isolated")" == \
+            "1:$IAS_PRESIGN_UID" ]]
+          isolated_size="$(sudo stat -c '%s' "$isolated")"
+          [[ "$isolated_size" =~ ^[1-9][0-9]*$ && \
+            "$isolated_size" -le 262144000 ]]
+          unsigned_sha="$(sudo sha256sum "$isolated" | awk '{print $1}')"
+          [[ "$unsigned_sha" == \
+            "$(sha256sum "$IAS_PRESIGN_BOUNDARY/input/candidate-unsigned.aab" | awk '{print $1}')" ]]
+          signing_input="$RUNNER_TEMP/fearless-ias-signing-input"
+          install -d -m 0700 "$signing_input"
+          sudo install -o "$(id -u)" -g "$(id -g)" -m 0400 \
+            "$isolated" "$signing_input/verified-unsigned.aab"
+          sudo rm -rf -- "$IAS_PRESIGN_BOUNDARY"
+          sudo find "$RUNNER_TEMP" /tmp /var/tmp /dev/shm -xdev \
+            -uid "$IAS_PRESIGN_UID" -depth -delete
+          sudo userdel "$IAS_PRESIGN_PRINCIPAL"
+          if getent group "$IAS_PRESIGN_PRINCIPAL" >/dev/null; then
+            sudo groupdel "$IAS_PRESIGN_PRINCIPAL"
+          fi
+          if getent passwd "$IAS_PRESIGN_PRINCIPAL" >/dev/null; then
+            exit 1
+          fi
+          if getent group "$IAS_PRESIGN_PRINCIPAL" >/dev/null; then
+            exit 1
+          fi
+          {
+            echo "IAS_VERIFIED_UNSIGNED_AAB=$signing_input/verified-unsigned.aab"
+            echo "IAS_VERIFIED_UNSIGNED_SHA256=$unsigned_sha"
+          } >>"$GITHUB_ENV"
+
+      - name: Create step-local signer, externally sign, export public cert, and erase key
+        run: |
+          set -euo pipefail
+          umask 077
+          signing_dir="$RUNNER_TEMP/fearless-ias-step-local-signing"
+          mkdir -m 0700 "$signing_dir"
+          signer="$signing_dir/ephemeral-final-signer.jks"
+          cleanup_signer() {
+            [[ -z "${signer:-}" ]] || rm -f -- "$signer"
+          }
+          trap cleanup_signer EXIT
+          trap 'cleanup_signer; exit 130' HUP INT TERM
+          keytool -genkeypair -noprompt -storetype JKS \
+            -keystore "$signer" -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 30 \
+            -dname "CN=Android Debug,O=Android,C=US"
+          chmod 0600 "$signer"
+          signed_candidate="$signing_dir/candidate-signed.aab"
+          install -m 0600 "$IAS_VERIFIED_UNSIGNED_AAB" "$signed_candidate"
+          jarsigner \
+            -J-Duser.language=en \
+            -J-Duser.country=US \
+            -keystore "$signer" \
+            -storepass android \
+            -keypass android \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            -sigfile IASQUAL \
+            "$signed_candidate" androiddebugkey
+          [[ "$(sha256sum "$signed_candidate" | awk '{print $1}')" != \
+            "$IAS_VERIFIED_UNSIGNED_SHA256" ]]
+          certificate="$signing_dir/final-signer-public-certificate.pem"
+          keytool -exportcert -rfc -keystore "$signer" -storepass android \
+            -alias androiddebugkey >"$certificate"
+          fingerprint="$(
+            openssl x509 -in "$certificate" -outform DER |
+              openssl dgst -sha256 -r |
+              awk '{print toupper($1)}'
+          )"
+          [[ "$fingerprint" =~ ^[0-9A-F]{64}$ ]]
+          [[ "$fingerprint" != \
+            "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" ]]
+          rm -f -- "$signer"
+          signer=""
+          if find "$signing_dir" -maxdepth 1 \
+            \( -name '*.jks' -o -name '*.keystore' -o -name '*.p12' \) \
+            -print -quit | grep -q .; then
+            exit 1
+          fi
+          chmod 0400 "$signed_candidate" "$certificate"
+          {
+            echo "IAS_SIGNED_CANDIDATE=$signed_candidate"
+            echo "IAS_PUBLIC_CERTIFICATE=$certificate"
+            echo "IAS_PUBLIC_CERTIFICATE_SHA256=$fingerprint"
+          } >>"$GITHUB_ENV"
+          trap - EXIT HUP INT TERM
+
+      - name: Prepare public-certificate-only post-sign boundary
+        run: |
+          set -euo pipefail
+          principal=iaspostsign
+          reserved_uid=61002
+          if getent passwd "$principal" >/dev/null; then
+            exit 1
+          fi
+          if getent group "$principal" >/dev/null; then
+            exit 1
+          fi
+          if getent passwd "$reserved_uid" >/dev/null; then
+            exit 1
+          fi
+          sudo useradd --system --user-group --no-create-home \
+            --uid "$reserved_uid" \
+            --home-dir /nonexistent \
+            --shell /usr/sbin/nologin "$principal"
+          principal_uid="$(id -u "$principal")"
+          principal_gid="$(id -g "$principal")"
+          [[ "$principal_uid" == "$reserved_uid" ]]
+          if id -nG "$principal" | tr ' ' '\n' | grep -Eq '^(sudo|admin)$'; then
+            exit 1
+          fi
+          boundary="$(sudo mktemp -d \
+            "/var/tmp/fearless-ias-postsign-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.XXXXXX")"
+          sudo chmod 0711 "$boundary"
+          sudo install -d -o root -g root -m 0555 "$boundary/input"
+          sudo install -d -o root -g root -m 0555 "$boundary/tools"
+          sudo install -d -o "$principal_uid" -g "$principal_gid" -m 0700 \
+            "$boundary/home" "$boundary/tmp" "$boundary/output"
+          sudo install -o root -g root -m 0444 "$IAS_VERIFIED_UNSIGNED_AAB" \
+            "$boundary/input/verified-unsigned.aab"
+          sudo install -o root -g root -m 0444 "$IAS_SIGNED_CANDIDATE" \
+            "$boundary/input/candidate-signed.aab"
+          sudo install -o root -g root -m 0444 "$IAS_PUBLIC_CERTIFICATE" \
+            "$boundary/input/final-signer-public-certificate.pem"
+          sudo install -o root -g root -m 0444 "$BUNDLETOOL_JAR" \
+            "$boundary/tools/bundletool.jar"
+          if sudo find "$GITHUB_WORKSPACE" -xdev \
+            \( -type d -o -type f \) -perm /022 -print -quit | grep -q .; then
+            exit 1
+          fi
+          if sudo find "$boundary/input" -type f \
+            \( -name '*.jks' -o -name '*.keystore' -o -name '*.p12' \) \
+            -print -quit | grep -q .; then
+            exit 1
+          fi
+          {
+            echo "IAS_POSTSIGN_PRINCIPAL=$principal"
+            echo "IAS_POSTSIGN_UID=$principal_uid"
+            echo "IAS_POSTSIGN_BOUNDARY=$boundary"
+          } >>"$GITHUB_ENV"
+
+      - name: Run signed-from verifier and adversarial suite with public cert only
+        id: isolated-signed-verification
+        run: |
+          set -euo pipefail
+          umask 077
+          log="$RUNNER_TEMP/ias-isolated-signed-verifier.log"
+          for runner_command_file in \
+            "$GITHUB_ENV" "$GITHUB_OUTPUT" "$GITHUB_PATH" "$GITHUB_STEP_SUMMARY"; do
+            if sudo -u "$IAS_POSTSIGN_PRINCIPAL" test -w "$runner_command_file"; then
+              exit 1
+            fi
+          done
+          # The runner intentionally owns this private log.
+          # shellcheck disable=SC2024
+          if ! sudo -u "$IAS_POSTSIGN_PRINCIPAL" /usr/bin/env -i \
+            HOME="$IAS_POSTSIGN_BOUNDARY/home" \
+            TMPDIR="$IAS_POSTSIGN_BOUNDARY/tmp" \
+            PATH="$JAVA_HOME/bin:/usr/bin:/bin" \
+            CI=true \
+            GIT_OPTIONAL_LOCKS=0 \
+            BUNDLETOOL_JAR="$IAS_POSTSIGN_BOUNDARY/tools/bundletool.jar" \
+            FEARLESS_UTILS_COMMIT="$FEARLESS_UTILS_COMMIT" \
+            FEARLESS_UTILS_EFFECTIVE_TREE="$FEARLESS_UTILS_EFFECTIVE_TREE" \
+            FEARLESS_UTILS_LIBRARY_ONLY=true \
+            FEARLESS_UTILS_PATH="$GITHUB_WORKSPACE/fearless-utils-Android" \
+            ANDROID_IAS_DEBUG_CERTIFICATE_PATH="$IAS_POSTSIGN_BOUNDARY/input/final-signer-public-certificate.pem" \
+            EXPECTED_IAS_DEBUG_CERT_SHA256="$IAS_PUBLIC_CERTIFICATE_SHA256" \
+            /bin/bash -c '
+              set -euo pipefail
+              if /usr/bin/sudo -n -u root /usr/bin/true 2>/dev/null; then
+                echo "isolated post-sign principal unexpectedly has sudo" >&2
+                exit 1
+              fi
+              [[ -z "${ANDROID_IAS_DEBUG_KEYSTORE_PATH:-}" ]]
+              /usr/bin/git config --global --add safe.directory "$1"
+              /usr/bin/git config --global --add safe.directory "$1/fearless-utils-Android"
+              input="$2/input"
+              for path in "$input/verified-unsigned.aab" \
+                "$input/candidate-signed.aab" \
+                "$input/final-signer-public-certificate.pem"; do
+                [[ "$(stat -c "%a:%h:%u" "$path")" == "444:1:0" ]]
+              done
+              /usr/bin/timeout --signal=KILL 30m \
+                /bin/bash "$1/scripts/verify-android-internal-app-sharing-aab.sh" \
+                  --signed-from "$input/verified-unsigned.aab" \
+                  "$input/candidate-signed.aab" "$3" \
+                  "$2/output/verified-signed.aab"
+              IAS_AAB_FIXTURE="$input/candidate-signed.aab" \
+                EXPECTED_IAS_SOURCE_COMMIT="$3" \
+                /usr/bin/timeout --signal=KILL 45m \
+                /bin/bash "$1/scripts/test-android-internal-app-sharing-aab.sh"
+            ' boundary-wrapper \
+            "$GITHUB_WORKSPACE" "$IAS_POSTSIGN_BOUNDARY" \
+            "$IAS_CANDIDATE_SHA" 2>&1 | \
+            /usr/bin/head -c 16777217 >"$log"; then
+            echo "Isolated signed IAS verification failed closed." >&2
+            exit 1
+          fi
+          [[ "$(wc -c <"$log" | tr -d '[:space:]')" -le 16777216 ]]
+          [[ "$(grep -Fxc "[android-ias-aab] IAS_SIGNER_SHA256=$IAS_PUBLIC_CERTIFICATE_SHA256" \
+            "$log")" == "1" ]]
+
+      - name: Kill post-sign UID before runner-owned handoff
+        if: always()
+        env:
+          ISOLATED_OUTCOME: ${{ steps.isolated-signed-verification.outcome }}
+        run: |
+          set -euo pipefail
+          sudo pkill -KILL -u "$IAS_POSTSIGN_UID" 2>/dev/null || true
+          for _ in {1..50}; do
+            if ! pgrep -u "$IAS_POSTSIGN_UID" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.1
+          done
+          if pgrep -u "$IAS_POSTSIGN_UID" >/dev/null 2>&1; then
+            exit 1
+          fi
+          if [[ "$ISOLATED_OUTCOME" != "success" ]]; then
+            sudo rm -rf -- "$IAS_POSTSIGN_BOUNDARY"
+            sudo find "$RUNNER_TEMP" /tmp /var/tmp /dev/shm -xdev \
+              -uid "$IAS_POSTSIGN_UID" -depth -delete
+            sudo userdel "$IAS_POSTSIGN_PRINCIPAL" 2>/dev/null || true
+            sudo groupdel "$IAS_POSTSIGN_PRINCIPAL" 2>/dev/null || true
+            exit 1
+          fi
+          isolated="$IAS_POSTSIGN_BOUNDARY/output/verified-signed.aab"
+          if sudo test -L "$isolated"; then
+            exit 1
+          fi
+          sudo test -f "$isolated"
+          [[ "$(sudo stat -c '%h:%u' "$isolated")" == \
+            "1:$IAS_POSTSIGN_UID" ]]
+          isolated_size="$(sudo stat -c '%s' "$isolated")"
+          [[ "$isolated_size" =~ ^[1-9][0-9]*$ && \
+            "$isolated_size" -le 262144000 ]]
+          aab_sha="$(sudo sha256sum "$isolated" | awk '{print $1}')"
+          [[ "$aab_sha" == "$(sha256sum "$IAS_SIGNED_CANDIDATE" | awk '{print $1}')" ]]
+          handoff_dir="$RUNNER_TEMP/fearless-ias-qualified-handoff"
+          mkdir -m 0700 "$handoff_dir"
+          verified_aab="$handoff_dir/fearless-wallet-4.2.0-ias-230.aab"
+          sudo install -o "$(id -u)" -g "$(id -g)" -m 0400 \
+            "$isolated" "$verified_aab"
+          sudo rm -rf -- "$IAS_POSTSIGN_BOUNDARY"
+          sudo find "$RUNNER_TEMP" /tmp /var/tmp /dev/shm -xdev \
+            -uid "$IAS_POSTSIGN_UID" -depth -delete
+          sudo userdel "$IAS_POSTSIGN_PRINCIPAL"
+          if getent group "$IAS_POSTSIGN_PRINCIPAL" >/dev/null; then
+            sudo groupdel "$IAS_POSTSIGN_PRINCIPAL"
+          fi
+          if getent passwd "$IAS_POSTSIGN_PRINCIPAL" >/dev/null; then
+            exit 1
+          fi
+          if getent group "$IAS_POSTSIGN_PRINCIPAL" >/dev/null; then
+            exit 1
+          fi
+          signer_sha="$IAS_PUBLIC_CERTIFICATE_SHA256"
+          bundletool_sha="$BUNDLETOOL_SHA256"
+          unsigned_source_sha="$IAS_VERIFIED_UNSIGNED_SHA256"
+          aab_sha="$(
+            sha256sum "$verified_aab" | awk '{print $1}'
+          )"
+          [[ "$(stat -c '%a:%h:%u' "$verified_aab")" == \
+            "400:1:$(id -u)" ]]
+          inode="$(stat -c '%d:%i:%s' "$verified_aab")"
+          evidence="$handoff_dir/evidence.txt"
+          {
+            echo "schema_version=2"
+            echo "source_commit=$IAS_CANDIDATE_SHA"
+            echo "source_tree=$IAS_SOURCE_TREE"
+            echo "fearless_utils_commit=$FEARLESS_UTILS_COMMIT"
+            echo "fearless_utils_tree=$FEARLESS_UTILS_EFFECTIVE_TREE"
+            echo "unsigned_aab_sha256=$unsigned_source_sha"
+            echo "aab_sha256=$aab_sha"
+            echo "signer_sha256=$signer_sha"
+            echo "bundletool_sha256=$bundletool_sha"
+            echo "workflow_repository=$GITHUB_REPOSITORY"
+            echo "workflow_event=$GITHUB_EVENT_NAME"
+            echo "workflow_ref=$GITHUB_REF"
+            echo "workflow_ref_protected=true"
+            echo "workflow_sha=$GITHUB_SHA"
+            echo "workflow_run_id=$GITHUB_RUN_ID"
+            echo "workflow_run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "producer_artifact_id=$IAS_PRODUCER_ARTIFACT_ID"
+            echo "producer_artifact_digest=$IAS_PRODUCER_ARTIFACT_DIGEST"
+            echo "qualifier_job=$GITHUB_JOB"
+            echo "qualified_at_utc=$IAS_QUALIFIED_AT_UTC"
+            echo "develop_head_at_qualification=$IAS_CANDIDATE_SHA"
+            echo "signer_origin=step-local-after-pre-sign-uid-termination"
+            echo "signing_transform=external-jarsigner-non-signature-payload-equality-verified"
+            echo "qualification_runner=disposable-pre-and-post-sign-uids-no-gradle"
+            echo "distribution_eligibility=pending-download-back-audit-workflow-success-required"
+          } >"$evidence"
+          chmod 0400 "$evidence"
+          [[ "$(find "$handoff_dir" -mindepth 1 -maxdepth 1 | wc -l)" == "2" ]]
+          {
+            echo "IAS_HANDOFF_DIR=$handoff_dir"
+            echo "IAS_HANDOFF_AAB=$verified_aab"
+            echo "IAS_HANDOFF_AAB_SHA256=$aab_sha"
+            echo "IAS_HANDOFF_AAB_INODE=$inode"
+          } >>"$GITHUB_ENV"
+
+      - name: Recheck exact trusted handoff bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ ! -L "$IAS_HANDOFF_AAB" && -f "$IAS_HANDOFF_AAB" ]]
+          [[ "$(stat -c '%a:%h:%u' "$IAS_HANDOFF_AAB")" == \
+            "400:1:$(id -u)" ]]
+          [[ "$(stat -c '%d:%i:%s' "$IAS_HANDOFF_AAB")" == \
+            "$IAS_HANDOFF_AAB_INODE" ]]
+          [[ "$(sha256sum "$IAS_HANDOFF_AAB" | awk '{print $1}')" == \
+            "$IAS_HANDOFF_AAB_SHA256" ]]
+          [[ "$(find "$IAS_HANDOFF_DIR" -mindepth 1 -maxdepth 1 -type f | wc -l)" == "2" ]]
+          branch="$(
+            curl --fail --location --silent --show-error --retry 3 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/branches/develop"
+          )"
+          [[ "$(jq -r '.commit.sha' <<<"$branch")" == "$IAS_CANDIDATE_SHA" ]]
+          [[ "$(jq -r '.protected' <<<"$branch")" == "true" ]]
+          [[ "$(git rev-parse HEAD)" == "$IAS_CANDIDATE_SHA" ]]
+          [[ "$(git rev-parse 'HEAD^{tree}')" == "$IAS_SOURCE_TREE" ]]
+
+      - name: Upload pending exact-byte handoff for immutable audit
+        id: upload-pending-handoff
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fearless-android-ias-PENDING-UNTRUSTED-until-download-back-succeeds-${{ env.IAS_CANDIDATE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.IAS_HANDOFF_DIR }}
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+          include-hidden-files: false
+
+      - name: Download back exact immutable uploaded archive by ID and digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPLOADED_ARTIFACT_ID: ${{ steps.upload-pending-handoff.outputs.artifact-id }}
+          UPLOADED_ARTIFACT_DIGEST: ${{ steps.upload-pending-handoff.outputs.artifact-digest }}
+          EXPECTED_ARTIFACT_NAME: fearless-android-ias-PENDING-UNTRUSTED-until-download-back-succeeds-${{ env.IAS_CANDIDATE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          [[ "$UPLOADED_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$UPLOADED_ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          metadata="$(
+            curl --fail --location --silent --show-error --retry 3 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$UPLOADED_ARTIFACT_ID"
+          )"
+          [[ "$(jq -r '.id' <<<"$metadata")" == "$UPLOADED_ARTIFACT_ID" ]]
+          [[ "$(jq -r '.name' <<<"$metadata")" == "$EXPECTED_ARTIFACT_NAME" ]]
+          [[ "$(jq -r '.digest // empty' <<<"$metadata")" == \
+            "sha256:$UPLOADED_ARTIFACT_DIGEST" ]]
+          [[ "$(jq -r '.expired' <<<"$metadata")" == "false" ]]
+          [[ "$(jq -r '.workflow_run.id' <<<"$metadata")" == "$GITHUB_RUN_ID" ]]
+          [[ "$(jq -r '.workflow_run.head_sha' <<<"$metadata")" == \
+            "$IAS_CANDIDATE_SHA" ]]
+          archive="$RUNNER_TEMP/fearless-ias-upload-download-back.zip"
+          curl --fail --location --silent --show-error --retry 3 \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --output "$archive" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$UPLOADED_ARTIFACT_ID/zip"
+          [[ ! -L "$archive" && -f "$archive" && -s "$archive" ]]
+          [[ "$(stat -c '%h' "$archive")" == "1" ]]
+          [[ "$(wc -c <"$archive" | tr -d '[:space:]')" -le 262225920 ]]
+          [[ "$(sha256sum "$archive" | awk '{print $1}')" == \
+            "$UPLOADED_ARTIFACT_DIGEST" ]]
+          chmod 0400 "$archive"
+          branch="$(
+            curl --fail --location --silent --show-error --retry 3 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/branches/develop"
+          )"
+          [[ "$(jq -r '.commit.sha' <<<"$branch")" == "$IAS_CANDIDATE_SHA" ]]
+          [[ "$(jq -r '.protected' <<<"$branch")" == "true" ]]
+          {
+            echo "IAS_UPLOADED_ARTIFACT_ID=$UPLOADED_ARTIFACT_ID"
+            echo "IAS_UPLOADED_ARTIFACT_DIGEST=$UPLOADED_ARTIFACT_DIGEST"
+            echo "IAS_UPLOAD_DOWNLOAD_BACK_ARCHIVE=$archive"
+            echo "IAS_EXPECTED_PENDING_ARTIFACT_NAME=$EXPECTED_ARTIFACT_NAME"
+          } >>"$GITHUB_ENV"
+
+      - name: Revalidate actual uploaded archive contents under disposable UID
+        id: isolated-upload-audit
+        run: |
+          set -euo pipefail
+          umask 077
+          audit_log="$RUNNER_TEMP/ias-isolated-upload-audit.log"
+          principal=iasuploadaudit
+          reserved_uid=61003
+          if getent passwd "$principal" >/dev/null; then
+            exit 1
+          fi
+          if getent group "$principal" >/dev/null; then
+            exit 1
+          fi
+          if getent passwd "$reserved_uid" >/dev/null; then
+            exit 1
+          fi
+          sudo useradd --system --user-group --no-create-home \
+            --uid "$reserved_uid" \
+            --home-dir /nonexistent \
+            --shell /usr/sbin/nologin "$principal"
+          principal_uid="$(id -u "$principal")"
+          principal_gid="$(id -g "$principal")"
+          [[ "$principal_uid" == "$reserved_uid" ]]
+          boundary="$(sudo mktemp -d \
+            "/var/tmp/fearless-ias-upload-audit-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.XXXXXX")"
+          sudo chmod 0711 "$boundary"
+          sudo install -d -o root -g root -m 0555 "$boundary/input"
+          sudo install -d -o root -g root -m 0555 "$boundary/tools"
+          sudo install -d -o "$principal_uid" -g "$principal_gid" -m 0700 \
+            "$boundary/home" "$boundary/tmp" "$boundary/output"
+          sudo install -o root -g root -m 0444 "$IAS_UPLOAD_DOWNLOAD_BACK_ARCHIVE" \
+            "$boundary/input/uploaded.zip"
+          sudo install -o root -g root -m 0444 "$IAS_VERIFIED_UNSIGNED_AAB" \
+            "$boundary/input/verified-unsigned.aab"
+          sudo install -o root -g root -m 0444 "$IAS_PUBLIC_CERTIFICATE" \
+            "$boundary/input/final-signer-public-certificate.pem"
+          sudo install -o root -g root -m 0444 "$BUNDLETOOL_JAR" \
+            "$boundary/tools/bundletool.jar"
+          for runner_command_file in \
+            "$GITHUB_ENV" "$GITHUB_OUTPUT" "$GITHUB_PATH" "$GITHUB_STEP_SUMMARY"; do
+            if sudo -u "$principal" test -w "$runner_command_file"; then
+              exit 1
+            fi
+          done
+          # The runner intentionally owns this private log.
+          # shellcheck disable=SC2024
+          if ! sudo -u "$principal" /usr/bin/env -i \
+            HOME="$boundary/home" TMPDIR="$boundary/tmp" \
+            PATH="$JAVA_HOME/bin:/usr/bin:/bin" CI=true GIT_OPTIONAL_LOCKS=0 \
+            BUNDLETOOL_JAR="$boundary/tools/bundletool.jar" \
+            FEARLESS_UTILS_COMMIT="$FEARLESS_UTILS_COMMIT" \
+            FEARLESS_UTILS_EFFECTIVE_TREE="$FEARLESS_UTILS_EFFECTIVE_TREE" \
+            FEARLESS_UTILS_LIBRARY_ONLY=true \
+            FEARLESS_UTILS_PATH="$GITHUB_WORKSPACE/fearless-utils-Android" \
+            ANDROID_IAS_DEBUG_CERTIFICATE_PATH="$boundary/input/final-signer-public-certificate.pem" \
+            EXPECTED_IAS_DEBUG_CERT_SHA256="$IAS_PUBLIC_CERTIFICATE_SHA256" \
+            /bin/bash -c '
+              set -euo pipefail
+              if /usr/bin/sudo -n -u root /usr/bin/true 2>/dev/null; then exit 1; fi
+              [[ -z "${ANDROID_IAS_DEBUG_KEYSTORE_PATH:-}" ]]
+              /usr/bin/git config --global --add safe.directory "$1"
+              /usr/bin/git config --global --add safe.directory "$1/fearless-utils-Android"
+              /usr/bin/python3 - "$2/input/uploaded.zip" "$2/output" \
+                "$3" "$4" <<"PY"
+          import hashlib
+          import os
+          import stat
+          import sys
+          import zipfile
+
+          archive_path, output_dir, expected_aab, expected_evidence = sys.argv[1:]
+          expected_names = ["evidence.txt", "fearless-wallet-4.2.0-ias-230.aab"]
+          with zipfile.ZipFile(archive_path) as archive:
+              entries = archive.infolist()
+              names = sorted(entry.filename for entry in entries)
+              if names != expected_names or len(names) != len(set(names)):
+                  raise SystemExit("uploaded handoff archive has unexpected entries")
+              for entry in entries:
+                  mode = (entry.external_attr >> 16) & 0xFFFF
+                  if entry.is_dir() or (mode and not stat.S_ISREG(mode)):
+                      raise SystemExit("uploaded handoff archive contains a non-regular entry")
+                  maximum = 262_144_000 if entry.filename.endswith(".aab") else 16_384
+                  if entry.file_size <= 0 or entry.file_size > maximum:
+                      raise SystemExit("uploaded handoff archive entry exceeds its bound")
+                  payload = archive.read(entry)
+                  expected = expected_aab if entry.filename.endswith(".aab") else expected_evidence
+                  if hashlib.sha256(payload).hexdigest() != expected:
+                      raise SystemExit("uploaded handoff archive entry digest mismatch")
+                  destination = os.path.join(output_dir, entry.filename)
+                  fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o400)
+                  try:
+                      view = memoryview(payload)
+                      while view:
+                          view = view[os.write(fd, view):]
+                      os.fsync(fd)
+                  finally:
+                      os.close(fd)
+          PY
+              /usr/bin/timeout --signal=KILL 30m \
+                /bin/bash "$1/scripts/verify-android-internal-app-sharing-aab.sh" \
+                  --signed-from "$2/input/verified-unsigned.aab" \
+                  "$2/output/fearless-wallet-4.2.0-ias-230.aab" "$5"
+            ' audit-wrapper "$GITHUB_WORKSPACE" "$boundary" \
+            "$IAS_HANDOFF_AAB_SHA256" \
+            "$(sha256sum "$IAS_HANDOFF_DIR/evidence.txt" | awk '{print $1}')" \
+            "$IAS_CANDIDATE_SHA" 2>&1 | \
+            /usr/bin/head -c 16777217 >"$audit_log"; then
+            echo "Isolated uploaded-archive IAS verification failed closed." >&2
+            exit 1
+          fi
+          [[ "$(wc -c <"$audit_log" | tr -d '[:space:]')" -le 16777216 ]]
+          {
+            echo "IAS_UPLOAD_AUDIT_PRINCIPAL=$principal"
+            echo "IAS_UPLOAD_AUDIT_UID=$principal_uid"
+            echo "IAS_UPLOAD_AUDIT_BOUNDARY=$boundary"
+          } >>"$GITHUB_ENV"
+
+      - name: Terminate upload-audit UID and complete qualification
+        id: complete-qualification
+        if: always()
+        env:
+          AUDIT_OUTCOME: ${{ steps.isolated-upload-audit.outcome }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${IAS_UPLOAD_AUDIT_UID:-}" ]]; then
+            sudo pkill -KILL -u "$IAS_UPLOAD_AUDIT_UID" 2>/dev/null || true
+            for _ in {1..50}; do
+              if ! pgrep -u "$IAS_UPLOAD_AUDIT_UID" >/dev/null 2>&1; then
+                break
+              fi
+              sleep 0.1
+            done
+            if pgrep -u "$IAS_UPLOAD_AUDIT_UID" >/dev/null 2>&1; then
+              exit 1
+            fi
+            sudo rm -rf -- "$IAS_UPLOAD_AUDIT_BOUNDARY"
+            sudo find "$RUNNER_TEMP" /tmp /var/tmp /dev/shm -xdev \
+              -uid "$IAS_UPLOAD_AUDIT_UID" -depth -delete
+            sudo userdel "$IAS_UPLOAD_AUDIT_PRINCIPAL" 2>/dev/null || true
+            sudo groupdel "$IAS_UPLOAD_AUDIT_PRINCIPAL" 2>/dev/null || true
+          fi
+          [[ "$AUDIT_OUTCOME" == "success" ]]
+          branch="$(
+            curl --fail --location --silent --show-error --retry 3 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/branches/develop"
+          )"
+          [[ "$(jq -r '.commit.sha' <<<"$branch")" == "$IAS_CANDIDATE_SHA" ]]
+          [[ "$(jq -r '.protected' <<<"$branch")" == "true" ]]
+          metadata="$(
+            curl --fail --location --silent --show-error --retry 3 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$IAS_UPLOADED_ARTIFACT_ID"
+          )"
+          [[ "$(jq -r '.id' <<<"$metadata")" == "$IAS_UPLOADED_ARTIFACT_ID" ]]
+          [[ "$(jq -r '.name' <<<"$metadata")" == \
+            "$IAS_EXPECTED_PENDING_ARTIFACT_NAME" ]]
+          [[ "$(jq -r '.digest // empty' <<<"$metadata")" == \
+            "sha256:$IAS_UPLOADED_ARTIFACT_DIGEST" ]]
+          echo "qualified=true" >>"$GITHUB_OUTPUT"
+
+      - name: Remove qualifier candidates and local handoff
+        if: always()
+        run: |
+          set -euo pipefail
+          for principal in iaspresign iaspostsign iasuploadaudit; do
+            case "$principal" in
+              iaspresign)
+                fixed_uid=61001
+                recorded_uid="${IAS_PRESIGN_UID:-}"
+                ;;
+              iaspostsign)
+                fixed_uid=61002
+                recorded_uid="${IAS_POSTSIGN_UID:-}"
+                ;;
+              iasuploadaudit)
+                fixed_uid=61003
+                recorded_uid="${IAS_UPLOAD_AUDIT_UID:-}"
+                ;;
+              *) exit 1 ;;
+            esac
+            managed=false
+            if getent passwd "$principal" >/dev/null; then
+              principal_uid="$(id -u "$principal")"
+              [[ "$principal_uid" == "$fixed_uid" ]]
+              managed=true
+            fi
+            if [[ -n "$recorded_uid" ]]; then
+              [[ "$recorded_uid" == "$fixed_uid" ]]
+              managed=true
+            fi
+            if [[ "$managed" == "true" ]]; then
+              sudo pkill -KILL -u "$fixed_uid" 2>/dev/null || true
+              if pgrep -u "$fixed_uid" >/dev/null 2>&1; then
+                exit 1
+              fi
+              sudo find "$RUNNER_TEMP" /tmp /var/tmp /dev/shm -xdev \
+                -uid "$fixed_uid" -depth -delete
+            fi
+            if getent passwd "$principal" >/dev/null; then
+              sudo userdel "$principal" 2>/dev/null || true
+            fi
+            if getent group "$principal" >/dev/null; then
+              [[ "$managed" == "true" ]]
+              sudo groupdel "$principal" 2>/dev/null || true
+            fi
+            if getent passwd "$principal" >/dev/null; then
+              exit 1
+            fi
+            if getent group "$principal" >/dev/null; then
+              exit 1
+            fi
+          done
+          for boundary in \
+            "${IAS_PRESIGN_BOUNDARY:-}" \
+            "${IAS_POSTSIGN_BOUNDARY:-}" \
+            "${IAS_UPLOAD_AUDIT_BOUNDARY:-}"; do
+            [[ -n "$boundary" ]] || continue
+            case "$boundary" in
+              /var/tmp/fearless-ias-*-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.*) ;;
+              *) exit 1 ;;
+            esac
+            sudo rm -rf -- "$boundary"
+          done
+          sudo find /var/tmp -maxdepth 1 -type d \
+            \( -name "fearless-ias-presign-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.*" \
+            -o -name "fearless-ias-postsign-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.*" \
+            -o -name "fearless-ias-upload-audit-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.*" \) \
+            -exec rm -rf -- {} +
+          for run_dir in \
+            "$RUNNER_TEMP/fearless-ias-downloaded-quarantine" \
+            "$RUNNER_TEMP/fearless-ias-signing-input" \
+            "$RUNNER_TEMP/fearless-ias-step-local-signing" \
+            "$RUNNER_TEMP/fearless-ias-qualified-handoff" \
+            "$RUNNER_TEMP/fearless-ias-upload-download-back.zip"; do
+            case "$run_dir" in
+              "$RUNNER_TEMP"/*) ;;
+              *) exit 1 ;;
+            esac
+            rm -rf -- "$run_dir"
+            [[ ! -e "$run_dir" && ! -L "$run_dir" ]]
+          done
+          sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+          chmod -R u+rwX "$GITHUB_WORKSPACE"
+
+  finalize-handoff:
+    name: Delete every unqualified or stale pending IAS artifact
+    needs: [validate-candidate, qualify-handoff]
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && github.repository == 'soramitsu/fearless-Android' && github.ref == 'refs/heads/develop' && github.ref_protected == true }}
+    permissions:
+      actions: write
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      IAS_CANDIDATE_SHA: ${{ github.sha }}
+      QUALIFIER_RESULT: ${{ needs.qualify-handoff.result }}
+      QUALIFICATION_COMPLETE: ${{ needs.qualify-handoff.outputs.qualification_complete }}
+      QUALIFIED_ARTIFACT_ID: ${{ needs.qualify-handoff.outputs.pending_artifact_id }}
+      QUALIFIED_ARTIFACT_DIGEST: ${{ needs.qualify-handoff.outputs.pending_artifact_digest }}
+
+    steps:
+      - name: Keep only a fully download-back-qualified current artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_ARTIFACT_NAME: fearless-android-ias-PENDING-UNTRUSTED-until-download-back-succeeds-${{ env.IAS_CANDIDATE_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY"
+          headers=(
+            --header "Accept: application/vnd.github+json"
+            --header "Authorization: Bearer $GH_TOKEN"
+            --header "X-GitHub-Api-Version: 2022-11-28"
+          )
+          list_matching_ids() {
+            local page response page_count
+            local -a page_ids=()
+            matching_ids=()
+            for page in {1..100}; do
+              response="$(
+                curl --fail --location --silent --show-error --retry 3 \
+                  "${headers[@]}" \
+                  "$api/actions/runs/$GITHUB_RUN_ID/artifacts?per_page=100&page=$page"
+              )"
+              page_count="$(jq -r '.artifacts | length' <<<"$response")"
+              [[ "$page_count" =~ ^[0-9]+$ && "$page_count" -le 100 ]]
+              mapfile -t page_ids < <(
+                jq -r --arg name "$EXPECTED_ARTIFACT_NAME" \
+                  '.artifacts[] | select(.name == $name) | .id' <<<"$response"
+              )
+              matching_ids+=("${page_ids[@]}")
+              if [[ "$page_count" -lt 100 ]]; then
+                return 0
+              fi
+            done
+            echo "Artifact enumeration exceeded the fail-closed page bound." >&2
+            return 1
+          }
+          matching_ids=()
+          for _ in {1..6}; do
+            list_matching_ids
+            [[ "${#matching_ids[@]}" == "0" ]] || break
+            sleep 5
+          done
+          qualified=false
+          if [[ "$QUALIFIER_RESULT" == "success" && \
+            "$QUALIFICATION_COMPLETE" == "true" && \
+            "$QUALIFIED_ARTIFACT_ID" =~ ^[1-9][0-9]*$ && \
+            "$QUALIFIED_ARTIFACT_DIGEST" =~ ^[0-9a-f]{64}$ && \
+            "${#matching_ids[@]}" == "1" && \
+            "${matching_ids[0]}" == "$QUALIFIED_ARTIFACT_ID" ]]; then
+            metadata="$(curl --fail --location --silent --show-error --retry 3 \
+              "${headers[@]}" "$api/actions/artifacts/$QUALIFIED_ARTIFACT_ID")"
+            branch="$(curl --fail --location --silent --show-error --retry 3 \
+              "${headers[@]}" "$api/branches/develop")"
+            if [[ "$(jq -r '.name' <<<"$metadata")" == "$EXPECTED_ARTIFACT_NAME" && \
+              "$(jq -r '.digest // empty' <<<"$metadata")" == \
+                "sha256:$QUALIFIED_ARTIFACT_DIGEST" && \
+              "$(jq -r '.workflow_run.id' <<<"$metadata")" == "$GITHUB_RUN_ID" && \
+              "$(jq -r '.workflow_run.head_sha' <<<"$metadata")" == \
+                "$IAS_CANDIDATE_SHA" && \
+              "$(jq -r '.commit.sha' <<<"$branch")" == "$IAS_CANDIDATE_SHA" && \
+              "$(jq -r '.protected' <<<"$branch")" == "true" ]]; then
+              qualified=true
+            fi
+          fi
+          if [[ "$qualified" != "true" ]]; then
+            deletion_ids=("${matching_ids[@]}")
+            direct_artifact_id=""
+            if [[ "$QUALIFIED_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]; then
+              direct_artifact_id="$QUALIFIED_ARTIFACT_ID"
+              deletion_ids+=("$direct_artifact_id")
+            fi
+            if [[ "${#deletion_ids[@]}" -gt 0 ]]; then
+              mapfile -t deletion_ids < <(
+                printf '%s\n' "${deletion_ids[@]}" | sort -u
+              )
+            fi
+            for artifact_id in "${deletion_ids[@]}"; do
+              [[ "$artifact_id" =~ ^[1-9][0-9]*$ ]]
+              if ! delete_http_code="$(
+                curl --location --silent --show-error --retry 3 --retry-all-errors \
+                  --request DELETE --output /dev/null --write-out '%{http_code}' \
+                  "${headers[@]}" "$api/actions/artifacts/$artifact_id"
+              )"; then
+                exit 1
+              fi
+              [[ "$delete_http_code" == "204" || "$delete_http_code" == "404" ]]
+            done
+            remaining=-1
+            direct_remaining=0
+            [[ -z "$direct_artifact_id" ]] || direct_remaining=1
+            for _ in {1..6}; do
+              list_matching_ids
+              remaining="${#matching_ids[@]}"
+              if [[ -n "$direct_artifact_id" ]]; then
+                if ! direct_http_code="$(
+                  curl --location --silent --show-error --retry 3 --retry-all-errors \
+                    --output /dev/null --write-out '%{http_code}' \
+                    "${headers[@]}" "$api/actions/artifacts/$direct_artifact_id"
+                )"; then
+                  exit 1
+                fi
+                case "$direct_http_code" in
+                  404) direct_remaining=0 ;;
+                  200) direct_remaining=1 ;;
+                  *) exit 1 ;;
+                esac
+              fi
+              if [[ "$remaining" == "0" && "$direct_remaining" == "0" ]]; then
+                break
+              fi
+              sleep 5
+            done
+            [[ "$remaining" == "0" ]]
+            [[ "$direct_remaining" == "0" ]]
+            echo "IAS qualification did not complete; pending artifact deleted." >&2
+            exit 1
+          fi
+          echo "IAS pending-name artifact is usable only with this successful workflow result and exact artifact ID."
+
+  sweep-stale-pending-handoffs:
+    name: Sweep canceled, failed, stale, or ambiguous pending IAS artifacts
+    if: ${{ github.event_name == 'schedule' && github.repository == 'soramitsu/fearless-Android' && github.ref == 'refs/heads/develop' && github.ref_protected == true }}
+    permissions:
+      actions: write
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Retain only exact pending artifacts from successful qualified runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SCHEDULE_REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$GITHUB_REPOSITORY" == "soramitsu/fearless-Android" ]]
+          [[ "$GITHUB_EVENT_NAME" == "schedule" ]]
+          [[ "$GITHUB_REF" == "refs/heads/develop" ]]
+          [[ "$SCHEDULE_REF_PROTECTED" == "true" ]]
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY"
+          pending_prefix="fearless-android-ias-PENDING-UNTRUSTED-until-download-back-succeeds-"
+          headers=(
+            --header "Accept: application/vnd.github+json"
+            --header "Authorization: Bearer $GH_TOKEN"
+            --header "X-GitHub-Api-Version: 2022-11-28"
+          )
+          candidates="$RUNNER_TEMP/fearless-ias-janitor-candidates.jsonl"
+          verify_candidates="$RUNNER_TEMP/fearless-ias-janitor-verify.jsonl"
+          deleted_ids="$RUNNER_TEMP/fearless-ias-janitor-deleted-ids.txt"
+          deleted_ids_json="$RUNNER_TEMP/fearless-ias-janitor-deleted-ids.json"
+          run_response="$RUNNER_TEMP/fearless-ias-janitor-run.json"
+          jobs_response="$RUNNER_TEMP/fearless-ias-janitor-jobs.jsonl"
+          cleanup_janitor() {
+            rm -f -- "$candidates" "$verify_candidates" "$deleted_ids" \
+              "$deleted_ids_json" "$run_response" "$jobs_response"
+          }
+          trap cleanup_janitor EXIT
+          trap 'cleanup_janitor; exit 130' HUP INT TERM
+          : >"$candidates"
+          : >"$verify_candidates"
+          : >"$deleted_ids"
+          : >"$jobs_response"
+          chmod 0600 "$candidates" "$verify_candidates" "$deleted_ids" \
+            "$jobs_response"
+          enumerate_pending() {
+            local destination="$1"
+            local page response page_count
+            : >"$destination"
+            for page in {1..100}; do
+              response="$(
+                curl --fail --location --silent --show-error --retry 3 \
+                  "${headers[@]}" \
+                  "$api/actions/artifacts?per_page=100&page=$page"
+              )"
+              jq -e '.artifacts | type == "array"' <<<"$response" >/dev/null
+              page_count="$(jq -r '.artifacts | length' <<<"$response")"
+              [[ "$page_count" =~ ^[0-9]+$ && "$page_count" -le 100 ]]
+              jq -c --arg prefix "$pending_prefix" \
+                '.artifacts[] | select((.name | type) == "string" and (.name | startswith($prefix)))' \
+                <<<"$response" >>"$destination"
+              if [[ "$page_count" -lt 100 ]]; then
+                return 0
+              fi
+            done
+            echo "Pending IAS artifact enumeration exceeded the fail-closed page bound." >&2
+            return 1
+          }
+          enumerate_attempt_jobs() {
+            local run_id="$1"
+            local run_attempt="$2"
+            local page response page_count
+            : >"$jobs_response"
+            for page in {1..20}; do
+              response="$(
+                curl --fail --location --silent --show-error --retry 3 \
+                  "${headers[@]}" \
+                  "$api/actions/runs/$run_id/attempts/$run_attempt/jobs?per_page=100&page=$page"
+              )"
+              jq -e '.jobs | type == "array"' <<<"$response" >/dev/null
+              page_count="$(jq -r '.jobs | length' <<<"$response")"
+              [[ "$page_count" =~ ^[0-9]+$ && "$page_count" -le 100 ]]
+              jq -c '.jobs[]' <<<"$response" >>"$jobs_response"
+              if [[ "$page_count" -lt 100 ]]; then
+                return 0
+              fi
+            done
+            echo "IAS qualification-job enumeration exceeded the fail-closed page bound." >&2
+            return 1
+          }
+          enumerate_pending "$candidates"
+          candidate_count="$(wc -l <"$candidates" | tr -d '[:space:]')"
+          [[ "$candidate_count" =~ ^[0-9]+$ ]]
+          if [[ "$candidate_count" == "0" ]]; then
+            echo "No pending IAS artifacts require scheduled cleanup."
+            exit 0
+          fi
+          name_counts="$(
+            jq -s 'sort_by(.name) | group_by(.name) |
+              map({key: .[0].name, value: length}) | from_entries' "$candidates"
+          )"
+          while IFS= read -r artifact; do
+            artifact_id="$(jq -r '.id // empty | tostring' <<<"$artifact")"
+            artifact_name="$(jq -r '.name // empty' <<<"$artifact")"
+            [[ "$artifact_id" =~ ^[1-9][0-9]*$ ]]
+            reason=""
+            expected_sha=""
+            expected_run_id=""
+            expected_attempt=""
+            if [[ "$artifact_name" =~ ^${pending_prefix}([0-9a-f]{40})-([1-9][0-9]*)-([1-9][0-9]*)$ ]]; then
+              expected_sha="${BASH_REMATCH[1]}"
+              expected_run_id="${BASH_REMATCH[2]}"
+              expected_attempt="${BASH_REMATCH[3]}"
+            else
+              reason=malformed-reserved-name
+            fi
+            duplicate_count="$(
+              jq -r --arg name "$artifact_name" '.[$name] // 0' <<<"$name_counts"
+            )"
+            [[ "$duplicate_count" =~ ^[1-9][0-9]*$ ]]
+            if [[ "$duplicate_count" != "1" ]]; then
+              reason=ambiguous-duplicate-name
+            fi
+            if [[ -z "$reason" ]]; then
+              if ! run_http_code="$(
+                curl --location --silent --show-error --retry 3 --retry-all-errors \
+                  "${headers[@]}" --output "$run_response" \
+                  --write-out '%{http_code}' \
+                  "$api/actions/runs/$expected_run_id"
+              )"; then
+                echo "Could not resolve a pending IAS artifact run; preserving it." >&2
+                exit 1
+              fi
+              case "$run_http_code" in
+                200) ;;
+                404) reason=missing-workflow-run ;;
+                *)
+                  echo "Unexpected workflow-run API response; preserving pending artifacts." >&2
+                  exit 1
+                  ;;
+              esac
+            fi
+            if [[ -z "$reason" ]]; then
+              run_id="$(jq -r '.id // empty | tostring' "$run_response")"
+              run_attempt="$(jq -r '.run_attempt // empty | tostring' "$run_response")"
+              run_head_sha="$(jq -r '.head_sha // empty' "$run_response")"
+              run_event="$(jq -r '.event // empty' "$run_response")"
+              run_branch="$(jq -r '.head_branch // empty' "$run_response")"
+              run_status="$(jq -r '.status // empty' "$run_response")"
+              run_conclusion="$(jq -r '.conclusion // empty' "$run_response")"
+              run_workflow_name="$(jq -r '.name // empty' "$run_response")"
+              run_workflow_path="$(jq -r '.path // empty' "$run_response")"
+              run_repository="$(jq -r '.repository.full_name // empty' "$run_response")"
+              run_binding=true
+              if [[ "$run_id" != "$expected_run_id" || \
+                "$run_attempt" != "$expected_attempt" || \
+                "$run_head_sha" != "$expected_sha" || \
+                "$run_event" != "workflow_dispatch" || \
+                "$run_branch" != "develop" || \
+                "$run_workflow_name" != "Android Internal App Sharing Candidate" || \
+                "$run_workflow_path" != ".github/workflows/android-internal-app-sharing.yml" || \
+                "$run_repository" != "$GITHUB_REPOSITORY" ]]; then
+                run_binding=false
+              fi
+              artifact_run_id="$(jq -r '.workflow_run.id // empty | tostring' <<<"$artifact")"
+              artifact_head_sha="$(jq -r '.workflow_run.head_sha // empty' <<<"$artifact")"
+              artifact_digest="$(jq -r '.digest // empty' <<<"$artifact")"
+              artifact_expired="$(jq -r '.expired // empty | tostring' <<<"$artifact")"
+              artifact_binding=true
+              if [[ "$artifact_run_id" != "$expected_run_id" || \
+                "$artifact_head_sha" != "$expected_sha" || \
+                ! "$artifact_digest" =~ ^sha256:[0-9a-f]{64}$ || \
+                "$artifact_expired" != "false" ]]; then
+                artifact_binding=false
+              fi
+              case "$run_status" in
+                completed)
+                  if [[ "$run_conclusion" != "success" ]]; then
+                    reason="completed-$run_conclusion"
+                  elif [[ "$run_binding" != "true" ]]; then
+                    reason=stale-run-binding
+                  elif [[ "$artifact_binding" != "true" ]]; then
+                    reason=stale-artifact-binding
+                  else
+                    enumerate_attempt_jobs "$expected_run_id" "$expected_attempt"
+                    qualifier_total="$(
+                      jq -s '[.[] | select(.name == "Qualify IAS handoff across disposable UID boundaries")] | length' \
+                        "$jobs_response"
+                    )"
+                    qualifier_success="$(
+                      jq -s '[.[] | select(
+                        .name == "Qualify IAS handoff across disposable UID boundaries" and
+                        .status == "completed" and .conclusion == "success"
+                      )] | length' "$jobs_response"
+                    )"
+                    finalizer_total="$(
+                      jq -s '[.[] | select(.name == "Delete every unqualified or stale pending IAS artifact")] | length' \
+                        "$jobs_response"
+                    )"
+                    finalizer_success="$(
+                      jq -s '[.[] | select(
+                        .name == "Delete every unqualified or stale pending IAS artifact" and
+                        .status == "completed" and .conclusion == "success"
+                      )] | length' "$jobs_response"
+                    )"
+                    if [[ "$qualifier_total" != "1" || "$qualifier_success" != "1" || \
+                      "$finalizer_total" != "1" || "$finalizer_success" != "1" ]]; then
+                      reason=unqualified-job-graph
+                    fi
+                  fi
+                  ;;
+                queued|in_progress|waiting|requested|pending)
+                  if [[ "$run_binding" != "true" ]]; then
+                    reason=stale-active-run-binding
+                  else
+                    echo "Preserving active pending IAS artifact ID $artifact_id."
+                  fi
+                  ;;
+                *)
+                  echo "Unknown workflow-run state; preserving pending artifacts." >&2
+                  exit 1
+                  ;;
+              esac
+            fi
+            if [[ -n "$reason" ]]; then
+              if ! delete_http_code="$(
+                curl --location --silent --show-error --retry 3 --retry-all-errors \
+                  "${headers[@]}" --request DELETE --output /dev/null \
+                  --write-out '%{http_code}' \
+                  "$api/actions/artifacts/$artifact_id"
+              )"; then
+                echo "Pending IAS artifact deletion request failed." >&2
+                exit 1
+              fi
+              [[ "$delete_http_code" == "204" || "$delete_http_code" == "404" ]]
+              printf '%s\n' "$artifact_id" >>"$deleted_ids"
+              echo "Deleted unqualified pending IAS artifact ID $artifact_id ($reason)."
+            fi
+          done <"$candidates"
+          deleted_count="$(wc -l <"$deleted_ids" | tr -d '[:space:]')"
+          [[ "$deleted_count" =~ ^[0-9]+$ ]]
+          if [[ "$deleted_count" != "0" ]]; then
+            jq -Rsc 'split("\n") | map(select(length > 0) | tonumber)' \
+              "$deleted_ids" >"$deleted_ids_json"
+            remaining=-1
+            for _ in {1..6}; do
+              enumerate_pending "$verify_candidates"
+              remaining="$(
+                jq -s --slurpfile deleted "$deleted_ids_json" \
+                  '[.[] | select(.id as $id | ($deleted[0] | index($id)) != null)] | length' \
+                  "$verify_candidates"
+              )"
+              [[ "$remaining" != "0" ]] || break
+              sleep 5
+            done
+            [[ "$remaining" == "0" ]]
+          fi
+          echo "Scheduled IAS pending-artifact janitor completed; deleted $deleted_count artifact(s)."

@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-gradle-dependency-provenance.sh"
 EXPECTED_WRAPPER_SHA256='8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b'
 EXPECTED_POSITIVE_COUNT=2
-EXPECTED_NEGATIVE_COUNT=30
+EXPECTED_NEGATIVE_COUNT=40
 
 test_tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$test_tmp_root"
@@ -58,6 +58,9 @@ make_fixture() {
   cp \
     "$ROOT_DIR/.github/workflows/android-release.yml" \
     "$fixture/.github/workflows/android-release.yml"
+  cp \
+    "$ROOT_DIR/.github/workflows/android-internal-app-sharing.yml" \
+    "$fixture/.github/workflows/android-internal-app-sharing.yml"
   printf '%s\n' "$fixture"
 }
 
@@ -76,6 +79,33 @@ text = path.read_text()
 if text.count(old) != 1:
     raise SystemExit(f"expected exactly one occurrence in {path}: {old!r}")
 path.write_text(text.replace(old, new, 1))
+PY
+}
+
+remove_lock_configuration() {
+  local path="$1"
+  local configuration="$2"
+  python3 - "$path" "$configuration" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+configuration = sys.argv[2]
+changed = False
+output = []
+for line in path.read_text(encoding="utf-8").splitlines():
+    if line.startswith("#") or "=" not in line:
+        output.append(line)
+        continue
+    coordinate, values = line.rsplit("=", 1)
+    configurations = values.split(",")
+    filtered = [item for item in configurations if item != configuration]
+    if filtered != configurations:
+        changed = True
+    output.append(f"{coordinate}={','.join(filtered)}")
+if not changed:
+    raise SystemExit(f"lock fixture omitted {configuration}")
+path.write_text("\n".join(output) + "\n", encoding="utf-8")
 PY
 }
 
@@ -332,6 +362,55 @@ expect_failure \
   "CI dependency provenance rewrite is forbidden" \
   "$fixture"
 
+fixture="$(make_fixture ias-ci-maven-local-bypass)"
+printf '\n# adversarial fixture\nmavenLocal\n' \
+  >> "$fixture/.github/workflows/android-internal-app-sharing.yml"
+expect_failure \
+  "IAS CI mavenLocal bypass" \
+  "CI mavenLocal bypass is forbidden" \
+  "$fixture"
+
+fixture="$(make_fixture ias-ci-verification-off-bypass)"
+printf '\n# ./gradlew help --dependency-verification=off\n' \
+  >> "$fixture/.github/workflows/android-internal-app-sharing.yml"
+expect_failure \
+  "IAS CI strict verification bypass" \
+  "CI dependency verification bypass is forbidden" \
+  "$fixture"
+
+fixture="$(make_fixture ias-ci-lock-rewrite-bypass)"
+printf '\n# ./gradlew dependencies --write-locks\n' \
+  >> "$fixture/.github/workflows/android-internal-app-sharing.yml"
+expect_failure \
+  "IAS CI dependency lock rewrite" \
+  "CI dependency provenance rewrite is forbidden" \
+  "$fixture"
+
+for configuration in \
+  hiltAnnotationProcessorInternalAppSharing \
+  kotlinCompilerPluginClasspathInternalAppSharing \
+  kspInternalAppSharingKotlinProcessorClasspath \
+  internalAppSharingAnnotationProcessorClasspath \
+  internalAppSharingCompileClasspath \
+  internalAppSharingRuntimeClasspath; do
+  fixture="$(make_fixture "missing-$configuration-lock")"
+  remove_lock_configuration "$fixture/app/gradle.lockfile" "$configuration"
+  expect_failure \
+    "missing IAS lock coverage for $configuration" \
+    "production release dependency lock lacks $configuration" \
+    "$fixture"
+done
+
+fixture="$(make_fixture missing-ias-strict-activation)"
+replace_once \
+  "$fixture/build.gradle" \
+  '                "internalAppSharingRuntimeClasspath"' \
+  '                "internalAppSharingRuntimeClasspathUnlocked"'
+expect_failure \
+  "missing IAS strict-lock activation" \
+  "strict production/IAS dependency locking omits internalAppSharingRuntimeClasspath" \
+  "$fixture"
+
 fixture="$(make_fixture missing-release-lock)"
 rm "$fixture/app/gradle.lockfile"
 expect_failure \
@@ -466,8 +545,8 @@ expect_failure \
 fixture="$(make_fixture unreviewed-kotlin-metadata)"
 replace_once \
   "$fixture/app/gradle.lockfile" \
-  'org.jetbrains.kotlin:kotlin-stdlib:2.2.10=releaseCompileClasspath,releaseRuntimeClasspath' \
-  'org.jetbrains.kotlin:kotlin-stdlib:2.3.10=releaseCompileClasspath,releaseRuntimeClasspath'
+  'org.jetbrains.kotlin:kotlin-stdlib:2.2.10=internalAppSharingCompileClasspath,internalAppSharingRuntimeClasspath,releaseCompileClasspath,releaseRuntimeClasspath' \
+  'org.jetbrains.kotlin:kotlin-stdlib:2.3.10=internalAppSharingCompileClasspath,internalAppSharingRuntimeClasspath,releaseCompileClasspath,releaseRuntimeClasspath'
 expect_failure \
   "unreviewed release Kotlin metadata" \
   "release Kotlin metadata version must be explicitly reviewed before use" \

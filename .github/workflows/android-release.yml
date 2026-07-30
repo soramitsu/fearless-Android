@@ -219,6 +219,10 @@ jobs:
           bash ./scripts/test-android-release-source-binding.sh
           bash ./scripts/test-android-release-source-tree.sh
           bash ./scripts/test-android-release-sdk.sh
+          bash ./scripts/test-android-migration-ci-gate.sh
+          bash ./scripts/test-android-migration-instrumentation-results.sh
+          IAS_GRADLE_CONTRACT_ONLY=true \
+            bash ./scripts/test-android-internal-app-sharing.sh
           bash ./scripts/test-fearless-utils-source-integrity.sh
           bash ./scripts/test-gradle-dependency-provenance.sh
           bash ./scripts/test-release-overlay-interruption.sh
@@ -1567,7 +1571,7 @@ jobs:
           provenance="$artifact_dir/provenance.json"
           [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
             "$SIGNED_RELEASE_AAB_SHA256" ]] || {
-              echo "Signed AAB changed before artifact staging" >&2
+              echo "Signed AAB changed before artifact transfer" >&2
               exit 1
             }
           cp -- "$SIGNED_RELEASE_AAB" "$artifact"

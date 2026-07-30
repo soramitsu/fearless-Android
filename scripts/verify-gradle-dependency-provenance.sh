@@ -503,20 +503,29 @@ locked_entry_count="$(
   fail "production release dependency lock contains no module entries"
 required_lock_configurations=(
   hiltAnnotationProcessorRelease
+  hiltAnnotationProcessorInternalAppSharing
   kotlinCompilerPluginClasspathRelease
+  kotlinCompilerPluginClasspathInternalAppSharing
   kspReleaseKotlinProcessorClasspath
+  kspInternalAppSharingKotlinProcessorClasspath
   releaseAnnotationProcessorClasspath
   releaseCompileClasspath
   releaseRuntimeClasspath
+  internalAppSharingAnnotationProcessorClasspath
+  internalAppSharingCompileClasspath
+  internalAppSharingRuntimeClasspath
 )
 for configuration in "${required_lock_configurations[@]}"; do
+  grep -Fq "\"$configuration\"" "$root_build" ||
+    fail "strict production/IAS dependency locking omits $configuration"
   grep -Eq "(=|,)${configuration}(,|$)" "$release_lock" ||
     fail "production release dependency lock lacks $configuration"
 done
 
 for workflow in \
   "$root_dir/.github/workflows/android-ci.yml" \
-  "$root_dir/.github/workflows/android-release.yml"; do
+  "$root_dir/.github/workflows/android-release.yml" \
+  "$root_dir/.github/workflows/android-internal-app-sharing.yml"; do
   require_regular_file "$workflow" "Android CI/release workflow"
   require_text "$workflow" "CI: true" "explicit CI environment marker"
   forbid_pattern \

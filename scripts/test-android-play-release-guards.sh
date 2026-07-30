@@ -1648,8 +1648,8 @@ verify_static_contract() {
     "dependency-provenance test must retain both valid configurations"
   require_text \
     "$dependency_test" \
-    'EXPECTED_NEGATIVE_COUNT=30' \
-    "dependency-provenance test must retain all 30 adversarial cases"
+    'EXPECTED_NEGATIVE_COUNT=40' \
+    "dependency-provenance test must retain all 40 adversarial cases"
   require_text \
     "$dependency_test" \
     '[[ "$negative_count" == "$EXPECTED_NEGATIVE_COUNT" ]]' \
@@ -2691,11 +2691,11 @@ expect_static_failure \
 
 fixture="$(make_fixture dependency-provenance-count-weakened)"
 replace_once "$fixture/scripts/test-gradle-dependency-provenance.sh" \
-  "EXPECTED_NEGATIVE_COUNT=30" \
-  "EXPECTED_NEGATIVE_COUNT=29"
+  "EXPECTED_NEGATIVE_COUNT=40" \
+  "EXPECTED_NEGATIVE_COUNT=39"
 expect_static_failure \
   "dependency-provenance adversarial count weakened" \
-  "retain all 30 adversarial cases" \
+  "retain all 40 adversarial cases" \
   "$fixture"
 
 fixture="$(make_fixture identity-count-weakened)"
