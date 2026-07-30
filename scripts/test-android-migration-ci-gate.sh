@@ -159,8 +159,8 @@ expect_failure \
 
 fixture="$(make_fixture suppressed-sdk-license-failure)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  '            "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null' \
-  '            "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null || true'
+  '            --licenses >/dev/null <<<"$license_answers"' \
+  '            --licenses >/dev/null <<<"$license_answers" || true'
 expect_failure \
   "suppressed SDK license failure" \
   "must not suppress license or package installation failures" \

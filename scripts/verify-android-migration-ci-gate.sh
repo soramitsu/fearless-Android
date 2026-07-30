@@ -129,8 +129,11 @@ sdk_step="$({
   extract_step "$build_job" "Setup Android SDK"
 } 2>/dev/null)" || fail "Android SDK setup step is missing or duplicated"
 required_sdk_lines=(
-  '          { yes || [[ "$?" == "141" ]]; } |'
-  '            "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null'
+  '          license_answers="$(printf '\''y\n%.0s'\'' {1..256})"'
+  '          [[ "$(grep -c '\''^y$'\'' <<<"$license_answers")" == "256" ]]'
+  '          "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" \'
+  '            --licenses >/dev/null <<<"$license_answers"'
+  '          unset license_answers'
   '          "$sdkmanager_bin" --install \'
   '            --sdk_root="$ANDROID_SDK_ROOT" \'
   '            "platforms;android-36" \'
