@@ -7,6 +7,8 @@ WORKFLOW="$ROOT_DIR/.github/workflows/android-ci.yml"
 EMULATOR_RUNNER="$ROOT_DIR/scripts/run-android-emulator-ci.sh"
 COMPATIBILITY_RUNNER="$ROOT_DIR/scripts/run-android-migration-compatibility.sh"
 FULL_RUNNER="$ROOT_DIR/scripts/run-android-migration-full.sh"
+EVIDENCE_PREPARER="$ROOT_DIR/scripts/prepare-android-migration-evidence.py"
+EVIDENCE_PREPARER_TEST="$ROOT_DIR/scripts/test-android-migration-evidence-packaging.py"
 
 fail() {
   echo "[android-migration-ci][error] $*" >&2
@@ -29,6 +31,14 @@ fail() {
   fail "Android full migration runner must be a regular non-symlink file"
 [[ "$(wc -c < "$FULL_RUNNER" | tr -d '[:space:]')" -le 32768 ]] ||
   fail "Android full migration runner exceeds the 32 KiB review limit"
+[[ -f "$EVIDENCE_PREPARER" && ! -L "$EVIDENCE_PREPARER" ]] ||
+  fail "Android migration evidence preparer must be a regular non-symlink file"
+[[ "$(wc -c < "$EVIDENCE_PREPARER" | tr -d '[:space:]')" -le 40960 ]] ||
+  fail "Android migration evidence preparer exceeds the 40 KiB review limit"
+[[ -f "$EVIDENCE_PREPARER_TEST" && ! -L "$EVIDENCE_PREPARER_TEST" ]] ||
+  fail "Android migration evidence preparer test must be a regular non-symlink file"
+[[ "$(wc -c < "$EVIDENCE_PREPARER_TEST" | tr -d '[:space:]')" -le 40960 ]] ||
+  fail "Android migration evidence preparer test exceeds the 40 KiB review limit"
 
 require_workflow_line() {
   local line="$1"
@@ -102,6 +112,9 @@ require_block_line "$build_job" \
 require_block_line "$build_job" \
   "          bash ./scripts/test-android-migration-instrumentation-results.sh" \
   "migration result-parser adversarial guard invocation"
+require_block_line "$build_job" \
+  "          python3 ./scripts/test-android-migration-evidence-packaging.py" \
+  "migration evidence-packaging adversarial guard invocation"
 
 action_count=0
 while IFS= read -r action_reference; do
@@ -451,6 +464,31 @@ for required_line in "${required_full_runner_lines[@]}"; do
     fail "Android full migration runner line '$required_line' must appear exactly once"
 done
 
+required_evidence_preparer_lines=(
+  'OUTPUT_RELATIVE = "build/reports/android-migration-upload"'
+  '    ("build/outputs/androidTest-results/connected", "android-test-results"),'
+  '    ("build/reports/androidTests/connected", "android-test-reports"),'
+  '    ("build/reports/android-migration-compatibility", "compatibility"),'
+  '    ("build/reports/android-emulator-lifecycle", "emulator-lifecycle"),'
+  "WINDOWS_FORBIDDEN = frozenset('\"*/:<>?\\\\|')"
+  'MAX_COMPONENT_BYTES = 108'
+  'MAX_RELATIVE_PATH_BYTES = 220'
+  '            changed_ns=metadata.st_ctime_ns,'
+  '            or (index == 0 and character == ".")'
+  '        canonical = _canonical_component(component)'
+  '    required = ("O_DIRECTORY", "O_NOFOLLOW")'
+  'def discover_default_sources('
+  '            directory_names = sorted(os.listdir(directory_descriptor))'
+  '    discover_directory(project_descriptor, ())'
+  '        removed_kind = _remove_entry_at(output_parent_descriptor, output_name)'
+  '            actual_files = sorted(_walk_regular_files_fd(handle.descriptor))'
+  '                    "sha256": sha256,'
+)
+for required_line in "${required_evidence_preparer_lines[@]}"; do
+  [[ "$(grep -Fxc -- "$required_line" "$EVIDENCE_PREPARER" || true)" == "1" ]] ||
+    fail "Android migration evidence preparer line '$required_line' must appear exactly once"
+done
+
 full_marker_line="$(grep -Fnx -- \
   "(umask 077; : >\"\$RESULTS_MARKER_RELATIVE\")" \
   "$FULL_RUNNER" | cut -d: -f1 || true)"
@@ -518,19 +556,42 @@ for required_line in "${required_result_lines[@]}"; do
     "migration result-verification contract line '$required_line'"
 done
 
+preparation_step="$({
+  extract_step "$build_job" "Prepare portable migration instrumentation evidence"
+} 2>/dev/null)" ||
+  fail "migration evidence preparation step is missing or duplicated"
+required_preparation_lines=(
+  "        id: prepare_migration_evidence"
+  "        if: always()"
+  "        run: python3 ./scripts/prepare-android-migration-evidence.py"
+)
+if grep -Eq 'continue-on-error:|\|\|[[:space:]]*true|set[[:space:]]+\+e' \
+  <<<"$preparation_step"; then
+  fail "migration evidence preparation must fail closed"
+fi
+for required_line in "${required_preparation_lines[@]}"; do
+  require_block_line \
+    "$preparation_step" \
+    "$required_line" \
+    "migration evidence preparation contract line '$required_line'"
+done
+
 evidence_step="$({
   extract_step "$build_job" "Upload migration instrumentation evidence"
 } 2>/dev/null)" || fail "migration instrumentation evidence step is missing or duplicated"
 required_evidence_lines=(
-  "        if: always()"
+  "        if: \${{ always() && steps.prepare_migration_evidence.outcome == 'success' }}"
   "        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2"
   "          name: android-migration-instrumentation-\${{ github.sha }}"
-  "            **/build/outputs/androidTest-results/connected/**"
-  "            **/build/reports/androidTests/connected/**"
-  "            build/reports/android-emulator-lifecycle/**"
+  "          path: build/reports/android-migration-upload/**"
   "          if-no-files-found: error"
   "          retention-days: 14"
 )
+if grep -Eq \
+  'androidTest-results/connected|androidTests/connected|android-migration-compatibility|android-emulator-lifecycle' \
+  <<<"$evidence_step"; then
+  fail "migration evidence upload must consume only the portable staged tree"
+fi
 for required_line in "${required_evidence_lines[@]}"; do
   require_block_line \
     "$evidence_step" \
@@ -561,23 +622,32 @@ results_line="$(
   grep -nF '      - name: Verify migration instrumentation results' \
     "$WORKFLOW" | cut -d: -f1
 )"
+preparation_line="$(
+  grep -nF '      - name: Prepare portable migration instrumentation evidence' \
+    "$WORKFLOW" | cut -d: -f1
+)"
 evidence_line="$(
   grep -nF '      - name: Upload migration instrumentation evidence' \
     "$WORKFLOW" | cut -d: -f1
 )"
 [[ "$api30_line" =~ ^[0-9]+$ && "$api31_line" =~ ^[0-9]+$ && \
   "$api36_line" =~ ^[0-9]+$ && "$instrumentation_line" =~ ^[0-9]+$ && \
-  "$results_line" =~ ^[0-9]+$ && "$evidence_line" =~ ^[0-9]+$ ]] ||
+  "$results_line" =~ ^[0-9]+$ && "$preparation_line" =~ ^[0-9]+$ && \
+  "$evidence_line" =~ ^[0-9]+$ ]] ||
   fail "migration instrumentation step ordering is malformed"
 ((api30_line < api31_line && api31_line < api36_line && \
   api36_line < instrumentation_line)) ||
   fail "API 30/31/36 compatibility shards must precede the full API 34 gate"
 ((results_line > instrumentation_line)) ||
   fail "migration result verification must follow instrumentation"
+((preparation_line > results_line)) ||
+  fail "migration evidence preparation must follow result verification"
 ((evidence_line > instrumentation_line)) ||
   fail "migration evidence upload must follow the instrumentation run"
 ((evidence_line > results_line)) ||
   fail "migration evidence upload must follow result verification"
+((evidence_line > preparation_line)) ||
+  fail "migration evidence upload must follow portable evidence preparation"
 
 echo \
   "[android-migration-ci] required full migration/startup instrumentation gate verified"

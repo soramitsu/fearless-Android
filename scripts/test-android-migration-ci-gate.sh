@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-ci-gate.sh"
 EXPECTED_POSITIVE_COUNT=1
-EXPECTED_NEGATIVE_COUNT=92
+EXPECTED_NEGATIVE_COUNT=102
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -33,6 +33,10 @@ make_fixture() {
     "$fixture/scripts/run-android-migration-compatibility.sh"
   cp "$ROOT_DIR/scripts/run-android-migration-full.sh" \
     "$fixture/scripts/run-android-migration-full.sh"
+  cp "$ROOT_DIR/scripts/prepare-android-migration-evidence.py" \
+    "$fixture/scripts/prepare-android-migration-evidence.py"
+  cp "$ROOT_DIR/scripts/test-android-migration-evidence-packaging.py" \
+    "$fixture/scripts/test-android-migration-evidence-packaging.py"
   printf '%s\n' "$fixture"
 }
 
@@ -121,6 +125,15 @@ replace_once "$fixture/.github/workflows/android-ci.yml" \
 expect_failure \
   "missing result parser self test" \
   "migration result-parser adversarial guard invocation" \
+  "$fixture"
+
+fixture="$(make_fixture missing-evidence-packaging-self-test)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "          python3 ./scripts/test-android-migration-evidence-packaging.py" \
+  "          python3 ./scripts/test-android-migration-evidence-packaging-disabled.py"
+expect_failure \
+  "missing evidence packaging self test" \
+  "migration evidence-packaging adversarial guard invocation" \
   "$fixture"
 
 fixture="$(make_fixture policy-blocked-emulator-action)"
@@ -447,9 +460,9 @@ expect_failure \
   "$fixture"
 
 fixture="$(make_fixture missing-lifecycle-evidence-upload)"
-replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "            build/reports/android-emulator-lifecycle/**" \
-  "            build/reports/android-emulator-disabled/**"
+replace_once "$fixture/scripts/prepare-android-migration-evidence.py" \
+  '    ("build/reports/android-emulator-lifecycle", "emulator-lifecycle"),' \
+  '    ("build/reports/android-emulator-disabled", "emulator-lifecycle"),'
 expect_failure \
   "missing emulator lifecycle evidence upload" \
   "android-emulator-lifecycle" \
@@ -570,31 +583,130 @@ path.write_text(text.replace(marker, result + marker, 1), encoding="utf-8")
 PY
 expect_failure \
   "result verification after evidence" \
-  "evidence upload must follow result verification" \
+  "evidence preparation must follow result verification" \
+  "$fixture"
+
+fixture="$(make_fixture missing-evidence-preparer)"
+mv "$fixture/scripts/prepare-android-migration-evidence.py" \
+  "$fixture/scripts/prepare-android-migration-evidence.py.disabled"
+expect_failure \
+  "missing evidence preparer" \
+  "evidence preparer must be a regular" \
+  "$fixture"
+
+fixture="$(make_fixture missing-evidence-preparer-test)"
+mv "$fixture/scripts/test-android-migration-evidence-packaging.py" \
+  "$fixture/scripts/test-android-migration-evidence-packaging.py.disabled"
+expect_failure \
+  "missing evidence preparer test" \
+  "evidence preparer test must be a regular" \
+  "$fixture"
+
+fixture="$(make_fixture missing-evidence-preparation-step)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "      - name: Prepare portable migration instrumentation evidence" \
+  "      - name: Portable migration evidence preparation disabled"
+expect_failure \
+  "missing evidence preparation step" \
+  "migration evidence preparation step is missing" \
+  "$fixture"
+
+fixture="$(make_fixture conditional-evidence-preparation)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  $'      - name: Prepare portable migration instrumentation evidence\n        id: prepare_migration_evidence\n        if: always()' \
+  $'      - name: Prepare portable migration instrumentation evidence\n        id: prepare_migration_evidence\n        if: success()'
+expect_failure \
+  "conditional evidence preparation" \
+  "migration evidence preparation contract line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-evidence-preparation-id)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "        id: prepare_migration_evidence" \
+  "        id: prepare_migration_evidence_disabled"
+expect_failure \
+  "missing evidence preparation id" \
+  "migration evidence preparation contract line" \
+  "$fixture"
+
+fixture="$(make_fixture suppressed-evidence-preparation)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "        run: python3 ./scripts/prepare-android-migration-evidence.py" \
+  "        run: python3 ./scripts/prepare-android-migration-evidence.py || true"
+expect_failure \
+  "suppressed evidence preparation" \
+  "migration evidence preparation must fail closed" \
   "$fixture"
 
 fixture="$(make_fixture mutable-upload-action)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  $'      - name: Upload migration instrumentation evidence\n        if: always()\n        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2' \
-  $'      - name: Upload migration instrumentation evidence\n        if: always()\n        uses: actions/upload-artifact@v4 # v4.6.2'
+  $'      - name: Upload migration instrumentation evidence\n        if: ${{ always() && steps.prepare_migration_evidence.outcome == \'success\' }}\n        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2' \
+  $'      - name: Upload migration instrumentation evidence\n        if: ${{ always() && steps.prepare_migration_evidence.outcome == \'success\' }}\n        uses: actions/upload-artifact@v4 # v4.6.2'
 expect_failure \
   "mutable evidence upload action" \
   "outside the repository-policy allowlist" \
   "$fixture"
 
-fixture="$(make_fixture missing-always-evidence)"
+fixture="$(make_fixture weakened-preparation-outcome-gate)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  $'      - name: Upload migration instrumentation evidence\n        if: always()' \
-  $'      - name: Upload migration instrumentation evidence\n        if: success()'
-expect_failure "conditional evidence" "contract line '        if: always()'" "$fixture"
+  "        if: \${{ always() && steps.prepare_migration_evidence.outcome == 'success' }}" \
+  "        if: always()"
+expect_failure \
+  "weakened preparation outcome gate" \
+  "steps.prepare_migration_evidence.outcome" \
+  "$fixture"
 
 fixture="$(make_fixture missing-result-path)"
-replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "            **/build/outputs/androidTest-results/connected/**" \
-  "            **/build/outputs/androidTest-results/disabled/**"
+replace_once "$fixture/scripts/prepare-android-migration-evidence.py" \
+  '    ("build/outputs/androidTest-results/connected", "android-test-results"),' \
+  '    ("build/outputs/androidTest-results/disabled", "android-test-results"),'
 expect_failure \
   "missing XML result evidence" \
   "androidTest-results/connected" \
+  "$fixture"
+
+fixture="$(make_fixture suppressed-evidence-discovery-errors)"
+replace_once "$fixture/scripts/prepare-android-migration-evidence.py" \
+  '            directory_names = sorted(os.listdir(directory_descriptor))' \
+  '            directory_names = []'
+expect_failure \
+  "suppressed evidence discovery errors" \
+  "directory_names = sorted(os.listdir(directory_descriptor))" \
+  "$fixture"
+
+fixture="$(make_fixture raw-result-path-upload)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "          path: build/reports/android-migration-upload/**" \
+  $'          path: |\n            build/reports/android-migration-upload/**\n            **/build/outputs/androidTest-results/connected/**'
+expect_failure \
+  "raw result path upload" \
+  "migration evidence upload must consume only the portable staged tree" \
+  "$fixture"
+
+fixture="$(make_fixture upload-before-evidence-preparation)"
+python3 - "$fixture/.github/workflows/android-ci.yml" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+preparation = (
+    "      - name: Prepare portable migration instrumentation evidence\n"
+    "        id: prepare_migration_evidence\n"
+    "        if: always()\n"
+    "        run: python3 ./scripts/prepare-android-migration-evidence.py\n\n"
+)
+if text.count(preparation) != 1:
+    raise SystemExit(42)
+text = text.replace(preparation, "", 1)
+marker = "      - name: Gradle/AGP versions\n"
+if text.count(marker) != 1:
+    raise SystemExit(42)
+path.write_text(text.replace(marker, preparation + marker, 1), encoding="utf-8")
+PY
+expect_failure \
+  "upload before evidence preparation" \
+  "migration evidence upload must follow portable evidence preparation" \
   "$fixture"
 
 fixture="$(make_fixture allow-missing-evidence)"
