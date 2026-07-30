@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-ci-gate.sh"
 EXPECTED_POSITIVE_COUNT=1
-EXPECTED_NEGATIVE_COUNT=82
+EXPECTED_NEGATIVE_COUNT=88
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -132,6 +132,24 @@ expect_failure \
   "outside the repository-policy allowlist" \
   "$fixture"
 
+fixture="$(make_fixture missing-emulator-runtime-package)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "          sudo apt-get install --yes --no-install-recommends libpulse0" \
+  "          sudo apt-get install --yes --no-install-recommends libpulse-disabled"
+expect_failure \
+  "missing emulator runtime package" \
+  "Android emulator runtime-library contract line" \
+  "$fixture"
+
+fixture="$(make_fixture suppressed-emulator-runtime-install)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "          sudo apt-get install --yes --no-install-recommends libpulse0" \
+  "          sudo apt-get install --yes --no-install-recommends libpulse0 || true"
+expect_failure \
+  "suppressed emulator runtime install failure" \
+  "runtime-library setup must not suppress failures" \
+  "$fixture"
+
 for field_mutation in \
   'readonly SYSTEM_IMAGE_TARGET="google_atd"|readonly SYSTEM_IMAGE_TARGET="default"' \
   'readonly SYSTEM_IMAGE_ARCH="x86_64"|readonly SYSTEM_IMAGE_ARCH="x86"' \
@@ -218,6 +236,42 @@ replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
 expect_failure \
   "missing emulator acceleration check" \
   "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-shared-library-inspection)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"' \
+  '  timeout "$COMMAND_TIMEOUT_SECONDS" true'
+expect_failure \
+  "missing emulator shared-library inspection" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-qemu-shared-library-inspection)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"' \
+  '  timeout "$COMMAND_TIMEOUT_SECONDS" true'
+expect_failure \
+  "missing qemu shared-library inspection" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture ignored-unresolved-shared-library)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'if grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then' \
+  'if false; then'
+expect_failure \
+  "ignored unresolved emulator shared library" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture late-shared-library-inspection)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  $'if ! {\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"\n} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then\n  fail "Android emulator shared-library inspection failed"\nfi\nif grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then\n  fail "Android emulator has unresolved shared-library dependencies"\nfi\n\ntimeout "$COMMAND_TIMEOUT_SECONDS" \\\n  "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1' \
+  $'timeout "$COMMAND_TIMEOUT_SECONDS" \\\n  "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1\n\nif ! {\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"\n  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"\n} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then\n  fail "Android emulator shared-library inspection failed"\nfi\nif grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then\n  fail "Android emulator has unresolved shared-library dependencies"\nfi'
+expect_failure \
+  "shared-library inspection after emulator execution" \
+  "shared-library preflight must precede emulator execution" \
   "$fixture"
 
 fixture="$(make_fixture acceleration-disabled)"

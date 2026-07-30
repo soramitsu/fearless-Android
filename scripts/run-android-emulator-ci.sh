@@ -65,6 +65,7 @@ printf '%s\n' \
 readonly SDKMANAGER="$SDKMANAGER_BIN"
 readonly AVDMANAGER="$AVDMANAGER_BIN"
 readonly EMULATOR="$ANDROID_SDK_ROOT/emulator/emulator"
+readonly QEMU_SYSTEM="$ANDROID_SDK_ROOT/emulator/qemu/linux-x86_64/qemu-system-x86_64"
 readonly ADB="$ANDROID_SDK_ROOT/platform-tools/adb"
 
 work_dir="$(mktemp -d "$RUNNER_TEMP/fearless-android-emulator-$API_LEVEL.XXXXXX")"
@@ -204,11 +205,11 @@ trap 'exit 129' HUP
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-for executable in "$SDKMANAGER" "$AVDMANAGER" "$EMULATOR" "$ADB"; do
+for executable in "$SDKMANAGER" "$AVDMANAGER" "$EMULATOR" "$QEMU_SYSTEM" "$ADB"; do
   [[ -x "$executable" && ! -L "$executable" ]] ||
     fail "required Android SDK executable is missing or symlinked: $executable"
 done
-for executable in timeout setsid awk sed ps; do
+for executable in timeout setsid awk sed ps ldd; do
   command -v "$executable" >/dev/null ||
     fail "required host command is missing: $executable"
 done
@@ -220,6 +221,16 @@ if [[ ! -r /dev/kvm || ! -w /dev/kvm ]]; then
 fi
 [[ -r /dev/kvm && -w /dev/kvm ]] ||
   fail "current CI user cannot read and write /dev/kvm"
+
+if ! {
+  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"
+  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"
+} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then
+  fail "Android emulator shared-library inspection failed"
+fi
+if grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then
+  fail "Android emulator has unresolved shared-library dependencies"
+fi
 
 timeout "$COMMAND_TIMEOUT_SECONDS" \
   "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1

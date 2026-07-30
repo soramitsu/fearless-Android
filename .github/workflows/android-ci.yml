@@ -145,6 +145,15 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Install Android emulator runtime libraries
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0
+          runtime_libraries="$(ldconfig -p)"
+          [[ "$(grep -Fc 'libpulse.so.0' <<<"$runtime_libraries")" -ge 1 ]]
+          unset runtime_libraries
+
       - name: Install checksum-pinned bundletool
         run: |
           set -euo pipefail

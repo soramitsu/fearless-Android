@@ -125,6 +125,28 @@ if grep -Fq "ReactiveCircus/android-emulator-runner" "$WORKFLOW"; then
   fail "Android CI must not use the repository-policy-blocked emulator action"
 fi
 
+runtime_step="$({
+  extract_step "$build_job" "Install Android emulator runtime libraries"
+} 2>/dev/null)" ||
+  fail "Android emulator runtime-library step is missing or duplicated"
+required_runtime_lines=(
+  '          set -euo pipefail'
+  '          sudo apt-get update'
+  '          sudo apt-get install --yes --no-install-recommends libpulse0'
+  '          runtime_libraries="$(ldconfig -p)"'
+  '          [[ "$(grep -Fc '\''libpulse.so.0'\'' <<<"$runtime_libraries")" -ge 1 ]]'
+  '          unset runtime_libraries'
+)
+if grep -Eq '\|\|[[:space:]]*true|set[[:space:]]+\+e' <<<"$runtime_step"; then
+  fail "Android emulator runtime-library setup must not suppress failures"
+fi
+for required_line in "${required_runtime_lines[@]}"; do
+  require_block_line \
+    "$runtime_step" \
+    "$required_line" \
+    "Android emulator runtime-library contract line '$required_line'"
+done
+
 sdk_step="$({
   extract_step "$build_job" "Setup Android SDK"
 } 2>/dev/null)" || fail "Android SDK setup step is missing or duplicated"
@@ -195,10 +217,19 @@ required_emulator_runner_lines=(
   'readonly EMULATOR_SERIAL="emulator-5554"'
   '[[ -n "${SDKMANAGER_BIN:-}" && "$SDKMANAGER_BIN" == "$ANDROID_SDK_ROOT"/* ]] ||'
   '[[ -n "${AVDMANAGER_BIN:-}" && "$AVDMANAGER_BIN" == "$ANDROID_SDK_ROOT"/* ]] ||'
+  'readonly QEMU_SYSTEM="$ANDROID_SDK_ROOT/emulator/qemu/linux-x86_64/qemu-system-x86_64"'
+  'for executable in "$SDKMANAGER" "$AVDMANAGER" "$EMULATOR" "$QEMU_SYSTEM" "$ADB"; do'
   '  30:compatibility|31:compatibility|34:full|36:compatibility) ;;'
   '[[ -c /dev/kvm ]] || fail "/dev/kvm is not a character device"'
   '  sudo setfacl -m "u:$(id -un):rw" /dev/kvm'
   '  fail "current CI user cannot read and write /dev/kvm"'
+  'for executable in timeout setsid awk sed ps ldd; do'
+  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"'
+  '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$QEMU_SYSTEM"'
+  '} >"$EVIDENCE_DIR/emulator-shared-libraries.txt" 2>&1; then'
+  '  fail "Android emulator shared-library inspection failed"'
+  'if grep -Fq "not found" "$EVIDENCE_DIR/emulator-shared-libraries.txt"; then'
+  '  fail "Android emulator has unresolved shared-library dependencies"'
   '      "$ADB" -s "$EMULATOR_SERIAL" logcat -d -t 4000 \'
   '      "$ADB" -s "$EMULATOR_SERIAL" emu kill \'
   '      --uninstall "$SYSTEM_IMAGE_PACKAGE" \'
@@ -275,6 +306,14 @@ image_install_line="$(
   grep -nF '  --install "$SYSTEM_IMAGE_PACKAGE" \' \
     "$EMULATOR_RUNNER" | cut -d: -f1 || true
 )"
+shared_library_line="$(
+  grep -nF '  timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"' \
+    "$EMULATOR_RUNNER" | cut -d: -f1 || true
+)"
+emulator_version_line="$(
+  grep -nF '  "$EMULATOR" -version >"$EVIDENCE_DIR/emulator-version.txt" 2>&1' \
+    "$EMULATOR_RUNNER" | cut -d: -f1 || true
+)"
 trap_line="$(
   grep -nF 'trap cleanup EXIT' "$EMULATOR_RUNNER" | cut -d: -f1 || true
 )"
@@ -302,6 +341,8 @@ full_dispatch_line="$(
 )"
 [[ "$lifecycle_marker_line" =~ ^[0-9]+$ && \
   "$image_install_line" =~ ^[0-9]+$ && \
+  "$shared_library_line" =~ ^[0-9]+$ && \
+  "$emulator_version_line" =~ ^[0-9]+$ && \
   "$trap_line" =~ ^[0-9]+$ && "$launch_line" =~ ^[0-9]+$ && \
   "$diagnostic_line" =~ ^[0-9]+$ && "$stop_line" =~ ^[0-9]+$ && \
   "$serial_export_line" =~ ^[0-9]+$ && \
@@ -310,6 +351,9 @@ full_dispatch_line="$(
   fail "Android emulator lifecycle runner ordering is malformed"
 ((lifecycle_marker_line < image_install_line)) ||
   fail "Android emulator lifecycle evidence marker must precede system-image installation"
+((shared_library_line < emulator_version_line && \
+  emulator_version_line < image_install_line)) ||
+  fail "Android emulator shared-library preflight must precede emulator execution and image installation"
 ((trap_line < launch_line)) ||
   fail "Android emulator cleanup trap must be installed before launch"
 ((diagnostic_line < stop_line)) ||
