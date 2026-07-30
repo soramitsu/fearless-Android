@@ -207,8 +207,8 @@ manual workflow run.
   exactly 4 positive and 12 negative/adversarial cases.
   Require the dependency-provenance suite to report exactly 2 positive and 40
   adversarial cases. The workflow's Linux public-certificate AAB suite must
-  report 7 positive and 47 adversarial artifacts. Local AAB expectations are
-  7/45 for macOS certificate mode, 7/53 for macOS keystore mode, and 7/55 for
+  report 7 positive and 78 adversarial artifacts. Local AAB expectations are
+  7/76 for macOS certificate mode, 7/84 for macOS keystore mode, and 7/86 for
   Linux keystore mode. A changed total requires review.
 - Confirm the artifact build requested exactly
   `:app:bundleInternalAppSharing`, with `CI=true`, and no additional Gradle
@@ -250,7 +250,7 @@ manual workflow run.
   libraries, and compiled public Firebase resources.
 - Run `bash scripts/test-android-internal-app-sharing-aab.sh` against the fresh
   unsigned/signed pair in public-certificate mode and require exactly 7
-  positive and 47 adversarial artifacts on the workflow's Linux runner.
+  positive and 78 adversarial artifacts on the workflow's Linux runner.
   Confirm tampering, an invalid signing transform, wrong-signer bytes, source
   mismatch, invalid identity, resource exhaustion, publication interruption,
   and malformed tooling all fail closed.

@@ -189,12 +189,15 @@ rewrite_unsigned() {
   local entry_name="${3:-}"
   local old_value="${4:-}"
   local new_value="${5:-}"
-  python3 - "$source" "$destination" "$entry_name" "$old_value" "$new_value" <<'PY'
+  local anchor="${6:-}"
+  python3 - \
+    "$source" "$destination" "$entry_name" "$old_value" "$new_value" \
+    "$anchor" <<'PY'
 import re
 import sys
 import zipfile
 
-source, destination, target, old, new = sys.argv[1:]
+source, destination, target, old, new, anchor = sys.argv[1:]
 signature = re.compile(r"^META-INF/(MANIFEST\.MF|[^/]+\.(SF|RSA|DSA|EC))$", re.I)
 changed = target == ""
 with zipfile.ZipFile(source, "r") as source_zip, zipfile.ZipFile(destination, "w") as output_zip:
@@ -205,12 +208,45 @@ with zipfile.ZipFile(source, "r") as source_zip, zipfile.ZipFile(destination, "w
         if info.filename == target:
             old_bytes = old.encode("utf-8")
             new_bytes = new.encode("utf-8")
-            if len(old_bytes) != len(new_bytes) or payload.count(old_bytes) != 1:
+            if len(old_bytes) != len(new_bytes):
                 raise SystemExit(
                     f"mutation precondition failed for {target}: "
-                    f"lengths {len(old_bytes)}/{len(new_bytes)}, occurrences {payload.count(old_bytes)}"
+                    f"lengths {len(old_bytes)}/{len(new_bytes)}"
                 )
-            payload = payload.replace(old_bytes, new_bytes)
+            if anchor:
+                anchor_bytes = anchor.encode("utf-8")
+                if payload.count(anchor_bytes) != 1:
+                    raise SystemExit(
+                        f"mutation anchor precondition failed for {target}: "
+                        f"{anchor!r} occurrences {payload.count(anchor_bytes)}"
+                    )
+                anchor_position = payload.index(anchor_bytes)
+                positions = [
+                    position
+                    for position in range(
+                        anchor_position + len(anchor_bytes),
+                        min(len(payload), anchor_position + 256),
+                    )
+                    if payload.startswith(old_bytes, position)
+                ]
+                if len(positions) != 1:
+                    raise SystemExit(
+                        f"anchored mutation precondition failed for {target}: "
+                        f"{old!r} nearby occurrences {len(positions)}"
+                    )
+                position = positions[0]
+                payload = (
+                    payload[:position]
+                    + new_bytes
+                    + payload[position + len(old_bytes):]
+                )
+            else:
+                if payload.count(old_bytes) != 1:
+                    raise SystemExit(
+                        f"mutation precondition failed for {target}: "
+                        f"{old!r} occurrences {payload.count(old_bytes)}"
+                    )
+                payload = payload.replace(old_bytes, new_bytes)
             changed = True
         output_zip.writestr(info, payload)
 if not changed:
@@ -444,10 +480,50 @@ PY
 unsigned_fixture="$temporary_dir/unsigned-fixture.aab"
 rewrite_unsigned "$fixture" "$unsigned_fixture"
 
+real_keytool="$(command -v keytool)"
+keytool_wrapper_dir="$temporary_dir/keytool-wrapper"
+mkdir -m 700 "$keytool_wrapper_dir"
+cat >"$keytool_wrapper_dir/keytool" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+
+has_rfc=false
+has_jarfile=false
+for argument in "$@"; do
+  [[ "$argument" != "-rfc" ]] || has_rfc=true
+  [[ "$argument" != "-jarfile" ]] || has_jarfile=true
+done
+
+if [[ "$has_rfc" == "true" && "$has_jarfile" == "true" ]]; then
+  case "${IAS_KEYTOOL_TEST_MODE:-}" in
+    prefixed)
+      printf '%s\n' 'localized signer metadata before certificate'
+      "$REAL_KEYTOOL_BIN" "$@"
+      status=$?
+      printf '%s\n' 'localized signer metadata after certificate'
+      exit "$status"
+      ;;
+    duplicate)
+      output="$("$REAL_KEYTOOL_BIN" "$@")"
+      printf '%s\n%s\n' "$output" "$output"
+      exit 0
+      ;;
+  esac
+fi
+
+exec "$REAL_KEYTOOL_BIN" "$@"
+SH
+chmod 700 "$keytool_wrapper_dir/keytool"
+
 positive_log="$temporary_dir/positive.log"
-CI=true "$VERIFY" "$fixture" "$expected_commit" >"$positive_log" 2>&1 || {
+env \
+  PATH="$keytool_wrapper_dir:$PATH" \
+  REAL_KEYTOOL_BIN="$real_keytool" \
+  IAS_KEYTOOL_TEST_MODE=prefixed \
+  CI=true \
+  "$VERIFY" "$fixture" "$expected_commit" >"$positive_log" 2>&1 || {
   sed -n '1,200p' "$positive_log" >&2
-  fail "valid IAS artifact did not pass the complete verifier."
+  fail "valid IAS artifact with localized keytool metadata did not pass the complete verifier."
 }
 grep -Fq 'exact IAS identity, public Firebase resources, native payload, bundletool validity, and debug signature verified' \
   "$positive_log" || fail "positive IAS verifier omitted its evidence summary."
@@ -1051,6 +1127,17 @@ expect_failure \
     ANDROID_IAS_DEBUG_CERTIFICATE_PATH="$public_certificate" \
     "$VERIFY" "$fixture" "$expected_commit"
 
+metadata_public_certificate="$temporary_dir/metadata-public-certificate.pem"
+printf '%s\n' 'Signer metadata must not be accepted from a caller.' \
+  >"$metadata_public_certificate"
+sed -n '1,200p' "$public_certificate" >>"$metadata_public_certificate"
+expect_failure \
+  "metadata-prefixed public signer certificate" \
+  "The public Android debug certificate must contain exactly one canonical X.509 certificate and no private material." \
+  env -u ANDROID_IAS_DEBUG_KEYSTORE_PATH \
+    ANDROID_IAS_DEBUG_CERTIFICATE_PATH="$metadata_public_certificate" \
+    "$VERIFY" "$fixture" "$expected_commit"
+
 malformed_public_certificate="$temporary_dir/malformed-public-certificate.pem"
 printf '%s\n' 'not an X.509 certificate' >"$malformed_public_certificate"
 expect_failure \
@@ -1069,6 +1156,15 @@ expect_failure \
   "The public Android debug certificate must contain exactly one canonical X.509 certificate and no private material." \
   env -u ANDROID_IAS_DEBUG_KEYSTORE_PATH \
     ANDROID_IAS_DEBUG_CERTIFICATE_PATH="$duplicate_public_certificate" \
+    "$VERIFY" "$fixture" "$expected_commit"
+
+expect_failure \
+  "duplicate signer certificates in keytool output" \
+  "The IAS AAB signer certificate must expose exactly one X.509 certificate." \
+  env \
+    PATH="$keytool_wrapper_dir:$PATH" \
+    REAL_KEYTOOL_BIN="$real_keytool" \
+    IAS_KEYTOOL_TEST_MODE=duplicate \
     "$VERIFY" "$fixture" "$expected_commit"
 
 private_material_certificate="$temporary_dir/private-material-certificate.pem"
@@ -1160,15 +1256,23 @@ expect_failure \
 rewrite_unsigned "$fixture" "$temporary_dir/unsigned.aab"
 expect_failure \
   "unsigned artifact" \
-  "IAS AAB signer certificate could not be read." \
+  "The IAS AAB signer certificate must expose exactly one X.509 certificate." \
   "$VERIFY" "$temporary_dir/unsigned.aab" "$expected_commit"
 
-cp "$fixture" "$temporary_dir/tampered-signed.aab"
-python3 - "$temporary_dir/tampered-signed.aab" <<'PY'
+python3 - "$fixture" "$temporary_dir/tampered-signed.aab" <<'PY'
+import copy
+import os
 import sys
 import zipfile
-with zipfile.ZipFile(sys.argv[1], "a") as archive:
-    archive.writestr("base/assets/adversarial-unsigned-entry.txt", b"tampered")
+
+source, destination = sys.argv[1:]
+with zipfile.ZipFile(source, "r") as source_zip, zipfile.ZipFile(
+    destination, "x"
+) as output_zip:
+    for info in source_zip.infolist():
+        output_zip.writestr(copy.copy(info), source_zip.read(info))
+    output_zip.writestr("base/assets/adversarial-unsigned-entry.txt", b"tampered")
+os.chmod(destination, 0o600)
 PY
 expect_failure \
   "signed artifact with unsigned entry" \
@@ -1254,7 +1358,7 @@ expect_failure \
 
 rewrite_unsigned \
   "$fixture" "$temporary_dir/wrong-firebase.aab" \
-  base/resources.pb fearless-public fearless-attack
+  base/resources.pb fearless-public fearless-attack project_id
 resign_with_debug_key "$temporary_dir/wrong-firebase.aab"
 expect_failure \
   "mutated compiled Firebase identity" \
@@ -1462,9 +1566,9 @@ fi
 [[ "$positive_count" == "7" ]] ||
   fail "expected 7 positive artifacts; got $positive_count."
 if [[ "$signer_mode" == "keystore" ]]; then
-  expected_negative_count=$((53 + linux_resource_negative_count))
+  expected_negative_count=$((84 + linux_resource_negative_count))
 else
-  expected_negative_count=$((45 + linux_resource_negative_count))
+  expected_negative_count=$((76 + linux_resource_negative_count))
 fi
 [[ "$negative_count" == "$expected_negative_count" ]] ||
   fail "expected $expected_negative_count $signer_mode-mode adversarial artifacts; got $negative_count."

@@ -118,6 +118,99 @@ sha256_file() {
   fi
 }
 
+extract_single_rfc_certificate() {
+  local source_path="$1" destination_path="$2" label="$3"
+  python3 - "$source_path" "$destination_path" "$label" <<'PY'
+import os
+import re
+import stat
+import sys
+
+source_path, destination_path, label = sys.argv[1:]
+maximum_bytes = 1_048_576
+flags = (
+    os.O_RDONLY
+    | getattr(os, "O_NOFOLLOW", 0)
+    | getattr(os, "O_CLOEXEC", 0)
+)
+try:
+    source_fd = os.open(source_path, flags)
+except OSError as error:
+    raise SystemExit(
+        f"[android-ias-aab][error] {label} could not be opened safely: {error}"
+    )
+try:
+    before = os.fstat(source_fd)
+    if (
+        not stat.S_ISREG(before.st_mode)
+        or before.st_nlink != 1
+        or before.st_size <= 0
+        or before.st_size > maximum_bytes
+    ):
+        raise ValueError("unsafe keytool output")
+    chunks = bytearray()
+    while len(chunks) <= maximum_bytes:
+        chunk = os.read(source_fd, min(65_536, maximum_bytes + 1 - len(chunks)))
+        if not chunk:
+            break
+        chunks.extend(chunk)
+    payload = bytes(chunks)
+    after = os.fstat(source_fd)
+    identity_fields = (
+        "st_dev",
+        "st_ino",
+        "st_size",
+        "st_mtime_ns",
+        "st_ctime_ns",
+        "st_nlink",
+    )
+    if (
+        len(payload) > maximum_bytes
+        or len(payload) != before.st_size
+        or any(
+            getattr(before, field) != getattr(after, field)
+            for field in identity_fields
+        )
+    ):
+        raise ValueError("keytool output changed while it was read")
+except (OSError, ValueError) as error:
+    raise SystemExit(
+        f"[android-ias-aab][error] {label} could not be read safely: {error}"
+    )
+finally:
+    os.close(source_fd)
+
+begin = b"-----BEGIN CERTIFICATE-----"
+end = b"-----END CERTIFICATE-----"
+if payload.count(begin) != 1 or payload.count(end) != 1:
+    raise SystemExit(
+        f"[android-ias-aab][error] {label} must expose exactly one X.509 certificate."
+    )
+start = payload.index(begin)
+finish = payload.index(end, start) + len(end)
+certificate = payload[start:finish]
+if not re.fullmatch(
+    rb"-----BEGIN CERTIFICATE-----\r?\n"
+    rb"(?:[A-Za-z0-9+/]{1,76}={0,2}\r?\n)+"
+    rb"-----END CERTIFICATE-----",
+    certificate,
+):
+    raise SystemExit(
+        f"[android-ias-aab][error] {label} contains malformed RFC certificate data."
+    )
+certificate = certificate.replace(b"\r\n", b"\n") + b"\n"
+try:
+    with open(destination_path, "xb") as destination:
+        destination.write(certificate)
+        destination.flush()
+        os.fsync(destination.fileno())
+except OSError as error:
+    raise SystemExit(
+        f"[android-ias-aab][error] {label} could not be isolated safely: {error}"
+    )
+PY
+}
+
 file_mode() {
   if stat -f '%Lp' "$1" 2>/dev/null; then
     return
@@ -1100,13 +1193,13 @@ verify_source_and_utils() {
 }
 
 verify_unsigned_signature_state() {
-  local artifact_path="$1"
-  python3 - "$artifact_path" <<'PY'
+  local artifact_path="$1" artifact_label="$2"
+  python3 - "$artifact_path" "$artifact_label" <<'PY'
 import re
 import sys
 import zipfile
 
-path = sys.argv[1]
+path, label = sys.argv[1:]
 signature = re.compile(
     r"META-INF/(?:MANIFEST\.MF|[^/]+\.(?:SF|RSA|DSA|EC))\Z",
     re.IGNORECASE,
@@ -1115,16 +1208,16 @@ try:
     with zipfile.ZipFile(path) as archive:
         names = [entry.filename for entry in archive.infolist()]
 except (OSError, zipfile.BadZipFile) as error:
-    raise SystemExit(f"[android-ias-aab][error] unsigned IAS AAB is unreadable: {error}")
+    raise SystemExit(f"[android-ias-aab][error] {label} is unreadable: {error}")
 folded = [name.casefold() for name in names]
 if len(names) != len(set(names)) or len(folded) != len(set(folded)):
     raise SystemExit(
-        "[android-ias-aab][error] unsigned IAS AAB contains duplicate ZIP entry names."
+        f"[android-ias-aab][error] {label} contains duplicate ZIP entry names."
     )
 found = sorted(name for name in names if signature.fullmatch(name))
 if found:
     raise SystemExit(
-        "[android-ias-aab][error] unsigned IAS AAB contains JAR signature metadata."
+        f"[android-ias-aab][error] {label} contains JAR signature metadata."
     )
 PY
 }
@@ -1442,9 +1535,9 @@ if ! run_limited_command \
   fail "bundletool validate rejected the private IAS AAB snapshot."
 fi
 if [[ "$verification_mode" == "unsigned" ]]; then
-  verify_unsigned_signature_state "$artifact"
+  verify_unsigned_signature_state "$artifact" "unsigned IAS AAB"
 elif [[ "$verification_mode" == "signed-from" ]]; then
-  verify_unsigned_signature_state "$unsigned_artifact"
+  verify_unsigned_signature_state "$unsigned_artifact" "signed-from source"
   verify_external_signing_transform "$unsigned_artifact" "$artifact"
 fi
 
@@ -1646,9 +1739,15 @@ if [[ "$verification_mode" != "unsigned" ]]; then
   keytool -J-Duser.language=en -J-Duser.country=US \
     -printcert -jarfile "$artifact" >"$ias_certificate" 2>&1 ||
     fail "The IAS AAB signer certificate could not be read."
-  keytool -printcert -rfc -jarfile "$artifact" \
-    >"$ias_certificate_pem" 2>/dev/null ||
+  ias_certificate_rfc="$temporary_dir/ias-certificate-rfc.txt"
+  keytool -J-Duser.language=en -J-Duser.country=US \
+    -printcert -rfc -jarfile "$artifact" \
+    >"$ias_certificate_rfc" 2>/dev/null ||
     fail "The IAS AAB signer certificate could not be exported."
+  extract_single_rfc_certificate \
+    "$ias_certificate_rfc" "$ias_certificate_pem" \
+    "The IAS AAB signer certificate" ||
+    fail "The IAS AAB signer certificate could not be isolated."
 
 java "$certificate_validity_source" \
   "$debug_certificate_pem" validity >/dev/null 2>&1 ||
