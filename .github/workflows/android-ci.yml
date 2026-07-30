@@ -169,7 +169,10 @@ jobs:
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
 
-          sdkmanager_bin="$(command -v sdkmanager || true)"
+          sdkmanager_bin=""
+          if command -v sdkmanager >/dev/null 2>&1; then
+            sdkmanager_bin="$(command -v sdkmanager)"
+          fi
           if [[ -z "$sdkmanager_bin" ]]; then
             for candidate in \
               "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
@@ -185,12 +188,32 @@ jobs:
             echo "sdkmanager not found under ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >&2
             exit 1
           fi
+          sdkmanager_bin="$(realpath "$sdkmanager_bin")"
+          avdmanager_bin="$(realpath "$(dirname "$sdkmanager_bin")/avdmanager")"
+          case "$sdkmanager_bin:$avdmanager_bin" in
+            "$ANDROID_SDK_ROOT"/*:"$ANDROID_SDK_ROOT"/*) ;;
+            *)
+              echo "Android command-line tools escaped ANDROID_SDK_ROOT" >&2
+              exit 1
+              ;;
+          esac
+          [[ -x "$sdkmanager_bin" && -x "$avdmanager_bin" ]] || {
+            echo "sdkmanager/avdmanager are not executable" >&2
+            exit 1
+          }
+          {
+            echo "SDKMANAGER_BIN=$sdkmanager_bin"
+            echo "AVDMANAGER_BIN=$avdmanager_bin"
+          } >> "$GITHUB_ENV"
 
-          yes | "$sdkmanager_bin" --licenses >/dev/null || true
+          { yes || [[ "$?" == "141" ]]; } |
+            "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null
           "$sdkmanager_bin" --install \
+            --sdk_root="$ANDROID_SDK_ROOT" \
             "platforms;android-36" \
             "build-tools;36.0.0" \
             "platform-tools" \
+            "emulator" \
             "ndk;28.0.12674087" \
             "ndk;25.2.9519653"
 
@@ -238,76 +261,16 @@ jobs:
         run: ./gradlew :app:lint --no-daemon --console=plain --stacktrace
 
       - name: Android 11 migration and restart compatibility
-        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        with:
-          api-level: 30
-          target: google_atd
-          arch: x86_64
-          profile: pixel_6
-          cores: 2
-          ram-size: 2048M
-          heap-size: 512M
-          emulator-boot-timeout: 600
-          disable-animations: true
-          disable-spellchecker: true
-          emulator-options: >-
-            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio
-            -no-boot-anim -camera-back none
-          script: MIGRATION_COMPAT_API=30 bash ./scripts/run-android-migration-compatibility.sh
+        run: bash ./scripts/run-android-emulator-ci.sh 30 compatibility
 
       - name: Android 12 migration and restart compatibility
-        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        with:
-          api-level: 31
-          target: google_atd
-          arch: x86_64
-          profile: pixel_6
-          cores: 2
-          ram-size: 2048M
-          heap-size: 512M
-          emulator-boot-timeout: 600
-          disable-animations: true
-          disable-spellchecker: true
-          emulator-options: >-
-            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio
-            -no-boot-anim -camera-back none
-          script: MIGRATION_COMPAT_API=31 bash ./scripts/run-android-migration-compatibility.sh
+        run: bash ./scripts/run-android-emulator-ci.sh 31 compatibility
 
       - name: Android 16 migration and restart compatibility
-        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        with:
-          api-level: 36
-          target: google_atd
-          arch: x86_64
-          profile: pixel_6
-          cores: 2
-          ram-size: 2048M
-          heap-size: 512M
-          emulator-boot-timeout: 600
-          disable-animations: true
-          disable-spellchecker: true
-          emulator-options: >-
-            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio
-            -no-boot-anim -camera-back none
-          script: MIGRATION_COMPAT_API=36 bash ./scripts/run-android-migration-compatibility.sh
+        run: bash ./scripts/run-android-emulator-ci.sh 36 compatibility
 
       - name: Wallet migration and startup instrumentation
-        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        with:
-          api-level: 34
-          target: google_atd
-          arch: x86_64
-          profile: pixel_6
-          cores: 2
-          ram-size: 2048M
-          heap-size: 512M
-          emulator-boot-timeout: 600
-          disable-animations: true
-          disable-spellchecker: true
-          emulator-options: >-
-            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio
-            -no-boot-anim -camera-back none
-          script: bash ./scripts/run-android-migration-full.sh
+        run: bash ./scripts/run-android-emulator-ci.sh 34 full
 
       - name: Verify migration instrumentation results
         if: always()
@@ -322,6 +285,7 @@ jobs:
             **/build/outputs/androidTest-results/connected/**
             **/build/reports/androidTests/connected/**
             build/reports/android-migration-compatibility/**
+            build/reports/android-emulator-lifecycle/**
           if-no-files-found: error
           retention-days: 14
 

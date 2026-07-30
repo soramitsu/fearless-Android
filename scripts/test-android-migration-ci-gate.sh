@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1003,SC2016
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-ci-gate.sh"
 EXPECTED_POSITIVE_COUNT=1
-EXPECTED_NEGATIVE_COUNT=54
+EXPECTED_NEGATIVE_COUNT=82
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -26,6 +27,8 @@ make_fixture() {
   mkdir -p "$fixture/scripts"
   cp "$ROOT_DIR/.github/workflows/android-ci.yml" \
     "$fixture/.github/workflows/android-ci.yml"
+  cp "$ROOT_DIR/scripts/run-android-emulator-ci.sh" \
+    "$fixture/scripts/run-android-emulator-ci.sh"
   cp "$ROOT_DIR/scripts/run-android-migration-compatibility.sh" \
     "$fixture/scripts/run-android-migration-compatibility.sh"
   cp "$ROOT_DIR/scripts/run-android-migration-full.sh" \
@@ -120,28 +123,256 @@ expect_failure \
   "migration result-parser adversarial guard invocation" \
   "$fixture"
 
-fixture="$(make_fixture unpinned-emulator-action)"
+fixture="$(make_fixture policy-blocked-emulator-action)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d" \
-  "ReactiveCircus/android-emulator-runner@v2"
-expect_failure "unpinned emulator action" "android-emulator-runner@a421e438" "$fixture"
+  "actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9" \
+  "ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d"
+expect_failure \
+  "repository-policy-blocked emulator action" \
+  "outside the repository-policy allowlist" \
+  "$fixture"
 
 for field_mutation in \
-  "api-level: 34|api-level: 33" \
-  "target: google_atd|target: default" \
-  "arch: x86_64|arch: x86" \
-  "ram-size: 2048M|ram-size: 4096M" \
-  "disable-animations: true|disable-animations: false"; do
+  'readonly SYSTEM_IMAGE_TARGET="google_atd"|readonly SYSTEM_IMAGE_TARGET="default"' \
+  'readonly SYSTEM_IMAGE_ARCH="x86_64"|readonly SYSTEM_IMAGE_ARCH="x86"' \
+  '  -memory 2048 \|  -memory 4096 \' \
+  '  -cores 2 \|  -cores 1 \' \
+  '  -gpu swiftshader \|  -gpu host \'; do
   old="${field_mutation%%|*}"
   new="${field_mutation#*|}"
   fixture="$(make_fixture "mutated-${old%%:*}")"
-  replace_last_once "$fixture/.github/workflows/android-ci.yml" \
-    "          $old" "          $new"
+  replace_once "$fixture/scripts/run-android-emulator-ci.sh" "$old" "$new"
   expect_failure \
     "mutated emulator field $old" \
-    "migration instrumentation contract line '          $old'" \
+    "Android emulator lifecycle runner line '$old'" \
     "$fixture"
 done
+
+fixture="$(make_fixture missing-sdk-emulator-package)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  '            "emulator" \' \
+  '            "emulator-disabled" \'
+expect_failure \
+  "missing SDK emulator package" \
+  "Android SDK setup contract line" \
+  "$fixture"
+
+fixture="$(make_fixture suppressed-sdk-license-failure)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  '            "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null' \
+  '            "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null || true'
+expect_failure \
+  "suppressed SDK license failure" \
+  "must not suppress license or package installation failures" \
+  "$fixture"
+
+fixture="$(make_fixture missing-command-tool-export)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  '            echo "SDKMANAGER_BIN=$sdkmanager_bin"' \
+  '            echo "SDKMANAGER_BIN_DISABLED=$sdkmanager_bin"'
+expect_failure \
+  "missing command-line tool export" \
+  "Android SDK setup contract line" \
+  "$fixture"
+
+fixture="$(make_fixture unbound-command-tool-path)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '[[ -n "${SDKMANAGER_BIN:-}" && "$SDKMANAGER_BIN" == "$ANDROID_SDK_ROOT"/* ]] ||' \
+  '[[ -n "${SDKMANAGER_BIN:-}" ]] ||'
+expect_failure \
+  "unbound command-line tool path" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture unsupported-api-accepted)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  "  30:compatibility|31:compatibility|34:full|36:compatibility) ;;" \
+  "  30:compatibility|31:compatibility|34:full|35:full|36:compatibility) ;;"
+expect_failure \
+  "unsupported API accepted" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-kvm-device-check)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '[[ -c /dev/kvm ]] || fail "/dev/kvm is not a character device"' \
+  'echo "/dev/kvm check disabled"'
+expect_failure \
+  "missing KVM device check" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-kvm-access-remediation)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  sudo setfacl -m "u:$(id -un):rw" /dev/kvm' \
+  '  echo "KVM ACL disabled"'
+expect_failure \
+  "missing KVM access remediation" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-acceleration-check)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  "$EMULATOR" -accel-check >"$EVIDENCE_DIR/accel-check.txt" 2>&1; then' \
+  '  false; then'
+expect_failure \
+  "missing emulator acceleration check" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture acceleration-disabled)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  -accel on \' \
+  '  -accel off \'
+expect_failure \
+  "emulator acceleration disabled" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture reused-emulator-user-data)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  -wipe-data \' \
+  '  -no-wipe-data \'
+expect_failure \
+  "reused emulator user data" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture snapshots-enabled)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  -no-snapshot \' \
+  '  -snapshot default \'
+expect_failure \
+  "emulator snapshots enabled" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture deprecated-gpu-mode)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  -gpu swiftshader \' \
+  '  -gpu swiftshader_indirect \'
+expect_failure \
+  "deprecated emulator GPU mode" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+for additive_mutation in \
+  '  -gpu swiftshader \|  -gpu swiftshader \\n  -gpu host \' \
+  '  -memory 2048 \|  -memory 2048 \\n  -memory 4096 \' \
+  '  -accel on \|  -accel on \\n  -accel off \' \
+  '  -no-snapshot \|  -no-snapshot \\n  -snapshot default \'; do
+  old="${additive_mutation%%|*}"
+  new="${additive_mutation#*|}"
+  new="${new//\\n/$'\n'}"
+  fixture="$(make_fixture "additive-${old//[^A-Za-z0-9]/-}")"
+  replace_once "$fixture/scripts/run-android-emulator-ci.sh" "$old" "$new"
+  expect_failure \
+    "additive emulator option override $old" \
+    "must contain exactly one" \
+    "$fixture"
+done
+
+fixture="$(make_fixture unbounded-boot-deadline)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'readonly BOOT_TIMEOUT_SECONDS=600' \
+  'readonly BOOT_TIMEOUT_SECONDS=0'
+expect_failure \
+  "unbounded emulator boot deadline" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture ignored-emulator-process-death)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '    fail "emulator exited before completing boot"' \
+  '    echo "emulator process death ignored"'
+expect_failure \
+  "ignored emulator process death" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture ignored-system-boot-property)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '      if [[ "$sys_boot" == "1" ]] &&' \
+  '      if [[ "$sys_boot" == "0" ]] &&'
+expect_failure \
+  "ignored Android system boot property" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-package-manager-readiness)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '          "$ADB" -s "$EMULATOR_SERIAL" shell pm path android 2>/dev/null)" &&' \
+  '          printf "package:fake")" &&'
+expect_failure \
+  "missing Android package-manager readiness" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-android-serial-export)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'export ANDROID_SERIAL="$EMULATOR_SERIAL"' \
+  'echo "ANDROID_SERIAL export disabled"'
+expect_failure \
+  "missing ANDROID_SERIAL export" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture arbitrary-shell-dispatch)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'export ANDROID_SERIAL="$EMULATOR_SERIAL"' \
+  $'export ANDROID_SERIAL="$EMULATOR_SERIAL"\nbash -c true'
+expect_failure \
+  "arbitrary shell dispatch" \
+  "forbidden bypass or broad process operation" \
+  "$fixture"
+
+fixture="$(make_fixture broad-process-kill)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'export ANDROID_SERIAL="$EMULATOR_SERIAL"' \
+  $'export ANDROID_SERIAL="$EMULATOR_SERIAL"\npkill emulator'
+expect_failure \
+  "broad emulator process kill" \
+  "forbidden bypass or broad process operation" \
+  "$fixture"
+
+fixture="$(make_fixture cleanup-trap-after-launch)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'trap cleanup EXIT' \
+  '# cleanup trap moved'
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'setsid "$EMULATOR" \' \
+  $'setsid "$EMULATOR" \\\ntrap cleanup EXIT'
+expect_failure \
+  "cleanup trap after launch" \
+  "cleanup trap must be installed before launch" \
+  "$fixture"
+
+fixture="$(make_fixture teardown-before-diagnostics)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  $'  if ! record_adb_diagnostics; then\n    cleanup_status=1\n  fi\n  if ! stop_emulator; then\n    cleanup_status=1\n  fi' \
+  $'  if ! stop_emulator; then\n    cleanup_status=1\n  fi\n  if ! record_adb_diagnostics; then\n    cleanup_status=1\n  fi'
+expect_failure \
+  "teardown before diagnostics" \
+  "diagnostics must be captured before teardown" \
+  "$fixture"
+
+fixture="$(make_fixture missing-lifecycle-evidence-upload)"
+replace_once "$fixture/.github/workflows/android-ci.yml" \
+  "            build/reports/android-emulator-lifecycle/**" \
+  "            build/reports/android-emulator-disabled/**"
+expect_failure \
+  "missing emulator lifecycle evidence upload" \
+  "android-emulator-lifecycle" \
+  "$fixture"
+
+fixture="$(make_fixture late-lifecycle-start-marker)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '(umask 077; : >"$EVIDENCE_DIR/lifecycle-start.marker")' \
+  'echo "lifecycle start marker disabled"'
+expect_failure \
+  "missing lifecycle start marker" \
+  "lifecycle runner ordering is malformed" \
+  "$fixture"
 
 for module in common core-db app feature-account-impl; do
   fixture="$(make_fixture "missing-${module//[^A-Za-z0-9]/-}-tests")"
@@ -184,8 +415,8 @@ expect_failure "suppressed failure" "must not suppress command failures" "$fixtu
 
 fixture="$(make_fixture conditional-instrumentation)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  $'      - name: Wallet migration and startup instrumentation\n        uses:' \
-  $'      - name: Wallet migration and startup instrumentation\n        if: false\n        uses:'
+  $'      - name: Wallet migration and startup instrumentation\n        run:' \
+  $'      - name: Wallet migration and startup instrumentation\n        if: false\n        run:'
 expect_failure \
   "conditional instrumentation" \
   "must be unconditional and fail closed" \
@@ -193,8 +424,8 @@ expect_failure \
 
 fixture="$(make_fixture continue-on-error)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  $'      - name: Wallet migration and startup instrumentation\n        uses:' \
-  $'      - name: Wallet migration and startup instrumentation\n        continue-on-error: true\n        uses:'
+  $'      - name: Wallet migration and startup instrumentation\n        run:' \
+  $'      - name: Wallet migration and startup instrumentation\n        continue-on-error: true\n        run:'
 expect_failure \
   "continue on instrumentation error" \
   "must be unconditional and fail closed" \
@@ -258,7 +489,7 @@ replace_once "$fixture/.github/workflows/android-ci.yml" \
   $'      - name: Upload migration instrumentation evidence\n        if: always()\n        uses: actions/upload-artifact@v4 # v4.6.2'
 expect_failure \
   "mutable evidence upload action" \
-  "upload-artifact@ea165f8d" \
+  "outside the repository-policy allowlist" \
   "$fixture"
 
 fixture="$(make_fixture missing-always-evidence)"
@@ -290,6 +521,14 @@ expect_failure \
   "compatibility runner must be a regular" \
   "$fixture"
 
+fixture="$(make_fixture missing-emulator-lifecycle-runner)"
+mv "$fixture/scripts/run-android-emulator-ci.sh" \
+  "$fixture/scripts/run-android-emulator-ci.sh.disabled"
+expect_failure \
+  "missing emulator lifecycle runner" \
+  "emulator lifecycle runner must be a regular" \
+  "$fixture"
+
 fixture="$(make_fixture missing-full-runner)"
 mv "$fixture/scripts/run-android-migration-full.sh" \
   "$fixture/scripts/run-android-migration-full.sh.disabled"
@@ -300,8 +539,8 @@ expect_failure \
 
 fixture="$(make_fixture bypassed-full-runner)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "          script: bash ./scripts/run-android-migration-full.sh" \
-  "          script: bash ./scripts/run-android-migration-compatibility.sh"
+  "        run: bash ./scripts/run-android-emulator-ci.sh 34 full" \
+  "        run: bash ./scripts/run-android-emulator-ci.sh 34 compatibility"
 expect_failure \
   "bypassed full migration runner" \
   "migration instrumentation contract line" \
@@ -381,26 +620,26 @@ expect_failure \
 
 fixture="$(make_fixture wrong-api31-compatibility-level)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "          api-level: 31" \
-  "          api-level: 32"
+  "        run: bash ./scripts/run-android-emulator-ci.sh 31 compatibility" \
+  "        run: bash ./scripts/run-android-emulator-ci.sh 32 compatibility"
 expect_failure \
   "wrong API 31 compatibility level" \
-  "API 31 compatibility contract line '          api-level: 31'" \
+  "API 31 compatibility contract line" \
   "$fixture"
 
-fixture="$(make_fixture unpinned-compatibility-emulator-action)"
+fixture="$(make_fixture bypassed-compatibility-emulator-lifecycle)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d" \
-  "ReactiveCircus/android-emulator-runner@v2"
+  "bash ./scripts/run-android-emulator-ci.sh 30 compatibility" \
+  "bash ./scripts/run-android-migration-compatibility.sh"
 expect_failure \
-  "unpinned compatibility emulator action" \
+  "bypassed compatibility emulator lifecycle" \
   "API 30 compatibility contract line" \
   "$fixture"
 
 fixture="$(make_fixture conditional-api36-compatibility-step)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  $'      - name: Android 16 migration and restart compatibility\n        uses:' \
-  $'      - name: Android 16 migration and restart compatibility\n        if: success()\n        uses:'
+  $'      - name: Android 16 migration and restart compatibility\n        run:' \
+  $'      - name: Android 16 migration and restart compatibility\n        if: success()\n        run:'
 expect_failure \
   "conditional API 36 compatibility step" \
   "API 36 compatibility step must be unconditional" \
@@ -408,8 +647,8 @@ expect_failure \
 
 fixture="$(make_fixture mismatched-api31-runner-binding)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "          script: MIGRATION_COMPAT_API=31 bash ./scripts/run-android-migration-compatibility.sh" \
-  "          script: MIGRATION_COMPAT_API=30 bash ./scripts/run-android-migration-compatibility.sh"
+  "        run: bash ./scripts/run-android-emulator-ci.sh 31 compatibility" \
+  "        run: bash ./scripts/run-android-emulator-ci.sh 30 compatibility"
 expect_failure \
   "mismatched API 31 runner binding" \
   "API 31 compatibility contract line" \
