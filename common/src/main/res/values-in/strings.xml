@@ -1093,7 +1093,7 @@
   <string name="view_in">Lihat di %s</string>
   <string name="view_wallet">Lihat dompet</string>
   <string name="wallet_all_assets_hidden">Kamu sudah menyembunyikan semua aset</string>
-  <string name="wallet_asset_buy_with">Beli dengan</string>
+  <string name="wallet_asset_buy_with">Beli %1$s dengan</string>
   <string name="wallet_asset_receive">Menerima</string>
   <string name="wallet_asset_receive_template">Terima %s</string>
   <string name="wallet_asset_send">Kirim</string>

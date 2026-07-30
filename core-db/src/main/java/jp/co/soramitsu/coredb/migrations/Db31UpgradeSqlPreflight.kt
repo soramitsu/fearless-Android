@@ -27,7 +27,7 @@ internal object Db31UpgradeSqlPreflight {
         }
         requireBoundedForeignKeyCheck(
             database = database,
-            limits = VERSION_31_FOREIGN_KEY_LIMITS
+            limits = DB28_TO_31_FOREIGN_KEY_CHECK_LIMITS
         ) { message ->
             WalletPublicIdentityIntegrityException("Version 31 $message")
         }
@@ -460,70 +460,6 @@ internal object Db31UpgradeSqlPreflight {
         index("sqlite_autoindex_tokens_1", "tokens"),
         index("sqlite_autoindex_total_reward_1", "total_reward"),
         index("sqlite_autoindex_users_1", "users")
-    )
-
-    private val VERSION_31_FOREIGN_KEY_LIMITS =
-        MigrationForeignKeyCheckLimits(
-            maximumSchemaObjects = 128,
-            maximumOrdinaryTables = 48,
-            maximumForeignKeyDefinitionsPerTable = 2,
-            maximumRowsByTable = linkedMapOf(
-                "chain_accounts" to 131_072,
-                "chain_assets" to 262_144,
-                "chain_nodes" to 262_144
-            ),
-            expectedForeignKeysByTable = linkedMapOf(
-                "chain_accounts" to setOf(
-                    foreignKey(
-                        parentTable = "chains",
-                        from = "chainId",
-                        to = "id",
-                        onDelete = FOREIGN_KEY_NO_ACTION
-                    ),
-                    foreignKey(
-                        parentTable = "meta_accounts",
-                        from = "metaId",
-                        to = "id",
-                        onDelete = FOREIGN_KEY_CASCADE
-                    )
-                ),
-                "chain_assets" to setOf(
-                    foreignKey(
-                        parentTable = "chains",
-                        from = "chainId",
-                        to = "id",
-                        onDelete = FOREIGN_KEY_CASCADE
-                    )
-                ),
-                "chain_nodes" to setOf(
-                    foreignKey(
-                        parentTable = "chains",
-                        from = "chainId",
-                        to = "id",
-                        onDelete = FOREIGN_KEY_CASCADE
-                    )
-                )
-            ),
-            expectedParentPrimaryKeysByTable = mapOf(
-                "chains" to listOf("id"),
-                "meta_accounts" to listOf("id")
-            )
-        )
-
-    private fun foreignKey(
-        parentTable: String,
-        from: String,
-        to: String,
-        onDelete: String
-    ) = MigrationForeignKeyDefinition(
-        parentTable = parentTable,
-        columns = listOf(
-            MigrationForeignKeyColumnMapping(
-                from = from,
-                to = to
-            )
-        ),
-        onDelete = onDelete
     )
 
     private const val MAX_SCHEMA_IDENTIFIER_BYTES = 128

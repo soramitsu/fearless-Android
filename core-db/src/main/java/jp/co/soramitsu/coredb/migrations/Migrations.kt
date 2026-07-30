@@ -138,8 +138,8 @@ private const val MAX_HISTORICAL_FOREIGN_KEYS = 8
 
 /*
  * Historical 18 -> 19 added the now-obsolete nodes.isActive column while
- * moving the selected node from preferences. Preserve the schema change even
- * though 27 -> 28 replaces the entire legacy node cache.
+ * moving the selected node from preferences. Preserve the schema change until
+ * 30 -> 31 removes that legacy `nodes` table after the chain registry exists.
  */
 val AddLegacyActiveNodeColumn_18_19 = object : Migration(18, 19) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -150,11 +150,14 @@ val AddLegacyActiveNodeColumn_18_19 = object : Migration(18, 19) {
 }
 
 /*
- * Versions 19 -> 21 and 24 -> 27 only refreshed historical bundled node/cache
- * content. Those cache implementations and their preference migrators no
- * longer exist, and 27 -> 28 replaces them with the chain registry. Explicit
- * adjacent edges keep legacy wallet/account tables intact while allowing the
- * later authoritative registry migration to rebuild disposable node data.
+ * Versions 19 -> 21 and 24 -> 27 only refreshed historical bundled `nodes`
+ * cache content. Those cache implementations and their preference migrators
+ * no longer exist. Exact released 26/27 databases already include the newer
+ * chain registry beside `nodes`, so 27 -> 28 only ensures the registry tables
+ * exist; it must not replace their wallet-referenced `chains` rows. Explicit
+ * adjacent edges keep durable wallet/account state intact. The obsolete
+ * `nodes` table is removed at 30 -> 31 and disposable registry endpoints are
+ * authoritatively refreshed at 39 -> 40.
  */
 private fun legacyNodeCacheCompatibilityMigration(startVersion: Int) =
     object : Migration(startVersion, startVersion + 1) {
@@ -2217,7 +2220,13 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
 
 val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("DROP TABLE IF EXISTS chains")
+        // The released 26/27 schemas already contain chains, chain_nodes, and
+        // chain_accounts. Dropping only their chains parent while Room has
+        // foreign keys disabled leaves otherwise-valid wallet identities as
+        // orphans and makes the later 31 -> 32 safety preflight reject the
+        // database. Keep those released parent rows. The intentional registry
+        // cache refresh at 39 -> 40 separately prunes nodes/assets while
+        // retaining every chain referenced by a wallet-owned chain account.
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chains` (

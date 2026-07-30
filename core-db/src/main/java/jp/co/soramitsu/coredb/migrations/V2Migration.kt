@@ -131,8 +131,8 @@ class V2Migration internal constructor(
      * Note, than old (v1) secrets as well as accounts will not be deleted to be able to restore them in case of critical bug in this migration
      */
     override fun migrate(database: SupportSQLiteDatabase) = runBlocking {
+        requireInitialSqlSafety(database)
         encryptedPreferences.requireDurableStorageHealthy()
-        requireInitialRowLimits(database)
 
         val ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
         val decodedEthereumDerivationPath = performCryptography(
@@ -418,11 +418,11 @@ class V2Migration internal constructor(
      * scan and sort the complete users table. These rowid-ordered probes stop
      * after max + 1 rows and run before any encrypted-preference lookup.
      *
-     * The meta/chain probes are repeated by the full downstream preflight after
-     * V2 inserts its SQL rows; this first pass bounds pre-existing state before
-     * legacy secret preparation begins.
+     * The bounded foreign-key pass also validates every retained v28 child
+     * relationship before legacy secret preparation. The meta/chain probes are
+     * repeated by the full downstream preflight after V2 inserts its SQL rows.
      */
-    private fun requireInitialRowLimits(database: SupportSQLiteDatabase) {
+    private fun requireInitialSqlSafety(database: SupportSQLiteDatabase) {
         requireBoundedMigrationTableRows(
             database = database,
             tableName = "users",
@@ -442,6 +442,15 @@ class V2Migration internal constructor(
             maximumRows = walletRowLimits.maxChainAccountRows,
             rowDescription = "Chain-account rows"
         )
+        requireBoundedForeignKeyCheck(
+            database = database,
+            limits = DB28_TO_31_FOREIGN_KEY_CHECK_LIMITS,
+            previouslyBoundedRows = mapOf(
+                "chain_accounts" to walletRowLimits.maxChainAccountRows
+            )
+        ) { message ->
+            WalletPublicIdentityIntegrityException("Version 28 $message")
+        }
     }
 
     private fun requireSafeLegacyUserPositions(

@@ -427,7 +427,12 @@ class EncryptionUtil internal constructor(
                 )
         val pin = try {
             decryptStrict(key, exactCiphertext)
-        } catch (failure: Exception) {
+        } catch (failure: WalletSecureStorageUnavailableException) {
+            // A provider/JCA outage is global and retryable. Preserve the
+            // classification produced by decryptStrict instead of presenting
+            // temporary unavailability as irreversible wallet-key loss.
+            throw failure
+        } catch (failure: WalletPayloadCorruptionException) {
             throw WalletSecureStorageUnavailableException(
                 "The encrypted wallet PIN cannot be authenticated",
                 failure,

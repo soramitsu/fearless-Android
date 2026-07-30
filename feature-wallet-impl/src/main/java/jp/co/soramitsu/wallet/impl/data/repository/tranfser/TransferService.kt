@@ -32,6 +32,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.core.utils.toLongExact
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
@@ -229,7 +230,7 @@ class BitcoinTransferService(
 
     private fun Transfer.amountSats(): Long {
         return try {
-            amountInPlanks.longValueExact()
+            amountInPlanks.toLongExact()
         } catch (_: ArithmeticException) {
             throw unsupported("Bitcoin transfer amount is outside the supported satoshi range")
         }
@@ -456,7 +457,7 @@ class SolanaTransferService(
 
     private fun Transfer.amountRawUnits(unitName: String): Long {
         return try {
-            amountInPlanks.longValueExact()
+            amountInPlanks.toLongExact()
         } catch (_: ArithmeticException) {
             throw unsupported("Solana transfer amount is outside the supported $unitName range")
         }

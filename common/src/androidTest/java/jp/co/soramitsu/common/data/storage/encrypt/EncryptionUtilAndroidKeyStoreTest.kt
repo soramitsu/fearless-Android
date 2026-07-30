@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.security.KeyStore
+import java.security.ProviderException
 import jp.co.soramitsu.common.di.modules.SHARED_PREFERENCES_FILE
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -149,6 +151,53 @@ class EncryptionUtilAndroidKeyStoreTest {
         }
     }
 
+    @Test
+    fun transientPinDecryptProviderFailureRemainsRetryableAndSideEffectFree() {
+        val healthyEncryption = EncryptionUtil(context)
+        healthyEncryption.getPrerenceAesKey()
+        val encryptedPin = healthyEncryption.encrypt(TEST_PIN)
+        assertTrue(encryptedPin.startsWith("v2:"))
+        assertTrue(
+            walletPreferences().edit()
+                .putString(WalletMasterKeyAttestation.PIN_CODE_KEY, encryptedPin)
+                .remove(WalletMasterKeyAttestation.SENTINEL_KEY)
+                .commit()
+        )
+        val wrappedKey = checkNotNull(
+            keyPreferences().getString(WRAPPED_KEY_FIELD, null)
+        )
+        val providerFailure = ProviderException("temporary provider outage")
+        val unavailableEncryption = EncryptionUtil(
+            context = context,
+            payloadDecryptor = WalletPayloadDecryptor { _, _, _, _, _ ->
+                throw providerFailure
+            }
+        )
+
+        val failure = assertThrows(
+            WalletSecureStorageUnavailableException::class.java
+        ) {
+            unavailableEncryption.getPrerenceAesKey()
+        }
+
+        assertEquals(WalletSecureStorageFailureKind.RETRYABLE, failure.kind)
+        assertSame(providerFailure, failure.cause)
+        assertEquals(
+            encryptedPin,
+            walletPreferences().getString(
+                WalletMasterKeyAttestation.PIN_CODE_KEY,
+                null
+            )
+        )
+        assertFalse(
+            walletPreferences().contains(WalletMasterKeyAttestation.SENTINEL_KEY)
+        )
+        assertEquals(
+            wrappedKey,
+            keyPreferences().getString(WRAPPED_KEY_FIELD, null)
+        )
+    }
+
     private fun clearTestStorage() {
         walletPreferences().edit().clear().commit()
         keyPreferences().edit().clear().commit()
@@ -184,5 +233,6 @@ class EncryptionUtilAndroidKeyStoreTest {
         const val APP_DATABASE_NAME = "app.db"
         const val MAX_WRAPPED_KEY_CHARS = 4_096
         const val TEST_PLAINTEXT = "isolated-wallet-keystore-test"
+        const val TEST_PIN = "123456"
     }
 }

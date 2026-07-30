@@ -143,6 +143,61 @@ internal val WALLET_INTEGRITY_FOREIGN_KEY_CHECK_LIMITS =
             releasedForeignKeyParentPrimaryKeys()
     )
 
+/**
+ * The released version-28 and version-31 schemas have the same three
+ * foreign-key child tables. V2 writes preferences at 28 -> 29, while the next
+ * secret-writing edge starts at version 31, so both edges must reject this
+ * retained relational corruption before an external write can outlive Room's
+ * SQL rollback.
+ */
+internal val DB28_TO_31_FOREIGN_KEY_CHECK_LIMITS =
+    MigrationForeignKeyCheckLimits(
+        maximumSchemaObjects = 128,
+        maximumOrdinaryTables = 48,
+        maximumForeignKeyDefinitionsPerTable = 2,
+        maximumRowsByTable = linkedMapOf(
+            "chain_accounts" to 131_072,
+            "chain_assets" to 262_144,
+            "chain_nodes" to 262_144
+        ),
+        expectedForeignKeysByTable = linkedMapOf(
+            "chain_accounts" to setOf(
+                releasedForeignKey(
+                    parentTable = "chains",
+                    from = "chainId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_NO_ACTION
+                ),
+                releasedForeignKey(
+                    parentTable = "meta_accounts",
+                    from = "metaId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_CASCADE
+                )
+            ),
+            "chain_assets" to setOf(
+                releasedForeignKey(
+                    parentTable = "chains",
+                    from = "chainId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_CASCADE
+                )
+            ),
+            "chain_nodes" to setOf(
+                releasedForeignKey(
+                    parentTable = "chains",
+                    from = "chainId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_CASCADE
+                )
+            )
+        ),
+        expectedParentPrimaryKeysByTable = mapOf(
+            "chains" to listOf("id"),
+            "meta_accounts" to listOf("id")
+        )
+    )
+
 internal fun requireBoundedForeignKeyCheck(
     database: SupportSQLiteDatabase,
     limits: MigrationForeignKeyCheckLimits,

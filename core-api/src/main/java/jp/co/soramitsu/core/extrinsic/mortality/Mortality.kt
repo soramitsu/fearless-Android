@@ -4,6 +4,7 @@ import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.normalizeRpcBlockHash
+import jp.co.soramitsu.core.utils.toIntExact
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Era
 import kotlinx.coroutines.flow.Flow
@@ -114,5 +115,5 @@ private fun nextPowerOfTwo(value: Int): Int {
 }
 
 private fun BigInteger.toIntOrNull(): Int? {
-    return runCatching { intValueExact() }.getOrNull()
+    return runCatching { toIntExact() }.getOrNull()
 }
