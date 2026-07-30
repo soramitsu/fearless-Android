@@ -39,6 +39,109 @@ sha256_file() {
   fi
 }
 
+copy_for_mutation() {
+  local source="$1"
+  local destination="$2"
+  local label="$3"
+  if ! python3 - "$source" "$destination" <<'PY'
+import hashlib
+import os
+import stat
+import sys
+
+source, destination = sys.argv[1:]
+source_flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+destination_flags = (
+    os.O_WRONLY
+    | os.O_CREAT
+    | os.O_EXCL
+    | getattr(os, "O_NOFOLLOW", 0)
+)
+source_fd = os.open(source, source_flags)
+destination_fd = None
+digest = hashlib.sha256()
+try:
+    source_before = os.fstat(source_fd)
+    if not stat.S_ISREG(source_before.st_mode) or source_before.st_size <= 0:
+        raise ValueError("source must be a non-empty regular file")
+
+    destination_fd = os.open(destination, destination_flags, 0o600)
+    os.fchmod(destination_fd, 0o600)
+    while True:
+        chunk = os.read(source_fd, 1024 * 1024)
+        if not chunk:
+            break
+        digest.update(chunk)
+        view = memoryview(chunk)
+        while view:
+            written = os.write(destination_fd, view)
+            if written <= 0:
+                raise OSError("short write")
+            view = view[written:]
+    os.fsync(destination_fd)
+
+    source_after = os.fstat(source_fd)
+    destination_stat = os.fstat(destination_fd)
+    source_identity = (
+        source_before.st_dev,
+        source_before.st_ino,
+        source_before.st_size,
+        source_before.st_mtime_ns,
+        source_before.st_ctime_ns,
+    )
+    source_identity_after = (
+        source_after.st_dev,
+        source_after.st_ino,
+        source_after.st_size,
+        source_after.st_mtime_ns,
+        source_after.st_ctime_ns,
+    )
+    if source_identity != source_identity_after:
+        raise ValueError("source changed while it was copied")
+    if not stat.S_ISREG(destination_stat.st_mode):
+        raise ValueError("destination is not a regular file")
+    if destination_stat.st_uid != os.geteuid():
+        raise ValueError("destination owner mismatch")
+    if destination_stat.st_nlink != 1:
+        raise ValueError("destination must have exactly one link")
+    if stat.S_IMODE(destination_stat.st_mode) != 0o600:
+        raise ValueError("destination mode must be 0600")
+    if (
+        destination_stat.st_dev,
+        destination_stat.st_ino,
+    ) == (
+        source_before.st_dev,
+        source_before.st_ino,
+    ):
+        raise ValueError("destination aliases the source")
+    if destination_stat.st_size != source_before.st_size:
+        raise ValueError("destination size mismatch")
+finally:
+    if destination_fd is not None:
+        os.close(destination_fd)
+    os.close(source_fd)
+
+destination_fd = os.open(
+    destination,
+    os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+)
+try:
+    destination_digest = hashlib.sha256()
+    while True:
+        chunk = os.read(destination_fd, 1024 * 1024)
+        if not chunk:
+            break
+        destination_digest.update(chunk)
+finally:
+    os.close(destination_fd)
+if digest.digest() != destination_digest.digest():
+    raise ValueError("destination content mismatch")
+PY
+  then
+    fail "$label could not be copied into an exclusive owner-writable fixture."
+  fi
+}
+
 for command_name in awk cp find git grep jarsigner keytool kill mktemp mv openssl python3 sleep uname; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command is unavailable: $command_name"
@@ -947,7 +1050,9 @@ expect_failure \
   "$VERIFY" --signed-from "$fixture" "$fixture" "$expected_commit"
 
 transform_mismatch_unsigned="$temporary_dir/transform-mismatch-unsigned.aab"
-cp "$unsigned_fixture" "$transform_mismatch_unsigned"
+copy_for_mutation \
+  "$unsigned_fixture" "$transform_mismatch_unsigned" \
+  "external-signing mismatch fixture"
 python3 - "$transform_mismatch_unsigned" <<'PY'
 import sys
 import zipfile
@@ -991,8 +1096,15 @@ expect_failure \
     "$VERIFY" "$fixture" "$expected_commit"
 chmod 700 "$hook_control_dir"
 
+readonly_race_aab_source="$temporary_dir/read-only-race-source.aab"
+copy_for_mutation \
+  "$fixture" "$readonly_race_aab_source" \
+  "read-only AAB race source"
+chmod 400 "$readonly_race_aab_source"
 race_aab="$temporary_dir/race-original.aab"
-cp "$fixture" "$race_aab"
+copy_for_mutation \
+  "$readonly_race_aab_source" "$race_aab" \
+  "original AAB race fixture"
 start_hooked_verifier \
   after-primary-snapshots \
   env CI=true "$VERIFY" "$race_aab" "$expected_commit"
@@ -1002,8 +1114,15 @@ finish_hooked_failure \
   "original AAB mutation during verification" \
   "IAS AAB identity changed after snapshot."
 
+readonly_race_bundletool_source="$temporary_dir/read-only-race-bundletool.jar"
+copy_for_mutation \
+  "$BUNDLETOOL_JAR" "$readonly_race_bundletool_source" \
+  "read-only bundletool race source"
+chmod 400 "$readonly_race_bundletool_source"
 race_bundletool="$temporary_dir/race-bundletool.jar"
-cp "$BUNDLETOOL_JAR" "$race_bundletool"
+copy_for_mutation \
+  "$readonly_race_bundletool_source" "$race_bundletool" \
+  "bundletool race fixture"
 start_hooked_verifier \
   after-primary-snapshots \
   env CI=true BUNDLETOOL_JAR="$race_bundletool" \
@@ -1015,7 +1134,9 @@ finish_hooked_failure \
   "BUNDLETOOL_JAR identity changed after snapshot."
 
 race_unsigned_source="$temporary_dir/race-unsigned-source.aab"
-cp "$unsigned_fixture" "$race_unsigned_source"
+copy_for_mutation \
+  "$unsigned_fixture" "$race_unsigned_source" \
+  "unsigned AAB race fixture"
 start_hooked_verifier \
   after-primary-snapshots \
   env CI=true "$VERIFY" --signed-from \
@@ -1034,15 +1155,18 @@ race_signer_environment=(
   CI=true
 )
 if [[ "$signer_mode" == "keystore" ]]; then
-  cp "$configured_keystore" "$race_signer"
+  copy_for_mutation \
+    "$configured_keystore" "$race_signer" \
+    "Android debug keystore race fixture"
   race_signer_environment+=(ANDROID_IAS_DEBUG_KEYSTORE_PATH="$race_signer")
   race_signer_label="Android debug keystore"
 else
-  cp "$configured_certificate" "$race_signer"
+  copy_for_mutation \
+    "$configured_certificate" "$race_signer" \
+    "Android debug certificate race fixture"
   race_signer_environment+=(ANDROID_IAS_DEBUG_CERTIFICATE_PATH="$race_signer")
   race_signer_label="Android debug certificate"
 fi
-chmod 600 "$race_signer"
 start_hooked_verifier \
   after-signer-snapshot \
   "${race_signer_environment[@]}" \
@@ -1053,8 +1177,15 @@ finish_hooked_failure \
   "run-bound signer mutation during verification" \
   "$race_signer_label identity changed after snapshot."
 
+readonly_race_public_certificate_source="$temporary_dir/read-only-public-certificate.pem"
+copy_for_mutation \
+  "$public_certificate" "$readonly_race_public_certificate_source" \
+  "read-only public certificate race source"
+chmod 400 "$readonly_race_public_certificate_source"
 race_public_certificate="$temporary_dir/race-public-certificate.pem"
-cp "$public_certificate" "$race_public_certificate"
+copy_for_mutation \
+  "$readonly_race_public_certificate_source" "$race_public_certificate" \
+  "public certificate race fixture"
 start_hooked_verifier \
   after-signer-snapshot \
   env -u ANDROID_IAS_DEBUG_KEYSTORE_PATH \
