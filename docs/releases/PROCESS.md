@@ -54,6 +54,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - `bash scripts/test-android-play-release-verifier-snapshot.sh`
   - `bash scripts/test-android-release-aab-signer.sh`
   - `bash scripts/test-android-unsigned-release-build.sh`
+  - `bash scripts/test-android-internal-app-sharing.sh`
   - `bash scripts/test-android-release-build-log.sh`
   - `bash scripts/test-android-release-source-binding.sh`
   - `bash scripts/test-android-release-source-tree.sh`
@@ -105,7 +106,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     adversarial cases. The build-log suite fixes 2 positive and 26 adversarial
     cases and rejects cached, skipped, duplicated, warning-bearing, oversized,
     symlinked, or mutating evidence. Gradle dependency provenance fixes 2
-    positive and 30
+    positive and 40
     adversarial cases and pins the Gradle distribution checksum, strict
     verification metadata and its digest, the strict root buildscript lock, and
     the production release lockfile; release/CI builds reject `mavenLocal()` and
@@ -139,6 +140,129 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
 - Update docs:
   - `CHANGELOG.md` with a concise, user‑facing summary.
   - `docs/releases/<version>.md` with scope, risks, test matrix, rollout.
+
+## Internal App Sharing Smoke Lane
+
+> [!WARNING]
+> Internal App Sharing is not a production migration test. The AAB uses the
+> Android debug certificate and Google re-signs the uploaded IAS file, so it
+> cannot upgrade an app installed from Google Play. Never uninstall a funded
+> wallet to make the IAS build install. Never cite IAS as evidence for
+> production database migration behavior or production release signing.
+
+This lane exists only for broad, link-based smoke testing before the separately
+governed Play release process. Pull-request runs are non-distributable
+validation only and create no handoff or uploaded artifact. The sole eligible
+handoff is a manual first-party run from exactly `refs/heads/develop`, after the
+reviewed code is merged, while the branch is protected and the candidate SHA
+still equals the fetched remote `develop` head. Neither Gradle nor CI uploads to
+Google/Play, invokes the Android Publisher API, or creates, promotes, pauses, or
+otherwise changes a Play track.
+
+The build contract is fail-closed:
+
+- Only CI may produce the bundle, and Gradle accepts only the exact requested
+  task list `[:app:bundleInternalAppSharing]` with `--no-build-cache` and
+  `--rerun-tasks`. Do not append verification, cleanup, assemble, publish, or
+  other tasks to that invocation. The exact standalone configuration probe is
+  `:app:verifyInternalAppSharingConfiguration`.
+- `CI` must be exactly `true`; `RELEASE_COMMIT` must be the lowercase
+  40-character clean checked-out `HEAD`; and `FEARLESS_UTILS_COMMIT` plus
+  `FEARLESS_UTILS_EFFECTIVE_TREE` must match the independently verified utils
+  checkout. Source drift fails before the artifact is created.
+- The variant inherits release minification, resource shrinking, application
+  ID, source-bound manifest, and version code, adds only the `-ias`
+  version-name suffix, and selects a run-bound ephemeral JKS with the Android
+  Debug identity. The workflow derives and binds that run's uppercase
+  certificate SHA-256, keeps the JKS mode `0600`, and deletes it after the run.
+  It must not modify the `release` build type or its upload-key configuration.
+- Every production keystore/password or injected Android signing input is
+  forbidden. So are the unsigned-release switch, Play service-account and
+  publisher controls, production Firebase overlay variables, and other
+  distribution credentials.
+- `processInternalAppSharingGoogleServices` exposes a typed JSON input that is
+  finalized directly to the checksum-pinned reviewed `fearless-public` file at
+  `app/src/release/google-services.json`. Symlink traversal, hardlinks, byte
+  changes, non-public Firebase values, and attempts to replace that finalized
+  input fail closed. No copy, owner marker, or cleanup lifecycle exists:
+  `app/src/internalAppSharing` must never be created.
+- The placeholder's fake/empty Firebase and OAuth values deliberately disable
+  live Firebase, Google OAuth/sign-in, and Google Drive/passkey backup and
+  restore. Supported IAS smoke scope is install/fresh launch, cold start,
+  onboarding/navigation, local-only disposable-wallet flows, and screens that
+  do not depend on those services. Play upgrade, production migration, and
+  production signing remain unsupported.
+- The run-bound signer is mode `0600`, has 30-day validity, and is deleted
+  unconditionally. The uploaded handoff artifact is retained for seven days;
+  the runner's signer and handoff directories are removed immediately after
+  upload, and are also removed on failure.
+- The workflow/verifier hardcodes `4.2.0-ias` / `230`. A change to either value
+  in `versioning/version.properties` requires every IAS version hardcode and
+  the handoff filename to change in the same reviewed commit. Old bytes must
+  never be relabeled.
+
+The supported verifier invocation is workflow-only, under `CI=true` and the
+source-bound `RELEASE_COMMIT`. It requires the checksum-pinned
+`BUNDLETOOL_JAR`, exact uppercase
+`EXPECTED_IAS_DEBUG_CERT_SHA256`, mode-`0600`
+`ANDROID_IAS_DEBUG_KEYSTORE_PATH`, and exact `FEARLESS_UTILS_COMMIT`,
+`FEARLESS_UTILS_EFFECTIVE_TREE`, and `FEARLESS_UTILS_PATH`. Its positional
+arguments are the fresh AAB, expected source commit, and, only for the eligible
+manual run, an absolute private handoff path.
+
+CI qualification runs in this order:
+
+1. Gate the exact first-party repository and supported event/ref, then check out
+   and bind the exact app commit/tree and pinned utils commit/effective tree.
+2. Install Java, checksum-pinned bundletool, Android SDK/NDKs, and Rust targets;
+   run the static and full IAS Gradle suites.
+3. Remove prior IAS outputs, prove the source clean, and invoke only the exact
+   source-bound unsigned
+   `:app:bundleInternalAppSharing --no-build-cache --rerun-tasks`. Recheck its
+   exact outputs, production-output snapshot, app source, and utils.
+4. Only for an eligible manual run, upload the verified unsigned AAB as a
+   one-day untrusted producer quarantine. A fresh qualifier downloads it by
+   exact artifact ID and digest, revalidates it under a disposable user, kills
+   that user, externally signs with a step-local JKS, exports the public
+   certificate, erases the key, and kills the signer user.
+5. Under a separate public-certificate-only disposable user, run
+   `scripts/test-android-internal-app-sharing-aab.sh` and the signed-from
+   verifier against the exact unsigned/signed pair. Kill that user before
+   creating the private exact-byte handoff.
+6. Upload the handoff with the explicit pending/untrusted name, download the
+   exact archive back by artifact ID and digest, enforce ZIP entry/type/size
+   bounds, and revalidate its contents under another disposable user.
+7. Let the separate finalizer retain the pending-name artifact only when the
+   qualifier completed and the protected `develop` head is unchanged;
+   otherwise it must delete it. The scheduled janitor removes canceled, failed,
+   stale, or ambiguous pending artifacts.
+
+Frozen totals are dependency provenance 2 positive / 40 adversarial, IAS
+Gradle 8 positive / 39 behavioral negative / 621 static adversarial assertions,
+and workflow Linux public-certificate IAS AAB 7 positive / 47 adversarial
+artifacts. Local AAB expectations are 7/45 on macOS in certificate mode, 7/53
+on macOS in keystore mode, and 7/55 on Linux in keystore mode. Any total drift
+requires review. IAS handoff status remains pending until the eligible manual
+run supplies full green evidence.
+
+The eligible manual `android-internal-app-sharing.yml` run may retain the
+verified AAB and its integrity evidence only as a seven-day pending-name GitHub
+Actions artifact whose exact ID/digest archive passed download-back
+qualification and whose separate finalizer job succeeded. An authorized Play
+Console operator may download that handoff, manually upload only the exact
+verified AAB to **Internal App Sharing**, and distribute the URL Google
+returns. Never consume PR-run output or an artifact from a run whose qualifier
+or finalizer did not succeed. Do not upload it to Open Testing, Closed Testing,
+Production, or any other track. Record the workflow run, commit,
+trusted-develop eligibility marker, artifact ID/digest, AAB SHA-256, run-bound
+signer fingerprint, verifier output, IAS upload identity, and generated URL in
+the test evidence.
+
+Production upgrade/migration qualification remains separate: use a disposable,
+unfunded test wallet installed through Google Play and upgrade it with a newer
+Play-signed candidate through the intended Play testing track. Preserve the
+original app data and exercise the documented migration, recovery, and
+cold-start checks. IAS results may supplement feature smoke testing only.
 
 ## Beta Release
 

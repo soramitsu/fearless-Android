@@ -8,7 +8,10 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Platforms: Android (Kotlin 2.1, Java 21 target). Compose enabled in selective screens.
 - Ecosystems: Substrate/Polkadot, EVM (Ethereum-compatible), TON.
 - Architecture: Modular feature pairs (`-api`/`-impl`), shared foundations (`common`, `core-api`, `core-db`, `runtime`). Hilt for DI.
-- Build types: `debug`, `release`, `staging`, `develop`, `pr`.
+- Build types: `debug`, `release`, `internalAppSharing`, `staging`, `develop`,
+  `pr`. `internalAppSharing` is a CI-only, unsigned, file-only smoke variant;
+  a separate fresh-runner qualifier externally debug-signs only the exact
+  verified handoff candidate. It is not a production distribution build.
 
 ## Feature Coverage (High Level)
 - Wallet: Send/Receive/History/Manage Assets — present and integrated (`feature-wallet-*`).
@@ -20,7 +23,44 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - NFTs: Present; details screen has TODO placeholders.
 
 ## Build & CI
-- CI Pipeline: `.github/workflows/android-ci.yml` runs detekt, unit tests (`runTest`), and app lint on push/PR.
+- CI Pipeline: `.github/workflows/android-ci.yml` runs detekt, unit tests
+  (`runTest`), app lint, and the existing release/debug build checks on push/PR.
+- Android Internal App Sharing is implemented as a deliberately separate smoke
+  lane, but its distributable handoff status remains **pending** until the full
+  frozen suites and a fresh eligible manual workflow run are green. It accepts
+  only the exact `:app:bundleInternalAppSharing` CI invocation from a clean
+  `RELEASE_COMMIT == HEAD` source with independently bound fearless-utils
+  commit/effective-tree values. It inherits release minification, shrinking,
+  application ID, version code, and manifest semantics; appends `-ias` to the
+  version name; and uses only a run-bound, mode-`0600`, 30-day ephemeral JKS
+  with the Android Debug identity only after a separate unsigned producer
+  stage. Disposable OS-user boundaries isolate unsigned validation, signer
+  creation, post-sign verification, and uploaded-archive audit. The certificate
+  fingerprint is derived and bound for that one run; the repository and
+  handoff never contain the private key.
+- IAS configuration finalizes the typed input of
+  `processInternalAppSharingGoogleServices` directly to the checked-in,
+  checksum-pinned `fearless-public` release placeholder. It rejects symlinks,
+  hardlinks, non-public Firebase values, production signing or Firebase inputs,
+  Play credentials/controls, and mixed Gradle task requests. It never creates
+  `app/src/internalAppSharing` or any other generated source-tree bridge. The
+  fake/empty Firebase and OAuth values mean IAS cannot qualify live Firebase,
+  Google OAuth/sign-in, or Google Drive/passkey backup and restore.
+- The IAS artifact verifier and adversarial suite enforce complete JAR
+  signature coverage by the debug certificate, embedded source commit,
+  package/`-ias` version/SDK identity, exact components and permissions,
+  reviewed native payloads, and compiled public Firebase values. Pull-request
+  runs are non-distributable validation only and upload no artifact. Only a
+  manual first-party run from the protected, merged, current `develop` head may
+  retain a seven-day GitHub Actions handoff after exact artifact-ID/digest
+  download-back, bounded ZIP revalidation under a disposable user, and a
+  separate deletion finalizer; a scheduled janitor removes stale pending
+  artifacts. An operator may then manually upload its exact verified AAB to
+  Play Console Internal App Sharing. CI must never upload IAS bytes to
+  Google/Play or mutate a Play track. Frozen totals are dependency provenance
+  2 positive / 40 adversarial, IAS Gradle 8 positive / 39 behavioral negative /
+  621 static adversarial, and workflow Linux certificate-mode IAS AAB 7
+  positive / 47 adversarial.
 - Signed Android release artifact pipeline:
   `.github/workflows/android-release.yml` builds
   only an immutable tagged `master` source after exact-head CI passes. CI has
@@ -115,6 +155,29 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   release without changing countries or testers, submit it as installable, and
   smoke-test the public opt-in link after Google processes the update.
 
+## Internal App Sharing Test Boundary
+
+> [!WARNING]
+> The IAS AAB is Android-debug-signed and Google re-signs IAS uploads. It cannot
+> upgrade a Play-installed wallet. Never uninstall a funded wallet to install
+> IAS, and never report a fresh IAS install as validation of production
+> database migration or production release signing.
+
+The IAS link is suitable for disposable-device feature and cold-start smoke
+testing only: install/fresh launch, cold start, onboarding/navigation,
+local-only flows using disposable test material, and screens independent of
+the disabled services. Live Firebase, Google OAuth/sign-in, Google Drive or
+passkey backup/restore, Play upgrade, production migration, and production
+signing are unsupported in IAS. Production migration evidence requires
+upgrading an unfunded test wallet that was installed from Google Play with a
+newer Play-signed candidate delivered through the intended testing track,
+while preserving its existing app data. Production signing evidence remains
+exclusively the protected, certificate-pinned signed-release-artifact pipeline.
+
+The workflow handoff name and verifier currently pin `4.2.0-ias` / `230`.
+Changing either source-controlled version requires all IAS hardcodes to change
+in the same reviewed commit; an older artifact must never be relabeled.
+
 ## Migration-Safe 4.2.0 Candidate
 
 - `versionName=4.2.0` / `versionCode=230` is the first migration-safe testing
@@ -144,13 +207,14 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   competing launcher/deep-link intents, retains the newest ready intent, and
   prevents an Activity lifecycle cancellation from abandoning the shared
   startup result.
-- Current local qualification evidence includes 517 root JVM tests (14 skipped
-  by assumptions), 310 included-utils JVM tests (10 skipped), 27/27 focused
-  startup contracts, and 99/99 connected tests (38 app, 53 database, 4 common,
-  4 account). The production-app fingerprint remained unchanged during the
-  dedicated emulator run. A fresh source-bound release build and all artifact
-  verifiers must still be repeated from the final merged/tagged commit; a
-  locally built or pre-commit AAB is not an upload candidate.
+- Current local qualification evidence includes 676 root JVM tests (14
+  explicit assumption skips), 310 included-utils JVM tests (10 explicit
+  skips), and 111/111 connected tests on a clean disposable API 34 device (41
+  app, 61 database, 5 common, 4 account). The migration compatibility profile
+  also passes 39/39 on each of API 30, 31, and 36. A fresh source-bound release
+  build and all artifact verifiers must still be repeated from the final
+  merged/tagged commit; a locally built or pre-commit AAB is not an upload
+  candidate.
 
 ## Runtime & Chains
 - Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.

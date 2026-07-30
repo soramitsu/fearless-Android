@@ -10,7 +10,12 @@
 [![Android CI](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml)
 
 ## Project Structure & Modules
-- `app/`: Android app entry; build types `debug/release/staging/develop/pr`.
+- `app/`: Android app entry; build types
+  `debug/release/internalAppSharing/staging/develop/pr`.
+  `internalAppSharing` is a CI-only smoke variant signed by a run-bound
+  ephemeral Android Debug JKS; it is not a production distribution path. Its
+  Google Services task reads the checksum-pinned release placeholder directly,
+  and `app/src/internalAppSharing` must never be created.
 - `feature-*/`: Split by domain with `-api` and `-impl` modules (e.g., `feature-wallet-api`, `feature-wallet-impl`).
 - `core-api/`, `core-db/`, `runtime/`, `runtime-permission/`, `common/`: Shared foundations.
 - `test-shared/`: Test-only utilities reused across modules.
@@ -58,6 +63,17 @@
 ## Security & Configuration
 - Secrets are read via `scripts/secrets.gradle`; set in env vars or `local.properties` (see `README.md`).
 - Do not commit keys, keystores, provisioning files, or `local.properties`.
+- Internal App Sharing must run only through the dedicated
+  `android-internal-app-sharing.yml` CI path. Generate a new mode-`0600` JKS and
+  bind its certificate SHA-256 for that run; never commit or reuse the private
+  key. PR runs are non-distributable validation only and must not upload an
+  artifact. Only a manual run of the first-party workflow from the protected,
+  merged, current `develop` head may retain a seven-day verified GitHub Actions
+  handoff. The workflow must never upload to Google/Play or mutate a Play track.
+  Because IAS uses fake/empty public Firebase and OAuth values, do not claim it
+  qualifies live Firebase, Google sign-in, Drive/passkey backup, or restore.
+  When versioning changes, update the workflow/verifier hardcodes for
+  `4.2.0-ias` / `230` in the same reviewed commit.
 - Polkadot runtime sources: to align with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
   - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE`
   - Example in `local.properties`:

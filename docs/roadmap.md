@@ -183,13 +183,21 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Prompt:
   - Add a build-time flag or comment with target version; plan a small PR once utils/runtime upgraded.
 
-10) Tests for DB migrations & runtime flows
-- Why: Critical to stability across releases.
-- Files: `core-db/.../migrations/*`, `runtime/...`
+10) Expand runtime-flow tests (Room migration coverage delivered)
+- Status: API 34 runs the full 61-test database suite, including malformed,
+  oversized, interrupted, and no-wipe preservation cases. APIs 30, 31, and 36
+  each run the compact 8-test released-schema/fail-closed database profile as
+  part of a 39-test compatibility gate.
+- Remaining why: Runtime connection lifecycle behavior still needs the same
+  deterministic regression depth.
+- Files: `runtime/...`
 - Acceptance:
-  - Migration tests for latest versions; smoke tests for ChainRegistry start/stop.
+  - Smoke tests cover `ChainRegistry` start, stop, reconnection, cancellation,
+    and concurrent `syncUp()` calls without live-network timing dependencies.
 - Prompt:
-  - Add Room migration tests for recent migrations; create lightweight tests for `ChainRegistry.syncUp()` using fakes.
+  - Build lightweight `ChainRegistry.syncUp()` tests with fakes and adversarial
+    cancellation/reconnection cases; keep the existing migration device matrix
+    mandatory for every database schema change.
 
 11) Per-module READMEs and entry points
 - Why: Speeds onboarding and code navigation.
