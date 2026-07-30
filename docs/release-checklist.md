@@ -155,6 +155,13 @@ procedure.
 - Run or confirm green CI for branch-flow audit, public artifact audit,
   TODO-debt audit, Iroha mobile SDK release asset contract, private-overlay
   audit self-test, detekt, unit tests, lint, and release/debug build jobs.
+- Confirm Android CI preserves the exact migration-evidence order: verify the
+  instrumentation results, prepare portable evidence with
+  `python3 ./scripts/prepare-android-migration-evidence.py`, then upload. The
+  upload must use
+  `${{ always() && steps.prepare_migration_evidence.outcome == 'success' }}` and
+  consume only `build/reports/android-migration-upload/**`; never add raw AGP
+  result paths to that upload.
 - Confirm Universal Wallet migrations, legacy export-only access, and supported
   network registry changes are documented in the PR.
 - Confirm rollback owner, monitoring owner, and release communication channel.

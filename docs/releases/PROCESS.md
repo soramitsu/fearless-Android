@@ -96,6 +96,13 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     negatives prove Firebase/signing isolation and reject phase/credential
     overlap; two additional cases prove same-size content corruption and
     relaxed file permissions fail closed.
+  - Migration evidence upload consumes only the deterministic staged tree under
+    `build/reports/android-migration-upload`. Staging encodes non-portable
+    filename characters (including `>`), bounds paths and resources, rejects
+    symlinks, non-regular files, unstable identities, prefix collisions, and
+    NFC/case-fold collisions, and emits `manifest.json` plus
+    `manifest.sha256`. Preparation and cleanup fail closed; raw AGP result paths
+    are never uploaded.
   - The unsigned-release task-graph suite fixes 2 positive and 25 adversarial
     cases; source binding fixes 2 positive and 10 adversarial cases. The
     standalone signer fixes 1 positive, 31 adversarial, and 14 TERM/SIGKILL
