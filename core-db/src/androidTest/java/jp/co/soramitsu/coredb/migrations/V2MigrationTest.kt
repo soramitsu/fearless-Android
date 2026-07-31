@@ -9,7 +9,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.platform.app.InstrumentationRegistry
-import jp.co.soramitsu.common.data.secrets.legacy.LegacyWalletV04Secrets
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
@@ -22,7 +21,6 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
-import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
@@ -62,13 +60,7 @@ import org.junit.Test
 private const val MNEMONIC_WORDS = "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
 private val MNEMONIC = MnemonicCreator.fromWords(MNEMONIC_WORDS)
 
-private const val DERIVATION_PATH = "//test"
-private val DECODED_SUBSTRATE_DERIVATION_PATH =
-    SubstrateJunctionDecoder.decode(DERIVATION_PATH)
-private val SUBSTRATE_SEED = SubstrateSeedFactory.deriveSeed32(
-    MNEMONIC_WORDS,
-    password = DECODED_SUBSTRATE_DERIVATION_PATH.password
-).seed
+private val SUBSTRATE_SEED = SubstrateSeedFactory.deriveSeed32(MNEMONIC_WORDS, password = null).seed
 private val CRYPTO_TYPE = EncryptionType.SR25519
 
 private const val DERIVATION_PATH = "//test"
@@ -90,63 +82,20 @@ private val SECOND_SUBSTRATE_KEYPAIR = SubstrateKeypairFactory.generate(
     junctions = emptyList()
 )
 
-    private fun assertExpectedNullEntropySubstrateSecret(
-        substrateSecretStore: SubstrateSecretStore,
-        metaId: Long,
-        expectedSeed: ByteArray?,
-        expectedDerivationPath: String?
-    ) {
-        val substrate =
-            requireNotNull(substrateSecretStore.get(metaId))
-        assertNull(substrate[SubstrateSecrets.Entropy])
-        assertArrayEquals(expectedSeed, substrate[SubstrateSecrets.Seed])
-        assertEquals(
-            expectedDerivationPath,
-            substrate[SubstrateSecrets.SubstrateDerivationPath]
-        )
-        assertCorrectKeypair(
-            expected = SUBSTRATE_KEYPAIR,
-            actual = substrate[SubstrateSecrets.SubstrateKeypair]
-        )
-    }
+private val ETHEREUM_DERIVATION_PATH = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+private val DECODED_ETHEREUM_DERIVATION_PATH = BIP32JunctionDecoder.decode(ETHEREUM_DERIVATION_PATH)
+private val ETHEREUM_SEED = EthereumSeedFactory.deriveSeed32(
+    mnemonicWords = MNEMONIC_WORDS,
+    password = DECODED_ETHEREUM_DERIVATION_PATH.password
+).seed
+private val ETHEREUM_KEYPAIR = EthereumKeypairFactory.generate(
+    seed = ETHEREUM_SEED,
+    junctions = DECODED_ETHEREUM_DERIVATION_PATH.junctions
+)
 
-    private suspend fun assertVersion28SeparatedStateRejectedWithoutMutation(
-        configurePreferences:
-            suspend (FailingDurableEncryptedPreferences) -> Unit
-    ) {
-        val preferences = FailingDurableEncryptedPreferences()
-        val oldStore = SecretStoreV1Impl(preferences)
-        oldStore.insertSecrets(Type.MNEMONIC)
-        configurePreferences(preferences)
-        val exactBefore = preferences.rawSnapshot()
-        val database = helper.createDatabase(TEST_DB, 28).apply {
-            insertAccount(
-                publicKey = SUBSTRATE_KEYPAIR.publicKey,
-                encryptionType = CRYPTO_TYPE
-            )
-        }
+private const val NAME = "TEST"
 
-        try {
-            database.runMigrationTransactionExpectingFailure(
-                migration = V2Migration(oldStore, preferences),
-                expectedFailure =
-                WalletSecretConcurrentMutationException::class.java
-            )
-            assertEquals(28, database.version)
-            assertEquals(
-                0,
-                database.singleInt("SELECT COUNT(*) FROM meta_accounts")
-            )
-            assertEquals(exactBefore, preferences.rawSnapshot())
-            assertEquals(0, preferences.durableWriteCount)
-            assertEquals(
-                0,
-                preferences.snapshotBoundReplacementCount
-            )
-        } finally {
-            database.close()
-        }
-    }
+class V2MigrationTest {
 
     private val instrumentation =
         InstrumentationRegistry.getInstrumentation()
@@ -176,270 +125,59 @@ private val SECOND_SUBSTRATE_KEYPAIR = SubstrateKeypairFactory.generate(
         context.deleteDatabase(QUARANTINE_V71_DB)
     }
 
-    private fun installKeypairOnlySeparatedRetrySecrets(
-        preferences: FailingDurableEncryptedPreferences,
-        metaId: Long
-    ) {
-        preferences.removeKey("$metaId:ACCESS_SECRETS")
-        SubstrateSecretStore(preferences).put(
-            metaId = metaId,
-            secrets = SubstrateSecrets(
-                substrateKeyPair = SUBSTRATE_KEYPAIR,
-                entropy = null,
-                seed = null,
-                substrateDerivationPath = null
-            )
-        )
-        EthereumSecretStore(preferences).put(
-            metaId = metaId,
-            secrets = EthereumSecrets(
-                entropy = null,
-                seed = ETHEREUM_KEYPAIR.privateKey,
-                ethereumKeypair = ETHEREUM_KEYPAIR,
-                ethereumDerivationPath = null
-            )
+    @Test
+    fun shouldMigrateWithMnemonic() = runBlocking {
+        performSingleAccountTest(
+            insertionType = Type.MNEMONIC,
+            withEthereum = true,
+            withEntropy = true,
+            withSeed = true,
+            withDerivationPath = true
         )
     }
 
-    private suspend fun assertSeparatedRetrySnapshotRace(
-        mutateEthereumSecret: Boolean
-    ) {
-        val preferences = FailingDurableEncryptedPreferences()
-        val database = createVersion31Database(preferences)
-        val metaId = database.getMetaAccounts().single().id
-        val substrateKey = "$metaId:SUBSTRATE_SECRETS"
-        val ethereumKey = "$metaId:ETHEREUM_SECRETS"
-        val oldEthereumKeypair = EthereumKeypairFactory.generate(
-            seed = ETHEREUM_SEED,
-            junctions = emptyList()
-        )
-        assertFalse(
-            oldEthereumKeypair.publicKey.contentEquals(
-                ETHEREUM_KEYPAIR.publicKey
-            )
-        )
-        val oldEthereumAddress =
-            oldEthereumKeypair.publicKey.ethereumAddressFromPublicKey()
-        val correctedEthereumAddress =
-            ETHEREUM_KEYPAIR.publicKey.ethereumAddressFromPublicKey()
-        database.updateEthereumPublicKey(
-            metaId = metaId,
-            publicKey = oldEthereumKeypair.publicKey
-        )
-        database.insertVersion31Asset(
-            metaId = metaId,
-            accountId = oldEthereumAddress
-        )
-        installSeparatedRetrySecrets(preferences, metaId)
-        val exactBefore = preferences.rawSnapshot()
-        val racedKey = if (mutateEthereumSecret) {
-            ethereumKey
-        } else {
-            substrateKey
-        }
-        val durableWritesBeforeRace = preferences.durableWriteCount
-        preferences.mutateOnceBeforeSnapshotBoundReplacement(
-            sourceField = racedKey,
-            replacement = MALFORMED_SECRET
-        )
-
-        try {
-            database.runMigrationTransactionExpectingFailure(
-                migration = EthereumDerivationPathMigration(preferences),
-                expectedFailure =
-                    WalletSecretConcurrentMutationException::class.java
-            )
-
-            assertEquals(
-                exactBefore + (racedKey to MALFORMED_SECRET),
-                preferences.rawSnapshot()
-            )
-            assertEquals(
-                durableWritesBeforeRace,
-                preferences.durableWriteCount
-            )
-            assertArrayEquals(
-                oldEthereumKeypair.publicKey,
-                database.singleBlob(
-                    "SELECT ethereumPublicKey FROM meta_accounts " +
-                        "WHERE id = ?",
-                    metaId
-                )
-            )
-            assertArrayEquals(
-                oldEthereumAddress,
-                database.singleBlob(
-                    "SELECT ethereumAddress FROM meta_accounts " +
-                        "WHERE id = ?",
-                    metaId
-                )
-            )
-            assertArrayEquals(
-                oldEthereumAddress,
-                database.singleBlob(
-                    "SELECT accountId FROM assets WHERE metaId = ?",
-                    metaId
-                )
-            )
-            assertFalse(
-                preferences.hasKey(
-                    WalletSecretQuarantine.keyFor(substrateKey)
-                )
-            )
-            assertFalse(
-                preferences.hasKey(
-                    WalletSecretQuarantine.keyFor(ethereumKey)
-                )
-            )
-
-            preferences.putEncryptedString(
-                racedKey,
-                exactBefore.getValue(racedKey)
-            )
-            database.runMigrationTransaction(
-                EthereumDerivationPathMigration(preferences)
-            )
-
-            assertEquals(exactBefore, preferences.rawSnapshot())
-            assertEquals(
-                durableWritesBeforeRace,
-                preferences.durableWriteCount
-            )
-            assertArrayEquals(
-                ETHEREUM_KEYPAIR.publicKey,
-                database.singleBlob(
-                    "SELECT ethereumPublicKey FROM meta_accounts " +
-                        "WHERE id = ?",
-                    metaId
-                )
-            )
-            assertArrayEquals(
-                correctedEthereumAddress,
-                database.singleBlob(
-                    "SELECT ethereumAddress FROM meta_accounts " +
-                        "WHERE id = ?",
-                    metaId
-                )
-            )
-            assertArrayEquals(
-                correctedEthereumAddress,
-                database.singleBlob(
-                    "SELECT accountId FROM assets WHERE metaId = ?",
-                    metaId
-                )
-            )
-        } finally {
-            database.close()
-        }
-    }
-
-    private fun SupportSQLiteDatabase.insertVersion31Asset(
-        metaId: Long,
-        accountId: ByteArray,
-        tokenSymbol: String = "ETH"
-    ) {
-        execSQL(
-            """
-            INSERT INTO assets(
-                tokenSymbol,
-                chainId,
-                accountId,
-                metaId,
-                freeInPlanks,
-                reservedInPlanks,
-                miscFrozenInPlanks,
-                feeFrozenInPlanks,
-                bondedInPlanks,
-                redeemableInPlanks,
-                unbondingInPlanks
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent(),
-            arrayOf<Any>(
-                tokenSymbol,
-                "ethereum",
-                accountId,
-                metaId,
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0",
-                "0"
-            )
+    @Test
+    fun shouldMigrateWithSeed() = runBlocking {
+        performSingleAccountTest(
+            insertionType = Type.SEED,
+            withEthereum = false,
+            withEntropy = false,
+            withSeed = true,
+            withDerivationPath = true
         )
     }
 
-    private fun SupportSQLiteDatabase.replaceChainNodesWithWrongDefault() {
-        execSQL("DROP INDEX index_chain_nodes_chainId")
-        execSQL("ALTER TABLE chain_nodes RENAME TO saved_chain_nodes")
-        execSQL(
-            """
-            CREATE TABLE chain_nodes(
-                chainId TEXT NOT NULL,
-                url TEXT NOT NULL,
-                name TEXT NOT NULL,
-                isActive INTEGER NOT NULL DEFAULT 0,
-                isDefault INTEGER NOT NULL DEFAULT 7,
-                PRIMARY KEY(chainId, url),
-                FOREIGN KEY(chainId) REFERENCES chains(id)
-                    ON UPDATE NO ACTION ON DELETE CASCADE
-            )
-            """.trimIndent()
-        )
-        execSQL(
-            """
-            INSERT INTO chain_nodes(
-                chainId,
-                url,
-                name,
-                isActive,
-                isDefault
-            )
-            SELECT
-                chainId,
-                url,
-                name,
-                isActive,
-                isDefault
-            FROM saved_chain_nodes
-            """.trimIndent()
-        )
-        execSQL("DROP TABLE saved_chain_nodes")
-        execSQL(
-            "CREATE INDEX index_chain_nodes_chainId " +
-                "ON chain_nodes(chainId)"
+    @Test
+    fun shouldMigrateWithCreate() = runBlocking {
+        performSingleAccountTest(
+            insertionType = Type.CREATE,
+            withEthereum = true,
+            withEntropy = true,
+            withSeed = true,
+            withDerivationPath = true
         )
     }
 
-    private fun SupportSQLiteDatabase.replaceAssetsWithBlockingCheck(
-        allowedAccountId: ByteArray
-    ) {
-        val allowedAccountIdHex = allowedAccountId.toPlainHexString()
-        execSQL("DROP INDEX index_assets_metaId")
-        execSQL("ALTER TABLE assets RENAME TO saved_assets")
-        execSQL(
-            """
-            CREATE TABLE assets(
-                tokenSymbol TEXT NOT NULL,
-                chainId TEXT NOT NULL,
-                accountId BLOB NOT NULL,
-                metaId INTEGER NOT NULL,
-                freeInPlanks TEXT NOT NULL,
-                reservedInPlanks TEXT NOT NULL,
-                miscFrozenInPlanks TEXT NOT NULL,
-                feeFrozenInPlanks TEXT NOT NULL,
-                bondedInPlanks TEXT NOT NULL,
-                redeemableInPlanks TEXT NOT NULL,
-                unbondingInPlanks TEXT NOT NULL,
-                PRIMARY KEY(tokenSymbol, chainId, accountId),
-                CHECK(accountId = X'$allowedAccountIdHex')
-            )
-            """.trimIndent()
+    @Test
+    fun shouldMigrateWithJson() = runBlocking {
+        performSingleAccountTest(
+            insertionType = Type.JSON,
+            withEthereum = false,
+            withEntropy = false,
+            withSeed = false,
+            withDerivationPath = false
         )
-        execSQL("INSERT INTO assets SELECT * FROM saved_assets")
-        execSQL("DROP TABLE saved_assets")
-        execSQL("CREATE INDEX index_assets_metaId ON assets(metaId)")
+    }
+
+    @Test
+    fun shouldMigrateWithKeypair() = runBlocking {
+        performSingleAccountTest(
+            insertionType = Type.KEYPAIR,
+            withEthereum = false,
+            withEntropy = false,
+            withSeed = false,
+            withDerivationPath = false
+        )
     }
 
     @Test
@@ -985,123 +723,21 @@ private val SECOND_SUBSTRATE_KEYPAIR = SubstrateKeypairFactory.generate(
         withSeed: Boolean,
         withDerivationPath: Boolean
     ) {
-        val expectedMarkers = activeSecretKeys.associate { activeSecretKey ->
-            WalletPublicIdentityRecovery.keyFor(
-                metaId = metaId,
-                activeSecretKey = activeSecretKey
-            ) to WalletPublicIdentityRecovery.MARKER_VALUE
-        }
-        assertEquals(
-            exactBefore + expectedMarkers,
-            preferences.rawSnapshot()
-        )
-        activeSecretKeys.forEach { activeSecretKey ->
-            assertEquals(
-                exactBefore.getValue(activeSecretKey),
-                preferences.getDecryptedString(activeSecretKey)
-            )
-            assertFalse(
-                preferences.hasKey(
-                    WalletSecretQuarantine.keyFor(activeSecretKey)
-                )
-            )
-        }
-        expectedMarkers.forEach { (markerKey, markerValue) ->
-            assertEquals(
-                markerValue,
-                preferences.getDecryptedString(markerKey)
-            )
-        }
-    }
+        storeV1.insertSecrets(insertionType)
 
-    private fun SupportSQLiteDatabase.runMigrationTransaction(migration: Migration) {
-        beginTransaction()
-        try {
-            migration.migrate(this)
-            setTransactionSuccessful()
-        } finally {
-            endTransaction()
-        }
-    }
-
-    private fun SupportSQLiteDatabase.runMigrationTransactionExpectingFailure(
-        migration: Migration,
-        expectedFailure: Class<out Throwable> = InjectedDurableWriteFailure::class.java
-    ) {
-        beginTransaction()
-        try {
-            assertThrows(expectedFailure) {
-                migration.migrate(this)
-            }
-        } finally {
-            endTransaction()
-        }
-    }
-
-    private fun SupportSQLiteDatabase.singleInt(sql: String): Int =
-        query(sql).use { cursor ->
-            check(cursor.moveToFirst())
-            cursor.getInt(0)
+        val db = performMigration {
+            insertAccount(publicKey = SUBSTRATE_KEYPAIR.publicKey, CRYPTO_TYPE)
         }
 
-    private fun SupportSQLiteDatabase.singleBlob(
-        sql: String,
-        bindArg: Long
-    ): ByteArray = query(sql, arrayOf(bindArg)).use { cursor ->
-        check(cursor.moveToFirst())
-            cursor.getBlob(0)
-        }
+        val metaAccount = db.getMetaAccounts().firstOrNull() ?: error("There should be at least one account after migration")
 
-    private fun SupportSQLiteDatabase.singleLong(
-        sql: String,
-        bindArg: Long
-    ): Long = query(sql, arrayOf(bindArg)).use { cursor ->
-        check(cursor.moveToFirst())
-        cursor.getLong(0)
-    }
-
-    private fun SupportSQLiteDatabase.singleString(
-        sql: String,
-        bindArg: Long
-    ): String = query(sql, arrayOf(bindArg)).use { cursor ->
-        check(cursor.moveToFirst())
-        cursor.getString(0)
-    }
-
-    private fun SupportSQLiteDatabase.singleColumnIsNull(
-        sql: String,
-        bindArg: Long
-    ): Boolean = query(sql, arrayOf(bindArg)).use { cursor ->
-        check(cursor.moveToFirst())
-        cursor.isNull(0)
-    }
-
-    private fun SupportSQLiteDatabase.insertBoundedMetaAccount(metaId: Long) {
-        execSQL(
-            """
-            INSERT INTO meta_accounts(
-                id,
-                substratePublicKey,
-                substrateCryptoType,
-                substrateAccountId,
-                ethereumPublicKey,
-                ethereumAddress,
-                name,
-                isSelected,
-                position
-            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent(),
-            arrayOf<Any?>(
-                metaId,
-                SUBSTRATE_KEYPAIR.publicKey,
-                CryptoType.SR25519.name,
-                SUBSTRATE_KEYPAIR.publicKey.substrateAccountId(),
-                null,
-                null,
-                "Bounded pre-existing wallet $metaId",
-                1,
-                0
-            )
+        assertCorrectMetaAccount(metaAccount, withEthereum = withEthereum, selected = true)
+        assertCorrectSecrets(
+            metaAccountSecrets = storeV2.getMetaAccountSecrets(metaAccount.id),
+            withEthereum = withEthereum,
+            withEntropy = withEntropy,
+            withSeed = withSeed,
+            withDerivationPath = withDerivationPath
         )
     }
 
@@ -1396,8 +1032,6 @@ private val SECOND_SUBSTRATE_KEYPAIR = SubstrateKeypairFactory.generate(
                 expectedColumns = topology.columns
             )
         }
-        update("meta_accounts", SQLiteDatabase.CONFLICT_REPLACE, values, "id=?", arrayOf(metaId))
-    }
 
         val actualForeignKeys = RELEASED_TABLES.flatMapTo(linkedSetOf()) {
             tableName -> foreignKeyEdges(tableName)
@@ -1768,51 +1402,14 @@ private val SECOND_SUBSTRATE_KEYPAIR = SubstrateKeypairFactory.generate(
         saveSecuritySource(SUBSTRATE_KEYPAIR.publicKey.toAddress(0), securitySource)
     }
 
-    private fun distinctSubstrateKeypair(marker: Int): Keypair {
-        val seed = ByteArray(32) { index -> (marker + index).toByte() }
-        return SubstrateKeypairFactory.generate(
-            encryptionType = CRYPTO_TYPE,
-            seed = seed,
-            junctions = emptyList()
-        )
-    }
-
-    private fun insertV04Secrets(
-        preferences: EncryptedPreferences,
-        address: String,
-        keypair: Keypair,
-        seed: ByteArray?,
-        entropy: ByteArray?,
-        derivationPath: String?
-    ): Map<String, String> {
-        val signingData = KeyPairSchema {
-            it[PrivateKey] = keypair.privateKey
-            it[PublicKey] = keypair.publicKey
-            it[Nonce] = (keypair as? Sr25519Keypair)?.nonce
-        }
-        val values = buildMap {
-            put("private_$address", KeyPairSchema.toHexString(signingData))
-            seed?.let { put("seed_$address", it.toPlainHexString()) }
-            entropy?.let { put("entropy_$address", it.toPlainHexString()) }
-            derivationPath?.let { put("derivation_$address", it) }
-        }
-        values.forEach(preferences::putEncryptedString)
-        return values
-    }
-
-    private fun SupportSQLiteDatabase.insertAccount(
-        publicKey: ByteArray,
-        encryptionType: EncryptionType,
-        position: Int = 0,
-        username: String = NAME
-    ) {
+    private fun SupportSQLiteDatabase.insertAccount(publicKey: ByteArray, encryptionType: EncryptionType) {
         val params = ContentValues().apply {
             put("address", publicKey.toAddress(0))
             put("publicKey", publicKey.toPlainHexString(withPrefix = false))
             put("cryptoType", mapEncryptionToCryptoType(encryptionType).ordinal)
-            put("position", position)
+            put("position", 0)
             put("networkType", 0)
-            put("username", username)
+            put("username", NAME)
         }
 
         insert("users", SQLiteDatabase.CONFLICT_REPLACE, params)
