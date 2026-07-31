@@ -1,6 +1,6 @@
 # Status Summary
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 This snapshot summarizes the current health, feature coverage, and key risks of the Fearless Wallet Android codebase.
 
@@ -61,7 +61,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   secret; only the exact protected-`develop` dispatch build step may receive a
   required non-logged 32-hex project ID, and trusted device acceptance includes
   a valid pairing scan. Frozen totals are dependency provenance
-  2 positive / 40 adversarial, bounded Gradle coverage cleanup 4 positive / 12
+  2 positive / 65 adversarial, bounded Gradle coverage cleanup 4 positive / 12
   negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 645
   static adversarial, and workflow Linux certificate-mode IAS AAB 7 positive /
   78 adversarial. The shared AAB identity harness separately freezes the R8
@@ -121,13 +121,13 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   permissions. The legacy open-test artifacts (version codes 221 and 109)
   request broad media access; Play must be given the clean version-code-230
   bundle with the track resume instead of using its “continue anyway” override.
-- MoonPay is fail-closed and absent from the buy-provider registry. Its former
-  client-side HMAC secret and BuildConfig fields have been removed; re-enabling
-  it requires backend signing or a supported public mobile flow. The secret
-  exposed by already released Android artifacts must be revoked/rotated with
-  MoonPay before the next release. The fail-closed audit now covers all tracked
-  Android module source sets, build inputs, release scripts, and workflows,
-  with alternate-module/buildSrc/workflow adversarial fixtures.
+- MoonPay's legacy client-side HMAC secret and signing fields are absent. The
+  provider uses only publishable keys, an exact hosted-checkout allowlist, and
+  manual wallet entry; prefilled-wallet URLs still require a backend signer.
+  The secret exposed by already released Android artifacts must be
+  revoked/rotated with MoonPay before the next release. The fail-closed audit
+  covers every tracked Android source set, build input, release script, and
+  workflow, with alternate-module/buildSrc/workflow adversarial fixtures.
 - Release Firebase backup construction is interruption-safe: it validates a
   restricted temporary copy's size, SHA-256, and exact mode before an atomic
   rename. Cleanup deletes incomplete temporaries. The split-overlay suite
@@ -135,7 +135,35 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   restore and 8 cleanup TERM/SIGKILL cases, and 2 backup-integrity negatives;
   the checked-in placeholder survives every covered boundary and no
   signing/Play credential remains.
-- Secrets in CI: Stubbed keys for EVM and history providers keep resolution stable; real keys required locally.
+- Secrets in CI: Stubbed publishable MoonPay keys, EVM providers, and history
+  providers keep public CI stable. MoonPay server secrets are prohibited from
+  Android builds; prefilled-wallet URLs require a backend signer.
+- Test aggregation: `runTest` now covers every module with Kotlin/Java sources
+  under `src/test`, including `core-api`, passkey backup, and XCM. A dynamic
+  membership audit and adversarial self-test prevent omitted, stale,
+  commented-out, duplicated, or shadow task entries.
+- Iroha send remains production-disabled. An explicit CI/local gate now
+  materializes only the checksum-pinned `core-jvm` artifact into ignored build
+  output, tests a Java-only Taira bridge plus Kotlin 2.1 isolation, independently
+  verifies compact transaction hashing against a Rust/native diagnostic vector,
+  and proves the app runtime has no staged SDK dependency. A closed immutable
+  request seam now validates the exact Nexus Android wallet-smoke transaction
+  metadata contract and gates its operator path to the canonical Minamoto
+  endpoint. The Taira-only bridge rejects every non-empty metadata map; normal
+  transfers retain empty metadata and production DI remains fail closed. A
+  reviewed Nexus metadata codec, live Torii receipt,
+  funded-network, provenance, Android device/R8, authoritative live registry and
+  fee mapping, deployed-node compatibility, and key-residue gates remain blocked
+  in `config/iroha-production-send-readiness.json`.
+- Release integrity: the manual release workflow builds an explicit strict
+  `v`-prefixed SemVer tag on `master`, requires a completed successful Android
+  CI push run for the exact tagged commit, prohibits CI version mutation,
+  verifies the single AAB and signing certificate, and emits pinned GitHub
+  build provenance. All workflow actions are full-SHA pinned.
+- Security lint: missing Credential Manager transport and trust-all TLS code
+  are fatal. The passkey module exports the Play Services transport, while
+  unused legacy Spongy Castle PKIX/PGP artifacts are replaced by only the
+  provider primitives required by `fearless-utils`.
 - Local validation: `scripts/validate-local.sh` runs the same checks and now installs Android platform/build-tools 36 to match the compile SDK, along with NDK r28 and platform-tools.
 - WalletConnect/Reown SDK: BOM 1.6.9 resolves Kotlin 2.2 runtime metadata, so
   release builds use exact AGP 8.10.1 / R8 8.10.24 with compileSdk 36; the
@@ -143,7 +171,18 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
 - Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
 - Native crypto rebuild tooling: `scripts/build-libsodium.sh` now auto-detects the host-specific `toolchains/llvm/prebuilt` directory (darwin/linux/windows) so libsodium can be rebuilt on non-macOS hosts without manual tweaks.
-- Utils composite build: public CI checks out `soramitsu/fearless-utils-Android` at `7500809f33243ee47ecb2ec8563fc284ac4de0d6`, verifies it with `scripts/ensure-fearless-utils.sh`, and forces the local composite include. `settings.gradle` keeps Gradle 9 shims for the upstream build until that repo upgrades.
+- Utils composite build: public CI checks out `soramitsu/fearless-utils-Android`
+  at `7500809f33243ee47ecb2ec8563fc284ac4de0d6`, exercises the adversarial
+  derived-tree self-test, and verifies the exact origin, commit, index, and
+  worktree against pinned `HEAD` plus the committed library-only patch with
+  `scripts/ensure-fearless-utils.sh`. The guard rejects staged, tracked,
+  untracked, partial-overlay, patch-overlap, and submodule drift without
+  resetting a dirty checkout. CI forces the local composite include;
+  `settings.gradle` retains the upstream Gradle 9 compatibility shims.
+- The reviewed utils overlay treats the nullable `runtime_id` field as optional
+  during Kotlin serialization. Legacy type registries that omit it now reach
+  Android's existing live runtime-version fallback; null and present values are
+  covered, and malformed object values remain fail-closed.
 - External Play blockers: release/upload credentials are not stored locally;
   the required Firebase/upload-key GitHub Actions secrets must be configured.
   `android-release-build` and `android-release-signing` must each prevent
@@ -223,12 +262,12 @@ in the same reviewed commit; an older artifact must never be relabeled.
   candidate.
 
 ## Runtime & Chains
-- Default types/chains under `runtime/src/main/assets`. Override via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE` in `local.properties`.
+- Default types/chains live under `runtime/src/main/assets`. Override types and debug chain discovery via `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_DEBUG_OVERRIDE`; release chain discovery is immutable.
 - ChainRegistry coordinates runtime providers and connections. EVM handled via `EthereumEnvironmentConfigurator` and `EthereumConnectionPool`.
 
 ## Polkadot SDK Alignment
 - Target: polkadot-stable2503 (prepared via override keys).
-- How to align: set `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_OVERRIDE` to registries validated against stable2503. See `docs/samples/local.properties.stable2503`.
+- How to align debug builds: set `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_DEBUG_OVERRIDE` to registries validated against stable2503. See `docs/samples/local.properties.stable2503`.
 - Optional: pin `shared_features` via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` if required by the SDK combo.
 - Utils integration: the build uses a pinned `soramitsu/fearless-utils-Android` checkout as a composite source dependency.
 - Debug: run `./gradlew printPolkadotSdkAlignment` to verify effective overrides.
@@ -247,6 +286,13 @@ in the same reviewed commit; an older artifact must never be relabeled.
 - TON history cursor handling now supports `lt:hash` when indexer transaction IDs are available, enabling cursor-based indexer pagination before page-scan fallback.
 - TON indexer fallback now preserves coroutine cancellation semantics (`CancellationException` is rethrown), preventing cancellation bypass during indexer outages.
 - Code quality: Detekt enforced in CI. Several TODO/FIXME markers remain in features and common utils.
+- 2026-07-10 verification: all shell policy/adversarial suites passed; the
+  aggregate Android test graph passed 496 tests with 0 failures/errors (14
+  intentional skips); app lint and debug assembly passed; the APK passed ZIP
+  integrity plus negative MoonPay-secret and legacy trust-all-class scans.
+- XCM release status remains fail-closed: 15 required executable routes are
+  tracked, 34 advertised routes are discovery-only, and funded production
+  evidence is still required before broad XCM release enablement.
 - Incomplete UI/logic areas:
   - NFT details screen placeholders.
   - Staking validator oversubscription/slashed logic marked FIXME.
@@ -279,7 +325,9 @@ in the same reviewed commit; an older artifact must never be relabeled.
 ## Getting Started & Verifications
 - Build app: `./gradlew :app:assembleDebug`
 - Local checks: `bash scripts/validate-local.sh`
-- Secrets: set EVM provider keys and history provider keys in `local.properties` or env vars (see README).
+- Config: set MoonPay publishable keys, EVM provider keys, and history provider
+  keys in `local.properties` or env vars (see README). Never configure a
+  MoonPay server secret in the app.
 - WalletConnect: ensure `WALLET_CONNECT_PROJECT_ID` is correctly provided; observe init logs.
 
 Verification notes (stable2503):

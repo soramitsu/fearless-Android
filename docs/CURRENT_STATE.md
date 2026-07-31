@@ -24,9 +24,10 @@ These features vary in maturity; consult TODOs below and module code for specifi
 ## Configuration & Secrets
 - Place integration keys in environment variables or `local.properties` as described in README.
 - Common keys include Ethereum blast API keys and Etherscan/Polygonscan keys.
-- MoonPay is disabled because its legacy client-side URL signature exposed the
-  signing secret in every APK/AAB. It must remain unavailable until signing is
-  moved to a backend or MoonPay provides a supported public mobile flow.
+- MoonPay's legacy client-side URL signature and embedded signing secret are
+  removed. The reviewed Android flow uses only publishable keys, an exact host
+  allowlist, and manual wallet entry; prefilled wallet addresses remain
+  unavailable until URL signing is moved to a backend-held secret.
 - Production Firebase and upload-key material are never combined. A
   credential-free `release-controls` job validates the signed tag, exact
   source tree, governance, and prior CI before `release-build` restores
@@ -48,7 +49,7 @@ These features vary in maturity; consult TODOs below and module code for specifi
 
 ## Runtime Types & Chains
 - Default types and chain metadata are embedded under `runtime/src/main/assets`.
-- You can override types/chains with `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_OVERRIDE` properties (see AGENTS.md/README).
+- You can override types and debug chain discovery with `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_DEBUG_OVERRIDE` (see AGENTS.md/README). Release chain discovery is pinned and has no override.
 
 ## Known TODO/FIXME Hotspots
 Ripgrep shows TODO/FIXME markers in these areas (non-exhaustive):

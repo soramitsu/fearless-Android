@@ -12,7 +12,7 @@ fail() {
   exit 1
 }
 
-for command_name in git grep mktemp; do
+for command_name in find git grep mktemp; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command is unavailable: $command_name"
 done
@@ -196,10 +196,22 @@ expect_failure \
   "missing, unsafe, or not a regular checkout" \
   run_verifier "$symlink_utils_fixture" --allow-fearless-utils
 
+generated_symlink_fixture="$(clone_case generated-symlink)"
+generated_symlink_target="$tmp_dir/generated-symlink-target"
+mkdir -p "$generated_symlink_target" "$generated_symlink_fixture/build"
+printf 'escaped generated output\n' >"$generated_symlink_target/output.bin"
+ln -s \
+  "$generated_symlink_target" \
+  "$generated_symlink_fixture/build/iroha-mobile-sdk"
+expect_failure \
+  "generated output symlink escape" \
+  "Generated output path cannot be or contain a symlink" \
+  run_verifier "$generated_symlink_fixture"
+
 [[ "$positive_count" == "3" ]] ||
   fail "expected 3 positive cases; got $positive_count"
-[[ "$negative_count" == "13" ]] ||
-  fail "expected 13 adversarial cases; got $negative_count"
+[[ "$negative_count" == "14" ]] ||
+  fail "expected 14 adversarial cases; got $negative_count"
 
 echo \
   "[android-release-source-tree-test] $positive_count positive + $negative_count adversarial cases passed"

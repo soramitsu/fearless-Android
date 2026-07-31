@@ -576,7 +576,8 @@ data class IrohaTransferSigningRequest(
     val network: String,
     val signingPublicKeyHex: String,
     val sourceAccountId: String,
-    val sourceAssetId: String
+    val sourceAssetId: String,
+    val transactionMetadata: IrohaTransferMetadata = IrohaTransferMetadata.empty()
 )
 
 class IrohaSignedTransfer(
@@ -602,6 +603,55 @@ class IrohaTransferService(
 
     override suspend fun transfer(transfer: Transfer): String {
         val context = resolveContext(transfer)
+        return signAndSubmit(context)
+    }
+
+    /**
+     * Operator-only funded-smoke seam. Production DI remains fail closed because it supplies
+     * [UnavailableIrohaTransferSigner]; this method does not alter any release enablement flag.
+     */
+    suspend fun transferWalletSmokeEvidence(
+        transfer: Transfer,
+        untrustedMetadata: Map<*, *>
+    ): String {
+        // Snapshot and validate operator input before account, key, signer, or Torii work.
+        val validatedMetadata = IrohaTransferMetadata.walletSmoke(untrustedMetadata)
+        val evidenceNetwork = chain.universalWalletIrohaNetwork()
+        if (evidenceNetwork != UniversalWalletRegistry.nexus) {
+            throw unsupported("Iroha wallet-smoke evidence requires SORA Nexus")
+        }
+        val evidenceToriiBaseUrl = chain.externalApi?.history
+            ?.takeIf { it.type == Chain.ExternalApi.Section.Type.IROHA }
+            ?.url
+            ?.takeIf(String::isNotBlank)
+            ?: evidenceNetwork.toriiBaseUrl
+            ?: throw unsupported("Canonical SORA Nexus Minamoto endpoint is unavailable")
+        val canonicalMinamoto = UniversalWalletRegistry.nexus.toriiBaseUrl
+            ?: throw unsupported("Canonical SORA Nexus Minamoto endpoint is unavailable")
+        if (evidenceToriiBaseUrl != canonicalMinamoto) {
+            throw unsupported("Iroha wallet-smoke evidence requires canonical SORA Nexus Minamoto")
+        }
+
+        val context = resolveContext(transfer)
+        if (
+            context.signingRequest.network != IrohaTransferMetadata.NEXUS_NETWORK ||
+            context.signingRequest.chainId != IrohaTransferMetadata.NEXUS_CHAIN_ID
+        ) {
+            throw unsupported("Iroha wallet-smoke evidence requires SORA Nexus")
+        }
+        if (context.toriiBaseUrl != canonicalMinamoto) {
+            throw unsupported("Iroha wallet-smoke evidence requires canonical SORA Nexus Minamoto")
+        }
+
+        val evidenceContext = context.copy(
+            signingRequest = context.signingRequest.withValidatedWalletSmokeMetadata(
+                validatedMetadata
+            )
+        )
+        return signAndSubmit(evidenceContext)
+    }
+
+    private suspend fun signAndSubmit(context: IrohaTransferContext): String {
         val signedTransfer = signer.buildAndSignTransfer(context.signingRequest)
         if (signedTransfer.signedTransaction.isEmpty()) {
             throw unsupported("Iroha transfer signer returned an empty transaction for ${chain.name}")

@@ -5,8 +5,11 @@ import android.content.res.Resources
 import android.os.CountDownTimer
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -26,39 +29,55 @@ fun Timer(
     modifier: Modifier,
     textAlign: TextAlign
 ) {
-    val timer = remember { mutableStateOf<CountDownTimer?>(null) }
-    val text = remember { mutableStateOf("") }
+    val text = remember(millis, timeLeftTimestamp, extraMessage, hideZeroTimer) { mutableStateOf("") }
+    val currentOnFinish = rememberUpdatedState(onFinish)
 
     if (millis <= 0L) {
-        text.value = stringResource(id = R.string.parachain_staking_request_finished)
+        val finishedText = stringResource(id = R.string.parachain_staking_request_finished)
+        LaunchedEffect(millis) {
+            currentOnFinish.value?.invoke()
+        }
+        if (!hideZeroTimer) {
+            Text(text = finishedText, modifier = modifier, textAlign = textAlign)
+        }
         return
     }
     val deltaTime = if (timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
+    val resources = LocalContext.current.resources
 
-    val currentTimer = timer.value
+    DisposableEffect(millis, timeLeftTimestamp, extraMessage, hideZeroTimer, resources) {
+        val completion = TimerCompletion {
+            currentOnFinish.value?.invoke()
+        }
+        val newTimer = Timer(
+            millis,
+            deltaTime,
+            hideZeroTimer,
+            extraMessage,
+            resources,
+            textUpdate = {
+                text.value = it
+            },
+            onFinish = completion::finish
+        )
 
-    if (currentTimer is CountDownTimer) {
-        currentTimer.cancel()
+        newTimer.start()
+
+        onDispose(newTimer::cancel)
     }
 
-    val newTimer = Timer(
-        millis,
-        deltaTime,
-        hideZeroTimer,
-        extraMessage,
-        LocalContext.current.resources,
-        textUpdate = {
-            text.value = it
-        },
-        onFinish = {
-            timer.value = null
-        }
-    )
-
-    newTimer.start()
-
-    timer.value = newTimer
     Text(text = text.value, modifier = modifier, textAlign = textAlign)
+}
+
+internal class TimerCompletion(private val callback: () -> Unit) {
+    private var finished = false
+
+    fun finish() {
+        if (finished) return
+
+        finished = true
+        callback()
+    }
 }
 
 private class Timer(
@@ -85,7 +104,7 @@ private class Timer(
     }
 
     override fun onFinish() {
-        textUpdate(0L.formatTime())
+        textUpdate(if (hideZeroTimer) "" else 0L.formatTime())
         cancel()
         onFinish()
     }

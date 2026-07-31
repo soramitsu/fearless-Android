@@ -31,13 +31,16 @@ data class ChainXcmRemote(
 data class ChainXcmAssetRemote(
     val id: String?,
     val symbol: String?,
-    val minAmount: String?
+    val minAmount: String?,
+    val execution: ChainXcmExecutionRemote? = null
 )
 
 data class ChainXcmDestinationRemote(
     val chainId: String?,
     val assets: List<ChainXcmAssetRemote>?,
     val bridgeParachainId: String?,
+    /** Legacy destination-scoped authority retained only for explicit rejection. */
+    @Deprecated("Execution authority must be attached to an exact route asset")
     val execution: ChainXcmExecutionRemote?
 )
 

@@ -1,0 +1,126 @@
+import org.gradle.api.artifacts.dsl.LockMode
+
+apply plugin: 'org.jetbrains.kotlin.jvm'
+
+if (!gradle.ext.fearlessDependencyProvenanceRequired) {
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = 'materializedIrohaMobileSdkForSmoke'
+                    url = rootProject.layout.buildDirectory.dir('iroha-mobile-sdk/maven')
+                    metadataSources {
+                        gradleMetadata()
+                        mavenPom()
+                        artifact()
+                    }
+                }
+            }
+            filter {
+                includeGroup 'org.hyperledger.iroha.sdk'
+            }
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
+    implementation project(':iroha-sdk-bridge')
+    testImplementation libs.junit
+}
+
+dependencyLocking {
+    lockMode = LockMode.STRICT
+    lockAllConfigurations()
+}
+
+tasks.register('verifyKotlinCompileClasspathIsolation') {
+    group = 'verification'
+    description = 'Proves Kotlin 2.1 compiles against only the SDK-neutral Java bridge API.'
+
+    doLast {
+        def components = configurations.testCompileClasspath.incoming.resolutionResult.allComponents
+        def coordinates = components.collect { component -> component.moduleVersion?.toString() }
+                .findAll { it != null }
+                .toSet()
+        def forbidden = coordinates.findAll { coordinate ->
+            coordinate.startsWith('org.hyperledger.iroha.sdk:') ||
+                    coordinate.startsWith('com.github.luben:zstd-jni:') ||
+                    coordinate.startsWith('org.jetbrains.kotlinx:kotlinx-serialization-json:') ||
+                    coordinate.startsWith('org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:') ||
+                    (coordinate.startsWith('org.jetbrains.kotlin:kotlin-stdlib:') &&
+                            coordinate != 'org.jetbrains.kotlin:kotlin-stdlib:2.1.10')
+        }
+        if (!forbidden.isEmpty()) {
+            throw new GradleException("SDK implementation leaked into Kotlin 2.1 compile classpath: ${forbidden}")
+        }
+    }
+}
+
+tasks.register('verifyIrohaStagingBoundary') {
+    group = 'verification'
+    description = 'Proves no production project depends on the staged Iroha bridge or smoke module.'
+
+    doLast {
+        def stagedPaths = [':iroha-sdk-bridge', ':iroha-sdk-bridge-kotlin-smoke'] as Set
+        def leaks = []
+        rootProject.subprojects.findAll { !stagedPaths.contains(it.path) }.toList().each { candidate ->
+            candidate.configurations.toList().each { configuration ->
+                configuration.dependencies.withType(ProjectDependency).toList().each { dependency ->
+                    if (stagedPaths.contains(dependency.path)) {
+                        leaks << "${candidate.path}:${configuration.name} -> ${dependency.path}"
+                    }
+                }
+            }
+        }
+        if (!leaks.isEmpty()) {
+            throw new GradleException("Staged Iroha bridge leaked into production project graph: ${leaks}")
+        }
+    }
+}
+
+def appProject = project(':app')
+def appRuntimeBoundaryTask = appProject.tasks.register('verifyStagedIrohaSdkExcluded') {
+    group = 'verification'
+    description = 'Resolves app debug/release runtimes and proves the staged SDK is absent.'
+
+    doLast {
+        ['debugRuntimeClasspath', 'releaseRuntimeClasspath'].each { configurationName ->
+            def configuration = appProject.configurations.findByName(configurationName)
+            if (configuration == null) {
+                throw new GradleException("Missing app runtime configuration: ${configurationName}")
+            }
+            def components = configuration.incoming.resolutionResult.allComponents
+            def forbidden = components.findAll { component ->
+                def display = component.id.displayName
+                display == 'project :iroha-sdk-bridge' ||
+                        display == 'project :iroha-sdk-bridge-kotlin-smoke' ||
+                        display.startsWith('org.hyperledger.iroha.sdk:')
+            }.collect { it.id.displayName }
+            if (!forbidden.isEmpty()) {
+                throw new GradleException(
+                        "Staged Iroha SDK leaked into app ${configurationName}: ${forbidden}"
+                )
+            }
+        }
+    }
+}
+
+tasks.named('compileTestKotlin').configure {
+    dependsOn tasks.named('verifyKotlinCompileClasspathIsolation')
+}
+
+tasks.named('check').configure {
+    dependsOn ':iroha-sdk-bridge:verifyIrohaBridgeRuntime'
+    dependsOn tasks.named('verifyKotlinCompileClasspathIsolation')
+    dependsOn tasks.named('verifyIrohaStagingBoundary')
+    dependsOn appRuntimeBoundaryTask
+}

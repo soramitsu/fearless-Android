@@ -28,6 +28,7 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
@@ -47,6 +48,7 @@ import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
@@ -63,6 +65,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvi
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.CoinbaseProvider
+import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
@@ -107,7 +110,11 @@ import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xcm.ExtrinsicServiceXcmSubmitter
 import jp.co.soramitsu.xcm.SubstrateXcmTransferEngine
+import jp.co.soramitsu.xcm.UnavailableXcmTransferEngine
 import jp.co.soramitsu.xcm.XcmService
+import jp.co.soramitsu.xcm.XcmTransferEngine
+import jp.co.soramitsu.xcm.domain.ApprovedXcmRouteRegistry
+import jp.co.soramitsu.xcm.domain.ApprovedXcmRouteRegistryLoader
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
@@ -120,6 +127,19 @@ import javax.inject.Singleton
 private const val TIMEOUT_SECONDS = 60L
 private const val HTTP_CACHE = "http_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
+
+internal fun selectApprovedXcmRouteRegistry(
+    enabled: Boolean,
+    loader: () -> ApprovedXcmRouteRegistry
+): ApprovedXcmRouteRegistry {
+    if (!enabled) return ApprovedXcmRouteRegistry.unavailable()
+
+    return try {
+        loader()
+    } catch (error: Exception) {
+        ApprovedXcmRouteRegistry.unavailable()
+    }
+}
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -364,20 +384,29 @@ class WalletFeatureModule {
 
     @Provides
     @Singleton
-    fun provideXcmService(
-        chainRegistry: ChainRegistry,
+    fun provideXcmTransferEngine(
         rpcCalls: RpcCalls,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory
-    ): XcmService {
-        return XcmService(
-            chainRegistry,
+    ): XcmTransferEngine {
+        return if (BuildConfig.ENABLE_PRODUCTION_XCM_TRANSFERS) {
             SubstrateXcmTransferEngine(
                 ExtrinsicServiceXcmSubmitter(
                     rpcCalls = rpcCalls,
                     extrinsicBuilderFactory = extrinsicBuilderFactory
                 )
             )
-        )
+        } else {
+            UnavailableXcmTransferEngine
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideXcmService(
+        xcmEntitiesFetcher: XcmEntitiesFetcher,
+        xcmTransferEngine: XcmTransferEngine
+    ): XcmService {
+        return XcmService(xcmEntitiesFetcher, xcmTransferEngine)
     }
 
     @Provides
@@ -413,8 +442,31 @@ class WalletFeatureModule {
     ): ChainInteractor = ChainInteractor(chainDao, xcmEntitiesFetcher)
 
     @Provides
-    fun provideXcmEntitiesFetcher(chainRegistry: ChainRegistry): XcmEntitiesFetcher {
-        return XcmEntitiesFetcher(chainRegistry)
+    @Singleton
+    fun provideApprovedXcmRouteRegistry(contextManager: ContextManager): ApprovedXcmRouteRegistry {
+        if (!BuildConfig.ENABLE_PRODUCTION_XCM_TRANSFERS) {
+            return ApprovedXcmRouteRegistry.unavailable()
+        }
+
+        return selectApprovedXcmRouteRegistry(enabled = true) {
+            val context = contextManager.getContext()
+            val bundledChains = context.assets.open("local_chains.json")
+                .bufferedReader()
+                .use { it.readText() }
+            val approvedRoutes = context.assets.open("approved_xcm_routes.tsv")
+                .bufferedReader()
+                .use { it.readText() }
+            ApprovedXcmRouteRegistryLoader.load(bundledChains, approvedRoutes)
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideXcmEntitiesFetcher(
+        chainSyncService: ChainSyncService,
+        approvedRoutes: ApprovedXcmRouteRegistry
+    ): XcmEntitiesFetcher {
+        return XcmEntitiesFetcher(chainSyncService, approvedRoutes)
     }
 
     @Provides
@@ -422,6 +474,10 @@ class WalletFeatureModule {
         return BuyTokenRegistry(
             availableProviders = listOf(
                 RampProvider(host = BuildConfig.RAMP_HOST, apiToken = BuildConfig.RAMP_TOKEN),
+                MoonPayProvider(
+                    host = BuildConfig.MOONPAY_HOST,
+                    publicKey = BuildConfig.MOONPAY_PUBLIC_KEY
+                ),
                 CoinbaseProvider(
                     host = BuildConfig.COINBASE_HOST,
                     appId = BuildConfig.COINBASE_APP_ID

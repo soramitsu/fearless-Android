@@ -11,6 +11,8 @@ on:
 permissions:
   actions: read
   contents: read
+  id-token: write
+  attestations: write
 
 concurrency:
   group: fearless-android-release
@@ -221,13 +223,17 @@ jobs:
           bash ./scripts/test-android-release-sdk.sh
           bash ./scripts/test-android-migration-ci-gate.sh
           bash ./scripts/test-android-migration-instrumentation-results.sh
+          bash ./scripts/test-fearless-utils-derived-tree.sh
+          bash ./scripts/test-iroha-production-send-readiness-audit.sh
+          bash ./scripts/audit-iroha-production-send-readiness.sh
           IAS_GRADLE_CONTRACT_ONLY=true \
             bash ./scripts/test-android-internal-app-sharing.sh
           bash ./scripts/test-fearless-utils-source-integrity.sh
-          bash ./scripts/test-gradle-dependency-provenance.sh
+          /bin/bash -p ./scripts/test-gradle-dependency-provenance.sh
           bash ./scripts/test-release-overlay-interruption.sh
           bash ./scripts/test-android-release-media-permissions.sh
           bash ./scripts/test-android-moonpay-client-secret-policy.sh
+          bash ./scripts/test-public-artifact-provenance-audit.sh
           bash ./scripts/verify-android-moonpay-client-secret-policy.sh
           bash ./scripts/verify-android-release-media-permissions.sh \
             app/src/main/AndroidManifest.xml
@@ -366,6 +372,7 @@ jobs:
       - name: Materialize and fingerprint exact fearless-utils tree
         run: |
           set -euo pipefail
+          bash ./scripts/test-fearless-utils-derived-tree.sh
           utils_verification="$RUNNER_TEMP/fearless-utils-before-build.log"
           ./scripts/ensure-fearless-utils.sh | tee "$utils_verification"
           [[ "$(git -C "$FEARLESS_UTILS_PATH" rev-parse HEAD)" == \
@@ -594,9 +601,7 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/install-android-release-sdk.sh verify
-          ./scripts/audit-public-artifacts.sh \
-            --unsigned-release \
-            --strict-provenance
+          ./scripts/audit-public-artifacts.sh --unsigned-release --strict-provenance
           ./gradlew clean \
             -Pandroid.builder.sdkDownload=false \
             --no-daemon \

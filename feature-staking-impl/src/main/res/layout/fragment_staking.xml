@@ -86,6 +86,12 @@
                 android:layout_marginEnd="16dp"
                 android:visibility="gone" />
 
+            <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/nonPoolStakingBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:layout_height="48dp" />
+
             <jp.co.soramitsu.staking.impl.presentation.view.StakeSummaryView
                 android:id="@+id/stakingStakeSummary"
                 android:layout_width="match_parent"

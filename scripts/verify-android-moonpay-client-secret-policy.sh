@@ -19,6 +19,9 @@ is_android_policy_input() {
     third_party/*|*/build/*|.gradle/*|.git/*|node_modules/*)
       return 1
       ;;
+    */src/test/*|*/src/androidTest/*|*/src/testFixtures/*)
+      return 1
+      ;;
     scripts/verify-android-moonpay-client-secret-policy.sh|\
       scripts/test-android-moonpay-client-secret-policy.sh)
       return 1
@@ -66,7 +69,17 @@ scan_forbidden_obfuscated_pattern() {
   local found=false
 
   for path in "${policy_inputs[@]}"; do
-    if [[ "$path" == .github/workflows/* ]]; then
+    [[ "$path" == "$provider_path" ]] && continue
+
+    if [[ "$path" == "feature-wallet-impl/build.gradle" ]]; then
+      if LC_ALL=C sed -E \
+        '/^[[:space:]]*buildConfigField "String", "MOONPAY_PUBLIC_KEY", readOptionalSecretInQuotes\("MOONPAY_(TEST|PRODUCTION)_PUBLIC_KEY"\)[[:space:]]*$/d' \
+        "$ROOT/$path" |
+        LC_ALL=C grep -aiE "$pattern" >/dev/null; then
+        echo "[moonpay-client-policy][error] forbidden $description in $path" >&2
+        found=true
+      fi
+    elif [[ "$path" == .github/workflows/* ]]; then
       if LC_ALL=C sed '/android-moonpay-client-secret-policy\.sh/d' \
         "$ROOT/$path" |
         LC_ALL=C grep -aiE "$pattern" >/dev/null; then
@@ -93,14 +106,17 @@ hash_stdin() {
 
 require_file "feature-wallet-impl/build.gradle"
 require_file "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
+require_file "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/MoonPayProvider.kt"
 require_file "common/src/main/java/jp/co/soramitsu/common/utils/CryptoUtils.kt"
 
 git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
   fail "The policy root must be a Git worktree so only tracked inputs are audited."
 
 provider_path="feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/MoonPayProvider.kt"
-[[ ! -e "$ROOT/$provider_path" ]] ||
-  fail "$provider_path must remain absent until MoonPay signing is server-side."
+provider_sha256="$(hash_stdin < "$ROOT/$provider_path")"
+[[ "$provider_sha256" == \
+  "43efc2ff4092d2b815e7dc25f70e1941e9aac5c169eb0ec21506a4f897c40c03" ]] ||
+  fail "$provider_path differs from the reviewed publishable-key/manual-wallet implementation."
 
 policy_inputs=()
 while IFS= read -r -d '' path; do
@@ -115,12 +131,12 @@ done < <(git -C "$ROOT" ls-files -z)
   fail "No tracked Android source, build, script, or workflow inputs were found."
 
 scan_forbidden_pattern \
-  "MoonPay credential/configuration identifier" \
-  'MOONPAY_([A-Z0-9_]*_)?(SECRET|PRIVATE_KEY|SIGNING_KEY|HMAC_KEY|PUBLIC_KEY|HOST)|moonpay[A-Za-z0-9]*(Secret|PrivateKey|SigningKey|HmacKey)'
+  "MoonPay signing-credential identifier" \
+  'MOONPAY_([A-Z0-9_]*_)?(SECRET|API_SECRET|PRIVATE_KEY|SIGNING_KEY|HMAC_KEY)|moonpay[A-Za-z0-9_]*(Secret|PrivateKey|SigningKey|HmacKey|Signer)|((Secret|PrivateKey|SigningKey|HmacKey|Signer)[A-Za-z0-9_]*)moonpay'
 
 scan_forbidden_pattern \
-  "MoonPay client signer/provider" \
-  "MoonPayProvider|moonpay[^[:alnum:]]*(hmac|signature|private|secret|sign|signer|signing)|((hmac|signature|private|secret|sign|signer|signing)[^[:alnum:]]*)moonpay|https?://[^[:space:]\"']*moonpay"
+  "MoonPay client signing operation" \
+  'moonpay[A-Za-z0-9_]*(hmac|signature|private|secret|sign|signer|signing)|((hmac|signature|private|secret|sign|signer|signing)[A-Za-z0-9_]*)moonpay'
 
 scan_forbidden_pattern \
   "generic HMAC helper formerly used by MoonPay" \
@@ -137,6 +153,7 @@ expected_provider_files="$(
   printf '%s\n' \
     "$provider_dir/CoinbaseProvider.kt" \
     "$provider_dir/ExternalProvider.kt" \
+    "$provider_dir/MoonPayProvider.kt" \
     "$provider_dir/RampProvider.kt"
 )"
 actual_provider_files="$(
@@ -164,8 +181,8 @@ provider_block_sha256="$(
     hash_stdin
 )"
 [[ "$provider_block_sha256" == \
-  "4da5b1ba05ee54247c11df1889a947ac6cba79c8186a6e3cb0e9415494b75d87" ]] ||
-  fail "The buy-provider registry differs from the exact Ramp/Coinbase allowlist."
+  "f4e1455ff74af8ec5fae3003e4c80b4aa305ec50446330cd02511ef692db2d74" ]] ||
+  fail "The buy-provider registry differs from the exact Ramp/MoonPay/Coinbase allowlist."
 
 echo \
-  "[moonpay-client-policy] PASS: ${#policy_inputs[@]} tracked Android source/build/workflow inputs contain no client signing material."
+  "[moonpay-client-policy] PASS: the exact reviewed public MoonPay flow and ${#policy_inputs[@]} tracked shipping source/build/workflow inputs contain no client signing material."

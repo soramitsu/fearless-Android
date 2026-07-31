@@ -88,6 +88,7 @@ prepare_android_packages() {
 ensure_fearless_utils() {
   export FORCE_LOCAL_UTILS="${FORCE_LOCAL_UTILS:-true}"
   export FEARLESS_UTILS_LIBRARY_ONLY="${FEARLESS_UTILS_LIBRARY_ONLY:-true}"
+  bash ./scripts/test-fearless-utils-derived-tree.sh
   ./scripts/ensure-fearless-utils.sh
 }
 
@@ -101,10 +102,21 @@ check_iroha_mobile_sdk_release_assets() {
   fi
 }
 
+verify_staged_iroha_core_bridge() {
+  log "Verifying the staged, fail-closed Iroha core bridge..."
+  if [[ -n "${IROHA_CORE_JVM_ARCHIVE:-}" ]]; then
+    bash ./scripts/verify-staged-iroha-core-bridge.sh --archive "$IROHA_CORE_JVM_ARCHIVE"
+  else
+    bash ./scripts/verify-staged-iroha-core-bridge.sh --download
+  fi
+}
+
 audit_xcm_registry_metadata() {
   log "Checking XCM registry metadata contract..."
   bash ./scripts/test-xcm-registry-metadata-audit.sh
   bash ./scripts/audit-xcm-registry-metadata.sh
+  bash ./scripts/test-xcm-effective-registry-audit.sh
+  bash ./scripts/audit-xcm-effective-registry.sh --write-report build/reports/xcm-effective-registry-report.json
 }
 
 run_gradle_tasks() {
@@ -137,6 +149,7 @@ main() {
   ensure_android_sdk || warn "SDK not fully configured; continuing if tasks do not require it."
   prepare_android_packages || warn "Could not ensure SDK packages; unit tests may still run."
   run_gradle_tasks
+  verify_staged_iroha_core_bridge
 }
 
 main "$@"

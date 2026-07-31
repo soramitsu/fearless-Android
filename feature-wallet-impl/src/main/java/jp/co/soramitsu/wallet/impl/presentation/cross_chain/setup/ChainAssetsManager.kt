@@ -4,6 +4,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -126,14 +127,21 @@ class ChainAssetsManager @Inject constructor(
     }
 
     private suspend fun getActualAssetId(originChainId: ChainId, assetId: String?): String? {
-        val supportedXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
+        val supportedXcmAssets = xcmEntitiesFetcher.getAvailableAssets(
             originChainId = originChainId,
             destinationChainId = null
-        ).map { it.symbol.uppercase() }
+        )
 
         val xcmAssets = walletInteractor.assetsFlow().first()
             .map { it.asset.token.configuration }
-            .filter { it.chainId == originChainId && it.symbol.uppercase() in supportedXcmAssetSymbols }
+            .filter { asset ->
+                asset.chainId == originChainId && supportedXcmAssets.any { approved ->
+                    asset.chainId == approved.originChainId &&
+                    asset.id == approved.originAssetId &&
+                        asset.precision == approved.originAssetPrecision &&
+                        asset.symbol.normalizedXcmSymbol() == approved.symbol
+                }
+            }
         val xcmAssetIds = xcmAssets.map { it.id }
         val utilityXcmAssetId = xcmAssets.firstOrNull { it.isUtility }?.id
 
@@ -143,6 +151,11 @@ class ChainAssetsManager @Inject constructor(
             utilityXcmAssetId
         }
     }
+
+    private fun String.normalizedXcmSymbol(): String = trim()
+        .lowercase()
+        .removedXcPrefix()
+        .uppercase()
 
     private suspend fun getActualDestinationChainId(
         originChainId: ChainId,

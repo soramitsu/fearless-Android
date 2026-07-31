@@ -33,6 +33,7 @@ import jp.co.soramitsu.common.compose.component.BannerBackup
 import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
 import jp.co.soramitsu.common.compose.component.BannerJoinTon
 import jp.co.soramitsu.common.compose.component.BannerPageIndicator
+import jp.co.soramitsu.common.compose.component.BannerWalletRecovery
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -156,7 +157,17 @@ private fun Banners(
     callback: WalletScreenInterface,
     autoPlay: Boolean = true
 ) {
-    val backupBanner: @Composable (() -> Unit)? = if (!data.isBackedUp) {
+    val recoveryBanner: @Composable (() -> Unit)? = if (data.isRecoveryRequired) {
+        {
+            BannerWalletRecovery()
+        }
+    } else {
+        null
+    }
+
+    val backupBanner: @Composable (() -> Unit)? = if (
+        !data.isRecoveryRequired && !data.isBackedUp
+    ) {
         {
             BannerBackup(
                 onBackupClick = callback::onBackupClicked,
@@ -189,7 +200,12 @@ private fun Banners(
         null
     }
 
-    val banners = listOfNotNull(backupBanner, joinSubOrEvmBanner, joinTonBanner)
+    val banners = listOfNotNull(
+        recoveryBanner,
+        backupBanner,
+        joinSubOrEvmBanner,
+        joinTonBanner
+    )
     val bannersCount = banners.size
     val pagerState = rememberPagerState { bannersCount }
 
@@ -335,6 +351,7 @@ private fun PreviewWalletScreen() {
                     ),
                     hasNetworkIssues = true,
                     isBackedUp = false,
+                    isRecoveryRequired = false,
                     hasTonAccounts = false,
                     hasSubOrEvmAccounts = false,
                     showCurrenciesOrNftSelector = false,

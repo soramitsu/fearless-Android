@@ -24,14 +24,15 @@ android {
     buildTypes {
         debug {
             def CHAINS_URL_DEBUG_DEFAULT = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v13/chains_dev_prod.json"
-            def chainsUrlDebug = readOptionalSecret("CHAINS_URL_DEBUG_OVERRIDE") ?: (readOptionalSecret("CHAINS_URL_OVERRIDE") ?: CHAINS_URL_DEBUG_DEFAULT)
+            def chainsUrlDebug = readOptionalSecret("CHAINS_URL_DEBUG_OVERRIDE") ?: CHAINS_URL_DEBUG_DEFAULT
             buildConfigField "String", "CHAINS_URL", "\"${chainsUrlDebug}\""
         }
 
         release {
-            def CHAINS_URL_RELEASE_DEFAULT = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json"
-            def chainsUrlRelease = readOptionalSecret("CHAINS_URL_RELEASE_OVERRIDE") ?: (readOptionalSecret("CHAINS_URL_OVERRIDE") ?: CHAINS_URL_RELEASE_DEFAULT)
-            buildConfigField "String", "CHAINS_URL", "\"${chainsUrlRelease}\""
+            // Release discovery is intentionally immutable. Mutable discovery may
+            // only narrow APK-approved routes, and the effective-registry audit
+            // attests this exact endpoint. Overrides remain debug-only.
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json\""
         }
     }
 

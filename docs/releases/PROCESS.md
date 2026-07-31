@@ -36,7 +36,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   workflow consumes checksum-pinned checked-in JNI artifacts and does not
   install a mutable Rust toolchain.
 - Secrets: configured via env or `local.properties` (see README / docs samples).
-- Optional alignment overrides (first run mirrors): `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE`.
+- Optional alignment overrides (first run mirrors): `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and debug-only `CHAINS_URL_DEBUG_OVERRIDE`. Release chain discovery is pinned.
 
 ## Pre‑Release Checklist
 
@@ -44,7 +44,8 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - `./gradlew printPolkadotSdkAlignment`
   - Confirm effective URLs and shared_features pin (or "(not pinned)").
 - Public artifact audit:
-  - `./scripts/audit-public-artifacts.sh`
+  - `bash ./scripts/test-public-artifact-provenance-audit.sh`
+  - `./scripts/audit-public-artifacts.sh --strict-provenance`
   - Confirm checked-in Firebase files use the `fearless-public` placeholder
     project, no signing material is tracked, and pinned binary checksums match.
 - Distribution guards:
@@ -60,7 +61,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - `bash scripts/test-android-release-source-tree.sh`
   - `bash scripts/test-android-release-sdk.sh`
   - `bash scripts/test-fearless-utils-source-integrity.sh`
-  - `bash scripts/test-gradle-dependency-provenance.sh`
+  - `/bin/bash -p scripts/test-gradle-dependency-provenance.sh`
   - `bash scripts/test-android-moonpay-client-secret-policy.sh`
   - `bash scripts/verify-android-moonpay-client-secret-policy.sh`
   - `bash scripts/test-android-aab-jar-signature.sh`
@@ -82,7 +83,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     artifact/attestation/signing phases, weakened downloaded evidence, and
     cleanup that is not unconditional.
   - Governance fixes 3 positive and 43 negative cases. The exact source-tree
-    gate fixes 3 positive and 13 adversarial cases and rejects tracked, staged,
+    gate fixes 3 positive and 14 adversarial cases and rejects tracked, staged,
     untracked, source-like ignored, or premature nested-utils drift at each
     release boundary. The isolated Android SDK suite fixes 53 adversarial
     archive, extraction, path, metadata, and installed-tree cases.
@@ -113,7 +114,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     adversarial cases. The build-log suite fixes 2 positive and 26 adversarial
     cases and rejects cached, skipped, duplicated, warning-bearing, oversized,
     symlinked, or mutating evidence. Gradle dependency provenance fixes 2
-    positive and 40
+    positive and 65
     adversarial cases and pins the Gradle distribution checksum, strict
     verification metadata and its digest, the strict root buildscript lock, and
     the production release lockfile; release/CI builds reject `mavenLocal()` and
@@ -146,6 +147,9 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - `./gradlew detektAll`
 - Unit tests + coverage:
   - `./gradlew runTest`
+  - `bash ./scripts/test-unit-test-task-membership-audit.sh && bash ./scripts/audit-unit-test-task-membership.sh`
+  - The membership audit requires every module with `src/test` Kotlin or Java
+    sources, including `core-api`, backup, and XCM, to be in `runTest`.
   - Inspect `*/build/reports/tests/testDebugUnitTest/index.html`.
 - Lint (app):
   - `./gradlew :app:lint`
@@ -224,6 +228,27 @@ source-bound `RELEASE_COMMIT`. It requires the checksum-pinned
 arguments are the fresh AAB, expected source commit, and, only for the eligible
 manual run, an absolute private handoff path.
 
+Before any Gradle release resolution, verify the pinned public dependency and
+the committed library-only overlay with the canonical guard command:
+
+```
+FEARLESS_UTILS_PATH=../fearless-utils-Android \
+FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6 \
+FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android \
+FEARLESS_UTILS_LIBRARY_ONLY=true \
+./scripts/ensure-fearless-utils.sh
+```
+
+Regenerate and verify the public-dependency handoff and both provenance modes:
+
+```
+bash ./scripts/test-public-dependency-upstream-delta-export.sh
+bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
+bash ./scripts/test-public-artifact-provenance-audit.sh
+./scripts/audit-public-artifacts.sh --strict-provenance
+./scripts/audit-public-artifacts.sh --release --strict-provenance
+```
+
 CI qualification runs in this order:
 
 1. Gate the exact first-party repository and supported event/ref, then check out
@@ -254,7 +279,7 @@ CI qualification runs in this order:
    otherwise it must delete it. The scheduled janitor removes canceled, failed,
    stale, or ambiguous pending artifacts.
 
-Frozen totals are dependency provenance 2 positive / 40 adversarial, bounded
+Frozen totals are dependency provenance 2 positive / 65 adversarial, bounded
 Gradle coverage cleanup 4 positive / 12 negative/adversarial, IAS Gradle 8
 positive / 39 behavioral negative / 645 static adversarial assertions, and
 workflow Linux public-certificate IAS AAB 7 positive / 78 adversarial

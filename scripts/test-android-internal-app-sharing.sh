@@ -1193,6 +1193,25 @@ for needle in forbidden_app:
 for needle in required_lock_configs:
     if needle not in root or needle not in locks:
         failures.append(f"missing strict IAS lock coverage: {needle}")
+required_resolved_lock = (
+    "androidx.credentials:credentials-play-services-auth:1.6.0="
+    "internalAppSharingCompileClasspath,internalAppSharingRuntimeClasspath,"
+    "releaseCompileClasspath,releaseRuntimeClasspath"
+)
+if locks.count(required_resolved_lock) != 1:
+    failures.append(
+        "Google credentials transport must be locked once across exact "
+        "release and IAS compile/runtime graphs"
+    )
+for stale_lock in (
+    "com.madgag.spongycastle:bcpg-jdk15on:1.58.0.0=",
+    "com.madgag.spongycastle:bcpkix-jdk15on:1.58.0.0=",
+):
+    if stale_lock in locks:
+        failures.append(
+            "stale replaced SpongyCastle dependency remains locked: "
+            f"{stale_lock[:-1]}"
+        )
 for needle in required_self_test:
     if needle not in self_test:
         failures.append(f"missing portable IAS self-test contract: {needle}")

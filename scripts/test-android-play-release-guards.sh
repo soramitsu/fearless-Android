@@ -1621,8 +1621,8 @@ verify_static_contract() {
     "source-tree test must fix its three valid boundary cases"
   require_text \
     "$source_tree_test" \
-    '[[ "$negative_count" == "13" ]]' \
-    "source-tree test must fix its 13 adversarial cases"
+    '[[ "$negative_count" == "14" ]]' \
+    "source-tree test must fix its 14 adversarial cases"
   require_text \
     "$overlay_test" \
     "expected 20 interruption cases" \
@@ -1673,8 +1673,12 @@ verify_static_contract() {
     "dependency-provenance test must retain both valid configurations"
   require_text \
     "$dependency_test" \
-    'EXPECTED_NEGATIVE_COUNT=40' \
-    "dependency-provenance test must retain all 40 adversarial cases"
+    'EXPECTED_NEGATIVE_COUNT=65' \
+    "dependency-provenance test must retain all 65 adversarial cases"
+  require_block_text \
+    "$controls_job" \
+    '/bin/bash -p ./scripts/test-gradle-dependency-provenance.sh' \
+    "dependency-provenance test must use the trusted privileged Bash bootstrap"
   require_text \
     "$dependency_test" \
     '[[ "$negative_count" == "$EXPECTED_NEGATIVE_COUNT" ]]' \
@@ -2828,11 +2832,11 @@ expect_static_failure \
 
 fixture="$(make_fixture dependency-provenance-count-weakened)"
 replace_once "$fixture/scripts/test-gradle-dependency-provenance.sh" \
-  "EXPECTED_NEGATIVE_COUNT=40" \
-  "EXPECTED_NEGATIVE_COUNT=39"
+  "EXPECTED_NEGATIVE_COUNT=65" \
+  "EXPECTED_NEGATIVE_COUNT=64"
 expect_static_failure \
   "dependency-provenance adversarial count weakened" \
-  "retain all 40 adversarial cases" \
+  "retain all 65 adversarial cases" \
   "$fixture"
 
 fixture="$(make_fixture identity-count-weakened)"
@@ -2883,11 +2887,11 @@ expect_static_failure \
 
 fixture="$(make_fixture source-tree-count-weakened)"
 replace_once "$fixture/scripts/test-android-release-source-tree.sh" \
-  '[[ "$negative_count" == "13" ]]' \
-  '[[ "$negative_count" == "12" ]]'
+  '[[ "$negative_count" == "14" ]]' \
+  '[[ "$negative_count" == "13" ]]'
 expect_static_failure \
   "source-tree adversarial count weakened" \
-  "13 adversarial cases" \
+  "14 adversarial cases" \
   "$fixture"
 
 fixture="$(make_fixture artifact-verification-removed)"

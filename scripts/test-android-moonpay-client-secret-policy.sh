@@ -28,6 +28,7 @@ make_fixture() {
   cp \
     "$ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/ExternalProvider.kt" \
     "$ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/RampProvider.kt" \
+    "$ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/MoonPayProvider.kt" \
     "$ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/CoinbaseProvider.kt" \
     "$TMP/fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/"
   printf '%s\n' 'android { }' > "$TMP/fixture/app/build.gradle"
@@ -100,7 +101,7 @@ expect_rejected "generic MoonPay HMAC helper restored"
 make_fixture
 printf '%s\n' 'MoonPayProvider(privateKey = "embedded")' \
   >> "$TMP/fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
-expect_rejected "MoonPay re-registered in dependency injection"
+expect_rejected "private signing key injected into MoonPay registration"
 
 make_fixture
 printf '%s\n' 'env:' '  MOONPAY_PRODUCTION_SECRET: secret' \

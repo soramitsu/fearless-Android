@@ -19,8 +19,9 @@ Build Types
 
 Configs & Secrets (see README for details)
 - WalletConnect: `WALLET_CONNECT_PROJECT_ID` in `BuildConfig`.
-- MoonPay is disabled until its URL is signed by a backend or a supported
-  public mobile flow; never add a MoonPay signing secret to `BuildConfig`.
+- MoonPay: publishable `MOONPAY_TEST_PUBLIC_KEY` and
+  `MOONPAY_PRODUCTION_PUBLIC_KEY` only. URL signatures and server secrets must
+  never be generated, stored, or injected in the Android app.
 - Buy providers: `RAMP_TOKEN_DEBUG`, `RAMP_TOKEN_RELEASE`, `COINBASE_APP_ID`.
 - Firebase: checked-in `google-services.json` files are placeholders; real
   Firebase project files must come from private CI or local overlay config for

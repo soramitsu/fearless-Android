@@ -166,6 +166,10 @@ endpoints, never a public indexer endpoint.
 - Nexus mainnet uses I105 chain discriminant `753` and chain id
   `sora:nexus:global`, but remains registry-gated until the
   production Torii/TLS endpoint is confirmed.
+- Iroha `features = ["transfer"]` is capability metadata, not a production-send
+  enablement claim. Android send remains fail closed under
+  `config/iroha-production-send-readiness.json`; see
+  `docs/iroha-production-send-readiness.md` for the pinned upstream blocker.
 
 ## Normalized Indexer Contract
 

@@ -174,7 +174,7 @@ class SolanaRpcClientTest {
     }
 
     @Test
-    fun `normalizes rpc error codes exactly without api 31 integer methods`() {
+    fun `accepts only signed int range rpc error codes`() {
         val cases = listOf(
             Int.MIN_VALUE.toString() to Int.MIN_VALUE,
             Int.MAX_VALUE.toString() to Int.MAX_VALUE,

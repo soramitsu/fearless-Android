@@ -95,6 +95,23 @@ cleanup() {
 trap cleanup EXIT
 trap 'cleanup; exit 130' HUP INT TERM
 
+if ! find "$ROOT_DIR" \
+  \( \
+    -path "$ROOT_DIR/.git" -o \
+    -path "$ROOT_DIR/fearless-utils-Android" \
+  \) -prune -o -type l -print0 >"$status_file"; then
+  fail "Could not inspect generated output paths for symlinks."
+fi
+
+while IFS= read -r -d '' symlink_path; do
+  relative_path="${symlink_path#"$ROOT_DIR"/}"
+  if is_approved_generated_path "$relative_path"; then
+    fail \
+      "Generated output path cannot be or contain a symlink: $(printf '%q' "$relative_path")"
+  fi
+done <"$status_file"
+
+: >"$status_file"
 git -C "$ROOT_DIR" status \
   --porcelain=v1 \
   -z \

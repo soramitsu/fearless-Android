@@ -24,12 +24,20 @@ Track features development: [board link](https://soramitsucoltd.aha.io/shared/34
 
 ## How to build
 
-To build Fearless Wallet Android project, you need to provide several keys either in environment variables or in `local.properties` file.
+To build Fearless Wallet Android project, you need to provide several keys either in environment variables or in `local.properties` file:
 
-MoonPay is intentionally disabled. Its widget URL requires a server-side
-signature, so a MoonPay signing secret must never be supplied to or compiled
-into the Android client. Re-enable it only through a backend-signed or
-MoonPay-supported public mobile integration.
+### Moonpay properties
+```
+MOONPAY_TEST_PUBLIC_KEY=stub
+MOONPAY_PRODUCTION_PUBLIC_KEY=stub
+```
+
+Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
+The Android artifact accepts only MoonPay publishable keys. It intentionally
+does not prefill `walletAddress`, because MoonPay requires that parameter to be
+signed by a backend-held API secret. Never add a MoonPay secret or client-side
+URL signing to the app. See MoonPay's
+[widget signing guidance](https://dev.moonpay.com/docs/off-ramp-web-sdk#signing).
 
 ### Buy provider partner properties
 ```
@@ -165,7 +173,7 @@ source/output bytes, ZIP entry count, per-entry and aggregate expansion,
 encrypted or unsupported entries, duplicate canonical metadata, symlinks, and
 exclusive output creation.
 
-The frozen suites must report dependency provenance 2 positive / 40
+The frozen suites must report dependency provenance 2 positive / 65
 adversarial, bounded Gradle coverage cleanup 4 positive / 12
 negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 645
 static adversarial assertions, and the workflow's Linux public-certificate IAS
@@ -191,6 +199,29 @@ The handoff filename and verifier currently pin `4.2.0-ias` / version code
 `230`. Any change to either value in `versioning/version.properties` must update
 and review every IAS hardcode in the same commit before a new handoff is
 eligible; never relabel old bytes with a new filename.
+
+### Android testing distributions
+
+For a fast manual Google Play Internal App Sharing build:
+
+```
+./gradlew :app:bundleInternalAppSharing
+```
+
+Upload
+`app/build/outputs/bundle/internalAppSharing/app-internalAppSharing.aab` in Play
+Console and share the generated IAS link. This explicit variant uses release
+optimization/resources with the Android debug signer and a `-ias` version-name
+suffix. It cannot be published by a normal Gradle Play Publisher task and is
+not evidence for production signing, Play Integrity, certificate-bound app
+links/passkeys, or production upgrade behavior.
+
+Production-equivalent Google Play testing is handled by the tagged `Android
+Release` workflow. It accepts only `internal`, `alpha`, or `beta`, defaults to
+no Play publication and `draft`, and publishes the exact staged and attested
+production-signed AAB. An Open Testing link additionally depends on Play Console
+beta-track configuration and Google review. See
+`docs/releases/PROCESS.md` for the required secrets, gates, and operator steps.
 
 ### X1 plugin
 
@@ -247,14 +278,25 @@ Public builds use a checked-out copy of `fearless-utils-Android` as a composite 
 ```
 git clone https://github.com/soramitsu/fearless-utils-Android.git ../fearless-utils-Android
 git -C ../fearless-utils-Android checkout 7500809f33243ee47ecb2ec8563fc284ac4de0d6
-export FEARLESS_UTILS_PATH=/absolute/path/to/fearless-utils-Android
+export FEARLESS_UTILS_PATH=../fearless-utils-Android
+export FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6
+export FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android
 export FEARLESS_UTILS_LIBRARY_ONLY=true
+bash ./scripts/test-fearless-utils-derived-tree.sh
 ./scripts/ensure-fearless-utils.sh
 ./gradlew :app:assembleDebug
 ```
 
 Gradle includes the local project via a composite build through Gradle 9 and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils` automatically.
-Run `./scripts/ensure-fearless-utils.sh` to verify the checkout, pinned commit, and library-only overlay before building. The Gradle `USE_REMOTE_UTILS=true` source-control fallback remains experimental and is not the public CI contract.
+Run the self-test and guard shown above before building. The guard verifies the
+exact GitHub origin and pinned commit, requires an unstaged index, and compares
+the active checkout with a temporary-index model of either pristine `HEAD` or
+`HEAD` plus the committed library-only patch. Extra tracked or untracked source,
+partial overlays, modified patch-touched files, and dirty submodules fail closed;
+Git-ignored build output is outside the source-tree comparison. A pristine tree
+is overlaid and reverified, while a dirty tree is never rewritten. The Gradle
+`USE_REMOTE_UTILS=true` source-control fallback remains experimental and is not
+the public CI contract.
 Prereqs for building the utils from source: NDK r28 (android-ndk-r28 / 28.0.x) and a Rust toolchain on `PATH` (`rustup`, `cargo`).
 
 ### Rebuild libsodium with 16 KB alignment
@@ -273,6 +315,14 @@ Tracked native/vendor binary provenance is documented in
 `docs/binary-provenance.md`.
 Public dependency provenance and current Soramitsu artifact blockers are tracked
 in `docs/public-dependency-audit.md`.
+Validate both governance documents before release with:
+
+```
+bash ./scripts/test-public-dependency-upstream-delta-export.sh
+bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
+bash ./scripts/test-public-artifact-provenance-audit.sh
+./scripts/audit-public-artifacts.sh --strict-provenance
+```
 
 ## Contributing
 

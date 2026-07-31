@@ -118,6 +118,13 @@ class SubstrateXcmTransferEngine(
     }
 
     override suspend fun transfer(request: XcmTransferRequest): String {
+        require(request.asset.chainId == request.originChain.id) {
+            "XCM transfer asset must belong to the origin chain"
+        }
+        require(request.senderAccountId.size == request.originChain.expectedAccountIdSize()) {
+            "XCM transfer sender account id must match the approved origin-chain account width"
+        }
+        requireExecutionSpecMatchesAsset(request.asset, request.executionSpec)
         val provider = requireKeypairProvider(request.originChain.id)
         val call = buildTransferCall(request.executionSpec, request.recipientAddress, request.amount)
 
@@ -135,13 +142,12 @@ class SubstrateXcmTransferEngine(
         asset: Asset,
         executionSpec: XcmExecutionSpec
     ): BigDecimal {
+        requireExecutionSpecMatchesAsset(asset, executionSpec)
         require(originChainId.isNotBlank()) { "XCM destination fee origin chain id must not be blank" }
         require(destinationChainId.isNotBlank()) { "XCM destination fee destination chain id must not be blank" }
         require(originChainId != destinationChainId) { "XCM destination fee route chains must be different" }
+        require(asset.chainId == originChainId) { "XCM destination fee asset must belong to the origin chain" }
         require(asset.precision >= 0) { "XCM destination fee asset precision must not be negative" }
-        require(asset.symbol.normalizedAssetSymbol() == executionSpec.destinationFee.assetSymbol.normalizedAssetSymbol()) {
-            "XCM destination fee asset ${executionSpec.destinationFee.assetSymbol} does not match ${asset.symbol}"
-        }
 
         return when (executionSpec.destinationFee.mode) {
             XcmDestinationFeeMode.INCLUDED -> BigDecimal.ZERO
@@ -169,12 +175,16 @@ class SubstrateXcmTransferEngine(
         require(originFeeAsset.chainId == originChainId) {
             "XCM origin fee asset chain must match originChainId"
         }
+        require(asset.chainId == originChainId) {
+            "XCM transfer asset must belong to originChainId"
+        }
+        requireExecutionSpecMatchesAsset(asset, executionSpec)
         val provider = requireKeypairProvider(originChainId)
         val call = buildTransferCall(executionSpec, address, amount)
 
         val estimatedOriginFeePlancks = submitter.estimateFee(
             chain = originChain,
-            accountId = ByteArray(FEE_ESTIMATE_ACCOUNT_ID_SIZE_BYTES),
+            accountId = ByteArray(originChain.expectedAccountIdSize()),
             keypairProvider = provider,
             call = call
         )
@@ -187,6 +197,7 @@ class SubstrateXcmTransferEngine(
         recipientAddress: String,
         amount: BigInteger
     ): XcmExtrinsicCall {
+        requireSingleAssetExecutionSpec(executionSpec)
         require(recipientAddress.isNotBlank()) { "XCM recipient address must not be blank" }
         require(amount > BigInteger.ZERO) { "XCM transfer amount must be greater than zero" }
 
@@ -201,6 +212,52 @@ class SubstrateXcmTransferEngine(
                 recipientAddress,
                 amount
             )
+        }
+    }
+
+    private fun requireSingleAssetExecutionSpec(executionSpec: XcmExecutionSpec) {
+        require(executionSpec.bridge == null) {
+            "XCM bridge execution is unsupported until the production transfer engine consumes bridge fee semantics"
+        }
+        require(Regex("^v[1-9][0-9]*$").matches(executionSpec.xcmVersion)) {
+            "XCM execution spec xcmVersion must use canonical v<number> syntax"
+        }
+        require(executionSpec.feeAssetItem == 0) {
+            "XCM single-asset execution feeAssetItem must be zero"
+        }
+        require(executionSpec.feeAssetLocation == executionSpec.assetLocation) {
+            "XCM single-asset execution feeAssetLocation must equal assetLocation"
+        }
+        val accountJunctionTypes = setOf(XcmJunctionType.ACCOUNT_ID32, XcmJunctionType.ACCOUNT_KEY20)
+        listOf(
+            "destinationLocation" to executionSpec.destinationLocation,
+            "assetLocation" to executionSpec.assetLocation,
+            "feeAssetLocation" to executionSpec.feeAssetLocation
+        ).forEach { (fieldName, location) ->
+            require(location.junctions.none { it.type in accountJunctionTypes }) {
+                "XCM execution spec $fieldName must not contain recipient authority"
+            }
+        }
+        val beneficiaryAccounts = executionSpec.beneficiaryLocation.junctions
+            .filter { it.type in accountJunctionTypes }
+        require(beneficiaryAccounts.size == 1) {
+            "XCM execution spec beneficiaryLocation must contain exactly one recipient authority"
+        }
+        val beneficiaryAccount = beneficiaryAccounts.single()
+        val expectedAuthority = when (beneficiaryAccount.type) {
+            XcmJunctionType.ACCOUNT_ID32 -> "{network: Any, id: <account>}"
+            XcmJunctionType.ACCOUNT_KEY20 -> "{network: Any, key: <account>}"
+            else -> error("unreachable beneficiary account type")
+        }
+        require(beneficiaryAccount.value == expectedAuthority) {
+            "XCM execution spec beneficiary account must use exact $expectedAuthority recipient authority"
+        }
+    }
+
+    private fun requireExecutionSpecMatchesAsset(asset: Asset, executionSpec: XcmExecutionSpec) {
+        requireSingleAssetExecutionSpec(executionSpec)
+        require(asset.symbol.normalizedAssetSymbol() == executionSpec.destinationFee.assetSymbol.normalizedAssetSymbol()) {
+            "XCM execution spec for ${executionSpec.destinationFee.assetSymbol} does not match transfer asset ${asset.symbol}"
         }
     }
 
@@ -294,6 +351,9 @@ class SubstrateXcmTransferEngine(
         }
     }
 
+    private fun Chain.expectedAccountIdSize(): Int =
+        if (isEthereumBased) ETHEREUM_ACCOUNT_ID_SIZE_BYTES else SUBSTRATE_ACCOUNT_ID_SIZE_BYTES
+
     private fun versionedMultiLocation(
         executionSpec: XcmExecutionSpec,
         location: XcmMultiLocationSpec,
@@ -353,6 +413,7 @@ class SubstrateXcmTransferEngine(
     }
 
     private companion object {
-        const val FEE_ESTIMATE_ACCOUNT_ID_SIZE_BYTES = 32
+        const val SUBSTRATE_ACCOUNT_ID_SIZE_BYTES = 32
+        const val ETHEREUM_ACCOUNT_ID_SIZE_BYTES = 20
     }
 }

@@ -30,6 +30,8 @@ jobs:
       PAY_WINGS_REPOSITORY_URL: https://maven.google.com
       PAY_WINGS_USERNAME: ""
       PAY_WINGS_PASSWORD: ""
+      MOONPAY_TEST_PUBLIC_KEY: pk_test_ci_stub
+      MOONPAY_PRODUCTION_PUBLIC_KEY: pk_live_ci_stub
       FL_BLAST_API_ETHEREUM_KEY: stub
       FL_BLAST_API_BSC_KEY: stub
       FL_BLAST_API_SEPOLIA_KEY: stub
@@ -56,7 +58,9 @@ jobs:
           persist-credentials: false
 
       - name: Verify fearless-utils source
-        run: ./scripts/ensure-fearless-utils.sh
+        run: |
+          bash ./scripts/test-fearless-utils-derived-tree.sh
+          ./scripts/ensure-fearless-utils.sh
 
       - name: Public dependency upstream handoff
         run: |
@@ -69,7 +73,9 @@ jobs:
           bash ./scripts/test-branch-flow-audit.sh
 
       - name: Public artifact audit
-        run: ./scripts/audit-public-artifacts.sh
+        run: |
+          bash ./scripts/test-public-artifact-provenance-audit.sh
+          ./scripts/audit-public-artifacts.sh --strict-provenance
 
       - name: Android Play release guard contracts
         run: |
@@ -102,6 +108,9 @@ jobs:
             --write-gap-report build/reports/xcm-registry-gap-report.json \
             --require-route-file scripts/xcm-required-routes.tsv \
             --require-gap-file scripts/xcm-discovery-only-routes.tsv
+          bash ./scripts/test-xcm-effective-registry-audit.sh
+          bash ./scripts/audit-xcm-effective-registry.sh \
+            --write-report build/reports/xcm-effective-registry-report.json
           bash ./scripts/test-xcm-production-evidence-template.sh
           bash ./scripts/test-xcm-production-evidence-audit.sh
           bash ./scripts/audit-xcm-production-evidence.sh
@@ -112,6 +121,15 @@ jobs:
         with:
           name: xcm-registry-gap-report
           path: build/reports/xcm-registry-gap-report.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload XCM effective registry report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: xcm-effective-registry-report
+          path: build/reports/xcm-effective-registry-report.json
           if-no-files-found: ignore
           retention-days: 14
 
@@ -130,6 +148,8 @@ jobs:
           IROHA_MOBILE_SDK_RELEASE_TAG: ${{ vars.IROHA_MOBILE_SDK_RELEASE_TAG }}
           IROHA_MOBILE_SDK_RELEASE_REPO: ${{ vars.IROHA_MOBILE_SDK_RELEASE_REPO }}
         run: |
+          bash ./scripts/test-iroha-production-send-readiness-audit.sh
+          bash ./scripts/audit-iroha-production-send-readiness.sh
           bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --self-test
           if [[ -n "${IROHA_MOBILE_SDK_RELEASE_TAG:-}" ]]; then
             bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --download --tag "$IROHA_MOBILE_SDK_RELEASE_TAG"
@@ -139,6 +159,11 @@ jobs:
 
       - name: Private overlay audit self-test
         run: bash ./scripts/test-private-overlay-boundary.sh
+
+      - name: Unit test task membership audit
+        run: |
+          bash ./scripts/test-unit-test-task-membership-audit.sh
+          bash ./scripts/audit-unit-test-task-membership.sh
 
       - name: Setup Java 21 (Temurin)
         uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
@@ -269,6 +294,9 @@ jobs:
 
       - name: Unit tests + coverage
         run: ./gradlew runTest --no-daemon --console=plain --stacktrace
+
+      - name: Staged Iroha core bridge
+        run: bash ./scripts/verify-staged-iroha-core-bridge.sh --download
 
       - name: Android Lint (app)
         run: ./gradlew :app:lint --no-daemon --console=plain --stacktrace

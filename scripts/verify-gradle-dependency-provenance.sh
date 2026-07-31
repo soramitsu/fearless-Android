@@ -1,5 +1,23 @@
-#!/usr/bin/env bash
+#!/bin/bash -p
 set -euo pipefail
+
+readonly SYSTEM_PYTHON='/usr/bin/python3'
+PATH='/usr/bin:/bin'
+export PATH
+unset \
+  DEVELOPER_DIR \
+  PYTHONHOME \
+  PYTHONPATH \
+  PYTHONSTARTUP \
+  SDKROOT \
+  TOOLCHAINS \
+  XCODE_SELECT_PATH \
+  XCRUN_VERBOSE
+for untrusted_function in \
+  python3 grep awk sha256sum shasum dirname readlink realpath; do
+  unset -f "$untrusted_function" 2>/dev/null || true
+done
+unset untrusted_function
 
 EXPECTED_GRADLE_URL='distributionUrl=https\://services.gradle.org/distributions/gradle-9.0-bin.zip'
 EXPECTED_GRADLE_SHA256='8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b'
@@ -14,11 +32,13 @@ usage() {
 }
 
 hash_file() {
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$1" | awk '{print $1}'
-  else
-    shasum -a 256 "$1" | awk '{print $1}'
-  fi
+  "$SYSTEM_PYTHON" -I - "$1" <<'PY'
+import hashlib
+from pathlib import Path
+import sys
+
+print(hashlib.sha256(Path(sys.argv[1]).read_bytes()).hexdigest())
+PY
 }
 
 require_regular_file() {
@@ -73,6 +93,8 @@ root_build="$root_dir/build.gradle"
 buildscript_lock="$root_dir/buildscript-gradle.lockfile"
 release_lock="$root_dir/app/gradle.lockfile"
 version_catalog="$root_dir/gradle/libs.versions.toml"
+iroha_bridge_build="$root_dir/iroha-sdk-bridge/build.gradle"
+iroha_smoke_build="$root_dir/iroha-sdk-bridge-kotlin-smoke/build.gradle"
 
 require_regular_file "$wrapper" "Gradle wrapper properties"
 require_exact_line \
@@ -109,9 +131,9 @@ actual_metadata_digest="$(hash_file "$metadata")"
 [[ "$actual_metadata_digest" == "$expected_metadata_digest" ]] ||
   fail "dependency verification metadata digest does not match"
 
-command -v python3 >/dev/null 2>&1 ||
-  fail "python3 is required to validate dependency verification XML"
-if ! python3 - "$metadata" <<'PY'
+[[ -x "$SYSTEM_PYTHON" ]] ||
+  fail "trusted system Python is required at $SYSTEM_PYTHON"
+if ! "$SYSTEM_PYTHON" -I - "$metadata" <<'PY'
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -248,6 +270,10 @@ require_text \
   "$settings" \
   "rejectLocalMavenRepository" \
   "local Maven runtime rejection guard"
+require_exact_line \
+  "$settings" \
+  "        repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)" \
+  "CI/release project repository lockdown"
 require_text \
   "$settings" \
   "CI and release builds cannot rewrite dependency verification metadata." \
@@ -256,15 +282,142 @@ require_text \
   "$settings" \
   "CI and release builds cannot rewrite production dependency locks." \
   "CI dependency lock rewrite rejection guard"
-if ! python3 - "$settings" <<'PY'
+require_regular_file "$iroha_bridge_build" "staged Iroha bridge Gradle build"
+require_regular_file "$iroha_smoke_build" "staged Iroha smoke Gradle build"
+if ! "$SYSTEM_PYTHON" -I - \
+  "$settings" "$iroha_bridge_build" "$iroha_smoke_build" <<'PY'
 from pathlib import Path
+import hashlib
+import re
 import sys
 
 path = Path(sys.argv[1])
+reviewed_policy_digests = {
+    path: "529656f38b3f82f2553cdcfcb56daa638b978a61fb36138997b7a8361c4ffcc4",
+    Path(sys.argv[2]): "f9cc5ef8c17933f0ea29483a4346bb312d87e9fd669120ac9bc7419e58a0e78d",
+    Path(sys.argv[3]): "46cac72bd782b6467d7bdaf34b3cede2a6da17a333d7f7902cfecc142e837b0b",
+}
+for reviewed_path, expected_digest in reviewed_policy_digests.items():
+    try:
+        actual_digest = hashlib.sha256(reviewed_path.read_bytes()).hexdigest()
+    except OSError as error:
+        raise SystemExit(f"unable to hash reviewed Gradle policy: {error}")
+    if actual_digest != expected_digest:
+        raise SystemExit(
+            f"{reviewed_path.name} differs from its exact reviewed policy digest"
+        )
 try:
     text = path.read_text(encoding="utf-8")
 except (OSError, UnicodeError) as error:
     raise SystemExit(f"unable to read Gradle bootstrap policy: {error}")
+
+def classify_groovy(source, label):
+    """Classify source bytes so policy text hidden in comments/strings is inert."""
+    kinds = ["code"] * len(source)
+    state = "code"
+    i = 0
+
+    def mark(start, length, kind):
+        kinds[start:start + length] = [kind] * length
+
+    while i < len(source):
+        if state == "code":
+            if source.startswith("//", i):
+                mark(i, 2, "comment")
+                i += 2
+                state = "line-comment"
+            elif source.startswith("/*", i):
+                mark(i, 2, "comment")
+                i += 2
+                state = "block-comment"
+            elif source.startswith("'''", i):
+                mark(i, 3, "triple-single-string")
+                i += 3
+                state = "triple-single-string"
+            elif source.startswith('\"\"\"', i):
+                mark(i, 3, "triple-double-string")
+                i += 3
+                state = "triple-double-string"
+            elif source.startswith("$/", i):
+                raise SystemExit(
+                    f"{label} uses forbidden dollar-slashy Groovy syntax"
+                )
+            elif source[i] == "'":
+                mark(i, 1, "single-string")
+                i += 1
+                state = "single-string"
+            elif source[i] == '\"':
+                mark(i, 1, "double-string")
+                i += 1
+                state = "double-string"
+            elif source[i] == "/":
+                raise SystemExit(
+                    f"{label} uses forbidden ambiguous slash syntax"
+                )
+            else:
+                i += 1
+        elif state == "line-comment":
+            if source[i] in "\r\n":
+                state = "code"
+                i += 1
+            else:
+                mark(i, 1, "comment")
+                i += 1
+        elif state == "block-comment":
+            if source.startswith("*/", i):
+                mark(i, 2, "comment")
+                i += 2
+                state = "code"
+            else:
+                mark(i, 1, "comment")
+                i += 1
+        elif state in ("single-string", "double-string"):
+            delimiter = "'" if state == "single-string" else '\"'
+            if source[i] == "\\" and i + 1 < len(source):
+                mark(i, 2, state)
+                i += 2
+            else:
+                mark(i, 1, state)
+                if source[i] == delimiter:
+                    state = "code"
+                i += 1
+        elif state in ("triple-single-string", "triple-double-string"):
+            delimiter = "'''" if state == "triple-single-string" else '\"\"\"'
+            if source.startswith(delimiter, i):
+                mark(i, 3, state)
+                i += 3
+                state = "code"
+            elif source[i] == "\\" and i + 1 < len(source):
+                mark(i, 2, state)
+                i += 2
+            else:
+                mark(i, 1, state)
+                i += 1
+    if state not in ("code", "line-comment"):
+        raise SystemExit(f"{label} contains an unterminated {state}")
+    return kinds
+
+def count_active_fragment(source, source_kinds, fragment, label):
+    fragment_kinds = classify_groovy(fragment, label)
+    count = 0
+    offset = 0
+    while True:
+        found = source.find(fragment, offset)
+        if found < 0:
+            return count
+        if all(
+            character.isspace() or
+            source_kinds[found + index] == fragment_kinds[index]
+            for index, character in enumerate(fragment)
+        ):
+            count += 1
+        offset = found + 1
+
+text_kinds = classify_groovy(text, "Gradle bootstrap policy")
+code_only_text = "".join(
+    character if kind == "code" else ("\n" if character == "\n" else " ")
+    for character, kind in zip(text, text_kinds)
+)
 
 required_blocks = {
     "local metadata bootstrap predicate": """\
@@ -284,6 +437,150 @@ def dependencyProvenanceRequired =
 if (resolvedReleaseGraph && !localVerificationBootstrapRequested) {
         validateDependencyProvenance()
         auditConfiguredRepositories()""",
+    "staged Iroha symlink-free path predicate": """\
+final Closure<Boolean> hasNoSymbolicLinkComponents = { candidate ->
+    try {
+        def lexical = candidate.toAbsolutePath().normalize()
+        def current = lexical.root
+        for (def component : lexical) {
+            current = current.resolve(component)
+            if (Files.isSymbolicLink(current)) {
+                return false
+            }
+        }
+        return !Files.exists(lexical, LinkOption.NOFOLLOW_LINKS) ||
+                lexical.toRealPath().equals(lexical)
+    } catch (IOException | SecurityException ignored) {
+        return false
+    }
+}""",
+    "staged Iroha lexical path binding": """\
+final def approvedStagedIrohaRepositoryPath = settingsDir.toPath()
+        .resolve('build/iroha-mobile-sdk/maven')
+        .toAbsolutePath()
+        .normalize()
+
+if (dependencyProvenanceRequired &&
+        !hasNoSymbolicLinkComponents(approvedStagedIrohaRepositoryPath)) {
+    throw new GradleException(
+            'The staged Iroha repository path contains a symbolic link.'
+    )
+}""",
+    "central release repository lockdown": """\
+if (dependencyProvenanceRequired) {
+    dependencyResolutionManagement {
+        repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+        repositories {
+            google()
+            mavenCentral()
+            exclusiveContent {
+                forRepository {
+                    maven {
+                        name = 'materializedIrohaMobileSdk'
+                        url = approvedStagedIrohaRepositoryPath.toUri()
+                        metadataSources {
+                            gradleMetadata()
+                            mavenPom()
+                            artifact()
+                        }
+                    }
+                }
+                filter {
+                    includeGroup 'org.hyperledger.iroha.sdk'
+                }
+            }
+            exclusiveContent {
+                forRepository {
+                    maven {
+                        name = 'JitPack'
+                        url = uri('https://jitpack.io')
+                    }
+                }
+                filter {
+                    includeGroup 'com.github.airgap-it'
+                    includeGroupByRegex 'com[.]github[.]airgap-it([.].*)?'
+                    includeGroup 'com.github.ildixhaferri'
+                    includeGroupByRegex 'com[.]github[.]komputing([.].*)?'
+                    includeGroup 'com.github.multiformats'
+                    includeGroup 'com.walletconnect.Scarlet'
+                }
+            }
+        }
+    }
+}""",
+    "staged Iroha rejection closure": """\
+final Closure<Void> rejectLocalMavenRepository = {
+        MavenArtifactRepository repository,
+        String owner ->
+    if (repository.url?.scheme?.equalsIgnoreCase("file")) {
+        throw new GradleException(
+                "CI and release builds forbid local Maven repository " +
+                        "'${repository.name}' in ${owner}."
+        )
+    }
+}""",
+    "staged Iroha local repository enforcement": """\
+if (repository.url?.scheme?.equalsIgnoreCase("file")) {
+        throw new GradleException(""",
+    "repository addition rejection wiring": """\
+if (dependencyProvenanceRequired) {
+    gradle.beforeProject { project ->
+        project.repositories.whenObjectAdded { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} repositories"
+                )
+            }
+        }
+        project.buildscript.repositories.whenObjectAdded { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} buildscript repositories"
+                )
+            }
+        }
+    }
+}""",
+    "configured repository audit closure": """\
+final Closure<Void> auditConfiguredRepositories = {
+    gradle.rootProject.allprojects.each { project ->
+        project.repositories.toList().each { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} repositories"
+                )
+            }
+        }
+        project.buildscript.repositories.toList().each { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} buildscript repositories"
+                )
+            }
+        }
+    }
+}""",
+    "project repository audit ownership": """\
+project.repositories.toList().each { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} repositories"
+                )
+            }
+        }
+        project.buildscript.repositories.toList().each { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} buildscript repositories"
+                )
+            }
+        }""",
     "metadata rewrite rejection": """\
 if (!gradle.startParameter.writeDependencyVerifications.isEmpty()) {
         throw new GradleException(
@@ -299,10 +596,140 @@ if (gradle.startParameter.writeDependencyLocks ||
     }""",
 }
 for label, block in required_blocks.items():
-    count = text.count(block)
+    count = count_active_fragment(text, text_kinds, block, label)
     if count != 1:
         raise SystemExit(
-            f"{label} must appear exactly once; found {count}"
+            f"{label} must appear exactly once as active Groovy; found {count}"
+        )
+
+active_marker_counts = {
+    "DependencyVerificationMode.STRICT": 1,
+    'System.getenv("GITHUB_ACTIONS") != null': 1,
+    "validateDependencyProvenance()": 2,
+    "resolvedReleaseGraph": 2,
+    "rejectLocalMavenRepository": 5,
+    '"CI and release builds cannot rewrite dependency verification metadata."': 1,
+    '"CI and release builds cannot rewrite production dependency locks."': 1,
+}
+for marker, expected_count in active_marker_counts.items():
+    actual_count = count_active_fragment(
+        text,
+        text_kinds,
+        marker,
+        f"active Gradle policy marker {marker!r}",
+    )
+    if actual_count != expected_count:
+        raise SystemExit(
+            f"active Gradle policy marker {marker!r} must appear "
+            f"{expected_count} times; found {actual_count}"
+        )
+
+for variable in (
+    "hasNoSymbolicLinkComponents",
+    "approvedStagedIrohaRepositoryPath",
+    "rejectLocalMavenRepository",
+    "auditConfiguredRepositories",
+):
+    assignments = re.findall(
+        rf"(?m)^\s*(?:final\s+[^=]+\s+)?{variable}\s*=(?!=)",
+        code_only_text,
+    )
+    if len(assignments) != 1:
+        raise SystemExit(
+            f"{variable} must have one final assignment; found {len(assignments)}"
+        )
+
+repository_block = """\
+if (!gradle.ext.fearlessDependencyProvenanceRequired) {
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = '__REPOSITORY_NAME__'
+                    url = __REPOSITORY_URL__
+                    metadataSources {
+                        gradleMetadata()
+                        mavenPom()
+                        artifact()
+                    }
+                }
+            }
+            filter {
+                includeGroup 'org.hyperledger.iroha.sdk'
+            }
+        }
+    }
+}"""
+for build_path, repository_name, repository_url in (
+    (Path(sys.argv[2]), "materializedIrohaMobileSdk", "irohaSdkRepository"),
+    (
+        Path(sys.argv[3]),
+        "materializedIrohaMobileSdkForSmoke",
+        "rootProject.layout.buildDirectory.dir('iroha-mobile-sdk/maven')",
+    ),
+):
+    try:
+        build_text = build_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise SystemExit(f"unable to read staged Iroha repository policy: {error}")
+    build_kinds = classify_groovy(
+        build_text,
+        f"staged Iroha repository policy {build_path.name}",
+    )
+    build_code_only = "".join(
+        character if kind == "code" else ("\n" if character == "\n" else " ")
+        for character, kind in zip(build_text, build_kinds)
+    )
+    expected = (
+        repository_block
+        .replace("__REPOSITORY_NAME__", repository_name)
+        .replace("__REPOSITORY_URL__", repository_url)
+    )
+    if count_active_fragment(
+        build_text,
+        build_kinds,
+        expected,
+        f"exact staged repository block in {build_path.name}",
+    ) != 1:
+        raise SystemExit(
+            f"{build_path.name} must contain the exact active staged Iroha repository block"
+        )
+    exact_counts = {
+        "if (!gradle.ext.fearlessDependencyProvenanceRequired) {": 1,
+        "repositories {": 1,
+        "exclusiveContent {": 1,
+        "maven {": 1,
+        "metadataSources {": 1,
+        "includeGroup 'org.hyperledger.iroha.sdk'": 1,
+    }
+    for marker, expected_count in exact_counts.items():
+        actual_count = count_active_fragment(
+            build_text,
+            build_kinds,
+            marker,
+            f"staged repository marker {marker!r}",
+        )
+        if actual_count != expected_count:
+            raise SystemExit(
+                f"{build_path.name} staged repository marker {marker!r} "
+                f"must appear once; found {actual_count}"
+            )
+    if re.search(r"\b(?:flatDir|ivy|mavenLocal)\s*(?:\(|\{)", build_code_only):
+        raise SystemExit(
+            f"{build_path.name} contains an unapproved local repository mechanism"
+        )
+    repository_binding = (
+        "def irohaSdkRepository = "
+        "rootProject.layout.buildDirectory.dir('iroha-mobile-sdk/maven')"
+    )
+    if repository_url == "irohaSdkRepository" and count_active_fragment(
+        build_text,
+        build_kinds,
+        repository_binding,
+        "staged Iroha repository directory binding",
+    ) != 1:
+        raise SystemExit(
+            f"{build_path.name} must bind its staged repository to the exact build directory"
         )
 PY
 then
@@ -320,11 +747,15 @@ require_exact_line \
   "buildscript classpath dependency locking activation"
 require_exact_line \
   "$root_build" \
-  "        if (gradle.ext.fearlessMavenLocalAllowed) {" \
+  "    if (!gradle.ext.fearlessDependencyProvenanceRequired) {" \
+  "CI/release project repository lockdown guard"
+require_exact_line \
+  "$root_build" \
+  "            if (gradle.ext.fearlessMavenLocalAllowed) {" \
   "non-release mavenLocal guard"
 require_exact_line \
   "$root_build" \
-  "            mavenLocal {" \
+  "                mavenLocal {" \
   "single guarded mavenLocal declaration"
 require_text \
   "$root_build" \
@@ -348,7 +779,7 @@ require_regular_file \
   "root buildscript dependency lock"
 [[ -s "$buildscript_lock" ]] ||
   fail "root buildscript dependency lock must be non-empty"
-if ! python3 - "$buildscript_lock" <<'PY'
+if ! "$SYSTEM_PYTHON" -I - "$buildscript_lock" <<'PY'
 import re
 import sys
 
@@ -411,7 +842,8 @@ fi
 
 require_regular_file "$release_lock" "production release dependency lock"
 require_regular_file "$version_catalog" "Gradle version catalog"
-if ! python3 - "$version_catalog" "$root_build" "$release_lock" <<'PY'
+if ! "$SYSTEM_PYTHON" -I - \
+  "$version_catalog" "$root_build" "$release_lock" <<'PY'
 import re
 import sys
 

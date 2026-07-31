@@ -79,26 +79,32 @@ class XcmInteractor(
     }
 
     fun getAvailableAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>> {
-        return combineToPair(walletInteractor.assetsFlow(), getAvailableAssetSymbolsFlow(originChainId))
-            .map { (assets, availableXcmAssetSymbols) ->
-                assets.filter {
-                    val assetSymbol = it.asset.token.configuration.symbol.uppercase()
-                    val removedXcAssetSymbol = assetSymbol.removedXcPrefix()
-                    removedXcAssetSymbol in availableXcmAssetSymbols ||
-                        assetSymbol in availableXcmAssetSymbols
+        return combineToPair(walletInteractor.assetsFlow(), getAvailableAssetsFlowInternal(originChainId))
+            .map { (assets, availableXcmAssets) ->
+                assets.filter { assetWithStatus ->
+                    val asset = assetWithStatus.asset.token.configuration
+                    availableXcmAssets.any { approved ->
+                        asset.chainId == approved.originChainId &&
+                            asset.id == approved.originAssetId &&
+                            asset.precision == approved.originAssetPrecision &&
+                            asset.symbol.normalizedXcmSymbol() == approved.symbol
+                    }
                 }
             }
     }
 
-    private fun getAvailableAssetSymbolsFlow(originChainId: ChainId?): Flow<List<String>> {
-        return flow {
-            val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
-                originChainId = originChainId,
-                destinationChainId = null
-            ).map { it.symbol.uppercase() }
-            emit(availableXcmAssetSymbols)
-        }
+    private fun getAvailableAssetsFlowInternal(originChainId: ChainId?) = flow {
+        val availableXcmAssets = xcmEntitiesFetcher.getAvailableAssets(
+            originChainId = originChainId,
+            destinationChainId = null
+        )
+        emit(availableXcmAssets)
     }
+
+    private fun String.normalizedXcmSymbol(): String = trim()
+        .lowercase()
+        .removedXcPrefix()
+        .uppercase()
 
     suspend fun performCrossChainTransfer(transfer: CrossChainTransfer): Result<String> {
         return runCatching {

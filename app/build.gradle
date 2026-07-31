@@ -600,6 +600,7 @@ android {
     }
     lint {
         disable 'Instantiatable'
+        fatal 'CredentialDependency', 'TrustAllX509TrustManager'
         checkReleaseBuilds true
         abortOnError true
     }

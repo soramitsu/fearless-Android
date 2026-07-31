@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash -p
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-gradle-dependency-provenance.sh"
 EXPECTED_WRAPPER_SHA256='8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b'
 EXPECTED_POSITIVE_COUNT=2
-EXPECTED_NEGATIVE_COUNT=40
+EXPECTED_NEGATIVE_COUNT=65
 
 test_tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$test_tmp_root"
@@ -32,6 +32,8 @@ make_fixture() {
   mkdir -p \
     "$fixture/gradle/wrapper" \
     "$fixture/app" \
+    "$fixture/iroha-sdk-bridge" \
+    "$fixture/iroha-sdk-bridge-kotlin-smoke" \
     "$fixture/.github/workflows"
   cp "$ROOT_DIR/build.gradle" "$fixture/build.gradle"
   cp \
@@ -52,6 +54,12 @@ make_fixture() {
     "$ROOT_DIR/gradle/verification-metadata.sha256" \
     "$fixture/gradle/verification-metadata.sha256"
   cp "$ROOT_DIR/app/gradle.lockfile" "$fixture/app/gradle.lockfile"
+  cp \
+    "$ROOT_DIR/iroha-sdk-bridge/build.gradle" \
+    "$fixture/iroha-sdk-bridge/build.gradle"
+  cp \
+    "$ROOT_DIR/iroha-sdk-bridge-kotlin-smoke/build.gradle" \
+    "$fixture/iroha-sdk-bridge-kotlin-smoke/build.gradle"
   cp \
     "$ROOT_DIR/.github/workflows/android-ci.yml" \
     "$fixture/.github/workflows/android-ci.yml"
@@ -328,11 +336,295 @@ expect_failure \
   "GitHub Actions provenance guard is missing" \
   "$fixture"
 
+fixture="$(make_fixture project-repository-lockdown-weakened)"
+replace_once \
+  "$fixture/settings.gradle" \
+  'repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)' \
+  'repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)'
+expect_failure \
+  "CI/release project repository lockdown weakened" \
+  "CI/release project repository lockdown must appear exactly once" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-repository-name-widened)"
+replace_once \
+  "$fixture/settings.gradle" \
+  "name = 'materializedIrohaMobileSdk'" \
+  "name = 'mavenLocal'"
+expect_failure \
+  "staged Iroha local repository name widened" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-repository-path-widened)"
+replace_once \
+  "$fixture/settings.gradle" \
+  ".resolve('build/iroha-mobile-sdk/maven')" \
+  ".resolve(System.getProperty('user.home'))"
+expect_failure \
+  "staged Iroha local repository path widened" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-local-repository-bypass)"
+replace_once \
+  "$fixture/settings.gradle" \
+  '    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  '    if (false) {'
+expect_failure \
+  "staged Iroha local repository rejection bypassed" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-rejection-commented-out)"
+replace_once \
+  "$fixture/settings.gradle" \
+  $'    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  $'    /*\n    if (repository.url?.scheme?.equalsIgnoreCase("file")) {'
+replace_once \
+  "$fixture/settings.gradle" \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n}' \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n    */\n}'
+expect_failure \
+  "staged Iroha rejection hidden in a block comment" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-rejection-string-decoy)"
+replace_once \
+  "$fixture/settings.gradle" \
+  $'    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  $'    \"\"\"\n    if (repository.url?.scheme?.equalsIgnoreCase("file")) {'
+replace_once \
+  "$fixture/settings.gradle" \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n}' \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n    \"\"\"\n}'
+expect_failure \
+  "staged Iroha rejection hidden in a string decoy" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-rejection-slashy-string-decoy)"
+replace_once \
+  "$fixture/settings.gradle" \
+  $'    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  $'    return /\n    if (repository.url?.scheme?.equalsIgnoreCase("file")) {'
+replace_once \
+  "$fixture/settings.gradle" \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n}' \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n    /\n}'
+expect_failure \
+  "staged Iroha rejection hidden in a multiline slashy string" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-rejection-dollar-slashy-decoy)"
+replace_once \
+  "$fixture/settings.gradle" \
+  $'    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  $'    return $/\n    if (repository.url?.scheme?.equalsIgnoreCase("file")) {'
+replace_once \
+  "$fixture/settings.gradle" \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n}' \
+  $'                        "\'${repository.name}\' in ${owner}."\n        )\n    }\n    /$\n}'
+expect_failure \
+  "staged Iroha rejection hidden in a multiline dollar-slashy string" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-predicate-reassigned)"
+printf '%s\n' \
+  'hasNoSymbolicLinkComponents = { candidate -> true }' \
+  >>"$fixture/settings.gradle"
+expect_failure \
+  "staged Iroha approval predicate reassigned" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-rejection-reassigned)"
+printf '%s\n' \
+  'rejectLocalMavenRepository = { MavenArtifactRepository repository, String owner -> }' \
+  >>"$fixture/settings.gradle"
+expect_failure \
+  "staged Iroha rejection predicate reassigned" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-policy-mutated)"
+printf '%s\n' \
+  "approvedStagedIrohaRepositoryPath = settingsDir.toPath()" \
+  >>"$fixture/settings.gradle"
+expect_failure \
+  "staged Iroha nested policy mutated" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-exclusive-content-removed)"
+replace_once \
+  "$fixture/iroha-sdk-bridge/build.gradle" \
+  '        exclusiveContent {' \
+  '        mavenContent {'
+expect_failure \
+  "staged Iroha exclusive content removed" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-repository-commented-out)"
+replace_once \
+  "$fixture/iroha-sdk-bridge/build.gradle" \
+  '    repositories {' \
+  '    /* repositories { */'
+expect_failure \
+  "staged Iroha repository hidden in a block comment" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-group-filter-widened)"
+replace_once \
+  "$fixture/iroha-sdk-bridge/build.gradle" \
+  "includeGroup 'org.hyperledger.iroha.sdk'" \
+  "includeGroupByRegex '.*'"
+expect_failure \
+  "staged Iroha repository group filter widened" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-extra-local-repository)"
+printf '%s\n' \
+  "repositories { flatDir { dirs rootProject.layout.buildDirectory.dir('attacker') } }" \
+  >>"$fixture/iroha-sdk-bridge-kotlin-smoke/build.gradle"
+expect_failure \
+  "staged Iroha extra local repository added" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-division-bracketed-local-repository)"
+printf '%s\n' \
+  'def harmlessRatio = 1 / 1' \
+  "repositories { flatDir { dirs rootProject.layout.buildDirectory.dir('attacker') } }" \
+  'def anotherHarmlessRatio = 1 / 1' \
+  >>"$fixture/iroha-sdk-bridge/build.gradle"
+expect_failure \
+  "staged Iroha local repository bracketed by division operators" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture staged-iroha-gstring-local-repository)"
+printf '%s\n' \
+  "\"\${repositories { flatDir { dirs rootProject.layout.buildDirectory.dir('attacker') } }}\"" \
+  >>"$fixture/iroha-sdk-bridge-kotlin-smoke/build.gradle"
+expect_failure \
+  "staged Iroha local repository executed inside GString interpolation" \
+  "local dependency verification bootstrap contract is unsafe" \
+  "$fixture"
+
+fixture="$(make_fixture python-path-shadow-bypass)"
+replace_once \
+  "$fixture/settings.gradle" \
+  '    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  '    if (false) {'
+fake_bin="$fixture/fake-bin"
+mkdir -p "$fake_bin"
+printf '%s\n' '#!/bin/sh' 'exit 0' >"$fake_bin/python3"
+chmod +x "$fake_bin/python3"
+output="$tmp_dir/failure-$negative_count.log"
+if PATH="$fake_bin:$PATH" "$VERIFY" --root "$fixture" >"$output" 2>&1; then
+  fail "PATH-shadowed Python bypass unexpectedly succeeded"
+fi
+grep -Fq -- "local dependency verification bootstrap contract is unsafe" "$output" || {
+  sed -n '1,160p' "$output" >&2
+  fail "PATH-shadowed Python bypass did not fail closed"
+}
+negative_count=$((negative_count + 1))
+
+fixture="$(make_fixture exported-python-function-bypass)"
+replace_once \
+  "$fixture/settings.gradle" \
+  '    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  '    if (false) {'
+output="$tmp_dir/failure-$negative_count.log"
+if (
+  function python3() { return 0; }
+  export -f python3
+  "$VERIFY" --root "$fixture" >"$output" 2>&1
+); then
+  fail "exported Python function bypass unexpectedly succeeded"
+fi
+grep -Fq -- "local dependency verification bootstrap contract is unsafe" "$output" || {
+  sed -n '1,160p' "$output" >&2
+  fail "exported Python function bypass did not fail closed"
+}
+negative_count=$((negative_count + 1))
+
+fixture="$(make_fixture pythonpath-sitecustomize-bypass)"
+replace_once \
+  "$fixture/settings.gradle" \
+  '    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  '    if (false) {'
+fake_pythonpath="$fixture/fake-pythonpath"
+mkdir -p "$fake_pythonpath"
+printf '%s\n' 'import os' 'os._exit(0)' >"$fake_pythonpath/sitecustomize.py"
+output="$tmp_dir/failure-$negative_count.log"
+if PYTHONPATH="$fake_pythonpath" "$VERIFY" --root "$fixture" >"$output" 2>&1; then
+  fail "PYTHONPATH sitecustomize bypass unexpectedly succeeded"
+fi
+grep -Fq -- "local dependency verification bootstrap contract is unsafe" "$output" || {
+  sed -n '1,160p' "$output" >&2
+  fail "PYTHONPATH sitecustomize bypass did not fail closed"
+}
+negative_count=$((negative_count + 1))
+
+fixture="$(make_fixture developer-dir-xcrun-bypass)"
+replace_once \
+  "$fixture/settings.gradle" \
+  '    if (repository.url?.scheme?.equalsIgnoreCase("file")) {' \
+  '    if (false) {'
+fake_developer_dir="$fixture/fake-developer"
+mkdir -p "$fake_developer_dir/usr/bin"
+metadata_digest_line="$(<"$fixture/gradle/verification-metadata.sha256")"
+metadata_digest="${metadata_digest_line%% *}"
+printf '%s\n' \
+  '#!/bin/sh' \
+  "printf '%s\\n' '$metadata_digest'" \
+  'exit 0' \
+  >"$fake_developer_dir/usr/bin/xcrun"
+chmod +x "$fake_developer_dir/usr/bin/xcrun"
+output="$tmp_dir/failure-$negative_count.log"
+if DEVELOPER_DIR="$fake_developer_dir" \
+  "$VERIFY" --root "$fixture" >"$output" 2>&1; then
+  fail "DEVELOPER_DIR xcrun Python bypass unexpectedly succeeded"
+fi
+grep -Fq -- "local dependency verification bootstrap contract is unsafe" "$output" || {
+  sed -n '1,160p' "$output" >&2
+  fail "DEVELOPER_DIR xcrun Python bypass did not fail closed"
+}
+negative_count=$((negative_count + 1))
+
+fake_shell_bin="$tmp_dir/fake-shell-bin"
+mkdir -p "$fake_shell_bin"
+printf '%s\n' '#!/bin/sh' 'exit 0' >"$fake_shell_bin/bash"
+chmod +x "$fake_shell_bin/bash"
+output="$tmp_dir/failure-$negative_count.log"
+if PATH="$fake_shell_bin:$PATH" \
+  "$VERIFY" --root "$tmp_dir/definitely-missing-root" >"$output" 2>&1; then
+  fail "PATH-shadowed Bash bootstrap bypass unexpectedly succeeded"
+fi
+negative_count=$((negative_count + 1))
+
+fake_bash_env="$tmp_dir/malicious-bash-env"
+printf '%s\n' 'exit 0' >"$fake_bash_env"
+output="$tmp_dir/failure-$negative_count.log"
+if BASH_ENV="$fake_bash_env" \
+  "$VERIFY" --root "$tmp_dir/definitely-missing-root" >"$output" 2>&1; then
+  fail "BASH_ENV bootstrap bypass unexpectedly succeeded"
+fi
+negative_count=$((negative_count + 1))
+
 fixture="$(make_fixture unguarded-maven-local)"
 replace_once \
   "$fixture/build.gradle" \
-  "        if (gradle.ext.fearlessMavenLocalAllowed) {" \
-  "        if (true) {"
+  "            if (gradle.ext.fearlessMavenLocalAllowed) {" \
+  "            if (true) {"
 expect_failure \
   "unguarded mavenLocal repository" \
   "non-release mavenLocal guard must appear exactly once" \
@@ -551,6 +843,106 @@ expect_failure \
   "unreviewed release Kotlin metadata" \
   "release Kotlin metadata version must be explicitly reviewed before use" \
   "$fixture"
+
+gradle_java_home="${JAVA_HOME:-}"
+if [[ ! -x "$gradle_java_home/bin/java" ]] &&
+  [[ -x /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin/java ]]; then
+  gradle_java_home=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+fi
+if [[ -x "$gradle_java_home/bin/java" ]]; then
+  lockdown_fixture="$tmp_dir/gradle-project-repository-lockdown"
+  mkdir -p "$lockdown_fixture"
+  cat >"$lockdown_fixture/settings.gradle" <<'GROOVY'
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+rootProject.name = 'repository-lockdown-fixture'
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+    }
+}
+GROOVY
+  cat >"$lockdown_fixture/build.gradle" <<'GROOVY'
+def delayedLocalProbe = repositories.maven {
+    name = 'delayedLocalProbe'
+    url = uri('https://repo.maven.apache.org/maven2')
+}
+gradle.taskGraph.whenReady {
+    delayedLocalProbe.url = uri(layout.buildDirectory.dir('attacker-maven'))
+}
+GROOVY
+  output="$tmp_dir/gradle-project-repository-lockdown.log"
+  set +e
+  JAVA_HOME="$gradle_java_home" \
+    PATH="$gradle_java_home/bin:/usr/bin:/bin" \
+    "$ROOT_DIR/gradlew" \
+      --project-dir "$lockdown_fixture" \
+      --offline \
+      --no-daemon \
+      help >"$output" 2>&1
+  lockdown_status=$?
+  set -e
+  [[ "$lockdown_status" -ne 0 ]] ||
+    fail "late project repository URL mutation unexpectedly succeeded"
+  grep -Fq \
+    "repository 'delayedLocalProbe' was added by build file" \
+    "$output" || {
+      sed -n '1,160p' "$output" >&2
+      fail "late project repository URL mutation did not fail at repository creation"
+    }
+  negative_count=$((negative_count + 1))
+  echo \
+    "[gradle-provenance-test] release project repository lockdown behavior passed"
+
+  symlink_fixture="$tmp_dir/gradle-staged-repository-symlink"
+  git clone --quiet --no-hardlinks "$ROOT_DIR" "$symlink_fixture"
+  cp "$ROOT_DIR/settings.gradle" "$symlink_fixture/settings.gradle"
+  cp "$ROOT_DIR/build.gradle" "$symlink_fixture/build.gradle"
+  cp \
+    "$ROOT_DIR/gradle/verification-metadata.xml" \
+    "$symlink_fixture/gradle/verification-metadata.xml"
+  cp \
+    "$ROOT_DIR/gradle/verification-metadata.sha256" \
+    "$symlink_fixture/gradle/verification-metadata.sha256"
+  cp \
+    "$ROOT_DIR/iroha-sdk-bridge/build.gradle" \
+    "$symlink_fixture/iroha-sdk-bridge/build.gradle"
+  cp \
+    "$ROOT_DIR/iroha-sdk-bridge-kotlin-smoke/build.gradle" \
+    "$symlink_fixture/iroha-sdk-bridge-kotlin-smoke/build.gradle"
+  mkdir -p \
+    "$symlink_fixture/build" \
+    "$tmp_dir/external-staged-repository/maven"
+  ln -s \
+    "$tmp_dir/external-staged-repository" \
+    "$symlink_fixture/build/iroha-mobile-sdk"
+  output="$tmp_dir/gradle-staged-repository-symlink.log"
+  set +e
+  JAVA_HOME="$gradle_java_home" \
+    PATH="$gradle_java_home/bin:/usr/bin:/bin" \
+    CI=true \
+    "$symlink_fixture/gradlew" \
+      --project-dir "$symlink_fixture" \
+      --offline \
+      --no-daemon \
+      :iroha-sdk-bridge:dependencies >"$output" 2>&1
+  symlink_status=$?
+  set -e
+  [[ "$symlink_status" -ne 0 ]] ||
+    fail "intermediate staged-repository symlink unexpectedly resolved"
+  grep -Fq \
+    "The staged Iroha repository path contains a symbolic link." \
+    "$output" || {
+      sed -n '1,160p' "$output" >&2
+      fail "intermediate staged-repository symlink did not fail at settings validation"
+    }
+  negative_count=$((negative_count + 1))
+  echo \
+    "[gradle-provenance-test] staged-repository intermediate symlink behavior passed"
+else
+  fail "a Java 21 runtime is required for Gradle repository behavior tests"
+fi
 
 [[ "$positive_count" == "$EXPECTED_POSITIVE_COUNT" ]] ||
   fail "expected $EXPECTED_POSITIVE_COUNT positive cases; got $positive_count"

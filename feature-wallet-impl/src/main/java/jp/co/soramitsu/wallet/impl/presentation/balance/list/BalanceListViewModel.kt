@@ -91,6 +91,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTColle
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -107,6 +108,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -176,6 +178,13 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private val currentMetaAccountFlow = accountInteractor.selectedLightMetaAccountFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val currentWalletRecoveryStateFlow = currentMetaAccountFlow.flatMapLatest { metaAccount ->
+        accountInteractor.walletRecoveryRequiredFlow(metaAccount.id).map { isRecoveryRequired ->
+            metaAccount to isRecoveryRequired
+        }
+    }
 
     private val chainsFlow = combine(currentMetaAccountFlow, chainInteractor.getChainsFlow()) { metaAccount, chains ->
         val filteredChains = if(metaAccount.tonPublicKey != null) {
@@ -574,13 +583,14 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(multiToggleButtonState = it)
         }.launchIn(viewModelScope)
 
-        currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
+        currentWalletRecoveryStateFlow.distinctUntilChanged().onEach { (metaAccount, isRecoveryRequired) ->
             val showCurrenciesOrNftSelector =
                 metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
                     .contains(WalletEcosystem.Substrate)
 
             state.value = state.value.copy(
                 isBackedUp = metaAccount.isBackedUp,
+                isRecoveryRequired = isRecoveryRequired,
                 scrollToTopEvent = Event(Unit),
                 showCurrenciesOrNftSelector = showCurrenciesOrNftSelector
             )

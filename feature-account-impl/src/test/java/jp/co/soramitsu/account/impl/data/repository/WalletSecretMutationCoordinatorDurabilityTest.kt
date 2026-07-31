@@ -34,7 +34,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `ambiguous stage commit blocks same-process Room and restart replays exact delete`() {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 7L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 7L, selected = true))
         val coordinator = coordinator(database, preferences)
         preferences.nextReplaceFault = ReplaceFault.COMMIT_THEN_THROW
 
@@ -66,7 +66,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `ambiguous stage without commit preserves Room across process restart`() {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 8L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 8L, selected = true))
         val coordinator = coordinator(database, preferences)
         preferences.nextReplaceFault = ReplaceFault.THROW_BEFORE_COMMIT
 
@@ -91,7 +91,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `durability preflight rejects a staged journal before any Room mutation`() {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 9L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 9L, selected = true))
         stageDelete(database.account(9L)!!, preferences)
         preferences.markUnhealthy()
 
@@ -110,7 +110,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `Room-committed delete crash replays idempotently and finalizes secrets`() {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 10L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 10L, selected = true))
         database.throwAfterDeleteCommit = true
 
         assertFails<SimulatedProcessDeath> {
@@ -134,7 +134,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `finalization crash before commit retains journal for restart replay`() {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 11L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 11L, selected = true))
         database.afterDeleteCommit = {
             preferences.nextReplaceFault = ReplaceFault.THROW_BEFORE_COMMIT
         }
@@ -161,7 +161,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `finalization commit then throw requires restart without resurrecting wallet`() {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 12L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 12L, selected = true))
         database.afterDeleteCommit = {
             preferences.nextReplaceFault = ReplaceFault.COMMIT_THEN_THROW
         }
@@ -192,7 +192,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
         val preferences = FaultingEncryptedPreferences(durableState)
         val target = wallet(metaId = 20L, selected = true, name = "original")
         val other = wallet(metaId = 21L, selected = false, name = "other", position = 1)
-        val database = FakeWalletMutationDatabase(target, other)
+        val database = DurabilityWalletMutationDatabase(target, other)
         val material = ethereumMaterial()
         val after = target.copyAccount(
             ethereumPublicKey = material.publicKey,
@@ -241,7 +241,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `post-commit read divergence cannot mutate Room and durable journal replays after restart`() {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 30L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 30L, selected = true))
         preferences.afterNextReplace = {
             preferences.readOverrides[WalletSecretMutationJournalStore.JOURNAL_KEY] = "{}"
         }
@@ -269,7 +269,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
             linkedMapOf(WalletSecretMutationJournalStore.JOURNAL_KEY to """{"version":1}""")
         )
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 31L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 31L, selected = true))
 
         val failure = assertFails<WalletSecretMutationCoordinatorException> {
             runBlocking {
@@ -286,7 +286,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     fun `concurrent delete requests serialize to one durable mutation`() = runBlocking {
         val durableState = DurablePreferenceState()
         val preferences = FaultingEncryptedPreferences(durableState)
-        val database = FakeWalletMutationDatabase(wallet(metaId = 40L, selected = true))
+        val database = DurabilityWalletMutationDatabase(wallet(metaId = 40L, selected = true))
         val first = coordinator(database, preferences)
         val second = coordinator(database, preferences)
 
@@ -304,7 +304,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     }
 
     private fun coordinator(
-        database: FakeWalletMutationDatabase,
+        database: DurabilityWalletMutationDatabase,
         preferences: FaultingEncryptedPreferences
     ): WalletSecretMutationCoordinator {
         return WalletSecretMutationCoordinator(
@@ -376,7 +376,7 @@ class WalletSecretMutationCoordinatorDurabilityTest {
     }
 }
 
-private class FakeWalletMutationDatabase(
+private class DurabilityWalletMutationDatabase(
     vararg initialAccounts: MetaAccountLocal
 ) : WalletMutationDatabase {
 
