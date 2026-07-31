@@ -3,6 +3,7 @@ package jp.co.soramitsu.tonconnect.api.model
 import android.os.Parcelable
 import jp.co.soramitsu.common.data.network.ton.DappConfigRemote
 import jp.co.soramitsu.common.data.network.ton.DappRemote
+import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import kotlinx.parcelize.Parcelize
 
@@ -20,7 +21,8 @@ data class DappModel(
     val description: String?,
     val background: String?,
     val icon: String?,
-    val metaId: Long?
+    val metaId: Long?,
+    val connectionSource: ConnectionSource? = null
 ) : Parcelable {
     constructor(dappRemote: DappRemote) : this(
         identifier = dappRemote.identifier,
@@ -30,7 +32,8 @@ data class DappModel(
         description = dappRemote.description,
         background = dappRemote.background,
         icon = dappRemote.icon,
-        metaId = null
+        metaId = null,
+        connectionSource = null
     )
 
     constructor(tonDappConnection: TonDappConnection) : this(
@@ -41,8 +44,16 @@ data class DappModel(
         description = tonDappConnection.url,
         background = null,
         icon = tonDappConnection.icon,
-        metaId = tonDappConnection.metaId
+        metaId = tonDappConnection.metaId,
+        connectionSource = tonDappConnection.source
     )
+
+    fun connectionIdentityOrNull(): TonConnectionIdentity? {
+        val connectedMetaId = metaId ?: return null
+        val connectedUrl = url ?: return null
+        val source = connectionSource ?: return null
+        return TonConnectionIdentity(connectedMetaId, connectedUrl, source)
+    }
 }
 
 fun DappConfigRemote.toDomain() = DappConfig(

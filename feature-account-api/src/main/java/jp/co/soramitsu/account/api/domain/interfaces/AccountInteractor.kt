@@ -115,6 +115,8 @@ interface AccountInteractor {
     fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>>
     fun universalWalletMigrationSnapshotFlow(): Flow<UniversalWalletMigrationSnapshot>
     suspend fun universalWalletMigrationSnapshot(): UniversalWalletMigrationSnapshot
+    suspend fun isWalletRecoveryRequired(metaId: Long): Boolean
+    fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean>
 
     suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String)
     suspend fun getGoogleBackupAccounts(): List<BackupAccountMeta>

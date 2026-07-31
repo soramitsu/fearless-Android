@@ -14,8 +14,8 @@ concurrency:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
     env:
       CI: true
       FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
@@ -24,12 +24,12 @@ jobs:
       FEARLESS_UTILS_LIBRARY_ONLY: "true"
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
       # Provide safe stubs to avoid repository/config failures during resolution
       PAY_WINGS_REPOSITORY_URL: https://maven.google.com
       PAY_WINGS_USERNAME: ""
       PAY_WINGS_PASSWORD: ""
-      MOONPAY_TEST_SECRET: stub
-      MOONPAY_PRODUCTION_SECRET: stub
       FL_BLAST_API_ETHEREUM_KEY: stub
       FL_BLAST_API_BSC_KEY: stub
       FL_BLAST_API_SEPOLIA_KEY: stub
@@ -41,17 +41,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout fearless-utils-Android
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: soramitsu/fearless-utils-Android
           ref: ${{ env.FEARLESS_UTILS_COMMIT }}
           path: fearless-utils-Android
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify fearless-utils source
         run: ./scripts/ensure-fearless-utils.sh
@@ -68,6 +70,25 @@ jobs:
 
       - name: Public artifact audit
         run: ./scripts/audit-public-artifacts.sh
+
+      - name: Android Play release guard contracts
+        run: |
+          bash ./scripts/test-android-release-signed-tag-policy.sh
+          bash ./scripts/test-android-release-governance.sh
+          bash ./scripts/test-android-play-release-guards.sh
+          bash ./scripts/test-android-release-build-log.sh
+          bash ./scripts/test-android-release-sdk.sh
+          bash ./scripts/test-android-migration-ci-gate.sh
+          bash ./scripts/test-android-migration-instrumentation-results.sh
+          python3 ./scripts/test-android-migration-evidence-packaging.py
+          IAS_GRADLE_CONTRACT_ONLY=true \
+            bash ./scripts/test-android-internal-app-sharing.sh
+          bash ./scripts/test-release-overlay-interruption.sh
+          bash ./scripts/test-android-release-media-permissions.sh
+          bash ./scripts/test-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-release-media-permissions.sh \
+            app/src/main/AndroidManifest.xml
 
       - name: TODO debt audit
         run: |
@@ -87,7 +108,7 @@ jobs:
 
       - name: Upload XCM registry gap report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: xcm-registry-gap-report
           path: build/reports/xcm-registry-gap-report.json
@@ -96,7 +117,7 @@ jobs:
 
       - name: Upload public dependency handoff
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: public-dependency-upstream-delta
           path: build/reports/public-dependency-upstream-delta
@@ -120,10 +141,35 @@ jobs:
         run: bash ./scripts/test-private-overlay-boundary.sh
 
       - name: Setup Java 21 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Install Android emulator runtime libraries
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0
+          runtime_libraries="$(ldconfig -p)"
+          [[ "$(grep -Fc 'libpulse.so.0' <<<"$runtime_libraries")" -ge 1 ]]
+          unset runtime_libraries
+
+      - name: Install checksum-pinned bundletool
+        run: |
+          set -euo pipefail
+          bundletool_jar="$RUNNER_TEMP/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          curl --fail --location --silent --show-error \
+            --retry 3 \
+            --output "$bundletool_jar" \
+            "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          actual_sha256="$(sha256sum "$bundletool_jar" | awk '{print $1}')"
+          [[ "$actual_sha256" == "$BUNDLETOOL_SHA256" ]] || {
+            echo "bundletool checksum mismatch" >&2
+            exit 1
+          }
+          chmod 0444 "$bundletool_jar"
+          echo "BUNDLETOOL_JAR=$bundletool_jar" >> "$GITHUB_ENV"
 
       - name: Setup Android SDK
         run: |
@@ -133,7 +179,10 @@ jobs:
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
 
-          sdkmanager_bin="$(command -v sdkmanager || true)"
+          sdkmanager_bin=""
+          if command -v sdkmanager >/dev/null 2>&1; then
+            sdkmanager_bin="$(command -v sdkmanager)"
+          fi
           if [[ -z "$sdkmanager_bin" ]]; then
             for candidate in \
               "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
@@ -149,20 +198,45 @@ jobs:
             echo "sdkmanager not found under ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >&2
             exit 1
           fi
+          sdkmanager_bin="$(realpath "$sdkmanager_bin")"
+          avdmanager_bin="$(realpath "$(dirname "$sdkmanager_bin")/avdmanager")"
+          case "$sdkmanager_bin:$avdmanager_bin" in
+            "$ANDROID_SDK_ROOT"/*:"$ANDROID_SDK_ROOT"/*) ;;
+            *)
+              echo "Android command-line tools escaped ANDROID_SDK_ROOT" >&2
+              exit 1
+              ;;
+          esac
+          [[ -x "$sdkmanager_bin" && -x "$avdmanager_bin" ]] || {
+            echo "sdkmanager/avdmanager are not executable" >&2
+            exit 1
+          }
+          {
+            echo "SDKMANAGER_BIN=$sdkmanager_bin"
+            echo "AVDMANAGER_BIN=$avdmanager_bin"
+          } >> "$GITHUB_ENV"
 
-          yes | "$sdkmanager_bin" --licenses >/dev/null || true
+          license_answers="$(printf 'y\n%.0s' {1..256})"
+          [[ "$(grep -c '^y$' <<<"$license_answers")" == "256" ]]
+          "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" \
+            --licenses >/dev/null <<<"$license_answers"
+          unset license_answers
           "$sdkmanager_bin" --install \
+            --sdk_root="$ANDROID_SDK_ROOT" \
             "platforms;android-36" \
             "build-tools;36.0.0" \
             "platform-tools" \
+            "emulator" \
             "ndk;28.0.12674087" \
             "ndk;25.2.9519653"
 
       - name: Export NDK environment
         run: |
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          {
+            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+          } >> "$GITHUB_ENV"
 
       - name: NDK revision
         run: |
@@ -184,6 +258,9 @@ jobs:
       - name: Gradle version
         run: ./gradlew --version --no-daemon --console=plain --stacktrace
 
+      - name: Fearless-utils composite defaults
+        run: ./scripts/test-fearless-utils-composite-default.sh
+
       - name: Polkadot SDK alignment
         run: ./gradlew printPolkadotSdkAlignment --no-daemon --console=plain --stacktrace
 
@@ -196,15 +273,69 @@ jobs:
       - name: Android Lint (app)
         run: ./gradlew :app:lint --no-daemon --console=plain --stacktrace
 
+      - name: Android 11 migration and restart compatibility
+        run: bash ./scripts/run-android-emulator-ci.sh 30 compatibility
+
+      - name: Android 12 migration and restart compatibility
+        run: bash ./scripts/run-android-emulator-ci.sh 31 compatibility
+
+      - name: Android 16 migration and restart compatibility
+        run: bash ./scripts/run-android-emulator-ci.sh 36 compatibility
+
+      - name: Wallet migration and startup instrumentation
+        run: bash ./scripts/run-android-emulator-ci.sh 34 full
+
+      - name: Verify migration instrumentation results
+        if: always()
+        run: bash ./scripts/verify-android-migration-instrumentation-results.sh
+
+      - name: Prepare portable migration instrumentation evidence
+        id: prepare_migration_evidence
+        if: always()
+        run: python3 ./scripts/prepare-android-migration-evidence.py
+
+      - name: Upload migration instrumentation evidence
+        if: ${{ always() && steps.prepare_migration_evidence.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-migration-instrumentation-${{ github.sha }}
+          path: build/reports/android-migration-upload/**
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Gradle/AGP versions
         run: |
           echo "== Gradle =="
           ./gradlew --version --no-daemon --console=plain || true
-          echo "\n== Android Gradle Plugin (declared) =="
+          printf '\n== Android Gradle Plugin (declared) ==\n'
           grep -E '^android_plugin\s*=\s*"[0-9]+' gradle/libs.versions.toml || true
 
-      - name: Assemble debug to produce native libs
-        run: ./gradlew :app:assembleDebug --no-daemon --console=plain --stacktrace
+      - name: Assemble APK and AAB debug artifacts
+        run: |
+          ./gradlew \
+            :app:assembleDebug \
+            :app:bundleDebug \
+            --no-daemon \
+            --console=plain \
+            --stacktrace
+
+      - name: Verify source-bound complete AAB native payload
+        env:
+          AAB_IDENTITY_FIXTURE: ${{ github.workspace }}/app/build/outputs/bundle/debug/app-debug.aab
+          EXPECTED_AAB_SOURCE_COMMIT: development
+          AAB_IDENTITY_R8_POLICY: absent
+        run: |
+          set -euo pipefail
+          EXPECTED_AAB_PACKAGE=jp.co.soramitsu.fearless.debug \
+          EXPECTED_AAB_VERSION_NAME="$(
+            awk -F= '$1 == "versionName" { print $2 "-debug" }' \
+              versioning/version.properties
+          )" \
+          EXPECTED_AAB_VERSION_CODE="$(
+            awk -F= '$1 == "versionCode" { print $2 }' \
+              versioning/version.properties
+          )" \
+            bash ./scripts/test-android-aab-identity.sh
 
       - name: readelf sanity (native libs)
         run: |
@@ -214,8 +345,8 @@ jobs:
           set +e
           echo "== Scanning native libraries (.so) =="
           mapfile -t sos < <(find app/build -type f -name "*.so" | head -n 10)
-          if [ ${#sos[@]} -eq 0 ]; then echo "No native libs found under app/build"; exit 0; fi
+          if [ "${#sos[@]}" -eq 0 ]; then echo "No native libs found under app/build"; exit 0; fi
           for so in "${sos[@]}"; do
-            echo "\n-- $so --"
+            printf '\n-- %s --\n' "$so"
             readelf -l "$so" | sed -n '1,120p' || true
           done

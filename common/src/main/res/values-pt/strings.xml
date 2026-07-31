@@ -340,6 +340,15 @@
   <string name="connection_methods_not_supported_warning">Certos métodos solicitados pelo Wallet Connect não são atualmente suportados pela aplicação. Embora a conexão possa ser estabelecida, certas funcionalidades do dApp podem não estar disponíveis.</string>
   <string name="connection_optional_networks">Redes opcionais</string>
   <string name="connection_problems_alert_message">Falha no carregamento dos dados necessários para o lançamento do pedido. Por favor, verifique a sua ligação à Internet e tente novamente.</string>
+  <string name="wallet_secure_storage_unavailable_title">Os dados da carteira estão protegidos</string>
+  <string name="wallet_secure_storage_unavailable_message">A Fearless não conseguiu aceder ao armazenamento seguro do Android. Os dados encriptados da sua carteira foram preservados e não foram repostos. Desbloqueie o dispositivo e tente novamente. Se o problema persistir, contacte o suporte da Fearless.</string>
+  <string name="wallet_database_unavailable_title">Não foi possível abrir os dados da carteira</string>
+  <string name="wallet_database_unavailable_message">A Fearless não eliminou nem repôs quaisquer dados da carteira. Tente abrir a carteira novamente. Se o problema persistir, contacte o suporte da Fearless.</string>
+  <string name="wallet_recovery_required_title">É necessária a recuperação da carteira</string>
+  <string name="wallet_recovery_required_message">A assinatura e a cópia de segurança estão desativadas para esta carteira porque não foi possível verificar o respetivo segredo encriptado. Os dados encriptados originais foram preservados. Contacte o suporte da Fearless antes de efetuar alterações.</string>
+  <string name="wallet_startup_recovery_required_message">A Fearless parou antes de alterar ou eliminar dados da carteira porque os dados armazenados precisam de recuperação. Contacte o suporte da Fearless e indique o código de diagnóstico: %1$s. Não limpe os dados da aplicação nem a reinstale antes de o suporte ajudar a preservar ou exportar a carteira.</string>
+  <string name="wallet_startup_restart_required_title">Feche e volte a abrir a Fearless</string>
+  <string name="wallet_startup_restart_required_message">A Fearless parou porque o Android não conseguiu confirmar uma gravação no armazenamento da carteira. Não serão efetuadas mais alterações à carteira neste processo. Feche agora a aplicação e volte a abri-la para verificar em segurança o estado armazenado. Não limpe os dados da aplicação nem a reinstale.</string>
   <string name="connection_reject">Rejeitar</string>
   <string name="connection_required_networks">Redes necessárias</string>
   <string name="connection_review_optional_permissions">Rever as permissões opcionais</string>
@@ -1182,6 +1191,12 @@
 
   <string name="connected_accounts_ton_title">TON chain accounts</string>
 
+  <string name="connected_accounts_bitcoin_title">Contas da rede Bitcoin</string>
+
+  <string name="connected_accounts_solana_title">Contas da rede Solana</string>
+
+  <string name="connected_accounts_iroha_title">Contas da rede Iroha</string>
+
   <string name="connection_details_title">Connection details</string>
 
   <string name="contacts_empty_message">No contacts found</string>
@@ -1194,7 +1209,7 @@
 
   <string name="cross_chain_tx_status_done_title">All done</string>
 
-  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %s asset cross the bridge from the %s to the %s network.</string>
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
 
   <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
 

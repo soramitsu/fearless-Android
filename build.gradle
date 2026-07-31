@@ -1,5 +1,5 @@
-import java.util.Locale
 import java.util.Properties
+import org.gradle.api.artifacts.dsl.LockMode
 
 def versionPropsFile = file("versioning/version.properties")
 if (!versionPropsFile.exists()) {
@@ -9,40 +9,14 @@ if (!versionPropsFile.exists()) {
 def versionProps = new Properties()
 versionPropsFile.withInputStream { versionProps.load(it) }
 
-def requestedTasks = gradle.startParameter.taskNames
-def normalizedTasks = requestedTasks.collect { it?.toLowerCase(Locale.ROOT) }
-def releaseTaskMatchers = [
-        ":app:assemblerelease",
-        ":app:bundlerelease",
-        ":app:publishrelease",
-        ":app:publishreleasebundle",
-        ":app:appdistributionuploadrelease",
-        "assemblerelease",
-        "bundlerelease",
-        "publishrelease",
-        "publishreleasebundle"
-]
-
-boolean isReleaseBuildRequested = normalizedTasks.any { task ->
-    if (task == null) return false
-    return releaseTaskMatchers.contains(task)
-}
-
-boolean skipAutoBump = (System.getenv("SKIP_AUTO_VERSION_BUMP") ?: (project.hasProperty("skipAutoVersionBump") ? project.property("skipAutoVersionBump") : null))?.toString()?.toBoolean() ?: false
-boolean autoBumpAllowed = !skipAutoBump && System.getenv("CI_BUILD_ID") == null
-
-if (autoBumpAllowed && isReleaseBuildRequested) {
-    def currentCode = versionProps["versionCode"]?.toInteger()
-    def bumpedCode = currentCode + 1
-    versionProps["versionCode"] = bumpedCode.toString()
-    versionPropsFile.withOutputStream { os ->
-        versionProps.store(os, "Auto-bumped versionCode on ${new Date()}")
-    }
-    println("Auto-bumped versionCode to ${bumpedCode} because an app release build was requested.")
-}
-
 def configuredVersionName = versionProps["versionName"]
 def configuredVersionCode = versionProps["versionCode"]?.toInteger()
+if (configuredVersionName == null || configuredVersionName.trim().isEmpty()) {
+    throw new GradleException("versioning/version.properties must contain a non-empty versionName.")
+}
+if (configuredVersionCode == null || configuredVersionCode <= 0) {
+    throw new GradleException("versioning/version.properties must contain a positive versionCode.")
+}
 
 ext {
     versionName = configuredVersionName
@@ -50,6 +24,14 @@ ext {
 }
 
 buildscript {
+    dependencyLocking {
+        lockMode = LockMode.STRICT
+    }
+
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+
     ext {
         // SDK and tools
         compileSdkVersion = 36
@@ -80,7 +62,6 @@ buildscript {
         classpath libs.kotlin.serialization
         classpath libs.google.services
         classpath libs.firebase.appdistribution.gradle
-        classpath libs.play.publisher
         classpath libs.gradleplugins.compose
         classpath libs.org.jacoco.core
         classpath libs.sonarqube.gradle.plugin
@@ -101,12 +82,40 @@ apply plugin: "org.sonarqube"
 allprojects {
     repositories {
         google()
-        mavenLocal()
+        if (gradle.ext.fearlessMavenLocalAllowed) {
+            mavenLocal {
+                content {
+                    includeGroupByRegex "jp[.]co[.]soramitsu([.].*)?"
+                }
+            }
+            gradle.ext.fearlessMavenLocalConfigured = true
+        }
         mavenCentral()
         if (readOptionalSecret("INCLUDE_SORAMITSU_NEXUS") == "1") {
-            maven { url = uri("https://nexus.iroha.tech/repository/maven-soramitsu/") }
+            maven {
+                url = uri("https://nexus.iroha.tech/repository/maven-soramitsu/")
+                content {
+                    includeGroupByRegex "jp[.]co[.]soramitsu([.].*)?"
+                    includeGroupByRegex "org[.]hyperledger[.]iroha([.].*)?"
+                }
+            }
         }
-        maven { url = uri("https://jitpack.io") }
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "JitPack"
+                    url = uri("https://jitpack.io")
+                }
+            }
+            filter {
+                includeGroup "com.github.airgap-it"
+                includeGroupByRegex "com[.]github[.]airgap-it([.].*)?"
+                includeGroup "com.github.ildixhaferri"
+                includeGroupByRegex "com[.]github[.]komputing([.].*)?"
+                includeGroup "com.github.multiformats"
+                includeGroup "com.walletconnect.Scarlet"
+            }
+        }
 
     }
 
@@ -157,6 +166,33 @@ allprojects {
                     "camera-view"
             ].each { moduleName ->
                 force "androidx.camera:${moduleName}:${forcedCameraVersion}"
+            }
+        }
+    }
+
+    if (project.path == ":app") {
+        def productionReleaseLockConfigurations = [
+                "hiltAnnotationProcessorRelease",
+                "hiltAnnotationProcessorInternalAppSharing",
+                "kotlinCompilerPluginClasspathRelease",
+                "kotlinCompilerPluginClasspathInternalAppSharing",
+                "kspReleaseKotlinProcessorClasspath",
+                "kspInternalAppSharingKotlinProcessorClasspath",
+                "releaseAnnotationProcessorClasspath",
+                "releaseCompileClasspath",
+                "releaseRuntimeClasspath",
+                "internalAppSharingAnnotationProcessorClasspath",
+                "internalAppSharingCompileClasspath",
+                "internalAppSharingRuntimeClasspath"
+        ] as Set
+        dependencyLocking {
+            lockMode = LockMode.STRICT
+        }
+        configurations.configureEach { configuration ->
+            if (productionReleaseLockConfigurations.contains(
+                    configuration.name
+            )) {
+                configuration.resolutionStrategy.activateDependencyLocking()
             }
         }
     }

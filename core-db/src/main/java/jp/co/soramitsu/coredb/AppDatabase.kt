@@ -5,10 +5,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecretValidation
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecretValidator
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidation
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.coredb.converters.CryptoTypeConverters
 import jp.co.soramitsu.coredb.converters.LongMathConverters
@@ -29,6 +34,7 @@ import jp.co.soramitsu.coredb.dao.TonConnectDao
 import jp.co.soramitsu.coredb.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.coredb.migrations.AddChainExplorersTable_33_34
 import jp.co.soramitsu.coredb.migrations.AddChainRegistryTables_27_28
+import jp.co.soramitsu.coredb.migrations.AddLegacyActiveNodeColumn_18_19
 import jp.co.soramitsu.coredb.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.coredb.migrations.AddOperationsTablesToDb_23_24
 import jp.co.soramitsu.coredb.migrations.AddPhishingAddressesTable_10_11
@@ -45,6 +51,11 @@ import jp.co.soramitsu.coredb.migrations.ChangePrimaryKeyForRewards_16_17
 import jp.co.soramitsu.coredb.migrations.DifferentCurrenciesMigrations_37_38
 import jp.co.soramitsu.coredb.migrations.EthereumDerivationPathMigration
 import jp.co.soramitsu.coredb.migrations.FixAssetsMigration_36_37
+import jp.co.soramitsu.coredb.migrations.LegacyNodeCacheCompatibility_19_20
+import jp.co.soramitsu.coredb.migrations.LegacyNodeCacheCompatibility_20_21
+import jp.co.soramitsu.coredb.migrations.LegacyNodeCacheCompatibility_24_25
+import jp.co.soramitsu.coredb.migrations.LegacyNodeCacheCompatibility_25_26
+import jp.co.soramitsu.coredb.migrations.LegacyNodeCacheCompatibility_26_27
 import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_29_30
 import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_30_31
 import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_32_33
@@ -87,6 +98,7 @@ import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.coredb.migrations.TonMigration
 import jp.co.soramitsu.coredb.migrations.V2Migration
+import jp.co.soramitsu.coredb.migrations.WalletSecretIntegrityMigration
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
@@ -110,7 +122,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 
 @Database(
-    version = 76,
+    version = APP_DATABASE_VERSION,
     entities = [
         AddressBookContact::class,
         AssetLocal::class,
@@ -157,65 +169,140 @@ abstract class AppDatabase : RoomDatabase() {
             ethereumSecretStore: EthereumSecretStore
         ): AppDatabase {
             if (instance == null) {
-                instance = Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "app.db")
-                    .fallbackToDestructiveMigration()
-                    .addMigrations(AddTokenTable_9_10, AddPhishingAddressesTable_10_11, AddRuntimeCacheTable_11_12)
-                    .addMigrations(AddStorageCacheTable_12_13, AddNetworkTypeToStorageCache_13_14)
-                    .addMigrations(AddAccountStakingTable_14_15, AddStakingRewardsTable_15_16, ChangePrimaryKeyForRewards_16_17)
-                    .addMigrations(RemoveAccountForeignKeyFromAsset_17_18)
-                    .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
-                    .addMigrations(AddOperationsTablesToDb_23_24)
-                    .addMigrations(AddChainRegistryTables_27_28, V2Migration(storeV1, storeV2), MigrateTablesToV2_29_30)
-                    .addMigrations(MigrateTablesToV2_30_31)
-                    .addMigrations(EthereumDerivationPathMigration(storeV2))
-                    .addMigrations(MigrateTablesToV2_32_33)
-                    .addMigrations(AddChainExplorersTable_33_34)
-                    .addMigrations(AssetsOrderMigration())
-                    .addMigrations(RemoveLegacyData_35_36)
-                    .addMigrations(FixAssetsMigration_36_37)
-                    .addMigrations(DifferentCurrenciesMigrations_37_38)
-                    .addMigrations(AssetsMigration_38_39)
-                    .addMigrations(ChainAssetsMigration_39_40)
-                    .addMigrations(AssetsMigration_40_41)
-                    .addMigrations(Migration_41_42)
-                    .addMigrations(Migration_42_43)
-                    .addMigrations(Migration_43_44)
-                    .addMigrations(Migration_44_45)
-                    .addMigrations(Migration_45_46)
-                    .addMigrations(Migration_46_47)
-                    .addMigrations(Migration_47_48)
-                    .addMigrations(Migration_48_49)
-                    .addMigrations(Migration_49_50)
-                    .addMigrations(Migration_50_51)
-                    .addMigrations(Migration_51_52)
-                    .addMigrations(Migration_52_53)
-                    .addMigrations(Migration_53_54)
-                    .addMigrations(Migration_54_55)
-                    .addMigrations(Migration_55_56)
-                    .addMigrations(Migration_56_57)
-                    .addMigrations(Migration_57_58)
-                    .addMigrations(Migration_58_59)
-                    .addMigrations(Migration_59_60)
-                    .addMigrations(Migration_60_61)
-                    .addMigrations(Migration_61_62)
-                    .addMigrations(Migration_62_63)
-                    .addMigrations(Migration_63_64)
-                    .addMigrations(Migration_64_65)
-                    .addMigrations(Migration_65_66)
-                    .addMigrations(Migration_66_67)
-                    .addMigrations(Migration_67_68)
-                    .addMigrations(Migration_68_69)
-                    .addMigrations(Migration_69_70)
-                    .addMigrations(Migration_70_71)
-                    .addMigrations(TonMigration(storeV2, substrateSecretStore, ethereumSecretStore, encryptedPreferences))
-                    .addMigrations(Migration_72_73)
-                    .addMigrations(Migration_73_74)
-                    .addMigrations(Migration_74_75)
-                    .addMigrations(Migration_75_76)
-                    .build()
+                instance = create(
+                    context = context,
+                    databaseName = "app.db",
+                    storeV1 = storeV1,
+                    storeV2 = storeV2,
+                    encryptedPreferences = encryptedPreferences,
+                    substrateSecretStore = substrateSecretStore,
+                    ethereumSecretStore = ethereumSecretStore
+                )
             }
             return instance!!
         }
+
+        internal fun create(
+            context: Context,
+            databaseName: String,
+            storeV1: SecretStoreV1,
+            storeV2: SecretStoreV2,
+            encryptedPreferences: EncryptedPreferences,
+            substrateSecretStore: SubstrateSecretStore,
+            ethereumSecretStore: EthereumSecretStore,
+            chainAccountSecretValidation: ChainAccountSecretValidation =
+                ChainAccountSecretValidator,
+            walletRootSecretValidation: WalletRootSecretValidation =
+                WalletRootSecretValidator
+        ): AppDatabase {
+            val migrations = migrations(
+                storeV1 = storeV1,
+                storeV2 = storeV2,
+                encryptedPreferences = encryptedPreferences,
+                substrateSecretStore = substrateSecretStore,
+                ethereumSecretStore = ethereumSecretStore,
+                chainAccountSecretValidation = chainAccountSecretValidation,
+                walletRootSecretValidation = walletRootSecretValidation
+            )
+
+            requireCompleteAppDatabaseUpgradePath(migrations.asList())
+
+            return Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java,
+                databaseName
+            )
+                .addMigrations(*migrations)
+                .build()
+        }
+
+        internal fun migrations(
+            storeV1: SecretStoreV1,
+            storeV2: SecretStoreV2,
+            encryptedPreferences: EncryptedPreferences,
+            substrateSecretStore: SubstrateSecretStore,
+            ethereumSecretStore: EthereumSecretStore,
+            chainAccountSecretValidation: ChainAccountSecretValidation =
+                ChainAccountSecretValidator,
+            walletRootSecretValidation: WalletRootSecretValidation =
+                WalletRootSecretValidator
+        ): Array<Migration> = arrayOf(
+            AddTokenTable_9_10,
+            AddPhishingAddressesTable_10_11,
+            AddRuntimeCacheTable_11_12,
+            AddStorageCacheTable_12_13,
+            AddNetworkTypeToStorageCache_13_14,
+            AddAccountStakingTable_14_15,
+            AddStakingRewardsTable_15_16,
+            ChangePrimaryKeyForRewards_16_17,
+            RemoveAccountForeignKeyFromAsset_17_18,
+            AddLegacyActiveNodeColumn_18_19,
+            LegacyNodeCacheCompatibility_19_20,
+            LegacyNodeCacheCompatibility_20_21,
+            AddTotalRewardsTableToDb_21_22,
+            RemoveStakingRewardsTable_22_23,
+            AddOperationsTablesToDb_23_24,
+            LegacyNodeCacheCompatibility_24_25,
+            LegacyNodeCacheCompatibility_25_26,
+            LegacyNodeCacheCompatibility_26_27,
+            AddChainRegistryTables_27_28,
+            V2Migration(storeV1, encryptedPreferences),
+            MigrateTablesToV2_29_30,
+            MigrateTablesToV2_30_31,
+            EthereumDerivationPathMigration(encryptedPreferences),
+            MigrateTablesToV2_32_33,
+            AddChainExplorersTable_33_34,
+            AssetsOrderMigration(),
+            RemoveLegacyData_35_36,
+            FixAssetsMigration_36_37,
+            DifferentCurrenciesMigrations_37_38,
+            AssetsMigration_38_39,
+            ChainAssetsMigration_39_40,
+            AssetsMigration_40_41,
+            Migration_41_42,
+            Migration_42_43,
+            Migration_43_44,
+            Migration_44_45,
+            Migration_45_46,
+            Migration_46_47,
+            Migration_47_48,
+            Migration_48_49,
+            Migration_49_50,
+            Migration_50_51,
+            Migration_51_52,
+            Migration_52_53,
+            Migration_53_54,
+            Migration_54_55,
+            Migration_55_56,
+            Migration_56_57,
+            Migration_57_58,
+            Migration_58_59,
+            Migration_59_60,
+            Migration_60_61,
+            Migration_61_62,
+            Migration_62_63,
+            Migration_63_64,
+            Migration_64_65,
+            Migration_65_66,
+            Migration_66_67,
+            Migration_67_68,
+            Migration_68_69,
+            Migration_69_70,
+            Migration_70_71,
+            TonMigration(
+                encryptedPreferences = encryptedPreferences,
+                walletRootSecretValidation = walletRootSecretValidation
+            ),
+            Migration_72_73,
+            Migration_73_74,
+            Migration_74_75,
+            Migration_75_76,
+            WalletSecretIntegrityMigration(
+                encryptedPreferences = encryptedPreferences,
+                chainAccountSecretValidation = chainAccountSecretValidation,
+                walletRootSecretValidation = walletRootSecretValidation
+            )
+        )
     }
 
     abstract fun assetDao(): AssetDao

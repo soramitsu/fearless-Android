@@ -1,7 +1,7 @@
 [versions]
 accompanistVersion = "0.34.0"
 activityCompose = "1.9.3"
-android_plugin = "8.9.1"
+android_plugin = "8.10.1"
 appcompat = "1.7.0"
 architectureComponentVersion = "2.8.7"
 beaconVersion = "3.2.4"
@@ -48,7 +48,6 @@ mockk = "1.13.11"
 okhttpVersion = "4.12.0"
 opencsv = "5.7.1"
 orgJacocoCore = "0.8.12"
-playPublisher = "3.12.1"
 progressButtonsVersion = "2.1.0"
 recyclerviewVersion = "1.3.2"
 retrofit = "2.11.0"
@@ -117,7 +116,6 @@ navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.
 nv-websocket-client = { module = "com.neovisionaries:nv-websocket-client", version.ref = "wsVersion" }
 opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
 org-jacoco-core = { module = "org.jacoco:org.jacoco.core", version.ref = "orgJacocoCore" }
-play-publisher = { module = "com.github.triplet.gradle:play-publisher", version.ref = "playPublisher" }
 progressbutton = { module = "com.github.razir.progressbutton:progressbutton", version.ref = "progressButtonsVersion" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerviewVersion" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomVersion" }
@@ -161,6 +159,7 @@ compose-animation = { module = "androidx.compose.animation:animation", version.r
 compose-animationGraphics = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-uiTooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
+compose-uiTestJunit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
 compose-shimmer = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref = "composeShimmer" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "architectureComponentVersion"}

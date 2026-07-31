@@ -359,6 +359,15 @@
   <string name="connection_methods_not_supported_warning">某些 Wallet Connect 请求的方法目前不受该应用支持。虽然连接可以建立，但是 dApp 的某些功能可能无法使用。</string>
   <string name="connection_optional_networks">可选网络</string>
   <string name="connection_problems_alert_message">无法加载启动应用程序所需的数据。请检查您的互联网连接并重试。</string>
+  <string name="wallet_secure_storage_unavailable_title">钱包数据受到保护</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless 无法访问 Android 安全存储空间。您的加密钱包数据已保留且未被重置。请解锁设备后重试。如果问题仍然存在，请联系 Fearless 支持团队。</string>
+  <string name="wallet_database_unavailable_title">无法打开钱包数据</string>
+  <string name="wallet_database_unavailable_message">Fearless 未删除或重置任何钱包数据。请重试打开钱包。如果问题仍然存在，请联系 Fearless 支持团队。</string>
+  <string name="wallet_recovery_required_title">需要恢复钱包</string>
+  <string name="wallet_recovery_required_message">由于无法验证此钱包的加密密钥，该钱包的签名和备份功能已被禁用。您的原始加密数据已保留。进行任何更改前，请联系 Fearless 支持团队。</string>
+  <string name="wallet_startup_recovery_required_message">由于存储的数据需要恢复，Fearless 已在更改或删除钱包数据之前停止。请联系 Fearless 支持团队并提供诊断代码：%1$s。在支持团队帮助您保留或导出钱包之前，请勿清除应用数据或重新安装应用。</string>
+  <string name="wallet_startup_restart_required_title">关闭并重新打开 Fearless</string>
+  <string name="wallet_startup_restart_required_message">由于 Android 无法确认钱包存储写入，Fearless 已停止。此进程不会再尝试更改钱包。请立即关闭应用，然后重新打开，以安全验证已存储的状态。请勿清除应用数据或重新安装应用。</string>
   <string name="connection_reject">拒绝</string>
   <string name="connection_required_networks">所需网络</string>
   <string name="connection_review_optional_permissions">审核可选权限</string>
@@ -1213,6 +1222,12 @@
 
   <string name="connected_accounts_ton_title">TON chain accounts</string>
 
+  <string name="connected_accounts_bitcoin_title">Bitcoin 链账户</string>
+
+  <string name="connected_accounts_solana_title">Solana 链账户</string>
+
+  <string name="connected_accounts_iroha_title">Iroha 链账户</string>
+
   <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
 
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
@@ -1221,7 +1236,7 @@
 
   <string name="cross_chain_tx_status_done_title">All done</string>
 
-  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %s asset cross the bridge from the %s to the %s network.</string>
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
 
   <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
 

@@ -173,6 +173,36 @@ class SolanaRpcClientTest {
         }
     }
 
+    @Test
+    fun `normalizes rpc error codes exactly without api 31 integer methods`() {
+        val cases = listOf(
+            Int.MIN_VALUE.toString() to Int.MIN_VALUE,
+            Int.MAX_VALUE.toString() to Int.MAX_VALUE,
+            "-2147483649" to -1,
+            "2147483648" to -1,
+            "-0" to 0,
+            "1.0" to -1,
+            "1e2" to -1,
+            "999999999999999999999999999999999999999999999999" to -1
+        )
+
+        cases.forEach { (wireCode, expectedCode) ->
+            val error = assertRpcError(SolanaRpcException.Code.RPC_ERROR) {
+                runBlocking {
+                    RetrofitSolanaRpcClient(
+                        FakeSolanaRpcApi(
+                            JsonParser.parseString(
+                                """{"jsonrpc":"2.0","id":1,"error":{"code":$wireCode,"message":"failure"}}"""
+                            ).asJsonObject
+                        )
+                    ).latestBlockhash()
+                }
+            }
+
+            assertEquals("wire code $wireCode", expectedCode, error.rpcError?.code)
+        }
+    }
+
     private class FakeSolanaRpcApi(
         private val fixedResponse: JsonObject? = null
     ) : SolanaRpcApi {

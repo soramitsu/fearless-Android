@@ -29,6 +29,7 @@ import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -128,6 +129,14 @@ class CommonModule {
         encryptionUtil: EncryptionUtil
     ): EncryptedPreferences {
         return EncryptedPreferencesImpl(preferences, encryptionUtil)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWalletSecretMutationJournalStore(
+        encryptedPreferences: EncryptedPreferences
+    ): WalletSecretMutationJournalStore {
+        return WalletSecretMutationJournalStore(encryptedPreferences)
     }
 
     @Provides

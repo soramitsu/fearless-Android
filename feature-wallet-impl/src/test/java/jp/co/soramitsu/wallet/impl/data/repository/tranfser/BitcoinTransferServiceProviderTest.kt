@@ -79,6 +79,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.Base64
 
 class BitcoinTransferServiceProviderTest {
@@ -161,6 +162,44 @@ class BitcoinTransferServiceProviderTest {
         }
 
         assertTrue(error.message!!.contains("does not match selected wallet"))
+        assertEquals(0, client.feeEstimateCalls)
+        assertEquals(0, client.utxoCalls)
+        assertEquals(null, client.lastBroadcastTxHex)
+    }
+
+    @Test
+    fun `bitcoin transfer rejects raw amounts outside long range before indexer calls`() {
+        val chain = bitcoinChain()
+        val asset = chain.assets.single()
+        val client = FakeBitcoinIndexerClient()
+        val service = provider(
+            accountRepository = accountRepository(
+                metaAccount = bitcoinMetaAccount(chain),
+                mnemonic = MNEMONIC
+            ),
+            bitcoinIndexerClient = client
+        ).provide(chain)
+
+        listOf(
+            BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE),
+            BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.ONE)
+        ).forEach { rawAmount ->
+            val error = assertThrows(IllegalStateException::class.java) {
+                runBlocking {
+                    service.getTransferFee(
+                        Transfer(
+                            MAINNET_ADDRESS,
+                            MAINNET_RECIPIENT,
+                            BigDecimal(rawAmount, asset.precision),
+                            asset
+                        )
+                    )
+                }
+            }
+
+            assertEquals("Bitcoin transfer amount is outside the supported satoshi range", error.message)
+        }
+
         assertEquals(0, client.feeEstimateCalls)
         assertEquals(0, client.utxoCalls)
         assertEquals(null, client.lastBroadcastTxHex)
@@ -362,6 +401,43 @@ class BitcoinTransferServiceProviderTest {
         assertTrue(rpcClient.urls.isEmpty())
         assertEquals(null, indexerClient.lastBalancesWallet)
         assertEquals(null, indexerClient.lastBalancesBaseUrl)
+    }
+
+    @Test
+    fun `solana transfer rejects raw amounts outside long range before rpc calls`() {
+        val chain = solanaChain()
+        val asset = chain.assets.single()
+        val rpcClient = FakeSolanaRpcClient()
+        val service = provider(
+            accountRepository = accountRepository(
+                metaAccount = solanaMetaAccount(chain),
+                mnemonic = MNEMONIC
+            ),
+            solanaRpcClient = rpcClient
+        ).provide(chain)
+
+        listOf(
+            BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE),
+            BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.ONE)
+        ).forEach { rawAmount ->
+            val error = assertThrows(IllegalStateException::class.java) {
+                runBlocking {
+                    service.getTransferFee(
+                        Transfer(
+                            SOLANA_ADDRESS,
+                            SOLANA_RECIPIENT,
+                            BigDecimal(rawAmount, asset.precision),
+                            asset
+                        )
+                    )
+                }
+            }
+
+            assertEquals("Solana transfer amount is outside the supported lamport range", error.message)
+        }
+
+        assertTrue(rpcClient.urls.isEmpty())
+        assertTrue(rpcClient.accountExistenceChecks.isEmpty())
     }
 
     @Test

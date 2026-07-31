@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.common.utils.constantOrNull
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.parachainStaking
@@ -45,14 +46,18 @@ class StakingConstantsRepository(
     suspend fun parachainMinimumStaking(chainId: ChainId): BigInteger = getParachainNumberConstant(chainId, "MinDelegation")
 
     suspend fun maxValidatorsPerNominator(chainId: ChainId): Int {
-        return try {
-            getNumberConstant(chainId, "MaxNominations").toInt()
-        } catch (e: NoSuchElementException) {
+        val runtime = chainRegistry.getRuntime(chainId)
+        val maxNominations = runtime.metadata
+            .stakingOrNull()
+            ?.constantOrNull("MaxNominations")
+
+        return if (maxNominations == null) {
             when (chainId) {
                 kusamaChainId -> 24
-                polkadotChainId, westendChainId -> 16
-                else -> throw e
+                else -> DEFAULT_MAX_VALIDATORS_PER_NOMINATOR
             }
+        } else {
+            bindNumberConstant(maxNominations, runtime).toInt()
         }
     }
 
@@ -82,5 +87,9 @@ class StakingConstantsRepository(
         val runtime = chainRegistry.getRuntime(chainId)
 
         return runtime.metadata.parachainStaking().numberConstant(constantName, runtime)
+    }
+
+    private companion object {
+        const val DEFAULT_MAX_VALIDATORS_PER_NOMINATOR = 16
     }
 }

@@ -10,6 +10,7 @@ import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.DappConfig
 import jp.co.soramitsu.tonconnect.api.model.TONProof
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectionIdentity
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONObject
 
@@ -40,7 +41,7 @@ interface TonConnectInteractor {
         lastEventId: Long = 0,
     ): Flow<BridgeEvent>
 
-    suspend fun disconnect(clientId: String)
+    suspend fun disconnect(identity: TonConnectionIdentity)
 
     suspend fun signMessage(
         chain: Chain,

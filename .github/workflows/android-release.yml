@@ -1,150 +1,2127 @@
-name: Android Release
+name: Android Signed Release Artifact
 
 on:
   workflow_dispatch:
     inputs:
-      build_task:
-        description: Gradle task to run after release overlays are restored.
+      release_tag:
+        description: Immutable master tag in the form v4.2.0+android.230.
         required: true
-        default: :app:bundleRelease
-      strict_provenance:
-        description: Fail if any tracked binary still lacks source/reproducible provenance.
-        required: true
-        type: boolean
-        default: true
+        type: string
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: fearless-android-release
   cancel-in-progress: false
 
 jobs:
-  release-build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+  release-controls:
+    name: Credential-free release controls
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      master_commit: ${{ steps.release_metadata.outputs.master_commit }}
+      release_commit: ${{ steps.release_metadata.outputs.release_commit }}
+      release_tag_object: ${{ steps.release_metadata.outputs.release_tag_object }}
+      release_tree: ${{ steps.release_metadata.outputs.release_tree }}
+      version_code: ${{ steps.release_metadata.outputs.version_code }}
+      version_name: ${{ steps.release_metadata.outputs.version_name }}
+      version_properties_sha256: ${{ steps.release_metadata.outputs.version_properties_sha256 }}
     env:
       CI: true
+      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_TEST_SOURCE: ${{ github.workspace }}/fearless-utils-Android
+      EXPECTED_RELEASE_TAGGER_EMAIL: ${{ vars.ANDROID_RELEASE_TAGGER_EMAIL }}
+      EXPECTED_ANDROID_RELEASE_BUILD_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_BUILD_REVIEWER_IDS }}
+      EXPECTED_ANDROID_RELEASE_SIGNING_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_SIGNING_REVIEWER_IDS }}
+
+    steps:
+      - name: Require a master dispatch
+        env:
+          DISPATCH_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          [[ "$DISPATCH_REF" == "refs/heads/master" ]] || {
+            echo "Release controls must be dispatched from master; got $DISPATCH_REF" >&2
+            exit 1
+          }
+
+      - name: Checkout immutable release tag without credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate signed tag, master identity, and source version
+        id: release_metadata
+        env:
+          ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64: ${{ vars.ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64 }}
+          GH_TOKEN: ${{ github.token }}
+          DISPATCH_COMMIT: ${{ github.sha }}
+          RELEASE_TAG_INPUT: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master:refs/remotes/origin/master
+          git fetch --force origin \
+            "refs/tags/$RELEASE_TAG_INPUT:refs/tags/$RELEASE_TAG_INPUT"
+          git show-ref --verify --quiet "refs/tags/$RELEASE_TAG_INPUT" || {
+            echo "Release tag does not exist: $RELEASE_TAG_INPUT" >&2
+            exit 1
+          }
+
+          tag_object="$(git rev-parse "refs/tags/$RELEASE_TAG_INPUT")"
+          [[ "$(git cat-file -t "$tag_object")" == "tag" ]] || {
+            echo "Release tag must be an annotated signed tag" >&2
+            exit 1
+          }
+          release_commit="$(git rev-parse "refs/tags/$RELEASE_TAG_INPUT^{commit}")"
+          master_commit="$(git rev-parse origin/master)"
+          release_tree="$(git rev-parse "$release_commit^{tree}")"
+          [[ "$(git rev-parse HEAD)" == "$release_commit" &&
+            "$release_commit" == "$master_commit" &&
+            "$release_commit" == "$DISPATCH_COMMIT" ]] || {
+            echo "Release tag, checkout, dispatch SHA, and current master must be identical" >&2
+            exit 1
+          }
+          ./scripts/verify-android-release-tag-signature.sh \
+            "$RELEASE_TAG_INPUT" \
+            "$tag_object" \
+            "$release_commit"
+
+          version_name="$(
+            awk -F= '$1 == "versionName" { print $2 }' \
+              versioning/version.properties
+          )"
+          version_code="$(
+            awk -F= '$1 == "versionCode" { print $2 }' \
+              versioning/version.properties
+          )"
+          [[ "$version_name" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] || {
+            echo "versionName is malformed" >&2
+            exit 1
+          }
+          if [[ ! "$version_code" =~ ^[1-9][0-9]*$ ]] ||
+            (( version_code < 230 )); then
+            echo "versionCode must be an unused value at least 230" >&2
+            exit 1
+          fi
+          expected_tag="v${version_name}+android.${version_code}"
+          [[ "$RELEASE_TAG_INPUT" == "$expected_tag" ]] || {
+            echo "release_tag must be exactly $expected_tag" >&2
+            exit 1
+          }
+          [[ "$EXPECTED_RELEASE_TAGGER_EMAIL" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]] || {
+            echo "ANDROID_RELEASE_TAGGER_EMAIL is missing or malformed" >&2
+            exit 1
+          }
+
+          api_ref="$(
+            gh api "/repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG_INPUT"
+          )"
+          api_tag_object="$(
+            jq -er \
+              --arg expected_ref "refs/tags/$RELEASE_TAG_INPUT" '
+                select(
+                  .ref == $expected_ref and
+                  .object.type == "tag" and
+                  (.object.sha | type == "string" and
+                    test("^[0-9a-f]{40}$"))
+                ) |
+                .object.sha
+              ' <<<"$api_ref"
+          )"
+          [[ "$api_tag_object" == "$tag_object" ]] || {
+            echo "Local and GitHub release tag objects do not match" >&2
+            exit 1
+          }
+          gh api "/repos/$GITHUB_REPOSITORY/git/tags/$api_tag_object" |
+            jq -e \
+              --arg expected_tag "$RELEASE_TAG_INPUT" \
+              --arg expected_commit "$release_commit" \
+              --arg expected_tagger_email "$EXPECTED_RELEASE_TAGGER_EMAIL" '
+                .tag == $expected_tag and
+                .object.type == "commit" and
+                .object.sha == $expected_commit and
+                .tagger.email == $expected_tagger_email and
+                .verification.verified == true and
+                .verification.reason == "valid"
+              ' >/dev/null || {
+                echo "GitHub did not verify a valid signature on the release tag" >&2
+                exit 1
+              }
+
+          version_properties_sha256="$(
+            sha256sum versioning/version.properties | awk '{print $1}'
+          )"
+          {
+            echo "master_commit=$master_commit"
+            echo "release_commit=$release_commit"
+            echo "release_tag_object=$tag_object"
+            echo "release_tree=$release_tree"
+            echo "version_name=$version_name"
+            echo "version_code=$version_code"
+            echo "version_properties_sha256=$version_properties_sha256"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Verify disjoint protected release environments
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash ./scripts/verify-android-release-governance.sh
+
+      - name: Require prior green Android CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ steps.release_metadata.outputs.release_commit }}
+        run: |
+          set -euo pipefail
+          conclusion="$(
+            gh api \
+              "/repos/$GITHUB_REPOSITORY/actions/workflows/android-ci.yml/runs?branch=master&head_sha=$RELEASE_COMMIT&event=push&status=completed&per_page=100" |
+              jq -r --arg commit "$RELEASE_COMMIT" '
+                [.workflow_runs[] |
+                  select(
+                    .head_sha == $commit and
+                    .head_branch == "master" and
+                    .event == "push"
+                  )
+                ] |
+                sort_by([.run_number // 0, .run_attempt // 0]) |
+                last.conclusion // "missing"
+              '
+          )"
+          [[ "$conclusion" == "success" ]] || {
+            echo "Tagged master commit lacks a successful Android CI push run" >&2
+            exit 1
+          }
+
+      - name: Checkout pinned utils fixture without credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: soramitsu/fearless-utils-Android
+          ref: ${{ env.FEARLESS_UTILS_COMMIT }}
+          path: fearless-utils-Android
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run adversarial release control suite
+        run: |
+          set -euo pipefail
+          bash ./scripts/test-android-release-signed-tag-policy.sh
+          bash ./scripts/test-android-release-governance.sh
+          bash ./scripts/test-android-play-release-guards.sh
+          bash ./scripts/test-android-play-release-verifier-snapshot.sh
+          bash ./scripts/test-android-release-aab-signer.sh
+          bash ./scripts/test-android-unsigned-release-build.sh
+          bash ./scripts/test-android-release-build-log.sh
+          bash ./scripts/test-android-release-source-binding.sh
+          bash ./scripts/test-android-release-source-tree.sh
+          bash ./scripts/test-android-release-sdk.sh
+          bash ./scripts/test-android-migration-ci-gate.sh
+          bash ./scripts/test-android-migration-instrumentation-results.sh
+          IAS_GRADLE_CONTRACT_ONLY=true \
+            bash ./scripts/test-android-internal-app-sharing.sh
+          bash ./scripts/test-fearless-utils-source-integrity.sh
+          bash ./scripts/test-gradle-dependency-provenance.sh
+          bash ./scripts/test-release-overlay-interruption.sh
+          bash ./scripts/test-android-release-media-permissions.sh
+          bash ./scripts/test-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-release-media-permissions.sh \
+            app/src/main/AndroidManifest.xml
+          ./scripts/audit-public-artifacts.sh --strict-provenance
+
+      - name: Prove controls retained exact source
+        env:
+          RELEASE_COMMIT: ${{ steps.release_metadata.outputs.release_commit }}
+          RELEASE_TREE: ${{ steps.release_metadata.outputs.release_tree }}
+        run: |
+          set -euo pipefail
+          ./scripts/verify-android-release-source-tree.sh \
+            "$RELEASE_COMMIT" \
+            "$RELEASE_TREE" \
+            --allow-fearless-utils
+          for checkout in . fearless-utils-Android; do
+            if git -C "$checkout" config --local \
+              --get-regexp '^http\..*\.extraheader$'; then
+              echo "$checkout persisted a GitHub credential" >&2
+              exit 1
+            fi
+          done
+
+  release-build:
+    name: Protected unsigned release build
+    needs: release-controls
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment:
+      name: android-release-build
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
+    outputs:
+      unsigned_artifact_basename: ${{ steps.unsigned_artifact.outputs.artifact_basename }}
+      unsigned_artifact_sha256: ${{ steps.unsigned_artifact.outputs.artifact_sha256 }}
+      unsigned_build_log_sha256: ${{ steps.unsigned_artifact.outputs.build_log_sha256 }}
+      unsigned_provenance_sha256: ${{ steps.unsigned_artifact.outputs.provenance_sha256 }}
+    env:
+      CI: true
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      RELEASE_TAG_OBJECT: ${{ needs.release-controls.outputs.release_tag_object }}
+      RELEASE_COMMIT: ${{ needs.release-controls.outputs.release_commit }}
+      RELEASE_TREE: ${{ needs.release-controls.outputs.release_tree }}
+      MASTER_COMMIT: ${{ needs.release-controls.outputs.master_commit }}
+      RELEASE_VERSION_NAME: ${{ needs.release-controls.outputs.version_name }}
+      RELEASE_VERSION_CODE: ${{ needs.release-controls.outputs.version_code }}
+      VERSION_PROPERTIES_SHA256: ${{ needs.release-controls.outputs.version_properties_sha256 }}
       FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
       FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
       FORCE_LOCAL_UTILS: "true"
       FEARLESS_UTILS_LIBRARY_ONLY: "true"
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
-
-      GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}
-      ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
-      PLAY_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
-      CI_KEYSTORE_PASS: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
-      CI_KEYSTORE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
-      CI_KEYSTORE_KEY_PASS: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
-
-      RAMP_TOKEN_RELEASE: ${{ secrets.RAMP_TOKEN_RELEASE }}
-      COINBASE_APP_ID: ${{ secrets.COINBASE_APP_ID }}
-      MOONPAY_PRODUCTION_SECRET: ${{ secrets.MOONPAY_PRODUCTION_SECRET }}
-      MOONPAY_PRODUCTION_PUBLIC_KEY: ${{ secrets.MOONPAY_PRODUCTION_PUBLIC_KEY }}
-      X1_ENDPOINT_URL_RELEASE: ${{ secrets.X1_ENDPOINT_URL_RELEASE }}
-      X1_WIDGET_ID_RELEASE: ${{ secrets.X1_WIDGET_ID_RELEASE }}
-      WEB_CLIENT_ID_RELEASE: ${{ secrets.WEB_CLIENT_ID_RELEASE }}
-      FL_BLAST_API_ETHEREUM_KEY: ${{ secrets.FL_BLAST_API_ETHEREUM_KEY }}
-      FL_BLAST_API_BSC_KEY: ${{ secrets.FL_BLAST_API_BSC_KEY }}
-      FL_BLAST_API_SEPOLIA_KEY: ${{ secrets.FL_BLAST_API_SEPOLIA_KEY }}
-      FL_BLAST_API_GOERLI_KEY: ${{ secrets.FL_BLAST_API_GOERLI_KEY }}
-      FL_BLAST_API_POLYGON_KEY: ${{ secrets.FL_BLAST_API_POLYGON_KEY }}
-      FL_ANDROID_ETHERSCAN_API_KEY: ${{ secrets.FL_ANDROID_ETHERSCAN_API_KEY }}
-      FL_ANDROID_BSCSCAN_API_KEY: ${{ secrets.FL_ANDROID_BSCSCAN_API_KEY }}
-      FL_ANDROID_POLYGONSCAN_API_KEY: ${{ secrets.FL_ANDROID_POLYGONSCAN_API_KEY }}
-      FL_ANDROID_OKLINK_API_KEY: ${{ secrets.FL_ANDROID_OKLINK_API_KEY }}
-      FL_ANDROID_OPMAINNET_API_KEY: ${{ secrets.FL_ANDROID_OPMAINNET_API_KEY }}
-      FL_WALLET_CONNECT_PROJECT_ID: ${{ secrets.FL_WALLET_CONNECT_PROJECT_ID }}
-      WALLET_CONNECT_PROJECT_ID: ${{ secrets.FL_WALLET_CONNECT_PROJECT_ID }}
-      FL_DWELLIR_API_KEY: ${{ secrets.FL_DWELLIR_API_KEY }}
-      FL_ANDROID_TON_API_KEY: ${{ secrets.FL_ANDROID_TON_API_KEY }}
-      FL_ANDROID_TON_INDEXER_URL: ${{ secrets.FL_ANDROID_TON_INDEXER_URL }}
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
+      TEMURIN_JDK_VERSION: "21.0.12+8"
+      TEMURIN_JDK_URL: https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12_8.tar.gz
+      TEMURIN_JDK_ARCHIVE_SHA256: e4446ff06a276155697597cc0f1b15da004ff083f4964a35271ecee567177370
+      ANDROID_RELEASE_FIREBASE_JSON_SHA256: ${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}
+      EXPECTED_RELEASE_TAGGER_EMAIL: ${{ vars.ANDROID_RELEASE_TAGGER_EMAIL }}
+      EXPECTED_ANDROID_RELEASE_BUILD_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_BUILD_REVIEWER_IDS }}
+      EXPECTED_ANDROID_RELEASE_SIGNING_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_SIGNING_REVIEWER_IDS }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout immutable release tag on fresh build runner
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          ref: ${{ inputs.release_tag }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Checkout fearless-utils-Android
-        uses: actions/checkout@v4
+      - name: Revalidate exact approved source on build runner
+        env:
+          ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64: ${{ vars.ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64 }}
+          GH_TOKEN: ${{ github.token }}
+          DISPATCH_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master:refs/remotes/origin/master
+          git fetch --force origin \
+            "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          local_tag_object="$(git rev-parse "refs/tags/$RELEASE_TAG")"
+          local_release_commit="$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
+          local_master_commit="$(git rev-parse origin/master)"
+          [[ "$(git cat-file -t "$local_tag_object")" == "tag" &&
+            "$local_tag_object" == "$RELEASE_TAG_OBJECT" &&
+            "$local_release_commit" == "$RELEASE_COMMIT" &&
+            "$local_master_commit" == "$MASTER_COMMIT" &&
+            "$local_master_commit" == "$RELEASE_COMMIT" &&
+            "$local_master_commit" == "$DISPATCH_COMMIT" &&
+            "$(git rev-parse HEAD)" == "$RELEASE_COMMIT" &&
+            "$(git rev-parse "HEAD^{tree}")" == "$RELEASE_TREE" ]] || {
+            echo "Fresh build source differs from the approved tagged master commit" >&2
+            exit 1
+          }
+          ./scripts/verify-android-release-tag-signature.sh \
+            "$RELEASE_TAG" \
+            "$local_tag_object" \
+            "$local_release_commit"
+          gh api "/repos/$GITHUB_REPOSITORY/git/tags/$local_tag_object" |
+            jq -e \
+              --arg expected_tag "$RELEASE_TAG" \
+              --arg expected_commit "$RELEASE_COMMIT" \
+              --arg expected_tagger_email "$EXPECTED_RELEASE_TAGGER_EMAIL" '
+                .tag == $expected_tag and
+                .object.type == "commit" and
+                .object.sha == $expected_commit and
+                .tagger.email == $expected_tagger_email and
+                .verification.verified == true and
+                .verification.reason == "valid"
+              ' >/dev/null || {
+                echo "GitHub no longer verifies the release tag signature" >&2
+                exit 1
+              }
+          bash ./scripts/verify-android-release-governance.sh
+          if git config --local --get-regexp '^http\..*\.extraheader$'; then
+            echo "Build checkout persisted a GitHub credential" >&2
+            exit 1
+          fi
+          ./scripts/verify-android-release-source-tree.sh \
+            "$RELEASE_COMMIT" \
+            "$RELEASE_TREE"
+
+      - name: Checkout pinned fearless-utils source without credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: soramitsu/fearless-utils-Android
           ref: ${{ env.FEARLESS_UTILS_COMMIT }}
           path: fearless-utils-Android
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Verify fearless-utils source
-        run: ./scripts/ensure-fearless-utils.sh
-
-      - name: Setup Java 21 (Temurin)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Setup Android SDK
+      - name: Materialize and fingerprint exact fearless-utils tree
         run: |
           set -euo pipefail
-          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
-          export ANDROID_HOME="$ANDROID_SDK_ROOT"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
-          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          utils_verification="$RUNNER_TEMP/fearless-utils-before-build.log"
+          ./scripts/ensure-fearless-utils.sh | tee "$utils_verification"
+          [[ "$(git -C "$FEARLESS_UTILS_PATH" rev-parse HEAD)" == \
+            "$FEARLESS_UTILS_COMMIT" ]]
+          fearless_utils_tree="$(
+            awk '
+              $1 == "[fearless-utils]" &&
+              $2 == "Effective" &&
+              $3 == "source" &&
+              $4 == "tree" &&
+              length($5) == 40 &&
+              $5 !~ /[^0-9a-f]/ {
+                print $5
+              }
+            ' "$utils_verification"
+          )"
+          [[ "$fearless_utils_tree" =~ ^[0-9a-f]{40}$ ]]
+          echo "FEARLESS_UTILS_TREE=$fearless_utils_tree" >>"$GITHUB_ENV"
+          for checkout in . "$FEARLESS_UTILS_PATH"; do
+            if git -C "$checkout" config --local \
+              --get-regexp '^http\..*\.extraheader$'; then
+              echo "$checkout persisted a GitHub credential" >&2
+              exit 1
+            fi
+          done
 
-          sdkmanager_bin="$(command -v sdkmanager || true)"
-          if [[ -z "$sdkmanager_bin" ]]; then
-            for candidate in \
-              "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
-              "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager" \
-              "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"; do
-              if [[ -x "$candidate" ]]; then
-                sdkmanager_bin="$candidate"
-                break
-              fi
-            done
-          fi
-          if [[ -z "$sdkmanager_bin" ]]; then
-            echo "sdkmanager not found under ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >&2
+      - name: Download checksum-pinned Temurin JDK archive
+        run: |
+          set -euo pipefail
+          jdk_archive="$RUNNER_TEMP/temurin-jdk-21.0.12+8.tar.gz"
+          curl --fail --location --silent --show-error \
+            --retry 3 \
+            --output "$jdk_archive" \
+            "$TEMURIN_JDK_URL"
+          actual_sha256="$(sha256sum "$jdk_archive" | awk '{print $1}')"
+          [[ "$actual_sha256" == "$TEMURIN_JDK_ARCHIVE_SHA256" ]] || {
+            echo "Temurin JDK archive checksum mismatch" >&2
+            exit 1
+          }
+          chmod 0444 "$jdk_archive"
+          echo "TEMURIN_JDK_ARCHIVE=$jdk_archive" >>"$GITHUB_ENV"
+
+      - name: Install verified Temurin JDK archive
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: jdkfile
+          java-version: "21.0.12+8"
+          architecture: x64
+          jdkFile: ${{ runner.temp }}/temurin-jdk-21.0.12+8.tar.gz
+
+      - name: Verify exact installed Temurin JDK
+        run: |
+          set -euo pipefail
+          java_version="$(java -version 2>&1)"
+          grep -Fq 'version "21.0.12"' <<<"$java_version"
+          grep -Fq 'build 21.0.12+8' <<<"$java_version"
+          [[ "$(javac -version 2>&1)" == "javac 21.0.12" ]]
+          [[ "$(sha256sum "$TEMURIN_JDK_ARCHIVE" | awk '{print $1}')" == \
+            "$TEMURIN_JDK_ARCHIVE_SHA256" ]]
+
+      - name: Install checksum-pinned bundletool
+        run: |
+          set -euo pipefail
+          bundletool_jar="$RUNNER_TEMP/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          curl --fail --location --silent --show-error \
+            --retry 3 \
+            --output "$bundletool_jar" \
+            "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          actual_sha256="$(sha256sum "$bundletool_jar" | awk '{print $1}')"
+          [[ "$actual_sha256" == "$BUNDLETOOL_SHA256" ]] || {
+            echo "bundletool checksum mismatch" >&2
+            exit 1
+          }
+          chmod 0444 "$bundletool_jar"
+          echo "BUNDLETOOL_JAR=$bundletool_jar" >>"$GITHUB_ENV"
+
+      - name: Install isolated checksum-locked Android release SDK
+        run: |
+          set -euo pipefail
+          ./scripts/install-android-release-sdk.sh install
+          android_sdk_root="$RUNNER_TEMP/fearless-android-release-sdk"
+          android_sdk_evidence_root="$RUNNER_TEMP/fearless-android-release-sdk-evidence"
+          {
+            echo "ANDROID_SDK_ROOT=$android_sdk_root"
+            echo "ANDROID_HOME=$android_sdk_root"
+            echo "ANDROID_NDK_HOME="
+            echo "ANDROID_NDK_ROOT="
+            echo "NDK_HOME="
+            echo "ANDROID_RELEASE_SDK_LOCK=$GITHUB_WORKSPACE/scripts/android-release-sdk-linux.lock.json"
+            echo "ANDROID_RELEASE_SDK_EVIDENCE=$android_sdk_evidence_root/evidence.json"
+            echo "ANDROID_RELEASE_SDK_TREE_MANIFEST=$android_sdk_evidence_root/installed-tree.json"
+          } >>"$GITHUB_ENV"
+
+      - name: Capture complete build toolchain evidence
+        run: |
+          set -euo pipefail
+          ./scripts/install-android-release-sdk.sh verify
+          toolchain_evidence="$RUNNER_TEMP/android-build-toolchain.txt"
+          android_sdk_lock_sha256="$(
+            sha256sum "$ANDROID_RELEASE_SDK_LOCK" | awk '{print $1}'
+          )"
+          android_sdk_evidence_sha256="$(
+            sha256sum "$ANDROID_RELEASE_SDK_EVIDENCE" | awk '{print $1}'
+          )"
+          android_sdk_tree_manifest_sha256="$(
+            sha256sum "$ANDROID_RELEASE_SDK_TREE_MANIFEST" | awk '{print $1}'
+          )"
+          java_sha256="$(sha256sum "$JAVA_HOME/bin/java" | awk '{print $1}')"
+          javac_sha256="$(sha256sum "$JAVA_HOME/bin/javac" | awk '{print $1}')"
+          jarsigner_sha256="$(
+            sha256sum "$JAVA_HOME/bin/jarsigner" | awk '{print $1}'
+          )"
+          keytool_sha256="$(
+            sha256sum "$JAVA_HOME/bin/keytool" | awk '{print $1}'
+          )"
+          {
+            printf 'runner.os=%s\n' "$RUNNER_OS"
+            printf 'runner.arch=%s\n' "$RUNNER_ARCH"
+            printf 'runner.image.os=%s\n' "${ImageOS:-unknown}"
+            printf 'runner.image.version=%s\n' "${ImageVersion:-unknown}"
+            printf 'runner.name=%s\n' "$RUNNER_NAME"
+            uname -a
+            printf '%s\n' '--- java ---'
+            printf 'archive.version=%s\n' "$TEMURIN_JDK_VERSION"
+            sha256sum "$TEMURIN_JDK_ARCHIVE"
+            java -version 2>&1
+            sha256sum "$JAVA_HOME/release"
+            sha256sum \
+              "$JAVA_HOME/bin/java" \
+              "$JAVA_HOME/bin/javac" \
+              "$JAVA_HOME/bin/jarsigner" \
+              "$JAVA_HOME/bin/keytool"
+            printf '%s\n' '--- gradle wrapper ---'
+            sha256sum \
+              gradle/wrapper/gradle-wrapper.properties \
+              gradle/verification-metadata.xml \
+              gradlew
+            ./gradlew --version --no-daemon
+            printf '%s\n' '--- bundletool ---'
+            printf 'version=%s\n' "$BUNDLETOOL_VERSION"
+            sha256sum "$BUNDLETOOL_JAR"
+            printf '%s\n' '--- android sdk ---'
+            printf 'installation.mode=isolated-direct-archive\n'
+            printf 'root.package.count=2\n'
+            sha256sum \
+              "$ANDROID_RELEASE_SDK_LOCK" \
+              "$ANDROID_RELEASE_SDK_EVIDENCE" \
+              "$ANDROID_RELEASE_SDK_TREE_MANIFEST" \
+              scripts/android-release-sdk.py \
+              scripts/install-android-release-sdk.sh
+            python3 --version
+            sha256sum "$(command -v python3)"
+            cat "$ANDROID_RELEASE_SDK_EVIDENCE"
+            sha256sum \
+              "$ANDROID_SDK_ROOT/platforms/android-36/source.properties" \
+              "$ANDROID_SDK_ROOT/platforms/android-36/android.jar" \
+              "$ANDROID_SDK_ROOT/build-tools/35.0.0/source.properties" \
+              "$ANDROID_SDK_ROOT/build-tools/35.0.0/core-lambda-stubs.jar" \
+              "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2"
+            "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2" version
+          } >"$toolchain_evidence"
+          [[ -s "$toolchain_evidence" && ! -L "$toolchain_evidence" ]]
+          chmod 0444 "$toolchain_evidence"
+          {
+            echo "BUILD_TOOLCHAIN_EVIDENCE=$toolchain_evidence"
+            echo "BUILD_TOOLCHAIN_EVIDENCE_SHA256=$(
+              sha256sum "$toolchain_evidence" | awk '{print $1}'
+            )"
+            echo "TEMURIN_JAVA_SHA256=$java_sha256"
+            echo "TEMURIN_JAVAC_SHA256=$javac_sha256"
+            echo "TEMURIN_JARSIGNER_SHA256=$jarsigner_sha256"
+            echo "TEMURIN_KEYTOOL_SHA256=$keytool_sha256"
+            echo "ANDROID_RELEASE_SDK_LOCK_SHA256=$android_sdk_lock_sha256"
+            echo "ANDROID_RELEASE_SDK_EVIDENCE_SHA256=$android_sdk_evidence_sha256"
+            echo "ANDROID_RELEASE_SDK_TREE_MANIFEST_SHA256=$android_sdk_tree_manifest_sha256"
+          } >>"$GITHUB_ENV"
+
+      - name: Prove clean build inputs before credential restoration
+        run: |
+          set -euo pipefail
+          [[ "$(sha256sum versioning/version.properties | awk '{print $1}')" == \
+            "$VERSION_PROPERTIES_SHA256" ]]
+          [[ "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" =~ ^[0-9a-f]{64}$ ]] || {
+            echo "ANDROID_RELEASE_FIREBASE_JSON_SHA256 is missing or malformed" >&2
+            exit 1
+          }
+          ./scripts/verify-android-release-source-tree.sh \
+            "$RELEASE_COMMIT" \
+            "$RELEASE_TREE" \
+            --allow-fearless-utils
+
+      - name: Restore digest-pinned release Firebase configuration
+        env:
+          GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}
+        run: |
+          set -euo pipefail
+          RELEASE_OVERLAY_MODE=firebase ./scripts/restore-release-overlays.sh
+          [[ "$(sha256sum app/src/release/google-services.json | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" ]] || {
+            echo "Materialized Firebase configuration digest changed" >&2
+            exit 1
+          }
+
+      - name: Build exact unsigned release AAB
+        env:
+          RAMP_TOKEN_RELEASE: ${{ secrets.RAMP_TOKEN_RELEASE }}
+          COINBASE_APP_ID: ${{ secrets.COINBASE_APP_ID }}
+          X1_ENDPOINT_URL_RELEASE: ${{ secrets.X1_ENDPOINT_URL_RELEASE }}
+          X1_WIDGET_ID_RELEASE: ${{ secrets.X1_WIDGET_ID_RELEASE }}
+          WEB_CLIENT_ID_RELEASE: ${{ secrets.WEB_CLIENT_ID_RELEASE }}
+          FL_BLAST_API_ETHEREUM_KEY: ${{ secrets.FL_BLAST_API_ETHEREUM_KEY }}
+          FL_BLAST_API_BSC_KEY: ${{ secrets.FL_BLAST_API_BSC_KEY }}
+          FL_BLAST_API_SEPOLIA_KEY: ${{ secrets.FL_BLAST_API_SEPOLIA_KEY }}
+          FL_BLAST_API_GOERLI_KEY: ${{ secrets.FL_BLAST_API_GOERLI_KEY }}
+          FL_BLAST_API_POLYGON_KEY: ${{ secrets.FL_BLAST_API_POLYGON_KEY }}
+          FL_ANDROID_ETHERSCAN_API_KEY: ${{ secrets.FL_ANDROID_ETHERSCAN_API_KEY }}
+          FL_ANDROID_BSCSCAN_API_KEY: ${{ secrets.FL_ANDROID_BSCSCAN_API_KEY }}
+          FL_ANDROID_POLYGONSCAN_API_KEY: ${{ secrets.FL_ANDROID_POLYGONSCAN_API_KEY }}
+          FL_ANDROID_OKLINK_API_KEY: ${{ secrets.FL_ANDROID_OKLINK_API_KEY }}
+          FL_ANDROID_OPMAINNET_API_KEY: ${{ secrets.FL_ANDROID_OPMAINNET_API_KEY }}
+          FL_WALLET_CONNECT_PROJECT_ID: ${{ secrets.FL_WALLET_CONNECT_PROJECT_ID }}
+          WALLET_CONNECT_PROJECT_ID: ${{ secrets.FL_WALLET_CONNECT_PROJECT_ID }}
+          FL_DWELLIR_API_KEY: ${{ secrets.FL_DWELLIR_API_KEY }}
+          FL_ANDROID_TON_API_KEY: ${{ secrets.FL_ANDROID_TON_API_KEY }}
+          FL_ANDROID_TON_INDEXER_URL: ${{ secrets.FL_ANDROID_TON_INDEXER_URL }}
+        run: |
+          set -euo pipefail
+          ./scripts/install-android-release-sdk.sh verify
+          ./scripts/audit-public-artifacts.sh \
+            --unsigned-release \
+            --strict-provenance
+          ./gradlew clean \
+            -Pandroid.builder.sdkDownload=false \
+            --no-daemon \
+            --console=plain \
+            --stacktrace
+          [[ ! -d app/build/outputs/bundle/release ]] || {
+            echo "Release AAB output survived the clean build boundary" >&2
+            exit 1
+          }
+          ./scripts/install-android-release-sdk.sh verify
+          build_log_dir="$RUNNER_TEMP/android-release-build-log"
+          [[ ! -e "$build_log_dir" && ! -L "$build_log_dir" ]] || {
+            echo "Release build-log directory already exists" >&2
+            exit 1
+          }
+          mkdir -m 0700 "$build_log_dir"
+          build_log="$build_log_dir/bundle-release.log"
+          umask 077
+          ANDROID_UNSIGNED_RELEASE_BUILD=true \
+            ./gradlew :app:bundleRelease \
+              -Pandroid.builder.sdkDownload=false \
+              --no-build-cache \
+              --no-daemon \
+              --console=plain \
+              --stacktrace 2>&1 |
+            (
+              ulimit -f 262144
+              tee -- "$build_log"
+            )
+          [[ -f "$build_log" && ! -L "$build_log" && -s "$build_log" ]] || {
+            echo "Release build-log snapshot is missing or unsafe" >&2
+            exit 1
+          }
+          build_log_verification="$build_log_dir/verification.txt"
+          ./scripts/verify-android-release-build-log.sh "$build_log" |
+            tee "$build_log_verification"
+          build_log_sha256="$(sha256sum "$build_log" | awk '{print $1}')"
+          grep -Fxq \
+            "[android-release-build-log] release R8 task completed without forbidden Kotlin metadata or ServiceLoader warnings; sha256=$build_log_sha256" \
+            "$build_log_verification" || {
+              echo "Build-log verifier did not bind the exact snapshot digest" >&2
+              exit 1
+            }
+          chmod 0444 "$build_log" "$build_log_verification"
+          ./scripts/install-android-release-sdk.sh verify
+          [[ "$(sha256sum versioning/version.properties | awk '{print $1}')" == \
+            "$VERSION_PROPERTIES_SHA256" ]]
+          mapfile -d '' unsigned_bundles < <(
+            find app/build/outputs/bundle/release \
+              -type f -name '*.aab' -print0
+          )
+          [[ "${#unsigned_bundles[@]}" -eq 1 ]] || {
+            echo "Expected exactly one unsigned release AAB; found ${#unsigned_bundles[@]}" >&2
+            exit 1
+          }
+          unsigned_aab="${unsigned_bundles[0]}"
+          if unzip -Z1 "$unsigned_aab" |
+            grep -Eiq \
+              '^META-INF/[^/]+\.(RSA|DSA|EC|SF)$|^META-INF/MANIFEST\.MF$'; then
+            echo "Gradle release output unexpectedly contains signature metadata" >&2
             exit 1
           fi
+          unsigned_sha256="$(sha256sum "$unsigned_aab" | awk '{print $1}')"
+          chmod 0444 "$unsigned_aab"
+          {
+            echo "ANDROID_UNSIGNED_AAB_PATH=$unsigned_aab"
+            echo "ANDROID_UNSIGNED_AAB_SHA256=$unsigned_sha256"
+            echo "ANDROID_RELEASE_BUILD_LOG_PATH=$build_log"
+            echo "ANDROID_RELEASE_BUILD_LOG_SHA256=$build_log_sha256"
+          } >>"$GITHUB_ENV"
 
-          yes | "$sdkmanager_bin" --licenses >/dev/null || true
-          "$sdkmanager_bin" --install \
-            "platforms;android-36" \
-            "build-tools;36.0.0" \
-            "platform-tools" \
-            "ndk;28.0.12674087" \
-            "ndk;25.2.9519653"
+      - name: Remove Firebase overlay after Gradle exits
+        if: ${{ always() }}
+        run: ./scripts/cleanup-release-overlays.sh
 
-      - name: Export NDK environment
+      - name: Prove source and utils integrity after build
         run: |
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          set -euo pipefail
+          [[ -f "$ANDROID_UNSIGNED_AAB_PATH" &&
+            ! -L "$ANDROID_UNSIGNED_AAB_PATH" &&
+            -s "$ANDROID_UNSIGNED_AAB_PATH" ]]
+          [[ "$(sha256sum "$ANDROID_UNSIGNED_AAB_PATH" | awk '{print $1}')" == \
+            "$ANDROID_UNSIGNED_AAB_SHA256" ]]
+          [[ -f "$ANDROID_RELEASE_BUILD_LOG_PATH" &&
+            ! -L "$ANDROID_RELEASE_BUILD_LOG_PATH" &&
+            -s "$ANDROID_RELEASE_BUILD_LOG_PATH" ]]
+          [[ "$(sha256sum "$ANDROID_RELEASE_BUILD_LOG_PATH" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh \
+            "$ANDROID_RELEASE_BUILD_LOG_PATH"
+          ./scripts/verify-android-release-source-tree.sh \
+            "$RELEASE_COMMIT" \
+            "$RELEASE_TREE" \
+            --allow-fearless-utils
 
-      - name: Setup Rust toolchain
+          utils_verification="$RUNNER_TEMP/fearless-utils-after-build.log"
+          ./scripts/ensure-fearless-utils.sh | tee "$utils_verification"
+          actual_utils_tree="$(
+            awk '
+              $1 == "[fearless-utils]" &&
+              $2 == "Effective" &&
+              $3 == "source" &&
+              $4 == "tree" &&
+              length($5) == 40 &&
+              $5 !~ /[^0-9a-f]/ {
+                print $5
+              }
+            ' "$utils_verification"
+          )"
+          [[ "$actual_utils_tree" == "$FEARLESS_UTILS_TREE" ]] || {
+            echo "fearless-utils source tree changed during Gradle execution" >&2
+            exit 1
+          }
+
+      - name: Stage exact four-file unsigned artifact
+        id: unsigned_artifact
         run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
-          rustup target add \
-            aarch64-linux-android \
-            armv7-linux-androideabi \
-            i686-linux-android \
-            x86_64-linux-android
+          set -euo pipefail
+          artifact_dir="build/unsigned-release"
+          mkdir -p "$artifact_dir"
+          artifact_basename="Fearless-$RELEASE_TAG.unsigned.aab"
+          artifact="$artifact_dir/$artifact_basename"
+          checksum="$artifact.sha256"
+          provenance="$artifact_dir/unsigned-provenance.json"
+          build_log="$artifact_dir/bundle-release.log"
+          cp "$ANDROID_UNSIGNED_AAB_PATH" "$artifact"
+          cp "$ANDROID_RELEASE_BUILD_LOG_PATH" "$build_log"
+          artifact_sha256="$(sha256sum "$artifact" | awk '{print $1}')"
+          [[ "$artifact_sha256" == "$ANDROID_UNSIGNED_AAB_SHA256" ]]
+          [[ "$(sha256sum "$build_log" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh "$build_log"
+          printf '%s  %s\n' "$artifact_sha256" "$artifact_basename" >"$checksum"
 
-      - name: Restore release overlays
-        run: ./scripts/restore-release-overlays.sh
+          gradle_wrapper_sha256="$(
+            sha256sum gradle/wrapper/gradle-wrapper.properties |
+              awk '{print $1}'
+          )"
+          verification_metadata_sha256="$(
+            sha256sum gradle/verification-metadata.xml | awk '{print $1}'
+          )"
+          fearless_utils_patch_sha256="$(
+            sha256sum scripts/fearless-utils-library-only.patch |
+              awk '{print $1}'
+          )"
+          jq -n \
+            --arg artifactFilename "$artifact_basename" \
+            --arg artifactSha256 "$artifact_sha256" \
+            --arg buildLogFilename "bundle-release.log" \
+            --arg buildLogSha256 "$ANDROID_RELEASE_BUILD_LOG_SHA256" \
+            --arg releaseTag "$RELEASE_TAG" \
+            --arg releaseTagObject "$RELEASE_TAG_OBJECT" \
+            --arg releaseCommit "$RELEASE_COMMIT" \
+            --arg releaseTree "$RELEASE_TREE" \
+            --arg versionName "$RELEASE_VERSION_NAME" \
+            --arg versionCode "$RELEASE_VERSION_CODE" \
+            --arg versionPropertiesSha256 "$VERSION_PROPERTIES_SHA256" \
+            --arg gradleWrapperSha256 "$gradle_wrapper_sha256" \
+            --arg verificationMetadataSha256 "$verification_metadata_sha256" \
+            --arg firebaseSha256 "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" \
+            --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
+            --arg fearlessUtilsTree "$FEARLESS_UTILS_TREE" \
+            --arg fearlessUtilsPatchSha256 "$fearless_utils_patch_sha256" \
+            --arg toolchainEvidenceSha256 "$BUILD_TOOLCHAIN_EVIDENCE_SHA256" \
+            --rawfile toolchainEvidence "$BUILD_TOOLCHAIN_EVIDENCE" \
+            --arg javaVersion "$TEMURIN_JDK_VERSION" \
+            --arg javaArchiveSha256 "$TEMURIN_JDK_ARCHIVE_SHA256" \
+            --arg javaBinarySha256 "$TEMURIN_JAVA_SHA256" \
+            --arg javacBinarySha256 "$TEMURIN_JAVAC_SHA256" \
+            --arg jarsignerBinarySha256 "$TEMURIN_JARSIGNER_SHA256" \
+            --arg keytoolBinarySha256 "$TEMURIN_KEYTOOL_SHA256" \
+            --arg bundletoolVersion "$BUNDLETOOL_VERSION" \
+            --arg bundletoolSha256 "$BUNDLETOOL_SHA256" \
+            --arg androidSdkLockSha256 \
+              "$ANDROID_RELEASE_SDK_LOCK_SHA256" \
+            --arg androidSdkEvidenceSha256 \
+              "$ANDROID_RELEASE_SDK_EVIDENCE_SHA256" \
+            --rawfile androidSdkEvidence \
+              "$ANDROID_RELEASE_SDK_EVIDENCE" '{
+              schemaVersion: 3,
+              artifactKind: "unsigned-android-app-bundle",
+              artifactFilename: $artifactFilename,
+              artifactSha256: $artifactSha256,
+              buildLog: {
+                filename: $buildLogFilename,
+                sha256: $buildLogSha256
+              },
+              release: {
+                tag: $releaseTag,
+                tagObject: $releaseTagObject,
+                commit: $releaseCommit,
+                tree: $releaseTree,
+                sourceRef: "refs/heads/master",
+                versionName: $versionName,
+                versionCode: $versionCode
+              },
+              source: {
+                versionPropertiesSha256: $versionPropertiesSha256,
+                gradleWrapperPropertiesSha256: $gradleWrapperSha256,
+                dependencyVerificationMetadataSha256:
+                  $verificationMetadataSha256
+              },
+              firebase: {
+                configurationSha256: $firebaseSha256
+              },
+              fearlessUtils: {
+                commit: $fearlessUtilsCommit,
+                tree: $fearlessUtilsTree,
+                libraryOnlyPatchSha256: $fearlessUtilsPatchSha256
+              },
+              toolchain: {
+                runnerImage: "ubuntu-24.04",
+                javaDistribution: "temurin-jdkfile",
+                javaVersion: $javaVersion,
+                javaArchiveSha256: $javaArchiveSha256,
+                javaBinarySha256: $javaBinarySha256,
+                javacBinarySha256: $javacBinarySha256,
+                jarsignerBinarySha256: $jarsignerBinarySha256,
+                keytoolBinarySha256: $keytoolBinarySha256,
+                bundletoolVersion: $bundletoolVersion,
+                bundletoolSha256: $bundletoolSha256,
+                androidSdkLockSha256: $androidSdkLockSha256,
+                androidSdkEvidenceSha256: $androidSdkEvidenceSha256,
+                androidSdkEvidence: $androidSdkEvidence,
+                evidenceSha256: $toolchainEvidenceSha256,
+                evidence: $toolchainEvidence
+              }
+            }' >"$provenance"
 
-      - name: Release artifact audit
+          provenance_sha256="$(sha256sum "$provenance" | awk '{print $1}')"
+          shopt -s nullglob dotglob
+          entries=("$artifact_dir"/*)
+          shopt -u nullglob dotglob
+          [[ "${#entries[@]}" -eq 4 ]]
+          for entry in "${entries[@]}"; do
+            case "$entry" in
+              "$artifact"|"$checksum"|"$provenance"|"$build_log") ;;
+              *)
+                echo "Unsigned artifact directory contains an unexpected entry" >&2
+                exit 1
+                ;;
+            esac
+            [[ -f "$entry" && ! -L "$entry" && -s "$entry" ]]
+          done
+          chmod 0444 "$artifact" "$checksum" "$provenance" "$build_log"
+          chmod 0555 "$artifact_dir"
+          {
+            echo "artifact_basename=$artifact_basename"
+            echo "artifact_sha256=$artifact_sha256"
+            echo "build_log_sha256=$ANDROID_RELEASE_BUILD_LOG_SHA256"
+            echo "provenance_sha256=$provenance_sha256"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Attest all four unsigned artifact files
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: |
+            build/unsigned-release/Fearless-${{ inputs.release_tag }}.unsigned.aab
+            build/unsigned-release/Fearless-${{ inputs.release_tag }}.unsigned.aab.sha256
+            build/unsigned-release/unsigned-provenance.json
+            build/unsigned-release/bundle-release.log
+
+      - name: Verify all unsigned attestations against immutable source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UNSIGNED_ARTIFACT_BASENAME: ${{ steps.unsigned_artifact.outputs.artifact_basename }}
         run: |
-          flags=(--release)
-          if [ "${{ inputs.strict_provenance }}" = "true" ]; then
-            flags+=(--strict-provenance)
+          set -euo pipefail
+          for subject in \
+            "build/unsigned-release/$UNSIGNED_ARTIFACT_BASENAME" \
+            "build/unsigned-release/$UNSIGNED_ARTIFACT_BASENAME.sha256" \
+            "build/unsigned-release/unsigned-provenance.json" \
+            "build/unsigned-release/bundle-release.log"; do
+            verification="$RUNNER_TEMP/$(basename "$subject").attestation.json"
+            verified=false
+            for attempt in 1 2 3 4 5; do
+              if gh attestation verify "$subject" \
+                --repo "$GITHUB_REPOSITORY" \
+                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/android-release.yml" \
+                --signer-digest "$RELEASE_COMMIT" \
+                --source-digest "$RELEASE_COMMIT" \
+                --source-ref refs/heads/master \
+                --deny-self-hosted-runners \
+                --format json >"$verification"; then
+                verified=true
+                break
+              fi
+              sleep "$((attempt * 2))"
+            done
+            [[ "$verified" == "true" ]] || {
+              echo "Could not verify unsigned attestation for $subject" >&2
+              exit 1
+            }
+            digest="$(sha256sum "$subject" | awk '{print $1}')"
+            jq -e --arg digest "$digest" '
+              length > 0 and
+              all(
+                .[].verificationResult.statement;
+                .predicateType == "https://slsa.dev/provenance/v1" and
+                (.subject | any(.digest.sha256 == $digest))
+              )
+            ' "$verification" >/dev/null || {
+              echo "Unsigned attestation is not bound to $subject" >&2
+              exit 1
+            }
+          done
+          attested_build_log="build/unsigned-release/bundle-release.log"
+          [[ "$(sha256sum "$attested_build_log" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh \
+            "$attested_build_log"
+
+      - name: Upload exact attested unsigned artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fearless-android-unsigned-${{ inputs.release_tag }}
+          path: build/unsigned-release
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove any ephemeral build credentials
+        if: ${{ always() }}
+        run: ./scripts/cleanup-release-overlays.sh
+
+  release-signing:
+    name: Protected isolated AAB signing
+    needs:
+      - release-controls
+      - release-build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: android-release-signing
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
+    env:
+      CI: true
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      RELEASE_TAG_OBJECT: ${{ needs.release-controls.outputs.release_tag_object }}
+      RELEASE_COMMIT: ${{ needs.release-controls.outputs.release_commit }}
+      RELEASE_TREE: ${{ needs.release-controls.outputs.release_tree }}
+      MASTER_COMMIT: ${{ needs.release-controls.outputs.master_commit }}
+      RELEASE_VERSION_NAME: ${{ needs.release-controls.outputs.version_name }}
+      RELEASE_VERSION_CODE: ${{ needs.release-controls.outputs.version_code }}
+      VERSION_PROPERTIES_SHA256: ${{ needs.release-controls.outputs.version_properties_sha256 }}
+      UNSIGNED_ARTIFACT_BASENAME: ${{ needs.release-build.outputs.unsigned_artifact_basename }}
+      ANDROID_UNSIGNED_AAB_SHA256: ${{ needs.release-build.outputs.unsigned_artifact_sha256 }}
+      ANDROID_RELEASE_BUILD_LOG_SHA256: ${{ needs.release-build.outputs.unsigned_build_log_sha256 }}
+      UNSIGNED_PROVENANCE_SHA256: ${{ needs.release-build.outputs.unsigned_provenance_sha256 }}
+      APPROVED_FIREBASE_JSON_SHA256: ${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}
+      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
+      TEMURIN_JDK_VERSION: "21.0.12+8"
+      TEMURIN_JDK_URL: https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12_8.tar.gz
+      TEMURIN_JDK_ARCHIVE_SHA256: e4446ff06a276155697597cc0f1b15da004ff083f4964a35271ecee567177370
+      EXPECTED_RELEASE_TAGGER_EMAIL: ${{ vars.ANDROID_RELEASE_TAGGER_EMAIL }}
+      EXPECTED_ANDROID_RELEASE_BUILD_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_BUILD_REVIEWER_IDS }}
+      EXPECTED_ANDROID_RELEASE_SIGNING_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_SIGNING_REVIEWER_IDS }}
+
+    steps:
+      - name: Checkout immutable release tag on fresh signing runner
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Revalidate exact approved source on signing runner
+        env:
+          ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64: ${{ vars.ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64 }}
+          GH_TOKEN: ${{ github.token }}
+          DISPATCH_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master:refs/remotes/origin/master
+          git fetch --force origin \
+            "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          local_tag_object="$(git rev-parse "refs/tags/$RELEASE_TAG")"
+          local_release_commit="$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
+          local_master_commit="$(git rev-parse origin/master)"
+          [[ "$(git cat-file -t "$local_tag_object")" == "tag" &&
+            "$local_tag_object" == "$RELEASE_TAG_OBJECT" &&
+            "$local_release_commit" == "$RELEASE_COMMIT" &&
+            "$local_master_commit" == "$MASTER_COMMIT" &&
+            "$local_master_commit" == "$RELEASE_COMMIT" &&
+            "$local_master_commit" == "$DISPATCH_COMMIT" &&
+            "$(git rev-parse HEAD)" == "$RELEASE_COMMIT" &&
+            "$(git rev-parse "HEAD^{tree}")" == "$RELEASE_TREE" ]] || {
+            echo "Fresh signing source differs from the approved tagged master commit" >&2
+            exit 1
+          }
+          ./scripts/verify-android-release-tag-signature.sh \
+            "$RELEASE_TAG" \
+            "$local_tag_object" \
+            "$local_release_commit"
+          gh api "/repos/$GITHUB_REPOSITORY/git/tags/$local_tag_object" |
+            jq -e \
+              --arg expected_tag "$RELEASE_TAG" \
+              --arg expected_commit "$RELEASE_COMMIT" \
+              --arg expected_tagger_email "$EXPECTED_RELEASE_TAGGER_EMAIL" '
+                .tag == $expected_tag and
+                .object.type == "commit" and
+                .object.sha == $expected_commit and
+                .tagger.email == $expected_tagger_email and
+                .verification.verified == true and
+                .verification.reason == "valid"
+              ' >/dev/null || {
+                echo "GitHub no longer verifies the release tag signature" >&2
+                exit 1
+              }
+          bash ./scripts/verify-android-release-governance.sh
+          [[ "$(sha256sum versioning/version.properties | awk '{print $1}')" == \
+            "$VERSION_PROPERTIES_SHA256" ]]
+          [[ "$APPROVED_FIREBASE_JSON_SHA256" =~ ^[0-9a-f]{64}$ ]] || {
+            echo "Approved Firebase digest is missing or malformed" >&2
+            exit 1
+          }
+          if git config --local --get-regexp '^http\..*\.extraheader$'; then
+            echo "Signing checkout persisted a GitHub credential" >&2
+            exit 1
           fi
-          ./scripts/audit-public-artifacts.sh "${flags[@]}"
+          ./scripts/verify-android-release-source-tree.sh \
+            "$RELEASE_COMMIT" \
+            "$RELEASE_TREE"
 
-      - name: Build release artifact
-        run: ./gradlew "${{ inputs.build_task }}" --no-daemon --console=plain --stacktrace
+      - name: Download checksum-pinned signing JDK archive
+        run: |
+          set -euo pipefail
+          jdk_archive="$RUNNER_TEMP/temurin-jdk-21.0.12+8.tar.gz"
+          curl --fail --location --silent --show-error \
+            --retry 3 \
+            --output "$jdk_archive" \
+            "$TEMURIN_JDK_URL"
+          actual_sha256="$(sha256sum "$jdk_archive" | awk '{print $1}')"
+          [[ "$actual_sha256" == "$TEMURIN_JDK_ARCHIVE_SHA256" ]] || {
+            echo "Temurin signing JDK archive checksum mismatch" >&2
+            exit 1
+          }
+          chmod 0444 "$jdk_archive"
+          echo "TEMURIN_JDK_ARCHIVE=$jdk_archive" >>"$GITHUB_ENV"
+
+      - name: Install verified signing JDK archive
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: jdkfile
+          java-version: "21.0.12+8"
+          architecture: x64
+          jdkFile: ${{ runner.temp }}/temurin-jdk-21.0.12+8.tar.gz
+
+      - name: Verify exact installed signing JDK
+        run: |
+          set -euo pipefail
+          java_version="$(java -version 2>&1)"
+          grep -Fq 'version "21.0.12"' <<<"$java_version"
+          grep -Fq 'build 21.0.12+8' <<<"$java_version"
+          [[ "$(javac -version 2>&1)" == "javac 21.0.12" ]]
+          [[ "$(sha256sum "$TEMURIN_JDK_ARCHIVE" | awk '{print $1}')" == \
+            "$TEMURIN_JDK_ARCHIVE_SHA256" ]]
+
+      - name: Install checksum-pinned bundletool for verification
+        run: |
+          set -euo pipefail
+          bundletool_jar="$RUNNER_TEMP/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          curl --fail --location --silent --show-error \
+            --retry 3 \
+            --output "$bundletool_jar" \
+            "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          actual_sha256="$(sha256sum "$bundletool_jar" | awk '{print $1}')"
+          [[ "$actual_sha256" == "$BUNDLETOOL_SHA256" ]] || {
+            echo "bundletool checksum mismatch" >&2
+            exit 1
+          }
+          chmod 0444 "$bundletool_jar"
+          echo "BUNDLETOOL_JAR=$bundletool_jar" >>"$GITHUB_ENV"
+
+      - name: Download exact unsigned build artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: fearless-android-unsigned-${{ inputs.release_tag }}
+          path: build/unsigned-release
+
+      - name: Verify unsigned files, provenance, and attestations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          artifact_dir="build/unsigned-release"
+          unsigned_aab="$artifact_dir/$UNSIGNED_ARTIFACT_BASENAME"
+          checksum="$unsigned_aab.sha256"
+          provenance="$artifact_dir/unsigned-provenance.json"
+          build_log="$artifact_dir/bundle-release.log"
+          [[ -d "$artifact_dir" && ! -L "$artifact_dir" ]]
+          shopt -s nullglob dotglob
+          entries=("$artifact_dir"/*)
+          shopt -u nullglob dotglob
+          [[ "${#entries[@]}" -eq 4 ]] || {
+            echo "Unsigned download must contain exactly four entries" >&2
+            exit 1
+          }
+          for entry in "${entries[@]}"; do
+            case "$entry" in
+              "$unsigned_aab"|"$checksum"|"$provenance"|"$build_log") ;;
+              *)
+                echo "Unsigned download contains an unexpected entry" >&2
+                exit 1
+                ;;
+            esac
+            [[ -f "$entry" && ! -L "$entry" && -s "$entry" ]]
+          done
+          printf '%s  %s\n' \
+            "$ANDROID_UNSIGNED_AAB_SHA256" \
+            "$UNSIGNED_ARTIFACT_BASENAME" |
+            cmp - "$checksum"
+          [[ "$(sha256sum "$unsigned_aab" | awk '{print $1}')" == \
+            "$ANDROID_UNSIGNED_AAB_SHA256" ]]
+          [[ "$(sha256sum "$provenance" | awk '{print $1}')" == \
+            "$UNSIGNED_PROVENANCE_SHA256" ]]
+          [[ "$ANDROID_RELEASE_BUILD_LOG_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$(sha256sum "$build_log" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh "$build_log"
+
+          gradle_wrapper_sha256="$(
+            sha256sum gradle/wrapper/gradle-wrapper.properties |
+              awk '{print $1}'
+          )"
+          verification_metadata_sha256="$(
+            sha256sum gradle/verification-metadata.xml | awk '{print $1}'
+          )"
+          fearless_utils_patch_sha256="$(
+            sha256sum scripts/fearless-utils-library-only.patch |
+              awk '{print $1}'
+          )"
+          android_sdk_lock_sha256="$(
+            sha256sum scripts/android-release-sdk-linux.lock.json |
+              awk '{print $1}'
+          )"
+          python3 scripts/android-release-sdk.py validate-lock \
+            scripts/android-release-sdk-linux.lock.json >/dev/null
+          jq -e \
+            --arg artifactFilename "$UNSIGNED_ARTIFACT_BASENAME" \
+            --arg artifactSha256 "$ANDROID_UNSIGNED_AAB_SHA256" \
+            --arg buildLogFilename "bundle-release.log" \
+            --arg buildLogSha256 "$ANDROID_RELEASE_BUILD_LOG_SHA256" \
+            --arg releaseTag "$RELEASE_TAG" \
+            --arg releaseTagObject "$RELEASE_TAG_OBJECT" \
+            --arg releaseCommit "$RELEASE_COMMIT" \
+            --arg releaseTree "$RELEASE_TREE" \
+            --arg versionName "$RELEASE_VERSION_NAME" \
+            --arg versionCode "$RELEASE_VERSION_CODE" \
+            --arg versionPropertiesSha256 "$VERSION_PROPERTIES_SHA256" \
+            --arg gradleWrapperSha256 "$gradle_wrapper_sha256" \
+            --arg verificationMetadataSha256 "$verification_metadata_sha256" \
+            --arg firebaseSha256 "$APPROVED_FIREBASE_JSON_SHA256" \
+            --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
+            --arg fearlessUtilsPatchSha256 "$fearless_utils_patch_sha256" \
+            --arg javaVersion "$TEMURIN_JDK_VERSION" \
+            --arg javaArchiveSha256 "$TEMURIN_JDK_ARCHIVE_SHA256" \
+            --arg javaBinarySha256 "$(
+              sha256sum "$JAVA_HOME/bin/java" | awk '{print $1}'
+            )" \
+            --arg javacBinarySha256 "$(
+              sha256sum "$JAVA_HOME/bin/javac" | awk '{print $1}'
+            )" \
+            --arg jarsignerBinarySha256 "$(
+              sha256sum "$JAVA_HOME/bin/jarsigner" | awk '{print $1}'
+            )" \
+            --arg keytoolBinarySha256 "$(
+              sha256sum "$JAVA_HOME/bin/keytool" | awk '{print $1}'
+            )" \
+            --arg bundletoolVersion "$BUNDLETOOL_VERSION" \
+            --arg bundletoolSha256 "$BUNDLETOOL_SHA256" \
+            --arg androidSdkLockSha256 "$android_sdk_lock_sha256" \
+            --slurpfile androidSdkLock \
+              scripts/android-release-sdk-linux.lock.json '
+              def exact_android_sdk_evidence:
+                (try fromjson catch null) as $sdk |
+                ($sdk | type) == "object" and
+                ($sdk | keys | sort) == ([
+                  "host",
+                  "installedTreeManifestSha256",
+                  "isolatedRoot",
+                  "license",
+                  "lockSha256",
+                  "packages",
+                  "schemaVersion",
+                  "sdkTreeSha256"
+                ] | sort) and
+                $sdk.schemaVersion == 1 and
+                $sdk.lockSha256 == $androidSdkLockSha256 and
+                $sdk.host == $androidSdkLock[0].host and
+                $sdk.license == $androidSdkLock[0].license and
+                $sdk.isolatedRoot == true and
+                ($sdk.sdkTreeSha256 |
+                  type == "string" and test("^[0-9a-f]{64}$")) and
+                ($sdk.installedTreeManifestSha256 |
+                  type == "string" and test("^[0-9a-f]{64}$")) and
+                ($sdk.packages | type) == "array" and
+                ($sdk.packages | length) == 2 and
+                all(
+                  range(0; 2);
+                  . as $index |
+                  ($sdk.packages[$index] | keys | sort) ==
+                    (($androidSdkLock[0].packages[$index] | keys) +
+                      ["installedTreeSha256"] | sort)
+                ) and
+                ($sdk.packages | map(del(.installedTreeSha256))) ==
+                  $androidSdkLock[0].packages and
+                all(
+                  $sdk.packages[];
+                  .installedTreeSha256 |
+                    type == "string" and test("^[0-9a-f]{64}$")
+                );
+
+              type == "object" and
+              (keys | sort) == ([
+                "artifactFilename",
+                "artifactKind",
+                "artifactSha256",
+                "buildLog",
+                "fearlessUtils",
+                "firebase",
+                "release",
+                "schemaVersion",
+                "source",
+                "toolchain"
+              ] | sort) and
+              .schemaVersion == 3 and
+              .artifactKind == "unsigned-android-app-bundle" and
+              .artifactFilename == $artifactFilename and
+              .artifactSha256 == $artifactSha256 and
+              .buildLog == {
+                filename: $buildLogFilename,
+                sha256: $buildLogSha256
+              } and
+              .release == {
+                tag: $releaseTag,
+                tagObject: $releaseTagObject,
+                commit: $releaseCommit,
+                tree: $releaseTree,
+                sourceRef: "refs/heads/master",
+                versionName: $versionName,
+                versionCode: $versionCode
+              } and
+              .source == {
+                versionPropertiesSha256: $versionPropertiesSha256,
+                gradleWrapperPropertiesSha256: $gradleWrapperSha256,
+                dependencyVerificationMetadataSha256:
+                  $verificationMetadataSha256
+              } and
+              .firebase == {
+                configurationSha256: $firebaseSha256
+              } and
+              (.fearlessUtils | type == "object") and
+              .fearlessUtils.commit == $fearlessUtilsCommit and
+              (.fearlessUtils.tree |
+                type == "string" and test("^[0-9a-f]{40}$")) and
+              .fearlessUtils.libraryOnlyPatchSha256 ==
+                $fearlessUtilsPatchSha256 and
+              (.toolchain | type == "object") and
+              (.toolchain | keys | sort) == ([
+                "androidSdkEvidence",
+                "androidSdkEvidenceSha256",
+                "androidSdkLockSha256",
+                "bundletoolSha256",
+                "bundletoolVersion",
+                "evidence",
+                "evidenceSha256",
+                "javaArchiveSha256",
+                "javaBinarySha256",
+                "javaDistribution",
+                "javaVersion",
+                "javacBinarySha256",
+                "jarsignerBinarySha256",
+                "keytoolBinarySha256",
+                "runnerImage"
+              ] | sort) and
+              .toolchain.runnerImage == "ubuntu-24.04" and
+              .toolchain.javaDistribution == "temurin-jdkfile" and
+              .toolchain.javaVersion == $javaVersion and
+              .toolchain.javaArchiveSha256 == $javaArchiveSha256 and
+              .toolchain.javaBinarySha256 == $javaBinarySha256 and
+              .toolchain.javacBinarySha256 == $javacBinarySha256 and
+              .toolchain.jarsignerBinarySha256 ==
+                $jarsignerBinarySha256 and
+              .toolchain.keytoolBinarySha256 == $keytoolBinarySha256 and
+              .toolchain.bundletoolVersion == $bundletoolVersion and
+              .toolchain.bundletoolSha256 == $bundletoolSha256 and
+              .toolchain.androidSdkLockSha256 ==
+                $androidSdkLockSha256 and
+              (.toolchain.androidSdkEvidenceSha256 |
+                type == "string" and test("^[0-9a-f]{64}$")) and
+              (.toolchain.androidSdkEvidence |
+                exact_android_sdk_evidence) and
+              (.toolchain.evidence |
+                type == "string" and length > 0) and
+              (.toolchain.evidenceSha256 |
+                type == "string" and test("^[0-9a-f]{64}$"))
+            ' "$provenance" >/dev/null || {
+              echo "Unsigned provenance is not the exact approved build record" >&2
+              exit 1
+            }
+          jq -jr '.toolchain.evidence' "$provenance" \
+            >"$RUNNER_TEMP/unsigned-build-toolchain.txt"
+          expected_evidence_sha256="$(
+            jq -er '.toolchain.evidenceSha256' "$provenance"
+          )"
+          [[ "$(sha256sum "$RUNNER_TEMP/unsigned-build-toolchain.txt" |
+            awk '{print $1}')" == "$expected_evidence_sha256" ]] || {
+              echo "Embedded build toolchain evidence digest is invalid" >&2
+              exit 1
+            }
+          jq -jr '.toolchain.androidSdkEvidence' "$provenance" \
+            >"$RUNNER_TEMP/unsigned-android-sdk-evidence.json"
+          expected_android_sdk_evidence_sha256="$(
+            jq -er '.toolchain.androidSdkEvidenceSha256' "$provenance"
+          )"
+          [[ "$(sha256sum "$RUNNER_TEMP/unsigned-android-sdk-evidence.json" |
+            awk '{print $1}')" == "$expected_android_sdk_evidence_sha256" ]] || {
+              echo "Embedded Android SDK evidence digest is invalid" >&2
+              exit 1
+            }
+          python3 scripts/android-release-sdk.py validate-evidence \
+            scripts/android-release-sdk-linux.lock.json \
+            "$RUNNER_TEMP/unsigned-android-sdk-evidence.json"
+
+          for subject in \
+            "$unsigned_aab" \
+            "$checksum" \
+            "$provenance" \
+            "$build_log"; do
+            verification="$RUNNER_TEMP/$(basename "$subject").download.json"
+            gh attestation verify "$subject" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/android-release.yml" \
+              --signer-digest "$RELEASE_COMMIT" \
+              --source-digest "$RELEASE_COMMIT" \
+              --source-ref refs/heads/master \
+              --deny-self-hosted-runners \
+              --format json >"$verification"
+            digest="$(sha256sum "$subject" | awk '{print $1}')"
+            jq -e --arg digest "$digest" '
+              length > 0 and
+              all(
+                .[].verificationResult.statement;
+                .predicateType == "https://slsa.dev/provenance/v1" and
+                (.subject | any(.digest.sha256 == $digest))
+              )
+            ' "$verification" >/dev/null || {
+              echo "Downloaded file lacks its exact source attestation" >&2
+              exit 1
+            }
+          done
+          {
+            echo "ANDROID_UNSIGNED_AAB_PATH=$unsigned_aab"
+            echo "ANDROID_RELEASE_BUILD_LOG_PATH=$build_log"
+          } >>"$GITHUB_ENV"
+
+      - name: Revalidate remote source before keystore restoration
+        env:
+          ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64: ${{ vars.ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64 }}
+          DISPATCH_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          remote_tag_object="$(
+            git ls-remote --refs origin "refs/tags/$RELEASE_TAG" |
+              awk 'NF == 2 { print $1 }'
+          )"
+          remote_master_commit="$(
+            git ls-remote --heads origin refs/heads/master |
+              awk 'NF == 2 { print $1 }'
+          )"
+          [[ "$remote_tag_object" == "$RELEASE_TAG_OBJECT" &&
+            "$remote_master_commit" == "$MASTER_COMMIT" &&
+            "$remote_master_commit" == "$RELEASE_COMMIT" &&
+            "$remote_master_commit" == "$DISPATCH_COMMIT" &&
+            "$(git rev-parse HEAD)" == "$RELEASE_COMMIT" &&
+            "$(git rev-parse "HEAD^{tree}")" == "$RELEASE_TREE" ]] || {
+            echo "Tag, master, dispatch, or checkout changed before signing" >&2
+            exit 1
+          }
+          ./scripts/verify-android-release-tag-signature.sh \
+            "$RELEASE_TAG" \
+            "$RELEASE_TAG_OBJECT" \
+            "$RELEASE_COMMIT"
+          [[ "$(sha256sum "$ANDROID_RELEASE_BUILD_LOG_PATH" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh \
+            "$ANDROID_RELEASE_BUILD_LOG_PATH"
+          ./scripts/verify-android-release-source-tree.sh \
+            "$RELEASE_COMMIT" \
+            "$RELEASE_TREE"
+
+      - name: Restore keystore only after unsigned verification
+        env:
+          ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
+        run: RELEASE_OVERLAY_MODE=signing ./scripts/restore-release-overlays.sh
+
+      - name: Sign exact unsigned AAB with upload certificate
+        env:
+          CI_KEYSTORE_PASS: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+          CI_KEYSTORE_KEY_ALIAS: ${{ vars.ANDROID_RELEASE_KEY_ALIAS }}
+          CI_KEYSTORE_KEY_PASS: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          ./scripts/verify-android-play-release.sh --signing-config
+          signed_dir="$RUNNER_TEMP/signed-release"
+          mkdir "$signed_dir"
+          signed_aab="$signed_dir/Fearless-$RELEASE_TAG.aab"
+          signer_evidence="$(
+            mktemp "$RUNNER_TEMP/android-aab-signer.XXXXXX"
+          )"
+          ./scripts/sign-android-release-aab.sh \
+            "$ANDROID_UNSIGNED_AAB_PATH" \
+            "$signed_aab" |
+            tee "$signer_evidence"
+          mapfile -t signed_sha256_lines < <(
+            sed -n \
+              's/^\[android-release-signer\] signed-aab-sha256=//p' \
+              "$signer_evidence"
+          )
+          [[ "${#signed_sha256_lines[@]}" -eq 1 ]] || {
+            echo "Signer did not emit exactly one trusted AAB digest" >&2
+            exit 1
+          }
+          signed_sha256="${signed_sha256_lines[0]}"
+          [[ "$signed_sha256" =~ ^[0-9a-f]{64}$ ]] || {
+            echo "Signer emitted a malformed trusted AAB digest" >&2
+            exit 1
+          }
+          [[ "$(sha256sum "$signed_aab" | awk '{print $1}')" == \
+            "$signed_sha256" ]] || {
+              echo "Signed AAB does not match the signer's trusted digest" >&2
+              exit 1
+            }
+          chmod 0444 "$signer_evidence"
+          {
+            echo "SIGNED_RELEASE_AAB=$signed_aab"
+            echo "SIGNED_RELEASE_AAB_SHA256=$signed_sha256"
+          } >>"$GITHUB_ENV"
+
+      - name: Remove keystore immediately after signing
+        if: ${{ always() }}
+        run: ./scripts/cleanup-release-overlays.sh
+
+      - name: Verify signed AAB identity, signature, and permissions
+        run: |
+          set -euo pipefail
+          [[ -f "$SIGNED_RELEASE_AAB" &&
+            ! -L "$SIGNED_RELEASE_AAB" &&
+            -s "$SIGNED_RELEASE_AAB" ]]
+          [[ "$SIGNED_RELEASE_AAB_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+              echo "Signed AAB changed after signer publication" >&2
+              exit 1
+            }
+          identity_evidence="$(
+            mktemp "$RUNNER_TEMP/android-aab-identity-verification.XXXXXX"
+          )"
+          BUNDLETOOL_JAR="$BUNDLETOOL_JAR" \
+            ./scripts/verify-android-play-release.sh \
+              --artifact \
+              "$SIGNED_RELEASE_AAB" \
+              "$SIGNED_RELEASE_AAB_SHA256" |
+            tee "$identity_evidence"
+          mapfile -t verified_sha256_lines < <(
+            sed -n \
+              's/^\[android-play-release\] trusted-signer-sha256=//p' \
+              "$identity_evidence"
+          )
+          [[ "${#verified_sha256_lines[@]}" -eq 1 &&
+            "${verified_sha256_lines[0]}" == \
+              "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+                echo "Play verifier did not preserve the trusted signer digest" >&2
+                exit 1
+              }
+          permissions_sha256="$(
+            sed -n \
+              's/.*exact merged permissions (\([0-9a-f]\{64\}\)).*/\1/p' \
+              "$identity_evidence"
+          )"
+          [[ "$permissions_sha256" =~ ^[0-9a-f]{64}$ ]] || {
+            echo "Exact merged-permission digest was not recorded" >&2
+            exit 1
+          }
+          {
+            echo "AAB_IDENTITY_EVIDENCE=$identity_evidence"
+            echo "AAB_IDENTITY_EVIDENCE_SHA256=$(
+              sha256sum "$identity_evidence" | awk '{print $1}'
+            )"
+            echo "AAB_PERMISSIONS_SHA256=$permissions_sha256"
+          } >>"$GITHUB_ENV"
+          chmod 0444 "$identity_evidence"
+          AAB_IDENTITY_FIXTURE="$SIGNED_RELEASE_AAB" \
+            EXPECTED_AAB_PACKAGE=jp.co.soramitsu.fearless \
+            EXPECTED_AAB_VERSION_NAME="$RELEASE_VERSION_NAME" \
+            EXPECTED_AAB_VERSION_CODE="$RELEASE_VERSION_CODE" \
+            EXPECTED_AAB_SOURCE_COMMIT="$RELEASE_COMMIT" \
+            AAB_IDENTITY_R8_POLICY=required \
+            bash ./scripts/test-android-aab-identity.sh
+          [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+              echo "Signed AAB changed during identity regression tests" >&2
+              exit 1
+            }
+
+      - name: Capture isolated signing toolchain evidence
+        run: |
+          set -euo pipefail
+          signing_toolchain="$RUNNER_TEMP/android-signing-toolchain.txt"
+          java_sha256="$(sha256sum "$JAVA_HOME/bin/java" | awk '{print $1}')"
+          javac_sha256="$(sha256sum "$JAVA_HOME/bin/javac" | awk '{print $1}')"
+          jarsigner_sha256="$(
+            sha256sum "$JAVA_HOME/bin/jarsigner" | awk '{print $1}'
+          )"
+          keytool_sha256="$(
+            sha256sum "$JAVA_HOME/bin/keytool" | awk '{print $1}'
+          )"
+          {
+            printf 'runner.os=%s\n' "$RUNNER_OS"
+            printf 'runner.arch=%s\n' "$RUNNER_ARCH"
+            printf 'runner.image.os=%s\n' "${ImageOS:-unknown}"
+            printf 'runner.image.version=%s\n' "${ImageVersion:-unknown}"
+            printf 'runner.name=%s\n' "$RUNNER_NAME"
+            uname -a
+            printf 'archive.version=%s\n' "$TEMURIN_JDK_VERSION"
+            sha256sum "$TEMURIN_JDK_ARCHIVE"
+            java -version 2>&1
+            sha256sum \
+              "$JAVA_HOME/release" \
+              "$JAVA_HOME/bin/java" \
+              "$JAVA_HOME/bin/javac" \
+              "$JAVA_HOME/bin/jarsigner" \
+              "$JAVA_HOME/bin/keytool" \
+              "$BUNDLETOOL_JAR"
+            jarsigner -J-version 2>&1
+            keytool -J-version 2>&1
+          } >"$signing_toolchain"
+          [[ -s "$signing_toolchain" && ! -L "$signing_toolchain" ]]
+          chmod 0444 "$signing_toolchain"
+          {
+            echo "SIGNING_TOOLCHAIN_EVIDENCE=$signing_toolchain"
+            echo "SIGNING_TOOLCHAIN_EVIDENCE_SHA256=$(
+              sha256sum "$signing_toolchain" | awk '{print $1}'
+            )"
+            echo "SIGNING_JAVA_SHA256=$java_sha256"
+            echo "SIGNING_JAVAC_SHA256=$javac_sha256"
+            echo "SIGNING_JARSIGNER_SHA256=$jarsigner_sha256"
+            echo "SIGNING_KEYTOOL_SHA256=$keytool_sha256"
+          } >>"$GITHUB_ENV"
+
+      - name: Stage exact three-file signed artifact
+        id: signed_artifact
+        run: |
+          set -euo pipefail
+          ./scripts/verify-android-release-source-tree.sh \
+            "$RELEASE_COMMIT" \
+            "$RELEASE_TREE"
+          [[ "$(sha256sum "$ANDROID_RELEASE_BUILD_LOG_PATH" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh \
+            "$ANDROID_RELEASE_BUILD_LOG_PATH"
+          artifact_dir="build/signed-release"
+          mkdir -p "$artifact_dir"
+          artifact_basename="Fearless-$RELEASE_TAG.aab"
+          artifact="$artifact_dir/$artifact_basename"
+          checksum="$artifact.sha256"
+          provenance="$artifact_dir/provenance.json"
+          [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+              echo "Signed AAB changed before artifact transfer" >&2
+              exit 1
+            }
+          cp -- "$SIGNED_RELEASE_AAB" "$artifact"
+          [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" &&
+            "$(sha256sum "$artifact" | awk '{print $1}')" == \
+              "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+                echo "Staged AAB does not match the signer's trusted digest" >&2
+                exit 1
+              }
+          ./scripts/verify-android-play-release.sh \
+            --artifact "$artifact" "$SIGNED_RELEASE_AAB_SHA256"
+          [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" &&
+            "$(sha256sum "$artifact" | awk '{print $1}')" == \
+              "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+                echo "Signed or staged AAB changed during final verification" >&2
+                exit 1
+              }
+          artifact_sha256="$SIGNED_RELEASE_AAB_SHA256"
+          printf '%s  %s\n' "$artifact_sha256" "$artifact_basename" >"$checksum"
+
+          unsigned_provenance="build/unsigned-release/unsigned-provenance.json"
+          gradle_wrapper_sha256="$(
+            sha256sum gradle/wrapper/gradle-wrapper.properties |
+              awk '{print $1}'
+          )"
+          verification_metadata_sha256="$(
+            sha256sum gradle/verification-metadata.xml | awk '{print $1}'
+          )"
+          fearless_utils_patch_sha256="$(
+            sha256sum scripts/fearless-utils-library-only.patch |
+              awk '{print $1}'
+          )"
+          android_sdk_lock_sha256="$(
+            sha256sum scripts/android-release-sdk-linux.lock.json |
+              awk '{print $1}'
+          )"
+          ./scripts/emit-verified-release-snapshot.sh \
+            "$unsigned_provenance" \
+            "$UNSIGNED_PROVENANCE_SHA256" |
+          jq -e \
+            --arg artifactFilename "$artifact_basename" \
+            --arg artifactSha256 "$artifact_sha256" \
+            --arg unsignedFilename "$UNSIGNED_ARTIFACT_BASENAME" \
+            --arg unsignedSha256 "$ANDROID_UNSIGNED_AAB_SHA256" \
+            --arg unsignedProvenanceSha256 "$UNSIGNED_PROVENANCE_SHA256" \
+            --arg buildLogFilename "bundle-release.log" \
+            --arg buildLogSha256 "$ANDROID_RELEASE_BUILD_LOG_SHA256" \
+            --arg releaseTag "$RELEASE_TAG" \
+            --arg releaseTagObject "$RELEASE_TAG_OBJECT" \
+            --arg releaseCommit "$RELEASE_COMMIT" \
+            --arg releaseTree "$RELEASE_TREE" \
+            --arg versionName "$RELEASE_VERSION_NAME" \
+            --arg versionCode "$RELEASE_VERSION_CODE" \
+            --arg versionPropertiesSha256 "$VERSION_PROPERTIES_SHA256" \
+            --arg gradleWrapperSha256 "$gradle_wrapper_sha256" \
+            --arg verificationMetadataSha256 \
+              "$verification_metadata_sha256" \
+            --arg firebaseSha256 "$APPROVED_FIREBASE_JSON_SHA256" \
+            --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
+            --arg fearlessUtilsPatchSha256 \
+              "$fearless_utils_patch_sha256" \
+            --arg buildJavaVersion "$TEMURIN_JDK_VERSION" \
+            --arg buildJavaArchiveSha256 "$TEMURIN_JDK_ARCHIVE_SHA256" \
+            --arg bundletoolVersion "$BUNDLETOOL_VERSION" \
+            --arg bundletoolSha256 "$BUNDLETOOL_SHA256" \
+            --arg androidSdkLockSha256 "$android_sdk_lock_sha256" \
+            --slurpfile androidSdkLock \
+              scripts/android-release-sdk-linux.lock.json \
+            --arg signingCertificateSha256 "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" \
+            --arg aabPermissionsSha256 "$AAB_PERMISSIONS_SHA256" \
+            --arg aabIdentityEvidenceSha256 "$AAB_IDENTITY_EVIDENCE_SHA256" \
+            --rawfile aabIdentityEvidence "$AAB_IDENTITY_EVIDENCE" \
+            --arg signingJavaVersion "$TEMURIN_JDK_VERSION" \
+            --arg signingJavaArchiveSha256 "$TEMURIN_JDK_ARCHIVE_SHA256" \
+            --arg signingJavaBinarySha256 "$SIGNING_JAVA_SHA256" \
+            --arg signingJavacBinarySha256 "$SIGNING_JAVAC_SHA256" \
+            --arg signingJarsignerBinarySha256 "$SIGNING_JARSIGNER_SHA256" \
+            --arg signingKeytoolBinarySha256 "$SIGNING_KEYTOOL_SHA256" \
+            --arg signingToolchainEvidenceSha256 "$SIGNING_TOOLCHAIN_EVIDENCE_SHA256" \
+            --rawfile signingToolchainEvidence "$SIGNING_TOOLCHAIN_EVIDENCE" '
+              def exact_android_sdk_evidence:
+                (try fromjson catch null) as $sdk |
+                ($sdk | type) == "object" and
+                ($sdk | keys | sort) == ([
+                  "host",
+                  "installedTreeManifestSha256",
+                  "isolatedRoot",
+                  "license",
+                  "lockSha256",
+                  "packages",
+                  "schemaVersion",
+                  "sdkTreeSha256"
+                ] | sort) and
+                $sdk.schemaVersion == 1 and
+                $sdk.lockSha256 == $androidSdkLockSha256 and
+                $sdk.host == $androidSdkLock[0].host and
+                $sdk.license == $androidSdkLock[0].license and
+                $sdk.isolatedRoot == true and
+                ($sdk.sdkTreeSha256 |
+                  type == "string" and test("^[0-9a-f]{64}$")) and
+                ($sdk.installedTreeManifestSha256 |
+                  type == "string" and test("^[0-9a-f]{64}$")) and
+                ($sdk.packages | type) == "array" and
+                ($sdk.packages | length) == 2 and
+                all(
+                  range(0; 2);
+                  . as $index |
+                  ($sdk.packages[$index] | keys | sort) ==
+                    (($androidSdkLock[0].packages[$index] | keys) +
+                      ["installedTreeSha256"] | sort)
+                ) and
+                ($sdk.packages | map(del(.installedTreeSha256))) ==
+                  $androidSdkLock[0].packages and
+                all(
+                  $sdk.packages[];
+                  .installedTreeSha256 |
+                    type == "string" and test("^[0-9a-f]{64}$")
+                );
+
+              def exact_approved_unsigned_provenance:
+                type == "object" and
+                (keys | sort) == ([
+                  "artifactFilename",
+                  "artifactKind",
+                  "artifactSha256",
+                  "buildLog",
+                  "fearlessUtils",
+                  "firebase",
+                  "release",
+                  "schemaVersion",
+                  "source",
+                  "toolchain"
+                ] | sort) and
+                .schemaVersion == 3 and
+                .artifactKind == "unsigned-android-app-bundle" and
+                .artifactFilename == $unsignedFilename and
+                .artifactSha256 == $unsignedSha256 and
+                .buildLog == {
+                  filename: $buildLogFilename,
+                  sha256: $buildLogSha256
+                } and
+                .release == {
+                  tag: $releaseTag,
+                  tagObject: $releaseTagObject,
+                  commit: $releaseCommit,
+                  tree: $releaseTree,
+                  sourceRef: "refs/heads/master",
+                  versionName: $versionName,
+                  versionCode: $versionCode
+                } and
+                .source == {
+                  versionPropertiesSha256: $versionPropertiesSha256,
+                  gradleWrapperPropertiesSha256: $gradleWrapperSha256,
+                  dependencyVerificationMetadataSha256:
+                    $verificationMetadataSha256
+                } and
+                .firebase == {
+                  configurationSha256: $firebaseSha256
+                } and
+                (.fearlessUtils | type == "object") and
+                (.fearlessUtils | keys | sort) == ([
+                  "commit",
+                  "libraryOnlyPatchSha256",
+                  "tree"
+                ] | sort) and
+                .fearlessUtils.commit == $fearlessUtilsCommit and
+                (.fearlessUtils.tree |
+                  type == "string" and test("^[0-9a-f]{40}$")) and
+                .fearlessUtils.libraryOnlyPatchSha256 ==
+                  $fearlessUtilsPatchSha256 and
+                (.toolchain | type == "object") and
+                (.toolchain | keys | sort) == ([
+                  "androidSdkEvidence",
+                  "androidSdkEvidenceSha256",
+                  "androidSdkLockSha256",
+                  "bundletoolSha256",
+                  "bundletoolVersion",
+                  "evidence",
+                  "evidenceSha256",
+                  "javaArchiveSha256",
+                  "javaBinarySha256",
+                  "javaDistribution",
+                  "javaVersion",
+                  "javacBinarySha256",
+                  "jarsignerBinarySha256",
+                  "keytoolBinarySha256",
+                  "runnerImage"
+                ] | sort) and
+                .toolchain.runnerImage == "ubuntu-24.04" and
+                .toolchain.javaDistribution == "temurin-jdkfile" and
+                .toolchain.javaVersion == $buildJavaVersion and
+                .toolchain.javaArchiveSha256 == $buildJavaArchiveSha256 and
+                .toolchain.javaBinarySha256 == $signingJavaBinarySha256 and
+                .toolchain.javacBinarySha256 == $signingJavacBinarySha256 and
+                .toolchain.jarsignerBinarySha256 ==
+                  $signingJarsignerBinarySha256 and
+                .toolchain.keytoolBinarySha256 ==
+                  $signingKeytoolBinarySha256 and
+                .toolchain.bundletoolVersion == $bundletoolVersion and
+                .toolchain.bundletoolSha256 == $bundletoolSha256 and
+                .toolchain.androidSdkLockSha256 ==
+                  $androidSdkLockSha256 and
+                (.toolchain.androidSdkEvidenceSha256 |
+                  type == "string" and test("^[0-9a-f]{64}$")) and
+                (.toolchain.androidSdkEvidence |
+                  exact_android_sdk_evidence) and
+                (.toolchain.evidence |
+                  type == "string" and length > 0) and
+                (.toolchain.evidenceSha256 |
+                  type == "string" and test("^[0-9a-f]{64}$"));
+
+              if exact_approved_unsigned_provenance then
+                . as $unsigned |
+                {
+                  schemaVersion: 3,
+                  artifactKind: "signed-android-app-bundle",
+                  artifactFilename: $artifactFilename,
+                  artifactSha256: $artifactSha256,
+                  buildLog: $unsigned.buildLog,
+                  unsignedArtifact: {
+                    filename: $unsignedFilename,
+                    sha256: $unsignedSha256,
+                    provenanceSha256: $unsignedProvenanceSha256
+                  },
+                  release: $unsigned.release,
+                  source: $unsigned.source,
+                  firebase: $unsigned.firebase,
+                  fearlessUtils: $unsigned.fearlessUtils,
+                  buildToolchain: $unsigned.toolchain,
+                  artifactVerification: {
+                    mergedPermissionsSha256: $aabPermissionsSha256,
+                    identityEvidenceSha256: $aabIdentityEvidenceSha256,
+                    identityEvidence: $aabIdentityEvidence
+                  },
+                  signing: {
+                    certificateSha256: $signingCertificateSha256,
+                    runnerImage: "ubuntu-24.04",
+                    javaDistribution: "temurin-jdkfile",
+                    javaVersion: $signingJavaVersion,
+                    javaArchiveSha256: $signingJavaArchiveSha256,
+                    javaBinarySha256: $signingJavaBinarySha256,
+                    javacBinarySha256: $signingJavacBinarySha256,
+                    jarsignerBinarySha256: $signingJarsignerBinarySha256,
+                    keytoolBinarySha256: $signingKeytoolBinarySha256,
+                    evidenceSha256: $signingToolchainEvidenceSha256,
+                    evidence: $signingToolchainEvidence
+                  }
+                }
+              else
+                error("Unsigned provenance is not the exact approved build record at final consumption")
+              end
+            ' >"$provenance"
+
+          shopt -s nullglob dotglob
+          entries=("$artifact_dir"/*)
+          shopt -u nullglob dotglob
+          [[ "${#entries[@]}" -eq 3 ]]
+          for entry in "${entries[@]}"; do
+            case "$entry" in
+              "$artifact"|"$checksum"|"$provenance") ;;
+              *)
+                echo "Signed artifact directory contains an unexpected entry" >&2
+                exit 1
+                ;;
+            esac
+            [[ -f "$entry" && ! -L "$entry" && -s "$entry" ]]
+          done
+          jq -e \
+            --arg artifactFilename "$artifact_basename" \
+            --arg artifactSha256 "$artifact_sha256" \
+            --arg unsignedFilename "$UNSIGNED_ARTIFACT_BASENAME" \
+            --arg unsignedSha256 "$ANDROID_UNSIGNED_AAB_SHA256" \
+            --arg unsignedProvenanceSha256 "$UNSIGNED_PROVENANCE_SHA256" \
+            --arg buildLogFilename "bundle-release.log" \
+            --arg buildLogSha256 "$ANDROID_RELEASE_BUILD_LOG_SHA256" \
+            --arg permissionsSha256 "$AAB_PERMISSIONS_SHA256" \
+            --arg identityEvidenceSha256 "$AAB_IDENTITY_EVIDENCE_SHA256" \
+            --arg signingJavaVersion "$TEMURIN_JDK_VERSION" \
+            --arg signingJavaArchiveSha256 "$TEMURIN_JDK_ARCHIVE_SHA256" \
+            --arg signingJavaBinarySha256 "$SIGNING_JAVA_SHA256" \
+            --arg signingJavacBinarySha256 "$SIGNING_JAVAC_SHA256" \
+            --arg signingJarsignerBinarySha256 "$SIGNING_JARSIGNER_SHA256" \
+            --arg signingKeytoolBinarySha256 "$SIGNING_KEYTOOL_SHA256" \
+            --arg signingEvidenceSha256 "$SIGNING_TOOLCHAIN_EVIDENCE_SHA256" '
+              type == "object" and
+              (keys | sort) == ([
+                "artifactFilename",
+                "artifactKind",
+                "artifactSha256",
+                "artifactVerification",
+                "buildLog",
+                "buildToolchain",
+                "fearlessUtils",
+                "firebase",
+                "release",
+                "schemaVersion",
+                "signing",
+                "source",
+                "unsignedArtifact"
+              ] | sort) and
+              .schemaVersion == 3 and
+              .artifactKind == "signed-android-app-bundle" and
+              .artifactFilename == $artifactFilename and
+              .artifactSha256 == $artifactSha256 and
+              .buildLog == {
+                filename: $buildLogFilename,
+                sha256: $buildLogSha256
+              } and
+              .unsignedArtifact == {
+                filename: $unsignedFilename,
+                sha256: $unsignedSha256,
+                provenanceSha256: $unsignedProvenanceSha256
+              } and
+              .artifactVerification.mergedPermissionsSha256 ==
+                $permissionsSha256 and
+              .artifactVerification.identityEvidenceSha256 ==
+                $identityEvidenceSha256 and
+              (.artifactVerification.identityEvidence |
+                type == "string" and length > 0) and
+              (.signing | keys | sort) == ([
+                "certificateSha256",
+                "evidence",
+                "evidenceSha256",
+                "javaArchiveSha256",
+                "javaBinarySha256",
+                "javaDistribution",
+                "javaVersion",
+                "javacBinarySha256",
+                "jarsignerBinarySha256",
+                "keytoolBinarySha256",
+                "runnerImage"
+              ] | sort) and
+              .signing.certificateSha256 ==
+                "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" and
+              .signing.runnerImage == "ubuntu-24.04" and
+              .signing.javaDistribution == "temurin-jdkfile" and
+              .signing.javaVersion == $signingJavaVersion and
+              .signing.javaArchiveSha256 == $signingJavaArchiveSha256 and
+              .signing.javaBinarySha256 == $signingJavaBinarySha256 and
+              .signing.javacBinarySha256 ==
+                $signingJavacBinarySha256 and
+              .signing.jarsignerBinarySha256 ==
+                $signingJarsignerBinarySha256 and
+              .signing.keytoolBinarySha256 ==
+                $signingKeytoolBinarySha256 and
+              .signing.evidenceSha256 == $signingEvidenceSha256 and
+              (.signing.evidence | type == "string" and length > 0)
+            ' "$provenance" >/dev/null || {
+              echo "Final provenance record is malformed" >&2
+              exit 1
+            }
+          jq -jr '.buildToolchain.androidSdkEvidence' "$provenance" \
+            >"$RUNNER_TEMP/final-android-sdk-evidence.json"
+          final_android_sdk_evidence_sha256="$(
+            jq -er '.buildToolchain.androidSdkEvidenceSha256' "$provenance"
+          )"
+          [[ "$(sha256sum "$RUNNER_TEMP/final-android-sdk-evidence.json" |
+            awk '{print $1}')" == "$final_android_sdk_evidence_sha256" ]] || {
+              echo "Final Android SDK evidence digest is invalid" >&2
+              exit 1
+            }
+          python3 scripts/android-release-sdk.py validate-evidence \
+            scripts/android-release-sdk-linux.lock.json \
+            "$RUNNER_TEMP/final-android-sdk-evidence.json"
+          jq -jr '.signing.evidence' "$provenance" \
+            >"$RUNNER_TEMP/final-signing-toolchain.txt"
+          [[ "$(sha256sum "$RUNNER_TEMP/final-signing-toolchain.txt" |
+            awk '{print $1}')" == "$SIGNING_TOOLCHAIN_EVIDENCE_SHA256" ]]
+          jq -jr '.artifactVerification.identityEvidence' "$provenance" \
+            >"$RUNNER_TEMP/final-aab-identity-verification.txt"
+          [[ "$(sha256sum "$RUNNER_TEMP/final-aab-identity-verification.txt" |
+            awk '{print $1}')" == "$AAB_IDENTITY_EVIDENCE_SHA256" ]]
+          [[ "$(sha256sum "$artifact" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+              echo "Final staged AAB does not match the signer's trusted digest" >&2
+              exit 1
+            }
+          printf '%s  %s\n' \
+            "$SIGNED_RELEASE_AAB_SHA256" \
+            "$artifact_basename" |
+            cmp -s - "$checksum" || {
+              echo "Final checksum is not bound to the trusted signed AAB" >&2
+              exit 1
+            }
+          jq -e --arg sha256 "$SIGNED_RELEASE_AAB_SHA256" \
+            '.artifactSha256 == $sha256' "$provenance" >/dev/null || {
+              echo "Final provenance is not bound to the trusted signed AAB" >&2
+              exit 1
+            }
+          chmod 0444 "$artifact" "$checksum" "$provenance"
+          chmod 0555 "$artifact_dir"
+          {
+            echo "artifact_basename=$artifact_basename"
+            echo "artifact_sha256=$artifact_sha256"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Attest all three signed artifact files
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: |
+            build/signed-release/Fearless-${{ inputs.release_tag }}.aab
+            build/signed-release/Fearless-${{ inputs.release_tag }}.aab.sha256
+            build/signed-release/provenance.json
+
+      - name: Verify all signed attestations against immutable source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNED_ARTIFACT_BASENAME: ${{ steps.signed_artifact.outputs.artifact_basename }}
+        run: |
+          set -euo pipefail
+          for subject in \
+            "build/signed-release/$SIGNED_ARTIFACT_BASENAME" \
+            "build/signed-release/$SIGNED_ARTIFACT_BASENAME.sha256" \
+            "build/signed-release/provenance.json"; do
+            verification="$RUNNER_TEMP/$(basename "$subject").final.json"
+            verified=false
+            for attempt in 1 2 3 4 5; do
+              if gh attestation verify "$subject" \
+                --repo "$GITHUB_REPOSITORY" \
+                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/android-release.yml" \
+                --signer-digest "$RELEASE_COMMIT" \
+                --source-digest "$RELEASE_COMMIT" \
+                --source-ref refs/heads/master \
+                --deny-self-hosted-runners \
+                --format json >"$verification"; then
+                verified=true
+                break
+              fi
+              sleep "$((attempt * 2))"
+            done
+            [[ "$verified" == "true" ]] || {
+              echo "Could not verify signed attestation for $subject" >&2
+              exit 1
+            }
+            digest="$(sha256sum "$subject" | awk '{print $1}')"
+            if [[ "$subject" == \
+              "build/signed-release/$SIGNED_ARTIFACT_BASENAME" ]]; then
+              [[ "$digest" == "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+                echo "Attested AAB does not match the signer's trusted digest" >&2
+                exit 1
+              }
+            fi
+            jq -e --arg digest "$digest" '
+              length > 0 and
+              all(
+                .[].verificationResult.statement;
+                .predicateType == "https://slsa.dev/provenance/v1" and
+                (.subject | any(.digest.sha256 == $digest))
+              )
+            ' "$verification" >/dev/null || {
+              echo "Signed attestation is not bound to $subject" >&2
+              exit 1
+            }
+          done
+          artifact="build/signed-release/$SIGNED_ARTIFACT_BASENAME"
+          checksum="$artifact.sha256"
+          provenance="build/signed-release/provenance.json"
+          [[ "$(sha256sum "$artifact" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+              echo "Verified AAB no longer matches the trusted signer digest" >&2
+              exit 1
+            }
+          printf '%s  %s\n' \
+            "$SIGNED_RELEASE_AAB_SHA256" \
+            "$SIGNED_ARTIFACT_BASENAME" |
+            cmp -s - "$checksum" || {
+              echo "Verified checksum no longer matches the trusted AAB" >&2
+              exit 1
+            }
+          jq -e --arg sha256 "$SIGNED_RELEASE_AAB_SHA256" \
+            '.artifactSha256 == $sha256' "$provenance" >/dev/null || {
+              echo "Verified provenance no longer matches the trusted AAB" >&2
+              exit 1
+            }
+          [[ "$(sha256sum "$ANDROID_RELEASE_BUILD_LOG_PATH" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh \
+            "$ANDROID_RELEASE_BUILD_LOG_PATH"
+          jq -e \
+            --arg filename "bundle-release.log" \
+            --arg sha256 "$ANDROID_RELEASE_BUILD_LOG_SHA256" \
+            '.buildLog == {filename: $filename, sha256: $sha256}' \
+            "$provenance" >/dev/null || {
+              echo "Verified provenance no longer matches the build log" >&2
+              exit 1
+            }
+
+      - name: Revalidate exact signed artifact immediately before upload
+        env:
+          SIGNED_ARTIFACT_BASENAME: ${{ steps.signed_artifact.outputs.artifact_basename }}
+        run: |
+          set -euo pipefail
+          artifact_dir="build/signed-release"
+          artifact="$artifact_dir/$SIGNED_ARTIFACT_BASENAME"
+          checksum="$artifact.sha256"
+          provenance="$artifact_dir/provenance.json"
+          shopt -s nullglob dotglob
+          entries=("$artifact_dir"/*)
+          shopt -u nullglob dotglob
+          [[ "${#entries[@]}" -eq 3 ]] || {
+            echo "Signed upload directory is not the exact three-file set" >&2
+            exit 1
+          }
+          for entry in "$artifact" "$checksum" "$provenance"; do
+            [[ -f "$entry" && ! -L "$entry" && -s "$entry" ]] || {
+              echo "Signed upload entry is missing or unsafe: $entry" >&2
+              exit 1
+            }
+          done
+          [[ "$(sha256sum "$artifact" | awk '{print $1}')" == \
+            "$SIGNED_RELEASE_AAB_SHA256" ]] || {
+              echo "Upload AAB does not match the signer's trusted digest" >&2
+              exit 1
+            }
+          printf '%s  %s\n' \
+            "$SIGNED_RELEASE_AAB_SHA256" \
+            "$SIGNED_ARTIFACT_BASENAME" |
+            cmp -s - "$checksum" || {
+              echo "Upload checksum does not match the trusted AAB" >&2
+              exit 1
+            }
+          jq -e --arg sha256 "$SIGNED_RELEASE_AAB_SHA256" \
+            '.artifactSha256 == $sha256' "$provenance" >/dev/null || {
+              echo "Upload provenance does not match the trusted AAB" >&2
+              exit 1
+            }
+          [[ "$(sha256sum "$ANDROID_RELEASE_BUILD_LOG_PATH" | awk '{print $1}')" == \
+            "$ANDROID_RELEASE_BUILD_LOG_SHA256" ]]
+          ./scripts/verify-android-release-build-log.sh \
+            "$ANDROID_RELEASE_BUILD_LOG_PATH"
+          jq -e \
+            --arg filename "bundle-release.log" \
+            --arg sha256 "$ANDROID_RELEASE_BUILD_LOG_SHA256" \
+            '.buildLog == {filename: $filename, sha256: $sha256}' \
+            "$provenance" >/dev/null || {
+              echo "Upload provenance does not match the verified build log" >&2
+              exit 1
+            }
+
+      - name: Upload exact attested signed artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fearless-android-signed-${{ inputs.release_tag }}
+          path: build/signed-release
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove any residual signing credentials
+        if: ${{ always() }}
+        run: ./scripts/cleanup-release-overlays.sh
