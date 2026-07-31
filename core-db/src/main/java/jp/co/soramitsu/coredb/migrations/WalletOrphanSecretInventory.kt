@@ -235,13 +235,18 @@ class WalletOrphanSecretInventory internal constructor(
                     if (
                         !boundedIdentity.hasExpectedStorageClass ||
                         boundedIdentity.isOversized ||
-                        accountId == null ||
-                        accountId.isEmpty()
+                        accountId == null
                     ) {
                         throw WalletPublicIdentityIntegrityException(
                             "A chain-account row has no safe bounded account id"
                         )
                     }
+                    // An empty stale cache identity cannot own a canonical
+                    // active chain-secret namespace. The integrity migration
+                    // separately traverses the row and leaves it untouched
+                    // when no such secret exists; malformed lookalike keys
+                    // still fail closed in readBoundedCandidates().
+                    if (accountId.isEmpty()) continue
                     add(
                         "$metaId:${accountId.toHexString()}:" +
                             ACCESS_SECRET_SUFFIX

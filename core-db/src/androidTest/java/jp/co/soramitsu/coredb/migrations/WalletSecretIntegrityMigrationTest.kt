@@ -2356,6 +2356,25 @@ class WalletSecretIntegrityMigrationTest {
 
         override fun hasKey(field: String): Boolean = field in backing.values
 
+        override fun hasKeyWithPrefix(prefix: String): Boolean {
+            return backing.values.keys.any { it.startsWith(prefix) }
+        }
+
+        override fun keysWithPrefixes(
+            prefixes: Set<String>,
+            maxResultCount: Int,
+            maxKeyBytes: Int,
+            maxTotalKeyBytes: Int,
+            failOnOversizedMatch: Boolean
+        ): Set<String> = boundedTestPreferenceKeys(
+            keys = backing.values.keys,
+            prefixes = prefixes,
+            maxResultCount = maxResultCount,
+            maxKeyBytes = maxKeyBytes,
+            maxTotalKeyBytes = maxTotalKeyBytes,
+            failOnOversizedMatch = failOnOversizedMatch
+        )
+
         override fun removeKey(field: String) {
             backing.values.remove(field)
         }

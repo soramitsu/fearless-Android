@@ -18,15 +18,23 @@ import org.junit.Test
 @Suppress("LargeClass", "LongMethod", "MagicNumber")
 class BoundedForeignKeyCheckShapeTest {
 
-    private val context: Context =
-        InstrumentationRegistry.getInstrumentation().targetContext
+    private val instrumentation =
+        InstrumentationRegistry.getInstrumentation()
+    private val context: Context = instrumentation.targetContext
     private val createdDatabases = mutableSetOf<String>()
 
     @get:Rule
     val migrationHelper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
+        instrumentation,
         AppDatabase::class.java,
         emptyList(),
+        FrameworkSQLiteOpenHelperFactory()
+    )
+
+    @get:Rule
+    val legacyMigrationHelper = MigrationTestHelper(
+        instrumentation,
+        LEGACY_DATABASE_CANONICAL_NAME,
         FrameworkSQLiteOpenHelperFactory()
     )
 
@@ -65,6 +73,43 @@ class BoundedForeignKeyCheckShapeTest {
                     WALLET_INTEGRITY_FOREIGN_KEY_CHECK_LIMITS
                 )
             }
+        }
+    }
+
+    @Test
+    fun checkedInFreshVersion28ForeignKeyShapePassesItsReleasedCohort() {
+        val databaseName = "bounded-fk-room-v28"
+        createdDatabases += databaseName
+        legacyMigrationHelper.createDatabase(databaseName, 28).use { database ->
+            database.setForeignKeyConstraintsEnabled(true)
+            requireExactCheck(database, DB28_V2_FOREIGN_KEY_CHECK_LIMITS)
+        }
+    }
+
+    @Test
+    fun version28UnexpectedForeignKeyChildStillFailsClosed() {
+        val databaseName = "bounded-fk-room-v28-rogue"
+        createdDatabases += databaseName
+        legacyMigrationHelper.createDatabase(databaseName, 28).use { database ->
+            database.setForeignKeyConstraintsEnabled(true)
+            database.execSQL(
+                """
+                CREATE TABLE rogue_v28(
+                    chainId TEXT NOT NULL,
+                    FOREIGN KEY(chainId) REFERENCES chains(id)
+                        ON UPDATE NO ACTION ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+
+            val failure = assertThrows(IllegalStateException::class.java) {
+                requireExactCheck(database, DB28_V2_FOREIGN_KEY_CHECK_LIMITS)
+            }
+            assertTrue(
+                failure.message.orEmpty().contains(
+                    "Unexpected foreign-key child table rogue_v28"
+                )
+            )
         }
     }
 
@@ -214,7 +259,9 @@ class BoundedForeignKeyCheckShapeTest {
     fun productionSchemaAndForeignKeyCapsAreExact() {
         listOf(
             TON_UPGRADE_FOREIGN_KEY_CHECK_LIMITS,
-            WALLET_INTEGRITY_FOREIGN_KEY_CHECK_LIMITS
+            WALLET_INTEGRITY_FOREIGN_KEY_CHECK_LIMITS,
+            DB28_V2_FOREIGN_KEY_CHECK_LIMITS,
+            DB31_UPGRADE_FOREIGN_KEY_CHECK_LIMITS
         ).forEach { limits ->
             assertEquals(128, limits.maximumSchemaObjects)
             assertEquals(48, limits.maximumOrdinaryTables)
@@ -360,6 +407,9 @@ class BoundedForeignKeyCheckShapeTest {
     }
 
     private companion object {
+        const val LEGACY_DATABASE_CANONICAL_NAME =
+            "jp.co.soramitsu.core_db.AppDatabase"
+
         val PARENT_TABLE_SQL =
             """
             CREATE TABLE parent(

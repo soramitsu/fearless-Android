@@ -27,7 +27,7 @@ internal object Db31UpgradeSqlPreflight {
         }
         requireBoundedForeignKeyCheck(
             database = database,
-            limits = DB28_TO_31_FOREIGN_KEY_CHECK_LIMITS
+            limits = DB31_UPGRADE_FOREIGN_KEY_CHECK_LIMITS
         ) { message ->
             WalletPublicIdentityIntegrityException("Version 31 $message")
         }

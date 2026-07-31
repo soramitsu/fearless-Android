@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-instrumentation-results.sh"
 EXPECTED_POSITIVE_COUNT=2
-EXPECTED_NEGATIVE_COUNT=33
+EXPECTED_NEGATIVE_COUNT=34
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -48,7 +48,7 @@ contracts = {
         )],
     ),
     "core-db": (
-        61,
+        290,
         [
             *[
                 (
@@ -422,6 +422,21 @@ root.set("tests", "4")
 tree.write(path, encoding="UTF-8", xml_declaration=True)
 PY
 expect_failure "below module minimum" "minimum is 5" "$fixture"
+
+fixture="$(make_fixture below-core-db-full-shard-minimum)"
+path="$(result_file "$fixture" core-db)"
+python3 - "$path" <<'PY'
+import sys
+import xml.etree.ElementTree as ET
+
+path = sys.argv[1]
+tree = ET.parse(path)
+root = tree.getroot()
+root.remove(list(root)[-1])
+root.set("tests", "289")
+tree.write(path, encoding="UTF-8", xml_declaration=True)
+PY
+expect_failure "below core-db full-shard minimum" "minimum is 290" "$fixture"
 
 fixture="$(make_fixture duplicate-test-identity)"
 replace_once "$(result_file "$fixture" common)" \

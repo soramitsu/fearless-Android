@@ -65,7 +65,10 @@ full_contracts = {
         },
     },
     "core-db": {
-        "minimum": 61,
+        # The API-34 full profile is deliberately a single connected shard.
+        # Requiring the historical full-suite floor prevents a filtered
+        # migration subset from satisfying the critical-identity checks.
+        "minimum": 290,
         "required": {
             *matrix_identities,
             orphan_identity,
@@ -171,7 +174,7 @@ def exact_nonnegative_int(element: ET.Element, attribute: str) -> int:
 try:
     if profile == "full":
         contracts = full_contracts
-        required_total = 111
+        required_total = 340
         exact_total = False
     elif profile == "compatibility":
         contracts = compatibility_contracts

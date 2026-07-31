@@ -733,7 +733,8 @@ class WalletSecretMutationRealRoomMigrationTest {
             metaAccountDao = database.metaAccountDao(),
             journalStore = WalletSecretMutationJournalStore(
                 stack.encryptedPreferences
-            )
+            ),
+            encryptedPreferences = stack.encryptedPreferences
         )
     }
 

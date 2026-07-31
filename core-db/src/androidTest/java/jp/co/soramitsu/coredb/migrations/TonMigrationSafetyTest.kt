@@ -337,6 +337,7 @@ class TonMigrationSafetyTest {
             openRawReadWrite(NON_POSITIVE_META_ID_DATABASE).use {
                 it.execSQL("DELETE FROM meta_accounts WHERE id = 0")
             }
+            preferences.removeKey(oldSecretKey(0L))
         }
     }
 
@@ -2252,6 +2253,28 @@ class TonMigrationSafetyTest {
         override fun hasKey(field: String): Boolean = synchronized(lock) {
             operations += "has:$field"
             field in values
+        }
+
+        override fun hasKeyWithPrefix(prefix: String): Boolean =
+            synchronized(lock) {
+                values.keys.any { it.startsWith(prefix) }
+            }
+
+        override fun keysWithPrefixes(
+            prefixes: Set<String>,
+            maxResultCount: Int,
+            maxKeyBytes: Int,
+            maxTotalKeyBytes: Int,
+            failOnOversizedMatch: Boolean
+        ): Set<String> = synchronized(lock) {
+            boundedTestPreferenceKeys(
+                keys = values.keys,
+                prefixes = prefixes,
+                maxResultCount = maxResultCount,
+                maxKeyBytes = maxKeyBytes,
+                maxTotalKeyBytes = maxTotalKeyBytes,
+                failOnOversizedMatch = failOnOversizedMatch
+            )
         }
 
         override fun removeKey(field: String) = synchronized(lock) {

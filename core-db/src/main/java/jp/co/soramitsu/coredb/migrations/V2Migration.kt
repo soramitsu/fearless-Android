@@ -444,7 +444,7 @@ class V2Migration internal constructor(
         )
         requireBoundedForeignKeyCheck(
             database = database,
-            limits = DB28_TO_31_FOREIGN_KEY_CHECK_LIMITS,
+            limits = DB28_V2_FOREIGN_KEY_CHECK_LIMITS,
             previouslyBoundedRows = mapOf(
                 "chain_accounts" to walletRowLimits.maxChainAccountRows
             )

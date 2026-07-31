@@ -51,11 +51,16 @@ internal data class MigrationForeignKeyCheckLimits(
         String,
         Set<MigrationForeignKeyDefinition>
     >,
+    val alternativeForeignKeysByTable: Map<
+        String,
+        Set<Set<MigrationForeignKeyDefinition>>
+    > = emptyMap(),
     val optionalForeignKeyTables: Set<String> = emptySet(),
     val expectedParentPrimaryKeysByTable: Map<String, List<String>>
 ) {
     val allowedForeignKeyTables: Set<String>
-        get() = expectedForeignKeysByTable.keys
+        get() = expectedForeignKeysByTable.keys +
+            alternativeForeignKeysByTable.keys
 
     init {
         require(maximumSchemaObjects in 1 until Int.MAX_VALUE)
@@ -63,8 +68,17 @@ internal data class MigrationForeignKeyCheckLimits(
         require(maximumForeignKeyDefinitionsPerTable in 1 until Int.MAX_VALUE)
         require(maximumRowsByTable.isNotEmpty())
         require(expectedForeignKeysByTable.isNotEmpty())
+        require(
+            expectedForeignKeysByTable.keys
+                .intersect(alternativeForeignKeysByTable.keys)
+                .isEmpty()
+        )
         require(allowedForeignKeyTables.all(maximumRowsByTable::containsKey))
-        require(optionalForeignKeyTables.all(allowedForeignKeyTables::contains))
+        require(
+            optionalForeignKeyTables.all(
+                expectedForeignKeysByTable.keys::contains
+            )
+        )
         maximumRowsByTable.forEach { (tableName, maximumRows) ->
             require(tableName.isSafeMigrationTableName())
             require(maximumRows in 1 until Int.MAX_VALUE)
@@ -80,6 +94,19 @@ internal data class MigrationForeignKeyCheckLimits(
                     maximumForeignKeyDefinitionsPerTable
             )
         }
+        alternativeForeignKeysByTable.forEach { (tableName, alternatives) ->
+            require(tableName.isSafeMigrationTableName())
+            require(alternatives.isNotEmpty())
+            alternatives.forEach { definitions ->
+                require(
+                    definitions.size <= maximumForeignKeyDefinitionsPerTable
+                )
+                require(
+                    definitions.sumOf { it.columns.size } <=
+                        maximumForeignKeyDefinitionsPerTable
+                )
+            }
+        }
         require(expectedParentPrimaryKeysByTable.isNotEmpty())
         expectedParentPrimaryKeysByTable.forEach { (tableName, columns) ->
             require(tableName.isSafeMigrationTableName())
@@ -88,8 +115,12 @@ internal data class MigrationForeignKeyCheckLimits(
             require(columns.all { it.isSafeMigrationTableName() })
         }
         require(
-            expectedForeignKeysByTable.values
-                .flatten()
+            (
+                expectedForeignKeysByTable.values.flatten() +
+                    alternativeForeignKeysByTable.values
+                        .flatten()
+                        .flatten()
+                )
                 .mapTo(mutableSetOf(), MigrationForeignKeyDefinition::parentTable) ==
                 expectedParentPrimaryKeysByTable.keys
         )
@@ -144,13 +175,95 @@ internal val WALLET_INTEGRITY_FOREIGN_KEY_CHECK_LIMITS =
     )
 
 /**
- * The released version-28 and version-31 schemas have the same three
- * foreign-key child tables. V2 writes preferences at 28 -> 29, while the next
- * secret-writing edge starts at version 31, so both edges must reject this
- * retained relational corruption before an external write can outlive Room's
- * SQL rollback.
+ * Version 28 has multiple released physical cohorts. Fresh installs and the
+ * checked-in 26/27/28 Room schemas have no foreign keys on the legacy asset and
+ * staking tables. Devices upgraded from older releases can retain either exact
+ * legacy relationship because those tables were not always recreated. V2
+ * writes preferences at 28 -> 29, so every accepted cohort is enumerated and
+ * bounded before an external write can outlive Room's rollback.
  */
-internal val DB28_TO_31_FOREIGN_KEY_CHECK_LIMITS =
+internal val DB28_V2_FOREIGN_KEY_CHECK_LIMITS =
+    MigrationForeignKeyCheckLimits(
+        maximumSchemaObjects = 128,
+        maximumOrdinaryTables = 48,
+        maximumForeignKeyDefinitionsPerTable = 2,
+        maximumRowsByTable = linkedMapOf(
+            "account_staking_accesses" to 1_048_576,
+            "assets" to 1_048_576,
+            "chain_accounts" to 131_072,
+            "chain_assets" to 262_144,
+            "chain_nodes" to 262_144
+        ),
+        expectedForeignKeysByTable = linkedMapOf(
+            "chain_accounts" to setOf(
+                releasedForeignKey(
+                    parentTable = "chains",
+                    from = "chainId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_NO_ACTION
+                ),
+                releasedForeignKey(
+                    parentTable = "meta_accounts",
+                    from = "metaId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_CASCADE
+                )
+            ),
+            "chain_assets" to setOf(
+                releasedForeignKey(
+                    parentTable = "chains",
+                    from = "chainId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_CASCADE
+                )
+            ),
+            "chain_nodes" to setOf(
+                releasedForeignKey(
+                    parentTable = "chains",
+                    from = "chainId",
+                    to = "id",
+                    onDelete = FOREIGN_KEY_CASCADE
+                )
+            )
+        ),
+        alternativeForeignKeysByTable = linkedMapOf(
+            "account_staking_accesses" to setOf(
+                emptySet(),
+                setOf(
+                    releasedForeignKey(
+                        parentTable = "users",
+                        from = "address",
+                        to = "address",
+                        onDelete = FOREIGN_KEY_CASCADE
+                    )
+                )
+            ),
+            "assets" to setOf(
+                emptySet(),
+                setOf(
+                    releasedForeignKey(
+                        parentTable = "tokens",
+                        from = "token",
+                        to = "type",
+                        onDelete = FOREIGN_KEY_NO_ACTION
+                    )
+                )
+            )
+        ),
+        expectedParentPrimaryKeysByTable = mapOf(
+            "chains" to listOf("id"),
+            "meta_accounts" to listOf("id"),
+            "tokens" to listOf("type"),
+            "users" to listOf("address")
+        )
+    )
+
+/**
+ * By version 31 the legacy asset and staking tables have been recreated
+ * without foreign keys. The three chain-registry children remain the complete
+ * exact set checked before the next secret-writing migration edge.
+ */
+internal val DB31_UPGRADE_FOREIGN_KEY_CHECK_LIMITS =
     MigrationForeignKeyCheckLimits(
         maximumSchemaObjects = 128,
         maximumOrdinaryTables = 48,
@@ -214,7 +327,7 @@ internal fun requireBoundedForeignKeyCheck(
         limits = limits,
         failure = failure
     )
-    requireExactForeignKeyDefinitions(
+    val referencedParentTables = requireExactForeignKeyDefinitions(
         database = database,
         ordinaryTables = ordinaryTables,
         limits = limits,
@@ -224,6 +337,7 @@ internal fun requireBoundedForeignKeyCheck(
         database = database,
         ordinaryTables = ordinaryTables,
         limits = limits,
+        referencedParentTables = referencedParentTables,
         failure = failure
     )
 
@@ -343,9 +457,12 @@ private fun requireExactForeignKeyDefinitions(
     ordinaryTables: Set<String>,
     limits: MigrationForeignKeyCheckLimits,
     failure: (String) -> IllegalStateException
-) {
+): Set<String> {
+    val referencedParentTables = linkedSetOf<String>()
     ordinaryTables.forEach { tableName ->
         val expected = limits.expectedForeignKeysByTable[tableName]
+        val alternatives =
+            limits.alternativeForeignKeysByTable[tableName]
         val actual = readBoundedForeignKeyDefinitions(
             database = database,
             tableName = tableName,
@@ -354,7 +471,9 @@ private fun requireExactForeignKeyDefinitions(
             failure = failure
         )
         when {
-            expected == null && actual.isNotEmpty() -> {
+            expected == null &&
+                alternatives == null &&
+                actual.isNotEmpty() -> {
                 throw failure(
                     "Unexpected foreign-key child table $tableName cannot be " +
                         "safely checked"
@@ -367,7 +486,18 @@ private fun requireExactForeignKeyDefinitions(
                         "foreign-key definitions"
                 )
             }
+
+            alternatives != null && actual !in alternatives -> {
+                throw failure(
+                    "$tableName has missing, extra, or incompatible " +
+                        "foreign-key definitions"
+                )
+            }
         }
+        actual.mapTo(
+            referencedParentTables,
+            MigrationForeignKeyDefinition::parentTable
+        )
     }
 
     val missingTables = limits.expectedForeignKeysByTable.keys
@@ -378,6 +508,7 @@ private fun requireExactForeignKeyDefinitions(
             "Required foreign-key child table ${missingTables.first()} is missing"
         )
     }
+    return referencedParentTables
 }
 
 @Suppress("LongMethod", "NestedBlockDepth")
@@ -538,9 +669,17 @@ private fun requireExactParentPrimaryKeys(
     database: SupportSQLiteDatabase,
     ordinaryTables: Set<String>,
     limits: MigrationForeignKeyCheckLimits,
+    referencedParentTables: Set<String>,
     failure: (String) -> IllegalStateException
 ) {
-    limits.expectedParentPrimaryKeysByTable.forEach {
+    check(
+        referencedParentTables.all(
+            limits.expectedParentPrimaryKeysByTable::containsKey
+        )
+    )
+    limits.expectedParentPrimaryKeysByTable
+        .filterKeys(referencedParentTables::contains)
+        .forEach {
         (tableName, expectedColumns) ->
         if (tableName !in ordinaryTables) {
             throw failure(

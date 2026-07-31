@@ -159,48 +159,25 @@ internal object WalletSecretIntegrityQueryPreflight {
                         "A chain-account id has no safe bounded BLOB identity"
                     )
                 }
+                // These three fields are allowed to be malformed. The
+                // migration's bounded identity reader converts malformed or
+                // oversized values into invalid sentinels and publishes a
+                // recovery marker while preserving the active ciphertext.
+                // The preflight must traverse the same bounded projections so
+                // a later query cannot fail after a preference write, but it
+                // must not preempt that recovery path by requiring validity.
                 cursor.readBoundedBlob(
                     alias = BOUNDED_CHAIN_PUBLIC_KEY,
                     maxBytes = MAX_CHAIN_ACCOUNT_PUBLIC_KEY_BYTES
-                ).also {
-                    if (
-                        !it.hasExpectedStorageClass ||
-                        it.isOversized ||
-                        it.value == null
-                    ) {
-                        throw WalletPublicIdentityIntegrityException(
-                            "A chain-account public key has no safe bounded BLOB identity"
-                        )
-                    }
-                }
+                )
                 cursor.readBoundedText(
                     alias = BOUNDED_CHAIN_CRYPTO_TYPE,
                     maxBytes = MAX_CRYPTO_TYPE_BYTES
-                ).also {
-                    if (
-                        !it.hasExpectedStorageClass ||
-                        it.isOversized ||
-                        it.value == null
-                    ) {
-                        throw WalletPublicIdentityIntegrityException(
-                            "A chain-account crypto type has no safe bounded identity"
-                        )
-                    }
-                }
+                )
                 cursor.readBoundedText(
                     alias = BOUNDED_CHAIN_ECOSYSTEM,
                     maxBytes = MAX_ECOSYSTEM_BYTES
-                ).also {
-                    if (
-                        !it.hasExpectedStorageClass ||
-                        it.isOversized ||
-                        it.value == null
-                    ) {
-                        throw WalletPublicIdentityIntegrityException(
-                            "A chain-account ecosystem has no safe bounded identity"
-                        )
-                    }
-                }
+                )
             }
         }
     }
