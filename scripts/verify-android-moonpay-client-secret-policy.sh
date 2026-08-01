@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
+
+fail() {
+  echo "[moonpay-client-policy][error] $*" >&2
+  exit 1
+}
+
+require_file() {
+  [[ -f "$ROOT/$1" ]] || fail "Required policy input is missing: $1"
+}
+
+is_android_policy_input() {
+  local path="$1"
+
+  case "$path" in
+    third_party/*|*/build/*|.gradle/*|.git/*|node_modules/*)
+      return 1
+      ;;
+    */src/test/*|*/src/androidTest/*|*/src/testFixtures/*)
+      return 1
+      ;;
+    scripts/verify-android-moonpay-client-secret-policy.sh|\
+      scripts/test-android-moonpay-client-secret-policy.sh)
+      return 1
+      ;;
+    .github/workflows/*.yml|.github/workflows/*.yaml|\
+      scripts/*.sh|\
+      build.gradle|build.gradle.kts|settings.gradle|settings.gradle.kts|\
+      gradle.properties|*.gradle|*.gradle.kts|*.properties|*.toml|\
+      buildSrc/*|gradle/*|versioning/*|config/*|*/src/*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+scan_forbidden_pattern() {
+  local description="$1"
+  local pattern="$2"
+  local scope="${3:-all}"
+  local path
+  local found=false
+
+  for path in "${policy_inputs[@]}"; do
+    if [[ "$scope" == "text" ]] &&
+      LC_ALL=C grep -IiqE "$pattern" "$ROOT/$path"; then
+      echo "[moonpay-client-policy][error] forbidden $description in $path" >&2
+      found=true
+    elif [[ "$scope" == "all" ]] &&
+      LC_ALL=C grep -aiqE "$pattern" "$ROOT/$path"; then
+      echo "[moonpay-client-policy][error] forbidden $description in $path" >&2
+      found=true
+    fi
+  done
+
+  [[ "$found" == "false" ]] ||
+    fail "MoonPay client signing material must remain absent."
+}
+
+scan_forbidden_obfuscated_pattern() {
+  local description="$1"
+  local pattern="$2"
+  local path
+  local found=false
+
+  for path in "${policy_inputs[@]}"; do
+    [[ "$path" == "$provider_path" ]] && continue
+
+    if [[ "$path" == "feature-wallet-impl/build.gradle" ]]; then
+      if LC_ALL=C sed -E \
+        '/^[[:space:]]*buildConfigField "String", "MOONPAY_PUBLIC_KEY", readOptionalSecretInQuotes\("MOONPAY_(TEST|PRODUCTION)_PUBLIC_KEY"\)[[:space:]]*$/d' \
+        "$ROOT/$path" |
+        LC_ALL=C grep -aiE "$pattern" >/dev/null; then
+        echo "[moonpay-client-policy][error] forbidden $description in $path" >&2
+        found=true
+      fi
+    elif [[ "$path" == .github/workflows/* ]]; then
+      if LC_ALL=C sed '/android-moonpay-client-secret-policy\.sh/d' \
+        "$ROOT/$path" |
+        LC_ALL=C grep -aiE "$pattern" >/dev/null; then
+        echo "[moonpay-client-policy][error] forbidden $description in $path" >&2
+        found=true
+      fi
+    elif LC_ALL=C grep -aiqE "$pattern" "$ROOT/$path"; then
+      echo "[moonpay-client-policy][error] forbidden $description in $path" >&2
+      found=true
+    fi
+  done
+
+  [[ "$found" == "false" ]] ||
+    fail "MoonPay client signing material must remain absent."
+}
+
+hash_stdin() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{print $1}'
+  else
+    shasum -a 256 | awk '{print $1}'
+  fi
+}
+
+require_file "feature-wallet-impl/build.gradle"
+require_file "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
+require_file "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/MoonPayProvider.kt"
+require_file "common/src/main/java/jp/co/soramitsu/common/utils/CryptoUtils.kt"
+
+git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
+  fail "The policy root must be a Git worktree so only tracked inputs are audited."
+
+provider_path="feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/MoonPayProvider.kt"
+provider_sha256="$(hash_stdin < "$ROOT/$provider_path")"
+[[ "$provider_sha256" == \
+  "43efc2ff4092d2b815e7dc25f70e1941e9aac5c169eb0ec21506a4f897c40c03" ]] ||
+  fail "$provider_path differs from the reviewed publishable-key/manual-wallet implementation."
+
+policy_inputs=()
+while IFS= read -r -d '' path; do
+  is_android_policy_input "$path" || continue
+  [[ -e "$ROOT/$path" || -L "$ROOT/$path" ]] || continue
+  [[ -f "$ROOT/$path" && ! -L "$ROOT/$path" ]] ||
+    fail "Tracked Android policy input is missing or unsafe: $path"
+  policy_inputs+=("$path")
+done < <(git -C "$ROOT" ls-files -z)
+
+(( ${#policy_inputs[@]} > 0 )) ||
+  fail "No tracked Android source, build, script, or workflow inputs were found."
+
+scan_forbidden_pattern \
+  "MoonPay signing-credential identifier" \
+  'MOONPAY_([A-Z0-9_]*_)?(SECRET|API_SECRET|PRIVATE_KEY|SIGNING_KEY|HMAC_KEY)|moonpay[A-Za-z0-9_]*(Secret|PrivateKey|SigningKey|HmacKey|Signer)|((Secret|PrivateKey|SigningKey|HmacKey|Signer)[A-Za-z0-9_]*)moonpay'
+
+scan_forbidden_pattern \
+  "MoonPay client signing operation" \
+  'moonpay[A-Za-z0-9_]*(hmac|signature|private|secret|sign|signer|signing)|((hmac|signature|private|secret|sign|signer|signing)[A-Za-z0-9_]*)moonpay'
+
+scan_forbidden_pattern \
+  "generic HMAC helper formerly used by MoonPay" \
+  'fun[[:space:]]+String\.hmacSHA256|HmacSHA256' \
+  text
+
+scan_forbidden_obfuscated_pattern \
+  "split or encoded MoonPay client signer" \
+  'm[^[:alnum:]]*o[^[:alnum:]]*o[^[:alnum:]]*n[^[:alnum:]]*p[^[:alnum:]]*a[^[:alnum:]]*y.{0,160}(s[^[:alnum:]]*e[^[:alnum:]]*c[^[:alnum:]]*r[^[:alnum:]]*e[^[:alnum:]]*t|p[^[:alnum:]]*r[^[:alnum:]]*i[^[:alnum:]]*v[^[:alnum:]]*a[^[:alnum:]]*t[^[:alnum:]]*e|h[^[:alnum:]]*m[^[:alnum:]]*a[^[:alnum:]]*c|s[^[:alnum:]]*i[^[:alnum:]]*g[^[:alnum:]]*n)|bW9vbnBheQ|TU9PTlBBWQ|6[dD]6[fF]6[fF]6[eE]7[0P]6[1A]7[9Y]|SG1hY1NIQTI1Ng'
+
+wallet_module="$ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
+provider_dir="feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken"
+expected_provider_files="$(
+  printf '%s\n' \
+    "$provider_dir/CoinbaseProvider.kt" \
+    "$provider_dir/ExternalProvider.kt" \
+    "$provider_dir/MoonPayProvider.kt" \
+    "$provider_dir/RampProvider.kt"
+)"
+actual_provider_files="$(
+  while IFS= read -r provider_file; do
+    [[ -f "$ROOT/$provider_file" && ! -L "$ROOT/$provider_file" ]] &&
+      printf '%s\n' "$provider_file"
+  done < <(git -C "$ROOT" ls-files "$provider_dir") |
+    LC_ALL=C sort
+)"
+[[ "$actual_provider_files" == "$expected_provider_files" ]] ||
+  fail "The buy-provider implementation inventory differs from the exact approved set."
+
+provider_block="$(
+  awk '
+    /fun provideBuyTokenIntegration\(\)/ { capture=1 }
+    capture { print }
+    capture && /^    }$/ { exit }
+  ' "$wallet_module"
+)"
+[[ -n "$provider_block" ]] ||
+  fail "The exact buy-provider registry block is missing."
+provider_block_sha256="$(
+  printf '%s' "$provider_block" |
+    LC_ALL=C tr -d '[:space:]' |
+    hash_stdin
+)"
+[[ "$provider_block_sha256" == \
+  "f4e1455ff74af8ec5fae3003e4c80b4aa305ec50446330cd02511ef692db2d74" ]] ||
+  fail "The buy-provider registry differs from the exact Ramp/MoonPay/Coinbase allowlist."
+
+echo \
+  "[moonpay-client-policy] PASS: the exact reviewed public MoonPay flow and ${#policy_inputs[@]} tracked shipping source/build/workflow inputs contain no client signing material."

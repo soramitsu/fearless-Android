@@ -30,7 +30,6 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.black72
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.feature_wallet_impl.R
-import kotlinx.coroutines.flow.filterNotNull
 import javax.inject.Inject
 
 @Suppress("LateinitUsage")
@@ -72,16 +71,15 @@ class DiscoverDappFragment : BaseComposeFragment<DiscoverDappViewModel>() {
                         sheetBackgroundColor = black72,
                         sheetGesturesEnabled = false,
                         sheetContent = {
-                            val dappsListBottomSheetState by viewModel.dappsListBottomSheetState.filterNotNull()
-                                .collectAsState(
-                                    DappsListState("", emptyList())
-                                )
+                            val dappsListBottomSheetState by
+                                viewModel.dappsListBottomSheetState.collectAsState(initial = null)
                             BackHandler(
                                 enabled = dappsModalBottomSheetState.isVisible,
                                 onBack = viewModel::onBottomSheetDappClose
                             )
                             SeeAllDappsBottomSheet(
-                                dappsListBottomSheetState,
+                                dappsListBottomSheetState
+                                    ?: DappsListState("", emptyList()),
                                 viewModel::bottomSheetDappSelected
                             ) {
                                 hideKeyboard()

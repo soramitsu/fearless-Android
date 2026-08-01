@@ -173,13 +173,24 @@ data class Chain(
         data class Asset(
             val id: String?,
             val symbol: String?,
-            val minAmount: String?
+            val minAmount: String?,
+            /**
+             * APK-reviewed transaction authority for this exact route asset.
+             * Mutable discovery metadata is never trusted as authority.
+             */
+            val execution: Execution? = null
         )
 
         data class Destination(
             val chainId: String?,
             val assets: List<Asset>?,
             val bridgeParachainId: String?,
+            /**
+             * Legacy destination-scoped representation. It remains readable so
+             * loaders can reject it explicitly instead of silently ignoring an
+             * ambiguous execution authority.
+             */
+            @Deprecated("Execution authority must be attached to an exact route asset")
             val execution: Execution? = null
         )
 

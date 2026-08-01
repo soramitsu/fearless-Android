@@ -323,6 +323,14 @@ class AccountInteractorImpl(
         }
     }
 
+    override suspend fun isWalletRecoveryRequired(metaId: Long): Boolean {
+        return accountRepository.isWalletRecoveryRequired(metaId)
+    }
+
+    override fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean> {
+        return accountRepository.walletRecoveryRequiredFlow(metaId)
+    }
+
     override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String) {
         withContext(Dispatchers.IO) {
             val wallet = getMetaAccount(metaId)

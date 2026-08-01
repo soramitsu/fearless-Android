@@ -90,46 +90,82 @@ internal object XcmExecutionSpecValidator {
         destinationChainId: ChainId,
         assetSymbol: String,
         xcmVersion: String?,
-        destination: Chain.Xcm.Destination
+        destination: Chain.Xcm.Destination,
+        asset: Chain.Xcm.Asset
     ): XcmExecutionSpec {
-        val execution = destination.execution ?: error(
+        require(destination.execution == null) {
+            "Legacy destination-scoped XCM execution is ambiguous for $assetSymbol from $originChainId to $destinationChainId"
+        }
+        val normalizedAssetSymbol = assetSymbol.normalizedRouteAssetSymbol()
+        require(asset.symbol.normalizedRouteAssetSymbol() == normalizedAssetSymbol) {
+            "XCM execution spec asset does not match $assetSymbol from $originChainId to $destinationChainId"
+        }
+        val execution = asset.execution ?: throw IllegalArgumentException(
             "XCM execution spec missing for $assetSymbol from $originChainId to $destinationChainId"
         )
 
-        val bridgeSpec = execution.bridge?.let {
-            XcmBridgeExecutionSpec(
-                parachainId = it.parachainId.requiredField("bridge.parachainId"),
-                feeAssetLocation = it.feeAssetLocation.requiredMultiLocation("bridge.feeAssetLocation"),
-                feeAssetItem = it.feeAssetItem.requiredNonNegative("bridge.feeAssetItem")
-            )
-        }
-
         val routeBridgeParachainId = destination.bridgeParachainId?.trim().orEmpty()
-        require(routeBridgeParachainId.isEmpty() || bridgeSpec?.parachainId == routeBridgeParachainId) {
-            "XCM bridge execution spec must match bridgeParachainId for $assetSymbol from $originChainId to $destinationChainId"
+        require(routeBridgeParachainId.isEmpty() && execution.bridge == null) {
+            "XCM bridge execution is unsupported until the production transfer engine consumes bridge fee semantics"
         }
+        val bridgeSpec: XcmBridgeExecutionSpec? = null
 
         val palletName = execution.palletName.requiredField("palletName")
         val callName = execution.callName.requiredField("callName")
         val transferType = execution.transferType.requiredTransferType()
         val argumentShape = execution.argumentShape.optionalArgumentShape()
         requireValidCallShape(palletName, callName, transferType, argumentShape)
+        val normalizedXcmVersion = xcmVersion.requiredField("xcmVersion")
+        require(xcmVersion == normalizedXcmVersion) {
+            "XCM execution spec xcmVersion must not contain surrounding whitespace"
+        }
+        require(Regex("^v[1-9][0-9]*$").matches(normalizedXcmVersion)) {
+            "XCM execution spec xcmVersion must use canonical v<number> syntax"
+        }
+        val destinationLocation = execution.destinationLocation.requiredMultiLocation("destinationLocation")
+            .requireNoRecipientAccount("destinationLocation")
+        val assetLocation = execution.assetLocation.requiredMultiLocation("assetLocation")
+            .requireNoRecipientAccount("assetLocation")
+        val beneficiaryLocation = execution.beneficiaryLocation.requiredMultiLocation("beneficiaryLocation")
+            .requireExactlyOneRecipientAccount()
+        val feeAssetLocation = execution.feeAssetLocation.requiredMultiLocation("feeAssetLocation")
+            .requireNoRecipientAccount("feeAssetLocation")
+        require(feeAssetLocation == assetLocation) {
+            "XCM single-asset execution feeAssetLocation must equal assetLocation"
+        }
+        val feeAssetItem = execution.feeAssetItem.requiredNonNegative("feeAssetItem")
+        require(feeAssetItem == 0) {
+            "XCM single-asset execution feeAssetItem must be zero"
+        }
+
+        val destinationFee = execution.destinationFee.requiredDestinationFee()
+        require(destinationFee.assetSymbol.normalizedRouteAssetSymbol() == normalizedAssetSymbol) {
+            "XCM destination fee asset must match exact route asset $normalizedAssetSymbol"
+        }
 
         return XcmExecutionSpec(
             palletName = palletName,
             callName = callName,
             transferType = transferType,
             argumentShape = argumentShape,
-            xcmVersion = xcmVersion.requiredField("xcmVersion"),
-            destinationLocation = execution.destinationLocation.requiredMultiLocation("destinationLocation"),
-            assetLocation = execution.assetLocation.requiredMultiLocation("assetLocation"),
-            beneficiaryLocation = execution.beneficiaryLocation.requiredMultiLocation("beneficiaryLocation"),
-            feeAssetLocation = execution.feeAssetLocation.requiredMultiLocation("feeAssetLocation"),
-            feeAssetItem = execution.feeAssetItem.requiredNonNegative("feeAssetItem"),
+            xcmVersion = normalizedXcmVersion,
+            destinationLocation = destinationLocation,
+            assetLocation = assetLocation,
+            beneficiaryLocation = beneficiaryLocation,
+            feeAssetLocation = feeAssetLocation,
+            feeAssetItem = feeAssetItem,
             weightLimit = execution.weightLimit.requiredWeightLimit(),
-            destinationFee = execution.destinationFee.requiredDestinationFee(),
+            destinationFee = destinationFee,
             bridge = bridgeSpec
         )
+    }
+
+    private fun String?.normalizedRouteAssetSymbol(): String {
+        val normalized = this?.trim().orEmpty()
+            .replace(Regex("^xc", RegexOption.IGNORE_CASE), "")
+            .uppercase(Locale.US)
+        require(normalized.isNotEmpty()) { "XCM execution spec route asset symbol must not be blank" }
+        return normalized
     }
 
     private fun String?.requiredField(fieldName: String): String {
@@ -214,6 +250,23 @@ internal object XcmExecutionSpecValidator {
         )
     }
 
+    private fun XcmMultiLocationSpec.requireNoRecipientAccount(fieldName: String): XcmMultiLocationSpec {
+        require(junctions.none { it.isRecipientAccount() }) {
+            "XCM execution spec field $fieldName must not contain a recipient account junction"
+        }
+        return this
+    }
+
+    private fun XcmMultiLocationSpec.requireExactlyOneRecipientAccount(): XcmMultiLocationSpec {
+        require(junctions.count { it.isRecipientAccount() } == 1) {
+            "XCM execution spec beneficiaryLocation must contain exactly one recipient account junction"
+        }
+        return this
+    }
+
+    private fun XcmJunctionSpec.isRecipientAccount(): Boolean =
+        type == XcmJunctionType.ACCOUNT_ID32 || type == XcmJunctionType.ACCOUNT_KEY20
+
     private fun Chain.Xcm.WeightLimit?.requiredWeightLimit(): XcmWeightLimitSpec {
         val weightLimit = requireNotNull(this) { "XCM execution spec field weightLimit is required" }
         val type = when (weightLimit.type.requiredField("weightLimit.type").normalizedEnumValue()) {
@@ -241,6 +294,9 @@ internal object XcmExecutionSpecValidator {
             "ESTIMATED" -> XcmDestinationFeeMode.ESTIMATED
             "FIXED" -> XcmDestinationFeeMode.FIXED
             else -> throw IllegalArgumentException("XCM execution spec destinationFee.mode is unsupported")
+        }
+        require(mode != XcmDestinationFeeMode.ESTIMATED) {
+            "XCM estimated destination fee is unsupported until a production estimator is implemented"
         }
         val amount = destinationFee.amount?.parseUnsignedBigInteger("destinationFee.amount")
         require(mode == XcmDestinationFeeMode.FIXED || amount == null) {
@@ -275,6 +331,8 @@ internal object XcmExecutionSpecValidator {
 }
 
 internal object XcmMultiLocationParser {
+    private const val ACCOUNT_PLACEHOLDER = "<account>"
+
     private val xJunctionRegex = Regex("^X([1-8])\\((.*)\\)$")
     private val junctionRegex = Regex("^([A-Za-z][A-Za-z0-9]*)(?:\\((.*)\\))?$")
 
@@ -324,11 +382,11 @@ internal object XcmMultiLocationParser {
             )
             "ACCOUNT_ID32" -> XcmJunctionSpec(
                 XcmJunctionType.ACCOUNT_ID32,
-                argument.requiredAccountPlaceholder("$fieldName AccountId32")
+                argument.requiredAccountPlaceholder("$fieldName AccountId32", accountField = "id")
             )
             "ACCOUNT_KEY20" -> XcmJunctionSpec(
                 XcmJunctionType.ACCOUNT_KEY20,
-                argument.requiredAccountPlaceholder("$fieldName AccountKey20")
+                argument.requiredAccountPlaceholder("$fieldName AccountKey20", accountField = "key")
             )
             else -> throw IllegalArgumentException("XCM execution spec field $fieldName has unsupported junction $typeText")
         }
@@ -389,10 +447,12 @@ internal object XcmMultiLocationParser {
         return value
     }
 
-    private fun String?.requiredAccountPlaceholder(fieldName: String): String {
+    private fun String?.requiredAccountPlaceholder(fieldName: String, accountField: String): String {
         val value = requiredJunctionArgument(fieldName)
-        require(value.contains("<account>")) {
-            "XCM execution spec field $fieldName must include <account> recipient placeholder"
+        val expected = "{network: Any, $accountField: $ACCOUNT_PLACEHOLDER}"
+        require(value == expected) {
+            "XCM execution spec field $fieldName must use exact $expected recipient authority; " +
+                "the <account> recipient placeholder must be the complete account field"
         }
         return value
     }

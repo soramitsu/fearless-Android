@@ -77,6 +77,11 @@ const copiedFiles = [
     label: 'fearless-utils source guard',
   },
   {
+    source: 'scripts/test-fearless-utils-derived-tree.sh',
+    output: 'fearless-utils/test-fearless-utils-derived-tree.sh',
+    label: 'fearless-utils derived-tree adversarial self-test',
+  },
+  {
     source: 'docs/public-dependency-audit.md',
     output: 'docs/public-dependency-audit.md',
     label: 'public dependency audit docs',
@@ -85,6 +90,51 @@ const copiedFiles = [
     source: 'docs/release-checklist.md',
     output: 'docs/release-checklist.md',
     label: 'Android release checklist',
+  },
+  {
+    source: 'docs/releases/PROCESS.md',
+    output: 'docs/release-process.md',
+    label: 'Android release process',
+  },
+  {
+    source: 'docs/binary-provenance.md',
+    output: 'docs/binary-provenance.md',
+    label: 'binary provenance governance',
+  },
+  {
+    source: 'README.md',
+    output: 'docs/root-README.md',
+    label: 'public build instructions',
+  },
+  {
+    source: 'scripts/audit-public-artifacts.sh',
+    output: 'governance/audit-public-artifacts.sh',
+    label: 'strict public artifact audit',
+  },
+  {
+    source: 'scripts/test-public-artifact-provenance-audit.sh',
+    output: 'governance/test-public-artifact-provenance-audit.sh',
+    label: 'public artifact provenance self-test',
+  },
+  {
+    source: 'scripts/xcm-required-routes.tsv',
+    output: 'governance/xcm-required-routes.tsv',
+    label: 'required XCM route manifest',
+  },
+  {
+    source: 'scripts/xcm-discovery-only-routes.tsv',
+    output: 'governance/xcm-discovery-only-routes.tsv',
+    label: 'discovery-only XCM route manifest',
+  },
+  {
+    source: 'runtime/src/main/assets/approved_xcm_routes.tsv',
+    output: 'governance/approved_xcm_routes.tsv',
+    label: 'APK-approved XCM route manifest',
+  },
+  {
+    source: 'build.gradle',
+    output: 'gradle/build.gradle',
+    label: 'Gradle public dependency substitutions',
   },
   {
     source: 'settings.gradle',
@@ -188,6 +238,57 @@ function assertContains(relativePath, pattern, description) {
   return content;
 }
 
+function normalizeGovernanceText(content) {
+  return content
+    .replace(/\\\s*\n\s*/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .trim();
+}
+
+function assertCommand(relativePath, command, description) {
+  const normalized = normalizeGovernanceText(readFile(relativePath).toString('utf8'));
+  if (!normalized.includes(command)) {
+    fail(`${description} missing in ${relativePath}: ${command}`);
+  }
+}
+
+function activeLines(relativePath, commentPrefixes = ['#']) {
+  return readFile(relativePath).toString('utf8')
+    .split(/\r?\n/u)
+    .filter((line) => {
+      const trimmed = line.trim();
+      return trimmed !== '' && !commentPrefixes.some((prefix) => trimmed.startsWith(prefix));
+    });
+}
+
+function assertActiveText(relativePath, value, description, commentPrefixes = ['#']) {
+  if (!activeLines(relativePath, commentPrefixes).some((line) => line.includes(value))) {
+    fail(`${description} missing as active text in ${relativePath}: ${value}`);
+  }
+}
+
+function manifestStats(relativePath) {
+  const rows = readFile(relativePath).toString('utf8')
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .filter((line) => line !== '' && !line.startsWith('#'));
+  let assetCount = 0;
+  let multiAssetRowCount = 0;
+  let multiAssetCount = 0;
+  for (const row of rows) {
+    const fields = row.split(/\s+/u);
+    if (fields.length < 3) fail(`${relativePath} contains malformed row: ${row}`);
+    const assets = fields[2].split(',').filter(Boolean);
+    if (assets.length === 0) fail(`${relativePath} contains an empty asset list: ${row}`);
+    assetCount += assets.length;
+    if (assets.length > 1) {
+      multiAssetRowCount += 1;
+      multiAssetCount += assets.length;
+    }
+  }
+  return { rows, rowCount: rows.length, assetCount, multiAssetRowCount, multiAssetCount };
+}
+
 for (const file of copiedFiles) {
   readFile(file.source, file.label);
 }
@@ -201,11 +302,21 @@ const expectedCommit = ensureScript.match(/EXPECTED_COMMIT="\$\{FEARLESS_UTILS_C
 if (!expectedCommit) {
   fail('Unable to parse pinned fearless-utils commit from scripts/ensure-fearless-utils.sh');
 }
+assertContains(
+  'scripts/ensure-fearless-utils.sh',
+  /EXPECTED_REPOSITORY="\$\{FEARLESS_UTILS_REPOSITORY:-soramitsu\/fearless-utils-Android\}"/,
+  'pinned fearless-utils repository'
+);
 
 assertContains(
   'scripts/ensure-fearless-utils.sh',
   /FEARLESS_UTILS_LIBRARY_ONLY/,
   'library-only overlay mode'
+);
+assertContains(
+  'scripts/test-fearless-utils-derived-tree.sh',
+  /all deterministic and adversarial fixtures passed/,
+  'fearless-utils derived-tree adversarial fixtures'
 );
 assertContains(
   'settings.gradle',
@@ -254,6 +365,112 @@ const modules = compatibilityModules.map((modulePath) => {
   };
 });
 
+const canonicalCommands = {
+  utilsGuard: `FEARLESS_UTILS_PATH=../fearless-utils-Android FEARLESS_UTILS_COMMIT=${expectedCommit} FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android FEARLESS_UTILS_LIBRARY_ONLY=true ./scripts/ensure-fearless-utils.sh`,
+  handoffTest: 'bash ./scripts/test-public-dependency-upstream-delta-export.sh',
+  handoffExport: 'bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta',
+  provenanceTest: 'bash ./scripts/test-public-artifact-provenance-audit.sh',
+  provenanceAudit: './scripts/audit-public-artifacts.sh --strict-provenance',
+  unsignedReleaseProvenanceAudit: './scripts/audit-public-artifacts.sh --unsigned-release --strict-provenance',
+  releaseProvenanceAudit: './scripts/audit-public-artifacts.sh --release --strict-provenance',
+};
+
+for (const document of ['docs/public-dependency-audit.md', 'docs/release-checklist.md', 'docs/releases/PROCESS.md']) {
+  assertCommand(document, canonicalCommands.utilsGuard, 'canonical fearless-utils guard command');
+}
+for (const document of ['docs/public-dependency-audit.md', 'docs/release-checklist.md', 'docs/releases/PROCESS.md', 'README.md']) {
+  assertCommand(document, canonicalCommands.handoffTest, 'public dependency handoff self-test command');
+  assertCommand(document, canonicalCommands.handoffExport, 'public dependency handoff export command');
+  assertCommand(document, canonicalCommands.provenanceTest, 'strict provenance self-test command');
+  assertCommand(document, canonicalCommands.provenanceAudit, 'strict provenance audit command');
+}
+for (const document of ['docs/release-checklist.md', 'docs/releases/PROCESS.md', 'docs/binary-provenance.md']) {
+  assertCommand(document, canonicalCommands.releaseProvenanceAudit, 'strict release provenance command');
+}
+for (const document of ['docs/release-checklist.md', 'docs/releases/PROCESS.md']) {
+  assertCommand(document, canonicalCommands.unsignedReleaseProvenanceAudit, 'strict unsigned-release provenance command');
+}
+
+const buildFile = activeLines('build.gradle', ['//', '#']).join('\n');
+const substitutionModules = [...buildFile.matchAll(/substitute module\([^)]*\) using project\(['"]:(public-[^'"]+)['"]\)/gu)]
+  .map((match) => match[1]);
+const uniqueSubstitutionModules = [...new Set(substitutionModules)].sort();
+const expectedModules = [...compatibilityModules].sort();
+if (JSON.stringify(uniqueSubstitutionModules) !== JSON.stringify(expectedModules)) {
+  fail(`Gradle public dependency substitutions must be exactly ${expectedModules.join(', ')}; found ${uniqueSubstitutionModules.join(', ')}`);
+}
+
+const settingsFile = activeLines('settings.gradle', ['//', '#']).join('\n');
+const includedPublicModules = [...settingsFile.matchAll(/include\s+['"]:(public-[^'"]+)['"]/gu)]
+  .map((match) => match[1]);
+const uniqueIncludedPublicModules = [...new Set(includedPublicModules)].sort();
+if (JSON.stringify(uniqueIncludedPublicModules) !== JSON.stringify(expectedModules)) {
+  fail(`settings.gradle public modules must be exactly ${expectedModules.join(', ')}; found ${uniqueIncludedPublicModules.join(', ')}`);
+}
+
+const approvedRoutes = manifestStats('runtime/src/main/assets/approved_xcm_routes.tsv');
+const requiredRoutes = manifestStats('scripts/xcm-required-routes.tsv');
+const discoveryOnlyRoutes = manifestStats('scripts/xcm-discovery-only-routes.tsv');
+if (approvedRoutes.rowCount !== requiredRoutes.rowCount) {
+  fail(`approved/required XCM route counts differ: ${approvedRoutes.rowCount}/${requiredRoutes.rowCount}`);
+}
+if (JSON.stringify([...approvedRoutes.rows].sort()) !== JSON.stringify([...requiredRoutes.rows].sort())) {
+  fail('approved and required XCM route manifests must contain the same route rows');
+}
+
+const artifactAudit = readFile('scripts/audit-public-artifacts.sh').toString('utf8');
+const auditBinaryRows = [...artifactAudit.matchAll(/^\s+([A-Za-z0-9_./-]+)\) echo "([0-9a-f]{64})" ;;/gmu)]
+  .map((match) => ({ path: match[1], sha256: match[2] }));
+if (auditBinaryRows.length === 0) fail('strict artifact audit has no allowlisted binary checksum rows');
+const provenanceDocument = readFile('docs/binary-provenance.md').toString('utf8');
+const documentedBinaryRows = [...provenanceDocument.matchAll(/^\| `([^`]+)` \| `([0-9a-f]{64})` \|$/gmu)]
+  .map((match) => ({ path: match[1], sha256: match[2] }));
+const normalizeBinaryRows = (rows) => rows
+  .map((entry) => `${entry.path}\t${entry.sha256}`)
+  .sort();
+if (JSON.stringify(normalizeBinaryRows(documentedBinaryRows)) !== JSON.stringify(normalizeBinaryRows(auditBinaryRows))) {
+  fail('docs/binary-provenance.md rows must exactly match scripts/audit-public-artifacts.sh allowlisted checksums');
+}
+
+for (const workflow of ['.github/workflows/android-ci.yml', '.github/workflows/android-release.yml']) {
+  assertActiveText(workflow, `FEARLESS_UTILS_COMMIT: ${expectedCommit}`, 'workflow fearless-utils revision');
+  assertActiveText(workflow, 'repository: soramitsu/fearless-utils-Android', 'workflow fearless-utils repository');
+  assertActiveText(workflow, 'FEARLESS_UTILS_LIBRARY_ONLY: "true"', 'workflow library-only mode');
+  assertActiveText(workflow, 'FORCE_LOCAL_UTILS: "true"', 'workflow forced local source dependency');
+}
+for (const document of ['README.md', 'docs/binary-provenance.md']) {
+  assertContains(document, new RegExp(expectedCommit, 'u'), 'documented fearless-utils revision');
+  assertContains(document, /soramitsu\/fearless-utils-Android/u, 'documented fearless-utils repository');
+}
+for (const command of [canonicalCommands.handoffTest, canonicalCommands.handoffExport, canonicalCommands.provenanceTest, canonicalCommands.provenanceAudit]) {
+  assertActiveText('.github/workflows/android-ci.yml', command, 'Android CI governance command');
+}
+assertActiveText('.github/workflows/android-release.yml', canonicalCommands.provenanceTest, 'Android release provenance self-test');
+assertActiveText('.github/workflows/android-release.yml', canonicalCommands.provenanceAudit, 'Android tagged-source provenance audit');
+assertActiveText('.github/workflows/android-release.yml', canonicalCommands.unsignedReleaseProvenanceAudit, 'Android unsigned release artifact provenance audit');
+
+const publicDependencyDocument = normalizeGovernanceText(readFile('docs/public-dependency-audit.md').toString('utf8'));
+const governedSnapshot = [
+  `Pinned \`fearless-utils-Android\` revision: \`${expectedCommit}\`.`,
+  `Public compatibility-module substitutions: \`${modules.length}\`.`,
+  `Approved/required executable XCM route rows: \`${approvedRoutes.rowCount}\` / \`${requiredRoutes.rowCount}\`.`,
+  `Discovery-only XCM destinations/assets: \`${discoveryOnlyRoutes.rowCount}\` / \`${discoveryOnlyRoutes.assetCount}\`; \`${discoveryOnlyRoutes.multiAssetRowCount}\` of those destinations carry \`${discoveryOnlyRoutes.multiAssetCount}\` multi-asset route entries.`,
+  `Strict-provenance allowlisted binary artifacts: \`${auditBinaryRows.length}\`.`,
+];
+for (const snapshotLine of governedSnapshot) {
+  if (!publicDependencyDocument.includes(snapshotLine)) {
+    fail(`public dependency governed snapshot is stale or missing: ${snapshotLine}`);
+  }
+}
+if (publicDependencyDocument.includes('until an open-source XCM extrinsic engine')) {
+  fail('public dependency docs still claim the open-source XCM engine is missing');
+}
+for (const currentXcmMarker of ['Substrate fee and submission engine', 'ENABLE_PRODUCTION_XCM_TRANSFERS=false']) {
+  if (!publicDependencyDocument.includes(currentXcmMarker)) {
+    fail(`public dependency XCM status is missing current marker: ${currentXcmMarker}`);
+  }
+}
+
 fs.rmSync(outputDir, { recursive: true, force: true });
 fs.mkdirSync(outputDir, { recursive: true });
 
@@ -281,7 +498,8 @@ compatibility shims.
 
 ## Review
 
-1. Review handoff-manifest.json for source hashes and compatibility modules.
+1. Review handoff-manifest.json for source hashes and compatibility modules,
+   then run fearless-utils/test-fearless-utils-derived-tree.sh.
 2. Apply the fearless-utils overlay to the pinned upstream checkout or port the
    same changes directly upstream.
 3. Replace local compatibility modules only after public artifacts expose the
@@ -309,11 +527,25 @@ const manifest = {
     patchTouchedPaths,
   },
   publicCompatibilityModules: modules,
+  governance: {
+    compatibilityModuleCount: modules.length,
+    approvedXcmRouteCount: approvedRoutes.rowCount,
+    requiredXcmRouteCount: requiredRoutes.rowCount,
+    discoveryOnlyDestinationCount: discoveryOnlyRoutes.rowCount,
+    discoveryOnlyAssetCount: discoveryOnlyRoutes.assetCount,
+    discoveryOnlyMultiAssetDestinationCount: discoveryOnlyRoutes.multiAssetRowCount,
+    discoveryOnlyMultiAssetCount: discoveryOnlyRoutes.multiAssetCount,
+    allowlistedBinaryArtifactCount: auditBinaryRows.length,
+  },
   requiredReviewCommands: [
-    'FEARLESS_UTILS_PATH=../fearless-utils-Android ./scripts/ensure-fearless-utils.sh',
-    'bash ./scripts/test-public-dependency-upstream-delta-export.sh',
-    'bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta',
-    './scripts/audit-public-artifacts.sh',
+    'bash ./scripts/test-fearless-utils-derived-tree.sh',
+    canonicalCommands.utilsGuard,
+    canonicalCommands.handoffTest,
+    canonicalCommands.handoffExport,
+    canonicalCommands.provenanceTest,
+    canonicalCommands.provenanceAudit,
+    canonicalCommands.unsignedReleaseProvenanceAudit,
+    canonicalCommands.releaseProvenanceAudit,
   ],
   files: handoffFiles.sort((left, right) => left.path.localeCompare(right.path)),
 };

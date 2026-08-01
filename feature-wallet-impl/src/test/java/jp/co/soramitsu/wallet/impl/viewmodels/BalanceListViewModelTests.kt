@@ -45,6 +45,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -119,6 +121,7 @@ class BalanceListViewModelTests {
     private lateinit var tonConnectInteractor: TonConnectInteractor
 
     private lateinit var vm: BalanceListViewModel
+    private lateinit var recoveryRequiredFlow: MutableStateFlow<Boolean>
 
     @OptIn(ExperimentalStdlibApi::class)
     @Before
@@ -140,6 +143,10 @@ class BalanceListViewModelTests {
         every { accountInteractor.selectedLightMetaAccountFlow() } returns flowOf(
             createLightMetaAccount()
         )
+        recoveryRequiredFlow = MutableStateFlow(false)
+        every {
+            accountInteractor.walletRecoveryRequiredFlow(any())
+        } returns recoveryRequiredFlow
         coEvery { accountInteractor.selectedLightMetaAccount() } returns createLightMetaAccount()
         coEvery { accountInteractor.lightMetaAccountsFlow() } returns flowOf(
             listOf(createLightMetaAccount())
@@ -209,6 +216,17 @@ class BalanceListViewModelTests {
         assertEquals(true, state.isBackedUp)
     }
 
+    @Test
+    fun `runtime quarantine updates recovery state without selected wallet emission`() = runTest {
+        advanceUntilIdle()
+        assertFalse(vm.state.value.isRecoveryRequired)
+
+        recoveryRequiredFlow.value = true
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.isRecoveryRequired)
+    }
+
     private fun createNomis() = NomisScoreData(
         metaId = 1,
         score = 3,
@@ -231,7 +249,7 @@ class BalanceListViewModelTests {
         substrateAccountId = ByteArray(32),
         ethereumAddress = ByteArray(32),
         ethereumPublicKey = ByteArray(32),
-        tonPublicKey = ByteArray(32),
+        tonPublicKey = null,
         isSelected = true,
         name = "name",
         isBackedUp = true,

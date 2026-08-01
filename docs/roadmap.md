@@ -5,10 +5,96 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Recent Updates
+- 2026-08-01: Added a URL-redacted, digest-bound contract for the observed
+  Google Play Internal App Sharing publication, including a mode-`0600`
+  private handoff writer and 6-positive / 184-adversarial audit. The evidence
+  remains test-only and records its missing device, independent-tester,
+  production-signing, and current-availability proof. Added a bounded AAB ELF
+  verifier with 1 positive / 20 negative fixtures and wired exact CI, IAS,
+  unsigned-release, and signed-release artifacts through its 16 KiB PT_LOAD
+  alignment checks.
+- 2026-07-30: Removed Reown delegate calls from `WCDelegate` static
+  initialization after a delayed release-like startup crash. Delegate
+  registration is now synchronized, idempotent, refreshes persisted sessions
+  when initialization succeeds, and safely retries partial readiness.
+  Recoverable synchronous SDK failures across pairing and session actions now
+  reach UI error callbacks; cancellation and fatal errors still propagate.
+  Stale proposal/session/request destinations route back without dereferencing
+  missing process-memory state. Pull-request IAS builds stay
+  WalletConnect-secretless, while a protected-`develop` manual dispatch binds
+  a required non-logged 32-hex project ID only to the exact bundle step.
+- 2026-07-27: Retired the legacy MoonPay secret/HMAC flow and removed every
+  signing-secret BuildConfig field and release requirement. The replacement
+  uses only publishable keys, an exact hosted-checkout allowlist, and manual
+  wallet entry; prefilled-wallet URLs still require a backend signer. The
+  formerly exposed secret must be revoked/rotated. The policy gate scans every
+  tracked Android source set, build input, release script, and workflow, with
+  alternate-module adversarial fixtures.
+- 2026-07-27: Made release Firebase overlay backup creation crash-safe by
+  validating size, SHA-256, and `0600` permissions on a same-directory
+  temporary before atomic rename. Cleanup discards partial temporaries. The
+  finalized split-overlay suite covers 20 restore and 8 cleanup TERM/SIGKILL
+  cases, 2 independent positive phases, 20 phase/credential-isolation
+  negatives, and separate corruption and permission-negative cases.
+- 2026-07-27: Reserved Google Play version code 230 and replaced mutable
+  release versioning/debug-signing fallback with a fail-closed Play testing
+  artifact pipeline. A credential-free first job validates the signed tag,
+  prior CI, governance, adversarial controls, and exact source tree. The
+  protected build runner then creates only an exact CI/source-bound unsigned
+  Gradle AAB with no signing material and transfers its exact, individually
+  attested four-file evidence, including the bounded verified Gradle/R8 build
+  log, to a separate protected signing runner. That
+  runner revalidates every file digest, exact provenance, all attestations,
+  tag, `master`, and source tree before restoring the upload key and invoking
+  the standalone signer pinned to the registered upload certificate. It
+  derives identity and permissions from the signed bytes and separately
+  attests the exact final three-file artifact. CI performs no Play mutation
+  and receives no Play service-account credential; the final AAB is uploaded
+  manually to the existing Open Testing track after evidence review.
+- 2026-07-27: Pinned release dependency provenance with the Gradle 9.0
+  distribution SHA-256, strict verification metadata plus a tracked digest,
+  the strict root buildscript-classpath lock, and the production dependency
+  lock. CI/release graphs reject
+  `mavenLocal()`, verification-off flags, and metadata/lock rewrite attempts.
+- 2026-07-30: Advanced the release toolchain from AGP 8.9.1 to exact AGP
+  8.10.1 / R8 8.10.24 so Reown's Kotlin 2.2 metadata is parsed by a supported
+  shrinker; clean release logs and embedded AAB metadata are fail-closed.
+- 2026-07-13: Added the production-satisfiable Android Iroha wallet-smoke
+  metadata seam without enabling send. A closed immutable wallet model and the
+  Nexus-only request factory enforce the exact four-key/all-string schema,
+  canonical route hash and wallet commit, Android platform/role binding, and
+  defensive snapshots. The operator seam also requires the exact Nexus global
+  chain and canonical Minamoto endpoint. The staged Java codec remains
+  Taira-only and rejects every non-empty metadata map before signing. Focused
+  adversarial tests cover malformed keys, types, case, controls, confusables,
+  sentinels, mutable aliasing, wrong network/chain, and endpoint substitution;
+  ordinary transfers still use empty metadata and production DI still injects
+  `UnavailableIrohaTransferSigner`.
+- 2026-07-11: Added a fail-closed, non-production Iroha staging lane. The
+  bounded materializer extracts only the pinned `core-jvm` coordinate; a
+  Java-only Taira bridge and Kotlin 2.1 smoke module run behind an explicit
+  CI/local gate; app debug/release graphs are proven free of the SDK. A custom
+  compact-length transaction hasher works around the pinned SDK's confirmed
+  fixed-`u64` defect and matches the inspected Rust/current-native diagnostic
+  vector. Production DI, live Torii/funded evidence, exact binary provenance,
+  device/R8 proof, authoritative live registry/precision/fee mapping,
+  deployed-node compatibility, and private-key residue acceptance remain
+  blockers. The tag fixture and current live Taira expose different canonical
+  XOR definition IDs, so neither is a valid hard-coded production mapping.
+- 2026-07-10: Hardened Android production release provenance: strict tag/master
+  and exact prior-CI binding, immutable committed versioning, AAB signer
+  verification, pinned build attestation/actions, and destructive release-gate
+  tests. `runTest` now dynamically covers all 14 source-backed test modules,
+  including the previously omitted `core-api`, backup, and XCM modules.
+- 2026-07-10: Removed MoonPay server-secret/HMAC signing from the APK and kept
+  the hosted checkout in publishable-key/manual-wallet mode with an exact host
+  allowlist and adversarial query/control/size tests. Credential Manager
+  transport and trust-all TLS lint checks are now fatal, and unused legacy
+  Spongy Castle PKIX/PGP artifacts no longer ship at runtime.
 - 2026-03-12: `scripts/build-libsodium.sh` now detects the correct host-specific NDK toolchain directory (darwin/linux/windows) instead of hardcoding macOS paths, so rebuilding libsodium works on Linux and CI hosts.
 - 2026-03-12: Local validation script now installs Android platform/build-tools 36 so fresh environments match the Gradle compileSdk configuration before running tasks.
 - 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) so the pinned `fearless-utils-Android` composite checkout remains buildable on the current Gradle stack until the upstream repository upgrades.
-- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
+- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and initially bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
 - 2026-03-12: Temporarily excluded the WalletConnect Pay dependency (and its `yttrium-wcpay` natives) until Reown publishes 16 KB–aligned builds.
 - 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.
 - 2026-03-05: Completed security remediation batch for TON and account flows (TonConnect origin validation, TON network client hardening, WebView restrictions, encrypted preferences migration to AES-GCM, PIN lockout throttling, and internal-cache JSON export hygiene).
@@ -38,7 +124,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   1) Registry overrides: In `local.properties`, set
      - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
      - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
-     - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (points to chain list validated against stable2503)
+     - `CHAINS_URL_DEBUG_OVERRIDE=https://<your>/chains.json` (debug-only chain list validated against stable2503; release remains pinned)
   2) Utils alignment (pinned source checkout): The build includes `soramitsu/fearless-utils-Android` as a composite source dependency.
      - Ensure NDK r28 (android-ndk-r28 / 28.0.x) and Rust toolchain with Android targets are installed (see README and CI config).
      - CI checks out `7500809f33243ee47ecb2ec8563fc284ac4de0d6`; local builds should clone that repo next to this checkout or set `FEARLESS_UTILS_PATH`.
@@ -147,13 +233,21 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Prompt:
   - Add a build-time flag or comment with target version; plan a small PR once utils/runtime upgraded.
 
-10) Tests for DB migrations & runtime flows
-- Why: Critical to stability across releases.
-- Files: `core-db/.../migrations/*`, `runtime/...`
+10) Expand runtime-flow tests (Room migration coverage delivered)
+- Status: API 34 runs the full 61-test database suite, including malformed,
+  oversized, interrupted, and no-wipe preservation cases. APIs 30, 31, and 36
+  each run the compact 8-test released-schema/fail-closed database profile as
+  part of a 39-test compatibility gate.
+- Remaining why: Runtime connection lifecycle behavior still needs the same
+  deterministic regression depth.
+- Files: `runtime/...`
 - Acceptance:
-  - Migration tests for latest versions; smoke tests for ChainRegistry start/stop.
+  - Smoke tests cover `ChainRegistry` start, stop, reconnection, cancellation,
+    and concurrent `syncUp()` calls without live-network timing dependencies.
 - Prompt:
-  - Add Room migration tests for recent migrations; create lightweight tests for `ChainRegistry.syncUp()` using fakes.
+  - Build lightweight `ChainRegistry.syncUp()` tests with fakes and adversarial
+    cancellation/reconnection cases; keep the existing migration device matrix
+    mandatory for every database schema change.
 
 11) Per-module READMEs and entry points
 - Why: Speeds onboarding and code navigation.

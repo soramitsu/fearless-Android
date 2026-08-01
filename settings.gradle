@@ -1,8 +1,301 @@
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.artifacts.verification.DependencyVerificationMode
+import org.gradle.api.initialization.resolve.RepositoriesMode
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.security.MessageDigest
+import java.util.Locale
+import java.util.Properties
+
+def expectedGradleDistributionUrl =
+        "https://services.gradle.org/distributions/gradle-9.0-bin.zip"
+def expectedGradleDistributionSha256 =
+        "8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b"
+def requestedTaskNames = gradle.startParameter.taskNames.collect {
+    it.toLowerCase(Locale.ROOT)
+}
+def explicitReleaseTaskRequested = requestedTaskNames.any { taskName ->
+    def taskLeaf = taskName.tokenize(":").last()
+    def releaseEntrypointPrefixes = [
+            "appdistribution",
+            "assemble",
+            "bundle",
+            "install",
+            "package",
+            "publish",
+            "sign",
+            "upload"
+    ]
+    taskLeaf.contains("release") &&
+            releaseEntrypointPrefixes.any { taskLeaf.startsWith(it) }
+}
+def ciEnvironment = (
+        System.getenv("GITHUB_ACTIONS") != null ||
+        ["1", "true", "yes"].contains(
+                System.getenv("CI")?.trim()?.toLowerCase(Locale.ROOT)
+        )
+)
+def localVerificationBootstrapRequested =
+        !ciEnvironment &&
+        !gradle.startParameter.writeDependencyVerifications.isEmpty() &&
+        !gradle.startParameter.writeDependencyLocks &&
+        gradle.startParameter.lockedDependenciesToUpdate.isEmpty()
+def dependencyProvenanceRequired =
+        ciEnvironment ||
+        (
+                explicitReleaseTaskRequested &&
+                !localVerificationBootstrapRequested
+        )
+
+gradle.ext.fearlessDependencyProvenanceRequired =
+        dependencyProvenanceRequired
+gradle.ext.fearlessMavenLocalAllowed =
+        !dependencyProvenanceRequired
+gradle.ext.fearlessMavenLocalConfigured = false
+
+def sha256File = { File target ->
+    def digest = MessageDigest.getInstance("SHA-256")
+    target.withInputStream { input ->
+        byte[] buffer = new byte[8192]
+        int count
+        while ((count = input.read(buffer)) != -1) {
+            digest.update(buffer, 0, count)
+        }
+    }
+    digest.digest().collect {
+        String.format("%02x", it & 0xff)
+    }.join()
+}
+
+def validateDependencyProvenance = {
+    def wrapperPropertiesFile =
+            new File(settingsDir, "gradle/wrapper/gradle-wrapper.properties")
+    if (!wrapperPropertiesFile.isFile() ||
+            Files.isSymbolicLink(wrapperPropertiesFile.toPath())) {
+        throw new GradleException(
+                "A regular Gradle wrapper properties file is required."
+        )
+    }
+    def wrapperProperties = new Properties()
+    wrapperPropertiesFile.withInputStream {
+        wrapperProperties.load(it)
+    }
+    if (wrapperProperties.getProperty("distributionUrl") !=
+            expectedGradleDistributionUrl) {
+        throw new GradleException(
+                "The Gradle wrapper distribution URL is not the approved " +
+                        "Gradle 9.0 binary distribution."
+        )
+    }
+    if (wrapperProperties.getProperty("distributionSha256Sum") !=
+            expectedGradleDistributionSha256) {
+        throw new GradleException(
+                "The Gradle wrapper distribution SHA-256 is missing or changed."
+        )
+    }
+
+    def metadataFile =
+            new File(settingsDir, "gradle/verification-metadata.xml")
+    def metadataDigestFile =
+            new File(settingsDir, "gradle/verification-metadata.sha256")
+    if (!metadataFile.isFile() ||
+            Files.isSymbolicLink(metadataFile.toPath())) {
+        throw new GradleException(
+                "Strict Gradle dependency verification metadata is required."
+        )
+    }
+    if (!metadataDigestFile.isFile() ||
+            Files.isSymbolicLink(metadataDigestFile.toPath())) {
+        throw new GradleException(
+                "The dependency verification metadata digest is required."
+        )
+    }
+    def digestLines = metadataDigestFile.readLines("UTF-8")
+    if (digestLines.size() != 1 ||
+            !(digestLines.first() ==~
+                    '[0-9a-f]{64}  verification-metadata[.]xml')) {
+        throw new GradleException(
+                "The dependency verification metadata digest is malformed."
+        )
+    }
+    if (sha256File(metadataFile) != digestLines.first().substring(0, 64)) {
+        throw new GradleException(
+                "The dependency verification metadata digest does not match."
+        )
+    }
+    if (gradle.startParameter.dependencyVerificationMode !=
+            DependencyVerificationMode.STRICT) {
+        throw new GradleException(
+                "CI and release builds require strict dependency verification."
+        )
+    }
+    if (!gradle.startParameter.writeDependencyVerifications.isEmpty()) {
+        throw new GradleException(
+                "CI and release builds cannot rewrite dependency verification metadata."
+        )
+    }
+    if (gradle.startParameter.writeDependencyLocks ||
+            !gradle.startParameter.lockedDependenciesToUpdate.isEmpty()) {
+        throw new GradleException(
+                "CI and release builds cannot rewrite production dependency locks."
+        )
+    }
+}
+
+if (dependencyProvenanceRequired) {
+    validateDependencyProvenance()
+}
+
+final Closure<Boolean> hasNoSymbolicLinkComponents = { candidate ->
+    try {
+        def lexical = candidate.toAbsolutePath().normalize()
+        def current = lexical.root
+        for (def component : lexical) {
+            current = current.resolve(component)
+            if (Files.isSymbolicLink(current)) {
+                return false
+            }
+        }
+        return !Files.exists(lexical, LinkOption.NOFOLLOW_LINKS) ||
+                lexical.toRealPath().equals(lexical)
+    } catch (IOException | SecurityException ignored) {
+        return false
+    }
+}
+
+final def approvedStagedIrohaRepositoryPath = settingsDir.toPath()
+        .resolve('build/iroha-mobile-sdk/maven')
+        .toAbsolutePath()
+        .normalize()
+
+if (dependencyProvenanceRequired &&
+        !hasNoSymbolicLinkComponents(approvedStagedIrohaRepositoryPath)) {
+    throw new GradleException(
+            'The staged Iroha repository path contains a symbolic link.'
+    )
+}
+
+if (dependencyProvenanceRequired) {
+    dependencyResolutionManagement {
+        repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+        repositories {
+            google()
+            mavenCentral()
+            exclusiveContent {
+                forRepository {
+                    maven {
+                        name = 'materializedIrohaMobileSdk'
+                        url = approvedStagedIrohaRepositoryPath.toUri()
+                        metadataSources {
+                            gradleMetadata()
+                            mavenPom()
+                            artifact()
+                        }
+                    }
+                }
+                filter {
+                    includeGroup 'org.hyperledger.iroha.sdk'
+                }
+            }
+            exclusiveContent {
+                forRepository {
+                    maven {
+                        name = 'JitPack'
+                        url = uri('https://jitpack.io')
+                    }
+                }
+                filter {
+                    includeGroup 'com.github.airgap-it'
+                    includeGroupByRegex 'com[.]github[.]airgap-it([.].*)?'
+                    includeGroup 'com.github.ildixhaferri'
+                    includeGroupByRegex 'com[.]github[.]komputing([.].*)?'
+                    includeGroup 'com.github.multiformats'
+                    includeGroup 'com.walletconnect.Scarlet'
+                }
+            }
+        }
+    }
+}
+
+final Closure<Void> rejectLocalMavenRepository = {
+        MavenArtifactRepository repository,
+        String owner ->
+    if (repository.url?.scheme?.equalsIgnoreCase("file")) {
+        throw new GradleException(
+                "CI and release builds forbid local Maven repository " +
+                        "'${repository.name}' in ${owner}."
+        )
+    }
+}
+
+if (dependencyProvenanceRequired) {
+    gradle.beforeProject { project ->
+        project.repositories.whenObjectAdded { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} repositories"
+                )
+            }
+        }
+        project.buildscript.repositories.whenObjectAdded { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} buildscript repositories"
+                )
+            }
+        }
+    }
+}
+
+final Closure<Void> auditConfiguredRepositories = {
+    gradle.rootProject.allprojects.each { project ->
+        project.repositories.toList().each { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} repositories"
+                )
+            }
+        }
+        project.buildscript.repositories.toList().each { repository ->
+            if (repository instanceof MavenArtifactRepository) {
+                rejectLocalMavenRepository(
+                        repository,
+                        "${project.path} buildscript repositories"
+                )
+            }
+        }
+    }
+}
+
+gradle.projectsEvaluated {
+    if (dependencyProvenanceRequired) {
+        auditConfiguredRepositories()
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def resolvedReleaseGraph = graph.allTasks.any { task ->
+        task.name.toLowerCase(Locale.ROOT).contains("release")
+    }
+    if (resolvedReleaseGraph && !localVerificationBootstrapRequested) {
+        validateDependencyProvenance()
+        auditConfiguredRepositories()
+        if (gradle.ext.fearlessMavenLocalConfigured) {
+            throw new GradleException(
+                    "A release task graph cannot be configured with mavenLocal(). " +
+                            "Use the full release task name so provenance policy " +
+                            "is active before project configuration."
+            )
+        }
+    }
+}
 
 // Gradle 9 removed the jcenter() helper but fearless-utils still calls it.
 // Provide a shim so the included build keeps working until upstream is updated.
@@ -122,6 +415,11 @@ include ':public-xnetworking'
 include ':public-shared-features-core'
 include ':public-shared-features-xcm'
 include ':public-shared-features-backup'
+
+// Staged, fail-closed Iroha integration. The Java bridge deliberately stays
+// outside production app dependencies until funded live evidence is approved.
+include ':iroha-sdk-bridge'
+include ':iroha-sdk-bridge-kotlin-smoke'
 
 // Prefer a local fearless-utils-Android checkout when available.
 def localUtilsPath = System.getenv("FEARLESS_UTILS_PATH")

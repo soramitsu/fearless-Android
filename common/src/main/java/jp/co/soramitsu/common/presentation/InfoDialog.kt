@@ -36,14 +36,27 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.common.compose.theme.white16
 
-class InfoDialog(
-    private val title: String,
-    private val message: String
-) : BottomSheetDialogFragment() {
+class InfoDialog() : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "errorDialogTag"
+
+        private const val ARG_TITLE = "info_dialog_title"
+        private const val ARG_MESSAGE = "info_dialog_message"
     }
+
+    constructor(title: String, message: String) : this() {
+        arguments = Bundle().apply {
+            putString(ARG_TITLE, title)
+            putString(ARG_MESSAGE, message)
+        }
+    }
+
+    private val title: String
+        get() = arguments?.getString(ARG_TITLE).orEmpty()
+
+    private val message: String
+        get() = arguments?.getString(ARG_MESSAGE).orEmpty()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

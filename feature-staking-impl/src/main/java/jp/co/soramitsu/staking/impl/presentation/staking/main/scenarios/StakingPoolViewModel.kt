@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
@@ -19,9 +20,10 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
+import jp.co.soramitsu.staking.impl.domain.rewards.PeriodReturns
+import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
@@ -31,6 +33,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.Pool
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ReturnsModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingRewardEstimationBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.toViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.default
@@ -48,6 +51,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+
+internal suspend fun RewardCalculator.calculatePoolStakingReturns(
+    amount: BigDecimal,
+    periodInDays: Int,
+    chainId: ChainId
+): PeriodReturns = calculateReturns(amount, periodInDays, isCompound = true, chainId = chainId)
 
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
@@ -138,23 +147,28 @@ class StakingPoolViewModel(
     }
 
     private suspend fun getReturns(id: ChainId, amount: BigDecimal): ReturnsModel {
-        // todo hardcoded returns for demo
-        val kusamaOnTestNodeChainId = "51cdb4b3101904a9d234d126656d33cd17518249819b510a03d6c90d0a019611"
-        val polkadotOnTestNodeChainId = "4f77f65b21b1f396c1555850be6f21e2b1f36c26b94dbcbfec976901c9f08bf3"
-        val chainId = if (id == kusamaOnTestNodeChainId || id == polkadotOnTestNodeChainId) {
-            polkadotChainId
-        } else {
-            id
-        }
         val asset = stakingInteractor.currentAssetFlow().first()
         val calculator = rewardCalculatorFactory.create(asset.token.configuration)
-        val monthly = calculator.calculateReturns(amount, PERIOD_MONTH, true, chainId)
-        val yearly = calculator.calculateReturns(amount, PERIOD_YEAR, true, chainId)
+        val monthly = calculator.calculatePoolStakingReturns(amount, PERIOD_MONTH, id)
+        val yearly = calculator.calculatePoolStakingReturns(amount, PERIOD_YEAR, id)
 
         val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
         return ReturnsModel(monthlyEstimation, yearlyEstimation)
+    }
+
+    override suspend fun rewardEstimationPayload(): StakingRewardEstimationBottomSheet.Payload {
+        val asset = currentAssetFlow.first()
+        val chainId = asset.token.configuration.chainId
+        val calculator = rewardCalculatorFactory.create(asset.token.configuration)
+
+        return StakingRewardEstimationBottomSheet.Payload(
+            calculator.calculateMaxAPY(chainId).formatAsPercentage(),
+            calculator.calculateAvgAPY().formatAsPercentage(),
+            R.string.staking_reward_info_apr_max,
+            R.string.staking_reward_info_apr_avg
+        )
     }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {

@@ -3,7 +3,7 @@ def computeVersionName() {
 }
 
 def computeVersionCode() {
-    return Integer.valueOf(System.env.CI_BUILD_ID ?: rootProject.versionCode)
+    return Integer.valueOf(rootProject.versionCode)
 }
 
 def static releaseNotes() {

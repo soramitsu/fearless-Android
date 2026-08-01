@@ -17,6 +17,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ChainSyncService(
     private val dao: ChainDao,
@@ -25,11 +27,22 @@ class ChainSyncService(
     private val assetsDao: AssetDao,
     private val contextManager: ContextManager,
     private val logger: (String) -> Unit = {}
-) {
+) : XcmDiscoverySnapshotProvider {
 
-    suspend fun syncUp() {
-        kotlin.runCatching { configChainsSyncUp() }.onFailure { it.printStackTrace() }.getOrNull() ?: return
+    private val xcmDiscoveryRefreshMutex = Mutex()
+    @Volatile
+    private var currentProcessXcmDiscoveryChains: List<Chain>? = null
+
+    suspend fun syncUp() = xcmDiscoveryRefreshMutex.withLock {
+        // Clear before every attempt. A failed refresh must never leave a
+        // previously fetched or persisted route eligible for XCM discovery.
+        currentProcessXcmDiscoveryChains = null
+        val remoteChains = configChainsSyncUp()
+        currentProcessXcmDiscoveryChains = remoteChains.toList()
     }
+
+    override suspend fun getCurrentProcessXcmDiscoveryChains(): List<Chain> =
+        currentProcessXcmDiscoveryChains?.toList().orEmpty()
 
     private suspend fun configChainsSyncUp(): List<Chain> = supervisorScope {
         val localChainsJoinedInfo = dao.getJoinChainInfo()

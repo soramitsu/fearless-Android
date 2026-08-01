@@ -1,0 +1,70 @@
+{
+  "fixture_format": 1,
+  "purpose": "Immutable synthetic Room version-30 migration input built from DDL extracted from the official Fearless Wallet v2.0.0 Android binary, plus a six-field wallet-secret vector",
+  "release": {
+    "repository": "https://github.com/soramitsu/fearless-Android",
+    "release_url": "https://github.com/soramitsu/fearless-Android/releases/tag/release/prod/v2.0.0_51",
+    "asset_url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v2.0.0_51/fearless-wallet-v2.0.0_51-google.apk",
+    "asset_name": "fearless-wallet-v2.0.0_51-google.apk",
+    "asset_size_bytes": 27789352,
+    "published_at": "2021-12-30T21:06:38Z",
+    "tag": "release/prod/v2.0.0_51",
+    "tag_commit": "e43832fab8f59bbf57c8ca97d7384c0ad77fd90e",
+    "apk_sha256": "c0f889119a416dc904c0033a9f8d596dd9c76da255ae5cb3ea14e361353a04a7",
+    "apk_signer_certificate_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+    "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d"
+  },
+  "schema_extraction": {
+    "apk_entry": "classes2.dex",
+    "apk_entry_sha256": "8ff143194a93ac9a6569e922485b766e82153e33c6a424fd6660746040787db4",
+    "class": "jp.co.soramitsu.core_db.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 30,
+    "room_identity_hash": "11b78abe23c541401fca8e23fc427a86",
+    "explicit_table_count_including_room_master": 16,
+    "sqlite_table_count_including_sqlite_sequence": 17,
+    "explicit_index_count": 9
+  },
+  "database_construction": {
+    "source": "app-database-v30.sql",
+    "source_is_official_user_database": false,
+    "contains_released_user_rows": false,
+    "command": "sqlite3 app-database-v30.db < app-database-v30.sql",
+    "sqlite_version": "3.51.0 2025-06-12 13:14:41 f0ca7bba1c5e232e5d279fad6338121ab55af0c8c68c84cdfb18ba5114dcaapl",
+    "host": "Darwin 25.5.0 arm64",
+    "database_header_sqlite_version_number": 3051000,
+    "reproducible_with_pinned_tool": true
+  },
+  "tag_sources": {
+    "core_db_app_database_path": "core-db/src/main/java/jp/co/soramitsu/core_db/AppDatabase.kt",
+    "core_db_app_database_sha256": "8a2e54490b3971d6017c13fbea76d8e560569e69a335d73df2a16f6b61d5ec8a",
+    "v2_migration_path": "core-db/src/main/java/jp/co/soramitsu/core_db/migrations/V2Migration.kt",
+    "v2_migration_sha256": "9526bc2638e4a2329d06a3d44504b84a186c013138dfb7d13635981b173fe6fd",
+    "legacy_meta_account_secrets_path": "common/src/main/java/jp/co/soramitsu/common/data/secrets/v2/MetaAccountSecrets.kt",
+    "legacy_meta_account_secrets_sha256": "b13ae4b101c883665d33f9d593c95f4a7d5cdbd900e0d5c90aaa7269f1f4a133"
+  },
+  "secret_fixture_extraction": {
+    "schema": "jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets",
+    "schema_field_count": 6,
+    "encoding": "SCALE",
+    "release_tag": "release/prod/v2.0.0_51",
+    "tag_commit": "e43832fab8f59bbf57c8ca97d7384c0ad77fd90e",
+    "source_path_at_tag": "common/src/main/java/jp/co/soramitsu/common/data/secrets/v2/MetaAccountSecrets.kt",
+    "source_sha256": "b13ae4b101c883665d33f9d593c95f4a7d5cdbd900e0d5c90aaa7269f1f4a133",
+    "vector_source": "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/ReleasedV200MigrationSafetyTest.kt",
+    "vector_function": "frozen six-field deterministic constants",
+    "synthetic_only": true,
+    "contains_user_material": false,
+    "current_ton_field_schema_used": false,
+    "decoded_byte_count": 257
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v30.sql",
+    "schema_sql_sha256": "50c81ef39681051d50d0d170e0526df64378351056783d5087475c78da443af7",
+    "database": "app-database-v30.db",
+    "database_sha256": "c9b071ca0037caec64236de73ecb2bed69321743379f8020ebf8f824319b5cf2",
+    "legacy_secret_v30": "meta-account-secrets-v30-six-field.hex",
+    "legacy_secret_v30_sha256": "fb30cf2e9c4918c22f0a269afc715802555c5b3ef97c794c82c375725773e51c",
+    "legacy_secret_v30_scale_sha256": "291eb865d03d31f20ee6fbb5cfac9722784ad5ea20dc7a6add8b3ded402c7d19"
+  }
+}

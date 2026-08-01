@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.api.domain
 
+import android.os.Parcelable
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.ValidationException
@@ -15,6 +16,7 @@ import jp.co.soramitsu.common.validation.TransferToTheSameAddressException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlinx.parcelize.Parcelize
 
 interface ValidateTransferUseCase {
     suspend fun validateExistentialDeposit(
@@ -51,7 +53,8 @@ interface ValidateTransferUseCase {
     ): Result<TransferValidationResult>
 }
 
-sealed class TransferValidationResult {
+@Parcelize
+sealed class TransferValidationResult : Parcelable {
     object Valid : TransferValidationResult()
     object InsufficientBalance : TransferValidationResult()
     object InsufficientUtilityAssetBalance : TransferValidationResult()

@@ -172,7 +172,8 @@ private const val DEFAULT_PRECISION = 10
 private fun ChainXcmAssetRemote.toXcmAsset() = Chain.Xcm.Asset(
     id = id,
     symbol = symbol,
-    minAmount = minAmount
+    minAmount = minAmount,
+    execution = execution?.toXcmExecution()
 )
 
 private fun ChainXcmMultiLocationRemote.toXcmMultiLocation() =

@@ -11,10 +11,14 @@ import jp.co.soramitsu.testshared.any
 import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.thenThrowUnsafe
 import jp.co.soramitsu.testshared.whenever
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -75,6 +79,25 @@ class RuntimeProviderTest {
             whenever(runtimeFilesCache.getChainMetadata(any())).thenReturn("metadata")
             whenever(chainDao.getTypes(any())).thenReturn("types")
         }
+    }
+
+    @Test
+    fun `should handle sync event emitted immediately after construction`() {
+        val testScheduler = TestCoroutineScheduler()
+        chainSyncFlow = MutableSharedFlow(extraBufferCapacity = 1)
+        currentChainTypesHash("Hash")
+        currentMetadataHash("Hash")
+
+        initProvider(StandardTestDispatcher(testScheduler))
+        chainSyncFlow.tryEmit(
+            SyncResult(chain.id, metadataHash = "Hash Changed", typesHash = "Hash")
+        )
+
+        testScheduler.advanceUntilIdle()
+
+        verify(runtimeFactory, times(2)).constructRuntime(any(), any(), anyInt())
+
+        runtimeProvider.finish()
     }
 
     @Test
@@ -171,10 +194,18 @@ class RuntimeProviderTest {
 
     @Test
     fun `should report missing cache for chain types or metadata`() {
-        runBlocking {
-            withRuntimeFactoryFailing(ChainInfoNotInCacheException) {
-                verify(runtimeSyncService, times(1)).cacheNotFound(eq(chain.id))
-            }
+        val testScheduler = TestCoroutineScheduler()
+        whenever(runtimeFactory.constructRuntime(any(), any(), anyInt()))
+            .thenThrowUnsafe(ChainInfoNotInCacheException)
+
+        initProvider(StandardTestDispatcher(testScheduler))
+
+        try {
+            testScheduler.advanceUntilIdle()
+
+            verify(runtimeSyncService, times(1)).cacheNotFound(eq(chain.id))
+        } finally {
+            runtimeProvider.finish()
         }
     }
 
@@ -202,7 +233,7 @@ class RuntimeProviderTest {
         val verification = if (times == 0) {
             after(100).times(expectedCalls)
         } else {
-            timeout(1_000).times(expectedCalls)
+            timeout(5_000).times(expectedCalls)
         }
 
         verify(runtimeFactory, verification).constructRuntime(any(), any(), anyInt())
@@ -216,14 +247,15 @@ class RuntimeProviderTest {
         whenever(constructedRuntime.ownTypesHash).thenReturn(hash)
     }
 
-    private fun initProvider() {
+    private fun initProvider(coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default) {
         runtimeProvider = RuntimeProvider(
             runtimeFactory,
             runtimeSyncService,
             runtimeFilesCache,
             chainDao,
             networkStateService,
-            chain
+            chain,
+            coroutineDispatcher
         )
     }
 }

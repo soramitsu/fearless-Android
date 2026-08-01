@@ -255,7 +255,7 @@ abstract class ChainDao {
                     ca_inner.id
                 LIMIT 1
             )
-            LEFT JOIN assets a ON a.chainId = c.id AND a.id = ca.id AND a.metaId = :accountMetaId AND a.enabled = 1
+            JOIN assets a ON a.chainId = c.id AND a.id = ca.id AND a.metaId = :accountMetaId AND a.enabled = 1
             LEFT JOIN token_price tp ON tp.priceId = a.tokenPriceId
         """
     )

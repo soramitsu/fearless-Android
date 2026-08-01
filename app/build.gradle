@@ -1,6 +1,16 @@
 //file:noinspection GroovyImplicitNullArgumentCall
-import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+import groovy.json.JsonSlurper
+import com.google.gms.googleservices.GoogleServicesTask
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.security.KeyStore
+import java.security.MessageDigest
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
+import java.util.Locale
 import java.util.Properties
+import java.util.zip.ZipFile
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
@@ -10,7 +20,6 @@ apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'com.google.firebase.appdistribution'
-apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
 
 def localKeystoreProperties = new Properties()
@@ -27,6 +36,417 @@ def envOrLocalProp = { envKey, propKey ->
     return localKeystoreProperties.getProperty(propKey)
 }
 
+def presentConfigValue = { envKey, propKey ->
+    def value = envOrLocalProp(envKey, propKey)
+    return value != null && !value.toString().trim().isEmpty() ? value.toString() : null
+}
+
+def releaseSigningInputs = [
+    storePath    : presentConfigValue("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH"),
+    storePassword: presentConfigValue("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD"),
+    keyAlias     : presentConfigValue("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS"),
+    keyPassword  : presentConfigValue("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD")
+]
+def configuredReleaseKeystore = releaseSigningInputs.storePath == null
+    ? null
+    : rootProject.file(releaseSigningInputs.storePath)
+def unsignedReleaseBuildValue = System.getenv("ANDROID_UNSIGNED_RELEASE_BUILD")
+if (unsignedReleaseBuildValue != null && unsignedReleaseBuildValue != "true") {
+    throw new GradleException(
+        "ANDROID_UNSIGNED_RELEASE_BUILD must be unset or exactly true."
+    )
+}
+def unsignedReleaseBuild = unsignedReleaseBuildValue == "true"
+if (unsignedReleaseBuild && System.getenv("CI") != "true") {
+    throw new GradleException(
+        "ANDROID_UNSIGNED_RELEASE_BUILD=true is restricted to an explicit CI environment."
+    )
+}
+if (unsignedReleaseBuild &&
+    releaseSigningInputs.any { ignored, value -> value != null }) {
+    throw new GradleException(
+        "Unsigned release bundling forbids every release keystore and password input."
+    )
+}
+def injectedSigningProperties = project.properties.keySet().findAll { propertyName ->
+    propertyName.toString().startsWith("android.injected.signing.")
+}
+if (unsignedReleaseBuild && !injectedSigningProperties.isEmpty()) {
+    throw new GradleException(
+        "Unsigned release bundling forbids injected Android signing properties."
+    )
+}
+
+def expectedUploadCertificateSha256 =
+    "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
+def expectedPublicFirebaseSha256 =
+    "3085af682c8c8a166142f7ef867e0c3fa06a6f87436f3a15497f8ae7dac93d2f"
+def requestedReleaseCommit = System.getenv("RELEASE_COMMIT")?.trim()
+if (requestedReleaseCommit != null &&
+    !(requestedReleaseCommit ==~ /[0-9a-f]{40}/)) {
+    throw new GradleException(
+        "RELEASE_COMMIT must be an exact lowercase 40-character Git commit."
+    )
+}
+
+def requestedTaskNames = gradle.startParameter.taskNames
+def internalAppSharingRequested = requestedTaskNames.any { requestedTask ->
+    requestedTask.toLowerCase(Locale.ROOT).contains("internalappsharing")
+}
+def internalAppSharingBundleRequested =
+    requestedTaskNames == [":app:bundleInternalAppSharing"]
+def internalAppSharingVerificationRequested =
+    requestedTaskNames == [":app:verifyInternalAppSharingConfiguration"]
+
+def releaseGoogleServicesFile = file("src/release/google-services.json")
+def iasSourceTreeCommit = null
+def iasSourceTreeTree = null
+def iasGoogleServicesSha256 = null
+
+def sha256Bytes = { byte[] bytes ->
+    MessageDigest.getInstance("SHA-256")
+        .digest(bytes)
+        .collect { String.format("%02x", it & 0xff) }
+        .join()
+}
+
+def requireNoSymlinkComponents = { Path inputPath, String label ->
+    def absolutePath = inputPath.toAbsolutePath().normalize()
+    def cursor = absolutePath.root
+    absolutePath.each { pathPart ->
+        cursor = cursor.resolve(pathPart)
+        if (Files.exists(cursor, LinkOption.NOFOLLOW_LINKS) &&
+            Files.isSymbolicLink(cursor)) {
+            throw new GradleException("${label} must not traverse a symlink.")
+        }
+    }
+}
+
+def requireSingleLinkRegularFile = { Path path, String label, long maximumBytes ->
+    requireNoSymlinkComponents(path, label)
+    if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) ||
+        Files.isSymbolicLink(path)) {
+        throw new GradleException("${label} must be a regular, non-symlink file.")
+    }
+    def size = Files.size(path)
+    if (size <= 0 || size > maximumBytes) {
+        throw new GradleException("${label} must be between 1 and ${maximumBytes} bytes.")
+    }
+    try {
+        def linkCount = (Files.getAttribute(
+            path,
+            "unix:nlink",
+            LinkOption.NOFOLLOW_LINKS
+        ) as Number).longValue()
+        if (linkCount != 1L) {
+            throw new GradleException("${label} must have exactly one filesystem link.")
+        }
+    } catch (UnsupportedOperationException failure) {
+        throw new GradleException(
+            "${label} requires a filesystem that exposes hard-link counts.",
+            failure
+        )
+    }
+}
+
+def runCheckedCommand = { List<String> command, String label ->
+    def process = new ProcessBuilder(command)
+        .directory(rootProject.projectDir)
+        .redirectErrorStream(true)
+        .start()
+    def output = process.inputStream.getText("UTF-8")
+    def exitCode = process.waitFor()
+    if (exitCode != 0) {
+        throw new GradleException("${label} failed: ${output.trim()}")
+    }
+    output.trim()
+}
+
+def iasSourceTreeVerificationCommand = {
+    def command = [
+        "bash",
+        new File(
+            rootProject.projectDir,
+            "scripts/verify-android-release-source-tree.sh"
+        ).absolutePath,
+        iasSourceTreeCommit,
+        iasSourceTreeTree
+    ]
+    def nestedUtils = new File(rootProject.projectDir, "fearless-utils-Android")
+    if (Files.exists(nestedUtils.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+        def configuredUtilsPath = System.getenv("FEARLESS_UTILS_PATH")?.trim()
+        def configuredUtils = configuredUtilsPath == null || configuredUtilsPath.isEmpty()
+            ? nestedUtils
+            : rootProject.file(configuredUtilsPath)
+        if (Files.isSymbolicLink(nestedUtils.toPath()) ||
+            !new File(nestedUtils, ".git").isDirectory() ||
+            configuredUtils.canonicalFile != nestedUtils.canonicalFile) {
+            throw new GradleException(
+                "Nested fearless-utils must be the exact independently verified checkout."
+            )
+        }
+        command.add("--allow-fearless-utils")
+    }
+    command
+}
+
+def iasCoverageCleanupCommand = [
+    "python3",
+    new File(
+        rootProject.projectDir,
+        "scripts/remove-empty-gradle-coverage-directories.py"
+    ).absolutePath,
+    rootProject.projectDir.canonicalFile.toPath().toString()
+]
+
+if (internalAppSharingRequested) {
+    if (!internalAppSharingBundleRequested &&
+        !internalAppSharingVerificationRequested) {
+        throw new GradleException(
+            "Internal App Sharing permits only an exact " +
+                ":app:bundleInternalAppSharing artifact invocation or the exact " +
+                ":app:verifyInternalAppSharingConfiguration verification task; " +
+                "rejected requested tasks: ${requestedTaskNames.join(', ')}"
+        )
+    }
+
+    if (!gradle.startParameter.excludedTaskNames.isEmpty()) {
+        throw new GradleException(
+            "Internal App Sharing forbids excluded Gradle tasks."
+        )
+    }
+
+    if (unsignedReleaseBuild) {
+        throw new GradleException(
+            "Internal App Sharing forbids ANDROID_UNSIGNED_RELEASE_BUILD."
+        )
+    }
+    if (releaseSigningInputs.any { ignored, value -> value != null }) {
+        throw new GradleException(
+            "Internal App Sharing forbids every release keystore and password input."
+        )
+    }
+    if (!injectedSigningProperties.isEmpty()) {
+        throw new GradleException(
+            "Internal App Sharing forbids injected Android signing properties."
+        )
+    }
+    def forbiddenIasEnvironment = [
+        "ANDROID_IAS_DEBUG_KEYSTORE_PATH",
+        "ANDROID_IAS_DEBUG_CERTIFICATE_PATH",
+        "ANDROID_IAS_DEBUG_CERT_SHA256",
+        "EXPECTED_IAS_DEBUG_CERT_SHA256",
+        "ANDROID_RELEASE_KEYSTORE_B64",
+        "PLAY_SERVICE_ACCOUNT_JSON_B64",
+        "PLAY_SERVICE_ACCOUNT",
+        "CI_PLAY_KEY",
+        "PLAY_TRACK",
+        "PLAY_RELEASE_STATUS",
+        "PLAY_ARTIFACT_DIR",
+        "ALLOW_PLAY_PRODUCTION_UPLOAD",
+        "GOOGLE_SERVICES_RELEASE_PATH",
+        "GOOGLE_SERVICES_RELEASE_JSON_B64",
+        "ANDROID_RELEASE_FIREBASE_JSON_SHA256",
+        "FIREBASE_TOKEN",
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE",
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES"
+    ].findAll { variableName -> System.getenv().containsKey(variableName) }
+    if (!forbiddenIasEnvironment.isEmpty()) {
+        throw new GradleException(
+            "Internal App Sharing forbids final-signer, production-distribution, or Firebase inputs: " +
+                forbiddenIasEnvironment.sort().join(", ")
+        )
+    }
+
+    if (internalAppSharingBundleRequested) {
+        if (System.getenv("CI") != "true") {
+            throw new GradleException(
+                "Internal App Sharing bundling requires CI to be exactly lowercase true."
+            )
+        }
+        if (gradle.startParameter.buildCacheEnabled ||
+            !gradle.startParameter.rerunTasks) {
+            throw new GradleException(
+                "Internal App Sharing bundling requires --no-build-cache and --rerun-tasks."
+            )
+        }
+        if (requestedReleaseCommit == null) {
+            throw new GradleException(
+                "RELEASE_COMMIT is required for Internal App Sharing bundling."
+            )
+        }
+        def actualCommit = runCheckedCommand(
+            ["git", "rev-parse", "HEAD"],
+            "IAS source commit verification"
+        )
+        if (actualCommit != requestedReleaseCommit) {
+            throw new GradleException(
+                "Internal App Sharing RELEASE_COMMIT must equal the checked-out HEAD."
+            )
+        }
+        iasSourceTreeCommit = actualCommit
+        iasSourceTreeTree = runCheckedCommand(
+            ["git", "rev-parse", "HEAD^{tree}"],
+            "IAS source-tree identity verification"
+        )
+        if (!(iasSourceTreeTree ==~ /[0-9a-f]{40}/)) {
+            throw new GradleException("Internal App Sharing source tree is malformed.")
+        }
+
+        def expectedUtilsCommit = System.getenv("FEARLESS_UTILS_COMMIT")?.trim()
+        def expectedUtilsTree = System.getenv("FEARLESS_UTILS_EFFECTIVE_TREE")?.trim()
+        if (!(expectedUtilsCommit ==~ /[0-9a-f]{40}/) ||
+            !(expectedUtilsTree ==~ /[0-9a-f]{40}/)) {
+            throw new GradleException(
+                "Internal App Sharing requires exact FEARLESS_UTILS_COMMIT and " +
+                    "FEARLESS_UTILS_EFFECTIVE_TREE bindings."
+            )
+        }
+        def utilsVerification = runCheckedCommand(
+            ["bash", new File(rootProject.projectDir, "scripts/ensure-fearless-utils.sh").absolutePath],
+            "IAS fearless-utils source verification"
+        )
+        def actualUtilsCommitMatches = utilsVerification.readLines().findAll { line ->
+            line ==~ /\[fearless-utils\] Using .+ at [0-9a-f]{40}/
+        }
+        def actualUtilsTreeMatches = utilsVerification.readLines().findAll { line ->
+            line ==~ /\[fearless-utils\] Effective source tree [0-9a-f]{40}/
+        }
+        if (actualUtilsCommitMatches.size() != 1 ||
+            !actualUtilsCommitMatches.first().endsWith(" at ${expectedUtilsCommit}") ||
+            actualUtilsTreeMatches != ["[fearless-utils] Effective source tree ${expectedUtilsTree}"]) {
+            throw new GradleException(
+                "Internal App Sharing fearless-utils commit/effective-tree binding failed."
+            )
+        }
+        runCheckedCommand(
+            iasCoverageCleanupCommand,
+            "IAS pre-build bounded coverage cleanup"
+        )
+        runCheckedCommand(
+            iasSourceTreeVerificationCommand(),
+            "IAS pre-build source-tree verification"
+        )
+    }
+
+    def releasePath = releaseGoogleServicesFile.toPath()
+    requireSingleLinkRegularFile(
+        releasePath,
+        "Release Firebase configuration",
+        65536L
+    )
+    def releaseBytes = Files.readAllBytes(releasePath)
+    iasGoogleServicesSha256 = sha256Bytes(releaseBytes)
+    if (iasGoogleServicesSha256 != expectedPublicFirebaseSha256) {
+        throw new GradleException(
+            "IAS requires the exact checksum-pinned reviewed public Firebase file."
+        )
+    }
+    def releaseFirebaseConfig
+    try {
+        releaseFirebaseConfig = new JsonSlurper().parse(releaseGoogleServicesFile)
+    } catch (Exception failure) {
+        throw new GradleException("Release Firebase configuration is not valid JSON.", failure)
+    }
+    def releaseFirebaseClients = releaseFirebaseConfig?.client
+    def matchingReleaseClients = releaseFirebaseClients instanceof List
+        ? releaseFirebaseClients.findAll { client ->
+            client?.client_info?.android_client_info?.package_name ==
+                "jp.co.soramitsu.fearless"
+        }
+        : []
+    def allApiKeys = releaseFirebaseClients instanceof List
+        ? releaseFirebaseClients.collectMany { client ->
+            client?.api_key instanceof List ? client.api_key : []
+        }
+        : []
+    def matchingClient = matchingReleaseClients.size() == 1
+        ? matchingReleaseClients.first()
+        : null
+    def matchingOauthClients = matchingClient?.oauth_client instanceof List
+        ? matchingClient.oauth_client.findAll { client -> client?.client_type == 3 }
+        : []
+    if (releaseFirebaseConfig?.project_info?.project_id != "fearless-public" ||
+        releaseFirebaseConfig?.project_info?.project_number != "000000000000" ||
+        releaseFirebaseConfig?.project_info?.firebase_url !=
+            "https://fearless-public.firebaseio.com" ||
+        releaseFirebaseConfig?.project_info?.storage_bucket !=
+            "fearless-public.appspot.com" ||
+        matchingReleaseClients.size() != 1 ||
+        matchingClient?.client_info?.mobilesdk_app_id !=
+            "1:000000000000:android:0000000000000000000002" ||
+        matchingOauthClients*.client_id !=
+            ["000000000000-public-1-1.apps.googleusercontent.com"] ||
+        allApiKeys.isEmpty() ||
+        !allApiKeys.every { apiKey -> apiKey?.current_key == "" }) {
+        throw new GradleException(
+            "IAS accepts only the reviewed public-placeholder Firebase configuration."
+        )
+    }
+
+}
+
+androidComponents {
+    beforeVariants(selector().withBuildType("internalAppSharing")) { variantBuilder ->
+        // The test-only variant must not enter normal aggregate build graphs.
+        if (!internalAppSharingRequested) {
+            variantBuilder.enable = false
+        }
+    }
+}
+
+def iasDependencyConfigurationPairs = [
+    ["hiltAnnotationProcessorRelease", "hiltAnnotationProcessorInternalAppSharing"],
+    ["kotlinCompilerPluginClasspathRelease", "kotlinCompilerPluginClasspathInternalAppSharing"],
+    ["kspReleaseKotlinProcessorClasspath", "kspInternalAppSharingKotlinProcessorClasspath"],
+    ["releaseAnnotationProcessorClasspath", "internalAppSharingAnnotationProcessorClasspath"],
+    ["releaseCompileClasspath", "internalAppSharingCompileClasspath"],
+    ["releaseRuntimeClasspath", "internalAppSharingRuntimeClasspath"]
+]
+def verifyIasDependencyLocks = tasks.register(
+    "verifyInternalAppSharingDependencyLocks"
+) {
+    group = "verification"
+    description = "Resolves strict IAS locks and proves graph equality with release."
+    doLast {
+        iasDependencyConfigurationPairs.each { pair ->
+            def releaseConfiguration = configurations.findByName(pair[0])
+            def iasConfiguration = configurations.findByName(pair[1])
+            if (releaseConfiguration == null || iasConfiguration == null ||
+                !releaseConfiguration.canBeResolved || !iasConfiguration.canBeResolved) {
+                throw new GradleException(
+                    "IAS strict dependency configuration is missing: ${pair.join(' / ')}"
+                )
+            }
+            def releaseGraph = releaseConfiguration.incoming.resolutionResult
+                .allComponents
+                .collect { component ->
+                    "${component.id.class.name}:${component.id.displayName}"
+                }
+                .sort()
+            def iasGraph = iasConfiguration.incoming.resolutionResult
+                .allComponents
+                .collect { component ->
+                    "${component.id.class.name}:${component.id.displayName}"
+                }
+                .sort()
+            if (releaseGraph != iasGraph) {
+                throw new GradleException(
+                    "IAS dependency graph differs from release for ${pair.join(' / ')}."
+                )
+            }
+        }
+        logger.lifecycle(
+            "IAS strict dependency locks resolved and matched all release graphs."
+        )
+    }
+}
+
 android {
     compileSdk rootProject.compileSdkVersion
     defaultConfig {
@@ -35,38 +455,27 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
         versionCode computeVersionCode()
         versionName computeVersionName()
+        manifestPlaceholders.releaseCommit = "development"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
         }
     }
     signingConfigs {
-        ci {
-            def keystorePath = envOrLocalProp("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH")
-            def releaseKeystore = rootProject.file("fearless-upload.jks")
-            def debugSigningConfig = signingConfigs.getByName("debug")
-
-            def resolvedStoreFile = null
-            if (keystorePath) {
-                def candidate = file(keystorePath)
-                if (candidate.exists()) {
-                    resolvedStoreFile = candidate
-                } else {
-                    throw new GradleException("Provided CI keystore path does not exist: ${candidate.absolutePath}")
-                }
+        debug {}
+        releaseUpload {
+            if (configuredReleaseKeystore != null) {
+                storeFile configuredReleaseKeystore
             }
-            if (resolvedStoreFile == null && releaseKeystore.exists()) {
-                resolvedStoreFile = releaseKeystore
+            if (releaseSigningInputs.storePassword != null) {
+                storePassword releaseSigningInputs.storePassword
             }
-            if (resolvedStoreFile == null) {
-                resolvedStoreFile = debugSigningConfig.storeFile
+            if (releaseSigningInputs.keyAlias != null) {
+                keyAlias releaseSigningInputs.keyAlias
             }
-
-            storeFile resolvedStoreFile
-
-            storePassword envOrLocalProp("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD") ?: debugSigningConfig.storePassword
-            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: debugSigningConfig.keyAlias
-            keyPassword envOrLocalProp("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD") ?: debugSigningConfig.keyPassword
+            if (releaseSigningInputs.keyPassword != null) {
+                keyPassword releaseSigningInputs.keyPassword
+            }
         }
     }
 
@@ -98,7 +507,18 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.ci
+            if (!unsignedReleaseBuild) {
+                signingConfig signingConfigs.releaseUpload
+            }
+            manifestPlaceholders.releaseCommit = requestedReleaseCommit ?: "missing"
+        }
+        internalAppSharing {
+            initWith release
+            // The final one-run signer is created only after this Gradle job has
+            // ended, on the fresh no-Gradle qualification runner.
+            signingConfig null
+            matchingFallbacks = ['release']
+            versionNameSuffix '-ias'
         }
         staging {
             initWith debug
@@ -143,6 +563,14 @@ android {
         }
     }
 
+    sourceSets {
+        internalAppSharing {
+            // initWith copies build-type properties, not source-set resources. Reuse the
+            // reviewed production launcher assets without creating a mutable IAS source tree.
+            res.srcDir "src/release/res"
+        }
+    }
+
     buildFeatures {
         viewBinding = true
         compose true
@@ -172,16 +600,20 @@ android {
     }
     lint {
         disable 'Instantiatable'
+        fatal 'CredentialDependency', 'TrustAllX509TrustManager'
         checkReleaseBuilds true
         abortOnError true
     }
     namespace = 'jp.co.soramitsu.app'
 
     packagingOptions {
+        // Preserve the historical merge-time exclusion for duplicate nested
+        // metadata while explicitly removing the two service descriptors that
+        // R8 would otherwise retain after their provider classes are shrunk.
         resources.excludes.add("META-INF/**/*")
         resources.excludes.add("META-INF/*")
-        resources.excludes.add("META-INF/services/org.w3c.dom.DOMImplementationSourceList")
-        resources.excludes.add("META-INF/services/org.xml.sax.driver")
+        resources.excludes.add("/META-INF/services/org.w3c.dom.DOMImplementationSourceList")
+        resources.excludes.add("/META-INF/services/org.xml.sax.driver")
 
         jniLibs {
             // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
@@ -192,10 +624,378 @@ android {
     }
 }
 
-play {
-    serviceAccountCredentials = file(System.env.CI_PLAY_KEY ?: "../key/fake.json")
-    track = "production"
-    releaseStatus = ReleaseStatus.DRAFT
+def validateIasGoogleServicesTaskInput = { task ->
+    if (!task.hasProperty("googleServicesJsonFiles")) {
+        throw new GradleException(
+            "Google Services task does not expose the expected IAS JSON input property."
+        )
+    }
+    def configuredFiles = task.googleServicesJsonFiles.get()
+    if (!(configuredFiles instanceof Collection) || configuredFiles.size() != 1) {
+        throw new GradleException(
+            "IAS Google Services processing requires exactly one JSON input."
+        )
+    }
+    def configuredFile = configuredFiles.first() as File
+    def expectedPath = releaseGoogleServicesFile.toPath().toAbsolutePath().normalize()
+    def configuredPath = configuredFile.toPath().toAbsolutePath().normalize()
+    if (configuredPath != expectedPath) {
+        throw new GradleException(
+            "IAS Google Services processing must read app/src/release/google-services.json directly."
+        )
+    }
+    requireSingleLinkRegularFile(
+        configuredPath,
+        "IAS Google Services direct input",
+        65536L
+    )
+    if (sha256Bytes(Files.readAllBytes(configuredPath)) != expectedPublicFirebaseSha256) {
+        throw new GradleException(
+            "IAS Google Services direct input does not match the reviewed public checksum."
+        )
+    }
+}
+
+def iasGoogleServicesTasks = tasks.withType(GoogleServicesTask).matching { task ->
+    task.name == "processInternalAppSharingGoogleServices"
+}
+def boundIasGoogleServicesTask = null
+if (internalAppSharingRequested) {
+    gradle.projectsEvaluated {
+        // Realization runs every provider action registered by the Google Services
+        // plugin before this late, final binding is applied.
+        def googleServicesTasks = iasGoogleServicesTasks.toList()
+        if (googleServicesTasks.size() != 1) {
+            throw new GradleException(
+                "IAS requires exactly one typed Google Services processing task."
+            )
+        }
+        boundIasGoogleServicesTask = googleServicesTasks.first()
+        boundIasGoogleServicesTask.googleServicesJsonFiles.set(
+            Collections.singletonList(releaseGoogleServicesFile)
+        )
+        boundIasGoogleServicesTask.googleServicesJsonFiles.finalizeValue()
+        boundIasGoogleServicesTask.doFirst {
+            validateIasGoogleServicesTaskInput(boundIasGoogleServicesTask)
+        }
+    }
+
+    tasks.matching { task ->
+        task.name == "bundleInternalAppSharing"
+    }.configureEach { task ->
+        dependsOn(verifyIasDependencyLocks)
+        outputs.cacheIf("IAS release-candidate output must never come from build cache") {
+            false
+        }
+        doLast {
+            runCheckedCommand(
+                iasCoverageCleanupCommand,
+                "IAS post-build bounded coverage cleanup"
+            )
+            runCheckedCommand(
+                iasSourceTreeVerificationCommand(),
+                "IAS post-build source-tree verification"
+            )
+            def expectedUtilsCommit = System.getenv("FEARLESS_UTILS_COMMIT")?.trim()
+            def expectedUtilsTree =
+                System.getenv("FEARLESS_UTILS_EFFECTIVE_TREE")?.trim()
+            def utilsVerification = runCheckedCommand(
+                [
+                    "bash",
+                    new File(
+                        rootProject.projectDir,
+                        "scripts/ensure-fearless-utils.sh"
+                    ).absolutePath
+                ],
+                "IAS post-build fearless-utils source verification"
+            )
+            def expectedCommitLine = utilsVerification.readLines().findAll { line ->
+                line ==~ /\[fearless-utils\] Using .+ at [0-9a-f]{40}/
+            }
+            def expectedTreeLine = utilsVerification.readLines().findAll { line ->
+                line ==~ /\[fearless-utils\] Effective source tree [0-9a-f]{40}/
+            }
+            if (expectedCommitLine.size() != 1 ||
+                !expectedCommitLine.first().endsWith(" at ${expectedUtilsCommit}") ||
+                expectedTreeLine != [
+                    "[fearless-utils] Effective source tree ${expectedUtilsTree}"
+                ]) {
+                throw new GradleException(
+                    "Internal App Sharing post-build fearless-utils binding failed."
+                )
+            }
+        }
+    }
+}
+
+def loadSigningKeyStore = { File storeFile, String password ->
+    Exception lastFailure = null
+    for (String type : ["JKS", "PKCS12"]) {
+        try {
+            def keyStore = KeyStore.getInstance(type)
+            storeFile.withInputStream { input ->
+                keyStore.load(input, password.toCharArray())
+            }
+            return keyStore
+        } catch (Exception failure) {
+            lastFailure = failure
+        }
+    }
+    throw new GradleException(
+        "Configured release keystore could not be opened as JKS or PKCS12.",
+        lastFailure
+    )
+}
+
+def certificateSha256 = { X509Certificate certificate ->
+    MessageDigest.getInstance("SHA-256")
+        .digest(certificate.encoded)
+        .collect { String.format("%02X", it & 0xff) }
+        .join()
+}
+
+def validateReleaseSigning = {
+    def missingInputs = releaseSigningInputs.findAll { ignored, value -> value == null }.keySet().sort()
+    if (!missingInputs.isEmpty()) {
+        throw new GradleException(
+            "Release signing is incomplete; all CI/local release keystore inputs are required."
+        )
+    }
+    if (!configuredReleaseKeystore.isFile() ||
+        Files.isSymbolicLink(configuredReleaseKeystore.toPath())) {
+        throw new GradleException(
+            "CI_KEYSTORE_PATH must identify a regular, non-symlink release keystore."
+        )
+    }
+
+    def debugSigning = android.signingConfigs.getByName("debug")
+    if (debugSigning.storeFile != null &&
+        configuredReleaseKeystore.canonicalFile == debugSigning.storeFile.canonicalFile) {
+        throw new GradleException("The Android debug keystore cannot sign a Play release.")
+    }
+
+    def releaseKeyStore = loadSigningKeyStore(
+        configuredReleaseKeystore,
+        releaseSigningInputs.storePassword
+    )
+    if (!releaseKeyStore.containsAlias(releaseSigningInputs.keyAlias)) {
+        throw new GradleException("The release keystore does not contain the configured key alias.")
+    }
+    def releaseKey
+    try {
+        releaseKey = releaseKeyStore.getKey(
+            releaseSigningInputs.keyAlias,
+            releaseSigningInputs.keyPassword.toCharArray()
+        )
+    } catch (Exception failure) {
+        throw new GradleException("The configured release key could not be unlocked.", failure)
+    }
+    if (!(releaseKey instanceof PrivateKey)) {
+        throw new GradleException("The configured release alias must identify a private key.")
+    }
+
+    def releaseCertificate = releaseKeyStore.getCertificate(releaseSigningInputs.keyAlias)
+    if (!(releaseCertificate instanceof X509Certificate)) {
+        throw new GradleException("The configured release alias must have an X.509 certificate.")
+    }
+    try {
+        releaseCertificate.checkValidity()
+    } catch (Exception failure) {
+        throw new GradleException("The configured release certificate is not currently valid.", failure)
+    }
+    if (certificateSha256(releaseCertificate) != expectedUploadCertificateSha256) {
+        throw new GradleException(
+            "The release certificate does not match the registered Google Play upload certificate."
+        )
+    }
+}
+
+def validateUnsignedReleaseBundleOutput = {
+    def outputDirectory = file("$buildDir/outputs/bundle/release")
+    def bundles = outputDirectory.listFiles()?.findAll { candidate ->
+        candidate.isFile() &&
+            !Files.isSymbolicLink(candidate.toPath()) &&
+            candidate.name.endsWith(".aab")
+    } ?: []
+    if (bundles.size() != 1) {
+        throw new GradleException(
+            "Unsigned release bundling must produce exactly one regular, non-symlink AAB."
+        )
+    }
+
+    def archive = new ZipFile(bundles.first())
+    try {
+        def entryNames = []
+        def entries = archive.entries()
+        while (entries.hasMoreElements()) {
+            entryNames.add(entries.nextElement().name)
+        }
+        if (entryNames.size() != entryNames.toSet().size()) {
+            throw new GradleException(
+                "The unsigned release AAB contains duplicate ZIP entries."
+            )
+        }
+        def signatureMetadata = entryNames.findAll { entryName ->
+            def upperName = entryName.toUpperCase(Locale.ROOT)
+            upperName == "META-INF/MANIFEST.MF" ||
+                upperName ==~ /META-INF\/[^\/]+\.(SF|RSA|DSA|EC)/
+        }
+        if (!signatureMetadata.isEmpty()) {
+            throw new GradleException(
+                "ANDROID_UNSIGNED_RELEASE_BUILD produced JAR signature metadata."
+            )
+        }
+    } finally {
+        archive.close()
+    }
+    logger.lifecycle(
+        "Unsigned release AAB verified as an intermediate only; " +
+            "external certificate-pinned signing is still required."
+    )
+}
+
+tasks.matching { task -> task.name == "bundleRelease" }.configureEach {
+    if (unsignedReleaseBuild) {
+        doLast {
+            validateUnsignedReleaseBundleOutput()
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def appTasks = taskGraph.allTasks.findAll { task -> task.project == project }
+    def resolvedIasTasks = appTasks.findAll { task ->
+        task.name.toLowerCase(Locale.ROOT).contains("internalappsharing")
+    }
+    if (!resolvedIasTasks.isEmpty() &&
+        !internalAppSharingBundleRequested &&
+        !internalAppSharingVerificationRequested) {
+        throw new GradleException(
+            "Resolved Internal App Sharing tasks require one exact, fully qualified " +
+                "allowed request; abbreviated and partial task names are forbidden."
+        )
+    }
+    def resolvedIasBundleTasks = appTasks.findAll { task ->
+        task.path == ":app:bundleInternalAppSharing"
+    }
+    if (internalAppSharingBundleRequested) {
+        if (resolvedIasBundleTasks.size() != 1) {
+            throw new GradleException(
+                "Internal App Sharing must resolve exactly one :app:bundleInternalAppSharing task."
+            )
+        }
+        def iasBuildType = android.buildTypes.getByName("internalAppSharing")
+        def releaseBuildType = android.buildTypes.getByName("release")
+        if (iasBuildType.signingConfig != null ||
+            iasBuildType.applicationIdSuffix != null ||
+            iasBuildType.versionNameSuffix != "-ias" ||
+            !iasBuildType.minifyEnabled ||
+            !iasBuildType.shrinkResources) {
+            throw new GradleException(
+                "Internal App Sharing must preserve unsigned release semantics with only the -ias version suffix."
+            )
+        }
+        if (releaseBuildType.signingConfig == null ||
+            releaseBuildType.signingConfig.name != "releaseUpload") {
+            throw new GradleException(
+                "Internal App Sharing must not alter the production release signing configuration."
+            )
+        }
+        logger.lifecycle(
+            "Internal App Sharing build output is an unsigned quarantine intermediate: " +
+                "release semantics, public-placeholder Firebase, and exact source binding."
+        )
+    }
+    if (internalAppSharingVerificationRequested &&
+        appTasks.count { task ->
+            task.path == ":app:verifyInternalAppSharingConfiguration"
+        } != 1) {
+        throw new GradleException(
+            "IAS verification must resolve exactly :app:verifyInternalAppSharingConfiguration."
+        )
+    }
+    def releaseArtifactTasks = appTasks.findAll { task ->
+        def taskName = task.name.toLowerCase(Locale.ROOT)
+        taskName in [
+            "assemblerelease",
+            "bundlerelease",
+            "packagerelease",
+            "packagereleasebundle",
+            "packagereleaseuniversalapk",
+            "signreleasebundle"
+        ]
+    }
+    if (!releaseArtifactTasks.isEmpty() && requestedReleaseCommit == null) {
+        def resolvedTasks = releaseArtifactTasks.collect { task -> task.path }
+            .unique()
+            .sort()
+            .join(", ")
+        throw new GradleException(
+            "RELEASE_COMMIT is required whenever the resolved task graph can " +
+                "produce, sign, install, or publish a release artifact. Resolved: " +
+                resolvedTasks
+        )
+    }
+
+    if (unsignedReleaseBuild) {
+        def requestedTasks = gradle.startParameter.taskNames
+        if (requestedTasks != [":app:bundleRelease"]) {
+            throw new GradleException(
+                "ANDROID_UNSIGNED_RELEASE_BUILD=true permits only an exact, " +
+                    "source-bound :app:bundleRelease invocation; rejected requested tasks: " +
+                    requestedTasks.join(", ")
+            )
+        }
+        def exactUnsignedBundleTask = taskGraph.allTasks.find { task ->
+            task.path == ":app:bundleRelease"
+        }
+        if (exactUnsignedBundleTask == null ||
+            android.buildTypes.getByName("release").signingConfig != null) {
+            throw new GradleException(
+                "Unsigned release bundling must resolve exactly :app:bundleRelease " +
+                    "without an Android signing configuration."
+            )
+        }
+    }
+
+    if (!releaseArtifactTasks.isEmpty() && !unsignedReleaseBuild) {
+        validateReleaseSigning()
+    }
+}
+
+tasks.register("verifyInternalAppSharingConfiguration") {
+    group = "verification"
+    description = "Verifies the zero-copy, checksum-pinned public Firebase input for IAS."
+    dependsOn(verifyIasDependencyLocks)
+
+    doLast {
+        def googleServicesTasks = iasGoogleServicesTasks.toList()
+        if (boundIasGoogleServicesTask == null ||
+            googleServicesTasks.size() != 1 ||
+            !googleServicesTasks.first().is(boundIasGoogleServicesTask)) {
+            throw new GradleException(
+                "IAS verifier did not retain the exact bound Google Services task."
+            )
+        }
+        validateIasGoogleServicesTaskInput(boundIasGoogleServicesTask)
+
+        def forceFailure =
+            providers.gradleProperty("iasVerificationForceFailure").orNull
+        if (forceFailure != null && forceFailure != "true") {
+            throw new GradleException(
+                "iasVerificationForceFailure must be unset or exactly true."
+            )
+        }
+        if (forceFailure == "true") {
+            throw new GradleException(
+                "Forced IAS verification failure after direct-input validation."
+            )
+        }
+        logger.lifecycle(
+            "IAS configuration verified with zero-copy public Firebase input; " +
+                "Gradle receives no final signer and emits only an unsigned quarantine candidate."
+        )
+    }
 }
 
 dependencies {
@@ -295,6 +1095,7 @@ dependencies {
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules
     androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.compose.uiTestJunit4
 }
 
 tasks.register('printVersion') {

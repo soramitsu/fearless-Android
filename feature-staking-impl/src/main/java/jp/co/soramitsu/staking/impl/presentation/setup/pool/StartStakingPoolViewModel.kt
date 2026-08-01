@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -17,6 +16,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
+import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.calculatePoolStakingReturns
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -64,20 +64,12 @@ class StartStakingPoolViewModel @Inject constructor(
             val asset = assetDeferred.await()
             val chain = chainDeferred.await()
             val yearlyReturnsDeferred = async {
-                // todo hardcoded returns for demo
-                val kusamaOnTestNodeChainId =
-                    "51cdb4b3101904a9d234d126656d33cd17518249819b510a03d6c90d0a019611"
-                val polkadotOnTestNodeChainId =
-                    "4f77f65b21b1f396c1555850be6f21e2b1f36c26b94dbcbfec976901c9f08bf3"
-                val chainId =
-                    if (chain.id == kusamaOnTestNodeChainId || chain.id == polkadotOnTestNodeChainId) {
-                        polkadotChainId
-                    } else {
-                        chain.id
-                    }
                 val rewardCalculator = rewardCalculatorFactory.create(asset.token.configuration)
-                val yearly =
-                    rewardCalculator.calculateReturns(BigDecimal.ONE, PERIOD_YEAR, true, chainId)
+                val yearly = rewardCalculator.calculatePoolStakingReturns(
+                    BigDecimal.ONE,
+                    PERIOD_YEAR,
+                    chain.id
+                )
 
                 mapPeriodReturnsToRewardEstimation(
                     yearly,

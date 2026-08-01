@@ -1,7 +1,11 @@
 package jp.co.soramitsu.common.data.secrets.v3
 
+import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
+import jp.co.soramitsu.common.data.storage.encrypt.readValidatedWalletSecretOrQuarantine
+import jp.co.soramitsu.common.data.storage.encrypt.readWalletSecretOrQuarantine
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
@@ -13,15 +17,60 @@ import jp.co.soramitsu.fearless_utils.scale.toHexString
 
 private const val ETHEREUM_SECRETS = "ETHEREUM_SECRETS"
 
-class EthereumSecretStore(private val encryptedPreferences: EncryptedPreferences): SecretStore<EthereumSecrets>{
+class EthereumSecretStore internal constructor(
+    private val encryptedPreferences: EncryptedPreferences,
+    private val walletRootSecretValidation: WalletRootSecretValidation
+) : SecretStore<EthereumSecrets> {
+
+    constructor(encryptedPreferences: EncryptedPreferences) : this(
+        encryptedPreferences = encryptedPreferences,
+        walletRootSecretValidation = WalletRootSecretValidator
+    )
+
     override fun put(metaId: Long, secrets: EncodableStruct<EthereumSecrets>) {
         encryptedPreferences.putEncryptedString("$metaId:$ETHEREUM_SECRETS", secrets.toHexString())
     }
 
+    @Deprecated(
+        message = "Unvalidated access is reserved for historical migrations; runtime callers must bind the durable identity"
+    )
     override fun get(metaId: Long): EncodableStruct<EthereumSecrets>? {
-        return encryptedPreferences.getDecryptedString("$metaId:$ETHEREUM_SECRETS")
-            ?.let(EthereumSecrets::read)
+        return encryptedPreferences.readWalletSecretOrQuarantine(
+            activeSecretKey = activeKey(metaId),
+            decode = { encoded ->
+                WalletSecretScalePreflight.requireEthereumV3(encoded)
+                EthereumSecrets.read(encoded)
+            }
+        )
     }
+
+    fun get(
+        metaId: Long,
+        expectedPublicKey: ByteArray?,
+        expectedAddress: ByteArray?
+    ): EncodableStruct<EthereumSecrets>? {
+        return encryptedPreferences.readValidatedWalletSecretOrQuarantine(
+            activeSecretKey = activeKey(metaId),
+            isLocalCorruption = { it is WalletRootSecretCorruptionException }
+        ) { encoded ->
+            val publicKey = expectedPublicKey ?: throw WalletPublicIdentityIntegrityException(
+                "An active Ethereum secret has no durable public key"
+            )
+            val address = expectedAddress ?: throw WalletPublicIdentityIntegrityException(
+                "An active Ethereum secret has no durable address"
+            )
+            val canonical = walletRootSecretValidation
+                .validateEthereumAndSanitize(
+                    encoded = encoded,
+                    expectedPublicKey = publicKey,
+                    expectedAddress = address
+            )
+            WalletSecretScalePreflight.requireEthereumV3(canonical)
+            EthereumSecrets.read(canonical)
+        }
+    }
+
+    private fun activeKey(metaId: Long) = "$metaId:$ETHEREUM_SECRETS"
 }
 
 object EthereumSecrets : Schema<EthereumSecrets>() {

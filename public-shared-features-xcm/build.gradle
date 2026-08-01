@@ -25,6 +25,7 @@ dependencies {
     api libs.coroutines.core
     api project(':core-api')
     api project(':runtime')
+    implementation libs.gson
 
     testImplementation libs.junit
 }

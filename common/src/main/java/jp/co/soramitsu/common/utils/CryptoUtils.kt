@@ -6,16 +6,6 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import org.bouncycastle.jcajce.provider.digest.Keccak
 import java.security.MessageDigest
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
-
-fun String.hmacSHA256(secret: String): ByteArray {
-    val chiper: Mac = Mac.getInstance("HmacSHA256")
-    val secretKeySpec = SecretKeySpec(secret.toByteArray(), "HmacSHA256")
-    chiper.init(secretKeySpec)
-
-    return chiper.doFinal(this.toByteArray())
-}
 
 fun ByteArray.ethereumAddressFromPublicKey(): ByteArray {
     val decompressed = if (size == 64) {
@@ -25,6 +15,31 @@ fun ByteArray.ethereumAddressFromPublicKey(): ByteArray {
     }
 
     return decompressed.keccak256().copyLast(20)
+}
+
+/**
+ * Validates the complete SEC1 compressed-point encoding, not only its length
+ * and prefix. SQLite does not constrain wallet public-key BLOB contents, and
+ * secp256k1 decoding rejects some shape-valid x coordinates.
+ *
+ * Only malformed point encodings are converted to `false`. Provider/linkage
+ * failures still escape so migration callers continue treating them as global
+ * cryptography outages instead of record-local recovery.
+ */
+fun ByteArray.isValidEthereumCompressedPublicKey(): Boolean {
+    if (
+        size != COMPRESSED_SECP256K1_PUBLIC_KEY_BYTES ||
+        (this[0] != COMPRESSED_EVEN_PREFIX &&
+            this[0] != COMPRESSED_ODD_PREFIX)
+    ) {
+        return false
+    }
+
+    return try {
+        ECDSAUtils.decompressed(this).size == DECOMPRESSED_SECP256K1_PUBLIC_KEY_BYTES
+    } catch (_: IllegalArgumentException) {
+        false
+    }
 }
 
 fun ByteArray.ethereumAddressToHex() = toHexString(withPrefix = true)
@@ -38,6 +53,11 @@ fun ByteArray.substrateAccountId(): ByteArray {
 }
 
 fun ByteArray.copyLast(n: Int) = copyOfRange(fromIndex = size - n, size)
+
+private const val COMPRESSED_SECP256K1_PUBLIC_KEY_BYTES = 33
+private const val DECOMPRESSED_SECP256K1_PUBLIC_KEY_BYTES = 64
+private const val COMPRESSED_EVEN_PREFIX: Byte = 0x02
+private const val COMPRESSED_ODD_PREFIX: Byte = 0x03
 
 fun ByteArray.keccak256(): ByteArray {
     val digest = Keccak.Digest256()

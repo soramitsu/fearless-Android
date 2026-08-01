@@ -7,10 +7,12 @@ Run this audit before release hardening changes:
 git ls-files '*.jar' '*.aar' '*.so' '*.a' '*.dylib' '*.framework/**' '*.xcframework/**' '*.wasm' '*.keystore' '*.jks' '*.mobileprovision' '*.p12' '*.p8' '*.pem' '*.provisionprofile'
 ```
 
-CI and local validation also run:
+CI and local validation run the adversarial self-test followed by the strict
+tracked-document gate:
 
 ```
-./scripts/audit-public-artifacts.sh
+bash ./scripts/test-public-artifact-provenance-audit.sh
+./scripts/audit-public-artifacts.sh --strict-provenance
 ```
 
 Release builds must restore private overlays from CI secrets and then run the
@@ -26,7 +28,9 @@ strict release audit:
 ### Reproducible From Vendored Source
 
 `libsodium.so` is shipped for Android ABIs under `app/src/main/jniLibs`.
-Source is vendored under `third_party/libsodium`, and
+The ISC-licensed libsodium 1.0.19 source from
+`https://github.com/jedisct1/libsodium` is vendored under
+`third_party/libsodium`, and
 `scripts/build-libsodium.sh` rebuilds the checked-in binaries with the Android
 16 KB page-size linker flags.
 
@@ -70,13 +74,20 @@ Current checksums:
 
 ### Standard Build Wrapper
 
-`gradle/wrapper/gradle-wrapper.jar` is the standard Gradle wrapper jar.
+`gradle/wrapper/gradle-wrapper.jar` is the standard Gradle 8.13 wrapper
+bootstrap jar, verified against Gradle's published wrapper checksum. It
+downloads the Gradle 9.0 binary distribution, whose published SHA-256 is pinned
+as `distributionSha256Sum` in
+`gradle/wrapper/gradle-wrapper.properties`.
 
 Current checksum:
 
 | File | SHA-256 |
 | --- | --- |
 | `gradle/wrapper/gradle-wrapper.jar` | `81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f` |
+
+The pinned Gradle 9.0 binary distribution SHA-256 is
+`8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b`.
 
 ### Replaced With Source
 

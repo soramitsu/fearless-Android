@@ -2,12 +2,17 @@
 set -euo pipefail
 
 RELEASE_MODE=false
+UNSIGNED_RELEASE_MODE=false
 STRICT_PROVENANCE=false
 
 for arg in "$@"; do
   case "$arg" in
     --release)
       RELEASE_MODE=true
+      ;;
+    --unsigned-release)
+      RELEASE_MODE=true
+      UNSIGNED_RELEASE_MODE=true
       ;;
     --strict-provenance)
       STRICT_PROVENANCE=true
@@ -26,11 +31,21 @@ fail() {
   exit 1
 }
 
+if [[ "$RELEASE_MODE" == true && "$STRICT_PROVENANCE" != true ]]; then
+  fail "Release mode requires --strict-provenance."
+fi
+
 cd "$(dirname "$0")/.."
 
-if [[ ! -d .git ]]; then
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   fail "Run from a Git checkout."
 fi
+
+PROVENANCE_DOC="${PUBLIC_ARTIFACT_PROVENANCE_DOC:-docs/binary-provenance.md}"
+DEFAULT_PROVENANCE_DOC="docs/binary-provenance.md"
+GRADLE_DISTRIBUTION_SHA256="8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b"
+SR25519_SOURCE_COMMIT="7500809f33243ee47ecb2ec8563fc284ac4de0d6"
+EXPECTED_DOCUMENTED_BINARY_COUNT=9
 
 sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -72,6 +87,101 @@ check_checksum() {
   return 0
 }
 
+require_tracked_file() {
+  local path="$1"
+  [[ -f "$path" ]] || fail "Strict provenance requires $path."
+  git ls-files --error-unmatch -- "$path" >/dev/null 2>&1 ||
+    fail "Strict provenance requires $path to be tracked."
+}
+
+require_provenance_text() {
+  local value="$1"
+  grep -Fq -- "$value" "$PROVENANCE_DOC" ||
+    fail "$PROVENANCE_DOC is missing strict provenance evidence: $value"
+}
+
+check_documented_binary() {
+  local path="$1"
+  local checksum
+  local expected_row occurrences
+  checksum="$(expected_checksum "$path")"
+  [[ -n "$checksum" ]] || fail "$path has no strict provenance checksum."
+  expected_row="| \`$path\` | \`$checksum\` |"
+  occurrences="$(grep -Fxc -- "$expected_row" "$PROVENANCE_DOC" || true)"
+  [[ "$occurrences" -eq 1 ]] ||
+    fail "$PROVENANCE_DOC must contain exactly one strict provenance row for $path; found $occurrences."
+}
+
+check_strict_provenance_contract() {
+  [[ -s "$PROVENANCE_DOC" ]] || fail "Strict provenance document is missing or empty: $PROVENANCE_DOC"
+
+  if [[ "$PROVENANCE_DOC" == "$DEFAULT_PROVENANCE_DOC" ]]; then
+    require_tracked_file "$DEFAULT_PROVENANCE_DOC"
+  elif [[ "$RELEASE_MODE" == true ]]; then
+    fail "Release mode may not override PUBLIC_ARTIFACT_PROVENANCE_DOC."
+  fi
+
+  local documented_binary_count
+  documented_binary_count="$(grep -Ec '^\| `[^`]+` \| `[0-9a-f]{64}` \|$' "$PROVENANCE_DOC" || true)"
+  [[ "$documented_binary_count" -eq "$EXPECTED_DOCUMENTED_BINARY_COUNT" ]] ||
+    fail "$PROVENANCE_DOC must contain exactly $EXPECTED_DOCUMENTED_BINARY_COUNT allowlisted binary rows; found $documented_binary_count."
+
+  local path
+  for path in \
+    gradle/wrapper/gradle-wrapper.jar \
+    app/src/main/jniLibs/arm64-v8a/libsodium.so \
+    app/src/main/jniLibs/armeabi-v7a/libsodium.so \
+    app/src/main/jniLibs/x86/libsodium.so \
+    app/src/main/jniLibs/x86_64/libsodium.so \
+    app/src/main/jniLibs/arm64-v8a/libsr25519java.so \
+    app/src/main/jniLibs/armeabi-v7a/libsr25519java.so \
+    app/src/main/jniLibs/x86/libsr25519java.so \
+    app/src/main/jniLibs/x86_64/libsr25519java.so; do
+    require_tracked_file "$path"
+    check_checksum "$path"
+    check_documented_binary "$path"
+  done
+
+  for path in \
+    scripts/build-libsodium.sh \
+    scripts/build-sr25519.sh \
+    third_party/libsodium/LICENSE \
+    third_party/libsodium/configure.ac \
+    third_party/libsodium/autogen.sh \
+    gradle/wrapper/gradle-wrapper.properties; do
+    require_tracked_file "$path"
+  done
+
+  [[ -x scripts/build-libsodium.sh ]] || fail "scripts/build-libsodium.sh must be executable."
+  [[ -x scripts/build-sr25519.sh ]] || fail "scripts/build-sr25519.sh must be executable."
+  [[ -x third_party/libsodium/autogen.sh ]] || fail "third_party/libsodium/autogen.sh must be executable."
+  if git ls-files --error-unmatch -- third_party/libsodium/configure >/dev/null 2>&1; then
+    fail "Generated third_party/libsodium/configure must not be tracked; rebuild it from configure.ac."
+  fi
+
+  require_provenance_text 'third_party/libsodium'
+  require_provenance_text 'https://github.com/jedisct1/libsodium'
+  require_provenance_text 'libsodium 1.0.19'
+  require_provenance_text 'scripts/build-libsodium.sh'
+  require_provenance_text 'scripts/build-sr25519.sh'
+  require_provenance_text 'bash ./scripts/test-public-artifact-provenance-audit.sh'
+  require_provenance_text './scripts/audit-public-artifacts.sh --strict-provenance'
+  require_provenance_text './scripts/audit-public-artifacts.sh --release --strict-provenance'
+  require_provenance_text "$SR25519_SOURCE_COMMIT"
+  require_provenance_text "$GRADLE_DISTRIBUTION_SHA256"
+
+  grep -Fq "EXPECTED_SOURCE_COMMIT=\"$SR25519_SOURCE_COMMIT\"" scripts/build-sr25519.sh ||
+    fail "scripts/build-sr25519.sh must enforce the documented source commit."
+  grep -Fq './autogen.sh' scripts/build-libsodium.sh ||
+    fail "scripts/build-libsodium.sh must bootstrap a clean vendored source checkout."
+  grep -Fq 'AC_INIT([libsodium],[1.0.19]' third_party/libsodium/configure.ac ||
+    fail "Vendored libsodium source version is missing or changed."
+  grep -Fq "distributionSha256Sum=$GRADLE_DISTRIBUTION_SHA256" gradle/wrapper/gradle-wrapper.properties ||
+    fail "Gradle 9.0 distributionSha256Sum is missing or changed."
+  grep -Fq "FEARLESS_UTILS_COMMIT: $SR25519_SOURCE_COMMIT" .github/workflows/android-release.yml ||
+    fail "Android release workflow must pin the documented fearless-utils source commit."
+}
+
 check_public_google_services() {
   local path="$1"
 
@@ -103,15 +213,19 @@ check_release_google_services() {
 check_required_release_env() {
   local missing=()
   local name
-  for name in \
-    CI_KEYSTORE_PATH \
-    CI_KEYSTORE_PASS \
-    CI_KEYSTORE_KEY_ALIAS \
-    CI_KEYSTORE_KEY_PASS \
-    CI_PLAY_KEY \
-    MOONPAY_PRODUCTION_SECRET \
-    RAMP_TOKEN_RELEASE \
-    WALLET_CONNECT_PROJECT_ID; do
+  local required_names=(
+    RAMP_TOKEN_RELEASE
+    WALLET_CONNECT_PROJECT_ID
+  )
+  if [[ "$UNSIGNED_RELEASE_MODE" == false ]]; then
+    required_names+=(
+      CI_KEYSTORE_PATH
+      CI_KEYSTORE_PASS
+      CI_KEYSTORE_KEY_ALIAS
+      CI_KEYSTORE_KEY_PASS
+    )
+  fi
+  for name in "${required_names[@]}"; do
     if [[ -z "${!name:-}" ]]; then
       missing+=("$name")
     fi
@@ -121,8 +235,19 @@ check_required_release_env() {
     fail "Release mode is missing required environment variables: ${missing[*]}"
   fi
 
-  [[ -s "$CI_KEYSTORE_PATH" ]] || fail "CI_KEYSTORE_PATH does not point to a readable keystore."
-  [[ -s "$CI_PLAY_KEY" ]] || fail "CI_PLAY_KEY does not point to a readable Play service-account JSON."
+  if [[ "$UNSIGNED_RELEASE_MODE" == true ]]; then
+    for name in \
+      CI_KEYSTORE_PATH \
+      CI_KEYSTORE_PASS \
+      CI_KEYSTORE_KEY_ALIAS \
+      CI_KEYSTORE_KEY_PASS; do
+      [[ -z "${!name:-}" ]] ||
+        fail "Unsigned release audit forbids every signing input."
+    done
+  else
+    [[ -s "$CI_KEYSTORE_PATH" ]] ||
+      fail "CI_KEYSTORE_PATH does not point to a readable keystore."
+  fi
 }
 
 while IFS= read -r -d '' path; do
@@ -149,9 +274,17 @@ done < <(git ls-files -z -- \
   '*.keystore' '*.jks' '*.mobileprovision' '*.p12' '*.p8' '*.pem' '*.provisionprofile' \
   '*/google-services.json')
 
+if [[ "$STRICT_PROVENANCE" == true ]]; then
+  check_strict_provenance_contract
+fi
+
 if [[ "$RELEASE_MODE" == true ]]; then
   check_release_google_services
   check_required_release_env
 fi
 
-log "Public artifact audit passed."
+if [[ "$STRICT_PROVENANCE" == true ]]; then
+  log "Public artifact audit passed with strict provenance."
+else
+  log "Public artifact audit passed."
+fi

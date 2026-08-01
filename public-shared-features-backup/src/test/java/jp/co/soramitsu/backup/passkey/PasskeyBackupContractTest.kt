@@ -18,7 +18,7 @@ class PasskeyBackupContractTest {
     fun `registration json pins rp id and requires resident passkey`() {
         val json = PasskeyBackupContract.registrationOptionsJson(
             challenge = ByteArray(32) { it.toByte() },
-            userId = ByteArray(16) { (it + 1).toByte() },
+            userId = ByteArray(32) { (it + 1).toByte() },
             userName = "user@example.com",
             displayName = "Fearless User"
         )
@@ -45,7 +45,7 @@ class PasskeyBackupContractTest {
     fun `registration rejects short challenge`() {
         PasskeyBackupContract.registrationOptionsJson(
             challenge = ByteArray(15),
-            userId = ByteArray(16),
+            userId = ByteArray(32),
             userName = "user@example.com",
             displayName = "Fearless User"
         )
@@ -55,10 +55,30 @@ class PasskeyBackupContractTest {
     fun `registration rejects unsupported relying party`() {
         PasskeyBackupContract.registrationOptionsJson(
             challenge = ByteArray(32),
-            userId = ByteArray(16),
+            userId = ByteArray(32),
             userName = "user@example.com",
             displayName = "Fearless User",
             rpId = "example.com"
+        )
+    }
+
+    @Test
+    fun `base64url decoder accepts only canonical unpadded encoding`() {
+        val encoded = "-_8"
+        assertTrue(PasskeyBackupContract.decodeBase64Url(encoded, "test").contentEquals(byteArrayOf(0xfb.toByte(), 0xff.toByte())))
+
+        listOf("-_8=", "+/8=", " -_8", "-_8 ", "A").forEach { value ->
+            assertTrue(runCatching { PasskeyBackupContract.decodeBase64Url(value, "test") }.isFailure)
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `registration rejects oversized display name`() {
+        PasskeyBackupContract.registrationOptionsJson(
+            challenge = ByteArray(32),
+            userId = ByteArray(32),
+            userName = "user@example.com",
+            displayName = "A".repeat(129)
         )
     }
 
@@ -80,18 +100,18 @@ class PasskeyBackupContractTest {
             walletId = "wallet-001",
             accountName = "alice@example.com",
             createdAtMillis = 1_767_225_600_000L,
-            encryptedPayload = byteArrayOf(1, 2, 3)
+            encryptedPayload = validTestEnvelope()
         )
     }
 
     @Test
-    fun `encrypted payload accepts identity metadata`() {
+    fun `encrypted payload accepts canonical authenticated envelope with identity metadata`() {
         val payload = PasskeyBackupEncryptedPayload(
             storageKey = "wallet-1234",
             walletId = "wallet-001",
             accountName = "alice@example.com",
             createdAtMillis = 1_767_225_600_000L,
-            encryptedPayload = byteArrayOf(1, 2, 3)
+            encryptedPayload = validTestEnvelope()
         )
 
         assertEquals("wallet-1234", payload.storageKey)
@@ -107,7 +127,7 @@ class PasskeyBackupContractTest {
             walletId = "   ",
             accountName = "alice@example.com",
             createdAtMillis = 1_767_225_600_000L,
-            encryptedPayload = byteArrayOf(1, 2, 3)
+            encryptedPayload = validTestEnvelope()
         )
     }
 
@@ -118,7 +138,7 @@ class PasskeyBackupContractTest {
             walletId = "wallet-001",
             accountName = "alice example.com",
             createdAtMillis = 1_767_225_600_000L,
-            encryptedPayload = byteArrayOf(1, 2, 3)
+            encryptedPayload = validTestEnvelope()
         )
     }
 
@@ -129,6 +149,17 @@ class PasskeyBackupContractTest {
             walletId = "wallet-001",
             accountName = "alice@example.com",
             createdAtMillis = 0,
+            encryptedPayload = validTestEnvelope()
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `encrypted payload rejects arbitrary nonempty bytes`() {
+        PasskeyBackupEncryptedPayload(
+            storageKey = "wallet-1234",
+            walletId = "wallet-001",
+            accountName = "alice@example.com",
+            createdAtMillis = 1_767_225_600_000L,
             encryptedPayload = byteArrayOf(1, 2, 3)
         )
     }
