@@ -33,10 +33,19 @@ procedure.
   `bash scripts/test-android-aab-jar-signature.sh`,
   `bash scripts/test-android-aab-identity.sh` against a freshly built AAB and
   the checksum-pinned bundletool,
+  `bash scripts/test-android-aab-native-page-alignment.sh`,
   `bash scripts/test-android-release-build-log.sh`,
   `bash scripts/test-release-overlay-interruption.sh`,
   `bash scripts/test-android-release-media-permissions.sh`, and
   `bash scripts/verify-android-release-media-permissions.sh app/src/main/AndroidManifest.xml`.
+  Verify every exact candidate AAB with
+  `python3 scripts/verify-android-aab-native-page-alignment.py <exact.aab>`.
+  Run `node scripts/test-google-play-internal-app-sharing-handoff-writer.js`,
+  `bash scripts/test-google-play-internal-app-sharing-publication-audit.sh`,
+  and `bash scripts/audit-google-play-internal-app-sharing-publication.sh --manifest-only`.
+  The recorded IAS publication remains test-only historical evidence; it is
+  not device-install, independent-tester, production-signing, or current-link
+  availability evidence.
   Confirm the MoonPay audit scans every tracked Android module source set,
   Gradle/build input, release script, and GitHub workflow rather than only the
   former wallet provider paths, and rejects all 16 adversarial fixtures.

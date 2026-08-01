@@ -223,6 +223,10 @@ jobs:
           bash ./scripts/test-android-release-sdk.sh
           bash ./scripts/test-android-migration-ci-gate.sh
           bash ./scripts/test-android-migration-instrumentation-results.sh
+          node ./scripts/test-google-play-internal-app-sharing-handoff-writer.js
+          bash ./scripts/test-google-play-internal-app-sharing-publication-audit.sh
+          bash ./scripts/audit-google-play-internal-app-sharing-publication.sh --manifest-only
+          bash ./scripts/test-android-aab-native-page-alignment.sh
           bash ./scripts/test-fearless-utils-derived-tree.sh
           bash ./scripts/test-iroha-production-send-readiness-audit.sh
           bash ./scripts/audit-iroha-production-send-readiness.sh
@@ -658,6 +662,8 @@ jobs:
             exit 1
           }
           unsigned_aab="${unsigned_bundles[0]}"
+          python3 ./scripts/verify-android-aab-native-page-alignment.py \
+            "$unsigned_aab"
           if unzip -Z1 "$unsigned_aab" |
             grep -Eiq \
               '^META-INF/[^/]+\.(RSA|DSA|EC|SF)$|^META-INF/MANIFEST\.MF$'; then
@@ -1507,6 +1513,8 @@ jobs:
             EXPECTED_AAB_SOURCE_COMMIT="$RELEASE_COMMIT" \
             AAB_IDENTITY_R8_POLICY=required \
             bash ./scripts/test-android-aab-identity.sh
+          python3 ./scripts/verify-android-aab-native-page-alignment.py \
+            "$SIGNED_RELEASE_AAB"
           [[ "$(sha256sum "$SIGNED_RELEASE_AAB" | awk '{print $1}')" == \
             "$SIGNED_RELEASE_AAB_SHA256" ]] || {
               echo "Signed AAB changed during identity regression tests" >&2

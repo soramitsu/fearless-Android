@@ -198,6 +198,9 @@ jobs:
           IAS_GRADLE_CONTRACT_ONLY: "true"
         run: bash ./scripts/test-android-internal-app-sharing.sh
 
+      - name: Verify 16 KiB native-page alignment contract
+        run: bash ./scripts/test-android-aab-native-page-alignment.sh
+
       - name: Run full IAS Gradle guard suite
         run: bash ./scripts/test-android-internal-app-sharing.sh
 
@@ -324,6 +327,8 @@ jobs:
             app/build/outputs/bundle/internalAppSharing/app-internalAppSharing.aab \
             "$IAS_CANDIDATE_SHA" \
             "$verified_unsigned_aab" | tee "$verifier_log"
+          python3 ./scripts/verify-android-aab-native-page-alignment.py \
+            "$verified_unsigned_aab"
           unsigned_aab_sha="$(
             sed -n 's/^\[android-ias-aab\] IAS_AAB_SHA256=\([0-9a-f]\{64\}\)$/\1/p' \
               "$verifier_log"

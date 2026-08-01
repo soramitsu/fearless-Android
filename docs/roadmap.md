@@ -5,6 +5,14 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Recent Updates
+- 2026-08-01: Added a URL-redacted, digest-bound contract for the observed
+  Google Play Internal App Sharing publication, including a mode-`0600`
+  private handoff writer and 6-positive / 184-adversarial audit. The evidence
+  remains test-only and records its missing device, independent-tester,
+  production-signing, and current-availability proof. Added a bounded AAB ELF
+  verifier with 1 positive / 20 negative fixtures and wired exact CI, IAS,
+  unsigned-release, and signed-release artifacts through its 16 KiB PT_LOAD
+  alignment checks.
 - 2026-07-30: Removed Reown delegate calls from `WCDelegate` static
   initialization after a delayed release-like startup crash. Delegate
   registration is now synchronized, idempotent, refreshes persisted sessions

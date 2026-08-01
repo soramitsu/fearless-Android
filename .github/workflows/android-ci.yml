@@ -77,6 +77,12 @@ jobs:
           bash ./scripts/test-public-artifact-provenance-audit.sh
           ./scripts/audit-public-artifacts.sh --strict-provenance
 
+      - name: Google Play Internal App Sharing publication evidence
+        run: |
+          node ./scripts/test-google-play-internal-app-sharing-handoff-writer.js
+          bash ./scripts/test-google-play-internal-app-sharing-publication-audit.sh
+          bash ./scripts/audit-google-play-internal-app-sharing-publication.sh --manifest-only
+
       - name: Android Play release guard contracts
         run: |
           bash ./scripts/test-android-release-signed-tag-policy.sh
@@ -87,6 +93,7 @@ jobs:
           bash ./scripts/test-android-migration-ci-gate.sh
           bash ./scripts/test-android-migration-instrumentation-results.sh
           python3 ./scripts/test-android-migration-evidence-packaging.py
+          bash ./scripts/test-android-aab-native-page-alignment.sh
           IAS_GRADLE_CONTRACT_ONLY=true \
             bash ./scripts/test-android-internal-app-sharing.sh
           bash ./scripts/test-release-overlay-interruption.sh
@@ -364,6 +371,8 @@ jobs:
               versioning/version.properties
           )" \
             bash ./scripts/test-android-aab-identity.sh
+          python3 ./scripts/verify-android-aab-native-page-alignment.py \
+            "$AAB_IDENTITY_FIXTURE"
 
       - name: readelf sanity (native libs)
         run: |

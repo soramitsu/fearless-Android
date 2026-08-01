@@ -1,6 +1,6 @@
 # Status Summary
 
-Last updated: 2026-07-31
+Last updated: 2026-08-01
 
 This snapshot summarizes the current health, feature coverage, and key risks of the Fearless Wallet Android codebase.
 
@@ -67,6 +67,14 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   78 adversarial. The shared AAB identity harness separately freezes the R8
   policy at 4 positive / 19 negative/adversarial and its exact fixture
   synthesizer boundaries at 1 positive / 15 negative/adversarial.
+- The historical 26 July 2026 Google Play Internal App Sharing observation is
+  now represented by a URL-redacted, digest-bound manifest and 6-positive / 184
+  adversarial offline contract. It remains explicitly test-only and does not
+  claim current link availability, device installation, independent testing,
+  production signing, or production readiness. A separate AAB verifier checks
+  every native PT_LOAD segment for 16 KiB alignment across all four Android
+  ABIs, with 1 positive and 20 negative fixtures, and runs against CI, IAS,
+  unsigned-release, and signed-release bundle bytes.
 - Signed Android release artifact pipeline:
   `.github/workflows/android-release.yml` builds
   only an immutable tagged `master` source after exact-head CI passes. CI has

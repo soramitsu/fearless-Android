@@ -48,6 +48,13 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - `./scripts/audit-public-artifacts.sh --strict-provenance`
   - Confirm checked-in Firebase files use the `fearless-public` placeholder
     project, no signing material is tracked, and pinned binary checksums match.
+- Historical Google Play Internal App Sharing publication evidence:
+  - `node ./scripts/test-google-play-internal-app-sharing-handoff-writer.js`
+  - `bash ./scripts/test-google-play-internal-app-sharing-publication-audit.sh`
+  - `bash ./scripts/audit-google-play-internal-app-sharing-publication.sh --manifest-only`
+  - Treat the recorded 26 July 2026 observation as test-only evidence. It does
+    not prove a current device install, an independent tester, production
+    signing, Play Integrity, or production readiness.
 - Distribution guards:
   - `bash scripts/test-android-release-signed-tag-policy.sh`
   - `bash scripts/test-android-release-governance.sh`
@@ -68,6 +75,9 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - `bash scripts/test-android-aab-identity.sh` with
     `AAB_IDENTITY_FIXTURE`, pinned `BUNDLETOOL_JAR`, and the expected
     package/version/source-commit environment
+  - `bash scripts/test-android-aab-native-page-alignment.sh`, followed by
+    `python3 scripts/verify-android-aab-native-page-alignment.py <exact.aab>`
+    for each debug, IAS, unsigned-release, and signed-release candidate
   - `bash scripts/test-release-overlay-interruption.sh`
   - `bash scripts/test-android-release-media-permissions.sh`
   - `bash scripts/verify-android-release-media-permissions.sh app/src/main/AndroidManifest.xml`
