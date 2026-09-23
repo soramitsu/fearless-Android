@@ -645,31 +645,9 @@ class PasskeyBackupWorkflow(
         storageKey: String,
         credentialId: String,
         prfSalt: ByteArray
-    ): PendingPasskeyBackupAssertion {
-        PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
-        val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
-        val normalizedCredentialId = requireCredentialId(credentialId)
-        PasskeyBackupContract.requirePrfSalt(prfSalt)
-        val challenge = challengeService.assertionChallenge(normalizedStorageKey, normalizedCredentialId)
-        val challengeStorageKey = requireMatchingStorageKey(
-            expected = normalizedStorageKey,
-            actual = challenge.storageKey,
-            ceremony = "credential-directed assertion challenge"
-        )
-        require(challenge.credentialId == normalizedCredentialId) {
-            "Passkey assertion challenge returned a mismatched credentialId"
-        }
-        return PendingPasskeyBackupAssertion(
-            assertionId = challenge.assertionId,
-            storageKey = challengeStorageKey,
-            requestJson = PasskeyBackupContract.assertionOptionsJsonWithPrf(
-                challenge = challenge.challenge,
-                credentialId = normalizedCredentialId,
-                prfSalt = prfSalt,
-                rpId = relyingPartyId
-            )
-        )
-    }
+    ): PendingPasskeyBackupAssertion = PasskeyBackupCredentialDirectedAssertion(
+        challengeService, relyingPartyId, isReleaseEnabled
+    ).begin(storageKey, credentialId, prfSalt)
 
     suspend fun finishRestore(
         pending: PendingPasskeyBackupAssertion,

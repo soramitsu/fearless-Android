@@ -290,15 +290,17 @@ class PasskeyBackupChallengeServiceTest {
             response.replace("\"credentialId\":\"AQ\",", ""),
             response.replace("\"credentialId\":\"AQ\"", "\"credentialId\":\"Ag\"")
         )) {
-            assertTrue(runCatching {
+            val rejected = runCatching {
                 service(transport = RecordingChallengeTransport(jsonResponse(invalid)))
                     .assertionChallenge("wallet-1234", credentialId)
-            }.isFailure)
+            }.isFailure
+            assertTrue(rejected)
         }
         val invalidIdTransport = RecordingChallengeTransport(jsonResponse(response))
-        assertTrue(runCatching {
+        val invalidIdRejected = runCatching {
             service(transport = invalidIdTransport).assertionChallenge("wallet-1234", "AQ==")
-        }.isFailure)
+        }.isFailure
+        assertTrue(invalidIdRejected)
         assertTrue(invalidIdTransport.requests.isEmpty())
     }
 

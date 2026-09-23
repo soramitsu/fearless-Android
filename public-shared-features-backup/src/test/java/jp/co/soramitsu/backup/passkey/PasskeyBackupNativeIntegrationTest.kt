@@ -86,7 +86,10 @@ class PasskeyBackupNativeIntegrationTest {
         val rawJson = ASSERTION_CREDENTIAL_JSON
             .replace("\"signature\":\"AQ\"", "\"signature\":\"AQ\",\"walletSecret\":\"never-send\"")
             .replace("\"clientExtensionResults\":{}", "\"clientExtensionResults\":{\"largeBlob\":{\"blob\":\"never-send\"}}")
-        assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(rawJson, pendingAssertion().requestJson) }.isFailure)
+        val unsupportedExtensionRejected = runCatching {
+            PasskeyBackupNativeCeremonyResult.assertion(rawJson, pendingAssertion().requestJson)
+        }.isFailure
+        assertTrue(unsupportedExtensionRejected)
 
         val responseOnly = rawJson.replace(
             "\"clientExtensionResults\":{\"largeBlob\":{\"blob\":\"never-send\"}}",
@@ -110,9 +113,10 @@ class PasskeyBackupNativeIntegrationTest {
             withPrf.replace("\"type\":\"public-key\"", "\"type\":\"password\""),
             withPrf.replace("\"id\":\"AQ\"", "\"id\":\"AQ==\"")
         ).forEach { response ->
-            assertTrue(runCatching {
+            val rejected = runCatching {
                 PasskeyBackupNativeCeremonyResult.assertion(response, pendingAssertion().requestJson)
-            }.isFailure)
+            }.isFailure
+            assertTrue(rejected)
         }
     }
 
@@ -132,12 +136,14 @@ class PasskeyBackupNativeIntegrationTest {
         }
 
         val wrongCredential = nullHandle.replace("\"id\":\"AQ\",\"rawId\":\"AQ\"", "\"id\":\"Ag\",\"rawId\":\"Ag\"")
-        assertTrue(runCatching {
+        val wrongCredentialRejected = runCatching {
             PasskeyBackupNativeCeremonyResult.assertion(wrongCredential, directedRequest)
-        }.isFailure)
-        assertTrue(runCatching {
+        }.isFailure
+        assertTrue(wrongCredentialRejected)
+        val discoverableNullHandleRejected = runCatching {
             PasskeyBackupNativeCeremonyResult.assertion(nullHandle, pendingAssertion().requestJson)
-        }.isFailure)
+        }.isFailure
+        assertTrue(discoverableNullHandleRejected)
     }
 
     @Test
@@ -156,9 +162,10 @@ class PasskeyBackupNativeIntegrationTest {
             request.replace("\"timeout\":60000", "\"allowCredentials\":{\"id\":\"AQ\"},\"timeout\":60000"),
             request.replace("\"timeout\":60000", "\"allowCredentials\":[{\"type\":\"public-key\",\"id\":\"AQ\"},{\"type\":\"public-key\",\"id\":\"AQ\"}],\"timeout\":60000")
         )) {
-            assertTrue(runCatching {
+            val rejected = runCatching {
                 PasskeyBackupNativeCeremonyResult.assertion(ASSERTION_CREDENTIAL_JSON, invalidRequest)
-            }.isFailure)
+            }.isFailure
+            assertTrue(rejected)
         }
     }
 
@@ -217,7 +224,8 @@ class PasskeyBackupNativeIntegrationTest {
         )
     )
 
-    private fun pendingAssertion(requestJson: String = PasskeyBackupContract.assertionOptionsJson(ByteArray(32))) = PendingPasskeyBackupAssertion(
+    private fun pendingAssertion(requestJson: String = PasskeyBackupContract.assertionOptionsJson(ByteArray(32))) =
+        PendingPasskeyBackupAssertion(
         assertionId = "assertion-1234",
         storageKey = "wallet-1234",
         requestJson = requestJson

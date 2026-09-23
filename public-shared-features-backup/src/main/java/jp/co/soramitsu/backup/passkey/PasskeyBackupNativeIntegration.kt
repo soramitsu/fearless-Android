@@ -81,6 +81,8 @@ class PasskeyBackupNativeCeremonyResult private constructor(
     companion object {
         private const val MAX_RESPONSE_BYTES = 128 * 1024
         private const val PRF_OUTPUT_BYTES = 32
+        private const val MAX_ALLOWED_CREDENTIALS = 64
+        private const val MAX_USER_HANDLE_BYTES = 64
 
         fun registration(responseJson: String): PasskeyBackupNativeCeremonyResult =
             fromCredentialManager(responseJson, registration = true)
@@ -250,9 +252,6 @@ class PasskeyBackupNativeCeremonyResult private constructor(
             }
             return JsonPrimitive(encoded)
         }
-
-        private const val MAX_ALLOWED_CREDENTIALS = 64
-        private const val MAX_USER_HANDLE_BYTES = 64
     }
 }
 

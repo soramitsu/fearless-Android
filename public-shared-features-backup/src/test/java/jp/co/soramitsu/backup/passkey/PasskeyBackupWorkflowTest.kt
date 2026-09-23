@@ -869,13 +869,15 @@ class PasskeyBackupWorkflowTest {
                 credentialId = "Ag"
             )
         )
-        assertTrue(runCatching {
+        val wrongEchoRejected = runCatching {
             workflow(service = wrongEcho).beginCredentialDirectedAssertion("wallet-1234", "AQ", salt)
-        }.isFailure)
+        }.isFailure
+        assertTrue(wrongEchoRejected)
         val invalidSalt = FakeChallengeService()
-        assertTrue(runCatching {
+        val invalidSaltRejected = runCatching {
             workflow(service = invalidSalt).beginCredentialDirectedAssertion("wallet-1234", "AQ", ByteArray(31))
-        }.isFailure)
+        }.isFailure
+        assertTrue(invalidSaltRejected)
         assertEquals(null, invalidSalt.assertionCredentialId)
     }
 
@@ -1217,7 +1219,10 @@ class PasskeyBackupWorkflowTest {
             return assertionChallenge
         }
 
-        override suspend fun assertionChallenge(storageKey: String, credentialId: String): PasskeyBackupAssertionChallenge {
+        override suspend fun assertionChallenge(
+            storageKey: String,
+            credentialId: String
+        ): PasskeyBackupAssertionChallenge {
             assertionStorageKey = storageKey
             assertionCredentialId = credentialId
             return assertionChallenge

@@ -352,10 +352,8 @@ class HttpPasskeyBackupChallengeService(
     override suspend fun assertionChallenge(storageKey: String): PasskeyBackupAssertionChallenge =
         requestAssertionChallenge(storageKey, null)
 
-    override suspend fun assertionChallenge(
-        storageKey: String,
-        credentialId: String
-    ): PasskeyBackupAssertionChallenge = requestAssertionChallenge(storageKey, requireCredentialId(credentialId))
+    override suspend fun assertionChallenge(storageKey: String, credentialId: String): PasskeyBackupAssertionChallenge =
+        requestAssertionChallenge(storageKey, requireCredentialId(credentialId))
 
     private suspend fun requestAssertionChallenge(
         storageKey: String,
