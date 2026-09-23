@@ -1,9 +1,9 @@
 # Status Summary
 
-## Portable wallet-material coverage preflight — 2026-09-24
+## Android portable wallet-material draft capture — 2026-09-24
 
-- A local, read-only preflight enumerates every persisted wallet and chain account, then requires identity-bound V3 Substrate, standalone EVM and native TON roots plus every V2 chain key through the repository's validated read paths. It rejects quarantined wallets, incomplete or duplicate public identities, missing material, and public metadata changed between the two snapshots. It returns counts only; it neither serializes nor uploads secret material.
-- The focused preflight suite passes 9/9 cases; the full account-module JVM suite passes 177/177 with zero failures or skips, and `detektAll` passes against the clean pinned Utils and transport source. This is a fail-closed building block, not an atomic wallet export or backup-completion gate. V1-only and watch-only records currently fail the preflight until a reviewed cross-platform plaintext schema and restore path can preserve them. Secret mutation between the metadata snapshots is not ruled out; passkey recovery remains disabled.
+- The read-only preflight still enumerates every persisted wallet and chain account and requires identity-bound V3 Substrate, standalone EVM and native TON roots plus every V2 chain key. A separate internal capture now holds the wallet mutation mutex while it collects the exact validated encoded secrets, checks public identity metadata again and writes one bounded, versioned Android-local plaintext draft. It retains multiple wallets, independent EVM keys, native TON roots, chain keys, selection/order and favorite chains. It omits local backup-status and old Google-address operation state. The decoder rejects malformed, extended, duplicate, oversized and public-key-mismatched records; secret-bearing objects redact `toString` and clear temporary key bytes.
+- The focused preflight/draft JVM suites pass 18/18 cases; the full account module passes 186/186, and `detektAll` passes with strict dependency verification and the clean pinned Utils checkout. This draft has no Drive/upload or installer call site and is **not** a shared iOS/Android plaintext contract or backup-completion gate. V1-only and watch-only records still fail closed. Cross-platform format review, atomic restore, original-key signing/export proof and replacement-device qualification remain required; passkey recovery stays disabled.
 
 ## Legacy Google backup EVM-root preservation — 2026-09-23
 

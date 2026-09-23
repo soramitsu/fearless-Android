@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets as chainSecrets
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
@@ -12,9 +13,17 @@ import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.toByteArray
+import jp.co.soramitsu.common.data.Keypair
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets as ethereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets as substrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.TonSecrets as tonSecrets
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -161,6 +170,117 @@ class PortableWalletMaterialPreflightTest {
         }
 
         verifyNoInteractions(accountRepository)
+    }
+
+    @Test
+    fun `captures all original roots and chain keys across separate wallets`(): Unit = runBlocking {
+        val first = wallet(
+            id = 1, substrate = true, ethereum = true,
+            chains = listOf(chain(1, "chain-a"), chain(1, "chain-b")),
+            favorites = listOf(FavoriteChainLocal(1, "chain-b", true))
+        )
+        val second = wallet(id = 2, ton = true)
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(second, first))
+        val substrate = substrateSecrets(
+            substrateKeyPair = Keypair(byteArrayOf(1, 1), ByteArray(32) { 11 }, ByteArray(32) { 12 }),
+            entropy = ByteArray(16) { 13 }, seed = ByteArray(64) { 14 }, substrateDerivationPath = "//hard"
+        )
+        val ethereum = ethereumSecrets(
+            entropy = ByteArray(16) { 20 }, seed = ByteArray(64) { 21 },
+            ethereumKeypair = Keypair(byteArrayOf(3, 1), ByteArray(32) { 22 }),
+            ethereumDerivationPath = "m/44'/60'/0'/0/0"
+        )
+        val ton = tonSecrets("native ton words".toByteArray(), Keypair(byteArrayOf(5, 2), ByteArray(32) { 33 }))
+        val chain = chainSecrets(
+            keyPair = Keypair(byteArrayOf(6), ByteArray(32) { 44 }, ByteArray(32) { 45 }),
+            entropy = ByteArray(16) { 46 }, seed = ByteArray(32) { 47 }, derivationPath = "//chain"
+        )
+        whenever(accountRepository.getSubstrateSecrets(1)).thenReturn(substrate)
+        whenever(accountRepository.getEthereumSecrets(1)).thenReturn(ethereum)
+        whenever(accountRepository.getTonSecrets(2)).thenReturn(ton)
+        whenever(accountRepository.getChainAccountSecrets(1, "chain-a")).thenReturn(chain)
+        whenever(accountRepository.getChainAccountSecrets(1, "chain-b")).thenReturn(chain)
+
+        val encoded = preflight.captureDraftPlaintext()
+        val decoded = PortableWalletMaterialDraft.decode(encoded)
+        try {
+            assertEquals(2, decoded.wallets.size)
+            assertEquals(listOf(1L, 2L), decoded.wallets.map { it.identity.id })
+            assertEquals(listOf("chain-a", "chain-b"), decoded.wallets[0].identity.chainAccounts.map { it.chainId })
+            assertEquals(listOf("chain-b"), decoded.wallets[0].identity.favoriteChains.map { it.chainId })
+            assertTrue(decoded.wallets[0].identity.isSelected)
+            assertFalse(decoded.wallets[1].identity.isSelected)
+            assertArrayEquals(substrate.toByteArray(), decoded.wallets[0].substrateSecret)
+            assertArrayEquals(ethereum.toByteArray(), decoded.wallets[0].ethereumSecret)
+            assertArrayEquals(ton.toByteArray(), decoded.wallets[1].tonSecret)
+            assertArrayEquals(chain.toByteArray(), decoded.wallets[0].chainSecrets[0])
+            assertArrayEquals(chain.toByteArray(), decoded.wallets[0].chainSecrets[1])
+            assertEquals(null, decoded.wallets[1].substrateSecret)
+            assertEquals(null, decoded.wallets[1].ethereumSecret)
+            assertArrayEquals(encoded, PortableWalletMaterialDraft.encode(decoded))
+            assertEquals("PortableWalletMaterialDraft.Snapshot(redacted)", decoded.toString())
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
+    fun `captures standalone EVM key without synthesizing a Substrate mnemonic`(): Unit = runBlocking {
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(wallet(1, ethereum = true)))
+        val ethereum = ethereumSecrets(ethereumKeypair = Keypair(byteArrayOf(3, 1), ByteArray(32) { 99 }))
+        whenever(accountRepository.getEthereumSecrets(1)).thenReturn(ethereum)
+
+        val encoded = preflight.captureDraftPlaintext()
+        val decoded = PortableWalletMaterialDraft.decode(encoded)
+        try {
+            assertEquals(null, decoded.wallets.single().substrateSecret)
+            assertArrayEquals(ethereum.toByteArray(), decoded.wallets.single().ethereumSecret)
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+        verify(accountRepository, org.mockito.kotlin.never()).getSubstrateSecrets(1)
+    }
+
+    @Test
+    fun `capture rejects missing independent EVM root and changed wallet identity`(): Unit = runBlocking {
+        val before = wallet(1, substrate = true, ethereum = true)
+        val substrate = substrateSecrets(Keypair(byteArrayOf(1, 1), ByteArray(32) { 11 }))
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(before))
+        whenever(accountRepository.getSubstrateSecrets(1)).thenReturn(substrate)
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+
+        val after = wallet(1, substrate = true, name = "Changed")
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(wallet(1, substrate = true)), listOf(after))
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+    }
+
+    @Test
+    fun `capture rejects a secret bound to a different public key`(): Unit = runBlocking {
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(wallet(1, ethereum = true)))
+        whenever(accountRepository.getEthereumSecrets(1)).thenReturn(
+            ethereumSecrets(ethereumKeypair = Keypair(byteArrayOf(9, 9), ByteArray(32) { 99 }))
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+    }
+
+    @Test
+    fun `capture never opens a recovery-required wallet root`(): Unit = runBlocking {
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(wallet(1, ton = true)))
+        whenever(accountRepository.isWalletRecoveryRequired(1)).thenReturn(true)
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+        verify(accountRepository, org.mockito.kotlin.never()).getTonSecrets(1)
     }
 
     private fun wallet(

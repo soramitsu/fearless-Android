@@ -34,11 +34,34 @@ requires an agreed cross-platform format, lossless migration for all rows above,
 locked-storage and interruption tests, real replacement-device restoration, and
 original-key signing/export evidence before backup completion is allowed.
 
-The Android `PortableWalletMaterialPreflight` is an intentionally narrower
-read-only check. It walks every persisted wallet and chain identity, requires
-each V3 root and V2 chain secret through the existing validated repository
-reads, and compares complete public wallet metadata before and after. It
-returns only coverage counts. It rejects V1-only and watch-only cohorts for
-now rather than marking an incomplete backup successful. No wallet material is
-serialized, no snapshot is held across concurrent secret mutations, and the
-preflight is not wired to backup completion; those are still required work.
+The Android `PortableWalletMaterialPreflight` remains the read-only coverage
+gate. An additional internal `captureDraftPlaintext` path now takes the
+cross-store mutation lock, reads every V3 root and V2 chain secret through the
+identity-validated repository, checks the durable public inventory again, and
+returns one bounded local draft record. It preserves separate Substrate, EVM
+and native TON roots, exact encoded keypairs and metadata, every chain-account
+secret, wallet order/selection and favorite chains. Backup status and the old
+Google backup address remain local operation state and are not trusted from the
+record. Root and chain secret bytes are cleared after encoding; callers own
+and must erase the returned plaintext. The strict draft decoder rejects
+unknown versions, truncation, trailing fields, duplicate/unordered identities,
+oversized fields and public-key mismatches.
+
+The draft is Android-only and has no Drive/upload or restore/installer call
+site. It is **not** the reviewed iOS/Android plaintext contract and cannot
+establish portable recovery. V1-only and watch-only cohorts still fail closed.
+Its semantic secret slots are explicit, though their current bytes use Android
+SCALE schemas and are not iOS-readable:
+
+| Draft slot | Exact validated Android material currently retained |
+| --- | --- |
+| `substrateSecret` | V3 `SubstrateSecrets`: optional original entropy, optional seed, public/private keypair, optional SR25519 nonce, optional derivation path. |
+| `ethereumSecret` | Independent V3 `EthereumSecrets`: optional original entropy and seed, public/private EVM keypair, optional derivation path. It remains present even when a Substrate phrase also exists. |
+| `tonSecret` | V3 `TonSecrets`: original native TON seed bytes, private key and public key. It is never derived from the Substrate root. |
+| `chainSecrets[i]` | V2 `ChainAccountSecrets` for the explicitly named chain/account/crypto identity: optional entropy and seed, public/private keypair, optional nonce and derivation path. |
+
+The lock covers wallet mutations using `WalletSecretMutationCoordinator`; the
+second durable-inventory read catches metadata changes outside that lock. A
+reviewed cross-platform format, atomic restore with original-key
+signing/export verification, interrupted-write tests and replacement-device
+evidence remain required before backup completion can be enabled.
