@@ -113,19 +113,39 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
     }
 
     @Test
-    fun `acknowledged lost cancelled and account changed admissions never POST again after reopen`() = runBlocking {
-        for (mode in listOf("acknowledged", "lost", "cancelled", "account")) {
+    fun `acknowledged lost and cancelled admissions never POST again after reopen`() = runBlocking {
+        for (mode in listOf("acknowledged", "lost", "cancelled")) {
             val fixture = fixture().apply {
                 if (mode == "lost") postFailure = IOException("synthetic lost response")
                 if (mode == "cancelled") postFailure = CancellationException("synthetic cancellation")
-                if (mode == "account") changedSubjectAt = 1
             }
             runCatching { fixture.create(fixture.candidate()) }
             val reopened = PasskeyBackupGenerationJournal(fixture.root, HostJournalDurability())
             assertTrue(requireNotNull(reopened.read(fixture.operation, fixture.scope)).createAttemptRecorded)
             fails { fixture.storage.createCandidate(fixture.operation, reopened, fixture.scope) }
-            assertEquals(if (mode == "account") 0 else 1, fixture.requests.count { it.method == "POST" })
+            assertEquals(1, fixture.requests.count { it.method == "POST" })
             assertEquals(1, fixture.accesses)
+        }
+    }
+
+    @Test
+    fun `account or token failure before admission keeps exact candidate retryable`() = runBlocking {
+        for (mode in listOf("account", "token")) {
+            val fixture = fixture().apply {
+                if (mode == "account") changedSubjectAt = 1 else tokenFailureAt = 1
+            }
+            fixture.journal.persistPrepared(fixture.operation, fixture.candidate(), fixture.scope)
+            fails { fixture.storage.createCandidate(fixture.operation, fixture.journal, fixture.scope) }
+            assertFalse(requireNotNull(fixture.journal.read(fixture.operation, fixture.scope)).createAttemptRecorded)
+            assertTrue(fixture.requests.isEmpty())
+            fixture.changedSubjectAt = Int.MAX_VALUE
+            fixture.tokenFailureAt = Int.MAX_VALUE
+            assertEquals(
+                GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.ACKNOWLEDGED,
+                fixture.storage.createCandidate(fixture.operation, fixture.journal, fixture.scope)
+            )
+            assertEquals(listOf("POST"), fixture.requests.map { it.method })
+            assertEquals(2, fixture.accesses)
         }
     }
 
@@ -142,7 +162,7 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
         fails { fixture.storage.createCandidate(fixture.operation, journal, fixture.scope) }
         assertTrue(requireNotNull(fixture.journal.read(fixture.operation, fixture.scope)).createAttemptRecorded)
         fails { fixture.storage.createCandidate(fixture.operation, fixture.journal, fixture.scope) }
-        assertEquals(0, fixture.accesses)
+        assertEquals(1, fixture.accesses)
         assertTrue(fixture.requests.isEmpty())
     }
 
@@ -251,6 +271,7 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
         val requests = mutableListOf<GoogleDriveHttpRequest>()
         var accesses = 0
         var changedSubjectAt = Int.MAX_VALUE
+        var tokenFailureAt = Int.MAX_VALUE
         var postFailure: Exception? = null
         var postCode = 201
         var metadataCode = 200
@@ -263,6 +284,7 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
             "google-subject-123",
             GoogleDriveAccessTokenProvider {
                 accesses++
+                if (accesses == tokenFailureAt) throw IOException("synthetic token failure")
                 if (accesses == changedSubjectAt) {
                     GoogleDriveAccountAccess("other-subject", "renamed@example.com", "wrong-token")
                 } else {

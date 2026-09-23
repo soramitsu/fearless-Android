@@ -52,12 +52,21 @@ class GoogleDrivePasskeyBackupGenerationStorage(
     ): CreateOutcome {
         currentCoroutineContext().ensureActive()
         require(expectedScope.storageAccountBinding == accountBinding) { "Generation storage account mismatch" }
-        val entry = withContext(Dispatchers.IO) { journal.markCreateAttempt(operationId, expectedScope) }
+        val prepared = withContext(Dispatchers.IO) {
+            requireNotNull(journal.read(operationId, expectedScope)) { "Missing prepared backup journal entry" }
+        }
+        require(!prepared.createAttemptRecorded) { "Backup journal create attempt already recorded" }
         currentCoroutineContext().ensureActive()
-        return postCandidate(entry.candidate)
+        val access = tokenProvider.accessToken()
+        currentCoroutineContext().ensureActive()
+        require(access.subject == accountSubject) { "Drive generation account changed" }
+        val request = buildPostRequest(prepared.candidate, access)
+        val entry = withContext(Dispatchers.IO) { journal.markCreateAttempt(operationId, expectedScope) }
+        require(entry.recordSha256 == prepared.recordSha256) { "Backup journal changed before upload" }
+        return postCandidate(request, entry.candidate)
     }
 
-    private suspend fun postCandidate(candidate: Candidate): CreateOutcome {
+    private fun buildPostRequest(candidate: Candidate, access: GoogleDriveAccountAccess): GoogleDriveHttpRequest {
         require(candidate.context.storageAccountBinding == accountBinding) { "Generation storage account mismatch" }
         val metadata = JsonObject().apply {
             addProperty("id", candidate.fileId)
@@ -74,10 +83,20 @@ class GoogleDrivePasskeyBackupGenerationStorage(
             write(candidate.bytes)
             write("\r\n--$boundary--\r\n".toByteArray())
         }.toByteArray()
-        val request = authorize(
+        return GoogleDriveHttpRequest(
             "POST", "$UPLOAD_URL?uploadType=multipart&fields=${encoded(FIELDS)}",
-            mapOf("Content-Type" to "multipart/related; boundary=$boundary"), body, METADATA_BYTES
+            mapOf(
+                "Content-Type" to "multipart/related; boundary=$boundary",
+                "Authorization" to "Bearer ${access.accessToken}",
+                "Cache-Control" to "no-store"
+            ),
+            body,
+            isOneShot = true,
+            maxResponseBytes = METADATA_BYTES
         )
+    }
+
+    private suspend fun postCandidate(request: GoogleDriveHttpRequest, candidate: Candidate): CreateOutcome {
         val response = try {
             transport.execute(request)
         } catch (_: IOException) {

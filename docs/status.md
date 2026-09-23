@@ -4,7 +4,7 @@
 
 - The disabled candidate now persists exact FPBKGEN1 ciphertext, context, digest and preallocated Drive ID in app-private backup-excluded storage. A separate immutable create-attempt marker is synchronized before admission, is required by the public create API, prevents repeated admission across restarts, and retains malformed/partial writes for fail-closed reconciliation.
 - Strict reload checks enforce canonical bounded records, independent owner/account scope, private file permissions, no symlinks/hardlinks, a 64-entry cap and cross-process locking. Reusing a Drive ID or generation under another operation is rejected.
-- Validation: 199/199 backup-module JVM tests, `detektAll`, test APK build and 2/2 native API 36 emulator cases pass. All 35 captured module source/resource hashes remain unchanged. Physical-device durability and recovery/coordinator acceptance remain open; see `docs/passkey-generation-journal.md`. No owner head is promoted, no generation is deleted and no recovery flag is enabled.
+- Validation: 200/200 backup-module JVM tests, `detektAll`, test APK build and 2/2 native API 36 emulator cases pass. Pinned Utils and nv-WebSocket source identities remain unchanged. Physical-device durability and recovery/coordinator acceptance remain open; see `docs/passkey-generation-journal.md`. No owner head is promoted, no generation is deleted and no recovery flag is enabled.
 
 ## Immutable Drive generation primitive — 2026-09-23
 
