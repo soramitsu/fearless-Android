@@ -21,6 +21,10 @@ class XcmTransferRequest(
 interface XcmTransferEngine {
     val isAvailable: Boolean
 
+    /** UI hint only. [transfer] must repeat the authorization immediately before submission. */
+    val canSubmitNow: Boolean
+        get() = isAvailable
+
     fun updateKeypairProvider(chainId: ChainId, keypairProvider: Any)
 
     fun addPreloadedMetadata(vararg chainMetadatas: ChainIdWithMetadata)
@@ -65,6 +69,10 @@ class MutationGuardedXcmTransferEngine(
 
     override val isAvailable: Boolean
         get() = delegate.isAvailable
+
+    override val canSubmitNow: Boolean
+        get() = delegate.canSubmitNow && transfersEnabled &&
+            runCatching { mutationsEnabled() }.getOrDefault(false)
 
     override fun updateKeypairProvider(chainId: ChainId, keypairProvider: Any) {
         delegate.updateKeypairProvider(chainId, keypairProvider)
@@ -115,6 +123,7 @@ class MutationGuardedXcmTransferEngine(
 
 object UnavailableXcmTransferEngine : XcmTransferEngine {
     override val isAvailable: Boolean = false
+    override val canSubmitNow: Boolean = false
 
     override fun updateKeypairProvider(chainId: ChainId, keypairProvider: Any) = Unit
 

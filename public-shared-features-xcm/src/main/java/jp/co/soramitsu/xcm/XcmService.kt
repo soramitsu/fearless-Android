@@ -143,6 +143,7 @@ class XcmService(
         amount = null
     ).asset.minAmount
 
+    /** Whether the send action may be offered now; read-only route and fee APIs remain separate. */
     suspend fun isXcmSupportAsset(
         originChainId: String,
         originAssetId: String,
@@ -150,7 +151,7 @@ class XcmService(
     ): Boolean {
         val hasExactRequestIdentity = originChainId.isNotBlank() &&
             originAssetId.isNotBlank() && assetSymbol.isNotBlank()
-        if (!transferEngine.isAvailable || !hasExactRequestIdentity) {
+        if (!transferEngine.canSubmitNow || !hasExactRequestIdentity) {
             return false
         }
 

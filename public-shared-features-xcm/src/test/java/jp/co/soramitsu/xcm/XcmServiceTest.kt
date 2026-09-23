@@ -77,6 +77,48 @@ class XcmServiceTest {
     }
 
     @Test
+    fun `submission support follows permission while quotes remain readable`() = runBlocking {
+        var runtimeEnabled = false
+        val delegate = RecordingXcmTransferEngine()
+        val engine = MutationGuardedXcmTransferEngine(
+            delegate = delegate,
+            transfersEnabled = true,
+            mutationsEnabled = { runtimeEnabled }
+        )
+        val service = serviceWithRoute(engine)
+        val asset = coreAsset(symbol = "DOT", id = "asset-DOT")
+
+        assertFalse(service.isXcmSupportAsset("origin", "asset-DOT", "DOT"))
+        assertEquals(BigDecimal("0.01"), service.getXcmDestinationFee("origin", "destination", asset))
+
+        runtimeEnabled = true
+        assertTrue(service.isXcmSupportAsset("origin", "asset-DOT", "DOT"))
+
+        runtimeEnabled = false
+        assertFalse(service.isXcmSupportAsset("origin", "asset-DOT", "DOT"))
+        assertEquals(BigDecimal("0.01"), service.getXcmDestinationFee("origin", "destination", asset))
+
+        val compiledOff = serviceWithRoute(
+            MutationGuardedXcmTransferEngine(
+                delegate = delegate,
+                transfersEnabled = false,
+                mutationsEnabled = { true }
+            )
+        )
+        assertFalse(compiledOff.isXcmSupportAsset("origin", "asset-DOT", "DOT"))
+        assertEquals(BigDecimal("0.01"), compiledOff.getXcmDestinationFee("origin", "destination", asset))
+
+        val unavailableSwitch = serviceWithRoute(
+            MutationGuardedXcmTransferEngine(
+                delegate = delegate,
+                transfersEnabled = true,
+                mutationsEnabled = { error("Signed feature state unavailable") }
+            )
+        )
+        assertFalse(unavailableSwitch.isXcmSupportAsset("origin", "asset-DOT", "DOT"))
+    }
+
+    @Test
     fun `public service exposes configured min amount`() = runBlocking {
         val service = serviceWithRoute()
 
