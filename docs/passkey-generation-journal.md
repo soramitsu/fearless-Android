@@ -35,4 +35,14 @@ local proof/cancellation, account switching and refusal of another POST. The
 verifier in these tests is synthetic; no decrypt/sign/export claim is made for
 production devices.
 
+`PasskeyBackupGenerationCryptographicVerifier` now supplies the local unwrap
+and AEAD-decryption half of that contract for one exact credential wrapper.
+It rejects a wrong credential, PRF result, wallet identity, ciphertext or
+incomplete evidence and clears temporary PRF, DEK and plaintext buffers.
+Its application-owned plaintext callback must still derive the original wallet
+identities and actually verify original-key signing and export. Four focused
+cases use only synthetic wallet material; no production wallet callback,
+authenticated owner-head HTTP adapter, provider ceremony or replacement-device
+flow is wired, so recovery remains disabled.
+
 Primary references: [Android backup-excluded storage](https://developer.android.com/reference/android/content/Context#getNoBackupFilesDir()), [exclusive NIO file creation](https://developer.android.com/reference/java/nio/file/StandardOpenOption#CREATE_NEW), [FileChannel force semantics](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html#force(boolean)), and [Android fsync](https://developer.android.com/reference/android/system/Os#fsync(java.io.FileDescriptor)).
