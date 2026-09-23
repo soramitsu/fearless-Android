@@ -368,6 +368,129 @@ class PasskeyBackupWorkflowTest {
     }
 
     @Test
+    fun `plaintext registration revokes new credential when uploaded backup is absent on readback`() = runBlocking {
+        val service = FakeChallengeService()
+        val storage = FakeCloudStorage(readbackTransformer = { null })
+        val workflow = workflow(service = service, storage = storage, keyProvider = testKeyProvider())
+        val credentialId = "Y3JlZC0x"
+
+        val error = runCatching {
+            workflow.finishRegistrationWithPlaintext(
+                pending = pendingRegistration(storageKey = "wallet-1234"),
+                credentialResponseJson = """{"id":"$credentialId"}""",
+                plaintextBackup = byteArrayOf(1, 2, 3)
+            )
+        }.exceptionOrNull()
+
+        assertTrue(error is IllegalStateException)
+        assertTrue(error?.message?.contains("verified by download") == true)
+        assertEquals("registration-1234", service.completedRegistrationId)
+        assertEquals("wallet-1234", service.revokedCredentialStorageKey)
+        assertEquals(credentialId, service.revokedCredentialId)
+        assertTrue(service.unverifiedRollbackRequested)
+        assertEquals(null, service.revokedAllStorageKey)
+        assertTrue(storage.contains("wallet-1234"))
+    }
+
+    @Test
+    fun `encrypted record registration compensates every mismatched readback field`() = runBlocking {
+        val expected = encryptedRecord()
+        val mismatchedReadbacks = listOf(
+            encryptedRecord(storageKey = "wallet-5678"),
+            encryptedRecord(walletId = "wallet-002"),
+            encryptedRecord(accountName = "mallory@example.com"),
+            encryptedRecord(createdAtMillis = TEST_CREATED_AT_MILLIS + 1),
+            encryptedRecord(encryptedPayload = validTestEnvelope(plaintext = byteArrayOf(8, 7, 6)))
+        )
+
+        mismatchedReadbacks.forEach { mismatched ->
+            val service = FakeChallengeService()
+            val storage = FakeCloudStorage(readbackTransformer = { mismatched })
+            val workflow = workflow(service = service, storage = storage, keyProvider = testKeyProvider())
+            val error = runCatching {
+                workflow.finishRegistrationWithEncryptedRecord(
+                    pending = pendingRegistration(storageKey = "wallet-1234"),
+                    credentialResponseJson = """{"id":"Y3JlZC0x"}""",
+                    record = expected
+                )
+            }.exceptionOrNull()
+
+            assertTrue(error is IllegalStateException)
+            assertTrue(error?.message?.contains("does not match") == true)
+            assertEquals("wallet-1234", service.revokedCredentialStorageKey)
+            assertEquals("Y3JlZC0x", service.revokedCredentialId)
+            assertTrue(service.unverifiedRollbackRequested)
+            assertEquals(null, service.revokedAllStorageKey)
+        }
+    }
+
+    @Test
+    fun `plaintext registration compensates when exact downloaded envelope cannot decrypt`() = runBlocking {
+        val service = FakeChallengeService()
+        val storage = FakeCloudStorage()
+        var keyRequests = 0
+        val keyProvider = RecoverablePasskeyBackupKeyProvider {
+            keyRequests += 1
+            ByteArray(32) { if (keyRequests == 1) (it + 1).toByte() else (it + 2).toByte() }
+        }
+        val workflow = workflow(service = service, storage = storage, keyProvider = keyProvider)
+
+        val error = runCatching {
+            workflow.finishRegistrationWithPlaintext(
+                pending = pendingRegistration(storageKey = "wallet-1234"),
+                credentialResponseJson = """{"id":"Y3JlZC0x"}""",
+                plaintextBackup = byteArrayOf(1, 2, 3)
+            )
+        }.exceptionOrNull()
+
+        assertTrue(error != null)
+        assertEquals(2, keyRequests)
+        assertEquals("wallet-1234", service.revokedCredentialStorageKey)
+        assertEquals("Y3JlZC0x", service.revokedCredentialId)
+        assertTrue(service.unverifiedRollbackRequested)
+    }
+
+    @Test
+    fun `coordinator refuses success without exact authenticated cloud readback`() = runBlocking {
+        val expected = encryptedRecord()
+        val mismatched = encryptedRecord(walletId = "wallet-002")
+        listOf<((PasskeyBackupEncryptedPayload?) -> PasskeyBackupEncryptedPayload?)?>(
+            { null },
+            { mismatched }
+        ).forEach { readbackTransformer ->
+            val coordinator = PasskeyBackupCoordinator(
+                credentialManager = unusedCredentialManager(),
+                cloudBackup = FakeCloudStorage(readbackTransformer = readbackTransformer),
+                backupKeyProvider = testKeyProvider(),
+                isReleaseEnabled = true
+            )
+
+            val error = runCatching { coordinator.saveEncryptedCloudBackup(expected) }.exceptionOrNull()
+
+            assertTrue(error is IllegalStateException)
+        }
+    }
+
+    @Test
+    fun `coordinator rejects exact readback that cannot decrypt locally`() = runBlocking {
+        var keyRequests = 0
+        val coordinator = PasskeyBackupCoordinator(
+            credentialManager = unusedCredentialManager(),
+            cloudBackup = FakeCloudStorage(),
+            backupKeyProvider = RecoverablePasskeyBackupKeyProvider {
+                keyRequests += 1
+                ByteArray(32) { if (keyRequests == 1) (it + 1).toByte() else (it + 2).toByte() }
+            },
+            isReleaseEnabled = true
+        )
+
+        val error = runCatching { coordinator.saveEncryptedCloudBackup(encryptedRecord()) }.exceptionOrNull()
+
+        assertTrue(error != null)
+        assertEquals(2, keyRequests)
+    }
+
+    @Test
     fun `legacy raw registration fails closed before clock or ceremony without explicit metadata`() = runBlocking {
         var clockCalls = 0
         val service = FakeChallengeService()
@@ -1289,7 +1412,8 @@ class PasskeyBackupWorkflowTest {
         vararg records: Pair<String, PasskeyBackupEncryptedPayload>,
         private val saveError: Throwable? = null,
         private val saveStarted: CompletableDeferred<Unit>? = null,
-        private val releaseSave: CompletableDeferred<Unit>? = null
+        private val releaseSave: CompletableDeferred<Unit>? = null,
+        private val readbackTransformer: ((PasskeyBackupEncryptedPayload?) -> PasskeyBackupEncryptedPayload?)? = null
     ) : PasskeyBackupCloudStorage {
         private val records = records.toMap().toMutableMap()
         var deletedStorageKey: String? = null
@@ -1302,7 +1426,8 @@ class PasskeyBackupWorkflowTest {
         }
 
         override suspend fun loadPasskeyBackup(storageKey: String): PasskeyBackupEncryptedPayload? {
-            return records[storageKey]
+            val stored = records[storageKey]
+            return if (readbackTransformer != null) readbackTransformer.invoke(stored) else stored
         }
 
         override suspend fun deletePasskeyBackup(storageKey: String) {

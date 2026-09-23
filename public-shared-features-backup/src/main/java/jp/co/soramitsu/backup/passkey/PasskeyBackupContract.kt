@@ -344,6 +344,35 @@ class UnavailablePasskeyBackupCloudStorage : PasskeyBackupCloudStorage {
     }
 }
 
+private suspend fun verifySavedPasskeyBackup(
+    cloudBackup: PasskeyBackupCloudStorage,
+    expected: PasskeyBackupEncryptedPayload,
+    backupKeyProvider: RecoverablePasskeyBackupKeyProvider,
+    envelopeCryptography: PasskeyBackupEnvelopeCryptography
+) {
+    val downloaded = checkNotNull(cloudBackup.loadPasskeyBackup(expected.storageKey)) {
+        "Passkey backup upload could not be verified by download"
+    }
+    check(
+        downloaded.storageKey == expected.storageKey &&
+            downloaded.walletId == expected.walletId &&
+            downloaded.accountName == expected.accountName &&
+            downloaded.createdAtMillis == expected.createdAtMillis &&
+            downloaded.schemaVersion == expected.schemaVersion &&
+            downloaded.encryptedPayload.contentEquals(expected.encryptedPayload)
+    ) {
+        "Passkey backup download does not match the uploaded record"
+    }
+    val metadata = downloaded.envelopeMetadata()
+    val key = backupKeyProvider.backupKey(metadata)
+    try {
+        val plaintext = envelopeCryptography.decrypt(downloaded.encryptedPayload, metadata, key)
+        plaintext.fill(0)
+    } finally {
+        key.fill(0)
+    }
+}
+
 class PasskeyBackupEncryptedRecordMetadataRequiredException : UnsupportedOperationException(
     "Opaque encrypted passkey payload registration is unsupported; provide the complete authenticated record metadata"
 )
@@ -406,6 +435,7 @@ class PasskeyBackupCoordinator(
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
         requireAuthenticatedEnvelope(payload)
         cloudBackup.savePasskeyBackup(payload)
+        verifySavedPasskeyBackup(cloudBackup, payload, backupKeyProvider, envelopeCryptography)
     }
 
     suspend fun loadEncryptedCloudBackup(storageKey: String): PasskeyBackupEncryptedPayload? {
@@ -545,6 +575,7 @@ class PasskeyBackupWorkflow(
                 ceremony = "registration"
             )
             cloudBackup.savePasskeyBackup(record)
+            verifySavedPasskeyBackup(cloudBackup, record, backupKeyProvider, envelopeCryptography)
             record
         }
     }
@@ -616,6 +647,7 @@ class PasskeyBackupWorkflow(
                 ceremony = "registration"
             )
             cloudBackup.savePasskeyBackup(payload)
+            verifySavedPasskeyBackup(cloudBackup, payload, backupKeyProvider, envelopeCryptography)
             payload
         }
     }

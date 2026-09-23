@@ -1,5 +1,10 @@
 # Status Summary
 
+## Legacy Drive backup readback verification — 2026-09-23
+
+- The disabled single-file passkey path now refuses to report save success until it downloads the same storage key, checks every record field and the exact encrypted bytes, then authenticates the downloaded envelope with the local recoverable key. Both registration paths compensate by revoking only the newly registered credential if the readback is missing, changed or undecryptable; the coordinator also fails closed. Existing single-file saves still refuse overwrites.
+- Validation: 215/215 backup-module JVM tests pass with zero failures/errors/skips, including missing/mismatched readback and decryption/compensation cases; `detektAll` passes against clean pinned Utils source. This does not qualify immutable-generation owner-head promotion or portable passkey recovery. Recovery remains disabled.
+
 ## Read-only Drive generation reconciliation — 2026-09-23
 
 - The disabled candidate now reconciles an admitted generation under independently supplied owner, account and wallet identities, downloads the exact journaled Drive ID and FPBKGEN1 bytes, requires a no-default local wallet verifier, and rechecks the durable journal and selected Google subject before returning local evidence. A 404 or failed verification cannot authorize another POST or mark backup complete.
