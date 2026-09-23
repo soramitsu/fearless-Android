@@ -70,6 +70,149 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
     }
 
     @Test
+    fun `journaled unknown outcome verifies after restart without another POST`() = runBlocking {
+        val fixture = fixture().apply { postFailure = IOException("synthetic lost response") }
+        val candidate = fixture.candidate()
+        assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.RECONCILE_REQUIRED, fixture.create(candidate))
+        val reopened = PasskeyBackupGenerationJournal(fixture.root, HostJournalDurability())
+        var verified = 0
+        val reconciler = PasskeyBackupGenerationReconciler(fixture.storage) { generation, expected ->
+            assertArrayEquals(candidate.bytes, PasskeyBackupGenerationFormat.encode(generation))
+            assertEquals(candidate.context, generation.context)
+            verified++
+            evidence(expected)
+        }
+        val reconciled = reconciler.reconcile(fixture.operation, reopened, fixture.scope, expectedWallet())
+        assertEquals(
+            PasskeyBackupGenerationReconciliation.LocallyVerified(
+                candidate.context.generationId, candidate.sha256, expectedWallet().publicIdentitySha256
+            ),
+            reconciled
+        )
+        assertFalse(reconciled.toString().contains(candidate.context.generationId))
+        assertEquals(1, verified)
+        assertEquals(listOf("POST", "GET", "GET"), fixture.requests.map { it.method })
+        fails { fixture.storage.createCandidate(fixture.operation, reopened, fixture.scope) }
+        assertEquals(1, fixture.requests.count { it.method == "POST" })
+    }
+
+    @Test
+    fun `reconciliation refuses missing or unsent journal before Drive or local verifier`() = runBlocking {
+        val fixture = fixture()
+        var verified = 0
+        val reconciler = PasskeyBackupGenerationReconciler(fixture.storage) { _, expected ->
+            verified++
+            evidence(expected)
+        }
+        fails { reconciler.reconcile(fixture.operation, fixture.journal, fixture.scope, expectedWallet()) }
+        fixture.journal.persistPrepared(fixture.operation, fixture.candidate(), fixture.scope)
+        fails { reconciler.reconcile(fixture.operation, fixture.journal, fixture.scope, expectedWallet()) }
+        assertEquals(0, verified)
+        assertEquals(0, fixture.accesses)
+        assertTrue(fixture.requests.isEmpty())
+    }
+
+    @Test
+    fun `404 wrong scope and tampered Drive bytes never produce a local verification`() = runBlocking {
+        val missing = fixture().apply { metadataCode = 404 }
+        missing.create(missing.candidate())
+        var verified = 0
+        val missingReconciler = PasskeyBackupGenerationReconciler(missing.storage) { _, expected ->
+            verified++
+            evidence(expected)
+        }
+        assertEquals(
+            PasskeyBackupGenerationReconciliation.NotFound,
+            missingReconciler.reconcile(missing.operation, missing.journal, missing.scope, expectedWallet())
+        )
+        assertEquals(listOf("POST", "GET"), missing.requests.map { it.method })
+        assertEquals(0, verified)
+        missing.metadataCode = 200
+        val reopened = PasskeyBackupGenerationJournal(missing.root, HostJournalDurability())
+        assertTrue(
+            missingReconciler.reconcile(missing.operation, reopened, missing.scope, expectedWallet()) is
+                PasskeyBackupGenerationReconciliation.LocallyVerified
+        )
+        assertEquals(listOf("POST", "GET", "GET", "GET"), missing.requests.map { it.method })
+        assertEquals(1, verified)
+
+        val tampered = fixture()
+        tampered.create(tampered.candidate())
+        val wrongScope = tampered.scope.copy(ownerSubject = "owner:" + JournalFixture.identifier(9))
+        val before = tampered.accesses
+        val reconciler = PasskeyBackupGenerationReconciler(tampered.storage) { _, expected ->
+            verified++
+            evidence(expected)
+        }
+        fails { reconciler.reconcile(tampered.operation, tampered.journal, wrongScope, expectedWallet()) }
+        assertEquals(before, tampered.accesses)
+        tampered.media = GenerationFixture.bytes.also { it[it.lastIndex] = (it.last().toInt() xor 1).toByte() }
+        fails { reconciler.reconcile(tampered.operation, tampered.journal, tampered.scope, expectedWallet()) }
+        assertEquals(1, verified)
+        assertEquals(1, tampered.requests.count { it.method == "POST" })
+    }
+
+    @Test
+    fun `failed verifier cancellation and account switch cannot verify generation`() = runBlocking {
+        val fixture = fixture()
+        fixture.create(fixture.candidate())
+        var attempts = 0
+        val failing = PasskeyBackupGenerationReconciler(fixture.storage) { _, _ ->
+            attempts++
+            if (attempts == 1) error("synthetic decryption failure")
+            throw CancellationException("synthetic verifier cancellation")
+        }
+        fails { failing.reconcile(fixture.operation, fixture.journal, fixture.scope, expectedWallet()) }
+        fails { failing.reconcile(fixture.operation, fixture.journal, fixture.scope, expectedWallet()) }
+        assertEquals(2, attempts)
+        assertEquals(1, fixture.requests.count { it.method == "POST" })
+
+        val switched = fixture()
+        switched.create(switched.candidate())
+        switched.changedSubjectAt = 4 // POST token, metadata GET, media GET, then final selected-account check.
+        var verifierCalled = false
+        val reconciler = PasskeyBackupGenerationReconciler(switched.storage) { _, expected ->
+            verifierCalled = true
+            evidence(expected)
+        }
+        fails { reconciler.reconcile(switched.operation, switched.journal, switched.scope, expectedWallet()) }
+        assertTrue(verifierCalled)
+        assertEquals(1, switched.requests.count { it.method == "POST" })
+        assertFalse(switched.requests.any { it.headers["Authorization"] == "Bearer wrong-token" })
+    }
+
+    @Test
+    fun `wrong wallet and false local signing or export evidence cannot verify`() = runBlocking {
+        val fixture = fixture()
+        fixture.create(fixture.candidate())
+        var calls = 0
+        val verifier = PasskeyBackupGenerationReconciler(fixture.storage) { _, expected ->
+            calls++
+            evidence(expected)
+        }
+        val wrongWallet = PasskeyBackupExpectedWalletIdentity(
+            "wallet-1234", "wallet-other", expectedWallet().publicIdentitySha256
+        )
+        fails { verifier.reconcile(fixture.operation, fixture.journal, fixture.scope, wrongWallet) }
+        assertEquals(0, calls)
+        for (failedCheck in 0..3) {
+            val wrongEvidence = PasskeyBackupGenerationReconciler(fixture.storage) { _, expected ->
+                calls++
+                PasskeyBackupLocalWalletEvidence(
+                    expected.storageKey, expected.walletId,
+                    if (failedCheck == 3) "c".repeat(64) else expected.publicIdentitySha256,
+                    decryptionVerified = failedCheck != 0,
+                    originalKeySigningVerified = failedCheck != 1,
+                    originalKeyExportVerified = failedCheck != 2
+                )
+            }
+            fails { wrongEvidence.reconcile(fixture.operation, fixture.journal, fixture.scope, expectedWallet()) }
+        }
+        assertEquals(4, calls)
+        assertEquals(1, fixture.requests.count { it.method == "POST" })
+    }
+
+    @Test
     fun `409 and even malformed success require exact downloaded digest`() = runBlocking {
         for (status in listOf(409, 500, 401, 403, 301, 302, 307, 308)) {
             val fixture = fixture().apply { postCode = status }
@@ -261,6 +404,15 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
     }
 
     private suspend fun fails(block: suspend () -> Any?) = assertTrue(runCatching { block() }.isFailure)
+
+    private fun expectedWallet() = PasskeyBackupExpectedWalletIdentity(
+        "wallet-1234", "wallet-001", "b".repeat(64)
+    )
+
+    private fun evidence(expected: PasskeyBackupExpectedWalletIdentity) = PasskeyBackupLocalWalletEvidence(
+        expected.storageKey, expected.walletId, expected.publicIdentitySha256,
+        decryptionVerified = true, originalKeySigningVerified = true, originalKeyExportVerified = true
+    )
 
     private class Fixture(val parent: Path) {
         val operation = JournalFixture.identifier(1)

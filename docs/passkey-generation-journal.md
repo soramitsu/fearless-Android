@@ -12,6 +12,27 @@ Prepared files are `<operationId>.prepared.json`; attempt files are `<operationI
 
 The directory is 0700 and files are 0600. Exclusive creation prevents replacement. An in-process mutex and an OS file lock serialize readers and writers across processes. The file is fully written and forced to storage, then the directory is synced before success. Android directory sync uses public `Os.open` with `O_RDONLY|O_NOFOLLOW|O_NONBLOCK`, checks the descriptor with `fstat`/`S_ISDIR`, then calls `Os.fsync`; no hidden numeric flags are used. Existing paths are validated without silently repairing permissions, following symbolic links, accepting hardlinks or truncating a lock file. A crashed partial write remains a blocking record. A surviving complete prepared record is re-synced before a create-attempt marker can be issued.
 
+`PasskeyBackupGenerationReconciler` is the read-only next step after an admitted
+create attempt. It requires a current owner/namespace/Google-account scope and
+expected wallet identity supplied independently of the journal. It reads only
+the journaled Drive ID, validates the exact canonical downloaded FPBKGEN1 bytes
+against the durable candidate and calls a mandatory application-owned local
+verifier. The verifier contract requires PRF unwrap, AES-GCM decryption,
+restored public wallet identity, original-key signing and export. The
+coordinator checks the returned wallet identity and all three proof flags,
+re-reads the journal and rechecks the selected Google subject after that
+asynchronous verification. A 404 is an unknown outcome, not permission for a
+second POST or a new ID. The result is local round-trip evidence only; it does
+not commit an owner head or mark backup complete. No production verifier is
+wired yet, so these paths remain disabled.
+
 Validation: all 200 backup-module JVM tests pass with zero failures/errors/skips, including 14 journal cases and five upload-admission integration cases. These exercise separate-process hard exits and contention, canonical corruption, private paths, bounded retention and no repeated POST. `detektAll` and the test APK build pass under strict offline dependency verification. Two native cases pass on an isolated read-only API 36 arm64 emulator, exercising the production no-backup factory, native Android directory sync, private file attributes, exact 785-byte vector reload and marker replay denial. Host process-crash/emulator tests do not prove physical-device power-loss behavior. Physical-device filesystem durability and remaining supported-API qualification, authenticated head/grant HTTP adapters, actual local decrypt/identity acceptance, enrollment/revocation/rotation and real replacement-device recovery remain release gates. App uninstall, privileged filesystem tampering or rollback are not prevented by this local journal; current authenticated server head/operation status remains necessary.
+
+The matching read-only reconciler raises that JVM suite to 205 tests, with
+zero failures/errors/skips and a clean `detektAll` run. Its tests cover restart
+after a lost upload response, 404, wrong owner scope, tampered media, failed
+local proof/cancellation, account switching and refusal of another POST. The
+verifier in these tests is synthetic; no decrypt/sign/export claim is made for
+production devices.
 
 Primary references: [Android backup-excluded storage](https://developer.android.com/reference/android/content/Context#getNoBackupFilesDir()), [exclusive NIO file creation](https://developer.android.com/reference/java/nio/file/StandardOpenOption#CREATE_NEW), [FileChannel force semantics](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html#force(boolean)), and [Android fsync](https://developer.android.com/reference/android/system/Os#fsync(java.io.FileDescriptor)).

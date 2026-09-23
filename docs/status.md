@@ -1,5 +1,10 @@
 # Status Summary
 
+## Read-only Drive generation reconciliation — 2026-09-23
+
+- The disabled candidate now reconciles an admitted generation under independently supplied owner, account and wallet identities, downloads the exact journaled Drive ID and FPBKGEN1 bytes, requires a no-default local wallet verifier, and rechecks the durable journal and selected Google subject before returning local evidence. A 404 or failed verification cannot authorize another POST or mark backup complete.
+- Validation: 205/205 backup-module JVM tests and `detektAll` pass. The verifier is a test-only fixture; native PRF unwrap/decrypt/sign/export, owner/grant/head integration and real replacement-device proof remain release gates. No recovery flag is enabled.
+
 ## Durable local generation journal candidate — 2026-09-23
 
 - The disabled candidate now persists exact FPBKGEN1 ciphertext, context, digest and preallocated Drive ID in app-private backup-excluded storage. A separate immutable create-attempt marker is synchronized before admission, is required by the public create API, prevents repeated admission across restarts, and retains malformed/partial writes for fail-closed reconciliation.

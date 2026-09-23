@@ -162,6 +162,14 @@ class GoogleDrivePasskeyBackupGenerationStorage(
         )
     }
 
+    /** Recheck the explicit selected-account subject after asynchronous local verification. */
+    internal suspend fun requireSelectedAccount() {
+        currentCoroutineContext().ensureActive()
+        val access = tokenProvider.accessToken()
+        currentCoroutineContext().ensureActive()
+        require(access.subject == accountSubject) { "Drive generation account changed" }
+    }
+
     class Candidate internal constructor(
         val fileId: String,
         val context: PasskeyBackupGeneration.Context,
