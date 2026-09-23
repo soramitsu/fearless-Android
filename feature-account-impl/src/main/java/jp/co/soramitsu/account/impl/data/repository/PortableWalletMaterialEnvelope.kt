@@ -18,15 +18,19 @@ internal object PortableWalletMaterialEnvelope {
     private const val BYTE_MASK = 0xff
     private const val MAX_ENCODED_BYTES = 256 * 1024 - 44 // Existing FPBKAEAD v1 plaintext ceiling.
     private const val MAX_PAYLOAD_BYTES = MAX_ENCODED_BYTES - HEADER_SIZE
+    private const val SEMANTIC_SOURCE_WIRE_VALUE = 3
 
     internal enum class Origin(val wireValue: Int) { ANDROID(1), IOS(2) }
     internal enum class SourceFormat(val wireValue: Int) {
         ANDROID_DRAFT_V2(1),
 
         /** Reserved for the existing iOS in-memory draft; no serializer or installer is wired. */
-        IOS_KEYCHAIN_V2_INVENTORY(2)
+        IOS_KEYCHAIN_V2_INVENTORY(2),
+
+        /** Shared semantic payload grammar; installation remains disabled on both platforms. */
+        PORTABLE_SEMANTIC_V1(SEMANTIC_SOURCE_WIRE_VALUE)
     }
-    internal enum class DerivationMode(val wireValue: Int) { LOCAL_OPAQUE(0) }
+    internal enum class DerivationMode(val wireValue: Int) { LOCAL_OPAQUE(0), PORTABLE(1) }
 
     internal class Record(
         val origin: Origin,
@@ -104,11 +108,17 @@ internal object PortableWalletMaterialEnvelope {
         source: SourceFormat,
         mode: DerivationMode
     ) {
-        val sourceMatchesOrigin = when (origin) {
+        if (source == SourceFormat.PORTABLE_SEMANTIC_V1) {
+            require(mode == DerivationMode.PORTABLE) {
+                "Wallet material envelope source is unsupported"
+            }
+            return
+        }
+        val localSourceMatchesOrigin = when (origin) {
             Origin.ANDROID -> source == SourceFormat.ANDROID_DRAFT_V2
             Origin.IOS -> source == SourceFormat.IOS_KEYCHAIN_V2_INVENTORY
         }
-        require(mode == DerivationMode.LOCAL_OPAQUE && sourceMatchesOrigin) {
+        require(mode == DerivationMode.LOCAL_OPAQUE && localSourceMatchesOrigin) {
             "Wallet material envelope source is unsupported"
         }
     }

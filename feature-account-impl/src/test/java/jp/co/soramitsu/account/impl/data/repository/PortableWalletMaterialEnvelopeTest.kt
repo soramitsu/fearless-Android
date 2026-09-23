@@ -95,5 +95,44 @@ class PortableWalletMaterialEnvelopeTest {
         }
     }
 
+    @Test
+    @Suppress("NestedBlockDepth") // Each origin and mutated record has its own plaintext cleanup.
+    fun `semantic envelope is accepted for either origin and never as local opaque`() {
+        val payload = byteArrayOf(1, 2, 3)
+        PortableWalletMaterialEnvelope.Origin.entries.forEach { origin ->
+            val record = PortableWalletMaterialEnvelope.Record(
+                origin,
+                PortableWalletMaterialEnvelope.SourceFormat.PORTABLE_SEMANTIC_V1,
+                PortableWalletMaterialEnvelope.DerivationMode.PORTABLE,
+                payload
+            )
+            val encoded = codec.encode(record)
+            val decoded = codec.decode(encoded)
+            try {
+                assertEquals(origin, decoded.origin)
+                assertEquals(
+                    PortableWalletMaterialEnvelope.SourceFormat.PORTABLE_SEMANTIC_V1,
+                    decoded.sourceFormat
+                )
+                assertEquals(
+                    PortableWalletMaterialEnvelope.DerivationMode.PORTABLE,
+                    decoded.derivationMode
+                )
+                assertArrayEquals(payload, decoded.payload)
+                assertArrayEquals(encoded, codec.encode(decoded))
+                val invalid = encoded.copyOf().also { it[11] = 0 }
+                try {
+                    assertThrows(IllegalArgumentException::class.java) { codec.decode(invalid) }
+                } finally {
+                    invalid.fill(0)
+                }
+            } finally {
+                decoded.clearPayload()
+                encoded.fill(0)
+            }
+        }
+        payload.fill(0)
+    }
+
     private fun String.hexBytes(): ByteArray = chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 }
