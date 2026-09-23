@@ -5,6 +5,8 @@ import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PublicKeyCredential
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +42,8 @@ object PasskeyBackupContract {
     private const val MIN_CHALLENGE_BYTES = 16
     private const val MAX_CHALLENGE_BYTES = 1024
     private const val USER_ID_BYTES = 32
+    private const val PRF_SALT_BYTES = 32
+    private const val MAX_CREDENTIAL_ID_BYTES = 384
     private const val MAX_DISPLAY_NAME_LENGTH = 128
     private const val MAX_CREATED_AT_MILLIS = 4_102_444_800_000L
     private const val MIN_JSON_CONTROL_CHAR_CODE = 0x20
@@ -99,6 +103,57 @@ object PasskeyBackupContract {
             append("\"userVerification\":\"required\",")
             append("\"timeout\":60000")
             append("}")
+        }
+    }
+
+    /** Native PRF input is public; the resulting output must remain only in the local ceremony result. */
+    fun registrationOptionsJsonWithPrf(
+        challenge: ByteArray,
+        userId: ByteArray,
+        userName: String,
+        displayName: String,
+        prfSalt: ByteArray,
+        rpId: String = PASSKEY_RP_ID
+    ): String {
+        val options = JsonParser.parseString(
+            registrationOptionsJson(challenge, userId, userName, displayName, rpId)
+        ).asJsonObject
+        options.add("extensions", prfExtension(prfSalt))
+        return options.toString()
+    }
+
+    /** A second verified assertion can evaluate the stored salt for one known credential. */
+    fun assertionOptionsJsonWithPrf(
+        challenge: ByteArray,
+        credentialId: String,
+        prfSalt: ByteArray,
+        rpId: String = PASSKEY_RP_ID
+    ): String {
+        val credentialBytes = decodeBase64Url(credentialId, "credential ID")
+        require(credentialBytes.size in 1..MAX_CREDENTIAL_ID_BYTES) {
+            "Passkey credential ID has an invalid length"
+        }
+        val options = JsonParser.parseString(assertionOptionsJson(challenge, rpId)).asJsonObject
+        val allowed = JsonArray().apply {
+            add(
+                JsonObject().apply {
+                    addProperty("type", "public-key")
+                    addProperty("id", credentialId)
+                }
+            )
+        }
+        options.add("allowCredentials", allowed)
+        options.add("extensions", prfExtension(prfSalt))
+        return options.toString()
+    }
+
+    private fun prfExtension(prfSalt: ByteArray): JsonObject {
+        require(prfSalt.size == PRF_SALT_BYTES) { "Passkey PRF salt must be exactly 32 bytes" }
+        return JsonObject().apply {
+            val evaluation = JsonObject().apply {
+                addProperty("first", base64Url(prfSalt))
+            }
+            add("prf", JsonObject().apply { add("eval", evaluation) })
         }
     }
 

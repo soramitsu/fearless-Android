@@ -242,6 +242,12 @@ procedure.
   context binds owner, credential, wallet, backup-envelope metadata, and key
   epoch; the 32-byte backup key is never given to the authority service. The
   fixed cross-platform vector and tamper tests exercise this primitive only.
+  Registration can request evaluation of a public 32-byte PRF salt; if the
+  provider omits the result, a fresh server-verified assertion for that exact
+  credential must evaluate its stored salt. The discoverable authentication
+  assertion remains separate. These request builders do not establish provider
+  support or authorize recovery, and local PRF output must never enter a server
+  credential request, log, or crash report.
   Keep the recoverable key provider unavailable until credential ceremonies,
   wrapper storage in verified immutable Drive generations, key rotation,
   replacement-device tests, and independent review are complete.
