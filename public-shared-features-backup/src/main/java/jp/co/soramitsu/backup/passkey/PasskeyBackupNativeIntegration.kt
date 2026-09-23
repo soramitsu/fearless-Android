@@ -100,12 +100,20 @@ class PasskeyBackupNativeCeremonyResult private constructor(
                 "Credential Manager returned malformed passkey response JSON"
             }
 
+            val credentialId = raw.requiredString("id")
+            val rawId = raw.requiredString("rawId")
+            require(
+                raw.requiredString("type") == "public-key" &&
+                    credentialId == rawId &&
+                    requireCredentialId(credentialId) == credentialId
+            ) { "Credential Manager returned an invalid credential identity" }
+
             // Rebuild from a public-field allowlist. WebAuthn's toJSON() can include
             // clientExtensionResults.prf.results.first, which is wallet key material.
             val public = JsonObject().apply {
-                addProperty("id", raw.requiredString("id"))
-                addProperty("rawId", raw.requiredString("rawId"))
-                addProperty("type", raw.requiredString("type"))
+                addProperty("id", credentialId)
+                addProperty("rawId", rawId)
+                addProperty("type", "public-key")
             }
             val rawResponse = raw.requiredObject("response")
             val publicResponse = JsonObject().apply {

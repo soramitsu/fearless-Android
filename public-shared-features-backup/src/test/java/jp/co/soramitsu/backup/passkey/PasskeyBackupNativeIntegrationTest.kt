@@ -99,6 +99,22 @@ class PasskeyBackupNativeIntegrationTest {
     }
 
     @Test
+    fun `local PRF output is never paired with a substituted credential identity`() {
+        val secret = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(32) { 0x32 })
+        val withPrf = ASSERTION_CREDENTIAL_JSON.replace(
+            "\"clientExtensionResults\":{}",
+            "\"clientExtensionResults\":{\"prf\":{\"results\":{\"first\":\"$secret\"}}}"
+        )
+        listOf(
+            withPrf.replace("\"rawId\":\"AQ\"", "\"rawId\":\"Ag\""),
+            withPrf.replace("\"type\":\"public-key\"", "\"type\":\"password\""),
+            withPrf.replace("\"id\":\"AQ\"", "\"id\":\"AQ==\"")
+        ).forEach { response ->
+            assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(response) }.isFailure)
+        }
+    }
+
+    @Test
     fun `credential manager executor rejects malformed JSON responses`() {
         listOf("", " {} ", "[]", "null", "{").forEach { responseJson ->
             val gateway = RecordingCredentialManagerGateway(
