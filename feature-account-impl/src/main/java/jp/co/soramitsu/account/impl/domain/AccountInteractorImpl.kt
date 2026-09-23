@@ -90,6 +90,13 @@ class AccountInteractorImpl(
         return runCatching { accountRepository.createAccount(payload) }
     }
 
+    override suspend fun createAccountFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Result<Long> {
+        return runCatching { accountRepository.createAccountFromBackup(payload, ethereumPrivateKeyHex) }
+    }
+
     override suspend fun saveChainSelectFilter(metaId: Long, filterValue: String){
         walletInteractor.saveChainSelectFilter(metaId, filterValue)
     }

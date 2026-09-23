@@ -4,6 +4,7 @@ import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.AndroidUniversalWalletMigrationSnapshotBuilder
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.backup.BackupService
@@ -112,6 +113,39 @@ class AccountInteractorImplTest {
 
             assertTrue(interactor.isPinCorrect("0000"))
         }
+    }
+
+    @Test
+    fun `backup creation passes the original EVM key without writing through another path`() = runBlocking {
+        val payload = AddAccountPayload.SubstrateOrEvm(
+            accountName = "Recovered wallet",
+            mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+            encryptionType = CryptoType.ED25519,
+            substrateDerivationPath = "",
+            ethereumDerivationPath = "",
+            googleBackupAddress = "backup-address",
+            isBackedUp = true
+        )
+        val originalKey = "synthetic-key"
+        accountRepository = interfaceProxy { method, args ->
+            when (method.name) {
+                "createAccountFromBackup" -> {
+                    assertEquals(payload, args?.get(0))
+                    assertEquals(originalKey, args?.get(1))
+                    77L
+                }
+                else -> unexpectedCall(method)
+            }
+        }
+        val interactor = AccountInteractorImpl(
+            accountRepository = accountRepository,
+            fileProvider = fileProvider,
+            preferences = preferences,
+            backupService = backupService,
+            walletInteractor = walletInteractor
+        )
+
+        assertEquals(77L, interactor.createAccountFromBackup(payload, originalKey).getOrThrow())
     }
 
     @Test

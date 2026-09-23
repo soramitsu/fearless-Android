@@ -10,10 +10,12 @@ import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.data.storage.encrypt.WalletRecoveryRequiredException
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
@@ -21,6 +23,7 @@ import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
@@ -31,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -40,6 +44,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -93,6 +98,142 @@ class AccountRepositoryRecoveryFlowTest {
         verify(delegate).create(payload)
         verify(metaAccountDao, never()).selectMetaAccount(any())
         verify(accountDataSource, never()).selectMetaAccount(any())
+        verifyNoInteractions(coordinator)
+    }
+
+    @Test
+    fun `repository backup import reaches the atomic Substrate and EVM creator`() = runTest {
+        val accountDataSource = mock<AccountDataSource>()
+        val metaAccountDao = mock<MetaAccountDao>()
+        val coordinator = mock<WalletSecretMutationCoordinator>()
+        val substrateOrEvm = mock<SubstrateOrEvmAccountRepository>()
+        val ton = mock<TonAccountRepository>()
+        val delegate = AccountRepositoryDelegate(substrateOrEvm, ton)
+        val repository = accountRepository(accountDataSource, metaAccountDao, delegate, coordinator)
+        val payload = AddAccountPayload.SubstrateOrEvm(
+            accountName = "Recovered wallet",
+            mnemonic = VALID_MNEMONIC,
+            encryptionType = CryptoType.ED25519,
+            substrateDerivationPath = "",
+            ethereumDerivationPath = "",
+            googleBackupAddress = "backup-address",
+            isBackedUp = true
+        )
+        val originalKey = "synthetic-key"
+        whenever(substrateOrEvm.createFromBackup(payload, originalKey)).thenReturn(NEW_META_ID)
+
+        assertEquals(NEW_META_ID, repository.createAccountFromBackup(payload, originalKey))
+
+        verify(substrateOrEvm).createFromBackup(payload, originalKey)
+        verifyNoInteractions(accountDataSource, metaAccountDao, coordinator, ton)
+    }
+
+    @Test
+    fun `backup creation keeps an independent EVM key in the same wallet mutation`() = runTest {
+        val coordinator = mock<WalletSecretMutationCoordinator>()
+        whenever(coordinator.create(any(), any(), any(), isNull())).thenReturn(NEW_META_ID)
+        val repository = SubstrateOrEvmAccountRepository(
+            metaAccountDao = mock(),
+            walletSecretMutationCoordinator = coordinator
+        )
+        val privateKey = ByteArray(32).apply { this[lastIndex] = 7 }
+        val payload = AddAccountPayload.SubstrateOrEvm(
+            accountName = "Recovered wallet",
+            mnemonic = VALID_MNEMONIC,
+            encryptionType = CryptoType.ED25519,
+            substrateDerivationPath = "",
+            ethereumDerivationPath = "",
+            googleBackupAddress = "backup-address",
+            isBackedUp = true
+        )
+
+        assertEquals(
+            NEW_META_ID,
+            repository.createFromBackup(payload, "0x" + Hex.toHexString(privateKey))
+        )
+
+        val wallet = argumentCaptor<MetaAccountLocal>()
+        val ethereumSecret = argumentCaptor<String>()
+        verify(coordinator).create(wallet.capture(), any(), ethereumSecret.capture(), isNull())
+        val expectedKeypair = EthereumKeypairFactory.createWithPrivateKey(privateKey)
+        val restored = EthereumSecrets.read(ethereumSecret.firstValue)
+        val restoredKeypair = restored[EthereumSecrets.EthereumKeypair]
+        assertArrayEquals(expectedKeypair.publicKey, wallet.firstValue.ethereumPublicKey)
+        assertArrayEquals(
+            expectedKeypair.publicKey.ethereumAddressFromPublicKey(),
+            wallet.firstValue.ethereumAddress
+        )
+        assertArrayEquals(expectedKeypair.privateKey, restoredKeypair[KeyPairSchema.PrivateKey])
+        assertArrayEquals(expectedKeypair.privateKey, restored[EthereumSecrets.Seed])
+        assertEquals(null, restored[EthereumSecrets.Entropy])
+        assertEquals(null, restored[EthereumSecrets.EthereumDerivationPath])
+        assertEquals(
+            ethereumSecret.firstValue,
+            WalletRootSecretValidator.validateEthereumAndSanitize(
+                encoded = ethereumSecret.firstValue,
+                expectedPublicKey = requireNotNull(wallet.firstValue.ethereumPublicKey),
+                expectedAddress = requireNotNull(wallet.firstValue.ethereumAddress)
+            )
+        )
+        verifyNoMoreInteractions(coordinator)
+    }
+
+    @Test
+    fun `backup creation retains mnemonic export when EVM key matches derivation`() = runTest {
+        val coordinator = mock<WalletSecretMutationCoordinator>()
+        whenever(coordinator.create(any(), any(), any(), isNull())).thenReturn(NEW_META_ID)
+        val repository = SubstrateOrEvmAccountRepository(
+            metaAccountDao = mock(),
+            walletSecretMutationCoordinator = coordinator
+        )
+        val payload = AddAccountPayload.SubstrateOrEvm(
+            accountName = "Recovered wallet",
+            mnemonic = VALID_MNEMONIC,
+            encryptionType = CryptoType.ED25519,
+            substrateDerivationPath = "",
+            ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH,
+            googleBackupAddress = "backup-address",
+            isBackedUp = true
+        )
+
+        repository.create(payload)
+        val originalSecrets = argumentCaptor<String>()
+        verify(coordinator).create(any(), any(), originalSecrets.capture(), isNull())
+        val original = EthereumSecrets.read(originalSecrets.firstValue)
+        val originalPrivateKey = original[EthereumSecrets.EthereumKeypair][KeyPairSchema.PrivateKey]
+
+        repository.createFromBackup(payload, "0x" + Hex.toHexString(originalPrivateKey))
+
+        val allSecrets = argumentCaptor<String>()
+        verify(coordinator, org.mockito.kotlin.times(2)).create(any(), any(), allSecrets.capture(), isNull())
+        assertEquals(allSecrets.firstValue, allSecrets.secondValue)
+        assertArrayEquals(
+            requireNotNull(original[EthereumSecrets.Entropy]),
+            requireNotNull(EthereumSecrets.read(allSecrets.secondValue)[EthereumSecrets.Entropy])
+        )
+    }
+
+    @Test
+    fun `invalid backed-up EVM key is rejected before wallet creation`() = runTest {
+        val coordinator = mock<WalletSecretMutationCoordinator>()
+        val repository = SubstrateOrEvmAccountRepository(
+            metaAccountDao = mock(),
+            walletSecretMutationCoordinator = coordinator
+        )
+        val payload = AddAccountPayload.SubstrateOrEvm(
+            accountName = "Recovered wallet",
+            mnemonic = VALID_MNEMONIC,
+            encryptionType = CryptoType.ED25519,
+            substrateDerivationPath = "",
+            ethereumDerivationPath = "",
+            googleBackupAddress = null,
+            isBackedUp = true
+        )
+
+        expectFailure<IllegalArgumentException> {
+            repository.createFromBackup(payload, "0x1234")
+        }
+
         verifyNoInteractions(coordinator)
     }
 

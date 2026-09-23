@@ -187,6 +187,13 @@ class AccountRepositoryImpl(
         return accountRepositoryDelegate.create(payload)
     }
 
+    override suspend fun createAccountFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Long {
+        return accountRepositoryDelegate.createFromBackup(payload, ethereumPrivateKeyHex)
+    }
+
     override suspend fun deleteAccount(metaId: Long) {
         walletSecretMutationCoordinator.delete(metaId)
     }

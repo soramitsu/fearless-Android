@@ -1,5 +1,10 @@
 # Status Summary
 
+## Legacy Google backup EVM-root preservation — 2026-09-23
+
+- The legacy backup importer now uses the original backed-up EVM private key when a Substrate mnemonic is also present. Both roots enter one durable wallet creation; malformed keys fail before that mutation and import `Result` failures no longer advance the success state. Matching mnemonic-derived keys retain their original entropy/export metadata.
+- [The wallet-material inventory](portable-wallet-material-inventory.md) records the still-missing TON, V2 chain-key, multi-wallet and original-key verification work. The public backup service remains an unavailable compatibility stub, and portable passkey recovery remains disabled.
+
 ## Legacy Drive backup readback verification — 2026-09-23
 
 - The disabled single-file passkey path now refuses to report save success until it downloads the same storage key, checks every record field and the exact encrypted bytes, then authenticates the downloaded envelope with the local recoverable key. Both registration paths compensate by revoking only the newly registered credential if the readback is missing, changed or undecryptable; the coordinator also fails closed. Existing single-file saves still refuse overwrites.

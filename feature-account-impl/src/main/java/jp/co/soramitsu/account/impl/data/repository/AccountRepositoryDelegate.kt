@@ -14,12 +14,14 @@ import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.scale.toHexString
+import org.bouncycastle.util.encoders.Hex
 import org.ton.api.pk.PrivateKeyEd25519
 
 class AccountRepositoryDelegate(
@@ -33,6 +35,11 @@ class AccountRepositoryDelegate(
             is AddAccountPayload.AdditionalEvm -> substrateOrEvmAccountRepository.createAdditional(payload)
         }
     }
+
+    suspend fun createFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Long = substrateOrEvmAccountRepository.createFromBackup(payload, ethereumPrivateKeyHex)
 }
 
 class SubstrateOrEvmAccountRepository(
@@ -90,7 +97,18 @@ class SubstrateOrEvmAccountRepository(
         }
     }
 
-    suspend fun create(payload: AddAccountPayload.SubstrateOrEvm): Long {
+    suspend fun create(payload: AddAccountPayload.SubstrateOrEvm): Long =
+        createWithEthereumPrivateKey(payload, ethereumPrivateKeyHex = null)
+
+    suspend fun createFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Long = createWithEthereumPrivateKey(payload, ethereumPrivateKeyHex)
+
+    private suspend fun createWithEthereumPrivateKey(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String?
+    ): Long {
         val substrateDerivationPathOrNull = payload.substrateDerivationPath.nullIfEmpty()
         val decodedDerivationPath = substrateDerivationPathOrNull?.let {
             SubstrateJunctionDecoder.decode(it)
@@ -107,16 +125,34 @@ class SubstrateOrEvmAccountRepository(
             junctions = decodedDerivationPath?.junctions.orEmpty()
         )
 
-        val decodedEthereumDerivationPath =
+        val backedUpEthereumKeypair = ethereumPrivateKeyHex?.let {
+            val privateKeyHex = it.removePrefix("0x")
+            require(privateKeyHex.length == 64 && privateKeyHex.all { it.digitToIntOrNull(16) != null }) {
+                "Invalid backed-up Ethereum private key"
+            }
+            EthereumKeypairFactory.createWithPrivateKey(Hex.decode(privateKeyHex))
+        }
+        val decodedEthereumDerivationPath = try {
             BIP32JunctionDecoder.decode(payload.ethereumDerivationPath)
-        val ethereumSeed = EthereumSeedFactory.deriveSeed32(
-            payload.mnemonic,
-            password = decodedEthereumDerivationPath.password
-        ).seed
-        val ethereumKeypair = EthereumKeypairFactory.generate(
-            ethereumSeed,
-            junctions = decodedEthereumDerivationPath.junctions
-        )
+        } catch (failure: Exception) {
+            if (
+                backedUpEthereumKeypair == null ||
+                (failure !is JunctionDecoder.DecodingError && failure !is BIP32JunctionDecoder.DecodingError)
+            ) {
+                throw failure
+            }
+            null
+        }
+        val mnemonicEthereumKeypair = decodedEthereumDerivationPath?.let { decodedPath ->
+            val ethereumSeed = EthereumSeedFactory.deriveSeed32(
+                payload.mnemonic,
+                password = decodedPath.password
+            ).seed
+            EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedPath.junctions)
+        }
+        val ethereumKeypair = backedUpEthereumKeypair ?: requireNotNull(mnemonicEthereumKeypair)
+        val ethereumUsesMnemonic = backedUpEthereumKeypair == null ||
+            mnemonicEthereumKeypair?.privateKey?.contentEquals(backedUpEthereumKeypair.privateKey) == true
 
         val metaAccount = MetaAccountLocal(
             substratePublicKey = keys.publicKey,
@@ -141,10 +177,10 @@ class SubstrateOrEvmAccountRepository(
         )
 
         val ethereumSecrets = EthereumSecrets(
-            entropy = derivationResult.mnemonic.entropy,
+            entropy = if (ethereumUsesMnemonic) derivationResult.mnemonic.entropy else null,
             seed = ethereumKeypair.privateKey,
             ethereumKeypair = ethereumKeypair,
-            ethereumDerivationPath = payload.ethereumDerivationPath
+            ethereumDerivationPath = payload.ethereumDerivationPath.takeIf { ethereumUsesMnemonic }
         )
 
         return try {

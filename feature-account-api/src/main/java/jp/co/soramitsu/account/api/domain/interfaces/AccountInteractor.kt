@@ -31,6 +31,12 @@ interface AccountInteractor {
 
     suspend fun createAccount(payload: AddAccountPayload): Result<Long>
 
+    /** Import both roots from a decrypted legacy backup in one durable wallet creation. */
+    suspend fun createAccountFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Result<Long>
+
     suspend fun importFromSeed(
         walletId: Long?,
         substrateSeed: String?,
