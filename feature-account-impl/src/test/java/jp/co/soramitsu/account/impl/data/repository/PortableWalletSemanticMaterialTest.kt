@@ -300,10 +300,25 @@ class PortableWalletSemanticMaterialTest {
             bytes(field.ACCOUNT_ID_OR_ADDRESS, 0xff), bytes(field.SOURCE_RECIPE, 0),
             bytes(field.TON_CONTRACT_VERSION, 2), bytes(field.TON_ADDRESS_ENCODING, 2)
         )
+        val wrongTonContract = slot(
+            role.TON_ROOT, "",
+            bytes(field.PUBLIC_KEY, 1), bytes(field.PRIVATE_KEY, 2),
+            PortableWalletSemanticMaterial.Field(field.ACCOUNT_ID_OR_ADDRESS, ByteArray(33)),
+            bytes(field.SOURCE_RECIPE, 0), bytes(field.TON_CONTRACT_VERSION, 1),
+            bytes(field.TON_ADDRESS_ENCODING, 1)
+        )
+        val wrongWatchContract = slot(
+            role.WATCH_IDENTITY, "0000",
+            PortableWalletSemanticMaterial.Field(field.ACCOUNT_ID_OR_ADDRESS, ByteArray(33)),
+            bytes(field.TON_CONTRACT_VERSION, 0), bytes(field.TON_ADDRESS_ENCODING, 1),
+            bytes(field.WATCH_ECOSYSTEM, 3)
+        )
         val malformed = listOf(
             PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet(slots = listOf(missingTonAddress)))),
             PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet(slots = listOf(wrongCanonicalAddress)))),
             PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet(slots = listOf(nonUtf8TonSwiftAddress)))),
+            PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet(slots = listOf(wrongTonContract)))),
+            PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet(slots = listOf(wrongWatchContract)))),
             PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet(slots = listOf(evmSlot(), wrongSource))))
         )
         try {

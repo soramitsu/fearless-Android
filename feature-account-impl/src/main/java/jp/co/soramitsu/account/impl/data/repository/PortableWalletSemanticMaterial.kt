@@ -485,7 +485,7 @@ internal object PortableWalletSemanticMaterial {
                     else -> 0..0
                 }
             )
-            FieldId.TON_CONTRACT_VERSION -> requireOneByteIn(value, 0..2)
+            FieldId.TON_CONTRACT_VERSION -> requireOneByteIn(value, 2..2) // Released Wallet V4R2 only.
             FieldId.TON_ADDRESS_ENCODING -> requireOneByteIn(value, 1..2)
             FieldId.SOURCE_PLATFORM -> requireOneByteIn(value, 1..2)
             FieldId.SOURCE_SLOT_ROLE -> requireOneByteIn(value, 1..14)
