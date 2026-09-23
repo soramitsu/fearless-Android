@@ -3,22 +3,39 @@ package jp.co.soramitsu.backup.passkey
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermissions
 
 class GoogleDrivePasskeyBackupGenerationStorageTest {
+    private val journals = mutableListOf<Path>()
+
+    @After
+    fun removeSyntheticJournals() { journals.forEach { it.toFile().deleteRecursively() } }
+
+    private fun fixture(): Fixture {
+        val parent = Files.createTempDirectory("generation-upload-journal").toRealPath()
+        journals.add(parent)
+        return Fixture(parent)
+    }
+
     @Test
     fun `allocate create and download uses same subject only immutable exact ID paths`() = runBlocking {
-        val fixture = Fixture()
+        val fixture = fixture()
         val id = fixture.storage.allocateFileId()
         assertEquals("allocated-file", id)
         val candidate = fixture.storage.prepareCandidate(id, GenerationFixture.generation())
-        assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.ACKNOWLEDGED, fixture.storage.createCandidate(candidate))
+        assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.ACKNOWLEDGED, fixture.create(candidate))
         val downloaded = fixture.storage.readCandidate(id, candidate.context, candidate.sha256)
         assertArrayEquals(candidate.bytes, PasskeyBackupGenerationFormat.encode(requireNotNull(downloaded)))
         assertEquals(listOf("GET", "POST", "GET", "GET"), fixture.requests.map { it.method })
@@ -42,10 +59,10 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
 
     @Test
     fun `unknown uploaded outcome reconciles exact ID without second create or replacement`() = runBlocking {
-        val fixture = Fixture()
+        val fixture = fixture()
         val candidate = fixture.candidate()
         fixture.postFailure = IOException("synthetic lost response")
-        assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.RECONCILE_REQUIRED, fixture.storage.createCandidate(candidate))
+        assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.RECONCILE_REQUIRED, fixture.create(candidate))
         val downloaded = fixture.storage.readCandidate(candidate.fileId, candidate.context, candidate.sha256)
         assertArrayEquals(candidate.bytes, PasskeyBackupGenerationFormat.encode(requireNotNull(downloaded)))
         assertEquals(listOf("POST", "GET", "GET"), fixture.requests.map { it.method })
@@ -55,29 +72,96 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
     @Test
     fun `409 and even malformed success require exact downloaded digest`() = runBlocking {
         for (status in listOf(409, 500, 401, 403, 301, 302, 307, 308)) {
-            val fixture = Fixture().apply { postCode = status }
+            val fixture = fixture().apply { postCode = status }
             val candidate = fixture.candidate()
-            assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.RECONCILE_REQUIRED, fixture.storage.createCandidate(candidate))
+            assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.RECONCILE_REQUIRED, fixture.create(candidate))
             assertEquals(1, fixture.requests.size)
         }
-        val fixture = Fixture().apply { postMetadata = "{}".toByteArray() }
-        assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.RECONCILE_REQUIRED, fixture.storage.createCandidate(fixture.candidate()))
+        val fixture = fixture().apply { postMetadata = "{}".toByteArray() }
+        assertEquals(GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome.RECONCILE_REQUIRED, fixture.create(fixture.candidate()))
         fixture.media = GenerationFixture.bytes.also { it[it.lastIndex] = (it.last().toInt() xor 1).toByte() }
         fails { fixture.storage.readCandidate("allocated-file", GenerationFixture.context, GenerationFixture.digest) }
     }
 
     @Test
     fun `cancellation does not retry delete or declare upload complete`() = runBlocking {
-        val fixture = Fixture().apply { postFailure = CancellationException("synthetic cancellation") }
-        val failure = runCatching { fixture.storage.createCandidate(fixture.candidate()) }.exceptionOrNull()
+        val fixture = fixture().apply { postFailure = CancellationException("synthetic cancellation") }
+        val failure = runCatching { fixture.create(fixture.candidate()) }.exceptionOrNull()
         assertTrue(failure is CancellationException)
+        assertEquals(listOf("POST"), fixture.requests.map { it.method })
+    }
+
+    @Test
+    fun `missing wrong scope and corrupt attempt cannot reach token or POST`() = runBlocking {
+        val fixture = fixture()
+        fails { fixture.storage.createCandidate(fixture.operation, fixture.journal, fixture.scope) }
+        fixture.journal.persistPrepared(fixture.operation, fixture.candidate(), fixture.scope)
+        for (wrong in listOf(
+            fixture.scope.copy(ownerSubject = "owner:" + JournalFixture.identifier(2)),
+            fixture.scope.copy(backupNamespace = "backup:" + JournalFixture.identifier(2)),
+            fixture.scope.copy(storageAccountBinding = "bb".repeat(32))
+        )) {
+            fails { fixture.storage.createCandidate(fixture.operation, fixture.journal, wrong) }
+        }
+        val marker = fixture.root.resolve(fixture.operation + PasskeyBackupJournalDisk.ATTEMPT_SUFFIX)
+        assertFalse(Files.exists(marker))
+        Files.write(marker, byteArrayOf(1))
+        Files.setPosixFilePermissions(marker, PosixFilePermissions.fromString("rw-------"))
+        fails { fixture.storage.createCandidate(fixture.operation, fixture.journal, fixture.scope) }
+        assertEquals(0, fixture.accesses)
+        assertTrue(fixture.requests.isEmpty())
+    }
+
+    @Test
+    fun `acknowledged lost cancelled and account changed admissions never POST again after reopen`() = runBlocking {
+        for (mode in listOf("acknowledged", "lost", "cancelled", "account")) {
+            val fixture = fixture().apply {
+                if (mode == "lost") postFailure = IOException("synthetic lost response")
+                if (mode == "cancelled") postFailure = CancellationException("synthetic cancellation")
+                if (mode == "account") changedSubjectAt = 1
+            }
+            runCatching { fixture.create(fixture.candidate()) }
+            val reopened = PasskeyBackupGenerationJournal(fixture.root, HostJournalDurability())
+            assertTrue(requireNotNull(reopened.read(fixture.operation, fixture.scope)).createAttemptRecorded)
+            fails { fixture.storage.createCandidate(fixture.operation, reopened, fixture.scope) }
+            assertEquals(if (mode == "account") 0 else 1, fixture.requests.count { it.method == "POST" })
+            assertEquals(1, fixture.accesses)
+        }
+    }
+
+    @Test
+    fun `durable marker acknowledgement failure never reaches POST and denies later admission`() = runBlocking {
+        val fixture = fixture()
+        fixture.journal.persistPrepared(fixture.operation, fixture.candidate(), fixture.scope)
+        val journal = PasskeyBackupGenerationJournal(
+            fixture.root,
+            HostJournalDurability {
+                if (it == JournalDurabilityPoint.ATTEMPT_DIRECTORY_SYNCED) error("synthetic sync acknowledgement loss")
+            }
+        )
+        fails { fixture.storage.createCandidate(fixture.operation, journal, fixture.scope) }
+        assertTrue(requireNotNull(fixture.journal.read(fixture.operation, fixture.scope)).createAttemptRecorded)
+        fails { fixture.storage.createCandidate(fixture.operation, fixture.journal, fixture.scope) }
+        assertEquals(0, fixture.accesses)
+        assertTrue(fixture.requests.isEmpty())
+    }
+
+    @Test
+    fun `competing upload callers admit exactly one durable POST`() = runBlocking {
+        val fixture = fixture()
+        fixture.journal.persistPrepared(fixture.operation, fixture.candidate(), fixture.scope)
+        val results = (1..2).map {
+            async { runCatching { fixture.storage.createCandidate(fixture.operation, fixture.journal, fixture.scope) } }
+        }.awaitAll()
+        assertEquals(1, results.count { it.isSuccess })
+        assertEquals(1, results.count { it.isFailure })
         assertEquals(listOf("POST"), fixture.requests.map { it.method })
     }
 
     @Test
     fun `observed missing content is not an automatic recreate or delete`() = runBlocking {
         for (atMetadata in listOf(true, false)) {
-            val fixture = Fixture().apply { if (atMetadata) metadataCode = 404 else mediaCode = 404 }
+            val fixture = fixture().apply { if (atMetadata) metadataCode = 404 else mediaCode = 404 }
             assertEquals(null, fixture.storage.readCandidate("allocated-file", GenerationFixture.context, GenerationFixture.digest))
             assertTrue(fixture.requests.all { it.method == "GET" })
             assertEquals(if (atMetadata) 1 else 2, fixture.requests.size)
@@ -87,11 +171,11 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
     @Test
     fun `account switch at every network boundary blocks the switched bearer`() = runBlocking {
         for (switchAt in 1..4) {
-            val fixture = Fixture().apply { changedSubjectAt = switchAt }
+            val fixture = fixture().apply { changedSubjectAt = switchAt }
             val failure = runCatching {
                 val id = fixture.storage.allocateFileId()
                 val candidate = fixture.storage.prepareCandidate(id, GenerationFixture.generation())
-                fixture.storage.createCandidate(candidate)
+                fixture.create(candidate)
                 fixture.storage.readCandidate(id, candidate.context, candidate.sha256)
             }.exceptionOrNull()
             assertTrue(failure is IllegalArgumentException)
@@ -102,7 +186,7 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
 
     @Test
     fun `unsafe file IDs foreign storage context and malformed digest never request token`() = runBlocking {
-        val fixture = Fixture()
+        val fixture = fixture()
         for (id in listOf("", "../file", "file?redirect", "a".repeat(257))) {
             fails { fixture.storage.prepareCandidate(id, GenerationFixture.generation()) }
             fails { fixture.storage.readCandidate(id, GenerationFixture.context, GenerationFixture.digest) }
@@ -129,7 +213,7 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
             """{"kind":"drive#generatedIds","space":"appDataFolder","ids":["../bad"]}""",
             " ".repeat(8193)
         )) {
-            val fixture = Fixture().apply { allocation = body.toByteArray() }
+            val fixture = fixture().apply { allocation = body.toByteArray() }
             fails { fixture.storage.allocateFileId() }
         }
     }
@@ -148,17 +232,22 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
             valid.deepCopy().apply { getAsJsonObject("appProperties").addProperty("bundleSha256", "bb".repeat(32)) },
             valid.deepCopy().apply { getAsJsonObject("appProperties").addProperty("namespaceSha256", "bb".repeat(32)) }
         )) {
-            val fixture = Fixture().apply { returnedMetadata = json.toString().toByteArray() }
+            val fixture = fixture().apply { returnedMetadata = json.toString().toByteArray() }
             fails { fixture.storage.readCandidate("allocated-file", GenerationFixture.context, GenerationFixture.digest) }
             assertEquals(1, fixture.requests.size)
         }
-        val fixture = Fixture().apply { media = GenerationFixture.bytes + 0 }
+        val fixture = fixture().apply { media = GenerationFixture.bytes + 0 }
         fails { fixture.storage.readCandidate("allocated-file", GenerationFixture.context, GenerationFixture.digest) }
     }
 
     private suspend fun fails(block: suspend () -> Any?) = assertTrue(runCatching { block() }.isFailure)
 
-    private class Fixture {
+    private class Fixture(val parent: Path) {
+        val operation = JournalFixture.identifier(1)
+        val scope = JournalFixture.scope
+        val root: Path = parent.resolve("journal")
+        val journal = PasskeyBackupGenerationJournal(root, HostJournalDurability())
+
         val requests = mutableListOf<GoogleDriveHttpRequest>()
         var accesses = 0
         var changedSubjectAt = Int.MAX_VALUE
@@ -195,6 +284,13 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
                 }
             }
         )
+
+        suspend fun create(
+            candidate: GoogleDrivePasskeyBackupGenerationStorage.Candidate
+        ): GoogleDrivePasskeyBackupGenerationStorage.CreateOutcome {
+            journal.persistPrepared(operation, candidate, scope)
+            return storage.createCandidate(operation, journal, scope)
+        }
 
         fun candidate() = storage.prepareCandidate("allocated-file", GenerationFixture.generation())
     }

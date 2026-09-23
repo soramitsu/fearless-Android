@@ -1,11 +1,17 @@
 # Status Summary
 
+## Durable local generation journal candidate — 2026-09-23
+
+- The disabled candidate now persists exact FPBKGEN1 ciphertext, context, digest and preallocated Drive ID in app-private backup-excluded storage. A separate immutable create-attempt marker is synchronized before admission, is required by the public create API, prevents repeated admission across restarts, and retains malformed/partial writes for fail-closed reconciliation.
+- Strict reload checks enforce canonical bounded records, independent owner/account scope, private file permissions, no symlinks/hardlinks, a 64-entry cap and cross-process locking. Reusing a Drive ID or generation under another operation is rejected.
+- Validation: 199/199 backup-module JVM tests, `detektAll`, test APK build and 2/2 native API 36 emulator cases pass. All 35 captured module source/resource hashes remain unchanged. Physical-device durability and recovery/coordinator acceptance remain open; see `docs/passkey-generation-journal.md`. No owner head is promoted, no generation is deleted and no recovery flag is enabled.
+
 ## Immutable Drive generation primitive — 2026-09-23
 
 - The disabled FPBKGEN1 candidate preserves original FPBKAEAD metadata/ciphertext and FPBKWRP1 wrappers, binds owner/namespace/parent/epoch/storage subject, and uses canonical bounded bytes. Its independent Node vector is 785 bytes, SHA-256 `1c92b544dc25c687c202317d0e5747b5690a1056cf72e61d1dfab84c07c057a4`.
 - A separate subject-bound Drive store preallocates appData file IDs, creates one-shot immutable candidates, and downloads exact ID/digest/context. It has no PATCH/delete/automatic retry or head update. Lost/409/malformed create outcomes require reconciliation; an upload acknowledgment or parsed download is not decryption proof.
 - All 181 backup-module JVM tests pass with zero failures/errors/skips, including 17 generation tests and a full 256 KiB legacy envelope with 32 wrappers under the separate 512 KiB generation bound. `detektAll` passes under strict offline dependency verification; all 28 captured module source/resource hashes remained unchanged during validation.
-- Recovery stays disabled. Durable upload journal, native decryption/identity acceptance, owner-head/grant HTTP integration and transactional lifecycle coordination, real Google/provider and replacement-device qualification remain incomplete. See `docs/passkey-generation-v1.md`.
+- Recovery stays disabled. Native decryption/identity acceptance, owner-head/grant HTTP integration and transactional lifecycle coordination, real Google/provider and replacement-device qualification remain incomplete. See `docs/passkey-generation-v1.md`.
 
 ## Passkey Drive subject binding — 2026-09-23
 

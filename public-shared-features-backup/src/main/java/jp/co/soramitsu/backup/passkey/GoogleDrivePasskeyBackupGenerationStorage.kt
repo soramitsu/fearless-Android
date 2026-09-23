@@ -2,8 +2,10 @@ package jp.co.soramitsu.backup.passkey
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -39,10 +41,23 @@ class GoogleDrivePasskeyBackupGenerationStorage(
 
     /**
      * Even ACKNOWLEDGED requires a separate download, local decryption and owner-authorized CAS.
-     * Cancellation or any thrown error after POST admission also leaves an unknown upload outcome.
-     * Retry only the same journaled candidate; this method never retries or allocates a replacement ID.
+     * Durable admission is consumed before any POST. Cancellation or error afterward requires read-only reconciliation
+     * of the same journaled candidate; this method cannot admit another POST or allocate a replacement ID.
+     * Scope must come from current authenticated owner/account state, never from the journal being loaded.
      */
-    suspend fun createCandidate(candidate: Candidate): CreateOutcome {
+    suspend fun createCandidate(
+        operationId: String,
+        journal: PasskeyBackupGenerationJournal,
+        expectedScope: PasskeyBackupJournalEntry.Scope
+    ): CreateOutcome {
+        currentCoroutineContext().ensureActive()
+        require(expectedScope.storageAccountBinding == accountBinding) { "Generation storage account mismatch" }
+        val entry = withContext(Dispatchers.IO) { journal.markCreateAttempt(operationId, expectedScope) }
+        currentCoroutineContext().ensureActive()
+        return postCandidate(entry.candidate)
+    }
+
+    private suspend fun postCandidate(candidate: Candidate): CreateOutcome {
         require(candidate.context.storageAccountBinding == accountBinding) { "Generation storage account mismatch" }
         val metadata = JsonObject().apply {
             addProperty("id", candidate.fileId)

@@ -8,6 +8,7 @@ android {
     defaultConfig {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -17,6 +18,18 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
+    }
+
+    sourceSets {
+        // Public synthetic protocol vector only; never production wallet material.
+        androidTest.assets.srcDirs += files("$projectDir/src/test/resources")
+    }
+
+    packaging {
+        resources {
+            // Duplicate JVM multi-release metadata is not consumed by Android.
+            excludes += ["META-INF/versions/**"]
+        }
     }
 }
 
@@ -33,4 +46,13 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.kotlinx.coroutines.test
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.ext.junit
+}
+
+// Child JVMs exercise process crashes and OS file locking without relying on Gradle's worker classloader shape.
+tasks.withType(Test).configureEach {
+    doFirst {
+        systemProperty 'fearless.backup.journal.testClasspath', classpath.asPath
+    }
 }
