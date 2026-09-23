@@ -8,13 +8,18 @@ import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.Base64
 import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
+import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
+import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 
 /**
  * Android-only plaintext draft. This is deliberately not the cross-platform backup wire format and
@@ -22,7 +27,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
  */
 internal object PortableWalletMaterialDraft {
     private const val MAGIC = "FPWMDT01"
-    private const val VERSION = 1
+    private const val VERSION = 2
     private const val MAX_BYTES = 256 * 1024 - 44 // FPBKAEAD v1 plaintext ceiling.
     private const val MAX_WALLETS = 128
     private const val MAX_CHAINS = 128
@@ -42,13 +47,15 @@ internal object PortableWalletMaterialDraft {
         val substrateSecret: ByteArray?,
         val ethereumSecret: ByteArray?,
         val tonSecret: ByteArray?,
-        val chainSecrets: List<ByteArray>
+        val chainSecrets: List<ByteArray>,
+        val legacySubstrateSource: LegacySubstrateSource? = null
     ) {
         fun clearSecrets() {
             substrateSecret?.fill(0)
             ethereumSecret?.fill(0)
             tonSecret?.fill(0)
             chainSecrets.forEach { it.fill(0) }
+            legacySubstrateSource?.clearSecrets()
         }
 
         override fun toString(): String = "PortableWalletMaterialDraft.Wallet(redacted)"
@@ -84,16 +91,44 @@ internal object PortableWalletMaterialDraft {
 
     internal data class FavoriteIdentity(val chainId: String, val isFavorite: Boolean)
 
+    /** A distinct V1 source, retained even when a V3 root also exists. Never substitute it for V3. */
+    internal class LegacySubstrateSource(
+        val accountAddress: String,
+        val sourceType: SourceType,
+        val publicKey: ByteArray,
+        val privateKey: ByteArray,
+        val nonce: ByteArray?,
+        val entropy: ByteArray?,
+        val seed: ByteArray?,
+        val mnemonic: String?,
+        val derivationPath: String?
+    ) {
+        fun clearSecrets() {
+            privateKey.fill(0)
+            nonce?.fill(0)
+            entropy?.fill(0)
+            seed?.fill(0)
+        }
+
+        override fun toString(): String = "PortableWalletMaterialDraft.LegacySubstrateSource(redacted)"
+    }
+
+    internal enum class SourceType { CREATE, SEED, JSON, MNEMONIC, UNSPECIFIED }
+
     fun encode(snapshot: Snapshot): ByteArray {
         requireValid(snapshot)
         val output = BoundedOutputStream()
-        DataOutputStream(output).use { writer ->
-            writer.write(MAGIC.toByteArray(Charsets.US_ASCII))
-            writer.writeInt(VERSION)
-            writer.writeInt(snapshot.wallets.size)
-            snapshot.wallets.forEach { wallet -> writer.writeWallet(wallet) }
+        try {
+            DataOutputStream(output).use { writer ->
+                writer.write(MAGIC.toByteArray(Charsets.US_ASCII))
+                writer.writeInt(VERSION)
+                writer.writeInt(snapshot.wallets.size)
+                snapshot.wallets.forEach { wallet -> writer.writeWallet(wallet) }
+            }
+            return output.toByteArray()
+        } finally {
+            output.clear()
         }
-        return output.toByteArray()
     }
 
     fun decode(encoded: ByteArray): Snapshot {
@@ -129,7 +164,7 @@ internal object PortableWalletMaterialDraft {
             require(identity.id > 0 && identity.position >= 0 && identity.hasMaterialIdentity()) {
                 "Portable wallet identity is invalid"
             }
-            requireText(identity.name)
+            validateText(identity.name)
             require((identity.substratePublicKey == null) == (identity.substrateCryptoType == null) &&
                 (identity.substratePublicKey == null) == (identity.substrateAccountId == null)) {
                 "Portable Substrate identity is incomplete"
@@ -137,7 +172,8 @@ internal object PortableWalletMaterialDraft {
             require((identity.ethereumPublicKey == null) == (identity.ethereumAddress == null)) {
                 "Portable Ethereum identity is incomplete"
             }
-            require((identity.substratePublicKey == null) == (wallet.substrateSecret == null) &&
+            require((identity.substratePublicKey == null) ==
+                (wallet.substrateSecret == null && wallet.legacySubstrateSource == null) &&
                 (identity.ethereumPublicKey == null) == (wallet.ethereumSecret == null) &&
                 (identity.tonPublicKey == null) == (wallet.tonSecret == null)) {
                 "Portable wallet root material is incomplete"
@@ -145,7 +181,8 @@ internal object PortableWalletMaterialDraft {
             identity.substratePublicKey?.let { publicKey ->
                 requireCryptoType(identity.substrateCryptoType!!)
                 requirePublicId(identity.substrateAccountId!!)
-                requirePublicKeyMatches(wallet.substrateSecret!!, publicKey, SecretKind.SUBSTRATE)
+                wallet.substrateSecret?.let { requirePublicKeyMatches(it, publicKey, SecretKind.SUBSTRATE) }
+                wallet.legacySubstrateSource?.let { requireLegacySource(it, identity) }
             }
             identity.ethereumPublicKey?.let { publicKey ->
                 requirePublicId(identity.ethereumAddress!!)
@@ -160,8 +197,8 @@ internal object PortableWalletMaterialDraft {
             }
             requireStrictOrder(identity.chainAccounts.map(ChainIdentity::chainId))
             identity.chainAccounts.zip(wallet.chainSecrets).forEach { (chain, secret) ->
-                requireText(chain.chainId)
-                requireText(chain.name)
+                validateText(chain.chainId)
+                validateText(chain.name)
                 requirePublicId(chain.accountId)
                 requireCryptoType(chain.cryptoType)
                 requirePublicKeyMatches(secret, chain.publicKey, SecretKind.CHAIN)
@@ -170,11 +207,77 @@ internal object PortableWalletMaterialDraft {
                 "Portable favorite-chain count is invalid"
             }
             requireStrictOrder(identity.favoriteChains.map(FavoriteIdentity::chainId))
-            identity.favoriteChains.forEach { requireText(it.chainId) }
+            identity.favoriteChains.forEach { validateText(it.chainId) }
         }
     }
 
     private enum class SecretKind { SUBSTRATE, ETHEREUM, TON, CHAIN }
+
+    private fun requireLegacySource(source: LegacySubstrateSource, identity: WalletIdentity) {
+        validateText(source.accountAddress)
+        val addressAccountId = try {
+            source.accountAddress.toAccountId()
+        } catch (_: Exception) {
+            throw IllegalArgumentException("Portable V1 account address is invalid")
+        }
+        require(addressAccountId.contentEquals(requirePublicId(identity.substrateAccountId!!))) {
+            "Portable V1 account address mismatch"
+        }
+        require(source.publicKey.contentEquals(requirePublicId(identity.substratePublicKey!!))) {
+            "Portable V1 public identity mismatch"
+        }
+        require(source.publicKey.size in 1..MAX_PUBLIC_ID_BYTES &&
+            source.privateKey.size in 1..MAX_SECRET_BYTES &&
+            (source.nonce == null || source.nonce.size in 1..MAX_SECRET_BYTES) &&
+            (source.seed == null || source.seed.size in 1..MAX_SECRET_BYTES) &&
+            (source.entropy == null || source.entropy.size in 1..MAX_SECRET_BYTES)) {
+            "Portable V1 source size is invalid"
+        }
+        source.mnemonic?.let(::validateText)
+        source.derivationPath?.let(::validateText)
+        require((source.mnemonic != null) == (source.entropy != null)) {
+            "Portable V1 mnemonic entropy is incomplete"
+        }
+        require(when (source.sourceType) {
+            SourceType.CREATE, SourceType.MNEMONIC -> source.mnemonic != null
+            SourceType.SEED -> source.mnemonic == null
+            SourceType.JSON, SourceType.UNSPECIFIED ->
+                source.mnemonic == null && source.derivationPath == null
+        }) { "Portable V1 source type is inconsistent" }
+        if (source.sourceType == SourceType.UNSPECIFIED) {
+            require(source.seed == null) { "Portable V1 unspecified source has unexpected seed" }
+        }
+        source.mnemonic?.let { words ->
+            val derived = try {
+                MnemonicCreator.fromWords(words).entropy
+            } catch (_: Exception) {
+                throw IllegalArgumentException("Portable V1 mnemonic is invalid")
+            }
+            try {
+                require(derived.contentEquals(source.entropy)) {
+                    "Portable V1 mnemonic entropy mismatch"
+                }
+            } finally {
+                derived.fill(0)
+            }
+        }
+        val keypair = Keypair(source.publicKey, source.privateKey, source.nonce)
+        val securitySource = when (source.sourceType) {
+            SourceType.CREATE -> SecuritySource.Specified.Create(
+                source.seed, keypair, source.mnemonic!!, source.derivationPath)
+            SourceType.SEED -> SecuritySource.Specified.Seed(source.seed, keypair, source.derivationPath)
+            SourceType.JSON -> SecuritySource.Specified.Json(source.seed, keypair)
+            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(
+                source.seed, keypair, source.mnemonic!!, source.derivationPath)
+            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(keypair)
+        }
+        WalletRootSecretValidator.validateLegacySubstrateSource(
+            securitySource,
+            requirePublicId(identity.substratePublicKey!!),
+            CryptoType.valueOf(identity.substrateCryptoType!!),
+            requirePublicId(identity.substrateAccountId!!)
+        )
+    }
 
     private fun requirePublicKeyMatches(secret: ByteArray, publicKey: String, kind: SecretKind) {
         require(secret.size in 1..MAX_SECRET_BYTES) { "Portable wallet secret size is invalid" }
@@ -210,7 +313,7 @@ internal object PortableWalletMaterialDraft {
     }
 
     private fun requirePublicId(value: String): ByteArray {
-        requireText(value)
+        validateText(value)
         val decoded = try { Base64.getDecoder().decode(value) } catch (_: IllegalArgumentException) {
             throw IllegalArgumentException("Portable public identity encoding is invalid")
         }
@@ -222,10 +325,19 @@ internal object PortableWalletMaterialDraft {
 
     private fun requireText(value: String): ByteArray {
         val bytes = value.toByteArray(Charsets.UTF_8)
-        require(bytes.size <= MAX_TEXT_BYTES && strictUtf8(bytes) == value) {
-            "Portable wallet text is invalid"
+        try {
+            require(bytes.size <= MAX_TEXT_BYTES && strictUtf8(bytes) == value) {
+                "Portable wallet text is invalid"
+            }
+            return bytes
+        } catch (failure: Exception) {
+            bytes.fill(0)
+            throw failure
         }
-        return bytes
+    }
+
+    private fun validateText(value: String) {
+        requireText(value).fill(0)
     }
 
     private fun strictUtf8(bytes: ByteArray): String = Charsets.UTF_8.newDecoder()
@@ -255,6 +367,18 @@ internal object PortableWalletMaterialDraft {
         writeOptionalBytes(wallet.substrateSecret)
         writeOptionalBytes(wallet.ethereumSecret)
         writeOptionalBytes(wallet.tonSecret)
+        writeByte(if (wallet.legacySubstrateSource == null) 0 else 1)
+        wallet.legacySubstrateSource?.let { source ->
+            writeText(source.accountAddress)
+            writeText(source.sourceType.name)
+            writeBytes(source.publicKey)
+            writeBytes(source.privateKey)
+            writeOptionalBytes(source.nonce)
+            writeOptionalBytes(source.entropy)
+            writeOptionalBytes(source.seed)
+            writeOptionalText(source.mnemonic)
+            writeOptionalText(source.derivationPath)
+        }
         writeInt(identity.chainAccounts.size)
         identity.chainAccounts.zip(wallet.chainSecrets).forEach { (chain, secret) ->
             writeText(chain.chainId)
@@ -287,12 +411,42 @@ internal object PortableWalletMaterialDraft {
         var substrateSecret: ByteArray? = null
         var ethereumSecret: ByteArray? = null
         var tonSecret: ByteArray? = null
+        var legacySource: LegacySubstrateSource? = null
         val chains = ArrayList<ChainIdentity>()
         val chainSecrets = ArrayList<ByteArray>()
         try {
             substrateSecret = readOptionalBytes()
             ethereumSecret = readOptionalBytes()
             tonSecret = readOptionalBytes()
+            if (readBooleanCanonical()) {
+                val address = readText()
+                val type = try {
+                    SourceType.valueOf(readText())
+                } catch (_: Exception) {
+                    throw IllegalArgumentException("Portable V1 source type is invalid")
+                }
+                val publicKey = readBytes()
+                val privateKey = readBytes()
+                var nonce: ByteArray? = null
+                var entropy: ByteArray? = null
+                var seed: ByteArray? = null
+                try {
+                    nonce = readOptionalBytes()
+                    entropy = readOptionalBytes()
+                    seed = readOptionalBytes()
+                    legacySource = LegacySubstrateSource(
+                        address, type, publicKey, privateKey, nonce, entropy, seed,
+                        readOptionalText(), readOptionalText()
+                    )
+                } finally {
+                    if (legacySource == null) {
+                        privateKey.fill(0)
+                        nonce?.fill(0)
+                        entropy?.fill(0)
+                        seed?.fill(0)
+                    }
+                }
+            }
             repeat(readBoundedCount(MAX_CHAINS)) {
                 chains += ChainIdentity(readText(), readText(), readText(), readText(), readText(), readBooleanCanonical())
                 chainSecrets += readBytes()
@@ -305,12 +459,13 @@ internal object PortableWalletMaterialDraft {
                 WalletIdentity(id, name, selected, position, initialized, substratePublicKey,
                     substrateCryptoType, substrateAccountId, ethereumPublicKey, ethereumAddress,
                     tonPublicKey, chains, favorites),
-                substrateSecret, ethereumSecret, tonSecret, chainSecrets
+                substrateSecret, ethereumSecret, tonSecret, chainSecrets, legacySource
             )
         } catch (failure: Exception) {
             substrateSecret?.fill(0)
             ethereumSecret?.fill(0)
             tonSecret?.fill(0)
+            legacySource?.clearSecrets()
             chainSecrets.forEach { it.fill(0) }
             throw failure
         }
@@ -318,8 +473,12 @@ internal object PortableWalletMaterialDraft {
 
     private fun DataOutputStream.writeText(value: String) {
         val bytes = requireText(value)
-        writeInt(bytes.size)
-        write(bytes)
+        try {
+            writeInt(bytes.size)
+            write(bytes)
+        } finally {
+            bytes.fill(0)
+        }
     }
 
     private fun DataOutputStream.writeOptionalText(value: String?) {
@@ -352,8 +511,12 @@ internal object PortableWalletMaterialDraft {
         val size = readInt()
         require(size in 0..MAX_TEXT_BYTES && size <= available()) { "Portable wallet text size is invalid" }
         val bytes = ByteArray(size)
-        readFully(bytes)
-        return strictUtf8(bytes)
+        try {
+            readFully(bytes)
+            return strictUtf8(bytes)
+        } finally {
+            bytes.fill(0)
+        }
     }
 
     private fun DataInputStream.readOptionalText(): String? = if (readBooleanCanonical()) readText() else null
@@ -367,6 +530,12 @@ internal object PortableWalletMaterialDraft {
     private fun DataInputStream.readOptionalBytes(): ByteArray? = if (readBooleanCanonical()) readBytes() else null
 
     private class BoundedOutputStream : ByteArrayOutputStream() {
+        fun clear() {
+            // toByteArray() returns a copy; erase the staging copy on every exit.
+            buf.fill(0)
+            reset()
+        }
+
         override fun write(value: Int) {
             require(count < MAX_BYTES) { "Portable wallet material exceeds the encrypted-envelope limit" }
             super.write(value)

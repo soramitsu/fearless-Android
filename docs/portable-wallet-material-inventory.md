@@ -34,13 +34,25 @@ requires an agreed cross-platform format, lossless migration for all rows above,
 locked-storage and interruption tests, real replacement-device restoration, and
 original-key signing/export evidence before backup completion is allowed.
 
-The Android `PortableWalletMaterialPreflight` remains the read-only coverage
-gate. An additional internal `captureDraftPlaintext` path now takes the
+The Android `PortableWalletMaterialPreflight` remains the non-exporting coverage
+gate. An additional internal `captureDraftPlaintext` path takes the
 cross-store mutation lock, reads every V3 root and V2 chain secret through the
 identity-validated repository, checks the durable public inventory again, and
 returns one bounded local draft record. It preserves separate Substrate, EVM
 and native TON roots, exact encoded keypairs and metadata, every chain-account
-secret, wallet order/selection and favorite chains. Backup status and the old
+secret, wallet order/selection and favorite chains. It also enumerates bounded
+active V1 address keys, rejects malformed aliases, duplicate ownership and
+valid addresses without a durable wallet owner, and captures V1 source
+material only through `AccountRepositoryImpl.getSecuritySource`, which enforces
+the existing recovery guard and original-wallet cryptographic validation.
+Unowned active keys remain untouched for explicit local reconciliation; they
+cannot be silently omitted from an eligible portable draft.
+The inventory reads key names without decryption; guarded secret reads may
+durably quarantine corrupt secrets under the existing wallet safety policy.
+V1 source type, original SS58 address, exact keypair/nonce, optional seed and
+path, mnemonic and its validated derived entropy occupy a separate slot; no
+V3 root or V2 key is overwritten. V1 storage has no original entropy field,
+so entropy is derived only when its mnemonic is present. Backup status and the old
 Google backup address remain local operation state and are not trusted from the
 record. Root and chain secret bytes are cleared after encoding; callers own
 and must erase the returned plaintext. The strict draft decoder rejects
@@ -49,13 +61,14 @@ oversized fields and public-key mismatches.
 
 The draft is Android-only and has no Drive/upload or restore/installer call
 site. It is **not** the reviewed iOS/Android plaintext contract and cannot
-establish portable recovery. V1-only and watch-only cohorts still fail closed.
+establish portable recovery. Watch-only cohorts still fail closed.
 Its semantic secret slots are explicit, though their current bytes use Android
 SCALE schemas and are not iOS-readable:
 
 | Draft slot | Exact validated Android material currently retained |
 | --- | --- |
 | `substrateSecret` | V3 `SubstrateSecrets`: optional original entropy, optional seed, public/private keypair, optional SR25519 nonce, optional derivation path. |
+| `legacySubstrateSource` | V1 source type, exact original SS58 address and keypair/nonce, optional seed, mnemonic-derived entropy and derivation path. Captured separately from any V3 root. |
 | `ethereumSecret` | Independent V3 `EthereumSecrets`: optional original entropy and seed, public/private EVM keypair, optional derivation path. It remains present even when a Substrate phrase also exists. |
 | `tonSecret` | V3 `TonSecrets`: original native TON seed bytes, private key and public key. It is never derived from the Substrate root. |
 | `chainSecrets[i]` | V2 `ChainAccountSecrets` for the explicitly named chain/account/crypto identity: optional entropy and seed, public/private keypair, optional nonce and derivation path. |

@@ -1,90 +1,113 @@
 package jp.co.soramitsu.account.impl.data.repository
 
+import java.util.Base64
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
+import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.WithDerivationPath
+import jp.co.soramitsu.core.model.WithMnemonic
+import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
-import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.scale.toByteArray
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.Base64
 
 private typealias WalletIdentity = PortableWalletMaterialDraft.WalletIdentity
 private typealias ChainIdentity = PortableWalletMaterialDraft.ChainIdentity
 private typealias FavoriteIdentity = PortableWalletMaterialDraft.FavoriteIdentity
+private typealias LegacySource = PortableWalletMaterialDraft.LegacySubstrateSource
 
 /** Wallet-owned local material inventory; the draft capture is internal and has no upload path. */
 class PortableWalletMaterialPreflight @Inject constructor(
     private val metaAccountDao: MetaAccountDao,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val encryptedPreferences: EncryptedPreferences
 ) {
     data class Coverage(
         val walletCount: Int,
         val substrateRootCount: Int,
         val ethereumRootCount: Int,
         val tonRootCount: Int,
-        val chainAccountCount: Int
+        val chainAccountCount: Int,
+        val legacyV1SourceCount: Int = 0
     )
 
     /**
-     * Fail closed if a persisted wallet cannot be read through the validated V3/V2 paths.
-     * Historical V1-only and watch-only material remain unsupported by portable backup until
-     * a reviewed cross-platform format and restore path can preserve them explicitly.
+     * Fail closed unless every persisted signing identity has a validated V3, V2 or V1 source.
+     * This establishes local material coverage only; no cross-platform restore is wired.
      */
     suspend fun verifyCoverage(): Coverage = withContext(Dispatchers.IO) {
-        val before = snapshot(metaAccountDao.getJoinedMetaAccountsInfo())
-        check(before.isNotEmpty()) { "No wallets are available for portable backup" }
+        WalletCrossStoreMutationMutex.instance.withLock {
+            val before = snapshot(metaAccountDao.getJoinedMetaAccountsInfo())
+            check(before.isNotEmpty()) { "No wallets are available for portable backup" }
+            val legacyAddresses = discoverLegacyAddresses(before)
 
-        var substrateRoots = 0
-        var ethereumRoots = 0
-        var tonRoots = 0
-        var chainAccounts = 0
-        before.forEach { wallet ->
-            check(!accountRepository.isWalletRecoveryRequired(wallet.id)) {
-                "A wallet requires recovery before portable backup"
-            }
-            check(wallet.hasMaterialIdentity()) {
-                "A wallet has no recoverable identity"
+            var substrateRoots = 0
+            var ethereumRoots = 0
+            var tonRoots = 0
+            var chainAccounts = 0
+            var legacySources = 0
+            before.forEach { wallet ->
+                check(!accountRepository.isWalletRecoveryRequired(wallet.id)) {
+                    "A wallet requires recovery before portable backup"
+                }
+                check(wallet.hasMaterialIdentity()) {
+                    "A wallet has no recoverable identity"
+                }
+
+                if (wallet.substratePublicKey != null) {
+                    val v3 = accountRepository.getSubstrateSecrets(wallet.id)
+                    val legacyAddress = legacyAddresses[wallet.id]
+                    check(v3 != null || legacyAddress != null) {
+                        "Substrate wallet material is unavailable for portable backup"
+                    }
+                    if (v3 != null) substrateRoots++
+                    if (legacyAddress != null) {
+                        accountRepository.getSecuritySource(legacyAddress)
+                        legacySources++
+                    }
+                }
+                if (wallet.ethereumPublicKey != null) {
+                    check(accountRepository.getEthereumSecrets(wallet.id) != null) {
+                        "Ethereum wallet material is unavailable for portable backup"
+                    }
+                    ethereumRoots++
+                }
+                if (wallet.tonPublicKey != null) {
+                    check(accountRepository.getTonSecrets(wallet.id) != null) {
+                        "TON wallet material is unavailable for portable backup"
+                    }
+                    tonRoots++
+                }
+                wallet.chainAccounts.forEach { chain ->
+                    check(accountRepository.getChainAccountSecrets(wallet.id, chain.chainId) != null) {
+                        "Chain-account material is unavailable for portable backup"
+                    }
+                    chainAccounts++
+                }
             }
 
-            if (wallet.substratePublicKey != null) {
-                check(accountRepository.getSubstrateSecrets(wallet.id) != null) {
-                    "Substrate wallet material is unavailable for portable backup"
-                }
-                substrateRoots++
+            check(before == snapshot(metaAccountDao.getJoinedMetaAccountsInfo())) {
+                "Wallet identities changed during portable-backup material validation"
             }
-            if (wallet.ethereumPublicKey != null) {
-                check(accountRepository.getEthereumSecrets(wallet.id) != null) {
-                    "Ethereum wallet material is unavailable for portable backup"
-                }
-                ethereumRoots++
+            check(legacyAddresses == discoverLegacyAddresses(before)) {
+                "Legacy V1 source inventory changed during portable-backup validation"
             }
-            if (wallet.tonPublicKey != null) {
-                check(accountRepository.getTonSecrets(wallet.id) != null) {
-                    "TON wallet material is unavailable for portable backup"
+            before.forEach { wallet ->
+                check(!accountRepository.isWalletRecoveryRequired(wallet.id)) {
+                    "A wallet requires recovery before portable backup"
                 }
-                tonRoots++
             }
-            wallet.chainAccounts.forEach { chain ->
-                check(accountRepository.getChainAccountSecrets(wallet.id, chain.chainId) != null) {
-                    "Chain-account material is unavailable for portable backup"
-                }
-                chainAccounts++
-            }
+
+            Coverage(before.size, substrateRoots, ethereumRoots, tonRoots, chainAccounts, legacySources)
         }
-
-        check(before == snapshot(metaAccountDao.getJoinedMetaAccountsInfo())) {
-            "Wallet identities changed during portable-backup material validation"
-        }
-        before.forEach { wallet ->
-            check(!accountRepository.isWalletRecoveryRequired(wallet.id)) {
-                "A wallet requires recovery before portable backup"
-            }
-        }
-
-        Coverage(before.size, substrateRoots, ethereumRoots, tonRoots, chainAccounts)
     }
 
     /**
@@ -96,6 +119,7 @@ class PortableWalletMaterialPreflight @Inject constructor(
         WalletCrossStoreMutationMutex.instance.withLock {
             val before = snapshot(metaAccountDao.getJoinedMetaAccountsInfo())
             check(before.isNotEmpty()) { "No wallets are available for portable backup" }
+            val legacyAddresses = discoverLegacyAddresses(before)
             val captured = ArrayList<PortableWalletMaterialDraft.Wallet>(before.size)
             try {
                 before.forEach { identity ->
@@ -105,13 +129,20 @@ class PortableWalletMaterialPreflight @Inject constructor(
                     var substrate: ByteArray? = null
                     var ethereum: ByteArray? = null
                     var ton: ByteArray? = null
+                    var legacySource: LegacySource? = null
                     val chains = ArrayList<ByteArray>(identity.chainAccounts.size)
                     var retained = false
                     try {
                         substrate = identity.substratePublicKey?.let {
-                            checkNotNull(accountRepository.getSubstrateSecrets(identity.id)) {
+                            accountRepository.getSubstrateSecrets(identity.id)?.toByteArray()
+                        }
+                        legacySource = legacyAddresses[identity.id]?.let { address ->
+                            makeLegacySource(address, accountRepository.getSecuritySource(address))
+                        }
+                        if (identity.substratePublicKey != null) {
+                            check(substrate != null || legacySource != null) {
                                 "Substrate wallet material is unavailable for portable backup"
-                            }.toByteArray()
+                            }
                         }
                         ethereum = identity.ethereumPublicKey?.let {
                             checkNotNull(accountRepository.getEthereumSecrets(identity.id)) {
@@ -128,19 +159,25 @@ class PortableWalletMaterialPreflight @Inject constructor(
                                 "Chain-account material is unavailable for portable backup"
                             }.toByteArray()
                         }
-                        captured += PortableWalletMaterialDraft.Wallet(identity, substrate, ethereum, ton, chains)
+                        captured += PortableWalletMaterialDraft.Wallet(
+                            identity, substrate, ethereum, ton, chains, legacySource
+                        )
                         retained = true
                     } finally {
                         if (!retained) {
                             substrate?.fill(0)
                             ethereum?.fill(0)
                             ton?.fill(0)
+                            legacySource?.clearSecrets()
                             chains.forEach { it.fill(0) }
                         }
                     }
                 }
                 check(before == snapshot(metaAccountDao.getJoinedMetaAccountsInfo())) {
                     "Wallet identities changed during portable-backup material capture"
+                }
+                check(legacyAddresses == discoverLegacyAddresses(before)) {
+                    "Legacy V1 source inventory changed during portable-backup capture"
                 }
                 before.forEach { identity ->
                     check(!accountRepository.isWalletRecoveryRequired(identity.id)) {
@@ -208,4 +245,71 @@ class PortableWalletMaterialPreflight @Inject constructor(
         Base64.getEncoder().encodeToString(it)
     }
 
+    private fun discoverLegacyAddresses(wallets: List<WalletIdentity>): Map<Long, String> {
+        val candidates = encryptedPreferences.keysWithPrefixes(
+            prefixes = setOf(LEGACY_V1_PREFIX),
+            maxResultCount = 4_096,
+            maxKeyBytes = 256,
+            maxTotalKeyBytes = 524_288,
+            failOnOversizedMatch = true
+        )
+        val addresses = linkedMapOf<Long, String>()
+        candidates.sorted().forEach { key ->
+            check(key.startsWith(LEGACY_V1_PREFIX)) { "Legacy V1 source inventory is invalid" }
+            val address = key.removePrefix(LEGACY_V1_PREFIX)
+            check(address.length in MIN_SS58_ADDRESS_CHARS..MAX_SS58_ADDRESS_CHARS &&
+                BASE58_ADDRESS.matches(address)) {
+                "A legacy V1 source has an invalid SS58 address"
+            }
+            val accountId = try {
+                address.toAccountId()
+            } catch (_: Exception) {
+                error("A legacy V1 source has ambiguous SS58 ownership")
+            }
+            check(accountId.size == SUBSTRATE_ACCOUNT_ID_BYTES) {
+                "A legacy V1 source has ambiguous SS58 ownership"
+            }
+            val id = Base64.getEncoder().encodeToString(accountId)
+            val matches = wallets.filter { it.substrateAccountId == id }
+            check(matches.isNotEmpty()) { "A legacy V1 source has no durable wallet owner" }
+            check(matches.size <= 1) { "Multiple wallets claim one legacy V1 source" }
+            val wallet = matches.single()
+            check(addresses.putIfAbsent(wallet.id, address) == null) {
+                "A wallet has multiple legacy V1 source aliases"
+            }
+        }
+        return addresses
+    }
+
+    private fun makeLegacySource(address: String, source: SecuritySource): LegacySource {
+        val type = when (source) {
+            is SecuritySource.Specified.Create -> PortableWalletMaterialDraft.SourceType.CREATE
+            is SecuritySource.Specified.Seed -> PortableWalletMaterialDraft.SourceType.SEED
+            is SecuritySource.Specified.Json -> PortableWalletMaterialDraft.SourceType.JSON
+            is SecuritySource.Specified.Mnemonic -> PortableWalletMaterialDraft.SourceType.MNEMONIC
+            is SecuritySource.Unspecified -> PortableWalletMaterialDraft.SourceType.UNSPECIFIED
+            else -> error("An unsupported V1 source type cannot be captured")
+        }
+        val mnemonic = (source as? WithMnemonic)?.mnemonic
+        val entropy = mnemonic?.let { MnemonicCreator.fromWords(it).entropy }
+        return LegacySource(
+            accountAddress = address,
+            sourceType = type,
+            publicKey = source.keypair.publicKey.copyOf(),
+            privateKey = source.keypair.privateKey.copyOf(),
+            nonce = (source.keypair as? Sr25519Keypair)?.nonce?.copyOf(),
+            entropy = entropy,
+            seed = (source as? WithSeed)?.seed?.copyOf(),
+            mnemonic = mnemonic,
+            derivationPath = (source as? WithDerivationPath)?.derivationPath
+        )
+    }
+
+    private companion object {
+        const val LEGACY_V1_PREFIX = "security_source_"
+        const val MIN_SS58_ADDRESS_CHARS = 47
+        const val MAX_SS58_ADDRESS_CHARS = 64
+        const val SUBSTRATE_ACCOUNT_ID_BYTES = 32
+        val BASE58_ADDRESS = Regex("^[1-9A-HJ-NP-Za-km-z]+$")
+    }
 }

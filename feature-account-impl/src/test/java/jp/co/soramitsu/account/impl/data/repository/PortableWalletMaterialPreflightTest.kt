@@ -1,23 +1,34 @@
 package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets as chainSecrets
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets as ethereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets as substrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.data.secrets.v3.TonSecrets as tonSecrets
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.utils.deriveSeed32
+import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
+import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.toByteArray
-import jp.co.soramitsu.common.data.Keypair
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets as ethereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets as substrateSecrets
-import jp.co.soramitsu.common.data.secrets.v3.TonSecrets as tonSecrets
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -35,11 +46,14 @@ import org.mockito.kotlin.whenever
 class PortableWalletMaterialPreflightTest {
     private val metaAccountDao = mock<MetaAccountDao>()
     private val accountRepository = mock<AccountRepository>()
-    private val preflight = PortableWalletMaterialPreflight(metaAccountDao, accountRepository)
+    private val encryptedPreferences = mock<EncryptedPreferences>()
+    private val preflight = PortableWalletMaterialPreflight(metaAccountDao, accountRepository, encryptedPreferences)
 
     @Before
     fun setUp() {
         runBlocking { whenever(accountRepository.isWalletRecoveryRequired(any())).thenReturn(false) }
+        whenever(encryptedPreferences.keysWithPrefixes(any(), any(), any(), any(), any()))
+            .thenReturn(emptySet())
     }
 
     @Test
@@ -79,7 +93,7 @@ class PortableWalletMaterialPreflightTest {
     }
 
     @Test
-    fun `rejects a legacy-only wallet until its material has an explicit portable representation`(): Unit = runBlocking {
+    fun `rejects a wallet with no persisted Substrate material`(): Unit = runBlocking {
         whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(wallet(3, substrate = true)))
 
         assertThrows(IllegalStateException::class.java) {
@@ -87,6 +101,194 @@ class PortableWalletMaterialPreflightTest {
         }
 
         verify(accountRepository).getSubstrateSecrets(3)
+    }
+
+    @Test
+    fun `captures V1-only mnemonic seed path and exact keypair with original address`(): Unit = runBlocking {
+        val fixture = legacyFixture()
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(fixture.wallet))
+        v1Keys("security_source_${fixture.address}")
+        whenever(accountRepository.getSecuritySource(fixture.address)).thenReturn(fixture.source)
+
+        assertEquals(
+            PortableWalletMaterialPreflight.Coverage(1, 0, 0, 0, 0, 1),
+            preflight.verifyCoverage()
+        )
+        val encoded = preflight.captureDraftPlaintext()
+        val decoded = PortableWalletMaterialDraft.decode(encoded)
+        try {
+            val wallet = decoded.wallets.single()
+            assertEquals(null, wallet.substrateSecret)
+            val legacy = wallet.legacySubstrateSource!!
+            assertEquals(fixture.address, legacy.accountAddress)
+            assertEquals(PortableWalletMaterialDraft.SourceType.MNEMONIC, legacy.sourceType)
+            assertEquals(fixture.mnemonic, legacy.mnemonic)
+            assertEquals(fixture.path, legacy.derivationPath)
+            assertArrayEquals(fixture.entropy, legacy.entropy)
+            assertArrayEquals(fixture.seed, legacy.seed)
+            assertArrayEquals(fixture.source.keypair.publicKey, legacy.publicKey)
+            assertArrayEquals(fixture.source.keypair.privateKey, legacy.privateKey)
+            assertArrayEquals(encoded, PortableWalletMaterialDraft.encode(decoded))
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
+    fun `retains independent V1 source alongside V3 without replacing V3 bytes`(): Unit = runBlocking {
+        val fixture = legacyFixture()
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(fixture.wallet))
+        v1Keys("security_source_${fixture.address}")
+        whenever(accountRepository.getSecuritySource(fixture.address)).thenReturn(fixture.source)
+        val v3 = substrateSecrets(
+            substrateKeyPair = fixture.source.keypair,
+            entropy = fixture.entropy,
+            seed = fixture.seed,
+            substrateDerivationPath = fixture.path
+        )
+        whenever(accountRepository.getSubstrateSecrets(1)).thenReturn(v3)
+
+        assertEquals(
+            PortableWalletMaterialPreflight.Coverage(1, 1, 0, 0, 0, 1),
+            preflight.verifyCoverage()
+        )
+        val encoded = preflight.captureDraftPlaintext()
+        val decoded = PortableWalletMaterialDraft.decode(encoded)
+        try {
+            assertArrayEquals(v3.toByteArray(), decoded.wallets.single().substrateSecret)
+            assertEquals(fixture.address, decoded.wallets.single().legacySubstrateSource!!.accountAddress)
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
+    fun `captures V1 direct key without inventing mnemonic entropy or seed`(): Unit = runBlocking {
+        val keypair = EthereumKeypairFactory.createWithPrivateKey(ByteArray(32) { (it + 1).toByte() })
+        val accountId = keypair.publicKey.substrateAccountId()
+        val address = accountId.toAddress(0)
+        val wallet = MetaAccountLocal(
+            substratePublicKey = keypair.publicKey,
+            substrateCryptoType = CryptoType.ECDSA,
+            substrateAccountId = accountId,
+            ethereumPublicKey = null,
+            ethereumAddress = null,
+            tonPublicKey = null,
+            name = "Direct key",
+            isSelected = true,
+            position = 0,
+            isBackedUp = false,
+            googleBackupAddress = null,
+            initialized = true
+        ).apply { id = 1 }
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(
+            listOf(RelationJoinedMetaAccountInfo(wallet, emptyList(), emptyList()))
+        )
+        v1Keys("security_source_$address")
+        whenever(accountRepository.getSecuritySource(address)).thenReturn(SecuritySource.Unspecified(keypair))
+
+        val encoded = preflight.captureDraftPlaintext()
+        val decoded = PortableWalletMaterialDraft.decode(encoded)
+        try {
+            val legacy = decoded.wallets.single().legacySubstrateSource!!
+            assertEquals(PortableWalletMaterialDraft.SourceType.UNSPECIFIED, legacy.sourceType)
+            assertEquals(null, legacy.mnemonic)
+            assertEquals(null, legacy.entropy)
+            assertEquals(null, legacy.seed)
+            assertEquals(null, legacy.derivationPath)
+            assertArrayEquals(keypair.publicKey, legacy.publicKey)
+            assertArrayEquals(keypair.privateKey, legacy.privateKey)
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
+    fun `rejects two SS58 aliases for one V1 source before opening plaintext`(): Unit = runBlocking {
+        val fixture = legacyFixture()
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(fixture.wallet))
+        val accountId = fixture.source.keypair.publicKey.substrateAccountId()
+        v1Keys("security_source_${accountId.toAddress(0)}", "security_source_${accountId.toAddress(42)}")
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+        verify(accountRepository, org.mockito.kotlin.never()).getSecuritySource(any())
+    }
+
+    @Test
+    fun `rejects an active V1 address with no durable wallet owner`(): Unit = runBlocking {
+        val fixture = legacyFixture()
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(fixture.wallet))
+        val unownedAddress = ByteArray(32) { 0x5a.toByte() }.toAddress(42)
+        v1Keys("security_source_$unownedAddress")
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.verifyCoverage() }
+        }
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+        verify(accountRepository, org.mockito.kotlin.never()).getSecuritySource(any())
+    }
+
+    @Test
+    fun `rejects malformed active V1 aliases rather than skipping them`(): Unit = runBlocking {
+        val fixture = legacyFixture()
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(fixture.wallet))
+
+        listOf("security_source_", "security_source_${"0".repeat(47)}").forEach { malformedKey ->
+            v1Keys(malformedKey)
+            assertThrows(IllegalStateException::class.java) {
+                runBlocking { preflight.verifyCoverage() }
+            }
+            assertThrows(IllegalStateException::class.java) {
+                runBlocking { preflight.captureDraftPlaintext() }
+            }
+        }
+        verify(accountRepository, org.mockito.kotlin.never()).getSecuritySource(any())
+    }
+
+    @Test
+    fun `rejects a V1 key inventory changed while capturing material`(): Unit = runBlocking {
+        val fixture = legacyFixture()
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(fixture.wallet))
+        whenever(encryptedPreferences.keysWithPrefixes(any(), any(), any(), any(), any()))
+            .thenReturn(setOf("security_source_${fixture.address}"), emptySet())
+        whenever(accountRepository.getSecuritySource(fixture.address)).thenReturn(fixture.source)
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+        verify(accountRepository).getSecuritySource(fixture.address)
+    }
+
+    @Test
+    fun `rejects ambiguous V1 ownership and invalid keypair even when alias is unique`(): Unit = runBlocking {
+        val fixture = legacyFixture()
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(fixture.wallet))
+        val badAddress = fixture.address.dropLast(1) + if (fixture.address.last() == '1') "2" else "1"
+        v1Keys("security_source_$badAddress")
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
+
+        v1Keys("security_source_${fixture.address}")
+        val wrong = SecuritySource.Specified.Mnemonic(
+            fixture.seed.copyOf(),
+            jp.co.soramitsu.common.data.secrets.v1.Keypair(
+                fixture.source.keypair.publicKey.copyOf(), ByteArray(32) { 7 }
+            ),
+            fixture.mnemonic,
+            fixture.path
+        )
+        whenever(accountRepository.getSecuritySource(fixture.address)).thenReturn(wrong)
+        assertThrows(Exception::class.java) {
+            runBlocking { preflight.captureDraftPlaintext() }
+        }
     }
 
     @Test
@@ -309,4 +511,56 @@ class PortableWalletMaterialPreflightTest {
         metaId, chainId, byteArrayOf(6), byteArrayOf(7), CryptoType.ED25519,
         "Chain account", true
     )
+
+    private fun v1Keys(vararg keys: String) {
+        whenever(encryptedPreferences.keysWithPrefixes(any(), any(), any(), any(), any()))
+            .thenReturn(keys.toSet())
+    }
+
+    private data class LegacyFixture(
+        val wallet: RelationJoinedMetaAccountInfo,
+        val address: String,
+        val source: SecuritySource.Specified.Mnemonic,
+        val entropy: ByteArray,
+        val seed: ByteArray,
+        val mnemonic: String,
+        val path: String
+    )
+
+    private fun legacyFixture(): LegacyFixture {
+        val entropy = ByteArray(16) { it.toByte() }
+        val mnemonic = MnemonicCreator.fromEntropy(entropy).words
+        val path = "//hard"
+        val decodedPath = SubstrateJunctionDecoder.decode(path)
+        val seed = SubstrateSeedFactory.deriveSeed32(mnemonic, decodedPath.password).seed
+        val keypair = SubstrateKeypairFactory.generate(
+            encryptionType = EncryptionType.ED25519,
+            seed = seed,
+            junctions = decodedPath.junctions
+        )
+        val accountId = keypair.publicKey.substrateAccountId()
+        val wallet = MetaAccountLocal(
+            substratePublicKey = keypair.publicKey,
+            substrateCryptoType = CryptoType.ED25519,
+            substrateAccountId = accountId,
+            ethereumPublicKey = null,
+            ethereumAddress = null,
+            tonPublicKey = null,
+            name = "Legacy",
+            isSelected = true,
+            position = 0,
+            isBackedUp = false,
+            googleBackupAddress = null,
+            initialized = true
+        ).apply { id = 1 }
+        return LegacyFixture(
+            RelationJoinedMetaAccountInfo(wallet, emptyList(), emptyList()),
+            accountId.toAddress(42),
+            SecuritySource.Specified.Mnemonic(seed, keypair, mnemonic, path),
+            entropy,
+            seed,
+            mnemonic,
+            path
+        )
+    }
 }

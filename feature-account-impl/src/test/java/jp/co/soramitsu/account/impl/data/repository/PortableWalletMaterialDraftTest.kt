@@ -38,7 +38,7 @@ class PortableWalletMaterialDraftTest {
             val invalid = listOf(
                 encoded.copyOf(encoded.size - 1),
                 encoded + byteArrayOf(0),
-                encoded.copyOf().also { it[11] = 2 },
+                encoded.copyOf().also { it[11] = 3 },
                 encoded.copyOf().also { ByteBuffer.wrap(it).putInt(24, Int.MAX_VALUE) },
                 encoded.copyOf().also { it[28] = 0xff.toByte() }
             )
