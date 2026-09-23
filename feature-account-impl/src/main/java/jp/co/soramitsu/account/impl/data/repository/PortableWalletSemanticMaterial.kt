@@ -390,7 +390,7 @@ internal object PortableWalletSemanticMaterial {
             2 -> format == 1 && when (sourceRole) {
                 1, 5, 7 -> binding in setOf(1, 2, 5) // Substrate secret/seed/path.
                 2, 6, 8 -> binding in setOf(1, 3, 5) // EVM secret/seed/path.
-                3 -> binding == 1 || binding == 4 // Native TON secret.
+                3 -> binding in setOf(1, 4, 5) // TON secret can be account scoped in iOS Keychain.
                 4 -> binding in 1..5 // Entropy may be attached at several levels.
                 9 -> binding == 1 // Universal wallet source.
                 else -> false
