@@ -14,9 +14,10 @@ class GoogleDrivePasskeyBackupTokenProviderTest {
             tokenFetcher = fetcher
         )
 
-        val accessToken = provider.accessToken()
+        val access = provider.accessToken()
 
-        assertEquals("token-123", accessToken)
+        assertEquals("token-123", access.accessToken)
+        assertEquals("user@example.com", access.accountName)
         assertEquals("user@example.com", fetcher.accountName)
         assertEquals(GoogleDrivePasskeyBackup.OAUTH_APP_DATA_SCOPE, fetcher.oauthScope)
     }

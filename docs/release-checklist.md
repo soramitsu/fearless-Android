@@ -218,6 +218,13 @@ procedure.
 - Before enabling user-facing passkey backup, confirm the Android flow includes
   Google account selection, explicit Google Drive consent, and a recovery path
   that offers restore before creating a new backup.
+- The disabled Drive adapter binds each list/upload/download/delete sequence to
+  one selected Google account and access token, follows bounded list pages, and
+  rejects duplicate, incomplete, or mismatched file results. Its current
+  five-property metadata format rejects values above Drive's 124-byte
+  key-plus-value limit. A reviewed portable generation format is still needed
+  for long metadata, conditional immutable uploads, download/decryption
+  verification, and retention of the last decryptable generation.
 - Keep the default `UnavailablePasskeyBackupAuthorizationProvider` in place
   until a reviewed issuer supplies one-time, exact-request-body-bound grants
   backed by release Play Integrity/signing evidence. Its authorization subject

@@ -21,18 +21,15 @@ class GoogleDrivePasskeyBackupTokenProvider(
     private val accountNameProvider: GoogleDriveAccountNameProvider,
     private val tokenFetcher: GoogleDriveOAuthTokenFetcher
 ) : GoogleDriveAccessTokenProvider {
-    override suspend fun accessToken(): String {
+    override suspend fun accessToken(): GoogleDriveAccountAccess {
         val accountName = GoogleDrivePasskeyBackup.requireAccountName(accountNameProvider.accountName())
 
         val accessToken = tokenFetcher.fetchAccessToken(
             accountName = accountName,
             oauthScope = GoogleDrivePasskeyBackup.OAUTH_APP_DATA_SCOPE
-        ).trim()
-        require(accessToken.isNotEmpty()) {
-            "Google Drive access token is required for passkey backup"
-        }
+        )
 
-        return accessToken
+        return GoogleDriveAccountAccess(accountName, accessToken)
     }
 }
 

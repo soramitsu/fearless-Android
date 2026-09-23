@@ -34,6 +34,8 @@ object GoogleDrivePasskeyBackup {
     internal const val UPLOAD_BASE_URL = "https://www.googleapis.com/upload/drive/v3"
     internal const val FILE_NAME_PREFIX = "fearless-passkey-backup-"
     internal const val MAX_HTTP_RESPONSE_BYTES = 256 * 1024
+    internal const val MAX_LIST_PAGES = 20
+    internal const val MAX_APP_PROPERTY_BYTES = 124
 
     private const val MAX_ACCOUNT_NAME_LENGTH = 320
     private val accountNamePattern = Regex("^[^\\s@]+@[^\\s@]+$")
@@ -69,8 +71,23 @@ object GoogleDrivePasskeyBackup {
     }
 }
 
+class GoogleDriveAccountAccess(accountName: String, accessToken: String) {
+    val accountName = GoogleDrivePasskeyBackup.requireAccountName(accountName)
+    val accessToken = accessToken.trim().also { token ->
+        require(token.length in 1..4096 && BEARER_TOKEN.matches(token)) {
+            "Google Drive access token is invalid"
+        }
+    }
+
+    override fun toString(): String = "GoogleDriveAccountAccess(accountName=[REDACTED], accessToken=[REDACTED])"
+
+    private companion object {
+        val BEARER_TOKEN = Regex("^[A-Za-z0-9._~+/\\-]+={0,}$")
+    }
+}
+
 fun interface GoogleDriveAccessTokenProvider {
-    suspend fun accessToken(): String
+    suspend fun accessToken(): GoogleDriveAccountAccess
 }
 
 data class GoogleDriveHttpRequest(
@@ -86,6 +103,9 @@ data class GoogleDriveHttpRequest(
             "Google Drive HTTP response limit must be 1-${GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES} bytes"
         }
     }
+
+    override fun toString(): String =
+        "GoogleDriveHttpRequest(method=$method, url=$url, headerNames=${headers.keys}, bodyBytes=${body?.size}, isOneShot=$isOneShot)"
 }
 
 data class GoogleDriveHttpResponse(
@@ -98,8 +118,13 @@ interface GoogleDriveHttpTransport {
 }
 
 class OkHttpGoogleDriveHttpTransport(
-    private val okHttpClient: OkHttpClient
+    okHttpClient: OkHttpClient
 ) : GoogleDriveHttpTransport {
+    private val okHttpClient = okHttpClient.newBuilder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .build()
+
     override suspend fun execute(request: GoogleDriveHttpRequest): GoogleDriveHttpResponse {
         val mediaType = request.contentType()?.toMediaType()
         val requestBody = request.body?.let { body ->
@@ -251,16 +276,34 @@ class GoogleDrivePasskeyBackupDriveClient(
             encryptedPayload = payload.encryptedPayload,
             schemaVersion = payload.schemaVersion
         )
-        val existingFile = findBackupFile(normalizedPayload.storageKey)
+        val metadata = metadataJson(normalizedPayload).toString()
+        val access = accessTokenProvider.accessToken()
+        GoogleDrivePasskeyBackup.requireMatchingAccountName(
+            expected = normalizedPayload.accountName,
+            actual = access.accountName,
+            ceremony = "backup upload"
+        )
+        val existingFile = findBackupFile(normalizedPayload.storageKey, access)
+        existingFile?.let { file ->
+            GoogleDrivePasskeyBackup.requireMatchingAccountName(
+                expected = access.accountName,
+                actual = file.accountName,
+                ceremony = "backup replacement"
+            )
+            require(file.walletId == normalizedPayload.walletId) {
+                "Google Drive passkey backup walletId mismatch before replacement"
+            }
+        }
         val boundary = "fearless-passkey-backup-${normalizedPayload.storageKey}"
         val requestBody = multipartBody(
             boundary = boundary,
-            metadata = metadataJson(normalizedPayload).toString(),
+            metadata = metadata,
             encryptedPayload = normalizedPayload.encryptedPayload
         )
 
         val request = if (existingFile == null) {
             authenticatedRequest(
+                access = access,
                 method = "POST",
                 url = uploadUrl(
                     path = "/files",
@@ -274,6 +317,7 @@ class GoogleDrivePasskeyBackupDriveClient(
             )
         } else {
             authenticatedRequest(
+                access = access,
                 method = "PATCH",
                 url = uploadUrl(
                     path = "/files/${encodePathSegment(existingFile.id)}",
@@ -292,7 +336,14 @@ class GoogleDrivePasskeyBackupDriveClient(
 
     suspend fun loadBackup(storageKey: String): PasskeyBackupEncryptedPayload? {
         val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
-        val file = findBackupFile(normalizedStorageKey) ?: return null
+        val access = accessTokenProvider.accessToken()
+        val file = findBackupFile(normalizedStorageKey, access) ?: return null
+
+        GoogleDrivePasskeyBackup.requireMatchingAccountName(
+            expected = access.accountName,
+            actual = file.accountName,
+            ceremony = "backup download"
+        )
 
         require(file.schemaVersion == PasskeyBackupContract.SCHEMA_VERSION) {
             "Unsupported passkey backup schemaVersion: ${file.schemaVersion}"
@@ -300,6 +351,7 @@ class GoogleDrivePasskeyBackupDriveClient(
 
         val response = transport.execute(
             authenticatedRequest(
+                access = access,
                 method = "GET",
                 url = driveUrl(
                     path = "/files/${encodePathSegment(file.id)}",
@@ -326,10 +378,18 @@ class GoogleDrivePasskeyBackupDriveClient(
 
     suspend fun deleteBackup(storageKey: String) {
         val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
-        val file = findBackupFile(normalizedStorageKey) ?: return
+        val access = accessTokenProvider.accessToken()
+        val file = findBackupFile(normalizedStorageKey, access) ?: return
+
+        GoogleDrivePasskeyBackup.requireMatchingAccountName(
+            expected = access.accountName,
+            actual = file.accountName,
+            ceremony = "backup deletion"
+        )
 
         val response = transport.execute(
             authenticatedRequest(
+                access = access,
                 method = "DELETE",
                 url = driveUrl(path = "/files/${encodePathSegment(file.id)}")
             )
@@ -340,51 +400,59 @@ class GoogleDrivePasskeyBackupDriveClient(
         }
     }
 
-    private suspend fun findBackupFile(storageKey: String): GoogleDrivePasskeyBackupFile? {
+    private suspend fun findBackupFile(
+        storageKey: String,
+        access: GoogleDriveAccountAccess
+    ): GoogleDrivePasskeyBackupFile? {
         val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
-        val response = transport.execute(
-            authenticatedRequest(
-                method = "GET",
-                url = driveUrl(
-                    path = "/files",
-                    query = mapOf(
-                        "spaces" to GoogleDrivePasskeyBackup.APP_DATA_FOLDER,
-                        "pageSize" to "10",
-                        "fields" to "files(id,name,appProperties)",
-                        "q" to "name = '${fileName(normalizedStorageKey)}' and trashed = false"
-                    )
+        val seenPageTokens = mutableSetOf<String>()
+        var pageToken: String? = null
+        var match: GoogleDrivePasskeyBackupFile? = null
+        repeat(GoogleDrivePasskeyBackup.MAX_LIST_PAGES) {
+            val query = mutableMapOf(
+                "spaces" to GoogleDrivePasskeyBackup.APP_DATA_FOLDER,
+                "pageSize" to "100",
+                "fields" to "nextPageToken,incompleteSearch,files(id,name,appProperties)",
+                "q" to "name = '${fileName(normalizedStorageKey)}' and trashed = false"
+            )
+            pageToken?.let { query["pageToken"] = it }
+            val response = transport.execute(
+                authenticatedRequest(
+                    access = access,
+                    method = "GET",
+                    url = driveUrl(path = "/files", query = query)
                 )
             )
-        )
-
-        requireSuccess(response, "list")
-
-        val files = parseFileList(response.bodyText())
-        files.forEach { file ->
-            require(file.storageKey == normalizedStorageKey) {
-                "Google Drive passkey backup metadata storageKey mismatch"
+            requireSuccess(response, "list")
+            val page = parseFileList(response.bodyText())
+            require(!page.incompleteSearch) { "Google Drive passkey backup search was incomplete" }
+            page.files.forEach { file ->
+                require(file.name == fileName(normalizedStorageKey) && file.storageKey == normalizedStorageKey) {
+                    "Google Drive passkey backup file identity mismatch"
+                }
+                require(match == null) {
+                    "Multiple passkey backup files found for storage key: $normalizedStorageKey"
+                }
+                match = file
             }
+            val next = page.nextPageToken ?: return match
+            require(seenPageTokens.add(next)) { "Google Drive passkey backup list repeated a page token" }
+            pageToken = next
         }
-        require(files.size <= 1) {
-            "Multiple passkey backup files found for storage key: $normalizedStorageKey"
-        }
-
-        return files.firstOrNull()
+        error("Google Drive passkey backup list exceeded the page limit")
     }
 
     private suspend fun authenticatedRequest(
+        access: GoogleDriveAccountAccess,
         method: String,
         url: String,
         headers: Map<String, String> = emptyMap(),
         body: ByteArray? = null
     ): GoogleDriveHttpRequest {
-        val accessToken = accessTokenProvider.accessToken().trim()
-        require(accessToken.isNotEmpty()) { "Google Drive access token is required" }
-
         return GoogleDriveHttpRequest(
             method = method,
             url = url,
-            headers = headers + mapOf("Authorization" to "Bearer $accessToken"),
+            headers = headers + mapOf("Authorization" to "Bearer ${access.accessToken}"),
             body = body
         )
     }
@@ -394,11 +462,11 @@ class GoogleDrivePasskeyBackupDriveClient(
             add(GoogleDrivePasskeyBackup.APP_DATA_FOLDER)
         }
         val appProperties = JsonObject().apply {
-            addProperty("storageKey", payload.storageKey)
-            addProperty("walletId", payload.walletId)
-            addProperty("accountName", payload.accountName)
-            addProperty("createdAtMillis", payload.createdAtMillis.toString())
-            addProperty("schemaVersion", payload.schemaVersion.toString())
+            addBoundedProperty("storageKey", payload.storageKey)
+            addBoundedProperty("walletId", payload.walletId)
+            addBoundedProperty("accountName", payload.accountName)
+            addBoundedProperty("createdAtMillis", payload.createdAtMillis.toString())
+            addBoundedProperty("schemaVersion", payload.schemaVersion.toString())
         }
 
         return JsonObject().apply {
@@ -407,6 +475,13 @@ class GoogleDrivePasskeyBackupDriveClient(
             add("parents", parents)
             add("appProperties", appProperties)
         }
+    }
+
+    private fun JsonObject.addBoundedProperty(name: String, value: String) {
+        require((name + value).toByteArray(StandardCharsets.UTF_8).size <= GoogleDrivePasskeyBackup.MAX_APP_PROPERTY_BYTES) {
+            "Google Drive passkey backup appProperties.$name exceeds the Drive byte limit"
+        }
+        addProperty(name, value)
     }
 
     private fun multipartBody(
@@ -426,7 +501,7 @@ class GoogleDrivePasskeyBackupDriveClient(
         return prefix + encryptedPayload + suffix
     }
 
-    private fun parseFileList(body: String): List<GoogleDrivePasskeyBackupFile> {
+    private fun parseFileList(body: String): GoogleDrivePasskeyBackupPage {
         val root = runCatching { JsonParser.parseString(body).asJsonObject }.getOrElse {
             error("Malformed Google Drive passkey backup file list")
         }
@@ -434,10 +509,29 @@ class GoogleDrivePasskeyBackupDriveClient(
             "Malformed Google Drive passkey backup file list"
         }
 
-        return files.map { element ->
+        val incompleteSearch = root.get("incompleteSearch")?.let { value ->
+            require(value.isJsonPrimitive && value.asJsonPrimitive.isBoolean) {
+                "Malformed Google Drive passkey backup incompleteSearch"
+            }
+            value.asBoolean
+        } ?: false
+        val nextPageToken = root.get("nextPageToken")?.let { value ->
+            require(value.isJsonPrimitive && value.asJsonPrimitive.isString) {
+                "Malformed Google Drive passkey backup nextPageToken"
+            }
+            value.asString.also { token ->
+                require(token.isNotEmpty() && token.length <= 2048 && token.none { it.isISOControl() }) {
+                    "Invalid Google Drive passkey backup nextPageToken"
+                }
+            }
+        }
+
+        val parsedFiles = files.map { element ->
             val file = element.asJsonObject
             val id = file.get("id")?.asString?.trim().orEmpty()
             require(id.isNotEmpty()) { "Google Drive passkey backup file id is required" }
+            val name = file.get("name")?.asString?.trim().orEmpty()
+            require(name.isNotEmpty()) { "Google Drive passkey backup file name is required" }
 
             val appProperties = checkNotNull(file.getAsJsonObject("appProperties")) {
                 "Google Drive passkey backup metadata is required"
@@ -460,6 +554,7 @@ class GoogleDrivePasskeyBackupDriveClient(
 
             GoogleDrivePasskeyBackupFile(
                 id = id,
+                name = name,
                 storageKey = storageKey,
                 walletId = walletId,
                 accountName = accountName,
@@ -467,6 +562,7 @@ class GoogleDrivePasskeyBackupDriveClient(
                 schemaVersion = schemaVersion
             )
         }
+        return GoogleDrivePasskeyBackupPage(parsedFiles, nextPageToken, incompleteSearch)
     }
 
     private fun requiredAppProperty(appProperties: JsonObject, name: String): String {
@@ -474,7 +570,11 @@ class GoogleDrivePasskeyBackupDriveClient(
         require(value != null && value.isJsonPrimitive && value.asJsonPrimitive.isString) {
             "Google Drive passkey backup appProperties.$name is required"
         }
-        return value.asString
+        return value.asString.also { text ->
+            require((name + text).toByteArray(StandardCharsets.UTF_8).size <= GoogleDrivePasskeyBackup.MAX_APP_PROPERTY_BYTES) {
+                "Google Drive passkey backup appProperties.$name exceeds the Drive byte limit"
+            }
+        }
     }
 
     private fun fileName(storageKey: String): String {
@@ -521,9 +621,16 @@ class GoogleDrivePasskeyBackupDriveClient(
 
 private data class GoogleDrivePasskeyBackupFile(
     val id: String,
+    val name: String,
     val storageKey: String,
     val walletId: String,
     val accountName: String,
     val createdAtMillis: Long,
     val schemaVersion: Int
+)
+
+private data class GoogleDrivePasskeyBackupPage(
+    val files: List<GoogleDrivePasskeyBackupFile>,
+    val nextPageToken: String?,
+    val incompleteSearch: Boolean
 )
