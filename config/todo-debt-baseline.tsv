@@ -34,7 +34,6 @@ feature-wallet-api/src/main/java/jp/co/soramitsu/wallet/api/data/cache/AssetCach
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/network/blockchain/WssSubstrateSource.kt	val dest = when (typeRegistry["Address"]) { // this logic was added to support Moonbeam/Moonriver chains; todo separate assets in json like orml
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/network/blockchain/balance/SubstrateBalanceLoader.kt	chainAssetId = chain.utilityAsset?.id.orEmpty(), // TODO do not hardcode chain asset id
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/repository/tranfser/TonTransferService.kt	val sendMode = 3 // todo //if (max && isTon) (TonSendMode.CARRY_ALL_REMAINING_BALANCE.value + TonSendMode.IGNORE_ERRORS.value) else (TonSendMode.PAY_GAS_SEPARATELY.value + TonSendMode.IGNORE_ERRORS.value)
-feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/domain/XcmInteractor.kt	// todo remove this sora ksm check when https://github.com/sora-xor/sora2-network/issues/845 will be fixed
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/balance/list/BalanceListViewModel.kt	// todo check if it's OK to use the amount from QR code for evm chains/assets
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/balance/list/BalanceListViewModel.kt	// todo move error state to the ndt list screen
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/beacon/main/BeaconViewModel.kt	// todo hardcoded westend
