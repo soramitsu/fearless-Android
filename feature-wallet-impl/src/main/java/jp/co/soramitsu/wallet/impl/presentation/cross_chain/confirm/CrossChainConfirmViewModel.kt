@@ -37,13 +37,13 @@ import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeInteractor
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
+import jp.co.soramitsu.wallet.impl.domain.exactXcmAmountInPlanks
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.xcm.ReviewedBridgeQuote
@@ -255,14 +255,24 @@ class CrossChainConfirmViewModel @Inject constructor(
             val token = asset.token.configuration
             val utilityAsset = utilityAssetFlow.firstOrNull() ?: return@launch
 
-            val rawAmountInPlanks = token.planksFromAmount(transferDraft.amount)
-            val destinationFeeInPlanks = token.planksFromAmount(transferDraft.destinationFee)
-            val originFee = utilityAsset.token.configuration.planksFromAmount(transferDraft.originFee)
+            val amountAndDestinationFeeInPlanks: BigInteger
+            val originFee: BigInteger
+            try {
+                amountAndDestinationFeeInPlanks = exactXcmAmountInPlanks(createTransfer(token))
+                val feeAsset = utilityAsset.token.configuration
+                require(feeAsset.precision >= 0 && transferDraft.originFee.signum() >= 0) {
+                    "XCM origin fee or precision is invalid"
+                }
+                originFee = transferDraft.originFee.scaleByPowerOfTen(feeAsset.precision).toBigIntegerExact()
+            } catch (error: RuntimeException) {
+                showError(error)
+                return@launch
+            }
             val recipientAddress = transferDraft.recipientAddress
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 
             val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
-                amountInPlanks = rawAmountInPlanks + destinationFeeInPlanks,
+                amountInPlanks = amountAndDestinationFeeInPlanks,
                 originAsset = asset,
                 destinationChainId = destinationChain.id,
                 destinationAddress = recipientAddress,
