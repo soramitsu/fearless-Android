@@ -3,6 +3,10 @@
 
     <application>
         <activity
+            android:name="jp.co.soramitsu.app.root.presentation.main.PolkaswapNavigationLayoutTestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Soramitsu.Fearless" />
+        <activity
             android:name="jp.co.soramitsu.app.root.presentation.WalletGateActivityTestHost"
             android:exported="false"
             android:launchMode="singleTop"

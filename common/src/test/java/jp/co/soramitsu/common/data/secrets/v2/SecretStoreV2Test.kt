@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair as FearlessKeypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -46,6 +47,39 @@ class SecretStoreV2Test {
 
     private val preferences = HashMapEncryptedPreferences()
     private val secretStore = SecretStoreV2(preferences)
+
+    @Test
+    fun `authorized chain access checks at the physical read after dispatcher handoff`() = runBlocking {
+        val storage = mock<EncryptedPreferences>()
+        val guardedStore = SecretStoreV2(storage)
+        var checks = 0
+        val denied = object : MutationExecutionGuard {
+            override fun <T> runIfAuthorized(intentSha256: String, operation: () -> T): T {
+                checks++
+                check(false) { "revoked" }
+                return operation()
+            }
+        }
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                guardedStore.getAuthorizedChainAccountKeypair(META_ID, ACCOUNT_ID, CHAIN_KEYPAIR.publicKey,
+                    CryptoType.ECDSA, denied, "a".repeat(64))
+            }
+        }
+        assertEquals(1, checks)
+        org.mockito.Mockito.verifyNoInteractions(storage)
+    }
+
+    @Test
+    fun `authorized chain read preserves validated key bytes`() = runBlocking {
+        secretStore.putChainAccountSecrets(META_ID, ACCOUNT_ID, createChainSecrets())
+        val allowed = object : MutationExecutionGuard {
+            override fun <T> runIfAuthorized(intentSha256: String, operation: () -> T) = operation()
+        }
+        val key = secretStore.getAuthorizedChainAccountKeypair(META_ID, ACCOUNT_ID, CHAIN_KEYPAIR.publicKey,
+            CryptoType.ECDSA, allowed, "a".repeat(64))
+        assertArrayEquals(CHAIN_KEYPAIR.privateKey, key.privateKey)
+    }
 
     @Test
     fun `should save and retrieve meta account secrets`() = runBlocking {

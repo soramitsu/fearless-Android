@@ -2,7 +2,8 @@ package jp.co.soramitsu.common.model
 
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 
-data class AssetKey(
+/** Legacy database-row identity. This is not a canonical cross-network asset identity. */
+data class WalletAssetKey(
     val metaId: Long,
     val chainId: String,
     val accountId: AccountId,
@@ -12,7 +13,7 @@ data class AssetKey(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as AssetKey
+        other as WalletAssetKey
 
         if (metaId != other.metaId) return false
         if (chainId != other.chainId) return false

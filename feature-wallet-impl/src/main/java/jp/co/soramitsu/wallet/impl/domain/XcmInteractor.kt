@@ -5,16 +5,15 @@ import java.math.BigInteger
 import java.math.MathContext
 import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.common.data.secrets.v1.Keypair
-import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.isZero
-import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
+import jp.co.soramitsu.core.models.IChain
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair as SigningKeypair
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -28,6 +27,10 @@ import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
+import jp.co.soramitsu.xcm.domain.XcmAsset
+import jp.co.soramitsu.xcm.domain.CrossChainAssetIdentity
+import jp.co.soramitsu.xcm.domain.CrossChainRouteProviderRegistry
+import jp.co.soramitsu.xcm.domain.CrossChainRouteQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -42,30 +45,22 @@ class XcmInteractor(
     private val xcmEntitiesFetcher: XcmEntitiesFetcher,
     private val accountInteractor: AccountInteractor,
     private val runtimeFilesCache: RuntimeFilesCache,
-    private val xcmService: XcmService
+    private val xcmService: XcmService,
+    private val featureToggleStore: ProductFeatureToggleStore,
+    private val routeProviderRegistry: CrossChainRouteProviderRegistry? = null,
+    private val signingKeypairProvider: KeypairProvider? = null
 ) {
 
     suspend fun prepareDataForChains(originChainId: ChainId, destinationChainId: ChainId) = withContext(Dispatchers.Default) {
         val metaAccount = accountInteractor.selectedMetaAccount()
-        metaAccount.substrateCryptoType ?: throw IllegalStateException("Can't do XCM without susbtrate keypair")
-        val originChain = chainRegistry.getChain(originChainId)
-        val keypairType = if (originChain.isEthereumBased) {
-            EthereumSecrets.EthereumKeypair
-        } else {
-            SubstrateSecrets.SubstrateKeypair
-        }
-        val secrets = accountInteractor.getSubstrateSecrets(metaAccount.id)?.get(keypairType)
-        requireNotNull(secrets)
-        val private = secrets[KeyPairSchema.PrivateKey]
-        val public = secrets[KeyPairSchema.PublicKey]
-        val nonce = secrets[KeyPairSchema.Nonce]
-
+        val cryptoType = metaAccount.substrateCryptoType ?: throw IllegalStateException("Can't do XCM without susbtrate keypair")
         xcmService.updateKeypairProvider(
             chainId = originChainId,
-            keypairProvider = SingleKeypairProvider(
-                keypair = Keypair(public, private, nonce),
-                cryptoType = metaAccount.substrateCryptoType!!
-            )
+            keypairProvider = signingKeypairProvider ?: object : KeypairProvider {
+                override suspend fun getCryptoTypeFor(chain: IChain, accountId: ByteArray) = cryptoType
+                override suspend fun getKeypairFor(chain: IChain, accountId: ByteArray): SigningKeypair =
+                    error("An authorized signing provider is required")
+            }
         )
         val fromChainMetadata = ChainIdWithMetadata(
             chainId = originChainId,
@@ -80,14 +75,18 @@ class XcmInteractor(
 
     fun getAvailableAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>> {
         return combineToPair(walletInteractor.assetsFlow(), getAvailableAssetsFlowInternal(originChainId))
-            .map { (assets, availableXcmAssets) ->
+            .map { (assets, availableRouteAssets) ->
                 assets.filter { assetWithStatus ->
                     val asset = assetWithStatus.asset.token.configuration
-                    availableXcmAssets.any { approved ->
+                    availableRouteAssets.xcmAssets.any { approved ->
                         asset.chainId == approved.originChainId &&
                             asset.id == approved.originAssetId &&
                             asset.precision == approved.originAssetPrecision &&
                             asset.symbol.normalizedXcmSymbol() == approved.symbol
+                    } || availableRouteAssets.providerAssets.any { reviewed ->
+                        asset.chainId == reviewed.originNetworkId &&
+                            asset.id == reviewed.originAssetId &&
+                            asset.symbol.uppercase() == reviewed.symbol
                     }
                 }
             }
@@ -98,8 +97,16 @@ class XcmInteractor(
             originChainId = originChainId,
             destinationChainId = null
         )
-        emit(availableXcmAssets)
+        val availableProviderAssets = routeProviderRegistry?.capabilities(
+            CrossChainRouteQuery(originNetworkId = originChainId)
+        ).orEmpty().filter { it.hasRoute }.flatMapTo(linkedSetOf()) { it.supportedAssets }
+        emit(AvailableRouteAssets(availableXcmAssets, availableProviderAssets))
     }
+
+    private data class AvailableRouteAssets(
+        val xcmAssets: List<XcmAsset>,
+        val providerAssets: Set<CrossChainAssetIdentity>
+    )
 
     private fun String.normalizedXcmSymbol(): String = trim()
         .lowercase()
@@ -108,6 +115,9 @@ class XcmInteractor(
 
     suspend fun performCrossChainTransfer(transfer: CrossChainTransfer): Result<String> {
         return runCatching {
+            check(featureToggleStore.xcmMutationsEnabled) {
+                "Cross-chain transfers are temporarily disabled."
+            }
             val originChain = chainRegistry.getChain(transfer.originChainId)
             val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
             val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")

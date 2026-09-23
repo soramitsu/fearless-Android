@@ -1320,4 +1320,9 @@
   <string name="ton_tonviewer_action_title">View in Tonviewer</string>
 
   <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">Поделиться адресом</string>
+  <string name="portfolio_sync_catalog_only">Некоторые токены могут не отображаться</string>
+  <string name="portfolio_balance_update_failed">Не удалось обновить балансы</string>
+  <string name="portfolio_balances_outdated">Балансы могут быть устаревшими</string>
+  <string name="portfolio_balances_not_loaded">Балансы не загружены</string>
 </resources>

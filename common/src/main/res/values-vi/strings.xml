@@ -1262,4 +1262,9 @@
   <string name="tc_service_address">Service address</string>
 
   <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">Chia sẻ địa chỉ</string>
+  <string name="portfolio_sync_catalog_only">Một số token có thể không hiển thị</string>
+  <string name="portfolio_balance_update_failed">Không thể cập nhật số dư</string>
+  <string name="portfolio_balances_outdated">Số dư có thể đã cũ</string>
+  <string name="portfolio_balances_not_loaded">Chưa tải số dư</string>
 </resources>

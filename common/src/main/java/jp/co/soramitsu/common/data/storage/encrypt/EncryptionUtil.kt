@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.data.storage.encrypt
 
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
+
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
@@ -185,6 +187,22 @@ internal fun interface WalletPayloadDecryptor {
         ciphertext: ByteArray,
         secureRandom: SecureRandom
     ): ByteArray
+
+    fun decryptAuthorized(
+        transformation: String,
+        key: ByteArray,
+        parameters: AlgorithmParameterSpec,
+        ciphertext: ByteArray,
+        secureRandom: SecureRandom,
+        authorization: WalletPayloadAuthorization
+    ): ByteArray = error("Authorized wallet decryption is unavailable for this provider")
+}
+
+internal class WalletPayloadAuthorization(
+    private val guard: MutationExecutionGuard,
+    private val intentSha256: String
+) {
+    fun <T> run(operation: () -> T): T = guard.runIfAuthorized(intentSha256, operation)
 }
 
 internal object JcaWalletPayloadDecryptor : WalletPayloadDecryptor {
@@ -205,6 +223,21 @@ internal object JcaWalletPayloadDecryptor : WalletPayloadDecryptor {
             )
             doFinal(ciphertext)
         }
+    }
+
+    override fun decryptAuthorized(
+        transformation: String,
+        key: ByteArray,
+        parameters: AlgorithmParameterSpec,
+        ciphertext: ByteArray,
+        secureRandom: SecureRandom,
+        authorization: WalletPayloadAuthorization
+    ): ByteArray {
+        val cipher = Cipher.getInstance(transformation).apply {
+            init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"), parameters, secureRandom)
+        }
+        // Cipher/provider setup and wallet-key lock acquisition precede the final clock sample.
+        return authorization.run { cipher.doFinal(ciphertext) }
     }
 }
 
@@ -255,11 +288,15 @@ class EncryptionUtil internal constructor(
         private val walletKeyLock = Any()
     }
 
-    fun getPrerenceAesKey(): Key = synchronized(walletKeyLock) {
+    fun getPrerenceAesKey(): Key = getPreferenceAesKey(null)
+
+    internal fun getAuthorizedPreferenceAesKey(authorization: WalletPayloadAuthorization): Key = getPreferenceAesKey(authorization)
+
+    private fun getPreferenceAesKey(authorization: WalletPayloadAuthorization?): Key = synchronized(walletKeyLock) {
         WalletSecureStorageHealth.requireHealthy()
 
         return try {
-            getPreferenceAesKeyInternal()
+            getPreferenceAesKeyInternal(authorization)
         } catch (failure: WalletSecureStorageUnavailableException) {
             if (
                 failure.kind ==
@@ -283,7 +320,7 @@ class EncryptionUtil internal constructor(
         }
     }
 
-    private fun getPreferenceAesKeyInternal(): Key {
+    private fun getPreferenceAesKeyInternal(authorization: WalletPayloadAuthorization?): Key {
         val prefs = context.getSharedPreferences(KEY_ALIAS, Context.MODE_PRIVATE)
         val encryptedKey = PreferenceAesKeyPolicy.readStoredWrappedKey {
             prefs.getString(SECRET_KEY, "")
@@ -321,7 +358,7 @@ class EncryptionUtil internal constructor(
 
             persistWrappedKeyDurably(prefs, wrappedKey)
 
-            attestPreferenceAesKey(secretKey)
+            attestPreferenceAesKey(secretKey, authorization)
             return secretKey
         }
 
@@ -334,7 +371,7 @@ class EncryptionUtil internal constructor(
         ensureKeystoreReady(allowCreate = false)
         val key = try {
             PreferenceAesKeyPolicy.requireValidExistingKey(
-                decryptExistingWrappedKey(encryptedKey)
+                decryptExistingWrappedKey(encryptedKey, authorization)
             )
         } catch (failure: Exception) {
             clearLoadedKeystore()
@@ -342,11 +379,11 @@ class EncryptionUtil internal constructor(
         }
 
         return SecretKeySpec(key, AES).also { secretKey ->
-            attestPreferenceAesKey(secretKey)
+            attestPreferenceAesKey(secretKey, authorization)
         }
     }
 
-    private fun attestPreferenceAesKey(key: Key) {
+    private fun attestPreferenceAesKey(key: Key, authorization: WalletPayloadAuthorization?) {
         val walletPreferences = context.getSharedPreferences(
             SHARED_PREFERENCES_FILE,
             Context.MODE_PRIVATE
@@ -359,7 +396,7 @@ class EncryptionUtil internal constructor(
             as? String
         val sentinelIsValid = sentinelCiphertext?.let { ciphertext ->
             try {
-                decryptStrict(key.encoded, ciphertext) ==
+                decryptStrict(key.encoded, ciphertext, authorization) ==
                     WalletMasterKeyAttestation.SENTINEL_PLAINTEXT
             } catch (failure: WalletPayloadCorruptionException) {
                 false
@@ -368,7 +405,7 @@ class EncryptionUtil internal constructor(
 
         // PIN is the global unlock boundary. Validate it before repairing or
         // creating any sentinel so a failed startup remains side-effect free.
-        requireExistingPinHealthy(allPreferences, key.encoded)
+        requireExistingPinHealthy(allPreferences, key.encoded, authorization)
 
         if (!sentinelIsValid) {
             val candidates = allPreferences
@@ -376,7 +413,7 @@ class EncryptionUtil internal constructor(
             val authenticatedByExistingPayload = candidates.any { (field, storedValue) ->
                 val ciphertext = storedValue as? String ?: return@any false
                 try {
-                    val plaintext = decryptStrict(key.encoded, ciphertext)
+                    val plaintext = decryptStrict(key.encoded, ciphertext, authorization)
                     if (isModernCiphertext(ciphertext)) {
                         plaintext.isNotEmpty() &&
                             plaintext.length <= MAX_ATTESTATION_PLAINTEXT_CHARS
@@ -407,13 +444,14 @@ class EncryptionUtil internal constructor(
                 )
             }
 
-            persistPreferenceAesKeySentinel(walletPreferences, key.encoded)
+            persistPreferenceAesKeySentinel(walletPreferences, key.encoded, authorization)
         }
     }
 
     private fun requireExistingPinHealthy(
         allPreferences: Map<String, *>,
-        key: ByteArray
+        key: ByteArray,
+        authorization: WalletPayloadAuthorization?
     ) {
         if (!allPreferences.containsKey(WalletMasterKeyAttestation.PIN_CODE_KEY)) {
             return
@@ -426,7 +464,7 @@ class EncryptionUtil internal constructor(
                     kind = WalletSecureStorageFailureKind.PERMANENT_KEY_LOSS
                 )
         val pin = try {
-            decryptStrict(key, exactCiphertext)
+            decryptStrict(key, exactCiphertext, authorization)
         } catch (failure: WalletSecureStorageUnavailableException) {
             // A provider/JCA outage is global and retryable. Preserve the
             // classification produced by decryptStrict instead of presenting
@@ -455,7 +493,8 @@ class EncryptionUtil internal constructor(
 
     private fun persistPreferenceAesKeySentinel(
         preferences: android.content.SharedPreferences,
-        key: ByteArray
+        key: ByteArray,
+        authorization: WalletPayloadAuthorization?
     ) {
         val encrypted = MODERN_CIPHER_PREFIX + Base64.toBase64String(
             encryptModern(
@@ -475,7 +514,7 @@ class EncryptionUtil internal constructor(
                         WalletMasterKeyAttestation.SENTINEL_KEY,
                         null
                     ) == encrypted &&
-                    decryptStrict(key, encrypted) ==
+                    decryptStrict(key, encrypted, authorization) ==
                     WalletMasterKeyAttestation.SENTINEL_PLAINTEXT
             )
         }
@@ -646,6 +685,17 @@ class EncryptionUtil internal constructor(
         }
     }
 
+    /** Prepare the wrapping key under its lock before the final wallet-decryption check. */
+    fun decryptAuthorized(encryptedBase64: String, guard: MutationExecutionGuard, intentSha256: String): String = synchronized(walletKeyLock) {
+        val authorization = WalletPayloadAuthorization(guard, intentSha256)
+        val key = getAuthorizedPreferenceAesKey(authorization).encoded
+        try {
+            decryptStrict(key, encryptedBase64, authorization)
+        } catch (failure: WalletPayloadCorruptionException) {
+            ""
+        }
+    }
+
     fun decrypt(encryptedBase64: String): String {
         return decrypt(getPrerenceAesKey().encoded, encryptedBase64)
     }
@@ -658,7 +708,9 @@ class EncryptionUtil internal constructor(
         }
     }
 
-    private fun decryptStrict(key: ByteArray, encryptedBase64: String): String {
+    private fun decryptStrict(
+        key: ByteArray, encryptedBase64: String, authorization: WalletPayloadAuthorization? = null
+    ): String {
         if (encryptedBase64.length > MAX_ENCRYPTED_CIPHERTEXT_CHARS) {
             throw WalletPayloadCorruptionException(
                 "Encrypted preference exceeds the safe decode limit"
@@ -673,7 +725,7 @@ class EncryptionUtil internal constructor(
                     "Authenticated ciphertext is truncated"
                 )
             }
-            decryptModern(key, encrypted)
+            decryptModern(key, encrypted, authorization)
         } else {
             val encrypted = decodePayloadBase64(encryptedBase64)
             if (encrypted.size < LEGACY_BLOCK_SIZE * 2) {
@@ -681,7 +733,7 @@ class EncryptionUtil internal constructor(
                     "Legacy ciphertext is truncated"
                 )
             }
-            decryptLegacy(key, encrypted)
+            decryptLegacy(key, encrypted, authorization)
         }
 
         return String(result, Charsets.UTF_8)
@@ -717,7 +769,7 @@ class EncryptionUtil internal constructor(
         BadPaddingException::class,
         IllegalBlockSizeException::class
     )
-    private fun decryptModern(key: ByteArray, encrypted: ByteArray): ByteArray {
+    private fun decryptModern(key: ByteArray, encrypted: ByteArray, authorization: WalletPayloadAuthorization?): ByteArray {
         val iv = Arrays.copyOfRange(encrypted, 0, GCM_IV_SIZE)
         val cipherText = Arrays.copyOfRange(encrypted, GCM_IV_SIZE, encrypted.size)
 
@@ -725,7 +777,8 @@ class EncryptionUtil internal constructor(
             transformation = "AES/GCM/NoPadding",
             key = key,
             parameters = GCMParameterSpec(GCM_TAG_SIZE_BITS, iv),
-            ciphertext = cipherText
+            ciphertext = cipherText,
+            authorization = authorization
         )
     }
 
@@ -745,7 +798,7 @@ class EncryptionUtil internal constructor(
         BadPaddingException::class,
         IllegalBlockSizeException::class
     )
-    private fun decryptLegacy(key: ByteArray, encrypted: ByteArray): ByteArray {
+    private fun decryptLegacy(key: ByteArray, encrypted: ByteArray, authorization: WalletPayloadAuthorization?): ByteArray {
         return decryptPayload(
             transformation = "AES/CBC/PKCS5Padding",
             key = key,
@@ -756,7 +809,8 @@ class EncryptionUtil internal constructor(
                 encrypted,
                 LEGACY_BLOCK_SIZE,
                 encrypted.size
-            )
+            ),
+            authorization = authorization
         )
     }
 
@@ -764,9 +818,13 @@ class EncryptionUtil internal constructor(
         transformation: String,
         key: ByteArray,
         parameters: AlgorithmParameterSpec,
-        ciphertext: ByteArray
+        ciphertext: ByteArray,
+        authorization: WalletPayloadAuthorization?
     ): ByteArray {
         return try {
+            if (authorization != null) return payloadDecryptor.decryptAuthorized(
+                transformation, key, parameters, ciphertext, secureRandom, authorization
+            )
             payloadDecryptor.decrypt(
                 transformation = transformation,
                 key = key,
@@ -810,7 +868,7 @@ class EncryptionUtil internal constructor(
         return Base64.toBase64String(cipher.doFinal(input))
     }
 
-    private fun decryptExistingWrappedKey(encrypted: String): ByteArray {
+    private fun decryptExistingWrappedKey(encrypted: String, authorization: WalletPayloadAuthorization?): ByteArray {
         val wrappingKey = checkNotNull(privateKey) {
             "The wallet wrapping private key is unavailable"
         }
@@ -822,7 +880,8 @@ class EncryptionUtil internal constructor(
         val cipher = Cipher.getInstance(TRANSFORMATION)
         return try {
             cipher.init(Cipher.DECRYPT_MODE, wrappingKey)
-            cipher.doFinal(wrappedBytes)
+            if (authorization == null) cipher.doFinal(wrappedBytes)
+            else authorization.run { cipher.doFinal(wrappedBytes) }
         } catch (failure: Exception) {
             throw WalletSecureStorageUnavailableException(
                 "The existing wallet encryption key cannot be unwrapped",

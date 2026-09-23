@@ -58,6 +58,15 @@ sealed interface NFTCollectionsScreenView {
     }
 
     @Immutable
+    interface NetworkHeader : NFTCollectionsScreenView {
+        override val contentType: Any
+            get() = 3
+
+        val key: Any
+        val networkName: String
+    }
+
+    @Immutable
     interface ItemModel: NFTCollectionsScreenView {
         override val contentType: Any
             get() = 2

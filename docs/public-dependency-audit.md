@@ -10,7 +10,7 @@ These counts are derived from the checked-in build, route, and provenance gates;
 `scripts/export-public-dependency-upstream-delta.sh` rejects this document when
 they drift:
 
-- Pinned `fearless-utils-Android` revision: `7500809f33243ee47ecb2ec8563fc284ac4de0d6`.
+- Pinned `fearless-utils-Android` revision: `1c80a2bf3fa1f996cf1328873e09f282ee29b69e`.
 - Public compatibility-module substitutions: `6`.
 - Approved/required executable XCM route rows: `15` / `15`.
 - Discovery-only XCM destinations/assets: `34` / `59`; `14` of those
@@ -68,26 +68,24 @@ coordinate with the local module.
 The app resolves `fearless-utils` from a public source checkout via Gradle
 composite build. CI and release workflows check out
 `soramitsu/fearless-utils-Android` at
-`7500809f33243ee47ecb2ec8563fc284ac4de0d6`, set `FEARLESS_UTILS_PATH`, force
+`1c80a2bf3fa1f996cf1328873e09f282ee29b69e`, set `FEARLESS_UTILS_PATH`, force
 the local include with `FORCE_LOCAL_UTILS=true`, and run
 `scripts/ensure-fearless-utils.sh` before Gradle resolution.
-The guard builds the expected source tree in a temporary Git index and accepts
-only the pinned checkout plus the committed
-`scripts/fearless-utils-library-only.patch` when library-only mode is enabled.
-That overlay also makes nullable `TypeDefinitionsTreeV2.runtimeId` optional at
-the serialization boundary and carries regressions for missing, explicit-null,
-present, and malformed values. Android can therefore apply its existing
-runtime-version fallback to legacy registries that omit `runtime_id` while
-malformed object values remain rejected.
-It also verifies the effective GitHub origin, rejects replacement refs and
-staged/index drift, and treats any non-ignored extra source or dirty submodule as
-a release blocker. Run `scripts/test-fearless-utils-derived-tree.sh` to exercise
-the positive and adversarial forms of this contract.
+The verifier accepts only pristine committed source, including raw blob hashes,
+file modes, origin, replacement-ref, submodule and bounded generated-file checks.
+Library-only build compatibility, runtime-id handling and guarded mutation paths
+are now in the source candidate; no overlay is applied. The transport is pinned to
+`soramitsu/fearless-nv-websocket-client@9714b30b6a16d40a2122765077bb71cf44314798`.
+`config/android-runtime-source-pins.json` binds both commits and exact trees.
+CI/release Gradle validates both before included-build evaluation and again after a
+successful build. `FEARLESS_NV_WEBSOCKET_PATH` must identify the reviewed source;
+the new guarded version has no fallback to the old unguarded Maven binary.
 
-Local developers can use the same contract by cloning the repo next to
-`fearless-Android` or setting `FEARLESS_UTILS_PATH` explicitly. The Gradle
-`USE_REMOTE_UTILS=true` source-control fallback is not used by public CI because
-it does not currently resolve the requested published module version.
+The source PRs are Utils153 and guarded transport1. Their tests passing does not
+replace required review/merge, native-device or production-route qualification.
+Local development may use the same pinned checkouts via `FEARLESS_UTILS_PATH`
+and `FEARLESS_NV_WEBSOCKET_PATH`. Run the source verifier and adversarial fixtures
+before treating a build as a release candidate.
 
 The carried upstream delta is exported with:
 
@@ -97,8 +95,8 @@ bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports
 ```
 
 The generated `handoff-manifest.json` records the pinned
-`fearless-utils-Android` revision, the library-only overlay patch checksum and
-touched paths, and SHA-256 digests for all public compatibility modules. Release
+`fearless-utils-Android` revision, pristine committed source mode without
+post-resolution patching, and SHA-256 digests for all public compatibility modules. Release
 reviewers should attach or archive this bundle whenever the pinned dependency
 surface changes.
 
@@ -140,7 +138,7 @@ The pinned public `fearless-utils` checkout guard passes:
 ```
 bash ./scripts/test-fearless-utils-derived-tree.sh
 FEARLESS_UTILS_PATH=../fearless-utils-Android \
-FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6 \
+FEARLESS_UTILS_COMMIT=1c80a2bf3fa1f996cf1328873e09f282ee29b69e \
 FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android \
 FEARLESS_UTILS_LIBRARY_ONLY=true \
 ./scripts/ensure-fearless-utils.sh

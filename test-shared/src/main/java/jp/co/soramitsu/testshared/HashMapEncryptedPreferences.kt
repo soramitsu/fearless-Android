@@ -3,6 +3,7 @@ package jp.co.soramitsu.testshared
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshotMove
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +21,9 @@ class HashMapEncryptedPreferences : EncryptedPreferences {
     }
 
     override fun getDecryptedString(field: String): String? = delegate[field]
+
+    override fun getAuthorizedDecryptedStringSnapshot(field: String, guard: MutationExecutionGuard, intentSha256: String) =
+        guard.runIfAuthorized(intentSha256) { delegate[field]?.let(EncryptedPreferenceSnapshot::unencrypted) }
 
     override fun hasKey(field: String): Boolean = field in delegate
 

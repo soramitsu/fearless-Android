@@ -7,6 +7,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.liquiditypools.blockexplorer.BlockExplorerManager
 import jp.co.soramitsu.liquiditypools.data.PoolDataDto
 import jp.co.soramitsu.liquiditypools.data.PoolsRepository
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
@@ -34,6 +35,9 @@ class PoolsInteractorImpl(
 ) : PoolsInteractor {
 
     override val poolsChainId = poolsRepository.poolsChainId
+
+    override suspend fun mutationCapabilityReason(action: LiquidityMutationAction): String? =
+        poolsRepository.mutationCapabilityReason(poolsChainId, action)
 
     private val soraPoolsAddressFlow = flowOf {
         val meta = accountRepository.getSelectedMetaAccount()
@@ -131,7 +135,7 @@ class PoolsInteractorImpl(
             secondAmountMin,
         )
 
-        return status?.getOrNull() ?: ""
+        return status?.getOrThrow() ?: ""
     }
 
     override suspend fun observeAddLiquidity(
@@ -160,7 +164,7 @@ class PoolsInteractorImpl(
             slippageTolerance
         )
 
-        return status?.getOrNull() ?: ""
+        return status?.getOrThrow() ?: ""
     }
 
     @Suppress("OptionalUnit")

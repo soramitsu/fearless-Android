@@ -178,8 +178,8 @@ check_strict_provenance_contract() {
     fail "Vendored libsodium source version is missing or changed."
   grep -Fq "distributionSha256Sum=$GRADLE_DISTRIBUTION_SHA256" gradle/wrapper/gradle-wrapper.properties ||
     fail "Gradle 9.0 distributionSha256Sum is missing or changed."
-  grep -Fq "FEARLESS_UTILS_COMMIT: $SR25519_SOURCE_COMMIT" .github/workflows/android-release.yml ||
-    fail "Android release workflow must pin the documented fearless-utils source commit."
+  grep -Fq "SR25519_SOURCE_COMMIT: $SR25519_SOURCE_COMMIT" .github/workflows/android-release.yml ||
+    fail "Android release workflow must separately pin the documented SR25519 source commit."
 }
 
 check_public_google_services() {

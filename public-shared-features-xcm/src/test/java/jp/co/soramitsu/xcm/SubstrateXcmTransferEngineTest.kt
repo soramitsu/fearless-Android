@@ -31,6 +31,89 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 class SubstrateXcmTransferEngineTest {
 
     @Test
+    fun `compiled disable rejects direct transfer even when remote configuration enables it`() = runBlocking {
+        val submitter = RecordingSubmitter()
+        var remoteRead = false
+        val engine = MutationGuardedXcmTransferEngine(
+            // No keypair provider is installed: the compiled guard must reject before signing setup.
+            delegate = SubstrateXcmTransferEngine(submitter),
+            transfersEnabled = false,
+            mutationsEnabled = { remoteRead = true; true }
+        )
+        val request = XcmTransferRequest(
+            originChain = chain("origin"),
+            destinationChain = chain("destination"),
+            asset = coreAsset("DOT"),
+            senderAccountId = ByteArray(32) { 1 },
+            recipientAddress = "5Destination",
+            amount = BigInteger.TEN,
+            executionSpec = executionSpec()
+        )
+
+        val failure = assertThrows(IllegalStateException::class.java) {
+            runBlocking { engine.transfer(request) }
+        }
+        assertEquals("Reviewed XCM actions are unavailable in this build.", failure.message)
+        assertFalse(remoteRead)
+        assertEquals(0, submitter.submitCount)
+        assertEquals(0, submitter.estimateCount)
+        assertTrue(engine.isAvailable)
+    }
+
+    @Test
+    fun `mutation guard observes runtime switch and blocks final submit boundary`() = runBlocking {
+        val submitter = RecordingSubmitter()
+        val delegate = SubstrateXcmTransferEngine(submitter).apply {
+            updateKeypairProvider("origin", FakeKeypairProvider())
+        }
+        var mutationsEnabled = false
+        val engine = MutationGuardedXcmTransferEngine(
+            delegate = delegate,
+            transfersEnabled = true,
+            mutationsEnabled = { mutationsEnabled }
+        )
+        val request = XcmTransferRequest(
+            originChain = chain("origin"),
+            destinationChain = chain("destination"),
+            asset = coreAsset("DOT"),
+            senderAccountId = ByteArray(32) { 1 },
+            recipientAddress = "5Destination",
+            amount = BigInteger.TEN,
+            executionSpec = executionSpec()
+        )
+
+        val disabled = assertThrows(IllegalStateException::class.java) {
+            runBlocking { engine.transfer(request) }
+        }
+        assertEquals("Reviewed XCM actions are temporarily disabled.", disabled.message)
+        assertEquals(0, submitter.submitCount)
+
+        mutationsEnabled = true
+        assertEquals("0xhash", engine.transfer(request))
+        assertEquals(1, submitter.submitCount)
+    }
+
+    @Test
+    fun `mutation guard leaves reviewed discovery and fee quotes available while writes are off`() = runBlocking {
+        val engine = MutationGuardedXcmTransferEngine(
+            delegate = SubstrateXcmTransferEngine(RecordingSubmitter()),
+            transfersEnabled = false,
+            mutationsEnabled = { false }
+        )
+
+        assertTrue(engine.isAvailable)
+        assertEquals(
+            BigDecimal.ZERO,
+            engine.getDestinationFee(
+                originChainId = "origin",
+                destinationChainId = "destination",
+                asset = coreAsset("DOT"),
+                executionSpec = executionSpec(destinationFeeMode = XcmDestinationFeeMode.INCLUDED)
+            )
+        )
+    }
+
+    @Test
     fun `submits limited reserve transfer call with versioned xcm arguments`() = runBlocking {
         val submitter = RecordingSubmitter()
         val engine = SubstrateXcmTransferEngine(submitter)

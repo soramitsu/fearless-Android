@@ -224,6 +224,14 @@ class UniversalWalletBitcoinAddressRoutingTest {
 
         override suspend fun getOperations(): List<OperationLocal> = emptyList()
 
+        override suspend fun getCompletedModuleOperations(
+            address: String,
+            chainId: String,
+            chainAssetId: String,
+            module: String,
+            status: OperationLocal.Status
+        ): List<OperationLocal> = emptyList()
+
         override fun observeOperations(): Flow<List<OperationLocal>> = flowOf(emptyList())
 
         override fun observeOperations(chainId: String): Flow<List<OperationLocal>> = flowOf(emptyList())

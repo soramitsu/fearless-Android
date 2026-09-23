@@ -127,7 +127,7 @@ class AccountInteractorImplTest {
 
             val snapshot = interactor.universalWalletMigrationSnapshotFlow().first()
 
-            assertEquals(UniversalWalletMigrationRequiredAction.MigrateBeforeAccess, snapshot.requiredAction())
+            assertEquals(UniversalWalletMigrationRequiredAction.NormalAccess, snapshot.requiredAction())
             assertEquals(listOf(UniversalWalletEcosystem.Substrate.id), snapshot.legacyVaults.map { it.ecosystem })
             assertTrue(snapshot.validationErrors().isEmpty())
         }

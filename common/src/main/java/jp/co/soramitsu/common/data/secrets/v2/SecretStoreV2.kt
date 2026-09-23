@@ -3,11 +3,13 @@ package jp.co.soramitsu.common.data.secrets.v2
 import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.authorizedReads
 import jp.co.soramitsu.common.data.storage.encrypt.WalletRecoveryRequiredException
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.quarantineEncryptedStringSnapshotDurably
 import jp.co.soramitsu.common.data.storage.encrypt.readWalletSecretOrQuarantine
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -67,6 +69,17 @@ class SecretStoreV2 internal constructor(
             expectedPublicKey = expectedPublicKey,
             expectedCryptoType = expectedCryptoType
         )
+    }
+
+    /** Recheck only after switching dispatchers, directly around the synchronous secret read. */
+    suspend fun getAuthorizedChainAccountKeypair(
+        metaId: Long, accountId: ByteArray, expectedPublicKey: ByteArray, expectedCryptoType: CryptoType,
+        guard: MutationExecutionGuard, intentSha256: String
+    ): Keypair = withContext(Dispatchers.IO) {
+        guard.check(intentSha256)
+        val store = SecretStoreV2(encryptedPreferences.authorizedReads(guard, intentSha256), chainAccountSecretValidation)
+        val secrets = requireNotNull(store.readValidatedChainAccountSecrets(metaId, accountId, expectedPublicKey, expectedCryptoType))
+        mapKeypairStructToKeypair(secrets[ChainAccountSecrets.Keypair])
     }
 
     suspend fun hasChainSecrets(metaId: Long, accountId: ByteArray) = withContext(Dispatchers.Default) {

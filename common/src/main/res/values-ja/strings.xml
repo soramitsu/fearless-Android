@@ -1303,4 +1303,9 @@
   <string name="ton_tonviewer_action_title">View in Tonviewer</string>
 
   <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">アドレスを共有</string>
+  <string name="portfolio_sync_catalog_only">一部のトークンが表示されない場合があります</string>
+  <string name="portfolio_balance_update_failed">残高の更新に失敗しました</string>
+  <string name="portfolio_balances_outdated">残高が最新ではない可能性があります</string>
+  <string name="portfolio_balances_not_loaded">残高が読み込まれていません</string>
 </resources>

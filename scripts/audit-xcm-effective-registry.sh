@@ -22,7 +22,8 @@ DI, and release BuildConfig fail-closed wiring.
 
 The report's effective count is the compatible APK-approved candidate set, not
 an enabled production route count. summary.productionExecutable remains zero
-while the audited release flag and approved-registry provider are disabled.
+while compiled submission permission is disabled. Reviewed discovery and quotes
+remain available independently of submission permission.
 
 Options:
   --bundled-registry <path>  Bundled local_chains.json override.
@@ -633,6 +634,7 @@ function auditWiring() {
     'feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt'
   );
   const featureGradleFile = path.join(rootDir, 'feature-wallet-impl/build.gradle');
+  const engineFile = path.join(rootDir, 'public-shared-features-xcm/src/main/java/jp/co/soramitsu/xcm/XcmTransferEngine.kt');
   const runtimeGradleFile = path.join(rootDir, 'runtime/build.gradle');
   const discoveryProviderFile = path.join(
     rootDir,
@@ -652,6 +654,7 @@ function auditWiring() {
   const fetcherSource = stripSourceComments(readRegularFile(fetcherSourceFile, 'XCM entities fetcher source', MAX_TEXT_BYTES));
   const featureModule = stripSourceComments(readRegularFile(featureModuleFile, 'wallet DI source', MAX_TEXT_BYTES));
   const featureGradle = stripSourceComments(readRegularFile(featureGradleFile, 'wallet feature Gradle source', MAX_TEXT_BYTES));
+  const engineSource = stripSourceComments(readRegularFile(engineFile, 'XCM guarded engine source', MAX_TEXT_BYTES));
   const runtimeGradle = stripSourceComments(readRegularFile(runtimeGradleFile, 'runtime Gradle source', MAX_TEXT_BYTES));
   const discoveryProvider = stripSourceComments(readRegularFile(discoveryProviderFile, 'XCM discovery snapshot provider source', MAX_TEXT_BYTES));
   const chainSyncSource = stripSourceComments(readRegularFile(chainSyncSourceFile, 'chain sync source', MAX_TEXT_BYTES));
@@ -682,9 +685,6 @@ function auditWiring() {
   requireMarker(featureModule, /local_chains\.json/u, 'wallet DI missing bundled local_chains.json input');
   requireMarker(featureModule, /approved_xcm_routes\.tsv/u, 'wallet DI missing approved_xcm_routes.tsv input');
   requireMarker(featureModule, /XcmEntitiesFetcher\s*\([^)]*approved/isu, 'wallet DI must inject the approved registry into XcmEntitiesFetcher');
-  requireMarker(featureModule, /if\s*\(\s*BuildConfig\.ENABLE_PRODUCTION_XCM_TRANSFERS\s*\)/u, 'wallet DI missing production XCM flag guard');
-  requireMarker(featureModule, /SubstrateXcmTransferEngine\s*\(/u, 'wallet DI missing enabled XCM engine branch');
-  requireMarker(featureModule, /else\s*\{?\s*UnavailableXcmTransferEngine\b/su, 'wallet DI must fail closed to UnavailableXcmTransferEngine');
 
   function extractFunctionBlock(text, name) {
     const nameIndex = text.indexOf(name);
@@ -704,10 +704,29 @@ function auditWiring() {
 
   const approvedProvider = extractFunctionBlock(featureModule, 'provideApprovedXcmRouteRegistry');
   if (approvedProvider === null ||
-      !/if\s*\(\s*!\s*BuildConfig\.ENABLE_PRODUCTION_XCM_TRANSFERS\s*\)\s*\{[^}]*return\s+ApprovedXcmRouteRegistry\.unavailable\s*\(\s*\)/su.test(approvedProvider)) {
-    errors.push('approved registry DI provider must return unavailable before asset loading when production XCM is disabled');
-  } else if (approvedProvider.indexOf('ApprovedXcmRouteRegistry.unavailable') > approvedProvider.indexOf('context.assets.open')) {
-    errors.push('approved registry DI fail-closed guard must run before opening APK assets');
+      !/return\s+selectApprovedXcmRouteRegistry\(enabled = true\)/u.test(approvedProvider) ||
+      /BuildConfig|mutationsEnabled|return\s+ApprovedXcmRouteRegistry\.unavailable/u.test(approvedProvider)) {
+    errors.push('approved registry DI must preserve reviewed discovery independently of submission permission');
+  }
+  const engineProvider = extractFunctionBlock(featureModule, 'provideXcmTransferEngine');
+  if (engineProvider === null ||
+      !/^\s*return\s+MutationGuardedXcmTransferEngine\(/u.test(engineProvider) ||
+      !/delegate = SubstrateXcmTransferEngine\(xcmExtrinsicSubmitter\)/u.test(engineProvider)) {
+    errors.push('wallet DI must retain the quote engine behind MutationGuardedXcmTransferEngine');
+  }
+  if (engineProvider === null ||
+      !/transfersEnabled = BuildConfig\.ENABLE_PRODUCTION_XCM_TRANSFERS/u.test(engineProvider)) {
+    errors.push('wallet DI missing production XCM flag guard');
+  }
+  if (engineProvider === null ||
+      !/mutationsEnabled = \{ productFeatureToggleStore\.xcmMutationsEnabled \}/u.test(engineProvider)) {
+    errors.push('wallet DI missing runtime XCM mutation guard');
+  }
+  const guardedEngine = engineSource.slice(engineSource.indexOf('class MutationGuardedXcmTransferEngine'));
+  const guardedTransfer = extractFunctionBlock(guardedEngine, 'override suspend fun transfer');
+  if (guardedTransfer === null ||
+      !/^\s*check\(transfersEnabled\)\s*\{[^}]*\}\s*check\(mutationsEnabled\(\)\)\s*\{[^}]*\}\s*return delegate\.transfer\(request\)\s*$/su.test(guardedTransfer)) {
+    errors.push('XCM transfer must check compiled and runtime permission before entering the signing/submission delegate');
   }
 
   requireMarker(discoveryProvider, /\binterface\s+XcmDiscoverySnapshotProvider\b/u, 'runtime missing XcmDiscoverySnapshotProvider interface');

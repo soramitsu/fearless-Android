@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name" translatable="false">Fearless</string>
+    <string name="main_hub_polkaswap_title">Polkaswap</string>
+    <string name="main_hub_polkaswap_description">Swap and provide liquidity on the SORA network. A SORA account is required to submit transactions.</string>
+    <string name="main_hub_swap_action">Swap assets</string>
+    <string name="main_hub_pools_action">Liquidity pools</string>
+    <string name="main_hub_defi_title">Earn</string>
+    <string name="main_hub_defi_description">Manage earning positions across supported networks. Availability is shown before you enter a flow.</string>
+    <string name="main_hub_positions_title">Your positions</string>
+    <string name="main_hub_positions_description">Live product counts refresh independently. Open a product below for balances, rewards, and actions.</string>
+    <string name="main_hub_positions_loading">%1$s: refreshing…</string>
+    <string name="main_hub_positions_count">%1$s: %2$d active</string>
+    <string name="main_hub_positions_unavailable">%1$s: not refreshed — %2$s</string>
+    <string name="main_hub_staking_action">Staking</string>
+    <string name="main_hub_farming_title">Farming</string>
+    <string name="main_hub_farming_unavailable">Demeter farming actions are not available in this build yet.</string>
+    <string name="main_hub_polkamarkt_title">Polkamarkt</string>
+    <string name="main_hub_cross_chain_title">Transfer</string>
+    <string name="main_hub_cross_chain_description">Move assets between supported Polkadot ecosystem networks. Route availability is checked before a transfer is created.</string>
+    <string name="main_hub_cross_chain_action">Choose origin and asset</string>
+    <string name="main_hub_cross_chain_coverage">TON, Bitcoin, Solana, Iroha, and unsupported EVM routes are not available yet.</string>
 </resources>

@@ -32,7 +32,7 @@ create_fixture() {
   git_identity "$utils"
   git -C "$utils" config core.filemode true
   printf '%s\n' 'base source' > "$utils/library/base.txt"
-  printf '%s\n' 'ignored/' > "$utils/.gitignore"
+  printf '%s\n' 'ignored/' '/build/' > "$utils/.gitignore"
   git -C "$utils" add .
   git -C "$utils" commit -qm "pinned source"
   git -C "$utils" remote add origin https://github.com/soramitsu/fearless-utils-Android.git
@@ -129,15 +129,10 @@ assert_effective_tree_marker \
   "$(git -C "$utils" rev-parse "$expected_commit^{tree}")"
 
 create_fixture
-derived_tree="$(expected_fixture_tree)"
-run_guard true || fail "pristine tree could not be converted to the expected derived tree"
-assert_effective_tree_marker "newly applied derived tree" "$derived_tree"
-[[ "$(<"$utils/library/base.txt")" == "base source with library overlay" ]] ||
-  fail "library-only overlay did not update its tracked source"
-[[ "$(<"$utils/library/overlay.txt")" == "overlay source" ]] ||
-  fail "library-only overlay did not add its expected source"
-run_guard true || fail "an exact, already-applied derived tree was rejected"
-assert_effective_tree_marker "already-applied derived tree" "$derived_tree"
+run_guard true || fail "library-only pinned tree was rejected"
+assert_effective_tree_marker "library-only committed source" "$(git -C "$utils" rev-parse 'HEAD^{tree}')"
+assert_pristine_source "library-only verification"
+run_guard true || fail "repeated read-only verification was rejected"
 
 create_fixture
 git -C "$utils" remote set-url origin git@github.com:soramitsu/fearless-utils-Android.git
@@ -406,30 +401,18 @@ git -C "$utils" add library/base.txt
 expect_guard_failure "staged tracked drift"
 
 create_fixture
-run_guard true || fail "fixture overlay setup failed"
-git -C "$utils" add library/base.txt library/overlay.txt
-expect_guard_failure "staged overlay content"
+printf '%s\n' 'modified source' >> "$utils/library/base.txt"
+git -C "$utils" add library/base.txt
+expect_guard_failure "staged source mutation"
 
 create_fixture
-run_guard true || fail "fixture overlay setup failed"
-printf '%s\n' 'adversarial extra line' >> "$utils/library/base.txt"
-expect_guard_failure "extra modification in a patch-touched tracked file"
+rm "$utils/library/base.txt"
+expect_guard_failure "deleted committed source"
 
 create_fixture
-run_guard true || fail "fixture overlay setup failed"
-printf '%s\n' 'adversarial replacement' > "$utils/library/overlay.txt"
-expect_guard_failure "extra modification in a patch-added file"
-
-create_fixture
-run_guard true || fail "fixture overlay setup failed"
-rm "$utils/library/overlay.txt"
-expect_guard_failure "deleted patch-added file"
-
-create_fixture
-printf '%s\n' 'base source with library overlay' > "$utils/library/base.txt"
-expect_guard_failure "partially applied overlay"
-[[ ! -e "$utils/library/overlay.txt" ]] ||
-  fail "partial-overlay rejection mutated the checkout"
+# A historical overlay, even if exact, is now source drift and must never apply.
+git -C "$utils" apply "$wallet/scripts/fearless-utils-library-only.patch"
+expect_guard_failure "historical overlay applied to immutable source"
 
 create_fixture
 chmod +x "$utils/library/base.txt"
@@ -496,24 +479,11 @@ git -C "$utils" replace "$replacement_base" "$replacement_commit"
 expect_guard_failure "Git replacement ref"
 
 create_fixture
-printf '%s\n' '# uncommitted patch drift' >> "$wallet/scripts/fearless-utils-library-only.patch"
-expect_guard_failure "uncommitted overlay patch drift"
-
-create_fixture
-printf '%s\n' '# staged patch drift' >> "$wallet/scripts/fearless-utils-library-only.patch"
-git -C "$wallet" add scripts/fearless-utils-library-only.patch
-expect_guard_failure "staged overlay patch drift"
-
-create_fixture
+# The obsolete overlay is not a build input. Even invalid bytes must have no
+# effect and the verifier must not attempt to parse or apply it.
 printf '%s\n' 'not a patch' > "$wallet/scripts/fearless-utils-library-only.patch"
-git -C "$wallet" add scripts/fearless-utils-library-only.patch
-git -C "$wallet" commit -qm "commit malformed patch"
-expect_guard_failure "committed malformed overlay patch"
-
-create_fixture
-rm "$wallet/scripts/fearless-utils-library-only.patch"
-ln -s /etc/hosts "$wallet/scripts/fearless-utils-library-only.patch"
-expect_guard_failure "symlink overlay patch"
+run_guard true || fail "unused historical patch affected committed source verification"
+assert_pristine_source "unused historical patch"
 
 create_fixture
 sub_origin="$fixture/submodule-origin"
@@ -545,8 +515,18 @@ rm -rf "$utils/vendor/submodule"
 expect_guard_failure "uninitialized submodule"
 
 create_fixture
-mkdir -p "$utils/ignored"
-printf '%s\n' 'build output' > "$utils/ignored/output.bin"
+mkdir -p "$utils/build"
+printf '%s\n' 'build output' > "$utils/build/output.bin"
 run_guard true || fail "Git-ignored build output incorrectly changed the source-tree contract"
+
+create_fixture
+mkdir -p "$utils/ignored"
+printf '%s\n' 'injected source' > "$utils/ignored/evil.gradle"
+expect_guard_failure "ignored source outside generated directories"
+
+create_fixture
+mkdir -p "$utils/build"
+ln -s "$utils/library/base.txt" "$utils/build/injected.gradle"
+expect_guard_failure "symlink inside generated outputs"
 
 echo "[fearless-utils-derived-tree-test] all deterministic and adversarial fixtures passed"

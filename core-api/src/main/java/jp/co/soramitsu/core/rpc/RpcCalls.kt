@@ -2,12 +2,15 @@ package jp.co.soramitsu.core.rpc
 
 import com.google.gson.Gson
 import jp.co.soramitsu.core.models.IChain
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.core.utils.toLongExact
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
+import jp.co.soramitsu.fearless_utils.wsrpc.executeGuardedAsync
+import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestSendGuard
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.ResponseMapper
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
@@ -44,6 +47,28 @@ class RpcCalls(
         )
     }
 
+    /** Live RPC identity used to bind reviewed calls across runtime upgrades and endpoint drift. */
+    suspend fun getRuntimeIdentity(chainId: String): RpcRuntimeIdentity {
+        val version = chainRegistry.getConnection(chainId).socketService.executeAsync(
+            RuntimeVersionRequest(),
+            mapper = pojo<RpcRuntimeIdentityResponse>().nonNull()
+        )
+        require(!version.specName.isNullOrBlank() && version.specVersion != null && version.specVersion >= 0) {
+            "Runtime identity response is incomplete"
+        }
+        val transactionVersion = requireNotNull(version.transactionVersion) {
+            "Runtime transaction version is missing"
+        }
+        require(transactionVersion >= 0) { "Runtime transaction version is invalid" }
+
+        return RpcRuntimeIdentity(
+            genesisHash = getBlockHash(chainId, BigInteger.ZERO),
+            specName = version.specName,
+            specVersion = version.specVersion,
+            transactionVersion = transactionVersion
+        )
+    }
+
     suspend fun getAccountNonce(chain: IChain, accountId: AccountId): BigInteger {
         return chainRegistry.getConnection(chain.id).socketService.executeAsync(
             AccountNextIndexRequest(accountId.toAddress(chain.addressPrefix.toShort())),
@@ -72,12 +97,34 @@ class RpcCalls(
         )
     }
 
+    /** Actual WebSocket send rechecks this exact lease after every queue/reconnect delay. */
+    suspend fun submitAuthorizedExtrinsic(
+        chainId: String, extrinsic: String, guard: MutationExecutionGuard, intentSha256: String
+    ): String = chainRegistry.getConnection(chainId).socketService.executeGuardedAsync(
+        SubmitExtrinsicRequest(extrinsic),
+        sendGuard = RequestSendGuard { send -> guard.runIfAuthorized(intentSha256, send) },
+        mapper = string().nonNull()
+    )
+
     fun extrinsicStatusFlow(chainId: String, extrinsic: String): Flow<SubscriptionChange> {
         return chainRegistry.getConnection(chainId).socketService.subscriptionFlow(
             SubmitAndWatchExtrinsicRequest(extrinsic)
         )
     }
 }
+
+data class RpcRuntimeIdentity(
+    val genesisHash: String,
+    val specName: String,
+    val specVersion: Int,
+    val transactionVersion: Int
+)
+
+private data class RpcRuntimeIdentityResponse(
+    val specName: String? = null,
+    val specVersion: Int? = null,
+    val transactionVersion: Int? = null
+)
 
 private class AccountNextIndexRequest(accountAddress: String) : RuntimeRequest(
     method = "system_accountNextIndex",

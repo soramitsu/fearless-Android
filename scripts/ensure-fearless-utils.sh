@@ -5,7 +5,7 @@ set -euo pipefail
 # pinned commit while retaining the expected object name.
 export GIT_NO_REPLACE_OBJECTS=1
 
-EXPECTED_COMMIT="${FEARLESS_UTILS_COMMIT:-7500809f33243ee47ecb2ec8563fc284ac4de0d6}"
+EXPECTED_COMMIT="${FEARLESS_UTILS_COMMIT:-1c80a2bf3fa1f996cf1328873e09f282ee29b69e}"
 EXPECTED_REPOSITORY="${FEARLESS_UTILS_REPOSITORY:-soramitsu/fearless-utils-Android}"
 LIBRARY_ONLY="${FEARLESS_UTILS_LIBRARY_ONLY:-false}"
 
@@ -83,38 +83,6 @@ verify_origin() {
     fail "origin must identify $EXPECTED_REPOSITORY; found $configured_repository"
   [[ "$effective_repository" == "$EXPECTED_REPOSITORY" ]] ||
     fail "effective origin must identify $EXPECTED_REPOSITORY; found $effective_repository (check Git URL rewrite configuration)"
-}
-
-verify_committed_overlay_patch() {
-  local patch_relative="scripts/fearless-utils-library-only.patch"
-  local patch_file="$repo_root/$patch_relative"
-  local wallet_top
-  local head_blob
-  local index_blob
-  local worktree_blob
-
-  [[ -f "$patch_file" && ! -L "$patch_file" ]] ||
-    fail "library-only overlay must be a regular, non-symlink file at $patch_file"
-
-  wallet_top="$(git -C "$repo_root" rev-parse --show-toplevel 2>/dev/null)" ||
-    fail "unable to verify the committed library-only overlay because $repo_root is not a Git worktree"
-  wallet_top="$(cd "$wallet_top" && pwd -P)"
-  [[ "$wallet_top" == "$repo_root" ]] ||
-    fail "Android checkout root mismatch while verifying the library-only overlay: expected $repo_root, found $wallet_top"
-
-  head_blob="$(git -C "$repo_root" rev-parse --verify "HEAD:$patch_relative" 2>/dev/null)" ||
-    fail "$patch_relative is not committed at Android HEAD"
-  index_blob="$(git -C "$repo_root" rev-parse --verify ":$patch_relative" 2>/dev/null)" ||
-    fail "$patch_relative is missing from the Android index"
-  worktree_blob="$(git -C "$repo_root" hash-object --no-filters "$patch_file")" ||
-    fail "unable to hash $patch_relative"
-
-  [[ "$index_blob" == "$head_blob" ]] ||
-    fail "$patch_relative has staged drift; commit the reviewed overlay before use"
-  [[ "$worktree_blob" == "$head_blob" ]] ||
-    fail "$patch_relative differs from the committed Android HEAD overlay"
-
-  printf '%s\n' "$patch_file"
 }
 
 # Kotlin's Gradle compiler runner writes crash diagnostics and a live compiler
@@ -390,6 +358,21 @@ verify_submodules_clean() {
   fi
 }
 
+verify_ignored_build_outputs() {
+  local path directory
+  while IFS= read -r -d '' path; do
+    case "$path" in
+      .gradle/*|build/*|fearless-utils/build/*|sr25519-java/target/*) ;;
+      *) fail "ignored file outside approved generated-output directories: $path" ;;
+    esac
+  done < <(git -C "$utils_path" ls-files --others --ignored --exclude-standard -z)
+  for directory in .gradle build fearless-utils/build sr25519-java/target; do
+    [[ ! -e "$utils_path/$directory" && ! -L "$utils_path/$directory" ]] && continue
+    [[ ! -L "$utils_path/$directory" ]] || fail "generated output root is a symlink: $directory"
+    [[ -z "$(find "$utils_path/$directory" -type l -print -quit)" ]] || fail "generated outputs contain a symlink: $directory"
+  done
+}
+
 verify_no_replace_refs() {
   local replace_refs
 
@@ -419,6 +402,7 @@ utils_path="$utils_top"
 
 verify_origin
 verify_no_replace_refs
+verify_ignored_build_outputs
 
 actual_commit="$(git -C "$utils_path" rev-parse --verify HEAD^{commit} 2>/dev/null)" ||
   fail "fearless-utils-Android HEAD is not a commit"
@@ -441,59 +425,16 @@ echo "[fearless-utils] Using $utils_path at $actual_commit"
 tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/fearless-utils-derived-tree.XXXXXX")" ||
   fail "unable to create temporary verification directory"
 head_index="$tmp_dir/head.index"
-expected_index="$tmp_dir/library-only.index"
 
 GIT_INDEX_FILE="$head_index" git -C "$utils_path" read-tree "$actual_commit" ||
   fail "unable to construct the pinned fearless-utils-Android source tree"
 
-if [[ "$LIBRARY_ONLY" == "false" ]]; then
-  if ! index_matches_worktree "$head_index"; then
-    report_index_mismatch "$head_index" "the pristine pinned HEAD tree"
-    fail "tracked, untracked, or submodule drift is not allowed"
-  fi
-
-  echo "[fearless-utils] Verified pristine $utils_path at $actual_commit from $EXPECTED_REPOSITORY"
-  echo "[fearless-utils] Effective source tree $head_tree"
-  exit 0
+# Library-only compatibility and runtime changes are committed upstream. This
+# verifier never applies a patch or modifies tracked, index, or source files.
+if ! index_matches_worktree "$head_index"; then
+  report_index_mismatch "$head_index" "the pristine pinned HEAD tree"
+  fail "tracked, untracked, or submodule drift is not allowed"
 fi
 
-patch_file="$(verify_committed_overlay_patch)"
-cp "$head_index" "$expected_index"
-GIT_INDEX_FILE="$expected_index" \
-  git -C "$utils_path" apply --cached --check --unidiff-zero --whitespace=error-all "$patch_file" ||
-  fail "committed library-only overlay does not apply cleanly to pinned commit $actual_commit"
-GIT_INDEX_FILE="$expected_index" \
-  git -C "$utils_path" apply --cached --unidiff-zero --whitespace=error-all "$patch_file" ||
-  fail "unable to construct the expected library-only derived tree"
-effective_tree="$(GIT_INDEX_FILE="$expected_index" git -C "$utils_path" write-tree)" ||
-  fail "unable to fingerprint the expected library-only derived tree"
-[[ "$effective_tree" =~ ^[0-9a-f]{40}$ ]] ||
-  fail "expected library-only derived tree fingerprint is malformed"
-
-if index_matches_worktree "$expected_index"; then
-  echo "[fearless-utils] Verified exact library-only derived tree at $actual_commit from $EXPECTED_REPOSITORY"
-  echo "[fearless-utils] Effective source tree $effective_tree"
-  exit 0
-fi
-
-# Preserve the historical CI/developer behavior of applying the overlay, but do
-# so only when the checkout is demonstrably pristine. A dirty or partial tree is
-# rejected without being modified.
-if index_matches_worktree "$head_index"; then
-  git -C "$utils_path" apply --check --unidiff-zero --whitespace=error-all "$patch_file" ||
-    fail "library-only overlay cannot be applied to the pristine checkout"
-  git -C "$utils_path" apply --unidiff-zero --whitespace=error-all "$patch_file" ||
-    fail "unable to apply the library-only overlay"
-
-  if ! index_matches_worktree "$expected_index"; then
-    report_index_mismatch "$expected_index" "pinned HEAD plus the committed library-only overlay"
-    fail "checkout changed while the library-only overlay was being applied"
-  fi
-
-  echo "[fearless-utils] Applied and verified exact library-only derived tree at $actual_commit from $EXPECTED_REPOSITORY"
-  echo "[fearless-utils] Effective source tree $effective_tree"
-  exit 0
-fi
-
-report_index_mismatch "$expected_index" "pinned HEAD plus the committed library-only overlay"
-fail "refusing to modify a dirty or partially overlaid checkout; reset it to the pinned commit and rerun"
+echo "[fearless-utils] Verified pristine $utils_path at $actual_commit from $EXPECTED_REPOSITORY"
+echo "[fearless-utils] Effective source tree $head_tree"

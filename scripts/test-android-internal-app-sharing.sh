@@ -676,7 +676,9 @@ def trust_contract_errors(text, count_assertion=None):
     require(
         "./scripts/ensure-fearless-utils.sh" not in bind
         and "./scripts/verify-android-release-source-tree.sh" not in bind
-        and "git -C \"$utils_path\" apply" in bind,
+        and "git -C \"$utils_path\" apply" not in bind
+        and "FEARLESS_NV_WEBSOCKET_COMMIT" in bind
+        and "rev-parse 'HEAD^{tree}'" in bind,
         "normal qualifier UID must use only inline trusted source binding before signing",
     )
     require(

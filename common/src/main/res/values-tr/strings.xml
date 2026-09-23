@@ -1309,4 +1309,9 @@
   <string name="ton_tonviewer_action_title">View in Tonviewer</string>
 
   <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">Adresi paylaş</string>
+  <string name="portfolio_sync_catalog_only">Bazı tokenlar görünmeyebilir</string>
+  <string name="portfolio_balance_update_failed">Bakiyeler güncellenemedi</string>
+  <string name="portfolio_balances_outdated">Bakiyeler güncel olmayabilir</string>
+  <string name="portfolio_balances_not_loaded">Bakiyeler yüklenmedi</string>
 </resources>

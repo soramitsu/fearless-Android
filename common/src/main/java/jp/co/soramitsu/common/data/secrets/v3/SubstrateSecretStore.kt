@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.data.secrets.v3
 import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.authorizedReads
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
 import jp.co.soramitsu.common.data.storage.encrypt.readValidatedWalletSecretOrQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.readWalletSecretOrQuarantine
@@ -76,6 +78,15 @@ class SubstrateSecretStore internal constructor(
             SubstrateSecrets.read(canonical)
         }
     }
+
+    /** Presence only; actual mutation reads still validate identity and quarantine under their lease. */
+    fun hasSecret(metaId: Long): Boolean = encryptedPreferences.hasKey(activeKey(metaId))
+
+    fun getAuthorized(
+        metaId: Long, expectedPublicKey: ByteArray?, expectedCryptoType: CryptoType?, expectedAccountId: ByteArray?,
+        guard: MutationExecutionGuard, intentSha256: String
+    ): EncodableStruct<SubstrateSecrets>? = SubstrateSecretStore(encryptedPreferences.authorizedReads(guard, intentSha256), walletRootSecretValidation)
+        .get(metaId, expectedPublicKey, expectedCryptoType, expectedAccountId)
 
     private fun activeKey(metaId: Long) = "$metaId:$SUBSTRATE_SECRETS"
 }

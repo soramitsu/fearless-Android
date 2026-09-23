@@ -33,16 +33,47 @@ class XcmServiceTest {
     fun `public service does not advertise transfer support even when route metadata exists`() = runBlocking {
         val service = serviceWithRoute()
 
-        assertFalse(service.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
+        assertFalse(
+            service.isXcmSupportAsset(
+                originChainId = "origin",
+                originAssetId = "asset-DOT",
+                assetSymbol = "DOT"
+            )
+        )
     }
 
     @Test
     fun `advertises transfer support with available engine`() = runBlocking {
         val service = serviceWithRoute(RecordingXcmTransferEngine())
 
-        assertTrue(service.isXcmSupportAsset(originChainId = "origin", assetSymbol = "xcdot"))
-        assertFalse(service.isXcmSupportAsset(originChainId = "origin", assetSymbol = "KSM"))
-        assertFalse(service.isXcmSupportAsset(originChainId = "missing", assetSymbol = "DOT"))
+        assertTrue(
+            service.isXcmSupportAsset(
+                originChainId = "origin",
+                originAssetId = "asset-DOT",
+                assetSymbol = "xcdot"
+            )
+        )
+        assertFalse(
+            service.isXcmSupportAsset(
+                originChainId = "origin",
+                originAssetId = "same-symbol-wrong-id",
+                assetSymbol = "DOT"
+            )
+        )
+        assertFalse(
+            service.isXcmSupportAsset(
+                originChainId = "origin",
+                originAssetId = "asset-DOT",
+                assetSymbol = "KSM"
+            )
+        )
+        assertFalse(
+            service.isXcmSupportAsset(
+                originChainId = "missing",
+                originAssetId = "asset-DOT",
+                assetSymbol = "DOT"
+            )
+        )
     }
 
     @Test
@@ -221,10 +252,18 @@ class XcmServiceTest {
             execution = executableRouteSpec(argumentShape = "operatorAlias")
         )
 
-        assertFalse(missingSpecService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
-        assertFalse(malformedSpecService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
-        assertFalse(malformedMultilocationService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
-        assertFalse(unsupportedArgumentShapeService.isXcmSupportAsset(originChainId = "origin", assetSymbol = "DOT"))
+        assertFalse(
+            missingSpecService.isXcmSupportAsset("origin", "asset-DOT", "DOT")
+        )
+        assertFalse(
+            malformedSpecService.isXcmSupportAsset("origin", "asset-DOT", "DOT")
+        )
+        assertFalse(
+            malformedMultilocationService.isXcmSupportAsset("origin", "asset-DOT", "DOT")
+        )
+        assertFalse(
+            unsupportedArgumentShapeService.isXcmSupportAsset("origin", "asset-DOT", "DOT")
+        )
     }
 
     @Test

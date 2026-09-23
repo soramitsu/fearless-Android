@@ -67,11 +67,6 @@ const compatibilityModules = [
 
 const copiedFiles = [
   {
-    source: 'scripts/fearless-utils-library-only.patch',
-    output: 'fearless-utils/fearless-utils-library-only.patch',
-    label: 'fearless-utils library-only overlay patch',
-  },
-  {
     source: 'scripts/ensure-fearless-utils.sh',
     output: 'fearless-utils/ensure-fearless-utils.sh',
     label: 'fearless-utils source guard',
@@ -311,7 +306,7 @@ assertContains(
 assertContains(
   'scripts/ensure-fearless-utils.sh',
   /FEARLESS_UTILS_LIBRARY_ONLY/,
-  'library-only overlay mode'
+  'library-only source mode'
 );
 assertContains(
   'scripts/test-fearless-utils-derived-tree.sh',
@@ -333,17 +328,6 @@ assertContains(
   /export-public-dependency-upstream-delta\.sh/,
   'release checklist handoff export command'
 );
-
-const patch = readFile('scripts/fearless-utils-library-only.patch', 'fearless-utils library-only overlay patch').toString('utf8');
-const patchTouchedPaths = [...patch.matchAll(/^diff --git a\/(.+?) b\/(.+)$/gm)]
-  .map((match) => match[2])
-  .sort();
-if (patchTouchedPaths.length === 0) {
-  fail('fearless-utils library-only overlay patch must contain at least one diff');
-}
-if (!patchTouchedPaths.every((patchedPath) => patchedPath.startsWith('fearless-utils/') || patchedPath === 'settings.gradle' || patchedPath === 'build.gradle')) {
-  fail('fearless-utils library-only overlay patch touches paths outside fearless-utils/root Gradle files');
-}
 
 const modules = compatibilityModules.map((modulePath) => {
   const fullPath = repoPath(modulePath);
@@ -487,21 +471,21 @@ const handoffFiles = copiedFiles.map((file) => ({
 const readme = `# Android Public Dependency Upstream Delta
 
 This bundle captures the public dependency compatibility work that still needs
-upstream ownership before Android can remove local checkout mutation and
-compatibility shims.
+upstream ownership and compatibility shims. Runtime utility changes are now
+consumed as immutable source; this bundle does not contain an executable overlay.
 
 ## Source Pin
 
 - fearless-utils repository: https://github.com/soramitsu/fearless-utils-Android
 - expected revision: ${expectedCommit}
-- overlay patch: fearless-utils/fearless-utils-library-only.patch
+- source mode: pristine committed source, without checkout mutation
 
 ## Review
 
 1. Review handoff-manifest.json for source hashes and compatibility modules,
    then run fearless-utils/test-fearless-utils-derived-tree.sh.
-2. Apply the fearless-utils overlay to the pinned upstream checkout or port the
-   same changes directly upstream.
+2. Review the pinned source candidate and run its guarded-mutation tests. Never
+   apply the historical overlay to the committed candidate.
 3. Replace local compatibility modules only after public artifacts expose the
    same source-backed API contracts and Android CI passes without local
    substitutions.
@@ -521,10 +505,8 @@ const manifest = {
   fearlessUtils: {
     repository: 'https://github.com/soramitsu/fearless-utils-Android',
     expectedRevision: expectedCommit,
-    libraryOnlyPatch: 'fearless-utils/fearless-utils-library-only.patch',
-    patchSha256: sha256Buffer(Buffer.from(patch)),
-    patchTouchedPathCount: patchTouchedPaths.length,
-    patchTouchedPaths,
+    sourceMode: 'pristine-committed-source',
+    postResolutionPatching: false,
   },
   publicCompatibilityModules: modules,
   governance: {
@@ -553,5 +535,5 @@ const manifest = {
 fs.writeFileSync(outputPath('handoff-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
 console.log(`[public-dependency-handoff] wrote ${outputPath('handoff-manifest.json')}`);
-console.log(`[public-dependency-handoff] modules=${modules.length} patchPaths=${patchTouchedPaths.length}`);
+console.log(`[public-dependency-handoff] modules=${modules.length} immutableUtilsSource=${expectedCommit}`);
 NODE

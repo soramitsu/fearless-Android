@@ -38,6 +38,14 @@ class IrohaToriiRoutesTest {
             )
         )
         assertEquals("https://taira.sora.org/v1/assets/definitions", IrohaToriiRoutes.assetDefinitionsUrl())
+        assertEquals(
+            "https://taira.sora.org/v1/assets/definitions?limit=500&offset=500&count_mode=bounded",
+            IrohaToriiRoutes.assetDefinitionsUrl(
+                limit = 500,
+                offset = 500,
+                countMode = CountMode.Bounded
+            )
+        )
         assertEquals("https://taira.sora.org/v1/pipeline/transactions", IrohaToriiRoutes.submitTransactionUrl())
         assertEquals(
             "https://taira.sora.org/v1/pipeline/transactions/status?hash=$HASH&scope=global",

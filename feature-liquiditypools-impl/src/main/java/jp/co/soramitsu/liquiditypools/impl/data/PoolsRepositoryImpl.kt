@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.androidfoundation.format.addHexPrefix
 import jp.co.soramitsu.androidfoundation.format.mapBalance
 import jp.co.soramitsu.androidfoundation.format.safeCast
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.fromHex
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
@@ -40,6 +41,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRe
 import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.liquiditypools.data.PoolDataDto
 import jp.co.soramitsu.liquiditypools.data.PoolsRepository
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.UserPoolData
@@ -65,16 +67,87 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.supervisorScope
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
+
+private val DEPOSIT_LIQUIDITY_CALL = SoraRuntimeCall(Modules.POOL_XYK, "deposit_liquidity")
+private val REMOVE_LIQUIDITY_CALL = SoraRuntimeCall(Modules.POOL_XYK, "withdraw_liquidity")
+private val INITIALIZE_POOL_CALL = SoraRuntimeCall(Modules.POOL_XYK, "initialize_pool")
+private val REGISTER_PAIR_CALL = SoraRuntimeCall("TradingPair", "register")
+private val BATCH_ALL_CALL = SoraRuntimeCall("Utility", "batch_all")
+private val REMOVE_LIQUIDITY_CALLS = setOf(REMOVE_LIQUIDITY_CALL)
+
+private fun addLiquidityCalls(pairEnabled: Boolean, pairPresented: Boolean): Set<SoraRuntimeCall> = buildSet {
+    add(DEPOSIT_LIQUIDITY_CALL)
+    if (!pairPresented) {
+        add(INITIALIZE_POOL_CALL)
+        add(BATCH_ALL_CALL)
+        if (!pairEnabled) add(REGISTER_PAIR_CALL)
+    }
+}
+
+private data class AddLiquidityRequest(
+    val chainId: ChainId,
+    val address: String,
+    val tokenBase: CanonicalSoraAsset,
+    val tokenTarget: CanonicalSoraAsset,
+    val amountBase: BigDecimal,
+    val amountTarget: BigDecimal,
+    val pairEnabled: Boolean,
+    val pairPresented: Boolean,
+    val slippageTolerance: Double
+)
+
+private data class RemoveLiquidityRequest(
+    val chainId: ChainId,
+    val tokenBase: CanonicalSoraAsset,
+    val tokenTarget: CanonicalSoraAsset,
+    val markerAssetDesired: BigDecimal,
+    val firstAmountMin: BigDecimal,
+    val secondAmountMin: BigDecimal
+)
+
+private data class ValidatedAddLiquidity(
+    val context: SoraMutationContext,
+    val tokenBase: Asset,
+    val tokenTarget: Asset,
+    val dexId: Int,
+    val amountBase: BigInteger,
+    val amountTarget: BigInteger,
+    val amountBaseMin: BigInteger,
+    val amountTargetMin: BigInteger
+)
+
+private data class ValidatedRemoveLiquidity(
+    val context: SoraMutationContext,
+    val tokenBase: Asset,
+    val tokenTarget: Asset,
+    val dexId: Int,
+    val markerAssetDesired: BigInteger,
+    val firstAmountMin: BigInteger,
+    val secondAmountMin: BigInteger
+)
 
 @Suppress("LargeClass", "MagicNumber")
-class PoolsRepositoryImpl constructor(
+open class PoolsRepositoryImpl constructor(
     private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
     private val accountRepository: AccountRepository,
     private val poolDao: PoolDao,
-    private val db: AppDatabase
+    private val db: AppDatabase,
+    private val featureToggleStore: ProductFeatureToggleStore,
+    private val mutationAuthorizer: SoraDeFiMutationAuthorizer
 ) : PoolsRepository {
     override val poolsChainId = soraMainChainId
+
+    override suspend fun mutationCapabilityReason(chainId: ChainId, action: LiquidityMutationAction): String? =
+        mutationAuthorizer.capabilityReason(
+            feature = SoraMutationFeature.Liquidity,
+            chainId = chainId,
+            requiredCalls = when (action) {
+                LiquidityMutationAction.Add -> setOf(DEPOSIT_LIQUIDITY_CALL)
+                LiquidityMutationAction.Remove -> REMOVE_LIQUIDITY_CALLS
+            }
+        )
 
     override suspend fun isPairAvailable(
         chainId: ChainId,
@@ -564,25 +637,51 @@ class PoolsRepositoryImpl constructor(
         markerAssetDesired: BigDecimal,
         firstAmountMin: BigDecimal,
         secondAmountMin: BigDecimal
-    ): Result<String>? {
-        val soraChain = accountRepository.getChain(chainId)
-        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId ?: return Result.failure(IllegalStateException("There is no keypair for substrate ecosystem"))
-        val baseTokenId = tokenBase.currencyId ?: return null
-        val targetTokenId = tokenTarget.currencyId ?: return null
-
-        return extrinsicService.submitExtrinsic(
-            chain = soraChain,
-            accountId = accountId
+    ): Result<String>? = runCatching {
+        val request = RemoveLiquidityRequest(
+            chainId = chainId,
+            tokenBase = CanonicalSoraAsset(tokenBase),
+            tokenTarget = CanonicalSoraAsset(tokenTarget),
+            markerAssetDesired = markerAssetDesired,
+            firstAmountMin = firstAmountMin,
+            secondAmountMin = secondAmountMin
+        )
+        val preliminary = validateRemoveLiquidity(request, BigInteger.ZERO)
+        val feeInPlanks = extrinsicService.estimateFee(
+            chain = preliminary.context.chain,
+            accountId = preliminary.context.accountId
         ) {
             removeLiquidity(
-                dexId = getPoolBaseTokenDexId(chainId, baseTokenId),
-                outputAssetIdA = baseTokenId,
-                outputAssetIdB = targetTokenId,
-                markerAssetDesired = tokenBase.planksFromAmount(markerAssetDesired),
-                outputAMin = tokenBase.planksFromAmount(firstAmountMin),
-                outputBMin = tokenTarget.planksFromAmount(secondAmountMin),
+                dexId = preliminary.dexId,
+                outputAssetIdA = requireNotNull(preliminary.tokenBase.currencyId),
+                outputAssetIdB = requireNotNull(preliminary.tokenTarget.currencyId),
+                markerAssetDesired = preliminary.markerAssetDesired,
+                outputAMin = preliminary.firstAmountMin,
+                outputBMin = preliminary.secondAmountMin
             )
         }
+
+        val finalContext = validateRemoveLiquidity(
+            request = request,
+            feeInPlanks = feeInPlanks,
+            expectedIdentity = preliminary.context.identity
+        )
+        check(featureToggleStore.polkaswapMutationsEnabled) {
+            "Polkaswap liquidity actions are temporarily disabled"
+        }
+        extrinsicService.submitExtrinsic(
+            chain = finalContext.context.chain,
+            accountId = finalContext.context.accountId
+        ) {
+            removeLiquidity(
+                dexId = finalContext.dexId,
+                outputAssetIdA = requireNotNull(finalContext.tokenBase.currencyId),
+                outputAssetIdB = requireNotNull(finalContext.tokenTarget.currencyId),
+                markerAssetDesired = finalContext.markerAssetDesired,
+                outputAMin = finalContext.firstAmountMin,
+                outputBMin = finalContext.secondAmountMin
+            )
+        }.getOrThrow()
     }
 
     override suspend fun observeAddLiquidity(
@@ -595,47 +694,211 @@ class PoolsRepositoryImpl constructor(
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
-    ): Result<String>? {
-        val amountFromMin = PolkaswapFormulas.calculateMinAmount(amountBase, slippageTolerance)
-        val amountToMin = PolkaswapFormulas.calculateMinAmount(amountTarget, slippageTolerance)
-        val dexId = getPoolBaseTokenDexId(chainId, tokenBase.currencyId)
-        val soraChain = accountRepository.getChain(chainId)
-        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId ?: return Result.failure(IllegalStateException("There is no keypair for substrate ecosystem"))
-
-        val baseTokenId = tokenBase.currencyId
-        val targetTokenId = tokenTarget.currencyId
-        if (baseTokenId == null || targetTokenId == null) return null
-
-        return extrinsicService.submitExtrinsic(
-            chain = soraChain,
-            accountId = accountId,
+    ): Result<String>? = runCatching {
+        val request = AddLiquidityRequest(
+            chainId = chainId,
+            address = address,
+            tokenBase = CanonicalSoraAsset(tokenBase),
+            tokenTarget = CanonicalSoraAsset(tokenTarget),
+            amountBase = amountBase,
+            amountTarget = amountTarget,
+            pairEnabled = pairEnabled,
+            pairPresented = pairPresented,
+            slippageTolerance = slippageTolerance
+        )
+        val preliminary = validateAddLiquidity(request, BigInteger.ZERO)
+        val feeInPlanks = extrinsicService.estimateFee(
+            chain = preliminary.context.chain,
+            accountId = preliminary.context.accountId,
             useBatchAll = !pairPresented
         ) {
-            if (!pairPresented) {
-                if (!pairEnabled) {
-                    register(
-                        dexId = dexId,
-                        baseAssetId = baseTokenId,
-                        targetAssetId = targetTokenId
-                    )
-                }
-                initializePool(
-                    dexId = dexId,
-                    baseAssetId = baseTokenId,
-                    targetAssetId = targetTokenId
-                )
-            }
-
-            depositLiquidity(
-                dexId = dexId,
-                baseAssetId = baseTokenId,
-                targetAssetId = targetTokenId,
-                baseAssetAmount = mapBalance(amountBase, tokenBase.precision),
-                targetAssetAmount = mapBalance(amountTarget, tokenTarget.precision),
-                amountFromMin = mapBalance(amountFromMin, tokenBase.precision),
-                amountToMin = mapBalance(amountToMin, tokenTarget.precision)
+            liquidityAdd(
+                dexId = preliminary.dexId,
+                baseTokenId = preliminary.tokenBase.currencyId,
+                targetTokenId = preliminary.tokenTarget.currencyId,
+                pairPresented = pairPresented,
+                pairEnabled = pairEnabled,
+                tokenBaseAmount = preliminary.amountBase,
+                tokenTargetAmount = preliminary.amountTarget,
+                amountBaseMin = preliminary.amountBaseMin,
+                amountTargetMin = preliminary.amountTargetMin
             )
         }
+
+        val finalContext = validateAddLiquidity(
+            request = request,
+            feeInPlanks = feeInPlanks,
+            expectedIdentity = preliminary.context.identity
+        )
+        check(featureToggleStore.polkaswapMutationsEnabled) {
+            "Polkaswap liquidity actions are temporarily disabled"
+        }
+        extrinsicService.submitExtrinsic(
+            chain = finalContext.context.chain,
+            accountId = finalContext.context.accountId,
+            useBatchAll = !pairPresented
+        ) {
+            liquidityAdd(
+                dexId = finalContext.dexId,
+                baseTokenId = finalContext.tokenBase.currencyId,
+                targetTokenId = finalContext.tokenTarget.currencyId,
+                pairPresented = pairPresented,
+                pairEnabled = pairEnabled,
+                tokenBaseAmount = finalContext.amountBase,
+                tokenTargetAmount = finalContext.amountTarget,
+                amountBaseMin = finalContext.amountBaseMin,
+                amountTargetMin = finalContext.amountTargetMin
+            )
+        }.getOrThrow()
+    }
+
+    private suspend fun validateAddLiquidity(
+        request: AddLiquidityRequest,
+        feeInPlanks: BigInteger,
+        expectedIdentity: SoraMutationIdentity? = null
+    ): ValidatedAddLiquidity {
+        check(request.slippageTolerance.isFinite() && request.slippageTolerance >= 0.0 && request.slippageTolerance < 100.0) {
+            "Liquidity slippage must be at least zero and below 100 percent"
+        }
+        val context = mutationAuthorizer.authorize(
+            feature = SoraMutationFeature.Liquidity,
+            chainId = request.chainId,
+            requestedAssets = listOf(request.tokenBase, request.tokenTarget),
+            requiredCalls = addLiquidityCalls(request.pairEnabled, request.pairPresented),
+            expectedIdentity = expectedIdentity
+        )
+        check(request.address == context.accountAddress) {
+            "Liquidity account does not match the selected SORA account"
+        }
+        val base = context.assets[0]
+        val target = context.assets[1]
+        check(base.currencyId != target.currencyId) { "Liquidity assets must be different" }
+        val amountBase = base.exactPositivePlanks(request.amountBase, "Base liquidity amount")
+        val amountTarget = target.exactPositivePlanks(request.amountTarget, "Target liquidity amount")
+        val minimumBaseAmount = PolkaswapFormulas.calculateMinAmount(
+            request.amountBase,
+            request.slippageTolerance
+        )
+        val minimumTargetAmount = PolkaswapFormulas.calculateMinAmount(
+            request.amountTarget,
+            request.slippageTolerance
+        )
+        check(minimumBaseAmount <= request.amountBase && minimumTargetAmount <= request.amountTarget) {
+            "Liquidity minimum cannot exceed the desired amount"
+        }
+        val amountBaseMin = base.exactPositivePlanks(
+            minimumBaseAmount.setScale(base.precision, RoundingMode.DOWN),
+            "Minimum base output"
+        )
+        val amountTargetMin = target.exactPositivePlanks(
+            minimumTargetAmount.setScale(target.precision, RoundingMode.DOWN),
+            "Minimum target output"
+        )
+        mutationAuthorizer.requireFreshBalances(
+            context = context,
+            spends = listOf(
+                SoraAssetSpend(base, amountBase, "Base asset balance is insufficient for this liquidity deposit"),
+                SoraAssetSpend(target, amountTarget, "Target asset balance is insufficient for this liquidity deposit")
+            ),
+            feeInPlanks = feeInPlanks
+        )
+        val dexId = getPoolBaseTokenDexId(request.chainId, base.currencyId)
+        val submissionContext = reauthorizeLiquidityContext(
+            context = context,
+            chainId = request.chainId,
+            requestedAssets = listOf(request.tokenBase, request.tokenTarget),
+            requiredCalls = addLiquidityCalls(request.pairEnabled, request.pairPresented),
+            expectedIdentity = expectedIdentity
+        )
+        check(request.address == submissionContext.accountAddress) {
+            "Liquidity account does not match the final selected SORA account"
+        }
+        return ValidatedAddLiquidity(
+            context = submissionContext,
+            tokenBase = submissionContext.assets[0],
+            tokenTarget = submissionContext.assets[1],
+            dexId = dexId,
+            amountBase = amountBase,
+            amountTarget = amountTarget,
+            amountBaseMin = amountBaseMin,
+            amountTargetMin = amountTargetMin
+        )
+    }
+
+    private suspend fun validateRemoveLiquidity(
+        request: RemoveLiquidityRequest,
+        feeInPlanks: BigInteger,
+        expectedIdentity: SoraMutationIdentity? = null
+    ): ValidatedRemoveLiquidity {
+        val context = mutationAuthorizer.authorize(
+            feature = SoraMutationFeature.Liquidity,
+            chainId = request.chainId,
+            requestedAssets = listOf(request.tokenBase, request.tokenTarget),
+            requiredCalls = REMOVE_LIQUIDITY_CALLS,
+            expectedIdentity = expectedIdentity
+        )
+        val base = context.assets[0]
+        val target = context.assets[1]
+        check(base.currencyId != target.currencyId) { "Liquidity assets must be different" }
+        val markerAssetDesired = base.exactPositivePlanks(
+            request.markerAssetDesired,
+            "Liquidity position amount"
+        )
+        val firstAmountMin = base.exactPositivePlanks(request.firstAmountMin, "Minimum base output")
+        val secondAmountMin = target.exactPositivePlanks(request.secondAmountMin, "Minimum target output")
+        val baseCurrencyId = requireNotNull(base.currencyId)
+        val targetCurrencyId = requireNotNull(target.currencyId)
+        val freshPool = getUserPoolData(
+            chainId = request.chainId,
+            address = context.accountAddress,
+            baseTokenId = baseCurrencyId,
+            targetTokenId = targetCurrencyId.fromHex()
+        ) ?: throw IllegalStateException("Fresh SORA liquidity position is unavailable")
+        check(freshPool.baseAssetId == baseCurrencyId && freshPool.assetId == targetCurrencyId) {
+            "Fresh liquidity position does not match the exact requested pool"
+        }
+        check(markerAssetDesired <= freshPool.poolProvidersBalance) {
+            "Liquidity position balance is insufficient for this withdrawal"
+        }
+        check(firstAmountMin <= freshPool.reservesFirst && secondAmountMin <= freshPool.reservesSecond) {
+            "Minimum liquidity output exceeds the fresh pool reserves"
+        }
+        mutationAuthorizer.requireFreshBalances(context, emptyList(), feeInPlanks)
+        val dexId = getPoolBaseTokenDexId(request.chainId, baseCurrencyId)
+        val submissionContext = reauthorizeLiquidityContext(
+            context = context,
+            chainId = request.chainId,
+            requestedAssets = listOf(request.tokenBase, request.tokenTarget),
+            requiredCalls = REMOVE_LIQUIDITY_CALLS,
+            expectedIdentity = expectedIdentity
+        )
+        return ValidatedRemoveLiquidity(
+            context = submissionContext,
+            tokenBase = submissionContext.assets[0],
+            tokenTarget = submissionContext.assets[1],
+            dexId = dexId,
+            markerAssetDesired = markerAssetDesired,
+            firstAmountMin = firstAmountMin,
+            secondAmountMin = secondAmountMin
+        )
+    }
+
+    private suspend fun reauthorizeLiquidityContext(
+        context: SoraMutationContext,
+        chainId: ChainId,
+        requestedAssets: List<CanonicalSoraAsset>,
+        requiredCalls: Set<SoraRuntimeCall>,
+        expectedIdentity: SoraMutationIdentity?
+    ): SoraMutationContext {
+        if (expectedIdentity == null) return context
+
+        return mutationAuthorizer.authorize(
+            feature = SoraMutationFeature.Liquidity,
+            chainId = chainId,
+            requestedAssets = requestedAssets,
+            requiredCalls = requiredCalls,
+            expectedIdentity = context.identity
+        )
     }
 
     override suspend fun updateAccountPools(chainId: ChainId, address: String) = supervisorScope {

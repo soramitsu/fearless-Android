@@ -68,35 +68,50 @@ class XcmEntitiesFetcher internal constructor(
         approvedRoutes
     )
 
-    suspend fun getAvailableOriginChains(assetSymbol: String?, destinationChainId: ChainId?): List<ChainId> {
+    suspend fun getAvailableOriginChains(
+        assetSymbol: String?,
+        destinationChainId: ChainId?,
+        originAssetId: String? = null
+    ): List<ChainId> {
         val normalizedAssetSymbol = assetSymbol?.normalizedXcmSymbol()
 
         return effectiveRoutes()
             .asSequence()
             .filter { destinationChainId == null || it.destinationChainId == destinationChainId }
             .filter { normalizedAssetSymbol == null || it.asset.symbol == normalizedAssetSymbol }
+            .filter { originAssetId == null || it.asset.originAssetId == originAssetId }
             .map { it.originChainId }
             .distinct()
             .toList()
     }
 
-    suspend fun getAvailableAssets(originChainId: ChainId?, destinationChainId: ChainId?): List<XcmAsset> {
+    suspend fun getAvailableAssets(
+        originChainId: ChainId?,
+        destinationChainId: ChainId?,
+        originAssetId: String? = null
+    ): List<XcmAsset> {
         return effectiveRoutes()
             .asSequence()
             .filter { originChainId == null || it.originChainId == originChainId }
             .filter { destinationChainId == null || it.destinationChainId == destinationChainId }
+            .filter { originAssetId == null || it.asset.originAssetId == originAssetId }
             .map { it.asset }
             .distinctBy { Triple(it.originChainId, it.originAssetId, it.symbol) }
             .toList()
     }
 
-    suspend fun getAvailableDestinationChains(originChainId: ChainId?, assetSymbol: String?): List<ChainId> {
+    suspend fun getAvailableDestinationChains(
+        originChainId: ChainId?,
+        assetSymbol: String?,
+        originAssetId: String? = null
+    ): List<ChainId> {
         val normalizedAssetSymbol = assetSymbol?.normalizedXcmSymbol()
 
         return effectiveRoutes()
             .asSequence()
             .filter { originChainId == null || it.originChainId == originChainId }
             .filter { normalizedAssetSymbol == null || it.asset.symbol == normalizedAssetSymbol }
+            .filter { originAssetId == null || it.asset.originAssetId == originAssetId }
             .map { it.destinationChainId }
             .distinct()
             .toList()
@@ -122,6 +137,16 @@ class XcmEntitiesFetcher internal constructor(
         }?.asset
     }
 
+    suspend fun getRouteAssetByOriginAssetId(
+        originChainId: ChainId,
+        destinationChainId: ChainId,
+        originAssetId: String
+    ): XcmAsset? = effectiveRoutes().firstOrNull {
+        it.originChainId == originChainId &&
+            it.destinationChainId == destinationChainId &&
+            it.asset.originAssetId == originAssetId
+    }?.asset
+
     suspend fun getExecutableRoute(
         originChainId: ChainId,
         destinationChainId: ChainId,
@@ -141,6 +166,28 @@ class XcmEntitiesFetcher internal constructor(
             )
         }
     }
+
+    suspend fun getExecutableRouteByOriginAssetId(
+        originChainId: ChainId,
+        destinationChainId: ChainId,
+        originAssetId: String
+    ): XcmExecutableRoute? = effectiveRoutes().firstOrNull {
+        it.originChainId == originChainId &&
+            it.destinationChainId == destinationChainId &&
+            it.asset.originAssetId == originAssetId
+    }?.let {
+        XcmExecutableRoute(
+            asset = it.asset,
+            executionSpec = it.executionSpec,
+            originIdentity = it.originIdentity,
+            destinationIdentity = it.destinationIdentity
+        )
+    }
+
+    suspend fun hasExecutableRouteAssetId(originChainId: ChainId, originAssetId: String): Boolean =
+        effectiveRoutes().any {
+            it.originChainId == originChainId && it.asset.originAssetId == originAssetId
+        }
 
     suspend fun hasExecutableRouteAsset(originChainId: ChainId, assetSymbol: String): Boolean {
         val normalizedAssetSymbol = assetSymbol.normalizedXcmSymbol()

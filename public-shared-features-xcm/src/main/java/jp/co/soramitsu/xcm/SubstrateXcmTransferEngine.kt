@@ -2,13 +2,17 @@ package jp.co.soramitsu.xcm
 
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
+import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.metadata.call
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.xcm.domain.XcmArgumentShape
 import jp.co.soramitsu.xcm.domain.XcmDestinationFeeMode
@@ -46,7 +50,9 @@ interface XcmExtrinsicSubmitter {
 
 class ExtrinsicServiceXcmSubmitter(
     private val rpcCalls: RpcCalls,
-    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
+    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+    private val mortalityConstructor: MortalityConstructor,
+    private val authorize: (String) -> MutationExecutionGuard = { error("Mutation authorization is unavailable") }
 ) : XcmExtrinsicSubmitter {
 
     override suspend fun submit(
@@ -56,9 +62,10 @@ class ExtrinsicServiceXcmSubmitter(
         call: XcmExtrinsicCall
     ): String {
         return extrinsicService(keypairProvider)
-            .submitExtrinsic(
+            .submitAuthorizedExtrinsic(
                 chain = chain,
                 accountId = accountId,
+                authorize = authorize,
                 formExtrinsic = { applyXcmCall(call) }
             )
             .getOrThrow()
@@ -70,12 +77,15 @@ class ExtrinsicServiceXcmSubmitter(
         keypairProvider: KeypairProvider,
         call: XcmExtrinsicCall
     ): BigInteger {
-        return extrinsicService(keypairProvider)
-            .estimateFee(
-                chain = chain,
-                accountId = accountId,
-                formExtrinsic = { applyXcmCall(call) }
-            )
+        val quote = buildXcmFeeQuote(
+            runtime = rpcCalls.getRuntime(chain.id),
+            accountId = accountId,
+            cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId),
+            nonce = rpcCalls.getAccountNonce(chain, accountId),
+            era = mortalityConstructor.construct(chain).era,
+            call = call
+        )
+        return rpcCalls.estimateExtrinsicFee(chain.id, quote)
     }
 
     private fun extrinsicService(keypairProvider: KeypairProvider) = ExtrinsicService(
@@ -85,10 +95,11 @@ class ExtrinsicServiceXcmSubmitter(
     )
 
     private fun ExtrinsicBuilder.applyXcmCall(call: XcmExtrinsicCall) {
-        call(
+        val function = runtime.metadata.module(call.moduleName).call(call.callName)
+        this.call(
             moduleName = call.moduleName,
             callName = call.callName,
-            arguments = call.arguments
+            arguments = call.toRuntimeArguments(function)
         )
     }
 }

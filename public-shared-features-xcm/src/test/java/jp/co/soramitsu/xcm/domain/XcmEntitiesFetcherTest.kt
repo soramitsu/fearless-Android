@@ -127,6 +127,59 @@ class XcmEntitiesFetcherTest {
     }
 
     @Test
+    fun `exact origin asset id never falls back to a same-symbol asset on another network`() = runBlocking {
+        val fetcher = fetcher(
+            chain(
+                id = "origin-a",
+                xcm = xcm(
+                    destinations = listOf(
+                        destination("destination", xcmAsset("DOT"), execution = executableRouteSpec())
+                    )
+                )
+            ),
+            chain(
+                id = "origin-b",
+                xcm = xcm(
+                    destinations = listOf(
+                        destination("destination", xcmAsset("DOT"), execution = executableRouteSpec())
+                    )
+                )
+            )
+        )
+
+        assertEquals(
+            listOf("origin-a"),
+            fetcher.getAvailableOriginChains(
+                assetSymbol = null,
+                destinationChainId = "destination",
+                originAssetId = "core-origin-a-dot"
+            )
+        )
+        assertTrue(
+            fetcher.getAvailableAssets(
+                originChainId = "origin-a",
+                destinationChainId = "destination",
+                originAssetId = "core-origin-b-dot"
+            ).isEmpty()
+        )
+        assertTrue(
+            fetcher.getAvailableDestinationChains(
+                originChainId = "origin-a",
+                assetSymbol = null,
+                originAssetId = "core-origin-b-dot"
+            ).isEmpty()
+        )
+        assertEquals(
+            null,
+            fetcher.getExecutableRouteByOriginAssetId(
+                originChainId = "origin-a",
+                destinationChainId = "destination",
+                originAssetId = "core-origin-b-dot"
+            )
+        )
+    }
+
+    @Test
     fun `ignores malformed destinations assets and min amounts`() = runBlocking {
         val fetcher = fetcher(
             chain(

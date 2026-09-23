@@ -40,6 +40,27 @@ class BitcoinBalanceSyncTest {
     }
 
     @Test
+    fun `account scan includes bip84 receive and change branches`() = runBlocking {
+        val receive = derivedAddress(index = 0, change = 0)
+        val change = derivedAddress(index = 0, change = 1)
+        val client = FakeBitcoinIndexerClient(
+            mapOf(
+                receive to AddressBalance(confirmedSats = 10),
+                change to AddressBalance(confirmedSats = 20)
+            )
+        )
+
+        val result = BitcoinBalanceSync(BitcoinReceiveDiscovery(client)).accountBalance(
+            mnemonic = MNEMONIC,
+            gapLimit = 1,
+            maxLookahead = 3
+        )
+
+        assertEquals(30L, result.totalSats)
+        assertEquals(setOf(0, 1), result.discovery.usedAddresses.map { it.change }.toSet())
+    }
+
+    @Test
     fun `rejects balance overflow across discovered addresses`() {
         val balances = balancesByAddress(
             0 to AddressBalance(confirmedSats = Long.MAX_VALUE, mempoolSats = 0),
@@ -133,6 +154,14 @@ class BitcoinBalanceSyncTest {
                 address to balance
             }
         }
+
+        fun derivedAddress(index: Int, change: Int): String = BitcoinKeyDerivation.deriveKey(
+            mnemonic = MNEMONIC,
+            derivationPath = BitcoinKeyDerivation.getReceivePath(
+                index = index.toLong(),
+                change = change.toLong()
+            )
+        ).address
 
         fun addressStats(
             address: String,

@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.usecase.ValidateAddLiquidityUseCase
 import jp.co.soramitsu.liquiditypools.impl.util.PolkaswapFormulas
@@ -85,6 +86,10 @@ class LiquidityAddPresenter @Inject constructor(
     private val isTargetAmountFocused = MutableStateFlow(false)
 
     private val isButtonLoading = MutableStateFlow(false)
+    private val lateCapabilityReason = MutableStateFlow<String?>(null)
+    private val buttonStateFlow = isButtonLoading.combine(lateCapabilityReason) { loading, reason ->
+        loading to reason
+    }
     private val isCalculatingAmounts = MutableStateFlow<WithDesired?>(null)
 
     private var desired: WithDesired = WithDesired.INPUT
@@ -221,9 +226,9 @@ class LiquidityAddPresenter @Inject constructor(
                 isTargetAmountFocused,
                 stateSlippage,
                 feeInfoViewStateFlow,
-                isButtonLoading,
+                buttonStateFlow,
                 isCalculatingAmounts
-            ) { pool, loadingAssetsState, baseShown, targetShown, baseFocused, targetFocused, slippage, feeInfo, isButtonLoading, isCalulatingAmount ->
+            ) { pool, loadingAssetsState, baseShown, targetShown, baseFocused, targetFocused, slippage, feeInfo, buttonState, isCalulatingAmount ->
                 val assetBase = loadingAssetsState.dataOrNull()?.first
                 val assetTarget = loadingAssetsState.dataOrNull()?.second
 
@@ -265,7 +270,9 @@ class LiquidityAddPresenter @Inject constructor(
                     )
                 }
 
-                val isButtonEnabled = amountBase.moreThanZero() &&
+                val capabilityReason = buttonState.second
+                    ?: poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Add)
+                val isButtonEnabled = capabilityReason == null && amountBase.moreThanZero() &&
                         amountTarget.moreThanZero() &&
                         feeInfo.feeAmount != null &&
                         isCalculatingAmounts.value == null
@@ -275,7 +282,8 @@ class LiquidityAddPresenter @Inject constructor(
                     slippage = "$slippage%",
                     feeInfo = feeInfo,
                     buttonEnabled = isButtonEnabled,
-                    buttonLoading = isButtonLoading,
+                    buttonLoading = buttonState.first,
+                    capabilityReason = capabilityReason,
                     baseAmountInputViewState = baseAmountInputViewState,
                     targetAmountInputViewState = targetAmountInputViewState
                 )
@@ -375,6 +383,11 @@ class LiquidityAddPresenter @Inject constructor(
         setButtonLoading(true)
 
         coroutinesStore.uiScope.launch {
+            poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Add)?.let { reason ->
+                lateCapabilityReason.value = reason
+                setButtonLoading(false)
+                return@launch
+            }
             val chainId = poolsInteractor.poolsChainId
             val utilityAssetId = requireNotNull(chainsRepository.getChain(chainId).utilityAsset?.id)
             val utilityAmount = walletInteractor.getCurrentAsset(chainId, utilityAssetId).total

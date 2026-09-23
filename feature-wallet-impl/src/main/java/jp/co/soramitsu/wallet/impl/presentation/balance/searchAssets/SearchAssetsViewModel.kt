@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.model.AssetMetadataDescriptorStore
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -40,6 +41,7 @@ class SearchAssetsViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val interactor: WalletInteractor,
     private val chainInteractor: ChainInteractor,
+    private val assetMetadataDescriptorStore: AssetMetadataDescriptorStore,
     private val router: WalletRouter
 ) : BaseViewModel(), SearchAssetsScreenInterface {
 
@@ -63,11 +65,11 @@ class SearchAssetsViewModel @Inject constructor(
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = readyToUseAssets,
-            filteredChains = chains
+            filteredChains = chains,
+            metadataDescriptor = assetMetadataDescriptorStore::get
         )
 
-        val assetStates: List<AssetListItemViewState> = balanceListItems
-            .sortedWith(defaultBalanceListItemSort())
+        val assetStates: List<AssetListItemViewState> = AssetListHelper.sortByNetwork(balanceListItems)
             .mapIndexed { index, item -> item.toAssetState(index) }
 
         AssetsLoadingState.Loaded(assetStates)
@@ -160,7 +162,12 @@ class SearchAssetsViewModel @Inject constructor(
             return
         }
 
-        router.openAssetIntermediateDetails(state.chainAssetId)
+        router.openAssetIntermediateDetails(
+            AssetPayload(
+                chainId = state.chainId,
+                chainAssetId = state.chainAssetId
+            )
+        )
     }
 
     fun updateAppClicked() {
@@ -171,12 +178,6 @@ class SearchAssetsViewModel @Inject constructor(
         enteredAssetQueryFlow.value = query
     }
 
-
-    private fun defaultBalanceListItemSort() = compareByDescending<BalanceListItemModel> { it.total > BigDecimal.ZERO }
-        .thenByDescending { it.fiatAmount.orZero() }
-        .thenBy { it.asset.isTestNet }
-        .thenBy { it.asset.chainId.defaultChainSort() }
-        .thenBy { it.asset.chainName }
 
     companion object {
         private const val SHIMMER_ITEMS_COUNT = 8

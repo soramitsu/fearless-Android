@@ -15,7 +15,11 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletRecoveryRequiredExcepti
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.core.models.Asset
+import org.mockito.kotlin.doSuspendableAnswer
+import org.mockito.kotlin.whenever
+import org.mockito.kotlin.any
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
@@ -24,6 +28,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFa
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -66,6 +71,58 @@ class KeyPairRepositoryTest {
             accountRepository = accountRepository,
             walletSecretAccessGuard = WalletSecretAccessGuard(encryptedPreferences)
         )
+    }
+
+    @Test
+    fun `revocation during account lookup prevents physical secret reads`() = runBlocking {
+        `when`(secretStoreV2.hasChainSecrets(META_ID, ACCOUNT_ID)).thenReturn(false)
+        var allowed = true
+        val guard = object : MutationExecutionGuard {
+            override fun <T> runIfAuthorized(intentSha256: String, operation: () -> T): T {
+                check(allowed)
+                return operation()
+            }
+        }
+        whenever(accountRepository.allMetaAccounts()).doSuspendableAnswer {
+            allowed = false
+            listOf(META_ACCOUNT)
+        }
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { repository.getAuthorizedKeypairFor(SUBSTRATE_CHAIN, ACCOUNT_ID, guard, "a".repeat(64)) }
+        }
+        verifyNoInteractions(substrateSecretStore, ethereumSecretStore, tonSecretStore)
+    }
+
+    @Test
+    fun `local substrate capability checks only secret presence`() = runBlocking {
+        `when`(secretStoreV2.hasChainSecrets(META_ID, ACCOUNT_ID)).thenReturn(false)
+        `when`(substrateSecretStore.hasSecret(META_ID)).thenReturn(true)
+        assertTrue(repository.hasLocalSubstrateKey(SUBSTRATE_CHAIN, ACCOUNT_ID))
+        org.mockito.Mockito.verify(substrateSecretStore).hasSecret(META_ID)
+        org.mockito.Mockito.verifyNoMoreInteractions(substrateSecretStore)
+        verifyNoInteractions(ethereumSecretStore, tonSecretStore)
+    }
+
+    @Test
+    fun `authorized root read preserves validated key identity within the lease`() = runBlocking {
+        `when`(secretStoreV2.hasChainSecrets(META_ID, ACCOUNT_ID)).thenReturn(false)
+        val expected = Keypair(SUBSTRATE_PUBLIC_KEY, KEYPAIR_PRIVATE_KEY)
+        var checks = 0
+        val guard = object : MutationExecutionGuard {
+            override fun <T> runIfAuthorized(intentSha256: String, operation: () -> T): T {
+                assertEquals("a".repeat(64), intentSha256)
+                checks++
+                return operation()
+            }
+        }
+        `when`(substrateSecretStore.getAuthorized(META_ID, SUBSTRATE_PUBLIC_KEY, CryptoType.ECDSA, ACCOUNT_ID, guard, "a".repeat(64)))
+            .thenReturn(SubstrateSecrets(substrateKeyPair = expected))
+        val actual = repository.getAuthorizedKeypairFor(SUBSTRATE_CHAIN, ACCOUNT_ID, guard, "a".repeat(64))
+        assertArrayEquals(SUBSTRATE_PUBLIC_KEY, actual.publicKey)
+        assertArrayEquals(KEYPAIR_PRIVATE_KEY, actual.privateKey)
+        assertEquals(2, checks) // Entry and post-lookup check; concrete storage rechecks at decryption.
+        verify(substrateSecretStore).getAuthorized(META_ID, SUBSTRATE_PUBLIC_KEY, CryptoType.ECDSA, ACCOUNT_ID, guard, "a".repeat(64))
+        verifyNoInteractions(ethereumSecretStore, tonSecretStore)
     }
 
     @Test

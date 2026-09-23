@@ -1344,4 +1344,9 @@
   <string name="wallet_send_dead_recipient_message_v2">Your transfer will fail since the final amount (%1$s) on the destination account will be less than the minimal balance (%2$s). Please increase the amount by %3$s</string>
 
   <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">Bagikan alamat</string>
+  <string name="portfolio_sync_catalog_only">Beberapa token mungkin tidak ditampilkan</string>
+  <string name="portfolio_balance_update_failed">Pembaruan saldo gagal</string>
+  <string name="portfolio_balances_outdated">Saldo mungkin belum diperbarui</string>
+  <string name="portfolio_balances_not_loaded">Saldo belum dimuat</string>
 </resources>

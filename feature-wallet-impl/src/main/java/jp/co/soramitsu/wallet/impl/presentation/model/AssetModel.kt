@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.model
 
 import jp.co.soramitsu.common.domain.AppVersion
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
@@ -34,7 +34,7 @@ data class AssetModel(
         else -> AppVersion.isSupported(minSupportedVersion)
     }
 
-    val primaryKey = AssetKey(
+    val primaryKey = WalletAssetKey(
         metaId = metaId,
         assetId = token.configuration.id,
         accountId = emptyAccountIdValue,

@@ -32,6 +32,8 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.crowdloan.api.domain.LegacyCrowdloanRecovery
+import jp.co.soramitsu.crowdloan.api.domain.shouldShowLegacyCrowdloan
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
@@ -67,9 +69,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -93,7 +95,8 @@ class BalanceDetailViewModel @Inject constructor(
     private val clipboardManager: ClipboardManager,
     addressDisplayUseCase: AddressDisplayUseCase,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val xcmService: XcmService
+    private val xcmService: XcmService,
+    private val legacyCrowdloanRecovery: LegacyCrowdloanRecovery
 ) : BaseViewModel(),
     BalanceDetailsScreenInterface,
     DefaultLifecycleObserver,
@@ -102,6 +105,7 @@ class BalanceDetailViewModel @Inject constructor(
 
     companion object {
         private const val LOCKED_BALANCE_INFO_ID = 409
+        private const val LEGACY_CROWDLOAN_INFO_ID = 410
     }
 
     private val assetPayloadInitial: AssetPayload =
@@ -121,29 +125,14 @@ class BalanceDetailViewModel @Inject constructor(
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
+    private val legacyCrowdloanRefresh = MutableStateFlow(0L)
 
     private val chainsFlow = chainInteractor.getChainsFlow().share()
     private val chainsItemStateFlow = chainsFlow.mapList { it.toChainItemState() }
     private val selectedChainFlow = selectedChainId.map { interactor.getChain(it) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val assetModelFlow = selectedChainId.mapNotNull { selectedChainId ->
-        val chains = chainsFlow.firstOrNull()
-        val selectedChain = chains?.firstOrNull { it.id == selectedChainId }
-        val initialSelectedChain = chains?.firstOrNull { it.id == assetPayloadInitial.chainId }
-
-        val initialSelectedAssetSymbol =
-            initialSelectedChain?.assets?.firstOrNull { it.id == assetPayloadInitial.chainAssetId }?.symbol
-        val newSelectedAsset =
-            selectedChain?.assets?.firstOrNull { it.symbol == initialSelectedAssetSymbol }
-
-        newSelectedAsset?.id?.let {
-            AssetPayload(
-                chainId = selectedChainId,
-                chainAssetId = it
-            )
-        }
-    }
+    private val assetModelFlow = assetPayload
         .flatMapLatest {
             interactor.assetFlow(it.chainId, it.chainAssetId)
                 .catch { showError("Failed to load balance of the asset, try to change node or come back later") }
@@ -208,6 +197,7 @@ class BalanceDetailViewModel @Inject constructor(
         LoadingState.Loading(),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
+        null,
         TransactionHistoryUi.State.EmptyProgress,
         false
     )
@@ -216,7 +206,10 @@ class BalanceDetailViewModel @Inject constructor(
 
     init {
         router.chainSelectorPayloadFlow.onEach { chainId ->
-            chainId?.let { selectedChainId.value = chainId }
+            resolveNetworkScopedAssetPayload(assetPayloadInitial, chainId)?.let { exactAsset ->
+                assetPayload.value = exactAsset
+                selectedChainId.value = exactAsset.chainId
+            }
         }.launchIn(viewModelScope)
 
         selectedChainId.onEach { chainId ->
@@ -233,12 +226,59 @@ class BalanceDetailViewModel @Inject constructor(
         }.launchIn(viewModelScope)
 
         subscribeScreenState()
+        subscribeLegacyCrowdloanState()
+    }
+
+    private fun subscribeLegacyCrowdloanState() {
+        assetPayload.onEach {
+            state.update { previous -> previous.copy(legacyCrowdloanViewState = null) }
+        }.launchIn(viewModelScope)
+
+        combine(assetPayload, legacyCrowdloanRefresh) { payload, _ -> payload }.flatMapLatest { payload ->
+            flow {
+                val chain = interactor.getChain(payload.chainId)
+                val utilityAssetId = chain.assets.firstOrNull { it.isUtility }?.id
+                val evidence = legacyCrowdloanRecovery.findEvidence(
+                    chainId = payload.chainId,
+                    chainAssetId = payload.chainAssetId
+                )
+                val entryState = if (
+                    shouldShowLegacyCrowdloan(
+                        chainId = payload.chainId,
+                        chainAssetId = payload.chainAssetId,
+                        utilityAssetId = utilityAssetId,
+                        evidence = evidence
+                    )
+                ) {
+                    TitleValueViewState(
+                        title = resourceManager.getString(R.string.legacy_crowdloan_title),
+                        value = resourceManager.getString(R.string.legacy_crowdloan_review),
+                        clickState = TitleValueViewState.ClickState.Value(
+                            R.drawable.ic_arrow_right_24,
+                            LEGACY_CROWDLOAN_INFO_ID
+                        )
+                    )
+                } else {
+                    null
+                }
+
+                emit(entryState)
+            }.catch { emit(null) }
+        }.onEach { entryState ->
+            state.update { previous -> previous.copy(legacyCrowdloanViewState = entryState) }
+        }.launchIn(viewModelScope)
     }
 
     private fun subscribeScreenState() {
         transactionHistory.onEach {  historyState ->
             state.update { prevState ->
                 prevState.copy(transactionHistory = historyState)
+            }
+            if (
+                historyState is TransactionHistoryUi.State.Data ||
+                historyState is TransactionHistoryUi.State.Empty
+            ) {
+                legacyCrowdloanRefresh.update { it + 1 }
             }
         }.launchIn(viewModelScope)
 
@@ -367,13 +407,6 @@ class BalanceDetailViewModel @Inject constructor(
         router.openReceive(assetPayload)
     }
 
-    fun openSelectChain() {
-        launch {
-            val asset = assetModelFlow.first()
-            router.openSelectChain(asset.token.configuration.id, asset.token.configuration.chainId)
-        }
-    }
-
     fun accountOptionsClicked() = launch {
         interactor.getChainAddressForSelectedMetaAccount(
             assetPayload.value.chainId
@@ -397,6 +430,7 @@ class BalanceDetailViewModel @Inject constructor(
         )
         val isXcmSupportAsset = runCatching { xcmService.isXcmSupportAsset(
             originChainId = selectedChainId,
+            originAssetId = asset.token.configuration.id,
             assetSymbol = asset.token.configuration.symbol
         ) }.getOrNull() ?: false
 
@@ -522,8 +556,9 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun tableItemClicked(itemId: Int) {
-        if (itemId == LOCKED_BALANCE_INFO_ID) {
-            openBalanceDetails()
+        when (itemId) {
+            LOCKED_BALANCE_INFO_ID -> openBalanceDetails()
+            LEGACY_CROWDLOAN_INFO_ID -> router.openLegacyCrowdloan(assetPayload.value)
         }
     }
 
@@ -601,3 +636,13 @@ class BalanceDetailViewModel @Inject constructor(
         externalAccountActions.viewExternalClicked(url)
     }
 }
+
+/**
+ * A Portfolio asset detail is scoped to one exact `(chainId, assetId)` pair. Chain-selector
+ * results are process-wide, so a result produced by another screen must never remap this detail
+ * to a similarly named or similarly symbolized asset on another network.
+ */
+internal fun resolveNetworkScopedAssetPayload(
+    initial: AssetPayload,
+    selectedChainId: ChainId?
+): AssetPayload? = initial.takeIf { selectedChainId == initial.chainId }

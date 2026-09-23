@@ -79,6 +79,8 @@ interface WalletRepository {
 
     suspend fun getAccountFreeBalance(chainAsset: CoreAsset, accountId: AccountId): BigInteger
 
+    suspend fun getAccountSpendableBalance(chainAsset: CoreAsset, accountId: AccountId): BigInteger
+
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?

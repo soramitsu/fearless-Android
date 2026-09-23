@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.data.secrets.v3
 import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.authorizedReads
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
 import jp.co.soramitsu.common.data.storage.encrypt.readValidatedWalletSecretOrQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.readWalletSecretOrQuarantine
@@ -69,6 +71,12 @@ class EthereumSecretStore internal constructor(
             EthereumSecrets.read(canonical)
         }
     }
+
+    fun getAuthorized(
+        metaId: Long, expectedPublicKey: ByteArray?, expectedAddress: ByteArray?,
+        guard: MutationExecutionGuard, intentSha256: String
+    ): EncodableStruct<EthereumSecrets>? = EthereumSecretStore(encryptedPreferences.authorizedReads(guard, intentSha256), walletRootSecretValidation)
+        .get(metaId, expectedPublicKey, expectedAddress)
 
     private fun activeKey(metaId: Long) = "$metaId:$ETHEREUM_SECRETS"
 }

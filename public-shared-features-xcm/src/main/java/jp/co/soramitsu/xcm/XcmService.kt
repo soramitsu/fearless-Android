@@ -143,10 +143,22 @@ class XcmService(
         amount = null
     ).asset.minAmount
 
-    suspend fun isXcmSupportAsset(originChainId: String, assetSymbol: String): Boolean {
-        if (!transferEngine.isAvailable || originChainId.isBlank() || assetSymbol.isBlank()) return false
+    suspend fun isXcmSupportAsset(
+        originChainId: String,
+        originAssetId: String,
+        assetSymbol: String
+    ): Boolean {
+        if (
+            !transferEngine.isAvailable || originChainId.isBlank() ||
+            originAssetId.isBlank() || assetSymbol.isBlank()
+        ) return false
 
-        return xcmEntitiesFetcher.hasExecutableRouteAsset(originChainId, assetSymbol.removedXcPrefix())
+        val route = xcmEntitiesFetcher.getAvailableAssets(
+            originChainId = originChainId,
+            destinationChainId = null,
+            originAssetId = originAssetId
+        ).firstOrNull() ?: return false
+        return route.symbol == assetSymbol.normalizedXcmSymbol()
     }
 
     private suspend fun validateRouteAndAmount(
@@ -174,9 +186,13 @@ class XcmService(
         require(asset.chainId == originChainId) { "XCM asset must belong to the origin chain" }
         require(asset.symbol.isNotBlank()) { "XCM asset symbol must not be blank" }
 
-        val executableRoute = xcmEntitiesFetcher.getExecutableRoute(originChainId, destinationChainId, asset.symbol)
+        val executableRoute = xcmEntitiesFetcher.getExecutableRouteByOriginAssetId(
+            originChainId = originChainId,
+            destinationChainId = destinationChainId,
+            originAssetId = asset.id
+        )
             ?: throw IllegalArgumentException(
-                "XCM route does not support ${asset.symbol} from $originChainId to $destinationChainId"
+                "XCM route does not support asset ${asset.id} from $originChainId to $destinationChainId"
             )
         require(asset.id == executableRoute.asset.originAssetId) {
             "XCM asset id does not match the APK-approved origin asset"

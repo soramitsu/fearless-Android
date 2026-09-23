@@ -293,7 +293,7 @@ import sys
 
 path = Path(sys.argv[1])
 reviewed_policy_digests = {
-    path: "529656f38b3f82f2553cdcfcb56daa638b978a61fb36138997b7a8361c4ffcc4",
+    path: "a90a8619d81d0e886e0d46a5bd4d0122e50f03ed3c4dafb78f285d7af5b3c897",
     Path(sys.argv[2]): "f9cc5ef8c17933f0ea29483a4346bb312d87e9fd669120ac9bc7419e58a0e78d",
     Path(sys.argv[3]): "46cac72bd782b6467d7bdaf34b3cede2a6da17a333d7f7902cfecc142e837b0b",
 }

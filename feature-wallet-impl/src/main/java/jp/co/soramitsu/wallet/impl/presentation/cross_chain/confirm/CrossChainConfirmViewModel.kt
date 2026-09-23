@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
@@ -34,6 +35,7 @@ import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeInteractor
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -44,6 +46,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
+import jp.co.soramitsu.xcm.ReviewedBridgeQuote
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +73,8 @@ class CrossChainConfirmViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase,
-    private val xcmInteractor: XcmInteractor
+    private val xcmInteractor: XcmInteractor,
+    private val reviewedBridgeInteractor: ReviewedPolkaswapBridgeInteractor
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
@@ -126,13 +130,9 @@ class CrossChainConfirmViewModel @Inject constructor(
             .map(::mapAssetToAssetModel)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val transferableAssetFlow = originNetworkFlow.mapNotNull {
-        it?.assets?.firstOrNull { it.symbol == transferDraft.transferableTokenSymbol }?.id
-    }.flatMapLatest { assetId ->
-        interactor.assetFlow(transferDraft.originChainId, assetId)
-            .map(::mapAssetToAssetModel)
-    }
+    val transferableAssetFlow = interactor
+        .assetFlow(transferDraft.originChainId, transferDraft.chainAssetId)
+        .map(::mapAssetToAssetModel)
 
     val state: StateFlow<CrossChainConfirmViewState> = combine(
         recipientFlow,
@@ -244,6 +244,12 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     override fun onNextClick() {
         launch {
+            // The reviewed bridge executor repeats its own exact minimum, fee, balance, account,
+            // runtime and recipient checks immediately before submission.
+            if (transferDraft.isReviewedBridge) {
+                performTransfer()
+                return@launch
+            }
             val destinationChain = destinationNetworkFlow.value ?: return@launch
             val asset = originAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
@@ -336,7 +342,20 @@ class CrossChainConfirmViewModel @Inject constructor(
             transferSubmittingFlow.value = true
 
             val result = withContext(Dispatchers.Default) {
-                xcmInteractor.performCrossChainTransfer(createTransfer(token))
+                if (transferDraft.isReviewedBridge) {
+                    reviewedBridgeInteractor.submit(
+                        providerId = requireNotNull(transferDraft.providerId),
+                        routeId = requireNotNull(transferDraft.routeId),
+                        originChainId = transferDraft.originChainId,
+                        destinationChainId = transferDraft.destinationChainId,
+                        asset = token,
+                        recipientAddress = transferDraft.recipientAddress,
+                        amount = transferDraft.amount,
+                        confirmedQuote = transferDraft.reviewedBridgeQuote()
+                    )
+                } else {
+                    xcmInteractor.performCrossChainTransfer(createTransfer(token))
+                }
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
@@ -379,4 +398,14 @@ class CrossChainConfirmViewModel @Inject constructor(
             )
         }
     }
+
+    private fun CrossChainTransferDraft.reviewedBridgeQuote() = ReviewedBridgeQuote(
+        providerId = requireNotNull(providerId),
+        routeId = requireNotNull(routeId),
+        runtimeFingerprint = requireNotNull(runtimeFingerprint),
+        executionFingerprint = requireNotNull(executionFingerprint),
+        originFeeInPlanks = BigInteger(requireNotNull(originFeeInPlanks)),
+        destinationFeeInPlanks = BigInteger(requireNotNull(destinationFeeInPlanks)),
+        effectiveMinimumInPlanks = BigInteger(requireNotNull(effectiveMinimumInPlanks))
+    )
 }

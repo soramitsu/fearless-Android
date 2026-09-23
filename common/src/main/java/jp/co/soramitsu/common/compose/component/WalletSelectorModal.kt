@@ -47,7 +47,7 @@ fun WalletSelectorScreen(
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val iconButtonSize = 32.dp
+                val iconButtonSize = 48.dp
                 IconButton(
                     onClick = onBackClicked,
                     modifier = Modifier
@@ -59,7 +59,7 @@ fun WalletSelectorScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_arrow_back_24dp),
                         tint = white,
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.ux_back)
                     )
                 }
 

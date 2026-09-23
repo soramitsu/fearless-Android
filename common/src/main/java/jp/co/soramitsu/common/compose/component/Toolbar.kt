@@ -1,7 +1,10 @@
 package jp.co.soramitsu.common.compose.component
 
 import android.graphics.drawable.Drawable
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
@@ -10,6 +13,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -29,6 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,7 +79,8 @@ sealed interface ToolbarHomeIconState{
 
 data class MenuIconItem(
     @DrawableRes val icon: Int,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
+    @StringRes val contentDescriptionRes: Int = toolbarActionLabel(icon)
 )
 
 data class ToolbarViewState(
@@ -96,12 +105,12 @@ fun MainToolbar(
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
-    val paddingTitleEnd = menuItems.orEmpty().size * (32 /* icon size */ + 8 /* padding */)
-    val paddingTitleStart = 40 /* icon size */ + 8 /* padding */
+    val paddingTitleEnd = menuItems.orEmpty().size * (48 /* touch target */ + 8 /* padding */)
+    val paddingTitleStart = 48 /* touch target */ + 8 /* padding */
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(62.dp)
+            .heightIn(min = 62.dp)
             .padding(horizontal = 16.dp)
     ) {
         Box(
@@ -145,12 +154,12 @@ fun MainToolbar(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(backgroundBlurColor)
-                        .size(32.dp)
+                        .size(48.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = menuItem.icon),
                         tint = white,
-                        contentDescription = null
+                        contentDescription = stringResource(menuItem.contentDescriptionRes)
                     )
                 }
             }
@@ -167,74 +176,66 @@ fun MainToolbar(
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
-    val paddingTitleEnd = menuItems.orEmpty().size * (32 /* icon size */ + 8 /* padding */)
-    val paddingTitleStart = 40 /* icon size */ + 8 /* padding */
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(62.dp)
-            .padding(horizontal = 16.dp)
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.align(CenterStart)
-        ) {
-            ToolbarHomeIcon(
-                state = state.homeIconState,
-                onClick = onNavigationClick,
-                onScoreClick = onScoreClick
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = paddingTitleStart.dp, end = paddingTitleEnd.dp)
-                .align(Alignment.Center),
-            horizontalAlignment = CenterHorizontally
-        ) {
-            if (state.title != null) {
-                Text(
-                    text = state.title,
-                    style = MaterialTheme.customTypography.header4,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-                )
-            } else {
-                Shimmer(Modifier.height(14.dp))
-            }
-
-            MarginVertical(margin = 4.dp)
-
-            if (state.selectorViewState != null) {
-                ChainSelector(
-                    selectorViewState = state.selectorViewState,
-                    onChangeChainClick = onChangeChainClick
-                )
-            } else {
-                Shimmer(
-                    Modifier
-                        .height(12.dp)
-                        .padding(horizontal = 20.dp))
-            }
-        }
+    Column(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
         Row(
             verticalAlignment = CenterVertically,
-            horizontalArrangement = spacedBy(8.dp, End),
-            modifier = Modifier.align(Alignment.CenterEnd)
+            horizontalArrangement = spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
         ) {
+            ToolbarHomeIcon(
+                state = (state.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = null)
+                    ?: state.homeIconState,
+                onClick = onNavigationClick
+            )
+            Box(Modifier.weight(1f)) {
+                if (state.title != null) {
+                    Text(
+                        text = state.title,
+                        style = MaterialTheme.customTypography.header4,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
+                } else {
+                    Shimmer(Modifier.fillMaxWidth().height(14.dp))
+                }
+            }
             menuItems?.forEach { menuItem ->
                 IconButton(
                     onClick = menuItem.onClick,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(backgroundBlurColor)
-                        .size(32.dp)
+                    modifier = Modifier.clip(CircleShape).background(backgroundBlurColor).size(48.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = menuItem.icon),
                         tint = white,
-                        contentDescription = null
+                        contentDescription = stringResource(menuItem.contentDescriptionRes)
                     )
+                }
+            }
+        }
+        Row(
+            verticalAlignment = CenterVertically,
+            horizontalArrangement = spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(Modifier.weight(1f)) {
+                if (state.selectorViewState != null) {
+                    ChainSelector(state.selectorViewState, onChangeChainClick)
+                } else {
+                    Shimmer(Modifier.fillMaxWidth().height(48.dp))
+                }
+            }
+            (state.homeIconState as? ToolbarHomeIconState.Wallet)?.score?.let { score ->
+                val scoreLabel = stringResource(R.string.account_stats_wallet_option_title)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+                        .clickable(role = Role.Button, onClickLabel = scoreLabel, onClick = onScoreClick)
+                        .padding(horizontal = 8.dp)
+                ) {
+                    ScoreStar(score, Modifier.clearAndSetSemantics {
+                        contentDescription = scoreLabel + if (score >= 0) ": $score" else ""
+                    })
                 }
             }
         }
@@ -250,7 +251,7 @@ fun MainToolbarShimmer(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(62.dp)
+            .heightIn(min = 62.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -262,6 +263,7 @@ fun MainToolbarShimmer(
             (homeIconState as? ToolbarHomeIconState.Navigation)?.let {
                 IconButton(
                     painter = painterResource(id = it.navigationIcon),
+                    contentDescription = stringResource(toolbarActionLabel(it.navigationIcon)),
                     tint = Color.Unspecified,
                     onClick = {}
                 )
@@ -293,12 +295,12 @@ fun MainToolbarShimmer(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(backgroundBlurColor)
-                        .size(32.dp)
+                        .size(48.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = menuItem.icon),
                         tint = white,
-                        contentDescription = null
+                        contentDescription = stringResource(menuItem.contentDescriptionRes)
                     )
                 }
             }
@@ -312,6 +314,7 @@ fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreCli
         is ToolbarHomeIconState.Navigation -> {
             IconButton(
                 painter = painterResource(id = state.navigationIcon),
+                contentDescription = stringResource(toolbarActionLabel(state.navigationIcon)),
                 tint = state.tint,
                 onClick = onClick
             )
@@ -321,11 +324,11 @@ fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreCli
             Column(horizontalAlignment = CenterHorizontally) {
                 IconButton(
                     painter = rememberAsyncImagePainter(model = state.walletIcon),
+                    contentDescription = stringResource(R.string.ux_switch_wallet),
                     onClick = onClick
                 )
-                MarginVertical(margin = 6.dp)
-
                 state.score?.let {
+                    MarginVertical(margin = 6.dp)
                     Box(modifier = Modifier.clickableWithNoIndication { onScoreClick() }) {
                         ScoreStar(score = it)
                     }
@@ -339,6 +342,7 @@ fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreCli
 fun IconButton(
     modifier: Modifier = Modifier,
     painter: Painter,
+    contentDescription: String,
     tint: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
     onClick: () -> Unit
 ) {
@@ -347,12 +351,12 @@ fun IconButton(
         modifier = modifier
             .clip(CircleShape)
             .background(backgroundBlurColor)
-            .size(40.dp)
+            .size(48.dp)
     ) {
         Icon(
             painter = painter,
             tint = tint,
-            contentDescription = null
+            contentDescription = contentDescription
         )
     }
 }
@@ -402,12 +406,12 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(backgroundBlurColor)
-                        .size(32.dp)
+                        .size(48.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = menuItem.icon),
                         tint = white,
-                        contentDescription = null
+                        contentDescription = stringResource(menuItem.contentDescriptionRes)
                     )
                 }
             }

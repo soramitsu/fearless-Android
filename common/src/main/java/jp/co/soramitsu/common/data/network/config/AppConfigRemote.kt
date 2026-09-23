@@ -35,5 +35,21 @@ data class AvailableDexId(
 
 data class FeatureToggleConfig(
     @SerializedName("pendulum_case_enabled")
-    val pendulumCaseEnabled: Boolean,
+    val pendulumCaseEnabled: Boolean = false,
+    @SerializedName("asset_discovery_shadow_enabled")
+    val assetDiscoveryShadowEnabled: Boolean? = null,
+    @SerializedName("portfolio_navigation_enabled")
+    val portfolioNavigationEnabled: Boolean? = null,
+    @SerializedName("polkaswap_mutations_enabled")
+    val polkaswapMutationsEnabled: Boolean? = null,
+    @SerializedName("demeter_mutations_enabled")
+    val demeterMutationsEnabled: Boolean? = null,
+    @SerializedName("polkamarkt_mutations_enabled")
+    val polkamarktMutationsEnabled: Boolean? = null,
+    @SerializedName("xcm_mutations_enabled")
+    val xcmMutationsEnabled: Boolean? = null,
+    @SerializedName("polkaswap_bridge_mutations_enabled")
+    val polkaswapBridgeMutationsEnabled: Boolean? = null,
+    @SerializedName("mutation_authorization")
+    val mutationAuthorization: String? = null,
 )

@@ -25,7 +25,7 @@ for command_name in git grep mktemp; do
 done
 [[ ! -L "$ENSURE" && -x "$ENSURE" ]] ||
   fail "ensure-fearless-utils.sh is missing or unsafe"
-[[ ! -L "$SOURCE_REPOSITORY" && -d "$SOURCE_REPOSITORY/.git" ]] ||
+[[ ! -L "$SOURCE_REPOSITORY" && -e "$SOURCE_REPOSITORY/.git" ]] ||
   fail "FEARLESS_UTILS_TEST_SOURCE must be a regular Git checkout"
 
 expected_commit="$(git -C "$SOURCE_REPOSITORY" rev-parse HEAD)"
@@ -35,7 +35,8 @@ expected_commit="$(git -C "$SOURCE_REPOSITORY" rev-parse HEAD)"
 clone_case() {
   local name="$1"
   local destination="$tmp_dir/$name"
-  git clone --quiet --no-hardlinks "$SOURCE_REPOSITORY" "$destination"
+  git clone --quiet --no-hardlinks --no-local --single-branch --depth=1 "$SOURCE_REPOSITORY" "$destination"
+  git -C "$destination" remote set-url origin https://github.com/soramitsu/fearless-utils-Android.git
   printf '%s' "$destination"
 }
 
@@ -66,7 +67,7 @@ mkdir -p \
   "$overlay_fixture/.kotlin/errors" \
   "$overlay_fixture/fearless-utils/build/generated" \
   "$overlay_fixture/sr25519-java/target/debug"
-printf 'generated\n' > "$overlay_fixture/.kotlin/errors/compiler.log"
+printf '%s\n' 'kotlin version: 2.1.10' 'error message: test fixture' > "$overlay_fixture/.kotlin/errors/errors-1785000000000.log"
 printf 'generated\n' > \
   "$overlay_fixture/fearless-utils/build/generated/output.bin"
 printf 'generated\n' > \
@@ -104,7 +105,7 @@ run_ensure "$untracked_fixture" true >/dev/null
 printf 'attacker controlled\n' > "$untracked_fixture/untracked-source.gradle"
 expect_failure \
   "untracked source" \
-  "effective source tree differs" \
+  "tracked, untracked, or submodule drift is not allowed" \
   run_ensure "$untracked_fixture" true
 
 tracked_fixture="$(clone_case tracked-source)"
@@ -112,7 +113,7 @@ run_ensure "$tracked_fixture" true >/dev/null
 printf '\n// attacker controlled\n' >> "$tracked_fixture/settings.gradle"
 expect_failure \
   "tracked source mutation" \
-  "effective source tree differs" \
+  "tracked, untracked, or submodule drift is not allowed" \
   run_ensure "$tracked_fixture" true
 
 deleted_overlay_fixture="$(clone_case deleted-overlay-source)"
@@ -121,7 +122,7 @@ rm \
   "$deleted_overlay_fixture/fearless-utils/src/main/java/jp/co/soramitsu/fearless_utils/wsrpc/request/CoroutinesRequestExecutor.kt"
 expect_failure \
   "deleted overlay source" \
-  "Unable to apply library-only overlay" \
+  "tracked, untracked, or submodule drift is not allowed" \
   run_ensure "$deleted_overlay_fixture" true
 
 ignored_source_fixture="$(clone_case ignored-source)"
@@ -138,14 +139,15 @@ run_ensure "$symlink_fixture" true >/dev/null
 ln -s settings.gradle "$symlink_fixture/untracked-source.gradle"
 expect_failure \
   "untracked source symlink" \
-  "effective source tree differs" \
+  "tracked, untracked, or submodule drift is not allowed" \
   run_ensure "$symlink_fixture" true
 
 unexpected_overlay_fixture="$(clone_case unexpected-overlay)"
 run_ensure "$unexpected_overlay_fixture" true >/dev/null
+git -C "$unexpected_overlay_fixture" remote set-url origin https://github.com/other/fearless-utils-Android.git
 expect_failure \
-  "overlay present when disabled" \
-  "effective source tree differs" \
+  "wrong source owner" \
+  "origin must identify soramitsu/fearless-utils-Android" \
   run_ensure "$unexpected_overlay_fixture" false
 
 [[ "$positive_count" == "4" ]] ||

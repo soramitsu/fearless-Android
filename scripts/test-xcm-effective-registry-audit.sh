@@ -40,6 +40,8 @@ cp "$ROOT_DIR/public-shared-features-xcm/src/main/java/jp/co/soramitsu/xcm/domai
 cp "$ROOT_DIR/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt" \
   "$BASE_ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
 cp "$ROOT_DIR/feature-wallet-impl/build.gradle" "$BASE_ROOT/feature-wallet-impl/build.gradle"
+cp "$ROOT_DIR/public-shared-features-xcm/src/main/java/jp/co/soramitsu/xcm/XcmTransferEngine.kt" \
+  "$BASE_ROOT/public-shared-features-xcm/src/main/java/jp/co/soramitsu/xcm/XcmTransferEngine.kt"
 
 new_case() {
   local name="$1"
@@ -583,10 +585,10 @@ perl -0pi -e 's/approved_xcm_routes\.tsv/removed_routes.tsv/' \
   "$CASE_ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
 expect_failure "DI approved asset removed" "missing approved_xcm_routes.tsv" "$CASE_ROOT"
 
-new_case di-approved-provider-guard
-perl -0pi -e 's/if \(!BuildConfig\.ENABLE_PRODUCTION_XCM_TRANSFERS\)/if (false)/' \
+new_case di-approved-provider-discovery
+perl -0pi -e 's/selectApprovedXcmRouteRegistry\(enabled = true\)/selectApprovedXcmRouteRegistry(enabled = BuildConfig.ENABLE_PRODUCTION_XCM_TRANSFERS)/' \
   "$CASE_ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
-expect_failure "DI approved registry early guard removed" "must return unavailable before asset loading" "$CASE_ROOT"
+expect_failure "compiled disable hides reviewed discovery" "preserve reviewed discovery independently" "$CASE_ROOT"
 
 new_case discovery-provider-interface
 perl -0pi -e 's/interface XcmDiscoverySnapshotProvider/interface RemovedDiscoverySnapshotProvider/' \
@@ -634,9 +636,24 @@ perl -0pi -e 's/BuildConfig\.ENABLE_PRODUCTION_XCM_TRANSFERS/true/' \
 expect_failure "DI production flag removed" "missing production XCM flag guard" "$CASE_ROOT"
 
 new_case di-fallback
-perl -0pi -e 's/UnavailableXcmTransferEngine/RemovedUnavailableEngine/g' \
+perl -0pi -e 's/return MutationGuardedXcmTransferEngine/return RemovedGuardedEngine/g' \
   "$CASE_ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
-expect_failure "DI unavailable fallback removed" "fail closed to UnavailableXcmTransferEngine" "$CASE_ROOT"
+expect_failure "DI submission guard removed" "quote engine behind MutationGuardedXcmTransferEngine" "$CASE_ROOT"
+
+new_case di-runtime-guard
+perl -0pi -e 's/mutationsEnabled = \{ productFeatureToggleStore.xcmMutationsEnabled \}/mutationsEnabled = { true }/' \
+  "$CASE_ROOT/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
+expect_failure "DI remote switch bypass" "missing runtime XCM mutation guard" "$CASE_ROOT"
+
+new_case engine-compiled-guard
+perl -0pi -e 's/check\(transfersEnabled\)/check(true)/' \
+  "$CASE_ROOT/public-shared-features-xcm/src/main/java/jp/co/soramitsu/xcm/XcmTransferEngine.kt"
+expect_failure "direct engine compiled permission bypass" "before entering the signing/submission delegate" "$CASE_ROOT"
+
+new_case engine-runtime-guard
+perl -0pi -e 's/check\(mutationsEnabled\(\)\)/check(true)/' \
+  "$CASE_ROOT/public-shared-features-xcm/src/main/java/jp/co/soramitsu/xcm/XcmTransferEngine.kt"
+expect_failure "direct engine runtime permission bypass" "before entering the signing/submission delegate" "$CASE_ROOT"
 
 new_case release-true
 perl -0pi -e 's/(release \{.*?ENABLE_PRODUCTION_XCM_TRANSFERS"\s*,\s*)"false"/${1}"true"/s' \

@@ -26,10 +26,12 @@ jobs:
     env:
       CI: true
       SKIP_AUTO_VERSION_BUMP: "true"
-      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_COMMIT: 1c80a2bf3fa1f996cf1328873e09f282ee29b69e
       FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
       FORCE_LOCAL_UTILS: "true"
       FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      FEARLESS_NV_WEBSOCKET_COMMIT: 9714b30b6a16d40a2122765077bb71cf44314798
+      FEARLESS_NV_WEBSOCKET_PATH: ${{ github.workspace }}/fearless-nv-websocket-client
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
       BUNDLETOOL_VERSION: "1.18.3"
@@ -102,6 +104,15 @@ jobs:
           repository: soramitsu/fearless-utils-Android
           ref: ${{ env.FEARLESS_UTILS_COMMIT }}
           path: fearless-utils-Android
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout guarded WebSocket source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: soramitsu/fearless-nv-websocket-client
+          ref: 9714b30b6a16d40a2122765077bb71cf44314798
+          path: fearless-nv-websocket-client
           fetch-depth: 0
           persist-credentials: false
 
@@ -452,10 +463,12 @@ jobs:
       qualification_complete: ${{ steps.complete-qualification.outputs.qualified }}
     env:
       CI: true
-      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_COMMIT: 1c80a2bf3fa1f996cf1328873e09f282ee29b69e
       FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
       FORCE_LOCAL_UTILS: "true"
       FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      FEARLESS_NV_WEBSOCKET_COMMIT: 9714b30b6a16d40a2122765077bb71cf44314798
+      FEARLESS_NV_WEBSOCKET_PATH: ${{ github.workspace }}/fearless-nv-websocket-client
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
       BUNDLETOOL_VERSION: "1.18.3"
@@ -523,6 +536,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Checkout guarded WebSocket source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: soramitsu/fearless-nv-websocket-client
+          ref: 9714b30b6a16d40a2122765077bb71cf44314798
+          path: fearless-nv-websocket-client
+          fetch-depth: 0
+          persist-credentials: false
+
       - name: Bind qualifier source with trusted system tools only
         run: |
           set -euo pipefail
@@ -533,19 +555,14 @@ jobs:
             "$(git rev-parse refs/remotes/origin/develop)" ]]
           source_tree="$(git rev-parse 'HEAD^{tree}')"
           utils_path="$GITHUB_WORKSPACE/fearless-utils-Android"
-          patch_path="$GITHUB_WORKSPACE/scripts/fearless-utils-library-only.patch"
           [[ ! -L "$utils_path" && -d "$utils_path/.git" ]]
-          [[ "$(git -C "$utils_path" rev-parse HEAD)" == \
-            "$FEARLESS_UTILS_COMMIT" ]]
-          [[ ! -L "$patch_path" && -f "$patch_path" && -s "$patch_path" ]]
-          if ! git -C "$utils_path" apply --reverse --check "$patch_path" \
-            >/dev/null 2>&1; then
-            git -C "$utils_path" apply --check "$patch_path"
-            git -C "$utils_path" apply "$patch_path"
-          fi
-          git -C "$utils_path" add -A -- .
-          utils_tree="$(git -C "$utils_path" write-tree)"
-          git -C "$utils_path" reset --mixed HEAD >/dev/null
+          [[ "$(git -C "$utils_path" rev-parse HEAD)" == "$FEARLESS_UTILS_COMMIT" ]]
+          [[ -z "$(git -C "$utils_path" status --porcelain=v1 --untracked-files=all)" ]]
+          utils_tree="$(git -C "$utils_path" rev-parse 'HEAD^{tree}')"
+          websocket_path="$GITHUB_WORKSPACE/fearless-nv-websocket-client"
+          [[ ! -L "$websocket_path" && -d "$websocket_path/.git" ]]
+          [[ "$(git -C "$websocket_path" rev-parse HEAD)" == "$FEARLESS_NV_WEBSOCKET_COMMIT" ]]
+          [[ -z "$(git -C "$websocket_path" status --porcelain=v1 --untracked-files=all)" ]]
           [[ "$source_tree" =~ ^[0-9a-f]{40}$ ]]
           [[ "$utils_tree" =~ ^[0-9a-f]{40}$ ]]
           {

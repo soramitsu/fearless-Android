@@ -24,8 +24,8 @@ Usage:
 Requires the checkout to remain at the exact commit/tree with no tracked,
 staged, or source-like untracked/ignored drift. Only generated Gradle, Kotlin,
 and build output directories are ignored. The optional nested
-fearless-utils-Android checkout must be independently verified by
-ensure-fearless-utils.sh.
+fearless-utils-Android and fearless-nv-websocket-client checkouts must be
+independently verified by verify-android-runtime-sources.sh.
 USAGE
 }
 
@@ -84,7 +84,11 @@ if [[ "$allow_fearless_utils" == "true" ]]; then
   utils_commit="$(git -C "$utils_path" rev-parse HEAD)"
   [[ "$utils_commit" =~ ^[0-9a-f]{40}$ ]] ||
     fail "Nested fearless-utils-Android checkout has a malformed HEAD."
-elif [[ -e "$ROOT_DIR/fearless-utils-Android" ]]; then
+  if [[ -e "$ROOT_DIR/fearless-nv-websocket-client" ]]; then
+    [[ ! -L "$ROOT_DIR/fearless-nv-websocket-client" && -d "$ROOT_DIR/fearless-nv-websocket-client/.git" ]] ||
+      fail "Guarded WebSocket source must be a regular checkout."
+  fi
+elif [[ -e "$ROOT_DIR/fearless-utils-Android" || -e "$ROOT_DIR/fearless-nv-websocket-client" ]]; then
   fail "Unexpected nested fearless-utils-Android checkout is present."
 fi
 
@@ -98,7 +102,8 @@ trap 'cleanup; exit 130' HUP INT TERM
 if ! find "$ROOT_DIR" \
   \( \
     -path "$ROOT_DIR/.git" -o \
-    -path "$ROOT_DIR/fearless-utils-Android" \
+    -path "$ROOT_DIR/fearless-utils-Android" -o \
+    -path "$ROOT_DIR/fearless-nv-websocket-client" \
   \) -prune -o -type l -print0 >"$status_file"; then
   fail "Could not inspect generated output paths for symlinks."
 fi
@@ -132,7 +137,7 @@ while IFS= read -r -d '' status_record; do
     "??")
       if [[
         "$allow_fearless_utils" == "true" &&
-        "$path" == "fearless-utils-Android/"
+        ( "$path" == "fearless-utils-Android/" || "$path" == "fearless-nv-websocket-client/" )
       ]]; then
         continue
       fi

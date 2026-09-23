@@ -39,9 +39,9 @@ android {
         }
 
         release {
-            // Production XCM remains fail-closed until the immutable effective-registry
-            // audit and funded mainnet evidence are both ready. There is deliberately
-            // no environment or local.properties override for release builds.
+            // Keep reviewed discovery and quotes available independently of submission authority.
+            // No remote switch may enable release submissions before the funded route evidence
+            // and release qualification gates are complete.
             buildConfigField "boolean", "ENABLE_PRODUCTION_XCM_TRANSFERS", "false"
             buildConfigField "String", "RAMP_TOKEN", readOptionalSecretInQuotes("RAMP_TOKEN_RELEASE")
             buildConfigField "String", "RAMP_HOST", "\"app.ramp.network\""
@@ -73,6 +73,7 @@ dependencies {
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-crowdloan-api')
     implementation project(':feature-polkaswap-api')
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')

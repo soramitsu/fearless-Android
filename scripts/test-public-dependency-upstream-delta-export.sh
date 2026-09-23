@@ -46,7 +46,7 @@ modules=(
   public-shared-features-xcm
   public-shared-features-backup
 )
-expected_commit="7500809f33243ee47ecb2ec8563fc284ac4de0d6"
+expected_commit="1c80a2bf3fa1f996cf1328873e09f282ee29b69e"
 utils_guard_command="FEARLESS_UTILS_PATH=../fearless-utils-Android FEARLESS_UTILS_COMMIT=$expected_commit FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android FEARLESS_UTILS_LIBRARY_ONLY=true ./scripts/ensure-fearless-utils.sh"
 handoff_test_command="bash ./scripts/test-public-dependency-upstream-delta-export.sh"
 handoff_export_command="bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta"
@@ -231,9 +231,9 @@ const manifest = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 
 assert.equal(manifest.schemaVersion, 1);
 assert.equal(manifest.scope, 'android-public-dependency-upstream-delta');
-assert.equal(manifest.fearlessUtils.expectedRevision, '7500809f33243ee47ecb2ec8563fc284ac4de0d6');
-assert.equal(manifest.fearlessUtils.patchTouchedPathCount, 1);
-assert.deepEqual(manifest.fearlessUtils.patchTouchedPaths, ['fearless-utils/build.gradle']);
+assert.equal(manifest.fearlessUtils.expectedRevision, '1c80a2bf3fa1f996cf1328873e09f282ee29b69e');
+assert.equal(manifest.fearlessUtils.sourceMode, 'pristine-committed-source');
+assert.equal(manifest.fearlessUtils.postResolutionPatching, false);
 assert.equal(manifest.publicCompatibilityModules.length, 6);
 assert(manifest.publicCompatibilityModules.every((entry) => entry.fileCount === 2));
 assert.deepEqual(manifest.governance, {
@@ -249,32 +249,32 @@ assert.deepEqual(manifest.governance, {
 assert.equal(manifest.requiredReviewCommands.length, 8);
 assert(manifest.requiredReviewCommands.some((command) => command.includes('test-public-dependency-upstream-delta-export.sh')));
 assert(manifest.requiredReviewCommands.some((command) => command.includes('test-fearless-utils-derived-tree.sh')));
-assert(manifest.requiredReviewCommands.includes('FEARLESS_UTILS_PATH=../fearless-utils-Android FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6 FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android FEARLESS_UTILS_LIBRARY_ONLY=true ./scripts/ensure-fearless-utils.sh'));
+assert(manifest.requiredReviewCommands.includes('FEARLESS_UTILS_PATH=../fearless-utils-Android FEARLESS_UTILS_COMMIT=1c80a2bf3fa1f996cf1328873e09f282ee29b69e FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android FEARLESS_UTILS_LIBRARY_ONLY=true ./scripts/ensure-fearless-utils.sh'));
 assert(manifest.requiredReviewCommands.includes('bash ./scripts/test-public-artifact-provenance-audit.sh'));
 assert(manifest.requiredReviewCommands.includes('./scripts/audit-public-artifacts.sh --strict-provenance'));
 assert(manifest.requiredReviewCommands.includes('./scripts/audit-public-artifacts.sh --unsigned-release --strict-provenance'));
 assert(manifest.requiredReviewCommands.includes('./scripts/audit-public-artifacts.sh --release --strict-provenance'));
 assert(manifest.files.some((entry) => entry.path === 'handoff-manifest.json') === false);
 assert(manifest.files.some((entry) => entry.path === 'README.md'));
-assert(manifest.files.some((entry) => entry.path === 'fearless-utils/fearless-utils-library-only.patch'));
+assert(!manifest.files.some((entry) => entry.path.endsWith('.patch')));
 assert(manifest.files.some((entry) => entry.path === 'fearless-utils/test-fearless-utils-derived-tree.sh'));
 assert(manifest.files.some((entry) => entry.path === 'docs/binary-provenance.md'));
 assert(manifest.files.some((entry) => entry.path === 'docs/release-process.md'));
 assert(manifest.files.some((entry) => entry.path === 'governance/approved_xcm_routes.tsv'));
 assert(manifest.files.some((entry) => entry.path === 'governance/audit-public-artifacts.sh'));
-assert.equal(manifest.files.length, 18);
+assert.equal(manifest.files.length, 17);
 assert(manifest.files.every((entry) => /^[0-9a-f]{64}$/.test(entry.sha256)));
 NODE
 
 [[ -s "$output_dir/README.md" ]] || fail "README.md was not generated"
-[[ -s "$output_dir/fearless-utils/fearless-utils-library-only.patch" ]] || fail "overlay patch was not copied"
+[[ ! -e "$output_dir/fearless-utils/fearless-utils-library-only.patch" ]] || fail "obsolete overlay was exported"
 [[ -s "$output_dir/fearless-utils/test-fearless-utils-derived-tree.sh" ]] || fail "derived-tree self-test was not copied"
 
 missing_patch="$tmp_dir/missing-patch"
 cp -R "$fixture" "$missing_patch"
 rm "$missing_patch/scripts/fearless-utils-library-only.patch"
-expect_failure "missing overlay patch" "library-only overlay patch missing" \
-  bash "$EXPORTER" --root "$missing_patch" --output "$tmp_dir/missing-patch-out"
+bash "$EXPORTER" --root "$missing_patch" --output "$tmp_dir/missing-patch-out" >/dev/null
+
 
 missing_derived_tree_test="$tmp_dir/missing-derived-tree-test"
 cp -R "$fixture" "$missing_derived_tree_test"
@@ -296,7 +296,7 @@ expect_failure "missing compatibility module" "public compatibility module missi
 
 bad_commit="$tmp_dir/bad-commit"
 cp -R "$fixture" "$bad_commit"
-perl -0pi -e 's/7500809f33243ee47ecb2ec8563fc284ac4de0d6/not-a-commit/' "$bad_commit/scripts/ensure-fearless-utils.sh"
+perl -0pi -e 's/1c80a2bf3fa1f996cf1328873e09f282ee29b69e/not-a-commit/' "$bad_commit/scripts/ensure-fearless-utils.sh"
 expect_failure "unparseable utils pin" "pinned fearless-utils commit missing" \
   bash "$EXPORTER" --root "$bad_commit" --output "$tmp_dir/bad-commit-out"
 
@@ -308,9 +308,9 @@ expect_failure "unreviewed utils repository" "pinned fearless-utils repository m
 
 bad_patch_scope="$tmp_dir/bad-patch-scope"
 cp -R "$fixture" "$bad_patch_scope"
-perl -0pi -e 's#fearless-utils/build.gradle#app/build.gradle#g' "$bad_patch_scope/scripts/fearless-utils-library-only.patch"
-expect_failure "patch outside upstream scope" "touches paths outside fearless-utils/root Gradle files" \
-  bash "$EXPORTER" --root "$bad_patch_scope" --output "$tmp_dir/bad-patch-scope-out"
+printf '%s\n' 'not a patch' > "$bad_patch_scope/scripts/fearless-utils-library-only.patch"
+bash "$EXPORTER" --root "$bad_patch_scope" --output "$tmp_dir/bad-patch-scope-out" >/dev/null
+
 
 missing_release_marker="$tmp_dir/missing-release-marker"
 cp -R "$fixture" "$missing_release_marker"
@@ -320,7 +320,7 @@ expect_failure "missing release handoff command" "release checklist handoff expo
 
 stale_snapshot_pin="$tmp_dir/stale-snapshot-pin"
 cp -R "$fixture" "$stale_snapshot_pin"
-perl -0pi -e 's/7500809f33243ee47ecb2ec8563fc284ac4de0d6/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/' \
+perl -0pi -e 's/1c80a2bf3fa1f996cf1328873e09f282ee29b69e/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/' \
   "$stale_snapshot_pin/docs/public-dependency-audit.md"
 expect_failure "stale documented utils pin" "public dependency governed snapshot is stale" \
   bash "$EXPORTER" --root "$stale_snapshot_pin" --output "$tmp_dir/stale-snapshot-pin-out"

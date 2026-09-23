@@ -1,6 +1,7 @@
 package jp.co.soramitsu.liquiditypools.domain.interfaces
 
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.data.PoolDataDto
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
@@ -11,6 +12,8 @@ import java.math.BigDecimal
 @Suppress("ComplexInterface")
 interface PoolsInteractor {
     val poolsChainId: String
+
+    suspend fun mutationCapabilityReason(action: LiquidityMutationAction): String?
 
     suspend fun getBasicPools(): List<BasicPoolData>
 

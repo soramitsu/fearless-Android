@@ -15,6 +15,9 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretConcurrentMutationException
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
@@ -33,6 +36,7 @@ import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal.Table.Column
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
@@ -456,6 +460,145 @@ class V2MigrationTest {
                 }
             }
         }
+
+    @Test
+    fun version31OptionalEthereumProviderFailureDoesNotBlockExistingSubstrateWallet() = runBlocking {
+        for (stage in listOf("path", "keypair", "address")) {
+            storeV1.insertSecrets(Type.MNEMONIC)
+            createReleasedV28WalletDatabase(STALE_V31_DB)
+            migrateExistingDatabase(STALE_V31_DB, 31, migrationsFrom28Through31()).use { helper ->
+                helper.writableDatabase.execSQL("UPDATE meta_accounts SET ethereumPublicKey = NULL, ethereumAddress = NULL WHERE id = 1")
+            }
+            storeV2.putMetaAccountSecrets(1, MetaAccountSecrets(
+                substrateKeyPair = SUBSTRATE_KEYPAIR,
+                entropy = MNEMONIC.entropy,
+                seed = SUBSTRATE_SEED,
+                substrateDerivationPath = DERIVATION_PATH,
+                ethereumKeypair = null,
+                ethereumDerivationPath = null
+            ))
+            val original = encryptedPreferences.getDecryptedString("1:ACCESS_SECRETS")
+            val unavailableCryptography = object : EthereumDerivationPathCryptography {
+                override fun decodePath(path: String): JunctionDecoder.DecodeResult =
+                    if (stage == "path") error("synthetic optional provider outage") else DECODED_ETHEREUM_DERIVATION_PATH
+                override fun deriveKeypair(entropy: ByteArray, decodedPath: JunctionDecoder.DecodeResult): Keypair =
+                    if (stage == "keypair") error("synthetic optional provider outage") else ETHEREUM_KEYPAIR
+                override fun deriveAddress(publicKey: ByteArray): ByteArray = error("synthetic optional address provider outage")
+            }
+            migrateExistingDatabase(STALE_V31_DB, 32, listOf(EthereumDerivationPathMigration(
+                encryptedPreferences, unavailableCryptography, WalletRootSecretValidator
+            ))).use { helper ->
+                assertEquals(32, helper.writableDatabase.version)
+                assertArrayEquals(SUBSTRATE_KEYPAIR.publicKey, helper.writableDatabase.singleBlob("SELECT substratePublicKey FROM meta_accounts WHERE id = 1"))
+                assertEquals(0L, helper.writableDatabase.singleLong("SELECT COUNT(*) FROM meta_accounts WHERE ethereumPublicKey IS NOT NULL"))
+            }
+            assertEquals(original, encryptedPreferences.getDecryptedString("1:ACCESS_SECRETS"))
+            assertFalse(encryptedPreferences.hasKey(WalletSecretQuarantine.keyFor("1:ACCESS_SECRETS")))
+            encryptedPreferences.removeKey("1:ACCESS_SECRETS")
+        }
+    }
+
+    @Test
+    fun version31RetainsHistoricalEthereumKeyAcrossRollbackAndCompleteUpgrade() = runBlocking {
+        storeV1.insertSecrets(Type.MNEMONIC)
+        createReleasedV28WalletDatabase(STALE_V31_DB)
+        val historical = EthereumKeypairFactory.createWithPrivateKey(ByteArray(32) { 7 })
+        val originalAddress = historical.publicKey.ethereumAddressFromPublicKey()
+        migrateExistingDatabase(
+            databaseName = STALE_V31_DB,
+            targetVersion = 31,
+            migrations = migrationsFrom28Through31()
+        ).use { helper ->
+            val db = helper.writableDatabase
+            db.execSQL(
+                "UPDATE meta_accounts SET ethereumPublicKey = ?, ethereumAddress = ? WHERE id = 1",
+                arrayOf(historical.publicKey, originalAddress)
+            )
+            db.execSQL(
+                """
+                INSERT INTO assets(tokenSymbol, chainId, accountId, metaId,
+                    freeInPlanks, reservedInPlanks, miscFrozenInPlanks, feeFrozenInPlanks,
+                    bondedInPlanks, redeemableInPlanks, unbondingInPlanks)
+                VALUES('LEGACY', 'missing-chain', ?, 1, '77', '0', '0', '0', '0', '0', '0')
+                """.trimIndent(),
+                arrayOf(originalAddress)
+            )
+        }
+        // A real historical signing key whose legacy entropy/path produces a
+        // different key under the current BIP32 implementation.
+        storeV2.putMetaAccountSecrets(
+            1,
+            MetaAccountSecrets(
+                substrateKeyPair = SUBSTRATE_KEYPAIR,
+                entropy = MNEMONIC.entropy,
+                seed = SUBSTRATE_SEED,
+                substrateDerivationPath = DERIVATION_PATH,
+                ethereumKeypair = historical,
+                ethereumDerivationPath = ETHEREUM_DERIVATION_PATH
+            )
+        )
+
+        // Simulate process interruption after durable secret separation but
+        // before Room commits its identity/version transaction.
+        migrateExistingDatabase(
+            databaseName = STALE_V31_DB,
+            targetVersion = 32,
+            migrations = listOf(
+                EthereumDerivationPathMigration(
+                    encryptedPreferences,
+                    walletIdentityUpdater = Db31WalletIdentityUpdater { _, _, _, _ ->
+                        error("synthetic interruption after secret persistence")
+                    }
+                )
+            )
+        ).use { helper ->
+            assertThrows(IllegalStateException::class.java) { helper.writableDatabase }
+        }
+        assertFalse(encryptedPreferences.hasKey("1:ACCESS_SECRETS"))
+        assertFalse(encryptedPreferences.hasKey(WalletSecretQuarantine.keyFor("1:ACCESS_SECRETS")))
+
+        migrateExistingDatabase(
+            databaseName = STALE_V31_DB,
+            targetVersion = 32,
+            migrations = listOf(EthereumDerivationPathMigration(encryptedPreferences))
+        ).use { helper ->
+            val db = helper.writableDatabase
+            assertEquals(32, db.version)
+            assertArrayEquals(originalAddress, db.singleBlob("SELECT ethereumAddress FROM meta_accounts WHERE id = 1"))
+            assertArrayEquals(originalAddress, db.singleBlob("SELECT accountId FROM assets WHERE tokenSymbol = 'LEGACY'"))
+            assertEquals("77", db.singleString("SELECT freeInPlanks FROM assets WHERE tokenSymbol = 'LEGACY'"))
+        }
+
+        repeat(2) {
+            val database = AppDatabase.create(
+                context = context,
+                databaseName = STALE_V31_DB,
+                storeV1 = storeV1,
+                storeV2 = storeV2,
+                encryptedPreferences = encryptedPreferences,
+                substrateSecretStore = SubstrateSecretStore(encryptedPreferences),
+                ethereumSecretStore = EthereumSecretStore(encryptedPreferences)
+            )
+            try {
+                val db = database.openHelper.writableDatabase
+                assertEquals(APP_DATABASE_VERSION, db.version)
+                assertArrayEquals(historical.publicKey, db.singleBlob("SELECT ethereumPublicKey FROM meta_accounts WHERE id = 1"))
+                assertArrayEquals(originalAddress, db.singleBlob("SELECT ethereumAddress FROM meta_accounts WHERE id = 1"))
+                val ethereum = requireNotNull(EthereumSecretStore(encryptedPreferences).get(1, historical.publicKey, originalAddress))
+                assertArrayEquals(historical.privateKey, ethereum[EthereumSecrets.EthereumKeypair][KeyPairSchema.PrivateKey])
+                assertArrayEquals(historical.privateKey, ethereum[EthereumSecrets.Seed])
+                assertNull(ethereum[EthereumSecrets.Entropy])
+                assertNull(ethereum[EthereumSecrets.EthereumDerivationPath])
+                val substrate = requireNotNull(SubstrateSecretStore(encryptedPreferences).get(
+                    1, SUBSTRATE_KEYPAIR.publicKey, CryptoType.SR25519, SUBSTRATE_KEYPAIR.publicKey.substrateAccountId()
+                ))
+                assertArrayEquals(MNEMONIC.entropy, substrate[SubstrateSecrets.Entropy])
+                assertArrayEquals(SUBSTRATE_KEYPAIR.privateKey, substrate[SubstrateSecrets.SubstrateKeypair][KeyPairSchema.PrivateKey])
+            } finally {
+                database.close()
+            }
+        }
+    }
 
     @Test
     fun version31IgnoresSchemaValidOversizedUnmatchedAssetAccountId() =

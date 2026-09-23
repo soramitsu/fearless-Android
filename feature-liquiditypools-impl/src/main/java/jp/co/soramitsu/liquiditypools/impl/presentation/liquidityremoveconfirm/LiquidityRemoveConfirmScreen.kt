@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.InfoTableItem
@@ -38,6 +39,7 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
@@ -50,7 +52,8 @@ data class LiquidityRemoveConfirmState(
     val targetFiat: String = "",
     val feeInfo: FeeInfoViewState = FeeInfoViewState.default,
     val buttonEnabled: Boolean = false,
-    val buttonLoading: Boolean = false
+    val buttonLoading: Boolean = false,
+    val capabilityReason: String? = null
 )
 
 interface LiquidityRemoveConfirmCallbacks {
@@ -149,6 +152,14 @@ fun LiquidityRemoveConfirmScreen(state: LiquidityRemoveConfirmState, callbacks: 
             }
 
             MarginVertical(margin = 24.dp)
+        }
+
+        state.capabilityReason?.let { reason ->
+            B1(
+                text = reason,
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
         }
 
         AccentButton(

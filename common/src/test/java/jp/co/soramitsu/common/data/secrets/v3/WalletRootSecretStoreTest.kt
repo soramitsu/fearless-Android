@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
 import org.junit.Assert.assertEquals
@@ -17,6 +18,64 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WalletRootSecretStoreTest {
+
+    @Test
+    fun substratePresenceDoesNotDecryptSecretMaterial() {
+        val preferences = org.mockito.kotlin.mock<jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences>()
+        org.mockito.kotlin.whenever(preferences.hasKey("$META_ID:SUBSTRATE_SECRETS")).thenReturn(true)
+        assertTrue(SubstrateSecretStore(preferences).hasSecret(META_ID))
+        org.mockito.kotlin.verify(preferences).hasKey("$META_ID:SUBSTRATE_SECRETS")
+        org.mockito.Mockito.verifyNoMoreInteractions(preferences)
+    }
+
+    @Test
+    fun authorizedRootStoresUseTheSameIntentAndRetainValidation() {
+        val preferences = HashMapEncryptedPreferences()
+        var validations = 0
+        val validation = TestValidation(
+            substrate = { encoded, publicKey, crypto, account ->
+                assertTrue(PUBLIC_32.contentEquals(publicKey))
+                assertEquals(CryptoType.ED25519, crypto)
+                assertTrue(PUBLIC_32.contentEquals(account))
+                validations++
+                encoded
+            },
+            ethereum = { encoded, publicKey, address ->
+                assertTrue(PUBLIC_33.contentEquals(publicKey))
+                assertTrue(ADDRESS_20.contentEquals(address))
+                validations++
+                encoded
+            }
+        )
+        val substrate = SubstrateSecretStore(preferences, validation)
+        val ethereum = EthereumSecretStore(preferences, validation)
+        substrate.put(META_ID, substrateSecrets())
+        ethereum.put(META_ID, ethereumSecrets())
+        var allowed = true
+        var checks = 0
+        val guard = object : MutationExecutionGuard {
+            override fun <T> runIfAuthorized(intentSha256: String, operation: () -> T): T {
+                assertEquals("intent", intentSha256)
+                checks++
+                check(allowed)
+                return operation()
+            }
+        }
+        assertTrue(substrate.getAuthorized(META_ID, PUBLIC_32, CryptoType.ED25519, PUBLIC_32, guard, "intent") != null)
+        assertTrue(ethereum.getAuthorized(META_ID, PUBLIC_33, ADDRESS_20, guard, "intent") != null)
+        assertEquals(2, validations)
+        assertEquals(2, checks)
+        allowed = false
+        assertThrows(IllegalStateException::class.java) {
+            substrate.getAuthorized(META_ID, PUBLIC_32, CryptoType.ED25519, PUBLIC_32, guard, "intent")
+        }
+        assertThrows(IllegalStateException::class.java) {
+            ethereum.getAuthorized(META_ID, PUBLIC_33, ADDRESS_20, guard, "intent")
+        }
+        assertEquals(2, validations)
+        assertTrue(preferences.hasKey("$META_ID:SUBSTRATE_SECRETS"))
+        assertTrue(preferences.hasKey("$META_ID:ETHEREUM_SECRETS"))
+    }
 
     @Test
     fun unexpectedValidatorFailurePreservesExactSubstrateCiphertext() {

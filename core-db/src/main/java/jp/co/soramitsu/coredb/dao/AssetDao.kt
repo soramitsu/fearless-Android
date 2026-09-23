@@ -13,11 +13,7 @@ import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -131,10 +127,67 @@ abstract class AssetDao : AssetReadOnlyCache {
     abstract suspend fun updateAsset(asset: AssetLocal)
 
     @Update(entity = AssetLocal::class)
-    abstract suspend fun updateAsset(asset: AssetBalanceUpdateItem)
+    abstract suspend fun updateAsset(asset: AssetBalanceUpdateItem): Int
 
     @Upsert(entity = AssetLocal::class)
     abstract suspend fun updateOrInsertAsset(asset: AssetLocal)
+
+    /**
+     * Applies a scan result without replacing the user's explicit visibility choice.
+     * A new row remains in the nullable `auto` state; later scans preserve explicit shown/hidden
+     * preferences and update balance fields only.
+     */
+    @Transaction
+    open suspend fun updateBalanceOrInsertPreservingPreference(
+        balance: AssetBalanceUpdateItem,
+        tokenPriceId: String?
+    ) {
+        if (updateAsset(balance) > 0) return
+
+        insertAssets(
+            listOf(
+                AssetLocal.createEmpty(
+                    accountId = balance.accountId,
+                    id = balance.id,
+                    chainId = balance.chainId,
+                    metaId = balance.metaId,
+                    tokenPriceId = tokenPriceId,
+                    enabled = null
+                ).copy(
+                    freeInPlanks = balance.freeInPlanks,
+                    reservedInPlanks = balance.reservedInPlanks,
+                    miscFrozenInPlanks = balance.miscFrozenInPlanks,
+                    feeFrozenInPlanks = balance.feeFrozenInPlanks,
+                    status = balance.status
+                )
+            )
+        )
+
+        // Handles a concurrent insert while retaining whichever preference won the race.
+        updateAsset(balance)
+    }
+
+    /** Creates preference tombstones even before an asset has a balance row. */
+    @Transaction
+    open suspend fun updateOrInsertAssetPreferences(items: List<AssetUpdateItem>) {
+        items.forEach { item ->
+            if (updateAssets(listOf(item)) == 0) {
+                insertAssets(
+                    listOf(
+                        AssetLocal.createEmpty(
+                            accountId = item.accountId,
+                            id = item.id,
+                            chainId = item.chainId,
+                            metaId = item.metaId,
+                            tokenPriceId = item.tokenPriceId,
+                            enabled = item.enabled
+                        ).copy(sortIndex = item.sortIndex)
+                    )
+                )
+                updateAssets(listOf(item))
+            }
+        }
+    }
 
     @Query("DELETE FROM assets WHERE metaId = :metaId AND accountId = :accountId AND chainId = :chainId AND id = :assetId")
     abstract fun deleteAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String)
@@ -145,58 +198,44 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Query("DELETE FROM assets WHERE metaId = :metaId")
     abstract fun deleteAccountAssets(metaId: Long)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    open suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken> {
-        return observeAssetSymbolById(id).flatMapLatest { symbol ->
-            if (symbol != null) {
-                observeAssetsBySymbol(
-                    accountMetaId = accountMetaId,
-                    assetSymbol = symbol
-                )
-            } else {
-                flowOf(emptyList())
-            }
-        }.first()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    open fun observeAssets(accountMetaId: Long, id: String): Flow<List<AssetWithToken>> {
-        return observeAssetSymbolById(id).flatMapLatest { symbol ->
-            if (symbol != null) {
-                observeAssetsBySymbol(
-                    accountMetaId = accountMetaId,
-                    assetSymbol = symbol
-                )
-            } else {
-                flowOf(emptyList())
-            }
-        }
-    }
-
-    @Query("UPDATE assets SET enabled = CASE WHEN EXISTS (SELECT 1 FROM assets WHERE metaId = :metaId AND freeInPlanks > 0) THEN 0 ELSE enabled END WHERE metaId = :metaId AND (freeInPlanks IS NULL OR freeInPlanks = 0)")
-    abstract fun hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaId: Long)
-
-    @Query(
-        """
-            SELECT symbol FROM chain_assets WHERE chain_assets.id = :assetId
-        """
-    )
-    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String?>
-
+    /**
+     * Intermediate-detail lookup scoped to the exact database identity. Symbols are display
+     * metadata and registry asset ids are not globally unique, so both chain and asset id are
+     * mandatory. This changes no released table or migration schema.
+     */
     @Transaction
     @Query(
         """
             SELECT a.*, tp.* FROM assets a
             LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId
-            LEFT JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
-            WHERE ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
-            AND a.metaId = :accountMetaId
+            INNER JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
+            WHERE a.metaId = :accountMetaId AND a.chainId = :chainId AND ca.id = :id
         """
     )
-    protected abstract fun observeAssetsBySymbol(
+    abstract suspend fun getAssets(
         accountMetaId: Long,
-        assetSymbol: String
+        chainId: String,
+        id: String
+    ): List<AssetWithToken>
+
+    /** See [getAssets]. */
+    @Transaction
+    @Query(
+        """
+            SELECT a.*, tp.* FROM assets a
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId
+            INNER JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
+            WHERE a.metaId = :accountMetaId AND a.chainId = :chainId AND ca.id = :id
+        """
+    )
+    abstract fun observeAssets(
+        accountMetaId: Long,
+        chainId: String,
+        id: String
     ): Flow<List<AssetWithToken>>
+
+    @Query("UPDATE assets SET enabled = CASE WHEN EXISTS (SELECT 1 FROM assets WHERE metaId = :metaId AND freeInPlanks > 0) THEN 0 ELSE enabled END WHERE metaId = :metaId AND (freeInPlanks IS NULL OR freeInPlanks = 0)")
+    abstract fun hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaId: Long)
 
     companion object {
         const val xcPrefix = "xc"

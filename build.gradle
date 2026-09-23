@@ -36,7 +36,7 @@ buildscript {
         // SDK and tools
         compileSdkVersion = 36
         minSdkVersion = 26
-        targetSdkVersion = 35
+        targetSdkVersion = 36
 
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
         // Closure to exclude JNA from 3rd party dependencies to prevent class duplication

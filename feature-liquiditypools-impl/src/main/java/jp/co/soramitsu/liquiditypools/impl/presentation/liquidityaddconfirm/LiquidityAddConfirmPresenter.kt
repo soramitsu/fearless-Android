@@ -14,6 +14,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
@@ -154,9 +155,11 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         }.launchIn(coroutineScope)
 
         feeInfoViewStateFlow.onEach {
+            val capabilityReason = poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Add)
             stateFlow.value = stateFlow.value.copy(
                 feeInfo = it,
-                buttonEnabled = it.feeAmount.isNullOrEmpty().not()
+                buttonEnabled = capabilityReason == null && it.feeAmount.isNullOrEmpty().not(),
+                capabilityReason = capabilityReason
             )
         }.launchIn(coroutineScope)
     }
@@ -190,6 +193,14 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     override fun onConfirmClick() {
         setButtonLoading(true)
         coroutinesStore.ioScope.launch {
+            poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Add)?.let { reason ->
+                stateFlow.value = stateFlow.value.copy(
+                    buttonEnabled = false,
+                    buttonLoading = false,
+                    capabilityReason = reason
+                )
+                return@launch
+            }
             val chainId = poolsInteractor.poolsChainId
             val tokenBase = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
             val tokenTarget = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch

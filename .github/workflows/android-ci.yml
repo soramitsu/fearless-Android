@@ -18,10 +18,12 @@ jobs:
     timeout-minutes: 90
     env:
       CI: true
-      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_COMMIT: 1c80a2bf3fa1f996cf1328873e09f282ee29b69e
       FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
       FORCE_LOCAL_UTILS: "true"
       FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      FEARLESS_NV_WEBSOCKET_COMMIT: 9714b30b6a16d40a2122765077bb71cf44314798
+      FEARLESS_NV_WEBSOCKET_PATH: ${{ github.workspace }}/fearless-nv-websocket-client
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
       BUNDLETOOL_VERSION: "1.18.3"
@@ -57,10 +59,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Checkout guarded WebSocket source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: soramitsu/fearless-nv-websocket-client
+          ref: 9714b30b6a16d40a2122765077bb71cf44314798
+          path: fearless-nv-websocket-client
+          fetch-depth: 0
+          persist-credentials: false
+
       - name: Verify fearless-utils source
         run: |
           bash ./scripts/test-fearless-utils-derived-tree.sh
           ./scripts/ensure-fearless-utils.sh
+          python3 ./scripts/test-android-runtime-source-pins.py
+          ./scripts/verify-android-runtime-sources.sh
 
       - name: Public dependency upstream handoff
         run: |

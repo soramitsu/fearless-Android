@@ -5,5 +5,11 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 
 sealed class AssetsLoadingState {
     class Loading(val shimmerStates: List<AssetListItemShimmerViewState> = emptyList()) : AssetsLoadingState()
-    class Loaded(val assets: List<AssetListItemViewState>) : AssetsLoadingState()
-} 
+    class Loaded(
+        val assets: List<AssetListItemViewState>,
+        val allAssetsHidden: Boolean = false
+    ) : AssetsLoadingState()
+}
+
+internal fun areAllPortfolioAssetsHidden(enabledStates: List<Boolean?>): Boolean =
+    enabledStates.isNotEmpty() && enabledStates.all { it == false }

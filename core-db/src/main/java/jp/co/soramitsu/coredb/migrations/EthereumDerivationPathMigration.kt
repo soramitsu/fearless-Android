@@ -143,10 +143,10 @@ class EthereumDerivationPathMigration internal constructor(
         )
 
         val ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-        val decodedEthereumDerivationPath = performCryptography(
-            operation = "default Ethereum derivation-path decoding"
-        ) {
-            cryptography.decodePath(ethereumDerivationPath)
+        val decodedEthereumDerivationPath = lazy {
+            performCryptography(operation = "default Ethereum derivation-path decoding") {
+                cryptography.decodePath(ethereumDerivationPath)
+            }
         }
 
         // Encrypted preferences are not part of Room's SQL transaction. The
@@ -261,7 +261,7 @@ class EthereumDerivationPathMigration internal constructor(
                                             )
                                         )
                                     },
-                                    valuesToPut = if (
+                                    valuesToPut = prepared.separatedSecrets ?: if (
                                         prepared.expectedSnapshot.plaintext ==
                                         prepared.encodedSecrets
                                     ) {
@@ -272,7 +272,11 @@ class EthereumDerivationPathMigration internal constructor(
                                                 prepared.encodedSecrets
                                         )
                                     },
-                                    keysToRemove = emptySet()
+                                    keysToRemove = if (prepared.separatedSecrets != null) {
+                                        setOf(prepared.activeSecretKey)
+                                    } else {
+                                        emptySet()
+                                    }
                                 )
                         }
 
@@ -330,7 +334,7 @@ class EthereumDerivationPathMigration internal constructor(
     private fun prepareV2SecretMigration(
         account: MigratingEthereumAccount,
         ethereumDerivationPath: String,
-        decodedEthereumDerivationPath: JunctionDecoder.DecodeResult
+        decodedEthereumDerivationPath: Lazy<JunctionDecoder.DecodeResult>
     ): V2SecretPreparation {
         val metaId = account.metaId
         val activeSecretKey = "$metaId:ACCESS_SECRETS"
@@ -532,7 +536,7 @@ class EthereumDerivationPathMigration internal constructor(
         activeSecretKey: String,
         expectedSnapshot: EncryptedPreferenceSnapshot,
         ethereumDerivationPath: String,
-        decodedEthereumDerivationPath: JunctionDecoder.DecodeResult
+        decodedEthereumDerivationPath: Lazy<JunctionDecoder.DecodeResult>
     ): PreparedEthereumSecretMigration? {
         val secrets = decodeHistoricalV2Secrets(encoded)
         val entropy = secrets.entropy ?: return null
@@ -553,7 +557,7 @@ class EthereumDerivationPathMigration internal constructor(
             ?: throw WalletPublicIdentityIntegrityException(
                 "A DB31 wallet secret has no durable Substrate account id"
             )
-        walletRootSecretValidation.validateSubstrateAndSanitize(
+        val validatedSubstrate = walletRootSecretValidation.validateSubstrateAndSanitize(
             encoded = SubstrateSecrets(
                 substrateKeyPair = secrets.substrateKeypair,
                 entropy = entropy,
@@ -565,28 +569,85 @@ class EthereumDerivationPathMigration internal constructor(
             expectedAccountId = substrateAccountId
         )
 
-        val newEthereumKeypair = performCryptography(
-            operation = "DB31 Ethereum key derivation"
-        ) {
-            cryptography.deriveKeypair(
-                entropy = entropy.clone(),
-                decodedPath = decodedEthereumDerivationPath
+        // An upgrade must never replace an existing signing identity merely
+        // because a newer derivation implementation produces another address.
+        // Prove ownership using the retained private key first. The historical
+        // BIP32 bug can make recovery metadata disagree while this key remains
+        // the only way to spend funds at the user's original address.
+        val historicalKeypair = secrets.ethereumKeypair
+        if (historicalKeypair != null && historicalKeypair.publicKey.contentEquals(account.ethereumPublicKey)) {
+            val publicKey = checkNotNull(account.ethereumPublicKey)
+            val address = checkNotNull(account.ethereumAddress)
+            val directKeySecret = walletRootSecretValidation.validateEthereumAndSanitize(
+                encoded = EthereumSecrets(
+                    seed = historicalKeypair.privateKey,
+                    ethereumKeypair = historicalKeypair
+                ).toHexString(),
+                expectedPublicKey = publicKey,
+                expectedAddress = address
+            )
+            val recoveryStillMatches = try {
+                walletRootSecretValidation.validateEthereumAndSanitize(
+                    encoded = EthereumSecrets(
+                        entropy = entropy,
+                        seed = historicalKeypair.privateKey,
+                        ethereumKeypair = historicalKeypair,
+                        ethereumDerivationPath = secrets.ethereumDerivationPath
+                    ).toHexString(),
+                    expectedPublicKey = publicKey,
+                    expectedAddress = address
+                )
+                true
+            } catch (_: WalletRootSecretCorruptionException) {
+                false
+            }
+            return PreparedEthereumSecretMigration(
+                activeSecretKey = activeSecretKey,
+                expectedSnapshot = expectedSnapshot,
+                encodedSecrets = encoded,
+                ethereumIdentity = EthereumIdentity(publicKey, address),
+                // Separate only the legacy key with invalid recovery metadata.
+                // Preserve the wallet's mnemonic/seed/path in its validated
+                // Substrate root and export the original EVM private key.
+                separatedSecrets = if (recoveryStillMatches) null else mapOf(
+                    "${account.metaId}:SUBSTRATE_SECRETS" to validatedSubstrate,
+                    "${account.metaId}:ETHEREUM_SECRETS" to directKeySecret
+                )
             )
         }
-        ensureOperational(
-            newEthereumKeypair.privateKey.size == PRIVATE_KEY_BYTES &&
-                newEthereumKeypair.publicKey.hasEthereumPublicKeyShape(),
-            "The Ethereum provider returned an invalid keypair"
-        )
-        val ethereumAddress = performCryptography(
-            operation = "derived Ethereum address calculation"
-        ) {
-            cryptography.deriveAddress(newEthereumKeypair.publicKey)
+
+        val (newEthereumKeypair, ethereumAddress) = try {
+            val keypair = performCryptography(operation = "DB31 Ethereum key derivation") {
+                cryptography.deriveKeypair(
+                    entropy = entropy.clone(),
+                    decodedPath = decodedEthereumDerivationPath.value
+                )
+            }
+            ensureOperational(
+                keypair.privateKey.size == PRIVATE_KEY_BYTES && keypair.publicKey.hasEthereumPublicKeyShape(),
+                "The Ethereum provider returned an invalid keypair"
+            )
+            val address = performCryptography(operation = "derived Ethereum address calculation") {
+                cryptography.deriveAddress(keypair.publicKey)
+            }
+            ensureOperational(address.size == ETHEREUM_ADDRESS_BYTES, "The Ethereum provider returned an invalid address")
+            keypair to address
+        } catch (failure: WalletSecureStorageUnavailableException) {
+            // Adding a previously absent ecosystem is optional. Preserve the
+            // validated Substrate wallet if its new EVM derivation is currently
+            // unavailable; users can retry Add Ethereum after startup.
+            if (account.ethereumPublicKey == null && account.ethereumAddress == null) {
+                // A prepared no-op is distinct from a corrupt decode (null).
+                // Returning null here would incorrectly quarantine good entropy.
+                return PreparedEthereumSecretMigration(
+                    activeSecretKey = activeSecretKey,
+                    expectedSnapshot = expectedSnapshot,
+                    encodedSecrets = encoded,
+                    ethereumIdentity = null
+                )
+            }
+            throw failure
         }
-        ensureOperational(
-            ethereumAddress.size == ETHEREUM_ADDRESS_BYTES,
-            "The Ethereum provider returned an invalid address"
-        )
         validateHistoricalOrCorrectedEthereumBinding(
             secrets = secrets,
             account = account,
@@ -809,7 +870,7 @@ class EthereumDerivationPathMigration internal constructor(
             val ethereumEntropy = secrets[EthereumSecrets.Entropy]
             val ethereumDerivationPath =
                 secrets[EthereumSecrets.EthereumDerivationPath]
-            val expectedIdentity = if (sharedEntropy == null) {
+            val expectedIdentity = if (sharedEntropy == null || ethereumEntropy == null) {
                 ensureLocal(
                     ethereumEntropy == null,
                     "A keypair-only separated retry has unexpected Ethereum entropy"
@@ -1023,7 +1084,8 @@ class EthereumDerivationPathMigration internal constructor(
         val activeSecretKey: String,
         val expectedSnapshot: EncryptedPreferenceSnapshot,
         val encodedSecrets: String,
-        val ethereumIdentity: EthereumIdentity
+        val ethereumIdentity: EthereumIdentity?,
+        val separatedSecrets: Map<String, String>? = null
     )
 
     private data class PendingSecretQuarantine(

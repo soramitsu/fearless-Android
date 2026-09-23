@@ -1012,6 +1012,7 @@ dependencies {
 
     implementation project(':feature-wallet-api')
     implementation project(':feature-wallet-impl')
+    implementation libs.sharedFeaturesXcmDep
 
     implementation project(':runtime')
 
@@ -1023,6 +1024,8 @@ dependencies {
 
     implementation project(':feature-polkaswap-api')
     implementation project(':feature-polkaswap-impl')
+    implementation project(':feature-polkamarkt-api')
+    implementation project(':feature-polkamarkt-impl')
 
     implementation project(':feature-success-api')
     implementation project(':feature-success-impl')
@@ -1096,6 +1099,7 @@ dependencies {
     androidTestImplementation libs.rules
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.compose.uiTestJunit4
+    androidTestImplementation libs.navigation.testing
 }
 
 tasks.register('printVersion') {

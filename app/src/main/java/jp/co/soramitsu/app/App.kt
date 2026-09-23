@@ -11,9 +11,12 @@ import com.reown.walletkit.client.WalletKit
 import dagger.hilt.android.HiltAndroidApp
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
+import jp.co.soramitsu.common.data.network.config.MutationAuthorizationRefresher
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.utils.initializeTonAddressCode
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
+import javax.inject.Inject
 
 /**
  * Application entry point.
@@ -25,6 +28,8 @@ import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
  */
 @HiltAndroidApp
 open class App : Application() {
+
+    @Inject lateinit var mutationAuthorizationRefresher: MutationAuthorizationRefresher
 
     private val languagesHolder: LanguagesHolder = LanguagesHolder()
     @Suppress("unused")
@@ -44,10 +49,14 @@ open class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        initializeTonAddressCode()
+
         OptionsProvider.APPLICATION_ID = BuildConfig.LIBRARY_PACKAGE_NAME
         OptionsProvider.CURRENT_VERSION_CODE = BuildConfig.VERSION_CODE
         OptionsProvider.CURRENT_VERSION_NAME = BuildConfig.VERSION_NAME
         OptionsProvider.CURRENT_BUILD_TYPE = BuildConfig.BUILD_TYPE
+
+        mutationAuthorizationRefresher.start()
 
         // WalletConnect v2 setup (requires BuildConfig.WALLET_CONNECT_PROJECT_ID)
         setupWalletConnect()

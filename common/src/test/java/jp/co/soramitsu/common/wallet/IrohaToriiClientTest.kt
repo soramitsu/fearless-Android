@@ -48,6 +48,16 @@ class IrohaToriiClientTest {
             api.lastUrl
         )
 
+        client.assetDefinitionsPage(
+            limit = 500,
+            offset = 500,
+            countMode = IrohaToriiRoutes.CountMode.Bounded
+        )
+        assertEquals(
+            "https://taira.sora.org/v1/assets/definitions?limit=500&offset=500&count_mode=bounded",
+            api.lastUrl
+        )
+
         client.transactionStatus(HASH, scope = IrohaToriiRoutes.TransactionStatusScope.Global)
         assertEquals(
             "https://taira.sora.org/v1/pipeline/transactions/status?hash=$HASH&scope=global",

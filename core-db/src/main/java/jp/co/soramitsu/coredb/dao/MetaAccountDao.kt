@@ -37,6 +37,10 @@ interface MetaAccountDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertMetaAccount(metaAccount: MetaAccountLocal): Long
 
+    /** Add derived public accounts without ever replacing an existing chain identity. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertDerivedChainAccountsIfAbsent(accounts: List<ChainAccountLocal>)
+
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateMetaAccount(metaAccount: MetaAccountLocal)
 

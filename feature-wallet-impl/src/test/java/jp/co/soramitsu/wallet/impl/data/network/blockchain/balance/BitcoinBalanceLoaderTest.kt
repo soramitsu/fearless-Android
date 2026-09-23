@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
 import jp.co.soramitsu.common.data.network.solana.SolanaIndexerClient
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.model.NetworkScanKey
 import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
@@ -76,22 +77,91 @@ class BitcoinBalanceLoaderTest {
     }
 
     @Test
-    fun `rejects negative bitcoin indexer balances`() = runBlocking {
+    fun `negative bitcoin payload preserves cached balance and cannot remain fresh`() = runBlocking {
         val chain = bitcoinChain(isTestNet = false)
         val account = BitcoinKeyDerivation.deriveAccount(MNEMONIC, network = BitcoinKeyDerivation.Network.Mainnet)
         val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = ACCOUNT_ID)
         val client = FakeBitcoinIndexerClient(
             addressResponse = BitcoinEsploraAddress(
                 address = MAINNET_ADDRESS,
-                chainStats = BitcoinEsploraStats(1, 100, 1, 200, 2),
+                chainStats = BitcoinEsploraStats(1, 80, 0, 0, 1),
                 mempoolStats = BitcoinEsploraStats(0, 0, 0, 0, 0)
             )
         )
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = BitcoinBalanceLoader(chain, client, scanStateStore = scanState)
 
-        val updates = BitcoinBalanceLoader(chain, client).loadBalance(setOf(metaAccount))
+        var storedAmount = loader.loadBalance(setOf(metaAccount)).single().freeInPlanks
+        val successfulState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(!successfulState.isStale)
+        client.addressResponse = BitcoinEsploraAddress(
+            address = MAINNET_ADDRESS,
+            chainStats = BitcoinEsploraStats(1, 100, 1, 200, 2),
+            mempoolStats = BitcoinEsploraStats(0, 0, 0, 0, 0)
+        )
+        loader.loadBalance(setOf(metaAccount)).singleOrNull()?.let { storedAmount = it.freeInPlanks }
 
-        assertTrue(updates.isEmpty())
-        assertEquals(listOf(MAINNET_ADDRESS), client.receivedAddresses)
+        assertEquals(BigInteger.valueOf(80), storedAmount)
+        assertEquals(listOf(MAINNET_ADDRESS, MAINNET_ADDRESS), client.receivedAddresses)
+        val failedState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(failedState.isStale)
+        assertEquals(successfulState.lastSuccessMillis, failedState.lastSuccessMillis)
+        assertEquals("Invalid Bitcoin balance payload", failedState.errorMessage)
+    }
+
+    @Test
+    fun `valid authoritative bitcoin zero replaces prior balance and remains fresh`() = runBlocking {
+        val chain = bitcoinChain(isTestNet = false)
+        val account = BitcoinKeyDerivation.deriveAccount(MNEMONIC, network = BitcoinKeyDerivation.Network.Mainnet)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = ACCOUNT_ID)
+        val client = FakeBitcoinIndexerClient(
+            addressResponse = BitcoinEsploraAddress(
+                address = MAINNET_ADDRESS,
+                chainStats = BitcoinEsploraStats(1, 80, 0, 0, 1),
+                mempoolStats = BitcoinEsploraStats(0, 0, 0, 0, 0)
+            )
+        )
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = BitcoinBalanceLoader(chain, client, scanStateStore = scanState)
+
+        assertEquals(BigInteger.valueOf(80), loader.loadBalance(setOf(metaAccount)).single().freeInPlanks)
+        client.addressResponse = BitcoinEsploraAddress(
+            address = MAINNET_ADDRESS,
+            chainStats = BitcoinEsploraStats(0, 0, 0, 0, 0),
+            mempoolStats = BitcoinEsploraStats(0, 0, 0, 0, 0)
+        )
+
+        assertEquals(BigInteger.ZERO, loader.loadBalance(setOf(metaAccount)).single().freeInPlanks)
+        val state = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(!state.isStale)
+        assertTrue(state.errorMessage == null)
+        assertTrue(state.lastSuccessMillis != null)
+    }
+
+    @Test
+    fun `endpoint failure after success preserves last bitcoin amount and marks scan stale`() = runBlocking {
+        val chain = bitcoinChain(isTestNet = false)
+        val account = BitcoinKeyDerivation.deriveAccount(MNEMONIC, network = BitcoinKeyDerivation.Network.Mainnet)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = ACCOUNT_ID)
+        val client = FakeBitcoinIndexerClient(
+            addressResponse = BitcoinEsploraAddress(
+                address = MAINNET_ADDRESS,
+                chainStats = BitcoinEsploraStats(1, 80, 0, 0, 1),
+                mempoolStats = BitcoinEsploraStats(0, 0, 0, 0, 0)
+            )
+        )
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = BitcoinBalanceLoader(chain, client, scanStateStore = scanState)
+
+        var storedAmount = loader.loadBalance(setOf(metaAccount)).single().freeInPlanks
+        client.addressFailure = IllegalStateException("bitcoin endpoint down")
+        loader.loadBalance(setOf(metaAccount)).singleOrNull()?.let { storedAmount = it.freeInPlanks }
+
+        assertEquals(BigInteger.valueOf(80), storedAmount)
+        val state = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(state.isStale)
+        assertTrue(state.lastSuccessMillis != null)
+        assertEquals("bitcoin endpoint down", state.errorMessage)
     }
 
     @Test
@@ -114,12 +184,14 @@ class BitcoinBalanceLoaderTest {
     }
 
     private class FakeBitcoinIndexerClient(
-        private val addressResponse: BitcoinEsploraAddress = BitcoinEsploraAddress(
+        addressResponse: BitcoinEsploraAddress = BitcoinEsploraAddress(
             address = MAINNET_ADDRESS,
             chainStats = BitcoinEsploraStats(0, 0, 0, 0, 0),
             mempoolStats = BitcoinEsploraStats(0, 0, 0, 0, 0)
         )
     ) : BitcoinIndexerClient {
+        var addressResponse: BitcoinEsploraAddress = addressResponse
+        var addressFailure: Throwable? = null
         val receivedAddresses = mutableListOf<String>()
         val receivedNetworks = mutableListOf<BitcoinIndexerRoutes.Network>()
         val receivedBaseUrls = mutableListOf<String?>()
@@ -132,6 +204,8 @@ class BitcoinBalanceLoaderTest {
             receivedAddresses += address
             receivedNetworks += network
             receivedBaseUrls += baseUrl
+
+            addressFailure?.let { throw it }
 
             return addressResponse
         }
@@ -177,6 +251,14 @@ class BitcoinBalanceLoaderTest {
         override suspend fun getOperation(hash: String): OperationLocal? = null
 
         override suspend fun getOperations(): List<OperationLocal> = emptyList()
+
+        override suspend fun getCompletedModuleOperations(
+            address: String,
+            chainId: String,
+            chainAssetId: String,
+            module: String,
+            status: OperationLocal.Status
+        ): List<OperationLocal> = emptyList()
 
         override fun observeOperations(): Flow<List<OperationLocal>> = flowOf(emptyList())
 

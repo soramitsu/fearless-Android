@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.data.storage.encrypt
 
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -101,6 +103,11 @@ interface EncryptedPreferences {
             EncryptedPreferenceSnapshot::unencrypted
         )
     }
+
+    /** Production providers must check after ciphertext/key preparation, at decryption. */
+    fun getAuthorizedDecryptedStringSnapshot(
+        field: String, guard: MutationExecutionGuard, intentSha256: String
+    ): EncryptedPreferenceSnapshot? = error("Authorized secret reads are unavailable for this storage provider")
 
     fun hasKey(field: String): Boolean
 

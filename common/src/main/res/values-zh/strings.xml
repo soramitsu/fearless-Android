@@ -1303,4 +1303,9 @@
   <string name="ton_tonviewer_action_title">View in Tonviewer</string>
 
   <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">分享地址</string>
+  <string name="portfolio_sync_catalog_only">部分代币可能不会显示</string>
+  <string name="portfolio_balance_update_failed">余额更新失败</string>
+  <string name="portfolio_balances_outdated">余额可能不是最新的</string>
+  <string name="portfolio_balances_not_loaded">余额尚未加载</string>
 </resources>

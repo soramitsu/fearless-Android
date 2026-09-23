@@ -62,7 +62,7 @@ soraUiCore = "0.2.39"
 storiesVersion = "3.0.1"
 reownBom = "1.6.9"
 web3j = "4.8.8-android"
-wsVersion = "2.14"
+wsVersion = "2.14-fearless-guard1"
 xNetworking = "1.0.13"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
@@ -113,6 +113,7 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navControllerVersion" }
 navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navControllerVersion" }
+navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navControllerVersion" }
 nv-websocket-client = { module = "com.neovisionaries:nv-websocket-client", version.ref = "wsVersion" }
 opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
 org-jacoco-core = { module = "org.jacoco:org.jacoco.core", version.ref = "orgJacocoCore" }

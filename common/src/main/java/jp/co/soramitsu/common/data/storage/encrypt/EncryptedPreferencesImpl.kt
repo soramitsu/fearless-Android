@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.storage.encrypt
 
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,6 +52,19 @@ class EncryptedPreferencesImpl(
             plaintext = encryptionUtil.decrypt(encryptedString),
             rawCiphertext = encryptedString,
             oversizedCiphertext = false
+        )
+    }
+
+    override fun getAuthorizedDecryptedStringSnapshot(
+        field: String, guard: MutationExecutionGuard, intentSha256: String
+    ): EncryptedPreferenceSnapshot? {
+        requireDurableStorageHealthy()
+        val ciphertext = preferences.getString(field) ?: return null
+        if (ciphertext.length > MAX_ENCRYPTED_PREFERENCE_CHARS) {
+            return EncryptedPreferenceSnapshot.encrypted(oversizedCiphertextSnapshot(ciphertext), ciphertext, true)
+        }
+        return EncryptedPreferenceSnapshot.encrypted(
+            encryptionUtil.decryptAuthorized(ciphertext, guard, intentSha256), ciphertext, false
         )
     }
 

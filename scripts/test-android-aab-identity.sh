@@ -955,7 +955,7 @@ elif mode not in ({
 root = ElementTree.Element("manifest", {"package": package_name})
 sdk_attributes = {
     attribute_min_sdk: "26",
-    attribute_target_sdk: "35",
+    attribute_target_sdk: "36",
 }
 if mode == "min-sdk-missing":
     del sdk_attributes[attribute_min_sdk]

@@ -33,7 +33,8 @@ jobs:
       version_properties_sha256: ${{ steps.release_metadata.outputs.version_properties_sha256 }}
     env:
       CI: true
-      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      SR25519_SOURCE_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_COMMIT: 1c80a2bf3fa1f996cf1328873e09f282ee29b69e
       FEARLESS_UTILS_TEST_SOURCE: ${{ github.workspace }}/fearless-utils-Android
       EXPECTED_RELEASE_TAGGER_EMAIL: ${{ vars.ANDROID_RELEASE_TAGGER_EMAIL }}
       EXPECTED_ANDROID_RELEASE_BUILD_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_BUILD_REVIEWER_IDS }}
@@ -208,6 +209,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Checkout guarded WebSocket source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: soramitsu/fearless-nv-websocket-client
+          ref: 9714b30b6a16d40a2122765077bb71cf44314798
+          path: fearless-nv-websocket-client
+          fetch-depth: 0
+          persist-credentials: false
+
       - name: Run adversarial release control suite
         run: |
           set -euo pipefail
@@ -288,10 +298,13 @@ jobs:
       RELEASE_VERSION_NAME: ${{ needs.release-controls.outputs.version_name }}
       RELEASE_VERSION_CODE: ${{ needs.release-controls.outputs.version_code }}
       VERSION_PROPERTIES_SHA256: ${{ needs.release-controls.outputs.version_properties_sha256 }}
-      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      SR25519_SOURCE_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_COMMIT: 1c80a2bf3fa1f996cf1328873e09f282ee29b69e
       FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
       FORCE_LOCAL_UTILS: "true"
       FEARLESS_UTILS_LIBRARY_ONLY: "true"
+      FEARLESS_NV_WEBSOCKET_COMMIT: 9714b30b6a16d40a2122765077bb71cf44314798
+      FEARLESS_NV_WEBSOCKET_PATH: ${{ github.workspace }}/fearless-nv-websocket-client
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
       BUNDLETOOL_VERSION: "1.18.3"
@@ -370,6 +383,15 @@ jobs:
           repository: soramitsu/fearless-utils-Android
           ref: ${{ env.FEARLESS_UTILS_COMMIT }}
           path: fearless-utils-Android
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout guarded WebSocket source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: soramitsu/fearless-nv-websocket-client
+          ref: 9714b30b6a16d40a2122765077bb71cf44314798
+          path: fearless-nv-websocket-client
           fetch-depth: 0
           persist-credentials: false
 
@@ -749,8 +771,8 @@ jobs:
           verification_metadata_sha256="$(
             sha256sum gradle/verification-metadata.xml | awk '{print $1}'
           )"
-          fearless_utils_patch_sha256="$(
-            sha256sum scripts/fearless-utils-library-only.patch |
+          runtime_source_pins_sha256="$(
+            sha256sum config/android-runtime-source-pins.json |
               awk '{print $1}'
           )"
           jq -n \
@@ -770,7 +792,7 @@ jobs:
             --arg firebaseSha256 "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" \
             --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
             --arg fearlessUtilsTree "$FEARLESS_UTILS_TREE" \
-            --arg fearlessUtilsPatchSha256 "$fearless_utils_patch_sha256" \
+            --arg runtimeSourcePinsSha256 "$runtime_source_pins_sha256" \
             --arg toolchainEvidenceSha256 "$BUILD_TOOLCHAIN_EVIDENCE_SHA256" \
             --rawfile toolchainEvidence "$BUILD_TOOLCHAIN_EVIDENCE" \
             --arg javaVersion "$TEMURIN_JDK_VERSION" \
@@ -816,7 +838,7 @@ jobs:
               fearlessUtils: {
                 commit: $fearlessUtilsCommit,
                 tree: $fearlessUtilsTree,
-                libraryOnlyPatchSha256: $fearlessUtilsPatchSha256
+                runtimeSourcePinsSha256: $runtimeSourcePinsSha256
               },
               toolchain: {
                 runnerImage: "ubuntu-24.04",
@@ -961,7 +983,8 @@ jobs:
       ANDROID_RELEASE_BUILD_LOG_SHA256: ${{ needs.release-build.outputs.unsigned_build_log_sha256 }}
       UNSIGNED_PROVENANCE_SHA256: ${{ needs.release-build.outputs.unsigned_provenance_sha256 }}
       APPROVED_FIREBASE_JSON_SHA256: ${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}
-      FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      SR25519_SOURCE_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+      FEARLESS_UTILS_COMMIT: 1c80a2bf3fa1f996cf1328873e09f282ee29b69e
       BUNDLETOOL_VERSION: "1.18.3"
       BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
       TEMURIN_JDK_VERSION: "21.0.12+8"
@@ -1141,8 +1164,8 @@ jobs:
           verification_metadata_sha256="$(
             sha256sum gradle/verification-metadata.xml | awk '{print $1}'
           )"
-          fearless_utils_patch_sha256="$(
-            sha256sum scripts/fearless-utils-library-only.patch |
+          runtime_source_pins_sha256="$(
+            sha256sum config/android-runtime-source-pins.json |
               awk '{print $1}'
           )"
           android_sdk_lock_sha256="$(
@@ -1167,7 +1190,7 @@ jobs:
             --arg verificationMetadataSha256 "$verification_metadata_sha256" \
             --arg firebaseSha256 "$APPROVED_FIREBASE_JSON_SHA256" \
             --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
-            --arg fearlessUtilsPatchSha256 "$fearless_utils_patch_sha256" \
+            --arg runtimeSourcePinsSha256 "$runtime_source_pins_sha256" \
             --arg javaVersion "$TEMURIN_JDK_VERSION" \
             --arg javaArchiveSha256 "$TEMURIN_JDK_ARCHIVE_SHA256" \
             --arg javaBinarySha256 "$(
@@ -1269,8 +1292,8 @@ jobs:
               .fearlessUtils.commit == $fearlessUtilsCommit and
               (.fearlessUtils.tree |
                 type == "string" and test("^[0-9a-f]{40}$")) and
-              .fearlessUtils.libraryOnlyPatchSha256 ==
-                $fearlessUtilsPatchSha256 and
+              .fearlessUtils.runtimeSourcePinsSha256 ==
+                $runtimeSourcePinsSha256 and
               (.toolchain | type == "object") and
               (.toolchain | keys | sort) == ([
                 "androidSdkEvidence",
@@ -1616,8 +1639,8 @@ jobs:
           verification_metadata_sha256="$(
             sha256sum gradle/verification-metadata.xml | awk '{print $1}'
           )"
-          fearless_utils_patch_sha256="$(
-            sha256sum scripts/fearless-utils-library-only.patch |
+          runtime_source_pins_sha256="$(
+            sha256sum config/android-runtime-source-pins.json |
               awk '{print $1}'
           )"
           android_sdk_lock_sha256="$(
@@ -1647,8 +1670,8 @@ jobs:
               "$verification_metadata_sha256" \
             --arg firebaseSha256 "$APPROVED_FIREBASE_JSON_SHA256" \
             --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
-            --arg fearlessUtilsPatchSha256 \
-              "$fearless_utils_patch_sha256" \
+            --arg runtimeSourcePinsSha256 \
+              "$runtime_source_pins_sha256" \
             --arg buildJavaVersion "$TEMURIN_JDK_VERSION" \
             --arg buildJavaArchiveSha256 "$TEMURIN_JDK_ARCHIVE_SHA256" \
             --arg bundletoolVersion "$BUNDLETOOL_VERSION" \
@@ -1750,14 +1773,14 @@ jobs:
                 (.fearlessUtils | type == "object") and
                 (.fearlessUtils | keys | sort) == ([
                   "commit",
-                  "libraryOnlyPatchSha256",
+                  "runtimeSourcePinsSha256",
                   "tree"
                 ] | sort) and
                 .fearlessUtils.commit == $fearlessUtilsCommit and
                 (.fearlessUtils.tree |
                   type == "string" and test("^[0-9a-f]{40}$")) and
-                .fearlessUtils.libraryOnlyPatchSha256 ==
-                  $fearlessUtilsPatchSha256 and
+                .fearlessUtils.runtimeSourcePinsSha256 ==
+                  $runtimeSourcePinsSha256 and
                 (.toolchain | type == "object") and
                 (.toolchain | keys | sort) == ([
                   "androidSdkEvidence",

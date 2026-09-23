@@ -396,6 +396,8 @@ include ':feature-account-api'
 include ':feature-account-impl'
 include ':feature-polkaswap-api'
 include ':feature-polkaswap-impl'
+include ':feature-polkamarkt-api'
+include ':feature-polkamarkt-impl'
 include ':feature-success-api'
 include ':feature-success-impl'
 include ':runtime-permission'
@@ -449,6 +451,44 @@ def gradleMajorVersion = gradle.gradleVersion.tokenize('.').first().toInteger()
 // the included build is verified again.
 def localUtilsSupported = gradleMajorVersion < 10
 
+def guardedWebSocketPath = System.getenv("FEARLESS_NV_WEBSOCKET_PATH")
+if (guardedWebSocketPath == null || guardedWebSocketPath.trim().isEmpty()) {
+    def candidates = [
+            new File(rootDir, "fearless-nv-websocket-client"),
+            new File(rootDir, "../fearless-nv-websocket-production-20260922")
+    ]
+    guardedWebSocketPath = (candidates.find { it.exists() } ?: candidates.first()).canonicalPath
+}
+def guardedWebSocketDir = new File(guardedWebSocketPath)
+if (!guardedWebSocketDir.isDirectory()) {
+    throw new GradleException("The reviewed guarded WebSocket source checkout is required (FEARLESS_NV_WEBSOCKET_PATH).")
+}
+def verifyRuntimeSourcePins = {
+    // Verify raw committed source before evaluating either included build. No
+    // environment commit override, Maven fallback, or post-resolution patching.
+    def sourceCheck = new ProcessBuilder("bash", new File(rootDir, "scripts/verify-android-runtime-sources.sh").absolutePath)
+    sourceCheck.directory(rootDir)
+    sourceCheck.environment().put("FEARLESS_UTILS_PATH", localUtilsDir.canonicalPath)
+    sourceCheck.environment().put("FEARLESS_NV_WEBSOCKET_PATH", guardedWebSocketDir.canonicalPath)
+    sourceCheck.redirectErrorStream(true)
+    def process = sourceCheck.start()
+    def sourceOutput = process.inputStream.getText("UTF-8")
+    if (process.waitFor() != 0) throw new GradleException("Runtime source pin verification failed: " + sourceOutput)
+    println(sourceOutput.trim())
+}
+if (ciEnvironment || explicitReleaseTaskRequested) {
+    verifyRuntimeSourcePins()
+    gradle.buildFinished { result ->
+        if (result.failure == null) verifyRuntimeSourcePins()
+    }
+}
+gradle.taskGraph.whenReady { graph ->
+    if (!ciEnvironment && !explicitReleaseTaskRequested && !localVerificationBootstrapRequested &&
+            graph.allTasks.any { it.name.toLowerCase(Locale.ROOT).contains("release") }) {
+        throw new GradleException("Use the full release task name so runtime source pins are checked before project configuration.")
+    }
+}
+
 if (localUtilsDir.exists() && (localUtilsSupported || forceLocalUtils)) {
     println("Including local fearless-utils from: ${localUtilsDir}")
     includeBuild(localUtilsDir) {
@@ -477,4 +517,11 @@ if (localUtilsDir.exists() && (localUtilsSupported || forceLocalUtils)) {
     }
 } else {
     println("No local fearless-utils checkout found; using published artifacts")
+}
+
+// The guarded transport has no fallback to the unguarded published binary.
+includeBuild(guardedWebSocketDir) {
+    dependencySubstitution {
+        substitute module("com.neovisionaries:nv-websocket-client") using project(":")
+    }
 }
