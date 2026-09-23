@@ -35,6 +35,9 @@ object GoogleDrivePasskeyBackup {
     internal const val UPLOAD_BASE_URL = "https://www.googleapis.com/upload/drive/v3"
     internal const val FILE_NAME_PREFIX = "fearless-passkey-backup-"
     internal const val MAX_HTTP_RESPONSE_BYTES = 256 * 1024
+
+    // Explicit opt-in for a generation containing the full legacy envelope plus credential wrappers.
+    internal const val MAX_GENERATION_HTTP_RESPONSE_BYTES = 512 * 1024
     internal const val MAX_LIST_PAGES = 20
     internal const val MAX_NEXT_PAGE_TOKEN_LENGTH = 2048
     internal const val MAX_APP_PROPERTY_BYTES = 124
@@ -107,8 +110,8 @@ data class GoogleDriveHttpRequest(
     val maxResponseBytes: Int = GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES
 ) {
     init {
-        require(maxResponseBytes > 0 && maxResponseBytes <= GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES) {
-            "Google Drive HTTP response limit must be 1-${GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES} bytes"
+        require(maxResponseBytes > 0 && maxResponseBytes <= GoogleDrivePasskeyBackup.MAX_GENERATION_HTTP_RESPONSE_BYTES) {
+            "Google Drive HTTP response limit must be 1-${GoogleDrivePasskeyBackup.MAX_GENERATION_HTTP_RESPONSE_BYTES} bytes"
         }
     }
 

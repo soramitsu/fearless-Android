@@ -1,5 +1,12 @@
 # Status Summary
 
+## Immutable Drive generation primitive — 2026-09-23
+
+- The disabled FPBKGEN1 candidate preserves original FPBKAEAD metadata/ciphertext and FPBKWRP1 wrappers, binds owner/namespace/parent/epoch/storage subject, and uses canonical bounded bytes. Its independent Node vector is 785 bytes, SHA-256 `1c92b544dc25c687c202317d0e5747b5690a1056cf72e61d1dfab84c07c057a4`.
+- A separate subject-bound Drive store preallocates appData file IDs, creates one-shot immutable candidates, and downloads exact ID/digest/context. It has no PATCH/delete/automatic retry or head update. Lost/409/malformed create outcomes require reconciliation; an upload acknowledgment or parsed download is not decryption proof.
+- All 181 backup-module JVM tests pass with zero failures/errors/skips, including 17 generation tests and a full 256 KiB legacy envelope with 32 wrappers under the separate 512 KiB generation bound. `detektAll` passes under strict offline dependency verification; all 28 captured module source/resource hashes remained unchanged during validation.
+- Recovery stays disabled. Durable upload journal, native decryption/identity acceptance, owner-head/grant HTTP integration and transactional lifecycle coordination, real Google/provider and replacement-device qualification remain incomplete. See `docs/passkey-generation-v1.md`.
+
 ## Passkey Drive subject binding — 2026-09-23
 
 - The disabled Android Drive candidate verifies the exact bearer through Google OIDC UserInfo (`openid email` plus appData consent), pins stable `sub`, requires initially matching verified email and rejects account/token substitution before every Drive request. Email renames retain the original authenticated envelope metadata and ciphertext.

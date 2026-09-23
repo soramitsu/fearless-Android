@@ -6,6 +6,8 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Production qualification — 2026-09-22
 
+- 2026-09-23 immutable-generation candidate: FPBKGEN1 canonical bytes and a separate append-only Drive store pass local vector/max-envelope/unknown-outcome tests. P0: implement a durable upload journal, verify downloaded DEK/envelope and wallet identity locally, bind exact owner-authorized head CAS/status, reconcile competing writers and revocation, retain the last usable generation, and qualify Android↔iOS recovery on real devices before enabling. No automatic deletion or final-credential retirement is implemented.
+
 - 2026-09-23 Drive identity candidate: retain stable Google UserInfo `sub` across email rename, bind every request to the verified selected subject, and preserve original envelope AAD/ciphertext. P0: qualify consent/UI and the same Google Cloud appData project on both platforms, migrate the deprecated token-fetch consent path to AuthorizationClient, integrate owner/lifecycle and generation checks, and collect real replacement-device evidence before enabling recovery.
 
 - 2026-09-23 CI repair: retain the seven-checkout release architecture contract and per-checkout pin/credential negatives, require the liquidity-pools/Polkamarkt/Polkaswap mutation suites in `runTest`, keep the debt baseline equal to the current source markers, and preserve exact first-party audit boundaries around independently verified dependency checkouts. Complete the full Android CI run at the repaired source head, including required API 30/31/36 migration and restart evidence, before release qualification.

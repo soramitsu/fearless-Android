@@ -564,7 +564,7 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
 
     @Test
     fun `HTTP request rejects response limits outside bounded contract`() {
-        listOf(0, GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES + 1).forEach { limit ->
+        listOf(0, GoogleDrivePasskeyBackup.MAX_GENERATION_HTTP_RESPONSE_BYTES + 1).forEach { limit ->
             assertTrue(
                 runCatching {
                     GoogleDriveHttpRequest(
