@@ -193,5 +193,21 @@ internal fun exactXcmAmountInPlanks(transfer: CrossChainTransfer): BigInteger {
     return transfer.exactFullAmountInPlanks()
 }
 
+/** The quoted origin fee is denominated in the origin utility asset, not the transfer asset. */
+internal fun exactXcmOriginFeeInPlanks(
+    originChainId: ChainId,
+    expectedUtilityAssetId: String,
+    utilityAsset: Asset,
+    quotedFee: BigDecimal
+): BigInteger {
+    require(utilityAsset.chainId == originChainId && utilityAsset.id == expectedUtilityAssetId) {
+        "XCM origin fee asset does not match the origin utility asset"
+    }
+    require(utilityAsset.precision >= 0 && quotedFee.signum() >= 0) {
+        "XCM origin fee or precision is invalid"
+    }
+    return quotedFee.scaleByPowerOfTen(utilityAsset.precision).toBigIntegerExact()
+}
+
 private const val SORA_KSM_CURRENCY_ID =
     "0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8"

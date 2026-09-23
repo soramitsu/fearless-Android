@@ -38,6 +38,7 @@ import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeInteractor
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.exactXcmAmountInPlanks
+import jp.co.soramitsu.wallet.impl.domain.exactXcmOriginFeeInPlanks
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
@@ -251,6 +252,7 @@ class CrossChainConfirmViewModel @Inject constructor(
                 return@launch
             }
             val destinationChain = destinationNetworkFlow.value ?: return@launch
+            val originChain = originNetworkFlow.value ?: return@launch
             val asset = originAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
             val utilityAsset = utilityAssetFlow.firstOrNull() ?: return@launch
@@ -260,10 +262,14 @@ class CrossChainConfirmViewModel @Inject constructor(
             try {
                 amountAndDestinationFeeInPlanks = exactXcmAmountInPlanks(createTransfer(token))
                 val feeAsset = utilityAsset.token.configuration
-                require(feeAsset.precision >= 0 && transferDraft.originFee.signum() >= 0) {
-                    "XCM origin fee or precision is invalid"
-                }
-                originFee = transferDraft.originFee.scaleByPowerOfTen(feeAsset.precision).toBigIntegerExact()
+                originFee = exactXcmOriginFeeInPlanks(
+                    originChainId = transferDraft.originChainId,
+                    expectedUtilityAssetId = checkNotNull(originChain.utilityAsset?.id) {
+                        "XCM origin utility asset is unavailable"
+                    },
+                    utilityAsset = feeAsset,
+                    quotedFee = transferDraft.originFee
+                )
             } catch (error: RuntimeException) {
                 showError(error)
                 return@launch

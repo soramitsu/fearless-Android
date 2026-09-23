@@ -77,6 +77,31 @@ class XcmInteractorMutationGuardTest {
     }
 
     @Test
+    fun `XCM origin fee uses exact origin utility asset precision and identity`() {
+        val utility = mock(Asset::class.java)
+        `when`(utility.chainId).thenReturn("origin")
+        `when`(utility.id).thenReturn("utility")
+        `when`(utility.precision).thenReturn(12)
+
+        assertEquals(
+            BigInteger("1000000000001"),
+            exactXcmOriginFeeInPlanks("origin", "utility", utility, BigDecimal("1.000000000001"))
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            exactXcmOriginFeeInPlanks("wrong-origin", "utility", utility, BigDecimal.ONE)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            exactXcmOriginFeeInPlanks("origin", "wrong-utility", utility, BigDecimal.ONE)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            exactXcmOriginFeeInPlanks("origin", "utility", utility, BigDecimal("-0.01"))
+        }
+        assertThrows(ArithmeticException::class.java) {
+            exactXcmOriginFeeInPlanks("origin", "utility", utility, BigDecimal("0.0000000000001"))
+        }
+    }
+
+    @Test
     fun `preparing reviewed quotes and crypto metadata does not read wallet secrets`() = runBlocking<Unit> {
         val accountInteractor = mock(AccountInteractor::class.java)
         val metaAccount = mock(MetaAccount::class.java)
