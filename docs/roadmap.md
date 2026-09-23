@@ -6,7 +6,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Production qualification — 2026-09-22
 
-- 2026-09-23 CI repair: retain the seven-checkout release architecture contract and per-checkout pin/credential negatives. Complete the full Android CI run at the repaired source head, including required API 30/31/36 migration and restart evidence, before release qualification.
+- 2026-09-23 CI repair: retain the seven-checkout release architecture contract and per-checkout pin/credential negatives, require the liquidity-pools/Polkamarkt/Polkaswap mutation suites in `runTest`, keep the debt baseline equal to the current source markers, and preserve exact first-party audit boundaries around independently verified dependency checkouts. Complete the full Android CI run at the repaired source head, including required API 30/31/36 migration and restart evidence, before release qualification.
 
 - Completed baseline: target API 36; retain reviewed XCM discovery/quotes with a hardcoded false release submission flag; reject direct engine transfer before entering signing/submission even when the remote switch enables mutations. Keep the 15-route approval set, 34 discovery-only routes and blocked production-evidence requirements intact.
 - Completed fee isolation: preparing quotes does not read wallet secrets; origin-fee RPC uses a correctly typed invalid signature placeholder without invoking the wallet signer. The 121 scoped JVM tests include private-key exclusion and Substrate/Ethereum encoding fixtures. Verify fee/weight parity against each approved live runtime before release enablement.

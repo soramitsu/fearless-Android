@@ -3,6 +3,9 @@
 ## Release checkout guard inventory — 2026-09-23
 
 - The release architecture guard now requires all seven commit-pinned, credential-free checkouts: three app checkouts and the Utils/WebSocket source checkouts in both controls and build. Each checkout has independent mutable-action and persisted-credential negative coverage.
+- App debt and unit-test membership audits now treat the exact top-level pinned WebSocket checkout as an independent dependency, matching the existing Utils boundary. Fixtures retain checks for similarly named and nested first-party sources in both debt scanners.
+- `runTest` now includes liquidity-pools, Polkamarkt and Polkaswap JVM suites; their new mutation-boundary tests were missing from the aggregate. Membership fixtures reject dropping either a required task or its task and source together. All three module suites pass locally with strict dependency verification.
+- The debt baseline also removes the single stale TotalBalanceUseCaseImpl marker whose source comment was removed by the consolidated candidate; new or executable markers remain forbidden.
 - Validation: the release-architecture suite passes 4 positive and 136 deterministic negative/adversarial cases.
 - This corrects the stale five-checkout expectation that stopped PR CI before Gradle and emulator execution. API 30/31/36 migration runs, result-start markers and portable evidence remain required; passing the static guard alone does not qualify those runs or a release artifact.
 

@@ -98,6 +98,9 @@ baseline_required_tasks=(
   ':feature-account-impl:testDebugUnitTest'
   ':feature-crowdloan-impl:testDebugUnitTest'
   ':feature-onboarding-impl:testDebugUnitTest'
+  ':feature-liquiditypools-impl:testDebugUnitTest'
+  ':feature-polkamarkt-impl:testDebugUnitTest'
+  ':feature-polkaswap-impl:testDebugUnitTest'
   ':feature-staking-impl:testDebugUnitTest'
   ':feature-tonconnect-api:testDebugUnitTest'
   ':feature-wallet-impl:testDebugUnitTest'
@@ -134,6 +137,7 @@ done < <(
     ! -path "$PROJECT_ROOT/.gradle/*" \
     ! -path '*/build/*' \
     ! -path "$PROJECT_ROOT/fearless-utils-Android/*" \
+    ! -path "$PROJECT_ROOT/fearless-nv-websocket-client/*" \
     -print0
 ) | sort -u > "$source_task_file"
 

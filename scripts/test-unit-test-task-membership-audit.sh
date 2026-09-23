@@ -23,6 +23,9 @@ def unitTestTaskPaths = [
   ':feature-account-impl:testDebugUnitTest',
   ':feature-crowdloan-impl:testDebugUnitTest',
   ':feature-onboarding-impl:testDebugUnitTest',
+  ':feature-liquiditypools-impl:testDebugUnitTest',
+  ':feature-polkamarkt-impl:testDebugUnitTest',
+  ':feature-polkaswap-impl:testDebugUnitTest',
   ':feature-staking-impl:testDebugUnitTest',
   ':feature-tonconnect-api:testDebugUnitTest',
   ':feature-wallet-impl:testDebugUnitTest',
@@ -98,8 +101,31 @@ if ! run_audit; then
   fail "valid fixture was rejected"
 fi
 
+# The separately built, pinned Maven dependency is not an Android app module.
+mkdir -p "$tmp_dir/project/fearless-nv-websocket-client/src/test/java/fixture"
+: > "$tmp_dir/project/fearless-nv-websocket-client/pom.xml"
+: > "$tmp_dir/project/fearless-nv-websocket-client/src/test/java/fixture/TransportTest.java"
+run_audit || fail "independent pinned transport checkout was treated as an app module"
+
+for module in fearless-nv-websocket-client-app nested/fearless-nv-websocket-client; do
+  write_valid_build
+  mkdir -p "$tmp_dir/project/$module/src/test/java/fixture"
+  : > "$tmp_dir/project/$module/build.gradle"
+  : > "$tmp_dir/project/$module/src/test/java/fixture/FirstPartyTest.java"
+  expect_failure "first-party similarly named module omitted from runTest: $module"
+done
+write_valid_build
+
 sed -i.bak "/core-api:testDebugUnitTest/d" "$tmp_dir/build.gradle"
 expect_failure "missing core API module test"
+
+for module in feature-liquiditypools-impl feature-polkamarkt-impl feature-polkaswap-impl; do
+  write_valid_build
+  sed -i.bak "/$module:testDebugUnitTest/d" "$tmp_dir/build.gradle"
+  expect_failure "missing mutation-boundary module test: $module"
+  rm -rf "$tmp_dir/project/$module"
+  expect_failure "mutation-boundary module removed with its task: $module"
+done
 
 write_valid_build
 sed -i.bak "/public-shared-features-backup:testDebugUnitTest/d" "$tmp_dir/build.gradle"

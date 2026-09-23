@@ -40,6 +40,7 @@ grep_source_files() {
         -o -path './.gradle' -o -path './.gradle/*' \
         -o -path '*/.gradle' -o -path '*/.gradle/*' \
         -o -path './fearless-utils-Android' -o -path './fearless-utils-Android/*' \
+        -o -path './fearless-nv-websocket-client' -o -path './fearless-nv-websocket-client/*' \
         -o -path './.git' -o -path './.git/*' \
         -o -path '*/src/main/res/values*' -o -path '*/src/main/res/values*/*' \) -prune \
       -o -type f \
@@ -63,6 +64,7 @@ scan_marker_debt() {
         --glob '!**/build/**' \
         --glob '!**/.gradle/**' \
         --glob '!fearless-utils-Android/**' \
+        --glob '!fearless-nv-websocket-client/**' \
         --glob '!**/.git/**' \
         --glob '!**/src/main/res/values*/**/*.xml' \
         . || true
@@ -94,6 +96,7 @@ scan_executable_todos() {
         --glob '!**/build/**' \
         --glob '!**/.gradle/**' \
         --glob '!fearless-utils-Android/**' \
+        --glob '!fearless-nv-websocket-client/**' \
         --glob '!**/.git/**' \
         . || true
     )

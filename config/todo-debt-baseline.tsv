@@ -11,7 +11,6 @@ feature-account-api/src/main/java/jp/co/soramitsu/account/api/domain/model/Accou
 feature-account-api/src/main/java/jp/co/soramitsu/account/api/presentation/account/AddressDisplayUseCase.kt	// TODO adopt for meta account logic
 feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/data/repository/datasource/AccountDataSource.kt	// TODO for compatibility only
 feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/domain/AssetNotNeedAccountUseCaseImpl.kt	// todo make better way to check that we support price provider
-feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/domain/TotalBalanceUseCaseImpl.kt	// todo I did this workaround because sometimes there is a wrong symbol in asset list. Need research
 feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/presentation/options_switch_node/OptionsSwitchNodeContent.kt	// TODO temporarily hide this button
 feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/domain/contribute/CrowdloanContributeInteractor.kt	val accountId = selectedMetaAccount.accountId(chain)!! // TODO optional for ethereum chains
 feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/domain/contribute/custom/karura/KaruraContributeInteractor.kt	// TODO crowdloan
