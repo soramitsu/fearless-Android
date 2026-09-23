@@ -17,8 +17,17 @@ info() {
   echo "[private-overlay-audit] $*"
 }
 
-[[ -d "$PUBLIC_REPO_DIR/.git" ]] || fail "PUBLIC_REPO_DIR is not a Git checkout: $PUBLIC_REPO_DIR"
-[[ -d "$PRIVATE_REPO_DIR/.git" ]] || fail "PRIVATE_REPO_DIR is not a Git checkout: $PRIVATE_REPO_DIR"
+is_git_checkout() {
+  local repo="$1"
+  local expected_root actual_root
+  [[ -d "$repo" && ! -L "$repo" && -e "$repo/.git" && ! -L "$repo/.git" ]] || return 1
+  expected_root="$(cd -P "$repo" && pwd)" || return 1
+  actual_root="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  [[ "$actual_root" == "$expected_root" ]]
+}
+
+is_git_checkout "$PUBLIC_REPO_DIR" || fail "PUBLIC_REPO_DIR is not a Git checkout: $PUBLIC_REPO_DIR"
+is_git_checkout "$PRIVATE_REPO_DIR" || fail "PRIVATE_REPO_DIR is not a Git checkout: $PRIVATE_REPO_DIR"
 
 is_allowed_overlay_path() {
   case "$1" in
