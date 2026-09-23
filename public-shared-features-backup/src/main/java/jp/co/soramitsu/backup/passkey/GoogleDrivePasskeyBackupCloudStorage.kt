@@ -35,6 +35,7 @@ object GoogleDrivePasskeyBackup {
     internal const val FILE_NAME_PREFIX = "fearless-passkey-backup-"
     internal const val MAX_HTTP_RESPONSE_BYTES = 256 * 1024
     internal const val MAX_LIST_PAGES = 20
+    internal const val MAX_NEXT_PAGE_TOKEN_LENGTH = 2048
     internal const val MAX_APP_PROPERTY_BYTES = 124
 
     private const val MAX_ACCOUNT_NAME_LENGTH = 320
@@ -520,7 +521,11 @@ class GoogleDrivePasskeyBackupDriveClient(
                 "Malformed Google Drive passkey backup nextPageToken"
             }
             value.asString.also { token ->
-                require(token.isNotEmpty() && token.length <= 2048 && token.none { it.isISOControl() }) {
+                require(
+                    token.isNotEmpty() &&
+                    token.length <= GoogleDrivePasskeyBackup.MAX_NEXT_PAGE_TOKEN_LENGTH &&
+                    token.none { it.isISOControl() }
+                ) {
                     "Invalid Google Drive passkey backup nextPageToken"
                 }
             }

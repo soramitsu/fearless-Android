@@ -243,7 +243,7 @@ procedure.
   epoch; the 32-byte backup key is never given to the authority service. The
   fixed cross-platform vector and tamper tests exercise this primitive only.
   Keep the recoverable key provider unavailable until credential ceremonies,
-  wrapper serialization, verified immutable Drive generations, key rotation,
+  wrapper storage in verified immutable Drive generations, key rotation,
   replacement-device tests, and independent review are complete.
 - Verify credential list, single revoke, and revoke-all use exact-body-bound
   grants. Deletion must durably revoke all server credentials before removing

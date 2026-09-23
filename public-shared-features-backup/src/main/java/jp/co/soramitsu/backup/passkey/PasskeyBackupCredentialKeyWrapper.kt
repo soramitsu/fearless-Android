@@ -1,7 +1,10 @@
 package jp.co.soramitsu.backup.passkey
 
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.AEADBadTagException
@@ -18,10 +21,13 @@ data class PasskeyBackupKeyWrapperContext(
     val envelopeMetadata: PasskeyBackupEnvelopeMetadata
 ) {
     init {
-        require(ownerSubject.startsWith("owner:") && canonicalBase64Url(ownerSubject.removePrefix("owner:"), 32, 32)) {
+        require(
+            ownerSubject.startsWith("owner:") &&
+                canonicalBase64Url(ownerSubject.removePrefix("owner:"), OWNER_ID_BYTES, OWNER_ID_BYTES)
+        ) {
             "Passkey backup owner subject is invalid"
         }
-        require(canonicalBase64Url(credentialId, 1, 384)) {
+        require(canonicalBase64Url(credentialId, MIN_CREDENTIAL_BYTES, MAX_CREDENTIAL_BYTES)) {
             "Passkey backup credential ID is invalid"
         }
         require(keyEpoch >= 0) { "Passkey backup key epoch is invalid" }
@@ -59,6 +65,53 @@ class PasskeyBackupCredentialKeyWrapper(
     private val secureRandom: SecureRandom = SecureRandom()
 ) {
     fun newPrfSalt(): ByteArray = ByteArray(PRF_SALT_BYTES).also(secureRandom::nextBytes)
+
+    /** Canonical opaque v1 record; it contains only public context and encrypted key material. */
+    fun encodeRecord(record: PasskeyBackupCredentialKeyWrapperRecord): ByteArray {
+        val context = contextBytes(record.context)
+        val output = ByteArrayOutputStream(RECORD_FIXED_BYTES + context.size)
+        DataOutputStream(output).use { data ->
+            data.write(RECORD_DOMAIN)
+            data.writeInt(WRAPPER_FORMAT_VERSION)
+            data.writeInt(context.size)
+            data.write(context)
+            data.write(record.prfSalt)
+            data.write(record.hkdfSalt)
+            data.write(record.nonce)
+            data.write(record.ciphertextAndTag)
+        }
+        return output.toByteArray()
+    }
+
+    /** The verified owner/credential/backup manifest supplies [expectedContext]. */
+    fun decodeRecord(
+        encoded: ByteArray,
+        expectedContext: PasskeyBackupKeyWrapperContext
+    ): PasskeyBackupCredentialKeyWrapperRecord {
+        val expectedBytes = contextBytes(expectedContext)
+        require(encoded.size == RECORD_FIXED_BYTES + expectedBytes.size) {
+            "Passkey backup key wrapper record size is invalid"
+        }
+        return DataInputStream(ByteArrayInputStream(encoded)).use { data ->
+            val magic = ByteArray(RECORD_DOMAIN.size).also(data::readFully)
+            require(MessageDigest.isEqual(magic, RECORD_DOMAIN) && data.readInt() == WRAPPER_FORMAT_VERSION) {
+                "Passkey backup key wrapper record format is invalid"
+            }
+            require(data.readInt() == expectedBytes.size) {
+                "Passkey backup key wrapper context size is invalid"
+            }
+            val context = ByteArray(expectedBytes.size).also(data::readFully)
+            require(MessageDigest.isEqual(context, expectedBytes)) {
+                "Passkey backup key wrapper context mismatch"
+            }
+            val prfSalt = ByteArray(PRF_SALT_BYTES).also(data::readFully)
+            val hkdfSalt = ByteArray(HKDF_SALT_BYTES).also(data::readFully)
+            val nonce = ByteArray(GCM_NONCE_BYTES).also(data::readFully)
+            val ciphertextAndTag = ByteArray(WRAPPED_KEY_BYTES).also(data::readFully)
+            check(data.read() == -1)
+            PasskeyBackupCredentialKeyWrapperRecord(expectedContext, prfSalt, hkdfSalt, nonce, ciphertextAndTag)
+        }
+    }
 
     fun wrap(
         backupKey: ByteArray,
@@ -164,7 +217,9 @@ class PasskeyBackupCredentialKeyWrapper(
             data.writeCanonicalUtf8(context.credentialId)
             data.writeLong(context.keyEpoch)
         }
-        return output.toByteArray()
+        return output.toByteArray().also {
+            require(it.size <= MAX_CONTEXT_BYTES) { "Passkey backup wrapper context is too large" }
+        }
     }
 
     private fun DataOutputStream.writeCanonicalUtf8(value: String) {
@@ -173,19 +228,28 @@ class PasskeyBackupCredentialKeyWrapper(
         write(bytes)
     }
 
-    private fun hmac(key: ByteArray, message: ByteArray): ByteArray =
-        Mac.getInstance("HmacSHA256").run {
+    private fun hmac(key: ByteArray, message: ByteArray): ByteArray {
+        return Mac.getInstance("HmacSHA256").run {
             init(SecretKeySpec(key, "HmacSHA256"))
             doFinal(message)
         }
+    }
 
-    private fun aesGcm(mode: Int, key: ByteArray, nonce: ByteArray): Cipher =
-        Cipher.getInstance("AES/GCM/NoPadding").apply {
-            init(mode, SecretKeySpec(key, "AES"), GCMParameterSpec(128, nonce))
+    private fun aesGcm(
+        mode: Int,
+        key: ByteArray,
+        nonce: ByteArray
+    ): Cipher {
+        return Cipher.getInstance("AES/GCM/NoPadding").apply {
+            init(mode, SecretKeySpec(key, "AES"), GCMParameterSpec(GCM_TAG_BITS, nonce))
         }
+    }
 
     private fun requireInputLengths(
-        prfOutput: ByteArray, prfSalt: ByteArray, hkdfSalt: ByteArray, nonce: ByteArray
+        prfOutput: ByteArray,
+        prfSalt: ByteArray,
+        hkdfSalt: ByteArray,
+        nonce: ByteArray
     ) {
         require(prfOutput.size == PRF_OUTPUT_BYTES) { "Passkey PRF output must be exactly 32 bytes" }
         require(prfSalt.size == PRF_SALT_BYTES) { "Passkey PRF salt must be exactly 32 bytes" }
@@ -195,20 +259,31 @@ class PasskeyBackupCredentialKeyWrapper(
 
     private companion object {
         val CONTEXT_DOMAIN = "FPBKWRAP1".toByteArray(Charsets.US_ASCII)
+        val RECORD_DOMAIN = "FPBKWRP1".toByteArray(Charsets.US_ASCII)
         val HKDF_INFO_DOMAIN = "FPBK-PRF-KEK-v1".toByteArray(Charsets.US_ASCII)
         val AAD_DOMAIN = "FPBK-WRAP-AAD-v1".toByteArray(Charsets.US_ASCII)
         const val WRAPPER_FORMAT_VERSION = 1
+        const val MAX_CONTEXT_BYTES = 4096
+        const val RECORD_FIXED_BYTES = 8 + 4 + 4 + PRF_SALT_BYTES + HKDF_SALT_BYTES + GCM_NONCE_BYTES + WRAPPED_KEY_BYTES
     }
 }
 
 private const val BACKUP_KEY_BYTES = 32
+private const val OWNER_ID_BYTES = 32
+private const val MIN_CREDENTIAL_BYTES = 1
+private const val MAX_CREDENTIAL_BYTES = 384
 private const val PRF_OUTPUT_BYTES = 32
 private const val PRF_SALT_BYTES = 32
 private const val HKDF_SALT_BYTES = 32
 private const val GCM_NONCE_BYTES = 12
 private const val WRAPPED_KEY_BYTES = BACKUP_KEY_BYTES + 16
+private const val GCM_TAG_BITS = 128
 
-private fun canonicalBase64Url(value: String, minimum: Int, maximum: Int): Boolean {
+private fun canonicalBase64Url(
+    value: String,
+    minimum: Int,
+    maximum: Int
+): Boolean {
     if (value.isEmpty() || value.length > maximum * 2 || !value.matches(Regex("^[A-Za-z0-9_-]+$"))) return false
     return runCatching {
         val decoded = Base64.getUrlDecoder().decode(value)

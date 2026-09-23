@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.security.MessageDigest
 import java.util.Base64
 
 class PasskeyBackupCredentialKeyWrapperTest {
@@ -32,6 +33,38 @@ class PasskeyBackupCredentialKeyWrapperTest {
             Base64.getUrlEncoder().withoutPadding().encodeToString(record.ciphertextAndTag)
         )
         assertArrayEquals(backupKey, wrapper.unwrap(record, prfOutput, context))
+    }
+
+    @Test
+    fun `shared binary wrapper record is exact and round trips`() {
+        val encoded = wrapper.encodeRecord(fixedRecord())
+        assertEquals(344, encoded.size)
+        assertEquals(
+            "2ac784e30e93efb4a7fe2505724e1c67ae6f4f16e9aa834029e0bb08c27509dc",
+            MessageDigest.getInstance("SHA-256").digest(encoded).joinToString("") { "%02x".format(it) }
+        )
+        val decoded = wrapper.decodeRecord(encoded, context)
+        assertArrayEquals(backupKey, wrapper.unwrap(decoded, prfOutput, context))
+        assertArrayEquals(encoded, wrapper.encodeRecord(decoded))
+    }
+
+    @Test
+    fun `binary wrapper rejects truncation extension and context substitution`() {
+        val encoded = wrapper.encodeRecord(fixedRecord())
+        (0 until encoded.size).forEach { length ->
+            assertFailure { wrapper.decodeRecord(encoded.copyOf(length), context) }
+        }
+        assertFailure { wrapper.decodeRecord(encoded + 0, context) }
+        listOf(0, 8, 12, 16, 32).forEach { index ->
+            val altered = encoded.copyOf().also { it[index] = (it[index].toInt() xor 1).toByte() }
+            assertFailure { wrapper.decodeRecord(altered, context) }
+        }
+        assertFailure { wrapper.decodeRecord(encoded, context.copy(keyEpoch = 8)) }
+        val alteredCipher = encoded.copyOf().also {
+            it[it.lastIndex] = (it.last().toInt() xor 1).toByte()
+        }
+        val decoded = wrapper.decodeRecord(alteredCipher, context)
+        assertFailure { wrapper.unwrap(decoded, prfOutput, context) }
     }
 
     @Test
