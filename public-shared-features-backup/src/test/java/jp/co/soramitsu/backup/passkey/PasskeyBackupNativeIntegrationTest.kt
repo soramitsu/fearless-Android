@@ -2,15 +2,18 @@ package jp.co.soramitsu.backup.passkey
 
 import android.os.Build
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Base64
 
 class PasskeyBackupNativeIntegrationTest {
     @Test
-    fun `credential manager executor returns registration and assertion WebAuthn JSON`() = runBlocking {
-        val registrationJson = """{"id":"registration-credential"}"""
-        val assertionJson = """{"id":"assertion-credential"}"""
+    fun `credential manager executor returns public registration and assertion WebAuthn JSON`() = runBlocking {
+        val registrationJson = REGISTRATION_CREDENTIAL_JSON
+        val assertionJson = ASSERTION_CREDENTIAL_JSON
         val gateway = RecordingCredentialManagerGateway(
             createResponse = registrationJson,
             getResponse = assertionJson
@@ -20,10 +23,76 @@ class PasskeyBackupNativeIntegrationTest {
             isReleaseEnabled = true
         )
 
-        assertEquals(registrationJson, executor.performRegistration(pendingRegistration()))
-        assertEquals(assertionJson, executor.performAssertion(pendingAssertion()))
+        executor.performRegistration(pendingRegistration()).use { result ->
+            assertEquals(registrationJson, result.serverCredentialJson)
+            assertFalse(result.hasLocalPrfOutput)
+        }
+        executor.performAssertion(pendingAssertion()).use { result ->
+            assertEquals(assertionJson, result.serverCredentialJson)
+            assertFalse(result.hasLocalPrfOutput)
+        }
         assertTrue(gateway.createRequestJson?.contains("\"residentKey\":\"required\"") == true)
         assertTrue(gateway.getRequestJson?.contains("\"userVerification\":\"required\"") == true)
+    }
+
+    @Test
+    fun `PRF result remains local and is wiped after use`() = runBlocking {
+        val secret = ByteArray(32) { it.toByte() }
+        val encodedSecret = Base64.getUrlEncoder().withoutPadding().encodeToString(secret)
+        val rawJson = ASSERTION_CREDENTIAL_JSON.replace(
+            "\"clientExtensionResults\":{}",
+            "\"clientExtensionResults\":{\"prf\":{\"results\":{\"first\":\"$encodedSecret\"}}}"
+        )
+        val executor = CredentialManagerPasskeyBackupCeremonyExecutor(
+            gateway = RecordingCredentialManagerGateway(REGISTRATION_CREDENTIAL_JSON, rawJson),
+            isReleaseEnabled = true
+        )
+
+        val result = executor.performAssertion(pendingAssertion())
+        assertTrue(result.hasLocalPrfOutput)
+        assertFalse(result.serverCredentialJson.contains(encodedSecret))
+        assertFalse(result.serverCredentialJson.contains("prf"))
+        assertFalse(result.toString().contains(encodedSecret))
+        var callbackCopy: ByteArray? = null
+        result.withLocalPrfOutput { localOutput ->
+            callbackCopy = localOutput
+            assertArrayEquals(secret, localOutput)
+        }
+        assertTrue(callbackCopy!!.all { it == 0.toByte() })
+        result.close()
+        assertFalse(result.hasLocalPrfOutput)
+    }
+
+    @Test
+    fun `registration keeps public credential properties but removes local PRF output`() {
+        val secret = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(32) { 7 })
+        val rawJson = REGISTRATION_CREDENTIAL_JSON.replace(
+            "\"clientExtensionResults\":{}",
+            "\"clientExtensionResults\":{\"credProps\":{\"rk\":true}," +
+                "\"prf\":{\"enabled\":true,\"results\":{\"first\":\"$secret\"}}}"
+        )
+        val result = PasskeyBackupNativeCeremonyResult.registration(rawJson)
+        assertTrue(result.hasLocalPrfOutput)
+        assertTrue(result.serverCredentialJson.contains("\"credProps\":{\"rk\":true}"))
+        assertFalse(result.serverCredentialJson.contains(secret))
+        result.close()
+    }
+
+    @Test
+    fun `native ceremony only serializes approved public response fields`() {
+        val rawJson = ASSERTION_CREDENTIAL_JSON
+            .replace("\"signature\":\"AQ\"", "\"signature\":\"AQ\",\"walletSecret\":\"never-send\"")
+            .replace("\"clientExtensionResults\":{}", "\"clientExtensionResults\":{\"largeBlob\":{\"blob\":\"never-send\"}}")
+        assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(rawJson) }.isFailure)
+
+        val responseOnly = rawJson.replace(
+            "\"clientExtensionResults\":{\"largeBlob\":{\"blob\":\"never-send\"}}",
+            "\"clientExtensionResults\":{}"
+        )
+        PasskeyBackupNativeCeremonyResult.assertion(responseOnly).use { result ->
+            assertFalse(result.serverCredentialJson.contains("walletSecret"))
+            assertFalse(result.serverCredentialJson.contains("never-send"))
+        }
     }
 
     @Test
@@ -46,8 +115,8 @@ class PasskeyBackupNativeIntegrationTest {
     @Test
     fun `credential manager executor is fail closed behind release flag`() = runBlocking {
         val gateway = RecordingCredentialManagerGateway(
-            createResponse = """{"id":"credential"}""",
-            getResponse = """{"id":"credential"}"""
+            createResponse = REGISTRATION_CREDENTIAL_JSON,
+            getResponse = ASSERTION_CREDENTIAL_JSON
         )
         val executor = CredentialManagerPasskeyBackupCeremonyExecutor(gateway = gateway)
 
@@ -103,5 +172,12 @@ class PasskeyBackupNativeIntegrationTest {
             getRequestJson = requestJson
             return getResponse
         }
+    }
+
+    private companion object {
+        const val REGISTRATION_CREDENTIAL_JSON =
+            """{"id":"AQ","rawId":"AQ","type":"public-key","response":{"clientDataJSON":"AQ","attestationObject":"AQ"},"clientExtensionResults":{}}"""
+        const val ASSERTION_CREDENTIAL_JSON =
+            """{"id":"AQ","rawId":"AQ","type":"public-key","response":{"clientDataJSON":"AQ","authenticatorData":"AQ","signature":"AQ","userHandle":"AQ"},"clientExtensionResults":{}}"""
     }
 }

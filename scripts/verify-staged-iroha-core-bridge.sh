@@ -66,9 +66,11 @@ gradle_tasks=(
 )
 
 echo "[iroha-core-bridge] resolving, hashing, compiling, and testing the staged modules"
-./gradlew "${gradle_tasks[@]}" --no-daemon --console=plain --stacktrace
+# The staging-boundary task inspects every project's configuration graph. Keep
+# project tasks serial so another task cannot add a configuration mid-audit.
+./gradlew "${gradle_tasks[@]}" --no-parallel --no-daemon --console=plain --stacktrace
 
 echo "[iroha-core-bridge] repeating the staged module checks offline"
-./gradlew "${gradle_tasks[@]}" --offline --no-daemon --console=plain --stacktrace
+./gradlew "${gradle_tasks[@]}" --offline --no-parallel --no-daemon --console=plain --stacktrace
 
 echo "[iroha-core-bridge] staged, fail-closed bridge verification passed"
