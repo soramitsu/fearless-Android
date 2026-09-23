@@ -45,6 +45,13 @@ Current checksums:
 
 ### Reproducible From Open Source
 
+The current app composite pins `fearless-utils-Android` at
+`1c80a2bf3fa1f996cf1328873e09f282ee29b69e`. The existing native
+`libsr25519java.so` artifact was built from the older commit below. Its
+`sr25519-java` source tree is identical at both commits
+(`f9e9aeba0594f909705e5b54b538dbd1b5cadc78`); this does not replace
+the artifact's recorded build provenance.
+
 `libsr25519java.so` is built from the open-source
 `soramitsu/fearless-utils-Android` repository:
 

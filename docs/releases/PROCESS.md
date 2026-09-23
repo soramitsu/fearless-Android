@@ -243,7 +243,7 @@ the committed library-only overlay with the canonical guard command:
 
 ```
 FEARLESS_UTILS_PATH=../fearless-utils-Android \
-FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6 \
+FEARLESS_UTILS_COMMIT=1c80a2bf3fa1f996cf1328873e09f282ee29b69e \
 FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android \
 FEARLESS_UTILS_LIBRARY_ONLY=true \
 ./scripts/ensure-fearless-utils.sh

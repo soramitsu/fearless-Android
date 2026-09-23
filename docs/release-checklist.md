@@ -99,7 +99,7 @@ procedure.
   `./scripts/audit-public-artifacts.sh --release --strict-provenance` and retain
   the exact signed artifact, source, dependency, and checksum evidence.
 - Run `bash ./scripts/test-fearless-utils-derived-tree.sh`, then run
-  `FEARLESS_UTILS_PATH=../fearless-utils-Android FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6 FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android FEARLESS_UTILS_LIBRARY_ONLY=true ./scripts/ensure-fearless-utils.sh`.
+  `FEARLESS_UTILS_PATH=../fearless-utils-Android FEARLESS_UTILS_COMMIT=1c80a2bf3fa1f996cf1328873e09f282ee29b69e FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android FEARLESS_UTILS_LIBRARY_ONLY=true ./scripts/ensure-fearless-utils.sh`.
   Confirm the public `fearless-utils-Android` checkout has the exact expected
   origin, pinned commit, clean index, and deterministic committed-overlay tree;
   do not release with any reported tracked, untracked, or submodule drift. The

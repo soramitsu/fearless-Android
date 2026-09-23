@@ -273,13 +273,13 @@ Prerequisites: JDK 21 (Temurin/Adoptium) and Android SDK with API 36 + build-too
 
 ### Use fearless-utils-Android
 
-Public builds use a checked-out copy of `fearless-utils-Android` as a composite build. CI pins that checkout to `7500809f33243ee47ecb2ec8563fc284ac4de0d6`. Locally, clone the repo next to this checkout or set `FEARLESS_UTILS_PATH`:
+Public builds use a checked-out copy of `fearless-utils-Android` as a composite build. CI pins that checkout to `1c80a2bf3fa1f996cf1328873e09f282ee29b69e`. Locally, clone the repo next to this checkout or set `FEARLESS_UTILS_PATH`:
 
 ```
 git clone https://github.com/soramitsu/fearless-utils-Android.git ../fearless-utils-Android
-git -C ../fearless-utils-Android checkout 7500809f33243ee47ecb2ec8563fc284ac4de0d6
+git -C ../fearless-utils-Android checkout 1c80a2bf3fa1f996cf1328873e09f282ee29b69e
 export FEARLESS_UTILS_PATH=../fearless-utils-Android
-export FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6
+export FEARLESS_UTILS_COMMIT=1c80a2bf3fa1f996cf1328873e09f282ee29b69e
 export FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android
 export FEARLESS_UTILS_LIBRARY_ONLY=true
 bash ./scripts/test-fearless-utils-derived-tree.sh
