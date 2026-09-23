@@ -237,6 +237,14 @@ procedure.
   be presented as recovery keys. Verify loss/replacement-device recovery plus
   wrong-key, tamper, metadata-swap, truncation, and nonce-uniqueness tests for
   the canonical AES-256-GCM envelope before enabling the flag.
+- The disabled client-side WebAuthn PRF wrapper derives a 32-byte AES-GCM
+  wrapping key from a 32-byte native PRF result with HKDF-SHA256. Its versioned
+  context binds owner, credential, wallet, backup-envelope metadata, and key
+  epoch; the 32-byte backup key is never given to the authority service. The
+  fixed cross-platform vector and tamper tests exercise this primitive only.
+  Keep the recoverable key provider unavailable until credential ceremonies,
+  wrapper serialization, verified immutable Drive generations, key rotation,
+  replacement-device tests, and independent review are complete.
 - Verify credential list, single revoke, and revoke-all use exact-body-bound
   grants. Deletion must durably revoke all server credentials before removing
   the Drive record; a revoke failure must leave the encrypted record intact.
