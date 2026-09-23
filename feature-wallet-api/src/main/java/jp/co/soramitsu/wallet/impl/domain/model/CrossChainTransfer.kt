@@ -15,7 +15,8 @@ class CrossChainTransfer(
     val chainAsset: Asset
 ) {
 
-    val fullAmountInPlanks: BigInteger = chainAsset.planksFromAmount(amount) + chainAsset.planksFromAmount(destinationFee)
+    val fullAmountInPlanks: BigInteger
+        get() = exactFullAmountInPlanks()
 
     /** Final signing boundary: UI conversions may round for display, but submission cannot. */
     fun exactFullAmountInPlanks(): BigInteger {
