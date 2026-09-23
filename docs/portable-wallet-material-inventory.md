@@ -33,3 +33,12 @@ plaintext serializer/verifier and install path are not implemented. Completion
 requires an agreed cross-platform format, lossless migration for all rows above,
 locked-storage and interruption tests, real replacement-device restoration, and
 original-key signing/export evidence before backup completion is allowed.
+
+The Android `PortableWalletMaterialPreflight` is an intentionally narrower
+read-only check. It walks every persisted wallet and chain identity, requires
+each V3 root and V2 chain secret through the existing validated repository
+reads, and compares complete public wallet metadata before and after. It
+returns only coverage counts. It rejects V1-only and watch-only cohorts for
+now rather than marking an incomplete backup successful. No wallet material is
+serialized, no snapshot is held across concurrent secret mutations, and the
+preflight is not wired to backup completion; those are still required work.

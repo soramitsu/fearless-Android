@@ -1,5 +1,10 @@
 # Status Summary
 
+## Portable wallet-material coverage preflight — 2026-09-24
+
+- A local, read-only preflight enumerates every persisted wallet and chain account, then requires identity-bound V3 Substrate, standalone EVM and native TON roots plus every V2 chain key through the repository's validated read paths. It rejects quarantined wallets, incomplete or duplicate public identities, missing material, and public metadata changed between the two snapshots. It returns counts only; it neither serializes nor uploads secret material.
+- The focused preflight suite passes 9/9 cases; the full account-module JVM suite passes 177/177 with zero failures or skips, and `detektAll` passes against the clean pinned Utils and transport source. This is a fail-closed building block, not an atomic wallet export or backup-completion gate. V1-only and watch-only records currently fail the preflight until a reviewed cross-platform plaintext schema and restore path can preserve them. Secret mutation between the metadata snapshots is not ruled out; passkey recovery remains disabled.
+
 ## Legacy Google backup EVM-root preservation — 2026-09-23
 
 - The legacy backup importer now uses the original backed-up EVM private key when a Substrate mnemonic is also present. Both roots enter one durable wallet creation; malformed keys fail before that mutation and import `Result` failures no longer advance the success state. Matching mnemonic-derived keys retain their original entropy/export metadata.
