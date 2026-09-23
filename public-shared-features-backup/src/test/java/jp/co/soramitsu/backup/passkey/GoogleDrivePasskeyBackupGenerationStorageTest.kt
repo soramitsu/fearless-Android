@@ -58,6 +58,72 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
     }
 
     @Test
+    fun `authenticated owner head selects exact committed Drive generation`() = runBlocking {
+        val fixture = fixture()
+        val candidate = fixture.candidate()
+        val committed = authenticatedHead(candidate)
+        val selected = committed.currentReadParameters()
+        assertEquals(candidate.fileId, selected.fileId)
+        assertEquals(candidate.context, selected.context)
+        assertEquals(candidate.sha256, selected.sha256)
+        val downloaded = fixture.storage.readCurrentHead(committed)
+        assertArrayEquals(candidate.bytes, PasskeyBackupGenerationFormat.encode(requireNotNull(downloaded)))
+        assertEquals(listOf("GET", "GET"), fixture.requests.map { it.method })
+        assertTrue(fixture.requests.all { it.url.contains("/files/${candidate.fileId}?") })
+        assertEquals("PasskeyBackupAuthenticatedHead(redacted)", committed.toString())
+        assertEquals("PasskeyBackupHeadDescriptor(redacted)", committed.head.toString())
+    }
+
+    @Test
+    fun `owner account parent and empty head substitutions fail before Drive`() = runBlocking {
+        val fixture = fixture()
+        val candidate = fixture.candidate()
+        val valid = authenticatedHead(candidate)
+        val previous = requireNotNull(valid.previous)
+        val current = requireNotNull(valid.head)
+        fails {
+            PasskeyBackupAuthenticatedHead(
+                candidate.context.ownerSubject, candidate.context.backupNamespace, current, previous,
+                "owner:${"A".repeat(43)}", candidate.context.backupNamespace, candidate.context.storageAccountBinding
+            )
+        }
+        fails {
+            PasskeyBackupAuthenticatedHead(
+                candidate.context.ownerSubject, candidate.context.backupNamespace, current, previous,
+                candidate.context.ownerSubject, candidate.context.backupNamespace, "c".repeat(64)
+            )
+        }
+        fails {
+            PasskeyBackupAuthenticatedHead(
+                candidate.context.ownerSubject, candidate.context.backupNamespace, current, null,
+                candidate.context.ownerSubject, candidate.context.backupNamespace, candidate.context.storageAccountBinding
+            )
+        }
+        val wrongParent = PasskeyBackupHeadDescriptor(
+            6, 5, "b".repeat(64), "E".repeat(43), "d".repeat(64),
+            candidate.context.keyEpoch, "previous-drive-id", candidate.context.storageAccountBinding
+        )
+        fails {
+            PasskeyBackupAuthenticatedHead(
+                candidate.context.ownerSubject, candidate.context.backupNamespace, current, wrongParent,
+                candidate.context.ownerSubject, candidate.context.backupNamespace, candidate.context.storageAccountBinding
+            )
+        }
+        fails {
+            PasskeyBackupHeadDescriptor(
+                7, 5, candidate.context.parentHeadSha256, candidate.context.generationId, candidate.sha256,
+                candidate.context.keyEpoch, candidate.fileId, candidate.context.storageAccountBinding
+            )
+        }
+        val empty = PasskeyBackupAuthenticatedHead(
+            candidate.context.ownerSubject, candidate.context.backupNamespace, null, null,
+            candidate.context.ownerSubject, candidate.context.backupNamespace, candidate.context.storageAccountBinding
+        )
+        fails { fixture.storage.readCurrentHead(empty) }
+        assertTrue(fixture.requests.isEmpty())
+    }
+
+    @Test
     fun `unknown uploaded outcome reconciles exact ID without second create or replacement`() = runBlocking {
         val fixture = fixture()
         val candidate = fixture.candidate()
@@ -413,6 +479,24 @@ class GoogleDrivePasskeyBackupGenerationStorageTest {
         expected.storageKey, expected.walletId, expected.publicIdentitySha256,
         decryptionVerified = true, originalKeySigningVerified = true, originalKeyExportVerified = true
     )
+
+    private fun authenticatedHead(
+        candidate: GoogleDrivePasskeyBackupGenerationStorage.Candidate
+    ): PasskeyBackupAuthenticatedHead {
+        val context = candidate.context
+        val previous = PasskeyBackupHeadDescriptor(
+            6, 5, "b".repeat(64), "E".repeat(43), "a".repeat(64),
+            context.keyEpoch, "previous-drive-id", context.storageAccountBinding
+        )
+        val current = PasskeyBackupHeadDescriptor(
+            7, 6, context.parentHeadSha256, context.generationId, candidate.sha256,
+            context.keyEpoch, candidate.fileId, context.storageAccountBinding
+        )
+        return PasskeyBackupAuthenticatedHead(
+            context.ownerSubject, context.backupNamespace, current, previous,
+            context.ownerSubject, context.backupNamespace, context.storageAccountBinding
+        )
+    }
 
     private class Fixture(val parent: Path) {
         val operation = JournalFixture.identifier(1)

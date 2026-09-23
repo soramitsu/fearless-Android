@@ -134,6 +134,12 @@ class GoogleDrivePasskeyBackupGenerationStorage(
         return PasskeyBackupGenerationFormat.decode(response.body, expectedContext, expectedSha256)
     }
 
+    /** Reads only the exact committed owner head. Unwrap, decryption and original-key checks remain mandatory. */
+    suspend fun readCurrentHead(authenticatedHead: PasskeyBackupAuthenticatedHead): PasskeyBackupGeneration? {
+        val expected = authenticatedHead.currentReadParameters()
+        return readCandidate(expected.fileId, expected.context, expected.sha256)
+    }
+
     private suspend fun execute(
         method: String,
         url: String,
