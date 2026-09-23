@@ -71,17 +71,15 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
     }
 
     @Test
-    fun `save updates existing backup file instead of creating duplicate`() = runBlocking {
-        val transport = RecordingDriveTransport(
-            jsonResponse(fileListJson()),
-            jsonResponse("""{"id":"file-1"}""")
-        )
+    fun `save refuses to overwrite existing legacy backup without uploading`() = runBlocking {
+        val transport = RecordingDriveTransport(jsonResponse(fileListJson()))
         val storage = storage(transport)
 
-        storage.savePasskeyBackup(payload())
+        val failure = runCatching { storage.savePasskeyBackup(payload()) }.exceptionOrNull()
 
-        assertEquals("PATCH", transport.requests[1].method)
-        assertTrue(transport.requests[1].url.startsWith("https://www.googleapis.com/upload/drive/v3/files/file-1?"))
+        assertTrue(failure is IllegalStateException)
+        assertEquals(1, transport.requests.size)
+        assertEquals("GET", transport.requests.single().method)
     }
 
     @Test
@@ -170,7 +168,13 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
             for (switchAt in listOf(0, 1)) {
                 var calls = 0
                 val transport = RecordingDriveTransport(
-                    jsonResponse(if (operation == "page") """{"files":[],"nextPageToken":"two"}""" else fileListJson())
+                    jsonResponse(
+                        when (operation) {
+                            "page" -> """{"files":[],"nextPageToken":"two"}"""
+                            "save" -> """{"files":[]}"""
+                            else -> fileListJson()
+                        }
+                    )
                 )
                 val client = GoogleDrivePasskeyBackupDriveClient(
                     accountSubject = "google-subject-123",
@@ -196,11 +200,11 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
     }
 
     @Test
-    fun `renamed email preserves original envelope metadata and bytes under same subject`() = runBlocking {
+    fun `renamed email preserves original envelope metadata and refuses legacy overwrite`() = runBlocking {
         val original = payload()
         val transport = RecordingDriveTransport(
             jsonResponse(fileListJson()), GoogleDriveHttpResponse(200, original.encryptedPayload),
-            jsonResponse(fileListJson()), jsonResponse("""{"id":"file-1"}"""),
+            jsonResponse(fileListJson()),
             jsonResponse(fileListJson()), GoogleDriveHttpResponse(204)
         )
         val client = GoogleDrivePasskeyBackupDriveClient(
@@ -213,10 +217,10 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         val loaded = requireNotNull(client.loadBackup("wallet-1234"))
         assertEquals("alice@example.com", loaded.accountName)
         assertArrayEquals(original.encryptedPayload, loaded.encryptedPayload)
-        client.saveBackup(loaded)
-        val upload = transport.requests[3].bodyText()
-        assertTrue(upload.contains("\"accountName\":\"alice@example.com\""))
-        assertTrue(!upload.contains("renamed@example.com"))
+        val failure = runCatching { client.saveBackup(loaded) }.exceptionOrNull()
+        assertTrue(failure is IllegalStateException)
+        assertEquals(3, transport.requests.size)
+        assertTrue(transport.requests.all { it.method == "GET" })
         client.deleteBackup("wallet-1234")
         assertEquals("DELETE", transport.requests.last().method)
     }

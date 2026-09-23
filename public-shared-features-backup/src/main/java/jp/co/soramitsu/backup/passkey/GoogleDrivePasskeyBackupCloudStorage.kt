@@ -294,8 +294,11 @@ class GoogleDrivePasskeyBackupDriveClient(
         val existingFile = findBackupFile(normalizedPayload.storageKey)
         existingFile?.let { file ->
             require(file.walletId == normalizedPayload.walletId) {
-                "Google Drive passkey backup walletId mismatch before replacement"
+                "Google Drive passkey backup walletId mismatch for existing file"
             }
+        }
+        check(existingFile == null) {
+            "Legacy Google Drive passkey backup replacement is disabled; use immutable generations"
         }
         val boundary = "fearless-passkey-backup-${normalizedPayload.storageKey}"
         val requestBody = multipartBody(
@@ -304,33 +307,18 @@ class GoogleDrivePasskeyBackupDriveClient(
             encryptedPayload = normalizedPayload.encryptedPayload
         )
 
-        val request = if (existingFile == null) {
-            authenticatedRequest(
-                method = "POST",
-                url = uploadUrl(
-                    path = "/files",
-                    query = mapOf(
-                        "uploadType" to "multipart",
-                        "fields" to "id,name,appProperties"
-                    )
-                ),
-                headers = mapOf("Content-Type" to "multipart/related; boundary=$boundary"),
-                body = requestBody
-            )
-        } else {
-            authenticatedRequest(
-                method = "PATCH",
-                url = uploadUrl(
-                    path = "/files/${encodePathSegment(existingFile.id)}",
-                    query = mapOf(
-                        "uploadType" to "multipart",
-                        "fields" to "id,name,appProperties"
-                    )
-                ),
-                headers = mapOf("Content-Type" to "multipart/related; boundary=$boundary"),
-                body = requestBody
-            )
-        }
+        val request = authenticatedRequest(
+            method = "POST",
+            url = uploadUrl(
+                path = "/files",
+                query = mapOf(
+                    "uploadType" to "multipart",
+                    "fields" to "id,name,appProperties"
+                )
+            ),
+            headers = mapOf("Content-Type" to "multipart/related; boundary=$boundary"),
+            body = requestBody
+        )
 
         requireSuccess(transport.execute(request), "upload")
     }
