@@ -1,6 +1,7 @@
 package jp.co.soramitsu.backup.passkey
 
 import android.os.Build
+import com.google.gson.Gson
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -53,6 +54,8 @@ class PasskeyBackupNativeIntegrationTest {
         assertFalse(result.serverCredentialJson.contains(encodedSecret))
         assertFalse(result.serverCredentialJson.contains("prf"))
         assertFalse(result.toString().contains(encodedSecret))
+        assertFalse(Gson().toJson(result).contains("localPrfOutput"))
+        assertFalse(Gson().toJson(result).contains(encodedSecret))
         var callbackCopy: ByteArray? = null
         result.withLocalPrfOutput { localOutput ->
             callbackCopy = localOutput

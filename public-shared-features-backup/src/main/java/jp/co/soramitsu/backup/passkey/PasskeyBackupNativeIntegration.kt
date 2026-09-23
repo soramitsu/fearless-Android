@@ -56,7 +56,7 @@ interface PasskeyBackupCeremonyExecutor {
 /** Only [serverCredentialJson] may cross the challenge-service boundary. */
 class PasskeyBackupNativeCeremonyResult private constructor(
     val serverCredentialJson: String,
-    private var localPrfOutput: ByteArray?
+    @Transient private var localPrfOutput: ByteArray?
 ) : AutoCloseable {
     val hasLocalPrfOutput: Boolean get() = localPrfOutput != null
 
