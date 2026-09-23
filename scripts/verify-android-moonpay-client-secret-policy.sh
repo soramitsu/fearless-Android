@@ -43,10 +43,15 @@ scan_forbidden_pattern() {
   local description="$1"
   local pattern="$2"
   local scope="${3:-all}"
+  local exact_pinned_path="${4:-}"
   local path
   local found=false
 
   for path in "${policy_inputs[@]}"; do
+    # The source-pinned passkey HKDF candidate needs HmacSHA256 but has no MoonPay
+    # signing role. The complete source bytes are pinned below. Other checks
+    # still scan it, including MoonPay secret identifiers and obfuscation.
+    [[ "$path" == "$exact_pinned_path" && -n "$exact_pinned_path" ]] && continue
     if [[ "$scope" == "text" ]] &&
       LC_ALL=C grep -IiqE "$pattern" "$ROOT/$path"; then
       echo "[moonpay-client-policy][error] forbidden $description in $path" >&2
@@ -108,6 +113,8 @@ require_file "feature-wallet-impl/build.gradle"
 require_file "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
 require_file "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/MoonPayProvider.kt"
 require_file "common/src/main/java/jp/co/soramitsu/common/utils/CryptoUtils.kt"
+pinned_prf_wrapper_path="public-shared-features-backup/src/main/java/jp/co/soramitsu/backup/passkey/PasskeyBackupCredentialKeyWrapper.kt"
+require_file "$pinned_prf_wrapper_path"
 
 git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
   fail "The policy root must be a Git worktree so only tracked inputs are audited."
@@ -117,6 +124,10 @@ provider_sha256="$(hash_stdin < "$ROOT/$provider_path")"
 [[ "$provider_sha256" == \
   "43efc2ff4092d2b815e7dc25f70e1941e9aac5c169eb0ec21506a4f897c40c03" ]] ||
   fail "$provider_path differs from the reviewed publishable-key/manual-wallet implementation."
+pinned_prf_wrapper_sha256="$(hash_stdin < "$ROOT/$pinned_prf_wrapper_path")"
+[[ "$pinned_prf_wrapper_sha256" == \
+  "f8ba6e67165555f63f0c3baa2ab537cad6a8f69559a2ce1f1288bad6f392c44e" ]] ||
+  fail "$pinned_prf_wrapper_path differs from the exact pinned client-side passkey HKDF candidate."
 
 policy_inputs=()
 while IFS= read -r -d '' path; do
@@ -141,7 +152,8 @@ scan_forbidden_pattern \
 scan_forbidden_pattern \
   "generic HMAC helper formerly used by MoonPay" \
   'fun[[:space:]]+String\.hmacSHA256|HmacSHA256' \
-  text
+  text \
+  "$pinned_prf_wrapper_path"
 
 scan_forbidden_obfuscated_pattern \
   "split or encoded MoonPay client signer" \

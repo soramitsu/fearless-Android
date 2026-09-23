@@ -14,6 +14,7 @@ make_fixture() {
     "$TMP/fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di" \
     "$TMP/fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken" \
     "$TMP/fixture/common/src/main/java/jp/co/soramitsu/common/utils" \
+    "$TMP/fixture/public-shared-features-backup/src/main/java/jp/co/soramitsu/backup/passkey" \
     "$TMP/fixture/.github/workflows" \
     "$TMP/fixture/app" \
     "$TMP/fixture/docs" \
@@ -34,6 +35,8 @@ make_fixture() {
   printf '%s\n' 'android { }' > "$TMP/fixture/app/build.gradle"
   printf '%s\n' 'fun safeHash() = Unit' \
     > "$TMP/fixture/common/src/main/java/jp/co/soramitsu/common/utils/CryptoUtils.kt"
+  cp "$ROOT/public-shared-features-backup/src/main/java/jp/co/soramitsu/backup/passkey/PasskeyBackupCredentialKeyWrapper.kt" \
+    "$TMP/fixture/public-shared-features-backup/src/main/java/jp/co/soramitsu/backup/passkey/PasskeyBackupCredentialKeyWrapper.kt"
   printf '%s\n' 'jobs: {}' > "$TMP/fixture/.github/workflows/android-ci.yml"
   printf '%s\n' 'jobs: {}' > "$TMP/fixture/.github/workflows/android-release.yml"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 0' \
@@ -97,6 +100,11 @@ make_fixture
 printf '%s\n' 'fun String.hmacSHA256(secret: String) = HmacSHA256(secret)' \
   > "$TMP/fixture/common/src/main/java/jp/co/soramitsu/common/utils/CryptoUtils.kt"
 expect_rejected "generic MoonPay HMAC helper restored"
+
+make_fixture
+printf '%s\n' '// changed after exact-source review' \
+  >> "$TMP/fixture/public-shared-features-backup/src/main/java/jp/co/soramitsu/backup/passkey/PasskeyBackupCredentialKeyWrapper.kt"
+expect_rejected "passkey HMAC wrapper changed after exact-source pin"
 
 make_fixture
 printf '%s\n' 'MoonPayProvider(privateKey = "embedded")' \
@@ -175,9 +183,9 @@ expect_rejected "unreviewed provider registry entry"
     echo "[moonpay-client-policy-test][error] expected 1 positive case; got $positive_count" >&2
     exit 1
   }
-[[ "$negative_count" == "16" ]] ||
+[[ "$negative_count" == "17" ]] ||
   {
-    echo "[moonpay-client-policy-test][error] expected 16 negative cases; got $negative_count" >&2
+    echo "[moonpay-client-policy-test][error] expected 17 negative cases; got $negative_count" >&2
     exit 1
   }
 

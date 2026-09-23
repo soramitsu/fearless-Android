@@ -245,6 +245,11 @@ procedure.
   Keep the recoverable key provider unavailable until credential ceremonies,
   wrapper storage in verified immutable Drive generations, key rotation,
   replacement-device tests, and independent review are complete.
+- The MoonPay client-secret audit still scans every tracked shipping input. Its
+  necessary `HmacSHA256` exception is limited to the exact SHA-256-pinned
+  passkey HKDF source; changes to that file fail the audit until the pin is
+  deliberately updated after review. No MoonPay signing key or helper is
+  allowed in the app.
 - Verify credential list, single revoke, and revoke-all use exact-body-bound
   grants. Deletion must durably revoke all server credentials before removing
   the Drive record; a revoke failure must leave the encrypted record intact.
