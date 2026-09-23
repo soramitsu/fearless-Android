@@ -7,6 +7,10 @@ import com.google.android.gms.auth.UserRecoverableAuthException
 import jp.co.soramitsu.backup.domain.exceptions.AuthConsentException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 fun interface GoogleDriveAccountNameProvider {
@@ -19,17 +23,38 @@ fun interface GoogleDriveOAuthTokenFetcher {
 
 class GoogleDrivePasskeyBackupTokenProvider(
     private val accountNameProvider: GoogleDriveAccountNameProvider,
-    private val tokenFetcher: GoogleDriveOAuthTokenFetcher
+    private val tokenFetcher: GoogleDriveOAuthTokenFetcher,
+    private val identityVerifier: GoogleDriveIdentityVerifier = GoogleDriveUserInfoIdentityVerifier()
 ) : GoogleDriveAccessTokenProvider {
-    override suspend fun accessToken(): GoogleDriveAccountAccess {
+    private val mutex = Mutex()
+    private var selectedSubject: String? = null
+
+    override suspend fun accessToken(): GoogleDriveAccountAccess = mutex.withLock {
+        currentCoroutineContext().ensureActive()
         val accountName = GoogleDrivePasskeyBackup.requireAccountName(accountNameProvider.accountName())
-
-        val accessToken = tokenFetcher.fetchAccessToken(
-            accountName = accountName,
-            oauthScope = GoogleDrivePasskeyBackup.OAUTH_APP_DATA_SCOPE
+        val accessToken = GoogleDriveAccountAccess.requireAccessToken(
+            tokenFetcher.fetchAccessToken(
+                accountName = accountName,
+                oauthScope = GoogleDrivePasskeyBackup.OAUTH_IDENTITY_APP_DATA_SCOPE
+            )
         )
-
-        return GoogleDriveAccountAccess(accountName, accessToken)
+        currentCoroutineContext().ensureActive()
+        val identity = identityVerifier.verify(accessToken)
+        currentCoroutineContext().ensureActive()
+        GoogleDrivePasskeyBackup.requireMatchingAccountName(
+            expected = accountName,
+            actual = accountNameProvider.accountName(),
+            ceremony = "account selection"
+        )
+        currentCoroutineContext().ensureActive()
+        val pinnedSubject = selectedSubject
+        if (pinnedSubject == null) {
+            GoogleDrivePasskeyBackup.requireMatchingAccountName(accountName, identity.email, "initial identity")
+        } else {
+            require(identity.subject == pinnedSubject) { "Google Drive selected account changed" }
+        }
+        selectedSubject = identity.subject
+        GoogleDriveAccountAccess(identity.subject, identity.email, accessToken)
     }
 }
 

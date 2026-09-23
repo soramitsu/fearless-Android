@@ -6,6 +6,8 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Production qualification — 2026-09-22
 
+- 2026-09-23 Drive identity candidate: retain stable Google UserInfo `sub` across email rename, bind every request to the verified selected subject, and preserve original envelope AAD/ciphertext. P0: qualify consent/UI and the same Google Cloud appData project on both platforms, migrate the deprecated token-fetch consent path to AuthorizationClient, integrate owner/lifecycle and generation checks, and collect real replacement-device evidence before enabling recovery.
+
 - 2026-09-23 CI repair: retain the seven-checkout release architecture contract and per-checkout pin/credential negatives, require the liquidity-pools/Polkamarkt/Polkaswap mutation suites in `runTest`, keep the debt baseline equal to the current source markers, and preserve exact first-party audit boundaries around independently verified dependency checkouts. Complete the full Android CI run at the repaired source head, including required API 30/31/36 migration and restart evidence, before release qualification.
 
 - Completed baseline: target API 36; retain reviewed XCM discovery/quotes with a hardcoded false release submission flag; reject direct engine transfer before entering signing/submission even when the remote switch enables mutations. Keep the 15-route approval set, 34 discovery-only routes and blocked production-evidence requirements intact.

@@ -1,5 +1,11 @@
 # Status Summary
 
+## Passkey Drive subject binding — 2026-09-23
+
+- The disabled Android Drive candidate verifies the exact bearer through Google OIDC UserInfo (`openid email` plus appData consent), pins stable `sub`, requires initially matching verified email and rejects account/token substitution before every Drive request. Email renames retain the original authenticated envelope metadata and ciphertext.
+- Strict identity parsing and dedicated bounded/no-redirect transport fail closed. The token backing field is excluded from Gson serialization; Google identity does not replace owner authorization.
+- Validation: all 164 backup-module JVM tests pass (52 Drive/account/identity tests), with zero failures/skips; `detektAll` and exact runtime source verification pass under strict dependency verification. Native consent/UI, shared Google Cloud configuration, provider/device interoperability, owner lifecycle and generation acceptance remain blocked; recovery stays disabled. See `docs/passkey-google-drive-subject.md`.
+
 ## Release checkout guard inventory — 2026-09-23
 
 - The release architecture guard now requires all seven commit-pinned, credential-free checkouts: three app checkouts and the Utils/WebSocket source checkouts in both controls and build. Each checkout has independent mutable-action and persisted-credential negative coverage.

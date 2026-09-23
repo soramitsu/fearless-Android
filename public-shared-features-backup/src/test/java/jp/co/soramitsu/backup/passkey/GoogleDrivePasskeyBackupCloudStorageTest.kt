@@ -85,17 +85,11 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
     }
 
     @Test
-    fun `save never replaces a file owned by another wallet or Google account`() = runBlocking {
-        for (metadata in listOf(
-            fileListJson(walletId = "wallet-999"),
-            fileListJson(accountName = "bob@example.com")
-        )) {
-            val transport = RecordingDriveTransport(jsonResponse(metadata))
-            val failure = runCatching { storage(transport).savePasskeyBackup(payload()) }.exceptionOrNull()
-
-            assertTrue(failure is IllegalArgumentException)
-            assertEquals(1, transport.requests.size)
-        }
+    fun `save never replaces a file owned by another wallet`() = runBlocking {
+        val transport = RecordingDriveTransport(jsonResponse(fileListJson(walletId = "wallet-999")))
+        val failure = runCatching { storage(transport).savePasskeyBackup(payload()) }.exceptionOrNull()
+        assertTrue(failure is IllegalArgumentException)
+        assertEquals(1, transport.requests.size)
     }
 
     @Test
@@ -171,28 +165,67 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
     }
 
     @Test
-    fun `selected Google account is bound before upload and before download`() = runBlocking {
-        val uploadTransport = RecordingDriveTransport()
-        val uploadFailure = runCatching {
-            storage(uploadTransport).savePasskeyBackup(payload(accountName = "bob@example.com"))
-        }.exceptionOrNull()
-        assertTrue(uploadFailure is IllegalArgumentException)
-        assertTrue(uploadTransport.requests.isEmpty())
+    fun `selected subject is checked before every upload download delete and list page`() = runBlocking {
+        for (operation in listOf("save", "load", "delete", "page")) {
+            for (switchAt in listOf(0, 1)) {
+                var calls = 0
+                val transport = RecordingDriveTransport(
+                    jsonResponse(if (operation == "page") """{"files":[],"nextPageToken":"two"}""" else fileListJson())
+                )
+                val client = GoogleDrivePasskeyBackupDriveClient(
+                    accountSubject = "google-subject-123",
+                    accessTokenProvider = GoogleDriveAccessTokenProvider {
+                        GoogleDriveAccountAccess(
+                            if (calls++ == switchAt) "different-subject" else "google-subject-123",
+                            "alice@example.com", "token-123"
+                        )
+                    },
+                    transport = transport
+                )
+                val failure = runCatching {
+                    when (operation) {
+                        "save" -> client.saveBackup(payload())
+                        "delete" -> client.deleteBackup("wallet-1234")
+                        else -> client.loadBackup("wallet-1234")
+                    }
+                }.exceptionOrNull()
+                assertTrue(failure is IllegalArgumentException)
+                assertEquals(switchAt, transport.requests.size)
+            }
+        }
+    }
 
-        val downloadTransport = RecordingDriveTransport(
-            jsonResponse(fileListJson(accountName = "bob@example.com"))
+    @Test
+    fun `renamed email preserves original envelope metadata and bytes under same subject`() = runBlocking {
+        val original = payload()
+        val transport = RecordingDriveTransport(
+            jsonResponse(fileListJson()), GoogleDriveHttpResponse(200, original.encryptedPayload),
+            jsonResponse(fileListJson()), jsonResponse("""{"id":"file-1"}"""),
+            jsonResponse(fileListJson()), GoogleDriveHttpResponse(204)
         )
-        val downloadFailure = runCatching {
-            storage(downloadTransport).loadPasskeyBackup("wallet-1234")
-        }.exceptionOrNull()
-        assertTrue(downloadFailure is IllegalArgumentException)
-        assertEquals(1, downloadTransport.requests.size)
+        val client = GoogleDrivePasskeyBackupDriveClient(
+            accountSubject = "google-subject-123",
+            accessTokenProvider = GoogleDriveAccessTokenProvider {
+                GoogleDriveAccountAccess("google-subject-123", "renamed@example.com", "token-123")
+            },
+            transport = transport
+        )
+        val loaded = requireNotNull(client.loadBackup("wallet-1234"))
+        assertEquals("alice@example.com", loaded.accountName)
+        assertArrayEquals(original.encryptedPayload, loaded.encryptedPayload)
+        client.saveBackup(loaded)
+        val upload = transport.requests[3].bodyText()
+        assertTrue(upload.contains("\"accountName\":\"alice@example.com\""))
+        assertTrue(!upload.contains("renamed@example.com"))
+        client.deleteBackup("wallet-1234")
+        assertEquals("DELETE", transport.requests.last().method)
     }
 
     @Test
     fun `oversized Drive appProperty fails before token and network access`() = runBlocking {
         val transport = RecordingDriveTransport()
         val client = GoogleDrivePasskeyBackupDriveClient(
+            accountSubject = "google-subject-123",
             accessTokenProvider = GoogleDriveAccessTokenProvider {
                 throw AssertionError("token provider should not be called")
             },
@@ -215,7 +248,9 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         )
         assertTrue(!request.toString().contains("secret-token"))
         assertTrue(!request.toString().contains("private-ciphertext"))
-        assertTrue(!GoogleDriveAccountAccess("alice@example.com", "secret-token").toString().contains("secret-token"))
+        val access = GoogleDriveAccountAccess("google-subject-123", "alice@example.com", "secret-token")
+        assertTrue(!access.toString().contains("secret-token"))
+        assertTrue(!com.google.gson.Gson().toJson(access).contains("secret-token"))
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -372,6 +407,7 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         val transport = RecordingDriveTransport()
         val storage = GoogleDrivePasskeyBackupCloudStorage(
             GoogleDrivePasskeyBackupDriveClient(
+                accountSubject = "google-subject-123",
                 accessTokenProvider = GoogleDriveAccessTokenProvider {
                     throw AssertionError("token provider should not be called for invalid keys")
                 },
@@ -666,8 +702,9 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
     private fun storage(transport: RecordingDriveTransport): GoogleDrivePasskeyBackupCloudStorage {
         return GoogleDrivePasskeyBackupCloudStorage(
             GoogleDrivePasskeyBackupDriveClient(
+                accountSubject = "google-subject-123",
                 accessTokenProvider = GoogleDriveAccessTokenProvider {
-                    GoogleDriveAccountAccess("alice@example.com", "token-123")
+                    GoogleDriveAccountAccess("google-subject-123", "alice@example.com", "token-123")
                 },
                 transport = transport
             )
