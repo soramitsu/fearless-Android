@@ -224,6 +224,7 @@ required_emulator_runner_lines=(
   'readonly COMMAND_TIMEOUT_SECONDS=15'
   'readonly SDK_INSTALL_TIMEOUT_SECONDS=900'
   'readonly SDK_UNINSTALL_TIMEOUT_SECONDS=180'
+  'readonly PROCESS_GROUP_TIMEOUT_SECONDS=10'
   'readonly SYSTEM_IMAGE_TARGET="google_atd"'
   'readonly SYSTEM_IMAGE_ARCH="x86_64"'
   'readonly EMULATOR_PORT=5554'
@@ -244,6 +245,12 @@ required_emulator_runner_lines=(
   '  sudo setfacl -m "u:$(id -un):rw" /dev/kvm'
   '  fail "current CI user cannot read and write /dev/kvm"'
   'for executable in timeout setsid awk sed ps ldd env; do'
+  'group_deadline=$((SECONDS + PROCESS_GROUP_TIMEOUT_SECONDS))'
+  'while ((SECONDS < group_deadline)); do'
+  '    fail "emulator exited before process-group isolation"'
+  '  sleep 0.1'
+  '[[ "$observed_pgid" =~ ^[0-9]+$ && "$observed_pgid" == "$emulator_pgid" ]] ||'
+  '  >"$EVIDENCE_DIR/emulator-process-group.env"'
   '  env -u LD_PRELOAD -u LD_LIBRARY_PATH LC_ALL=C \'
   '    timeout "$COMMAND_TIMEOUT_SECONDS" ldd "$EMULATOR"'
   '  env -u LD_PRELOAD LC_ALL=C \'
@@ -343,6 +350,14 @@ trap_line="$(
 launch_line="$(
   grep -nF 'setsid "$EMULATOR" \' "$EMULATOR_RUNNER" | cut -d: -f1 || true
 )"
+group_deadline_line="$(
+  grep -nF 'group_deadline=$((SECONDS + PROCESS_GROUP_TIMEOUT_SECONDS))' \
+    "$EMULATOR_RUNNER" | cut -d: -f1 || true
+)"
+boot_deadline_line="$(
+  grep -nF 'readonly BOOT_DEADLINE=$((SECONDS + BOOT_TIMEOUT_SECONDS))' \
+    "$EMULATOR_RUNNER" | cut -d: -f1 || true
+)"
 diagnostic_line="$(
   grep -nF 'if ! record_adb_diagnostics; then' \
     "$EMULATOR_RUNNER" | cut -d: -f1 || true
@@ -367,6 +382,7 @@ full_dispatch_line="$(
   "$shared_library_line" =~ ^[0-9]+$ && \
   "$emulator_version_line" =~ ^[0-9]+$ && \
   "$trap_line" =~ ^[0-9]+$ && "$launch_line" =~ ^[0-9]+$ && \
+  "$group_deadline_line" =~ ^[0-9]+$ && "$boot_deadline_line" =~ ^[0-9]+$ && \
   "$diagnostic_line" =~ ^[0-9]+$ && "$stop_line" =~ ^[0-9]+$ && \
   "$serial_export_line" =~ ^[0-9]+$ && \
   "$compatibility_dispatch_line" =~ ^[0-9]+$ && \
@@ -379,6 +395,8 @@ full_dispatch_line="$(
   fail "Android emulator shared-library preflight must precede emulator execution and image installation"
 ((trap_line < launch_line)) ||
   fail "Android emulator cleanup trap must be installed before launch"
+((launch_line < group_deadline_line && group_deadline_line < boot_deadline_line)) ||
+  fail "Android emulator process-group admission must precede boot checks"
 ((diagnostic_line < stop_line)) ||
   fail "Android emulator diagnostics must be captured before teardown"
 ((serial_export_line < compatibility_dispatch_line && \

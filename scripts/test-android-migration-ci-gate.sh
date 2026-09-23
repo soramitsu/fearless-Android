@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-ci-gate.sh"
 EXPECTED_POSITIVE_COUNT=1
-EXPECTED_NEGATIVE_COUNT=102
+EXPECTED_NEGATIVE_COUNT=106
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -381,6 +381,42 @@ replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
   'readonly BOOT_TIMEOUT_SECONDS=0'
 expect_failure \
   "unbounded emulator boot deadline" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture unbounded-process-group-wait)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'readonly PROCESS_GROUP_TIMEOUT_SECONDS=10' \
+  'readonly PROCESS_GROUP_TIMEOUT_SECONDS=600'
+expect_failure \
+  "unbounded process-group wait" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture one-shot-process-group-check)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'while ((SECONDS < group_deadline)); do' \
+  'if ((SECONDS < group_deadline)); then'
+expect_failure \
+  "one-shot process-group check" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture ignored-process-death-before-group-isolation)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '    fail "emulator exited before process-group isolation"' \
+  '    echo "emulator process death ignored"'
+expect_failure \
+  "ignored process death before group isolation" \
+  "Android emulator lifecycle runner line" \
+  "$fixture"
+
+fixture="$(make_fixture busy-process-group-poll)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  '  sleep 0.1' \
+  '  :'
+expect_failure \
+  "busy process-group poll" \
   "Android emulator lifecycle runner line" \
   "$fixture"
 

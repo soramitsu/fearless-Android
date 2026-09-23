@@ -8,6 +8,7 @@ readonly BOOT_TIMEOUT_SECONDS=600
 readonly COMMAND_TIMEOUT_SECONDS=15
 readonly SDK_INSTALL_TIMEOUT_SECONDS=900
 readonly SDK_UNINSTALL_TIMEOUT_SECONDS=180
+readonly PROCESS_GROUP_TIMEOUT_SECONDS=10
 readonly SYSTEM_IMAGE_TARGET="google_atd"
 readonly SYSTEM_IMAGE_ARCH="x86_64"
 readonly EMULATOR_PORT=5554
@@ -319,9 +320,24 @@ setsid "$EMULATOR" \
 emulator_pid="$!"
 emulator_pgid="$emulator_pid"
 printf '%s\n' "$emulator_pid" >"$EMULATOR_PID_FILE"
-observed_pgid="$(ps -o pgid= -p "$emulator_pid" | tr -d '[:space:]')"
+group_deadline=$((SECONDS + PROCESS_GROUP_TIMEOUT_SECONDS))
+observed_pgid=""
+while ((SECONDS < group_deadline)); do
+  kill -0 "$emulator_pid" 2>/dev/null ||
+    fail "emulator exited before process-group isolation"
+  if observed_pgid="$(ps -o pgid= -p "$emulator_pid" 2>/dev/null | tr -d '[:space:]')"; then
+    if [[ "$observed_pgid" == "$emulator_pgid" ]]; then
+      break
+    fi
+  else
+    observed_pgid=""
+  fi
+  sleep 0.1
+done
 [[ "$observed_pgid" =~ ^[0-9]+$ && "$observed_pgid" == "$emulator_pgid" ]] ||
-  fail "emulator did not start as the captured process-group leader"
+  fail "emulator did not become the captured process-group leader (observed PGID: ${observed_pgid:-missing})"
+printf '%s\n' "emulator_pid=$emulator_pid" "emulator_pgid=$observed_pgid" \
+  >"$EVIDENCE_DIR/emulator-process-group.env"
 
 readonly BOOT_DEADLINE=$((SECONDS + BOOT_TIMEOUT_SECONDS))
 boot_complete=0
