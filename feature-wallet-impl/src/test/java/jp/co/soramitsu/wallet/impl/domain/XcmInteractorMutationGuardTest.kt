@@ -5,8 +5,10 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
@@ -24,8 +26,55 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class XcmInteractorMutationGuardTest {
+
+    @Test
+    fun `SORA KSM XCM submits exact amount plus destination fee without rounding`() {
+        val asset = mock(Asset::class.java)
+        `when`(asset.precision).thenReturn(18)
+        `when`(asset.currencyId).thenReturn("0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8")
+        val transfer = CrossChainTransfer(
+            originChainId = soraMainChainId,
+            destinationChainId = "destination",
+            recipient = "recipient",
+            amount = BigDecimal("1.234567890123"),
+            destinationFee = BigDecimal("0.000000000001"),
+            chainAsset = asset
+        )
+
+        assertEquals(BigInteger("1234567890124000000"), exactXcmAmountInPlanks(transfer))
+        assertEquals(transfer.fullAmountInPlanks, exactXcmAmountInPlanks(transfer))
+    }
+
+    @Test
+    fun `XCM rejects unsupported KSM decimals and general asset precision overflow`() {
+        val ksm = mock(Asset::class.java)
+        `when`(ksm.precision).thenReturn(18)
+        `when`(ksm.currencyId).thenReturn("0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8")
+        fun transfer(amount: String, fee: String, asset: Asset, origin: String = soraMainChainId) = CrossChainTransfer(
+            originChainId = origin,
+            destinationChainId = "destination",
+            recipient = "recipient",
+            amount = BigDecimal(amount),
+            destinationFee = BigDecimal(fee),
+            chainAsset = asset
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            exactXcmAmountInPlanks(transfer("1.0000000000001", "0", ksm))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            exactXcmAmountInPlanks(transfer("1", "0.0000000000001", ksm))
+        }
+        val other = mock(Asset::class.java)
+        `when`(other.precision).thenReturn(18)
+        assertThrows(ArithmeticException::class.java) {
+            exactXcmAmountInPlanks(transfer("1.0000000000000000001", "0", other, "origin"))
+        }
+    }
 
     @Test
     fun `preparing reviewed quotes and crypto metadata does not read wallet secrets`() = runBlocking<Unit> {

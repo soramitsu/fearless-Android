@@ -2,8 +2,6 @@ package jp.co.soramitsu.wallet.impl.domain
 
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.math.MathContext
-import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.utils.combineToPair
@@ -122,15 +120,7 @@ class XcmInteractor(
             val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
             val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")
 
-            val ksmInSoraMainnetCurrencyId = "0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8"
-            // todo remove this sora ksm check when https://github.com/sora-xor/sora2-network/issues/845 will be fixed
-            // if we transfer ksm asset from sora network - we have to convert precision 18 to 12
-            val roundedAmountInPlanks = if(transfer.originChainId == soraMainChainId && transfer.chainAsset.currencyId == ksmInSoraMainnetCurrencyId) {
-                val roundedAmount = transfer.amount.round(MathContext(12, RoundingMode.HALF_EVEN))
-                transfer.chainAsset.planksFromAmount(roundedAmount)
-            } else {
-                transfer.fullAmountInPlanks
-            }
+            val exactAmountInPlanks = exactXcmAmountInPlanks(transfer)
 
             xcmService.transfer(
                 originChain = originChain,
@@ -138,7 +128,7 @@ class XcmInteractor(
                 asset = transfer.chainAsset,
                 senderAccountId = originChain.accountIdOf(selfAddress),
                 address = transfer.recipient,
-                amount = roundedAmountInPlanks
+                amount = exactAmountInPlanks
             )
         }
     }
@@ -189,3 +179,19 @@ class XcmInteractor(
         return rawAmountInPlanks
     }
 }
+
+/** The SORA KSM destination currently supports twelve fractional digits. Reject, never round. */
+internal fun exactXcmAmountInPlanks(transfer: CrossChainTransfer): BigInteger {
+    if (transfer.originChainId == soraMainChainId &&
+        transfer.chainAsset.currencyId == SORA_KSM_CURRENCY_ID
+    ) {
+        require(transfer.amount.stripTrailingZeros().scale() <= 12 &&
+            transfer.destinationFee.stripTrailingZeros().scale() <= 12) {
+            "SORA KSM XCM amount and destination fee must use at most 12 fractional digits"
+        }
+    }
+    return transfer.exactFullAmountInPlanks()
+}
+
+private const val SORA_KSM_CURRENCY_ID =
+    "0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8"

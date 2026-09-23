@@ -11,11 +11,21 @@ class CrossChainTransfer(
     val destinationChainId: ChainId,
     val recipient: String,
     val amount: BigDecimal,
-    destinationFee: BigDecimal,
+    val destinationFee: BigDecimal,
     val chainAsset: Asset
 ) {
 
     val fullAmountInPlanks: BigInteger = chainAsset.planksFromAmount(amount) + chainAsset.planksFromAmount(destinationFee)
+
+    /** Final signing boundary: UI conversions may round for display, but submission cannot. */
+    fun exactFullAmountInPlanks(): BigInteger {
+        require(chainAsset.precision >= 0) { "XCM asset precision must not be negative" }
+        require(amount > BigDecimal.ZERO) { "XCM amount must be greater than zero" }
+        require(destinationFee >= BigDecimal.ZERO) { "XCM destination fee must not be negative" }
+        val amountPlanks = amount.scaleByPowerOfTen(chainAsset.precision).toBigIntegerExact()
+        val destinationFeePlanks = destinationFee.scaleByPowerOfTen(chainAsset.precision).toBigIntegerExact()
+        return amountPlanks + destinationFeePlanks
+    }
 
     fun validityStatus(
         senderTransferable: BigDecimal,
