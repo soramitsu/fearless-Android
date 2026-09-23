@@ -57,6 +57,8 @@ class PoolsModule {
     fun provideDemeterFarmingInteractor(demeterFarmingRepository: DemeterFarmingRepository): DemeterFarmingInteractor =
         DemeterFarmingInteractorImpl(demeterFarmingRepository)
 
+    // Dagger provider arguments are independent bindings, not a caller-owned API.
+    @Suppress("LongParameterList")
     @Provides
     @Singleton
     fun provideDemeterFarmingRepository(

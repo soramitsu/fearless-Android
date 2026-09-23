@@ -18,6 +18,24 @@ def expectedGradleDistributionSha256 =
 def requestedTaskNames = gradle.startParameter.taskNames.collect {
     it.toLowerCase(Locale.ROOT)
 }
+// Git environment overrides can redirect the source-pin verifier itself. Reject
+// them before running any Git command for an Internal App Sharing candidate.
+if (requestedTaskNames == [":app:verifyinternalappsharingconfiguration"] ||
+        requestedTaskNames == [":app:bundleinternalappsharing"]) {
+    def forbiddenGitEnvironment = [
+            "GIT_DIR",
+            "GIT_WORK_TREE",
+            "GIT_INDEX_FILE",
+            "GIT_OBJECT_DIRECTORY",
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES"
+    ].findAll { System.getenv().containsKey(it) }
+    if (!forbiddenGitEnvironment.isEmpty()) {
+        throw new GradleException(
+                "Internal App Sharing forbids final-signer, production-distribution, or Firebase inputs: " +
+                        forbiddenGitEnvironment.sort().join(", ")
+        )
+    }
+}
 def explicitReleaseTaskRequested = requestedTaskNames.any { taskName ->
     def taskLeaf = taskName.tokenize(":").last()
     def releaseEntrypointPrefixes = [

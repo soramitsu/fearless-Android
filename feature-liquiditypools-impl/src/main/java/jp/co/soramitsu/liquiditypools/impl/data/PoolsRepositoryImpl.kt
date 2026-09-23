@@ -45,10 +45,7 @@ import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.UserPoolData
-import jp.co.soramitsu.liquiditypools.impl.data.network.depositLiquidity
-import jp.co.soramitsu.liquiditypools.impl.data.network.initializePool
 import jp.co.soramitsu.liquiditypools.impl.data.network.liquidityAdd
-import jp.co.soramitsu.liquiditypools.impl.data.network.register
 import jp.co.soramitsu.liquiditypools.impl.data.network.removeLiquidity
 import jp.co.soramitsu.liquiditypools.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -853,7 +850,7 @@ open class PoolsRepositoryImpl constructor(
             address = context.accountAddress,
             baseTokenId = baseCurrencyId,
             targetTokenId = targetCurrencyId.fromHex()
-        ) ?: throw IllegalStateException("Fresh SORA liquidity position is unavailable")
+        ) ?: error("Fresh SORA liquidity position is unavailable")
         check(freshPool.baseAssetId == baseCurrencyId && freshPool.assetId == targetCurrencyId) {
             "Fresh liquidity position does not match the exact requested pool"
         }

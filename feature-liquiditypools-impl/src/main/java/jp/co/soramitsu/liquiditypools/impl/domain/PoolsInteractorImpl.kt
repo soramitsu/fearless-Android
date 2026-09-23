@@ -36,15 +36,15 @@ class PoolsInteractorImpl(
 
     override val poolsChainId = poolsRepository.poolsChainId
 
-    override suspend fun mutationCapabilityReason(action: LiquidityMutationAction): String? =
-        poolsRepository.mutationCapabilityReason(poolsChainId, action)
-
     private val soraPoolsAddressFlow = flowOf {
         val meta = accountRepository.getSelectedMetaAccount()
         val chain = accountRepository.getChain(poolsChainId)
         meta.address(chain)
     }.mapNotNull { it }
         .distinctUntilChanged()
+
+    override suspend fun mutationCapabilityReason(action: LiquidityMutationAction): String? =
+        poolsRepository.mutationCapabilityReason(poolsChainId, action)
 
     override suspend fun getBasicPools(): List<BasicPoolData> {
         return poolsRepository.getBasicPools(poolsChainId)

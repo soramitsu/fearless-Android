@@ -1,7 +1,7 @@
 package jp.co.soramitsu.liquiditypools.impl.data.network
 
-import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import java.math.BigInteger
 
 private const val DEMETER_FARMING_MODULE = "DemeterFarmingPlatform"
 

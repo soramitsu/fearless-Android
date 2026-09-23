@@ -45,7 +45,6 @@ import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.theme.black50
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
-import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
@@ -72,6 +71,10 @@ import java.math.BigDecimal
 import javax.inject.Inject
 
 private const val MARKET_ID_ARGUMENT = "marketId"
+private const val PROBABILITY_PERCENT_MAX = 100f
+private const val PROBABILITY_LINE_WIDTH = 5f
+private const val CHART_MIDPOINT_DIVISOR = 2f
+private const val PROBABILITY_COLOR_ARGB = 0xFFD33A7C
 
 enum class PolkamarktSection { Markets, Positions }
 enum class MarketFilter { Active, Finalized, All }
@@ -122,7 +125,11 @@ class PolkamarktViewModel @Inject constructor(
             mutableState.update { it.copy(loading = true, message = null) }
             runCatching { interactor.snapshot(mutableState.value.selectedMarketId) }
                 .onSuccess { snapshot -> mutableState.update { it.copy(loading = false, snapshot = snapshot) } }
-                .onFailure { error -> mutableState.update { it.copy(loading = false, message = error.message ?: "Polkamarkt is unavailable.") } }
+                .onFailure { error ->
+                    mutableState.update {
+                    it.copy(loading = false, message = error.message ?: "Polkamarkt is unavailable.")
+                }
+                }
         }
     }
 
@@ -131,7 +138,8 @@ class PolkamarktViewModel @Inject constructor(
         refresh()
     }
 
-    fun setSection(section: PolkamarktSection) = mutableState.update { it.copy(section = section, selectedMarketId = null) }
+    fun setSection(section: PolkamarktSection) =
+        mutableState.update { it.copy(section = section, selectedMarketId = null) }
     fun setFilter(filter: MarketFilter) = mutableState.update { it.copy(filter = filter) }
     fun setQuery(query: String) = mutableState.update { it.copy(query = query) }
     fun setTradeMode(mode: PolkamarktTradeMode) = mutableState.update { it.copy(tradeMode = mode, quote = null) }
@@ -150,7 +158,11 @@ class PolkamarktViewModel @Inject constructor(
                     PolkamarktQuoteRequest(marketId, current.tradeMode, current.outcome, current.amount)
                 )
             }.onSuccess { quote -> mutableState.update { it.copy(mutating = false, quote = quote) } }
-                .onFailure { error -> mutableState.update { it.copy(mutating = false, message = error.message ?: "Quote unavailable.") } }
+                .onFailure { error ->
+                    mutableState.update {
+                    it.copy(mutating = false, message = error.message ?: "Quote unavailable.")
+                }
+                }
         }
     }
 
@@ -236,6 +248,8 @@ class PolkamarktFragment : BaseComposeFragment<PolkamarktViewModel>() {
     }
 }
 
+// Screen callbacks are explicit so each action remains bound to the current view model.
+@Suppress("LongParameterList")
 @Composable
 private fun PolkamarktScreen(
     state: PolkamarktUiState,
@@ -297,7 +311,9 @@ private fun PolkamarktScreen(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GrayButton(modifier = Modifier.weight(1f), text = "Markets", onClick = { onSection(PolkamarktSection.Markets) })
-            GrayButton(modifier = Modifier.weight(1f), text = "Your positions", onClick = { onSection(PolkamarktSection.Positions) })
+            GrayButton(modifier = Modifier.weight(1f), text = "Your positions", onClick = {
+                onSection(PolkamarktSection.Positions)
+            })
         }
         if (state.section == PolkamarktSection.Positions) {
             Positions(snapshot, state, onSelectMarket, onClaimTrader, onClaimCreator)
@@ -340,7 +356,13 @@ private fun MarketCatalog(
     if (markets.isEmpty()) {
         val closedExist = snapshot.markets.any { it.displayStatus != PolkamarktDisplayStatus.Open }
         B0(
-            text = if (snapshot.markets.isEmpty()) "No markets are available yet." else if (closedExist) "No active markets. Closed markets remain available under Finalized." else "No markets match this filter.",
+            text = if (snapshot.markets.isEmpty()) {
+                "No markets are available yet."
+            } else if (closedExist) {
+                "No active markets. Closed markets remain available under Finalized."
+            } else {
+                "No markets match this filter."
+            },
             color = white50
         )
     }
@@ -364,6 +386,8 @@ private fun MarketCard(market: PolkamarktMarket, onClick: () -> Unit) {
     }
 }
 
+// The UI renders every independent market state; execution remains in the guarded interactor.
+@Suppress("LongParameterList", "CyclomaticComplexMethod", "NestedBlockDepth")
 @Composable
 private fun MarketDetail(
     state: PolkamarktUiState,
@@ -429,7 +453,12 @@ private fun MarketDetail(
     val trades = snapshot.trades.filter { it.marketId == market.id }
     if (trades.isNotEmpty()) {
         H3(text = "Recent activity")
-        trades.forEach { trade -> B0(text = "${trade.side ?: "Trade"} ${trade.outcome.orEmpty()} · ${trade.collateral ?: trade.sharesIn.orEmpty()} · block ${trade.blockNumber ?: "—"}", color = white50) }
+        trades.forEach { trade ->
+            val side = trade.side ?: "Trade"
+            val amount = trade.collateral ?: trade.sharesIn.orEmpty()
+            val block = trade.blockNumber ?: "—"
+            B0(text = "$side ${trade.outcome.orEmpty()} · $amount · block $block", color = white50)
+        }
     }
 }
 
@@ -440,19 +469,30 @@ private fun ProbabilityChart(points: List<PolkamarktHistoryPoint>) {
         return
     }
     Canvas(modifier = Modifier.fillMaxWidth().height(100.dp).background(black50, RoundedCornerShape(10.dp))) {
-        val values = points.mapNotNull { it.probabilityPercent.toFloatOrNull()?.coerceIn(0f, 100f) }
+        val values = points.mapNotNull {
+            it.probabilityPercent.toFloatOrNull()?.coerceIn(0f, PROBABILITY_PERCENT_MAX)
+        }
         if (values.isEmpty()) return@Canvas
         val step = if (values.size == 1) size.width else size.width / (values.size - 1)
         values.zipWithNext().forEachIndexed { index, (left, right) ->
             drawLine(
-                color = Color(0xFFD33A7C),
-                start = Offset(index * step, size.height * (1f - left / 100f)),
-                end = Offset((index + 1) * step, size.height * (1f - right / 100f)),
-                strokeWidth = 5f,
+                color = Color(PROBABILITY_COLOR_ARGB),
+                start = Offset(index * step, size.height * (1f - left / PROBABILITY_PERCENT_MAX)),
+                end = Offset((index + 1) * step, size.height * (1f - right / PROBABILITY_PERCENT_MAX)),
+                strokeWidth = PROBABILITY_LINE_WIDTH,
                 cap = StrokeCap.Round
             )
         }
-        if (values.size == 1) drawCircle(Color(0xFFD33A7C), 5f, Offset(size.width / 2, size.height * (1f - values.first() / 100f)))
+        if (values.size == 1) {
+            drawCircle(
+                color = Color(PROBABILITY_COLOR_ARGB),
+                radius = PROBABILITY_LINE_WIDTH,
+                center = Offset(
+                    size.width / CHART_MIDPOINT_DIVISOR,
+                    size.height * (1f - values.first() / PROBABILITY_PERCENT_MAX)
+                )
+            )
+        }
     }
     B0(text = "${points.first().probabilityPercent}% → ${points.last().probabilityPercent}%", color = white50)
 }
@@ -497,12 +537,16 @@ private fun ClaimCard(
         val enabled = state.disclaimerAccepted && state.mutationsEnabled && snapshot.account.signable && snapshot.account.hasXorForFees && !state.mutating
         val trader = claim.claimablePayout ?: claim.traderPayout
         if (trader.toBigIntegerOrNull()?.signum() == 1) {
-            B0(text = "Trader payout ${trader} codec KUSD", color = white50)
-            GrayButton(text = "Claim trader payout", enabled = enabled && snapshot.capabilities.claimMarket) { onClaimTrader(claim.marketId) }
+            B0(text = "Trader payout $trader codec KUSD", color = white50)
+            GrayButton(text = "Claim trader payout", enabled = enabled && snapshot.capabilities.claimMarket) {
+                onClaimTrader(claim.marketId)
+            }
         }
         if (claim.isCreator && claim.creatorFees.toBigIntegerOrNull()?.signum() == 1) {
             B0(text = "Creator fees ${claim.creatorFees} codec KUSD", color = white50)
-            GrayButton(text = "Claim creator fees", enabled = enabled && snapshot.capabilities.claimCreatorFees) { onClaimCreator(claim.marketId) }
+            GrayButton(text = "Claim creator fees", enabled = enabled && snapshot.capabilities.claimCreatorFees) {
+                onClaimCreator(claim.marketId)
+            }
         }
     }
 }

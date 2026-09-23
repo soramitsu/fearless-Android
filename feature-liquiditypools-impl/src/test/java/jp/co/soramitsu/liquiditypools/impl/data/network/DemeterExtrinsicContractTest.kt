@@ -1,8 +1,8 @@
 package jp.co.soramitsu.liquiditypools.impl.data.network
 
-import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class DemeterExtrinsicContractTest {
 
@@ -36,6 +36,8 @@ class DemeterExtrinsicContractTest {
         )
     }
 
-    private fun repositoryRoot(): File = generateSequence(File(requireNotNull(System.getProperty("user.dir")))) { it.parentFile }
+    private fun repositoryRoot(): File = generateSequence(File(requireNotNull(System.getProperty("user.dir")))) {
+        it.parentFile
+    }
         .first { File(it, "settings.gradle").isFile }
 }

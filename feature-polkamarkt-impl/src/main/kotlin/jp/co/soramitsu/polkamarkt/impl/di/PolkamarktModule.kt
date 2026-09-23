@@ -6,8 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.config.MutationAuthorizationStore
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.polkamarkt.api.PolkamarktInteractor
@@ -32,6 +32,8 @@ object PolkamarktModule {
     fun providePolkamarktRuntime(chainRegistry: ChainRegistry, bulkRetriever: BulkRetriever) =
         PolkamarktRuntime(chainRegistry, bulkRetriever)
 
+    // Dagger resolves these independently reviewed constructor dependencies.
+    @Suppress("LongParameterList")
     @Provides
     @Singleton
     fun providePolkamarktInteractor(

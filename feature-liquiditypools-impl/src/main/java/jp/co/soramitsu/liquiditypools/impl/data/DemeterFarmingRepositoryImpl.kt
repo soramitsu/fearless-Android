@@ -7,9 +7,10 @@ import jp.co.soramitsu.androidfoundation.format.isZero
 import jp.co.soramitsu.androidfoundation.format.mapBalance
 import jp.co.soramitsu.androidfoundation.format.orZero
 import jp.co.soramitsu.androidfoundation.format.safeCast
-import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
+import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
@@ -22,10 +23,9 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.liquiditypools.data.DemeterFarmingRepository
 import jp.co.soramitsu.liquiditypools.data.PoolsRepository
-import jp.co.soramitsu.liquiditypools.domain.DemeterMutationAction
 import jp.co.soramitsu.liquiditypools.domain.DemeterFarmingBasicPool
 import jp.co.soramitsu.liquiditypools.domain.DemeterFarmingPool
-import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.liquiditypools.domain.DemeterMutationAction
 import jp.co.soramitsu.liquiditypools.impl.data.network.demeterClaimRewards
 import jp.co.soramitsu.liquiditypools.impl.data.network.demeterDeposit
 import jp.co.soramitsu.liquiditypools.impl.data.network.demeterWithdraw
@@ -60,6 +60,8 @@ private data class ValidatedDemeterMutation(
     val amountInPlanks: BigInteger? = null
 )
 
+// The existing repository owns both legacy read paths and final mutation revalidation.
+@Suppress("LargeClass")
 open class DemeterFarmingRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val bulkRetriever: BulkRetriever,
@@ -323,7 +325,7 @@ open class DemeterFarmingRepositoryImpl(
                 it.pool == validated.target.currencyId &&
                 it.reward == validated.reward.currencyId &&
                 it.isFarm && !it.isRemoved
-        } ?: throw IllegalStateException("The exact Demeter farm is not active on SORA")
+        } ?: error("The exact Demeter farm is not active on SORA")
         check(freshFarm.totalTokensInPool >= BigInteger.ZERO) {
             "Fresh Demeter farm state is invalid"
         }
@@ -425,16 +427,14 @@ open class DemeterFarmingRepositoryImpl(
         )
     }
 
-    private suspend fun requireFreshPosition(
-        chainId: ChainId,
-        validated: ValidatedDemeterMutation
-    ): DemeterStorage = getDemeter(chainId, validated.context.accountAddress)
+    private suspend fun requireFreshPosition(chainId: ChainId, validated: ValidatedDemeterMutation): DemeterStorage =
+        getDemeter(chainId, validated.context.accountAddress)
         ?.singleOrNull {
             it.farm &&
                 it.base == validated.base.currencyId &&
                 it.pool == validated.target.currencyId &&
                 it.reward == validated.reward.currencyId
-        } ?: throw IllegalStateException("The exact fresh Demeter position is unavailable")
+        } ?: error("The exact fresh Demeter position is unavailable")
 
     private suspend fun getSoraAssets(chainId: ChainId): List<Asset> {
         val soraChain = chainRegistry.getChain(chainId)

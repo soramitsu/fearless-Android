@@ -30,8 +30,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AccentButton
@@ -53,6 +51,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 @Immutable
 data class DemeterFarmingState(
@@ -321,7 +321,11 @@ private fun FarmingSurface(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-private fun AmountInput(value: String, label: String, onValueChange: (String) -> Unit) {
+private fun AmountInput(
+    value: String,
+    label: String,
+    onValueChange: (String) -> Unit
+) {
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         value = value,

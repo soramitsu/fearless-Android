@@ -67,7 +67,7 @@ private fun DictEnum.toRuntimeEnum(logical: Any?): DictEnum.Entry<Any?> {
             require(values.size == 1) { "XCM runtime enum must contain exactly one variant" }
             values.entries.single().toPair()
         }
-        else -> error("XCM runtime enum ${name} has an invalid value")
+        else -> error("XCM runtime enum $name has an invalid value")
     }
     val childType = this[variant] ?: Null
     return DictEnum.Entry(variant, childType.toXcmRuntimeValue(value))
@@ -150,8 +150,12 @@ private fun Any?.toRuntimeInteger(): BigInteger = when (this) {
 
 private fun Any?.toRuntimeBytes(): ByteArray = when (this) {
     is ByteArray -> this
-    is String -> if (startsWith("0x")) fromHex() else runCatching { toAccountId() }
+    is String -> if (startsWith("0x")) {
+        fromHex()
+    } else {
+        runCatching { toAccountId() }
         .getOrElse { error("XCM runtime account or hex bytes are invalid") }
+    }
     else -> error("XCM runtime bytes are invalid")
 }
 
@@ -169,7 +173,7 @@ private fun String.alternateRuntimeSpelling(): String = if ('_' in this) {
         words.first() + words.drop(1).joinToString("") { it.replaceFirstChar(Char::uppercaseChar) }
     }
 } else {
-    buildString(length + 4) {
+    buildString {
         this@alternateRuntimeSpelling.forEachIndexed { index, character ->
             if (character.isUpperCase()) {
                 if (index != 0) append('_')

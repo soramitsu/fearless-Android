@@ -6,8 +6,8 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.FixedA
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Tuple
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Vec
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u8
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u32
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u8
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module.FunctionArgument
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module.MetadataFunction
 import org.junit.Assert.assertArrayEquals
@@ -107,5 +107,4 @@ class XcmRuntimeCallArgumentsTest {
         assertTrue(assets.isValidInstance(runtimeAssets))
         assertEquals(1, (runtimeAssets.single() as List<*>).size)
     }
-
 }

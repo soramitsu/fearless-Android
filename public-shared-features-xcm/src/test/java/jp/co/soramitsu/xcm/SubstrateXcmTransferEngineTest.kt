@@ -38,7 +38,10 @@ class SubstrateXcmTransferEngineTest {
             // No keypair provider is installed: the compiled guard must reject before signing setup.
             delegate = SubstrateXcmTransferEngine(submitter),
             transfersEnabled = false,
-            mutationsEnabled = { remoteRead = true; true }
+            mutationsEnabled = {
+                remoteRead = true
+            true
+            }
         )
         val request = XcmTransferRequest(
             originChain = chain("origin"),

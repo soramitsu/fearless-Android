@@ -1,16 +1,11 @@
 package jp.co.soramitsu.xcm
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -23,6 +18,10 @@ import jp.co.soramitsu.xcm.domain.CrossChainRouteAvailability
 import jp.co.soramitsu.xcm.domain.CrossChainRouteCapability
 import jp.co.soramitsu.xcm.domain.CrossChainRouteProvider
 import jp.co.soramitsu.xcm.domain.CrossChainRouteQuery
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 /** Exact Polkaswap bridge provider ids shared with the reviewed web route authority. */
 object ReviewedPolkaswapBridgeProviderIds {
@@ -132,19 +131,23 @@ data class ReviewedBridgeExecution(
         require(destinationFee.toBigDecimalOrNull()?.signum() != -1) {
             "Reviewed bridge destination fee must be a non-negative decimal"
         }
-        require((recipientKind == ReviewedBridgeRecipientKind.Parachain) == (destinationParaId != null)) {
+        val isParachainRecipient = recipientKind == ReviewedBridgeRecipientKind.Parachain
+        val hasDestinationParaId = destinationParaId != null
+        require(isParachainRecipient == hasDestinationParaId) {
             "Reviewed bridge parachain recipient must have exactly one destination para id"
         }
+        val isAcalaNative = externalSource == ReviewedBridgeExternalSource.AcalaNative
+        val hasCurrencyToken = currencyToken != null
         require(
             kind != ReviewedBridgeExecutionKind.LiberlandToSoraBurn ||
-                (bridgeNetwork == ReviewedBridgeNetwork.Liberland &&
-                    recipientKind == ReviewedBridgeRecipientKind.Sora && externalAsset != null)
+                bridgeNetwork == ReviewedBridgeNetwork.Liberland &&
+                recipientKind == ReviewedBridgeRecipientKind.Sora && externalAsset != null
         ) { "Liberland to SORA execution authority is incomplete" }
         require(
             kind != ReviewedBridgeExecutionKind.ExternalToSoraXcmV3 ||
-                (recipientKind == ReviewedBridgeRecipientKind.Sora && externalSource != null &&
-                    soraParachainId != null && soraParachainChainId != null &&
-                    (externalSource == ReviewedBridgeExternalSource.AcalaNative) == (currencyToken != null))
+                recipientKind == ReviewedBridgeRecipientKind.Sora && externalSource != null &&
+                soraParachainId != null && soraParachainChainId != null &&
+                isAcalaNative == hasCurrencyToken
         ) { "External to SORA execution authority is incomplete" }
     }
 
@@ -272,6 +275,8 @@ fun unavailableReviewedRouteId(
 ).joinToString(":")
 
 /** APK-owned authority ported from web `reviewedRoutes.ts` and `routeRegistry.ts`. */
+// Keep the named route builders before the immutable inventory they construct.
+@Suppress("LongParameterList", "LargeClass", "ClassOrdering")
 object ReviewedPolkaswapBridgeCatalog {
     const val SORA_CHAIN_ID = "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5"
     const val POLKADOT_CHAIN_ID = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"
@@ -599,9 +604,9 @@ object ReviewedPolkaswapBridgeCatalog {
             soraAssetId = "0x0200000000000000000000000000000000000000000000000000000000000000",
             assetKind = ReviewedBridgeAssetKind.Thischain,
             sidechainPrecision = 18,
-            externalAsset = ReviewedBridgeExternalAsset.Asset(774441749),
+            externalAsset = ReviewedBridgeExternalAsset.Asset(774_441_749),
             destinationFee = "0",
-            destinationMinimum = ReviewedBridgeDestinationMinimum.AssetsMinBalance(774441749, 18)
+            destinationMinimum = ReviewedBridgeDestinationMinimum.AssetsMinBalance(774_441_749, 18)
         ),
         soraBurn(
             providerId = ReviewedPolkaswapBridgeProviderIds.LIBERLAND,
@@ -653,7 +658,7 @@ object ReviewedPolkaswapBridgeCatalog {
             symbol = "XOR",
             precision = 18,
             minimum = null,
-            externalAsset = ReviewedBridgeExternalAsset.Asset(774441749),
+            externalAsset = ReviewedBridgeExternalAsset.Asset(774_441_749),
             soraAssetId = "0x0200000000000000000000000000000000000000000000000000000000000000",
             assetKind = ReviewedBridgeAssetKind.Thischain
         )
@@ -835,10 +840,7 @@ fun interface ReviewedBridgeRuntimeResolver {
     suspend fun resolve(route: ReviewedBridgeRoute): ReviewedBridgeRuntimeResolution
 }
 
-fun reviewedBridgeRuntimeFingerprint(
-    route: ReviewedBridgeRoute,
-    runtime: ReviewedBridgeRuntimeResolution
-): String {
+fun reviewedBridgeRuntimeFingerprint(route: ReviewedBridgeRoute, runtime: ReviewedBridgeRuntimeResolution): String {
     val authority = listOf(
         route.routeId,
         route.providerId,
@@ -938,9 +940,13 @@ class ReviewedPolkaswapBridgeRouteProvider(
                 )
             },
             estimatedTime = exactExecutable?.estimatedTime,
-            warnings = if (exactExecutable == null) emptyList() else listOf(
+            warnings = if (exactExecutable == null) {
+                emptyList()
+            } else {
+                listOf(
                 "The destination fee is reviewed static data; final submission re-resolves live runtime authority and balances."
-            ),
+            )
+            },
             userFacingReason = if (enabled) null else actionsDisabledReason()
         )
     }
@@ -960,8 +966,7 @@ class ReviewedPolkaswapBridgeRouteProvider(
         unavailableRoutes.forEach { add(capabilityForUnavailable(it)) }
     }
 
-    private fun capabilityForRuntimeFailure(route: ReviewedBridgeRoute, error: Throwable) =
-        CrossChainRouteCapability(
+    private fun capabilityForRuntimeFailure(route: ReviewedBridgeRoute, error: Throwable) = CrossChainRouteCapability(
             providerId = providerId,
             protocol = protocol,
             availability = CrossChainRouteAvailability.Unavailable,
@@ -1027,8 +1032,7 @@ class ReviewedPolkaswapBridgeRouteProvider(
             (query.destinationNetworkId == null || destinationChainId == query.destinationNetworkId) &&
             (query.originAssetId == null || originAssetId == query.originAssetId)
 
-    private fun ReviewedBridgeRoute.assetIdentity() =
-        CrossChainAssetIdentity(originChainId, originAssetId, symbol)
+    private fun ReviewedBridgeRoute.assetIdentity() = CrossChainAssetIdentity(originChainId, originAssetId, symbol)
 
     private fun UnavailableReviewedBridgeRoute.assetIdentity() =
         CrossChainAssetIdentity(originChainId, originAssetId, symbol)
@@ -1057,8 +1061,9 @@ class ChainRegistryReviewedBridgeRuntimeResolver(
         ) { "cross_chain_runtime_xcm_version_drift" }
 
         val matchingAssets = origin.assets.filter { asset ->
+            val canonicalId = asset.currencyId ?: asset.id
             asset.id == route.originAssetId &&
-                (asset.currencyId ?: asset.id) == route.originCanonicalAssetId &&
+                canonicalId == route.originCanonicalAssetId &&
                 asset.symbol.uppercase() == route.symbol &&
                 asset.precision == route.precision
         }
@@ -1318,7 +1323,8 @@ class ReviewedPolkaswapBridgeExecutor(
         require(request.asset.chainId == route.originChainId && request.asset.id == route.originAssetId) {
             "cross_chain_origin_asset_mismatch"
         }
-        require((request.asset.currencyId ?: request.asset.id) == route.originCanonicalAssetId) {
+        val requestedCanonicalAssetId = request.asset.currencyId ?: request.asset.id
+        require(requestedCanonicalAssetId == route.originCanonicalAssetId) {
             "cross_chain_asset_key_mismatch"
         }
         require(request.asset.symbol.uppercase() == route.symbol && request.asset.precision == route.precision) {
@@ -1513,25 +1519,22 @@ class ReviewedPolkaswapBridgeExecutor(
     }
 }
 
-/**
- * Runtime metadata uses a PascalCase pallet name while Polkadot.js exposes the same pallet with a
- * lower-camel name. Those are the only two spellings accepted by the reviewed authority.
- */
-private fun String.matchesReviewedPalletName(reviewedName: String): Boolean =
-    this == reviewedName || this == reviewedName.replaceFirstChar { it.uppercase() }
+private fun String.matchesReviewedPalletName(reviewedName: String): Boolean {
+    // Runtime metadata uses PascalCase while Polkadot.js exposes lower-camel.
+    // Those are the only two spellings accepted by the reviewed authority.
+    return this == reviewedName || this == reviewedName.replaceFirstChar { it.uppercase() }
+}
 
-/**
- * SCALE metadata keeps Rust's snake_case argument names; Polkadot.js exposes lower-camel names.
- * Accept those two exact platform spellings without punctuation/case folding, which could turn a
- * genuinely different runtime schema into a false match.
- */
-private fun List<String>.matchesReviewedArgumentNames(reviewedNames: List<String>): Boolean =
-    size == reviewedNames.size && indices.all { index ->
+private fun List<String>.matchesReviewedArgumentNames(reviewedNames: List<String>): Boolean {
+    // SCALE metadata keeps Rust snake_case names; Polkadot.js exposes lower-camel.
+    // Accept only those spellings to avoid a false match to a different runtime schema.
+    return size == reviewedNames.size && indices.all { index ->
         val reviewed = reviewedNames[index]
         this[index] == reviewed || this[index] == reviewed.toReviewedSnakeCase()
     }
+}
 
-private fun String.toReviewedSnakeCase(): String = buildString(length + 4) {
+private fun String.toReviewedSnakeCase(): String = buildString {
     this@toReviewedSnakeCase.forEachIndexed { index, character ->
         if (character.isUpperCase()) {
             if (index != 0) append('_')

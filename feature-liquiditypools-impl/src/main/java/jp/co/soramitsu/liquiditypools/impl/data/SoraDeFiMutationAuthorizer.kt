@@ -1,8 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.data
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
@@ -17,6 +14,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 internal enum class SoraMutationFeature {
     Liquidity,
@@ -91,6 +91,8 @@ open class SoraDeFiMutationAuthorizer @Inject constructor(
         return failure.message ?: "SORA mutation context is unavailable"
     }
 
+    // Keep separate fail-closed errors for each identity, signer, asset, and fee-asset check.
+    @Suppress("ThrowsCount")
     internal open suspend fun authorize(
         feature: SoraMutationFeature,
         chainId: ChainId,
@@ -104,7 +106,7 @@ open class SoraDeFiMutationAuthorizer @Inject constructor(
         val chain = chainRegistry.getChain(chainId)
         check(chain.id == chainId) { "Resolved SORA chain identity does not match the request" }
         val runtime = chainRegistry.getRuntimeOrNull(chainId)
-            ?: throw IllegalStateException("SORA runtime is unavailable")
+            ?: error("SORA runtime is unavailable")
         requiredCalls.forEach { required ->
             check(runtime.metadata.moduleOrNull(required.pallet)?.calls?.get(required.call) != null) {
                 "SORA runtime call ${required.pallet}.${required.call} is unavailable"
@@ -113,7 +115,7 @@ open class SoraDeFiMutationAuthorizer @Inject constructor(
 
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val accountId = metaAccount.accountId(chain)
-            ?: throw IllegalStateException("Add a SORA account before continuing")
+            ?: error("Add a SORA account before continuing")
         check(!accountRepository.isWalletRecoveryRequired(metaAccount.id)) {
             "Recover this wallet's signing material before continuing"
         }
@@ -132,9 +134,9 @@ open class SoraDeFiMutationAuthorizer @Inject constructor(
         val canonicalAssets = requestedAssets.map { requested ->
             check(requested.chainId == chainId) { "Requested asset belongs to a different network" }
             val currencyId = requested.currencyId?.takeIf(String::isNotBlank)
-                ?: throw IllegalStateException("Requested asset has no exact SORA currency id")
+                ?: error("Requested asset has no exact SORA currency id")
             val canonical = chain.assets.singleOrNull { it.currencyId == currencyId }
-                ?: throw IllegalStateException("SORA currency id is not uniquely registered")
+                ?: error("SORA currency id is not uniquely registered")
             check(
                 canonical.id == requested.id &&
                     canonical.chainId == chainId &&
@@ -147,7 +149,7 @@ open class SoraDeFiMutationAuthorizer @Inject constructor(
             it.chainId == chainId && it.isUtility &&
                 it.currencyId.equals(XOR_CURRENCY_ID, ignoreCase = true) &&
                 it.precision == XOR_PRECISION
-        } ?: throw IllegalStateException("The exact XOR fee asset is unavailable on SORA")
+        } ?: error("The exact XOR fee asset is unavailable on SORA")
 
         return SoraMutationContext(
             chain = chain,
@@ -173,11 +175,11 @@ open class SoraDeFiMutationAuthorizer @Inject constructor(
         spends.forEach { spend ->
             val currencyId = requireNotNull(spend.asset.currencyId)
             val existing = requiredByCurrencyId[currencyId]?.second ?: BigInteger.ZERO
-            requiredByCurrencyId[currencyId] = spend.asset to (existing + spend.amountInPlanks)
+            requiredByCurrencyId[currencyId] = Pair(spend.asset, existing + spend.amountInPlanks)
         }
         val feeCurrencyId = requireNotNull(context.feeAsset.currencyId)
         val existingFeeAssetSpend = requiredByCurrencyId[feeCurrencyId]?.second ?: BigInteger.ZERO
-        requiredByCurrencyId[feeCurrencyId] = context.feeAsset to (existingFeeAssetSpend + feeInPlanks)
+        requiredByCurrencyId[feeCurrencyId] = Pair(context.feeAsset, existingFeeAssetSpend + feeInPlanks)
 
         requiredByCurrencyId.forEach { (currencyId, required) ->
             val freshBalance = walletRepository.getAccountSpendableBalance(required.first, context.accountId)

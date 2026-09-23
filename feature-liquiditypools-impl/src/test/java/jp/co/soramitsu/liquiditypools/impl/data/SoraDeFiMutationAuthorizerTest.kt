@@ -1,7 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.data
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
@@ -29,6 +27,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class SoraDeFiMutationAuthorizerTest {
 
@@ -301,7 +301,12 @@ class SoraDeFiMutationAuthorizerTest {
             )
         }
 
-        private fun asset(id: String, currencyId: String, symbol: String, isUtility: Boolean) = mock<Asset> {
+        private fun asset(
+            id: String,
+            currencyId: String,
+            symbol: String,
+            isUtility: Boolean
+        ) = mock<Asset> {
             on { this.id }.thenReturn(id)
             on { chainId }.thenReturn(soraMainChainId)
             on { this.currencyId }.thenReturn(currencyId)

@@ -5,9 +5,9 @@ import com.google.gson.JsonObject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.config.MutationAuthorizationStore
 import jp.co.soramitsu.common.data.network.config.MutationCapability
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
@@ -133,8 +133,11 @@ class PolkamarktIndexer @Inject constructor(
         }.map(::parseActivity).getOrDefault(ParsedActivity(emptyList(), emptyList()))
     }
 
-    private suspend fun query(endpoint: String, query: String, variables: Map<String, Any>): JsonObject =
-        withContext(Dispatchers.IO) {
+    private suspend fun query(
+        endpoint: String,
+        query: String,
+        variables: Map<String, Any>
+    ): JsonObject = withContext(Dispatchers.IO) {
             val body = gson.toJson(mapOf("query" to query, "variables" to variables)).toRequestBody(JSON_MEDIA_TYPE)
             val request = Request.Builder().url(endpoint).post(body).build()
             client.newCall(request).execute().use { response ->
@@ -197,6 +200,8 @@ class PolkamarktRuntime @Inject constructor(
         )
     }
 
+    // Each missing runtime component exits without accepting indexer data as authority.
+    @Suppress("CyclomaticComplexMethod", "ReturnCount")
     suspend fun markets(currentBlock: String): List<PolkamarktMarket> {
         val runtime = chainRegistry.getRuntimeOrNull(soraMainChainId) ?: return emptyList()
         val module = runtime.metadata.moduleOrNull(PALLET) ?: return emptyList()
@@ -281,6 +286,8 @@ class PolkamarktRuntime @Inject constructor(
             mapper = pojo<JsonObject>().nonNull()
         )
 
+    // Missing or malformed runtime storage is an absent value, never an executable quote.
+    @Suppress("ReturnCount")
     private suspend fun queryStruct(storageName: String, key: BigInteger): Struct.Instance? {
         val runtime = chainRegistry.getRuntimeOrNull(soraMainChainId) ?: return null
         val storage = runCatching { runtime.metadata.moduleOrNull(PALLET)?.storage(storageName) }.getOrNull() ?: return null
@@ -293,6 +300,7 @@ class PolkamarktRuntime @Inject constructor(
         return runCatching { type.fromHex(runtime, hex) as? Struct.Instance }.getOrNull()
     }
 
+    @Suppress("ReturnCount")
     private suspend fun queryInteger(storageName: String, key: BigInteger): String? {
         val runtime = chainRegistry.getRuntimeOrNull(soraMainChainId) ?: return null
         val storage = runCatching { runtime.metadata.moduleOrNull(PALLET)?.storage(storageName) }.getOrNull() ?: return null
@@ -318,6 +326,8 @@ class PolkamarktInteractorImpl @Inject constructor(
     private val mutationAuthorization: MutationAuthorizationStore
 ) : jp.co.soramitsu.polkamarkt.api.PolkamarktInteractor {
 
+    // Snapshot combines independently optional runtime, indexer, and wallet reads.
+    @Suppress("CyclomaticComplexMethod")
     override suspend fun snapshot(marketId: String?): PolkamarktSnapshot = coroutineScope {
         val chain = chainRegistry.getChain(soraMainChainId)
         val currentBlock = runtime.currentBlock()
@@ -330,9 +340,11 @@ class PolkamarktInteractorImpl @Inject constructor(
             if (indexerEndpoint == null) {
                 warnings += "SORA Polkamarkt indexer is not configured."
                 emptyList()
-            } else runCatching { indexer.markets(indexerEndpoint, currentBlock) }
+            } else {
+                runCatching { indexer.markets(indexerEndpoint, currentBlock) }
                 .onFailure { warnings += it.message ?: "Polkamarkt indexer is unavailable." }
                 .getOrDefault(emptyList())
+            }
         }
         val onChain = async {
             runCatching { runtime.markets(currentBlock) }
@@ -340,7 +352,9 @@ class PolkamarktInteractorImpl @Inject constructor(
                 .getOrDefault(emptyList())
         }
         val history = async { indexerEndpoint?.let { indexer.history(it, marketId) }.orEmpty() }
-        val activity = async { indexerEndpoint?.let { indexer.activity(it, address) } ?: ParsedActivity(emptyList(), emptyList()) }
+        val activity = async {
+            indexerEndpoint?.let { indexer.activity(it, address) } ?: ParsedActivity(emptyList(), emptyList())
+        }
         val capabilities = async { runtime.capabilities() }
         val assets = async { walletRepository.getAssets(wallet.id).filter { it.chainId == chain.id } }
 
@@ -357,8 +371,12 @@ class PolkamarktInteractorImpl @Inject constructor(
             runtime.claimable(account, ids)
         }.orEmpty()
         val signable = wallet.accountId(chain) != null && isLocallySignable(wallet.id, chain)
-        val hasKusd = soraAssets.any { it.token.configuration.currencyId.equals(KUSD_ASSET_ID, ignoreCase = true) && it.transferable.signum() > 0 }
-        val hasXor = soraAssets.any { it.token.configuration.currencyId.equals(XOR_ASSET_ID, ignoreCase = true) && it.transferable.signum() > 0 }
+        val hasKusd = soraAssets.any {
+            it.token.configuration.currencyId.equals(KUSD_ASSET_ID, ignoreCase = true) && it.transferable.signum() > 0
+        }
+        val hasXor = soraAssets.any {
+            it.token.configuration.currencyId.equals(XOR_ASSET_ID, ignoreCase = true) && it.transferable.signum() > 0
+        }
         val accountCapability = PolkamarktAccountCapability(
             address = address,
             signable = signable,
@@ -392,11 +410,16 @@ class PolkamarktInteractorImpl @Inject constructor(
         val response = runtime.quote(request)
         val resultCodec = if (request.mode == PolkamarktTradeMode.Buy) {
             response.firstString("sharesOut", "shares_out")
-        } else response.firstString("collateralOut", "collateral_out")
+        } else {
+            response.firstString("collateralOut", "collateral_out")
+        }
         val result = normalizeInteger(resultCodec) ?: error("SORA runtime returned no quote.")
         val amount = normalizeInteger(
-            if (request.mode == PolkamarktTradeMode.Buy) response.firstString("collateralIn", "collateral_in")
-            else response.firstString("sharesIn", "shares_in")
+            if (request.mode == PolkamarktTradeMode.Buy) {
+                response.firstString("collateralIn", "collateral_in")
+            } else {
+                response.firstString("sharesIn", "shares_in")
+            }
         ) ?: toCodecAmount(request.amount).toString()
         val minimum = minimumAfterSlippage(result.toBigInteger())
         val networkFee = extrinsicService.estimateFee(chain) {
@@ -405,7 +428,9 @@ class PolkamarktInteractorImpl @Inject constructor(
         return PolkamarktQuote(
             marketId = normalizeInteger(response.firstString("marketId", "market_id")) ?: request.marketId,
             mode = request.mode,
-            outcome = response.firstString("outcome")?.let { if (it.equals("No", true)) PolkamarktOutcome.No else PolkamarktOutcome.Yes }
+            outcome = response.firstString("outcome")?.let {
+                if (it.equals("No", true)) PolkamarktOutcome.No else PolkamarktOutcome.Yes
+            }
                 ?: request.outcome,
             amount = fromCodecAmount(amount),
             feeAmount = fromCodecAmount(normalizeInteger(response.firstString("feeAmount", "fee_amount")) ?: "0"),
@@ -573,8 +598,8 @@ private fun availableShares(
     .stripTrailingZeros()
     .toPlainString()
 
-/** Indexer integer share fields are codec amounts; decimal fields are already display amounts. */
 private fun String.asIndexedShareAmount(): BigDecimal? {
+    // Indexer integer share fields are codec amounts; decimal fields are already display amounts.
     val normalized = normalizeDecimal(this, "")
     if (normalized.isEmpty()) return null
     return if ('.' in normalized) {
@@ -593,17 +618,21 @@ private fun ExtrinsicBuilder.polkamarktTrade(
 ) = call(
     PALLET,
     if (mode == PolkamarktTradeMode.Buy) "buy" else "sell",
-    if (mode == PolkamarktTradeMode.Buy) mapOf(
+    if (mode == PolkamarktTradeMode.Buy) {
+        mapOf(
         "market_id" to marketId.toU32(),
         "outcome" to DictEnum.Entry(outcome.name, null),
         "collateral_in" to amount,
         "min_shares_out" to minimum
-    ) else mapOf(
+    )
+    } else {
+        mapOf(
         "market_id" to marketId.toU32(),
         "outcome" to DictEnum.Entry(outcome.name, null),
         "shares_in" to amount,
         "min_collateral_out" to minimum
     )
+    }
 )
 
 private fun ExtrinsicBuilder.polkamarktClaim(callName: String, marketId: String) = call(

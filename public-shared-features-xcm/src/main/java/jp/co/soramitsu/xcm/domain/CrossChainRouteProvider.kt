@@ -129,7 +129,9 @@ data class CrossChainRouteCapability(
         require(minimumAmount == null || minimumAmount.toBigDecimalOrNull() != null) {
             "Cross-chain minimum must be a decimal string"
         }
-        require((minimumAmount == null) == (minimumAssetSymbol == null)) {
+        val hasMinimumAmount = minimumAmount != null
+        val hasMinimumAssetSymbol = minimumAssetSymbol != null
+        require(hasMinimumAmount == hasMinimumAssetSymbol) {
             "Cross-chain minimum amount and asset symbol must be supplied together"
         }
         require(warnings.none(String::isBlank)) { "Cross-chain warnings must not be blank" }
@@ -161,6 +163,7 @@ interface CrossChainRouteProvider {
 }
 
 /** Reviewed wallet XCM provider backed only by the immutable/effective route registry. */
+@Suppress("ClassOrdering")
 class ReviewedWalletXcmRouteProvider(
     private val entitiesFetcher: XcmEntitiesFetcher,
     private val actionsEnabled: () -> Boolean,
@@ -180,6 +183,8 @@ class ReviewedWalletXcmRouteProvider(
     override val providerId: String = PROVIDER_ID
     override val protocol: CrossChainProtocol = CrossChainProtocol.ReviewedXcm
 
+    // Keep distinct route, asset, and authorization rejections fail-closed.
+    @Suppress("CyclomaticComplexMethod")
     override suspend fun capability(query: CrossChainRouteQuery): CrossChainRouteCapability {
         val actionsAreEnabled = actionsEnabled()
         val hasSpecificAssetHint = query.assetSymbol != null || query.originAssetId != null
@@ -311,8 +316,10 @@ class UnavailableCrossChainRouteProvider(
 
         val matching = routeDescriptors.filter { descriptor ->
             (query.originNetworkId == null || descriptor.originNetworkId == query.originNetworkId) &&
-                (query.destinationNetworkId == null ||
-                    descriptor.destinationNetworkId == query.destinationNetworkId) &&
+                (
+                    query.destinationNetworkId == null ||
+                    descriptor.destinationNetworkId == query.destinationNetworkId
+                ) &&
                 (query.originAssetId == null || descriptor.asset.originAssetId == query.originAssetId)
         }
         val exact = matching.singleOrNull().takeIf {
@@ -376,13 +383,15 @@ class CrossChainRouteProviderRegistry(
         providers.forEach { provider ->
             val inventory = runCatching { provider.inventoryCapabilities() }
                 .getOrElse { error -> listOf(provider.failureCapability(error)) }
-            addAll(inventory.ifEmpty {
+            addAll(
+                inventory.ifEmpty {
                 listOf(
                     provider.failureCapability(
                         IllegalStateException("${provider.protocol.displayName} has no catalog entries.")
                     )
                 )
-            })
+            }
+            )
         }
     }
 
@@ -397,9 +406,7 @@ class CrossChainRouteProviderRegistry(
         providers.singleOrNull { it.providerId == providerId }
             ?: throw IllegalArgumentException("Unknown cross-chain provider: $providerId")
 
-    private fun CrossChainRouteProvider.failureCapability(
-        error: Throwable
-    ) = CrossChainRouteCapability(
+    private fun CrossChainRouteProvider.failureCapability(error: Throwable) = CrossChainRouteCapability(
         providerId = providerId,
         protocol = protocol,
         availability = CrossChainRouteAvailability.Unavailable,

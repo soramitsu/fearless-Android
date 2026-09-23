@@ -1,6 +1,5 @@
 package jp.co.soramitsu.xcm
 
-import java.math.BigInteger
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.CryptoType
@@ -19,6 +18,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigInteger
 
 class ReviewedPolkaswapBridgeTest {
 
@@ -62,7 +62,11 @@ class ReviewedPolkaswapBridgeTest {
             mapOf("DOT" to "1.1", "KSM" to "0.05", "ACA" to "56", "ASTR" to "73"),
             external.associate { it.symbol to it.minimumAmount }
         )
-        assertTrue(external.all { it.execution.destinationMinimum is ReviewedBridgeDestinationMinimum.SoraParachainAssetMinimum })
+        assertTrue(
+            external.all {
+            it.execution.destinationMinimum is ReviewedBridgeDestinationMinimum.SoraParachainAssetMinimum
+        }
+        )
 
         val ethereum = catalog.unavailableRoutes.filter { it.symbol == "ETH" }
         assertEquals(2, ethereum.size)
@@ -430,6 +434,8 @@ class ReviewedPolkaswapBridgeTest {
         assertEquals(0, submitter.submitCount)
     }
 
+    // The route argument keeps fixture construction paired with the exercised route.
+    @Suppress("UnusedParameter")
     private fun executor(
         route: ReviewedBridgeRoute,
         submitter: RecordingSubmitter,
@@ -513,7 +519,11 @@ class ReviewedPolkaswapBridgeTest {
         coinbaseUrl = null
     )
 
-    private fun chain(id: String, prefix: Int, assets: List<Asset>) = Chain(
+    private fun chain(
+        id: String,
+        prefix: Int,
+        assets: List<Asset>
+    ) = Chain(
         id = id,
         paraId = null,
         rank = null,
@@ -580,6 +590,7 @@ class ReviewedPolkaswapBridgeTest {
             it.execution.kind == ReviewedBridgeExecutionKind.ExternalToSoraXcmV3 && it.symbol == symbol
     }
 
+    @Suppress("UnusedParameter")
     private fun balanceReaderFor(
         route: ReviewedBridgeRoute,
         transferBalance: BigInteger = BigInteger("100000000000000000000"),
@@ -626,27 +637,19 @@ class ReviewedPolkaswapBridgeTest {
     }
 
     private object SignableKeypairProvider : KeypairProvider {
-        override suspend fun getCryptoTypeFor(
-            chain: jp.co.soramitsu.core.models.IChain,
-            accountId: ByteArray
-        ) = CryptoType.SR25519
+        override suspend fun getCryptoTypeFor(chain: jp.co.soramitsu.core.models.IChain, accountId: ByteArray) =
+            CryptoType.SR25519
 
-        override suspend fun getKeypairFor(
-            chain: jp.co.soramitsu.core.models.IChain,
-            accountId: ByteArray
-        ) = BaseKeypair(ByteArray(64) { 4 }, ByteArray(32) { 3 })
+        override suspend fun getKeypairFor(chain: jp.co.soramitsu.core.models.IChain, accountId: ByteArray) =
+            BaseKeypair(ByteArray(64) { 4 }, ByteArray(32) { 3 })
     }
 
     private object WatchOnlyKeypairProvider : KeypairProvider {
-        override suspend fun getCryptoTypeFor(
-            chain: jp.co.soramitsu.core.models.IChain,
-            accountId: ByteArray
-        ) = CryptoType.SR25519
+        override suspend fun getCryptoTypeFor(chain: jp.co.soramitsu.core.models.IChain, accountId: ByteArray) =
+            CryptoType.SR25519
 
-        override suspend fun getKeypairFor(
-            chain: jp.co.soramitsu.core.models.IChain,
-            accountId: ByteArray
-        ): Keypair = error("Read-only quote must never access a private key")
+        override suspend fun getKeypairFor(chain: jp.co.soramitsu.core.models.IChain, accountId: ByteArray): Keypair =
+            error("Read-only quote must never access a private key")
     }
 
     private companion object {

@@ -17,22 +17,24 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 internal const val POLKAMARKT_PRECISION = 18
+private const val HEX_RADIX = 16
+private const val BASIS_POINTS_PER_ONE = 10_000
 internal const val KUSD_ASSET_ID = "0x02000c0000000000000000000000000000000000000000000000000000000000"
 internal const val XOR_ASSET_ID = "0x0200000000000000000000000000000000000000000000000000000000000000"
-internal val NON_NEGATIVE_INTEGER = Regex("^(0|[1-9]\\d*)$")
-private val NON_NEGATIVE_DECIMAL = Regex("^(0|[1-9]\\d*)(\\.\\d+)?$")
+internal val nonNegativeInteger = Regex("^(0|[1-9]\\d*)$")
+private val nonNegativeDecimal = Regex("^(0|[1-9]\\d*)(\\.\\d+)?$")
 
 internal fun normalizeDecimal(value: String?, fallback: String = "0"): String {
     val normalized = value?.replace(",", "")?.trim().orEmpty()
-    return normalized.takeIf(NON_NEGATIVE_DECIMAL::matches) ?: fallback
+    return normalized.takeIf(nonNegativeDecimal::matches) ?: fallback
 }
 
 internal fun normalizeInteger(value: String?): String? {
     val normalized = value?.replace(",", "")?.trim().orEmpty()
     return when {
-        NON_NEGATIVE_INTEGER.matches(normalized) -> normalized
+        nonNegativeInteger.matches(normalized) -> normalized
         normalized.startsWith("0x", ignoreCase = true) -> runCatching {
-            BigInteger(normalized.drop(2), 16).toString()
+            BigInteger(normalized.drop(2), HEX_RADIX).toString()
         }.getOrNull()
         else -> null
     }
@@ -56,12 +58,16 @@ internal fun fromCodecAmount(value: String, precision: Int = POLKAMARKT_PRECISIO
 }
 
 internal fun minimumAfterSlippage(value: BigInteger, slippageBps: Int = 100): BigInteger {
-    require(slippageBps in 0 until 10_000)
-    return value.multiply(BigInteger.valueOf((10_000 - slippageBps).toLong()))
-        .divide(BigInteger.valueOf(10_000))
+    require(slippageBps in 0 until BASIS_POINTS_PER_ONE)
+    return value.multiply(BigInteger.valueOf((BASIS_POINTS_PER_ONE - slippageBps).toLong()))
+        .divide(BigInteger.valueOf(BASIS_POINTS_PER_ONE.toLong()))
 }
 
-internal fun deriveStatus(status: String?, closeBlock: String?, currentBlock: String): PolkamarktDisplayStatus {
+internal fun deriveStatus(
+    status: String?,
+    closeBlock: String?,
+    currentBlock: String
+): PolkamarktDisplayStatus {
     return when (status.orEmpty().replace(Regex("[_\\s-]"), "").lowercase()) {
         "resolved" -> PolkamarktDisplayStatus.Resolved
         "cancelled", "canceled" -> PolkamarktDisplayStatus.Cancelled
@@ -80,7 +86,8 @@ private fun JsonElement?.stringOrNull(): String? = this
     ?.let { runCatching { it.asString.trim() }.getOrNull() }
     ?.takeIf(String::isNotEmpty)
 
-internal fun JsonObject.firstString(vararg keys: String): String? = keys.firstNotNullOfOrNull { key -> get(key).stringOrNull() }
+internal fun JsonObject.firstString(vararg keys: String): String? =
+    keys.firstNotNullOfOrNull { key -> get(key).stringOrNull() }
 
 private fun JsonObject.nodes(key: String): List<JsonObject> {
     val value = get(key) ?: return emptyList()
@@ -128,10 +135,7 @@ internal fun parseIndexedMarkets(root: JsonObject, currentBlock: String): List<P
         )
     }
 
-internal fun mergeMarkets(
-    indexed: List<PolkamarktMarket>,
-    runtime: List<PolkamarktMarket>
-): List<PolkamarktMarket> {
+internal fun mergeMarkets(indexed: List<PolkamarktMarket>, runtime: List<PolkamarktMarket>): List<PolkamarktMarket> {
     val byId = indexed.associateByTo(linkedMapOf(), PolkamarktMarket::id)
     runtime.forEach { chainMarket ->
         val indexedMarket = byId[chainMarket.id]
@@ -146,13 +150,13 @@ internal fun mergeMarkets(
             runtimeOnly = true
         ) ?: chainMarket
     }
-    val statusRank = mapOf(
-        PolkamarktDisplayStatus.Open to 0,
-        PolkamarktDisplayStatus.Locked to 1,
-        PolkamarktDisplayStatus.Closed to 2,
-        PolkamarktDisplayStatus.Resolved to 3,
-        PolkamarktDisplayStatus.Cancelled to 4
-    )
+    val statusRank = listOf(
+        PolkamarktDisplayStatus.Open,
+        PolkamarktDisplayStatus.Locked,
+        PolkamarktDisplayStatus.Closed,
+        PolkamarktDisplayStatus.Resolved,
+        PolkamarktDisplayStatus.Cancelled
+    ).withIndex().associate { it.value to it.index }
     return byId.values.sortedWith(
         compareBy<PolkamarktMarket> { statusRank.getValue(it.displayStatus) }
             .thenByDescending { normalizeDecimal(it.volumeUsd).toBigDecimal() }
@@ -272,7 +276,8 @@ private fun String.nonNegativeDecimal(message: String): BigDecimal {
     return normalized.toBigDecimalOrNull() ?: throw IllegalArgumentException(message)
 }
 
-internal fun parseHistory(root: JsonObject): List<PolkamarktHistoryPoint> = root.nodes("marketSnapshots").mapNotNull { point ->
+internal fun parseHistory(root: JsonObject): List<PolkamarktHistoryPoint> =
+    root.nodes("marketSnapshots").mapNotNull { point ->
     val id = point.firstString("id") ?: return@mapNotNull null
     val marketId = normalizeInteger(point.firstString("marketId")) ?: return@mapNotNull null
     val probability = probability(point.firstString("probability", "priceYes")) ?: return@mapNotNull null
@@ -322,7 +327,9 @@ internal fun parseActivity(root: JsonObject): ParsedActivity {
             marketId = marketId,
             side = trade.firstString("side", "action")?.lowercase(),
             outcome = trade.firstString("outcome")?.uppercase(),
-            collateral = normalizeDecimal(trade.firstString("collateral", "collateralUsd", "collateralAmount", "collateralAmountUsd"), "").ifEmpty { null },
+            collateral = normalizeDecimal(trade.firstString("collateral", "collateralUsd", "collateralAmount", "collateralAmountUsd"), "").ifEmpty {
+                null
+            },
             sharesIn = normalizeDecimal(trade.firstString("sharesIn"), "").ifEmpty { null },
             sharesOut = normalizeDecimal(trade.firstString("sharesOut"), "").ifEmpty { null },
             fee = normalizeDecimal(trade.firstString("fee", "feeAmount", "feeUsd"), "").ifEmpty { null },
@@ -333,7 +340,11 @@ internal fun parseActivity(root: JsonObject): ParsedActivity {
     return ParsedActivity(positions, trades)
 }
 
-internal fun parseClaimable(root: JsonObject, account: String, marketId: String): PolkamarktClaimable? {
+internal fun parseClaimable(
+    root: JsonObject,
+    account: String,
+    marketId: String
+): PolkamarktClaimable? {
     if (root.entrySet().isEmpty()) return null
     return PolkamarktClaimable(
         marketId = normalizeInteger(root.firstString("marketId")) ?: marketId,

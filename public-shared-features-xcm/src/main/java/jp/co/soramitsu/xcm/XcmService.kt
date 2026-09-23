@@ -148,10 +148,11 @@ class XcmService(
         originAssetId: String,
         assetSymbol: String
     ): Boolean {
-        if (
-            !transferEngine.isAvailable || originChainId.isBlank() ||
-            originAssetId.isBlank() || assetSymbol.isBlank()
-        ) return false
+        val hasExactRequestIdentity = originChainId.isNotBlank() &&
+            originAssetId.isNotBlank() && assetSymbol.isNotBlank()
+        if (!transferEngine.isAvailable || !hasExactRequestIdentity) {
+            return false
+        }
 
         val route = xcmEntitiesFetcher.getAvailableAssets(
             originChainId = originChainId,

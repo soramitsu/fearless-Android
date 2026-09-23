@@ -3,8 +3,8 @@ package jp.co.soramitsu.polkamarkt.impl.data
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
-import jp.co.soramitsu.polkamarkt.api.PolkamarktDisplayStatus
 import jp.co.soramitsu.polkamarkt.api.PolkamarktClaimable
+import jp.co.soramitsu.polkamarkt.api.PolkamarktDisplayStatus
 import jp.co.soramitsu.polkamarkt.api.PolkamarktMarket
 import jp.co.soramitsu.polkamarkt.api.PolkamarktMutation
 import jp.co.soramitsu.polkamarkt.api.PolkamarktOutcome
@@ -102,7 +102,9 @@ class PolkamarktContractTest {
     fun `v1 exposes no unsafe creation or early-resolution mutation`() {
         val deferred = fixture.getAsJsonArray("deferredActions").map { it.asString }.toSet()
         assertEquals(setOf("createMarket", "reportEarlyResolution"), deferred)
-        val mutationTypes = jp.co.soramitsu.polkamarkt.api.PolkamarktMutation::class.java.declaredClasses.map { it.simpleName }.toSet()
+        val mutationTypes = jp.co.soramitsu.polkamarkt.api.PolkamarktMutation::class.java.declaredClasses.map {
+            it.simpleName
+        }.toSet()
         assertEquals(setOf("Trade", "ClaimMarket", "ClaimCreatorFees"), mutationTypes)
     }
 

@@ -1,8 +1,8 @@
 package jp.co.soramitsu.liquiditypools.impl.data
 
-import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class PolkaswapMutationKillSwitchContractTest {
 
@@ -82,7 +82,11 @@ class PolkaswapMutationKillSwitchContractTest {
         )
     }
 
-    private fun assertMutationBoundaries(source: String, switch: String, validators: List<String>) {
+    private fun assertMutationBoundaries(
+        source: String,
+        switch: String,
+        validators: List<String>
+    ) {
         val gatePositions = source.indicesOf(switch)
         val extrinsicPositions = source.indicesOf("extrinsicService.submitExtrinsic")
 
@@ -100,7 +104,7 @@ class PolkaswapMutationKillSwitchContractTest {
 
             assertTrue(
                 "$validator must run once before fee estimation and again after it",
-                preliminaryValidation >= 0 && fee in (preliminaryValidation + 1) until finalValidation &&
+                preliminaryValidation >= 0 && fee > preliminaryValidation && fee < finalValidation &&
                     finalValidation < extrinsic
             )
             assertTrue(
@@ -109,7 +113,7 @@ class PolkaswapMutationKillSwitchContractTest {
             )
             assertTrue(
                 "The switch for $validator must be the adjacent final boundary",
-                gate in (finalValidation + 1) until extrinsic && gate > extrinsic - MAX_GATE_DISTANCE
+                gate > finalValidation && gate < extrinsic && gate > extrinsic - MAX_GATE_DISTANCE
             )
 
             val validatorDefinition = source.indexOf("private suspend fun $validator")
@@ -137,7 +141,9 @@ class PolkaswapMutationKillSwitchContractTest {
         }
     }
 
-    private fun repositoryRoot(): File = generateSequence(File(requireNotNull(System.getProperty("user.dir")))) { it.parentFile }
+    private fun repositoryRoot(): File = generateSequence(File(requireNotNull(System.getProperty("user.dir")))) {
+        it.parentFile
+    }
         .first { File(it, "settings.gradle").isFile }
 
     private companion object {
