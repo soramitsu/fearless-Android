@@ -1,5 +1,11 @@
 # Status Summary
 
+## Release checkout guard inventory — 2026-09-23
+
+- The release architecture guard now requires all seven commit-pinned, credential-free checkouts: three app checkouts and the Utils/WebSocket source checkouts in both controls and build. Each checkout has independent mutable-action and persisted-credential negative coverage.
+- Validation: the release-architecture suite passes 4 positive and 136 deterministic negative/adversarial cases.
+- This corrects the stale five-checkout expectation that stopped PR CI before Gradle and emulator execution. API 30/31/36 migration runs, result-start markers and portable evidence remain required; passing the static guard alone does not qualify those runs or a release artifact.
+
 ## Guarded physical boundaries and immutable sources — 2026-09-22
 
 - New-feature leases now reach physical RSA unwrap, wallet-key attestation and payload decryption after locks, preferences and cipher setup. Signing uses a prepared single-use primitive after hashing/provider initialization. Durable authority clock checks resample after persistence; observed expiry cannot be revived by rollback/refetch.

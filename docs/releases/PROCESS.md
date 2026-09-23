@@ -85,7 +85,7 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     Gradle/build inputs, release scripts, and GitHub workflows. Its adversarial
     suite includes alternate modules, `buildSrc`, versioning properties, and
     alternate workflow files.
-  - The release-architecture guard fixes exactly 4 positive and 123
+  - The release-architecture guard fixes exactly 4 positive and 136
     deterministic negative/adversarial cases. It rejects legacy combined
     overlays, signing credential overlap with Gradle, every Play
     service-account/API/Gradle mutation path, build/signing reviewer overlap,

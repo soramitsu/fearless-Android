@@ -10,7 +10,7 @@ CLEANUP="$ROOT_DIR/scripts/cleanup-release-overlays.sh"
 SNAPSHOT="$ROOT_DIR/scripts/emit-verified-release-snapshot.sh"
 EXPECTED_UPLOAD_CERT_SHA256="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
 EXPECTED_POSITIVE_COUNT=4
-EXPECTED_NEGATIVE_COUNT=123
+EXPECTED_NEGATIVE_COUNT=136
 
 fail() {
   echo "[android-play-release-test][error] $*" >&2
@@ -349,7 +349,7 @@ verify_static_contract() {
   require_exact_count \
     "$workflow" \
     "persist-credentials: false" \
-    5 \
+    7 \
     "every release checkout must disable persisted GitHub credentials"
   require_exact_count \
     "$workflow" \
@@ -776,7 +776,7 @@ verify_static_contract() {
     "$workflow" \
     "actions/checkout" \
     "34e114876b0b11c390a56381ad16ebd13914f8d5" \
-    5 \
+    7 \
     "checkout action"
   require_pinned_action \
     "$workflow" \
@@ -2051,15 +2051,29 @@ expect_static_failure \
   "forbidden Google Play mutation path: :app:publishReleaseBundle" \
   "$fixture"
 
-fixture="$(make_fixture mutable-checkout)"
-replace_nth "$fixture/.github/workflows/android-release.yml" \
-  "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5" \
-  "actions/checkout@v4" \
-  1
-expect_static_failure \
-  "mutable checkout action" \
-  "checkout action must be commit-pinned" \
-  "$fixture"
+# Three app checkouts plus Utils and guarded WebSocket source checkouts in
+# both controls and build must all retain their pin and credential isolation.
+for occurrence in 1 2 3 4 5 6 7; do
+  fixture="$(make_fixture "mutable-checkout-$occurrence")"
+  replace_nth "$fixture/.github/workflows/android-release.yml" \
+    "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5" \
+    "actions/checkout@v4" \
+    "$occurrence"
+  expect_static_failure \
+    "mutable checkout action $occurrence" \
+    "checkout action must be commit-pinned" \
+    "$fixture"
+
+  fixture="$(make_fixture "persisted-checkout-credentials-$occurrence")"
+  replace_nth "$fixture/.github/workflows/android-release.yml" \
+    "persist-credentials: false" \
+    "persist-credentials: true" \
+    "$occurrence"
+  expect_static_failure \
+    "persisted checkout credentials $occurrence" \
+    "every release checkout must disable persisted GitHub credentials" \
+    "$fixture"
+done
 
 fixture="$(make_fixture mutable-download)"
 replace_once "$fixture/.github/workflows/android-release.yml" \

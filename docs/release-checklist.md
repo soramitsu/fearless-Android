@@ -49,7 +49,7 @@ procedure.
   Confirm the MoonPay audit scans every tracked Android module source set,
   Gradle/build input, release script, and GitHub workflow rather than only the
   former wallet provider paths, and rejects all 16 adversarial fixtures.
-  Confirm the release-architecture guard reports exactly 4 positive and 123
+  Confirm the release-architecture guard reports exactly 4 positive and 136
   deterministic negative/adversarial cases. It must reject a combined
   `RELEASE_OVERLAY_MODE=release`, signing credentials exposed to Gradle, every
   Play service-account/API/Gradle publisher path, reviewer overlap between
