@@ -251,6 +251,13 @@ procedure.
   Keep the recoverable key provider unavailable until credential ceremonies,
   wrapper storage in verified immutable Drive generations, key rotation,
   replacement-device tests, and independent review are complete.
+- The challenge service rejects final-credential removal without an explicit
+  confirmation in the grant-bound request body. Android sends that field only
+  while compensating a registration whose backup has not completed verification.
+  User-requested backup deletion remains blocked when live credentials exist;
+  before enabling it, add explicit confirmation, surviving-wrapper/key rotation,
+  and coordinated revocation in both credential services. Do not treat the
+  server's count of credentials as proof of a decryptable recovery route.
 - The MoonPay client-secret audit still scans every tracked shipping input. Its
   necessary `HmacSHA256` exception is limited to the exact SHA-256-pinned
   passkey HKDF source; changes to that file fail the audit until the pin is

@@ -387,6 +387,38 @@ class PasskeyBackupChallengeServiceTest {
     }
 
     @Test
+    fun `unverified registration rollback binds final removal confirmation to exact grant body`() = runBlocking {
+        val credentialId = base64Url("credential-1".toByteArray())
+        val transport = RecordingChallengeTransport(
+            jsonResponse(
+                """{"storageKey":"wallet-1234","credentialId":"$credentialId","remainingCredentials":0,"rpId":"fearlesswallet.io","schemaVersion":1}"""
+            )
+        )
+        val authorization = RecordingAuthorizationProvider()
+        val result = service(
+            transport = transport,
+            authorizationProvider = authorization
+        ).revokeUnverifiedRegistrationCredential("wallet-1234", credentialId)
+
+        assertEquals(0, result.remainingCredentials)
+        val request = transport.requests.single()
+        val body = request.jsonBody()
+        assertEquals(
+            setOf("storageKey", "credentialId", "confirmFinalRecoveryRemoval", "rpId", "schemaVersion"),
+            body.keySet()
+        )
+        assertTrue(body.get("confirmFinalRecoveryRemoval").asBoolean)
+        assertEquals(
+            PasskeyBackupAuthorizationRequest.CREDENTIALS_REVOKE_PATH,
+            authorization.requests.single().path
+        )
+        assertEquals(
+            sha256Base64Url(requireNotNull(request.body)),
+            authorization.requests.single().bodySha256
+        )
+    }
+
+    @Test
     fun `credential lifecycle rejects malformed summaries and impossible counts`() {
         val credentialId = base64Url("credential-1".toByteArray())
         val validSummary =

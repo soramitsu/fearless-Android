@@ -787,7 +787,7 @@ class PasskeyBackupWorkflow(
     ) {
         val compensationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val compensation = compensationScope.async {
-            val result = challengeService.revokeCredential(storageKey, credentialId)
+            val result = challengeService.revokeUnverifiedRegistrationCredential(storageKey, credentialId)
             requireMatchingStorageKey(
                 expected = storageKey,
                 actual = result.storageKey,

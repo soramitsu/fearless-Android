@@ -362,6 +362,7 @@ class PasskeyBackupWorkflowTest {
         assertEquals("registration-1234", service.completedRegistrationId)
         assertEquals("wallet-1234", service.revokedCredentialStorageKey)
         assertEquals(credentialId, service.revokedCredentialId)
+        assertTrue(service.unverifiedRollbackRequested)
         assertEquals(null, service.revokedAllStorageKey)
         assertFalse(storage.contains("wallet-1234"))
     }
@@ -1186,6 +1187,7 @@ class PasskeyBackupWorkflowTest {
         var revokedAllStorageKey: String? = null
         var revokedCredentialStorageKey: String? = null
         var revokedCredentialId: String? = null
+        var unverifiedRollbackRequested = false
 
         override suspend fun registrationChallenge(
             walletId: String,
@@ -1272,6 +1274,14 @@ class PasskeyBackupWorkflowTest {
                 credentialId = credentialId,
                 remainingCredentials = 0
             )
+        }
+
+        override suspend fun revokeUnverifiedRegistrationCredential(
+            storageKey: String,
+            credentialId: String
+        ): PasskeyBackupCredentialRevokeResult {
+            unverifiedRollbackRequested = true
+            return revokeCredential(storageKey, credentialId)
         }
     }
 

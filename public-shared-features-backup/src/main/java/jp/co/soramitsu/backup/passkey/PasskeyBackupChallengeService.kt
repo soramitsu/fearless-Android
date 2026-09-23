@@ -196,6 +196,14 @@ interface PasskeyBackupChallengeService {
         throw UnsupportedOperationException("Passkey credential lifecycle service is unavailable")
     }
 
+    /** Roll back a registration whose backup never completed verification. Never use for user-requested removal. */
+    suspend fun revokeUnverifiedRegistrationCredential(
+        storageKey: String,
+        credentialId: String
+    ): PasskeyBackupCredentialRevokeResult {
+        throw UnsupportedOperationException("Unverified passkey registration rollback is unavailable")
+    }
+
     suspend fun revokeAllCredentials(storageKey: String): PasskeyBackupCredentialRevokeResult {
         throw UnsupportedOperationException("Passkey credential lifecycle service is unavailable")
     }
@@ -461,6 +469,17 @@ class HttpPasskeyBackupChallengeService(
     override suspend fun revokeCredential(
         storageKey: String,
         credentialId: String
+    ): PasskeyBackupCredentialRevokeResult = requestCredentialRevocation(storageKey, credentialId, false)
+
+    override suspend fun revokeUnverifiedRegistrationCredential(
+        storageKey: String,
+        credentialId: String
+    ): PasskeyBackupCredentialRevokeResult = requestCredentialRevocation(storageKey, credentialId, true)
+
+    private suspend fun requestCredentialRevocation(
+        storageKey: String,
+        credentialId: String,
+        rollbackUnverifiedRegistration: Boolean
     ): PasskeyBackupCredentialRevokeResult {
         val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
         val normalizedCredentialId = requireCredentialId(credentialId)
@@ -468,6 +487,7 @@ class HttpPasskeyBackupChallengeService(
             path = PasskeyBackupAuthorizationRequest.CREDENTIALS_REVOKE_PATH,
             body = lifecycleBody(normalizedStorageKey).apply {
                 addProperty("credentialId", normalizedCredentialId)
+                if (rollbackUnverifiedRegistration) addProperty("confirmFinalRecoveryRemoval", true)
             }
         )
         requireRpId(response)
@@ -499,14 +519,6 @@ class HttpPasskeyBackupChallengeService(
             remainingCredentials = remaining,
             schemaVersion = requiredInt(response, "schemaVersion")
         )
-    }
-
-    private fun lifecycleBody(storageKey: String): JsonObject {
-        return JsonObject().apply {
-            addProperty("storageKey", storageKey)
-            addProperty("rpId", PasskeyBackupContract.PASSKEY_RP_ID)
-            addProperty("schemaVersion", PasskeyBackupContract.SCHEMA_VERSION)
-        }
     }
 
     private fun requireResponseStorageKey(response: JsonObject, expected: String) {
@@ -716,6 +728,12 @@ class HttpPasskeyBackupChallengeService(
             )
         )
     }
+}
+
+private fun lifecycleBody(storageKey: String): JsonObject = JsonObject().apply {
+    addProperty("storageKey", storageKey)
+    addProperty("rpId", PasskeyBackupContract.PASSKEY_RP_ID)
+    addProperty("schemaVersion", PasskeyBackupContract.SCHEMA_VERSION)
 }
 
 private fun normalizeBaseUrl(baseUrl: String): String {
