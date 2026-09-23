@@ -1,11 +1,18 @@
 package jp.co.soramitsu.app.root.presentation.main
 
+import android.annotation.SuppressLint
 import android.text.Layout
 import android.view.Gravity
 import android.view.View
 import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import jp.co.soramitsu.app.R
+
+@SuppressLint("WrongConstant")
+private fun TextView.useBalancedLineBreaking() {
+    // API 26-28 accepts Layout's value 2; current lint annotates this setter with API 29 LineBreaker constants.
+    breakStrategy = Layout.BREAK_STRATEGY_BALANCED
+}
 
 /** Keeps the raised button as the single accessible action for the existing center tab. */
 internal fun configurePolkaswapNavigationAction(navigation: BottomNavigationView, button: View, content: View? = null) {
@@ -38,7 +45,7 @@ internal fun configurePolkaswapNavigationAction(navigation: BottomNavigationView
                     ellipsize = null
                     gravity = Gravity.CENTER
                     textAlignment = View.TEXT_ALIGNMENT_CENTER
-                    breakStrategy = Layout.BREAK_STRATEGY_BALANCED
+                    useBalancedLineBreaking()
                     hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
                 }
             }
