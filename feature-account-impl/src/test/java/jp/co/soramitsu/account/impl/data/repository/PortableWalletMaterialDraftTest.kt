@@ -17,16 +17,26 @@ class PortableWalletMaterialDraftTest {
     fun `strict roundtrip preserves standalone EVM private key and metadata`() {
         val original = snapshot()
         val encoded = format.encode(original)
+        val wrapped = PortableWalletMaterialEnvelope.encodeValidatedAndroidDraft(encoded)
         val decoded = format.decode(encoded)
         try {
             assertArrayEquals(original.wallets.single().ethereumSecret, decoded.wallets.single().ethereumSecret)
             assertEquals(original.wallets.single().identity, decoded.wallets.single().identity)
             assertArrayEquals(encoded, format.encode(decoded))
+            val envelope = PortableWalletMaterialEnvelope.decode(wrapped)
+            try {
+                assertArrayEquals(encoded, envelope.payload)
+                assertEquals(PortableWalletMaterialEnvelope.SourceFormat.ANDROID_DRAFT_V2,
+                    envelope.sourceFormat)
+            } finally {
+                envelope.clearPayload()
+            }
             assertEquals("PortableWalletMaterialDraft.Wallet(redacted)", decoded.wallets.single().toString())
         } finally {
             original.clearSecrets()
             decoded.clearSecrets()
             encoded.fill(0)
+            wrapped.fill(0)
         }
     }
 
