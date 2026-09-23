@@ -842,6 +842,44 @@ class PasskeyBackupWorkflowTest {
     }
 
     @Test
+    fun `credential-directed PRF assertion requires echoed ID before native ceremony`() = runBlocking {
+        val salt = ByteArray(32) { it.toByte() }
+        val service = FakeChallengeService(
+            assertionChallenge = PasskeyBackupAssertionChallenge(
+                assertionId = "assertion-1234",
+                challenge = ByteArray(32) { (it + 1).toByte() },
+                storageKey = "wallet-1234",
+                credentialId = "AQ"
+            )
+        )
+        val pending = workflow(service = service).beginCredentialDirectedAssertion("wallet-1234", "AQ", salt)
+        assertEquals("AQ", service.assertionCredentialId)
+        val options = com.google.gson.JsonParser.parseString(pending.requestJson).asJsonObject
+        assertEquals("AQ", options.getAsJsonArray("allowCredentials")[0].asJsonObject.get("id").asString)
+        assertEquals(
+            java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(salt),
+            options.getAsJsonObject("extensions").getAsJsonObject("prf").getAsJsonObject("eval").get("first").asString
+        )
+
+        val wrongEcho = FakeChallengeService(
+            assertionChallenge = PasskeyBackupAssertionChallenge(
+                assertionId = "assertion-1234",
+                challenge = ByteArray(32),
+                storageKey = "wallet-1234",
+                credentialId = "Ag"
+            )
+        )
+        assertTrue(runCatching {
+            workflow(service = wrongEcho).beginCredentialDirectedAssertion("wallet-1234", "AQ", salt)
+        }.isFailure)
+        val invalidSalt = FakeChallengeService()
+        assertTrue(runCatching {
+            workflow(service = invalidSalt).beginCredentialDirectedAssertion("wallet-1234", "AQ", ByteArray(31))
+        }.isFailure)
+        assertEquals(null, invalidSalt.assertionCredentialId)
+    }
+
+    @Test
     fun `finish restore completes assertion and loads encrypted cloud payload`() = runBlocking {
         val encryptedPayload = validTestEnvelope(plaintext = byteArrayOf(1, 2, 3, 4))
         val service = FakeChallengeService(
@@ -1140,6 +1178,7 @@ class PasskeyBackupWorkflowTest {
         var completedRegistrationId: String? = null
         var completedRegistrationCredential: String? = null
         var assertionStorageKey: String? = null
+        var assertionCredentialId: String? = null
         var completedAssertionId: String? = null
         var completedAssertionCredential: String? = null
         var revokedAllStorageKey: String? = null
@@ -1175,6 +1214,12 @@ class PasskeyBackupWorkflowTest {
 
         override suspend fun assertionChallenge(storageKey: String): PasskeyBackupAssertionChallenge {
             assertionStorageKey = storageKey
+            return assertionChallenge
+        }
+
+        override suspend fun assertionChallenge(storageKey: String, credentialId: String): PasskeyBackupAssertionChallenge {
+            assertionStorageKey = storageKey
+            assertionCredentialId = credentialId
             return assertionChallenge
         }
 

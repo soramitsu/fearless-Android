@@ -148,13 +148,17 @@ object PasskeyBackupContract {
     }
 
     private fun prfExtension(prfSalt: ByteArray): JsonObject {
-        require(prfSalt.size == PRF_SALT_BYTES) { "Passkey PRF salt must be exactly 32 bytes" }
+        requirePrfSalt(prfSalt)
         return JsonObject().apply {
             val evaluation = JsonObject().apply {
                 addProperty("first", base64Url(prfSalt))
             }
             add("prf", JsonObject().apply { add("eval", evaluation) })
         }
+    }
+
+    internal fun requirePrfSalt(prfSalt: ByteArray) {
+        require(prfSalt.size == PRF_SALT_BYTES) { "Passkey PRF salt must be exactly 32 bytes" }
     }
 
     fun requireStorageKey(storageKey: String): String {
@@ -631,6 +635,37 @@ class PasskeyBackupWorkflow(
             storageKey = challengeStorageKey,
             requestJson = PasskeyBackupContract.assertionOptionsJson(
                 challenge = challenge.challenge,
+                rpId = relyingPartyId
+            )
+        )
+    }
+
+    /** Request PRF for exactly one credential after the server binds that ID to its challenge. */
+    suspend fun beginCredentialDirectedAssertion(
+        storageKey: String,
+        credentialId: String,
+        prfSalt: ByteArray
+    ): PendingPasskeyBackupAssertion {
+        PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
+        val normalizedCredentialId = requireCredentialId(credentialId)
+        PasskeyBackupContract.requirePrfSalt(prfSalt)
+        val challenge = challengeService.assertionChallenge(normalizedStorageKey, normalizedCredentialId)
+        val challengeStorageKey = requireMatchingStorageKey(
+            expected = normalizedStorageKey,
+            actual = challenge.storageKey,
+            ceremony = "credential-directed assertion challenge"
+        )
+        require(challenge.credentialId == normalizedCredentialId) {
+            "Passkey assertion challenge returned a mismatched credentialId"
+        }
+        return PendingPasskeyBackupAssertion(
+            assertionId = challenge.assertionId,
+            storageKey = challengeStorageKey,
+            requestJson = PasskeyBackupContract.assertionOptionsJsonWithPrf(
+                challenge = challenge.challenge,
+                credentialId = normalizedCredentialId,
+                prfSalt = prfSalt,
                 rpId = relyingPartyId
             )
         )

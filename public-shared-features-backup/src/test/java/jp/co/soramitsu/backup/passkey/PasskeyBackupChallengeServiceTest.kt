@@ -273,6 +273,36 @@ class PasskeyBackupChallengeServiceTest {
     }
 
     @Test
+    fun `credential-directed assertion binds requested ID to echoed challenge`() = runBlocking {
+        val credentialId = "AQ"
+        val challenge = ByteArray(32) { (it + 1).toByte() }
+        val response = """
+            {"assertionId":"assertion-1234","challenge":"${base64Url(challenge)}",
+             "storageKey":"wallet-1234","credentialId":"$credentialId",
+             "rpId":"${PasskeyBackupContract.PASSKEY_RP_ID}","schemaVersion":1}
+        """.trimIndent()
+        val transport = RecordingChallengeTransport(jsonResponse(response))
+        val result = service(transport = transport).assertionChallenge("wallet-1234", credentialId)
+        assertEquals(credentialId, result.credentialId)
+        assertEquals(credentialId, transport.requests.single().jsonBody().get("credentialId").asString)
+
+        for (invalid in listOf(
+            response.replace("\"credentialId\":\"AQ\",", ""),
+            response.replace("\"credentialId\":\"AQ\"", "\"credentialId\":\"Ag\"")
+        )) {
+            assertTrue(runCatching {
+                service(transport = RecordingChallengeTransport(jsonResponse(invalid)))
+                    .assertionChallenge("wallet-1234", credentialId)
+            }.isFailure)
+        }
+        val invalidIdTransport = RecordingChallengeTransport(jsonResponse(response))
+        assertTrue(runCatching {
+            service(transport = invalidIdTransport).assertionChallenge("wallet-1234", "AQ==")
+        }.isFailure)
+        assertTrue(invalidIdTransport.requests.isEmpty())
+    }
+
+    @Test
     fun `complete assertion posts credential object`() = runBlocking {
         val transport = RecordingChallengeTransport(
             jsonResponse(

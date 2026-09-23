@@ -40,12 +40,14 @@ data class PasskeyBackupAssertionChallenge(
     val assertionId: String,
     val challenge: ByteArray,
     val storageKey: String,
-    val schemaVersion: Int = PasskeyBackupContract.SCHEMA_VERSION
+    val schemaVersion: Int = PasskeyBackupContract.SCHEMA_VERSION,
+    val credentialId: String? = null
 ) {
     init {
         requireCeremonyId(assertionId, "assertionId")
         PasskeyBackupContract.requireChallenge(challenge)
         PasskeyBackupContract.requireStorageKey(storageKey)
+        credentialId?.let(::requireCredentialId)
         require(schemaVersion == PasskeyBackupContract.SCHEMA_VERSION) {
             "Unsupported passkey backup schemaVersion: $schemaVersion"
         }
@@ -178,6 +180,11 @@ interface PasskeyBackupChallengeService {
     ): PasskeyBackupChallengeResult
 
     suspend fun assertionChallenge(storageKey: String): PasskeyBackupAssertionChallenge
+
+    /** Fail closed unless the service can bind one known credential to this challenge. */
+    suspend fun assertionChallenge(storageKey: String, credentialId: String): PasskeyBackupAssertionChallenge {
+        throw UnsupportedOperationException("Credential-directed passkey assertions are unavailable")
+    }
 
     suspend fun completeAssertion(assertionId: String, credentialResponseJson: String): PasskeyBackupChallengeResult
 
@@ -342,7 +349,18 @@ class HttpPasskeyBackupChallengeService(
         }
     }
 
-    override suspend fun assertionChallenge(storageKey: String): PasskeyBackupAssertionChallenge {
+    override suspend fun assertionChallenge(storageKey: String): PasskeyBackupAssertionChallenge =
+        requestAssertionChallenge(storageKey, null)
+
+    override suspend fun assertionChallenge(
+        storageKey: String,
+        credentialId: String
+    ): PasskeyBackupAssertionChallenge = requestAssertionChallenge(storageKey, requireCredentialId(credentialId))
+
+    private suspend fun requestAssertionChallenge(
+        storageKey: String,
+        credentialId: String?
+    ): PasskeyBackupAssertionChallenge {
         val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
 
         val response = post(
@@ -351,13 +369,22 @@ class HttpPasskeyBackupChallengeService(
                 addProperty("storageKey", normalizedStorageKey)
                 addProperty("rpId", PasskeyBackupContract.PASSKEY_RP_ID)
                 addProperty("schemaVersion", PasskeyBackupContract.SCHEMA_VERSION)
-            }
+                credentialId?.let { addProperty("credentialId", it) }
+            },
+            expectedResponseKeys = EXPECTED_RESPONSE_KEYS_BY_PATH.getValue(
+                PasskeyBackupAuthorizationRequest.ASSERTION_CHALLENGE_PATH
+            ) + if (credentialId == null) emptySet() else setOf("credentialId")
         )
 
         requireRpId(response)
         val responseStorageKey = PasskeyBackupContract.requireStorageKey(requiredString(response, "storageKey"))
         require(responseStorageKey == normalizedStorageKey) {
             "Passkey assertion challenge returned a mismatched storageKey"
+        }
+        if (credentialId != null) {
+            require(requiredString(response, "credentialId") == credentialId) {
+                "Passkey assertion challenge returned a mismatched credentialId"
+            }
         }
 
         return PasskeyBackupAssertionChallenge(
@@ -366,7 +393,8 @@ class HttpPasskeyBackupChallengeService(
                 PasskeyBackupContract.decodeBase64Url(requiredString(response, "challenge"), "assertion challenge")
             ),
             storageKey = responseStorageKey,
-            schemaVersion = requiredInt(response, "schemaVersion")
+            schemaVersion = requiredInt(response, "schemaVersion"),
+            credentialId = credentialId
         )
     }
 
@@ -492,7 +520,8 @@ class HttpPasskeyBackupChallengeService(
     private suspend fun post(
         path: String,
         body: JsonObject,
-        registrationCompletion: Boolean = false
+        registrationCompletion: Boolean = false,
+        expectedResponseKeys: Set<String> = EXPECTED_RESPONSE_KEYS_BY_PATH.getValue(path)
     ): JsonObject {
         val bodyBytes = body.toString().toByteArray(Charsets.UTF_8)
         val authorizationRequest = PasskeyBackupAuthorizationRequest(
@@ -547,8 +576,7 @@ class HttpPasskeyBackupChallengeService(
 
         return try {
             JsonParser.parseString(responseText).asJsonObject.also { responseObject ->
-                val expectedKeys = EXPECTED_RESPONSE_KEYS_BY_PATH.getValue(path)
-                require(responseObject.keySet() == expectedKeys) {
+                require(responseObject.keySet() == expectedResponseKeys) {
                     "Passkey backup challenge service returned an unexpected response shape"
                 }
             }

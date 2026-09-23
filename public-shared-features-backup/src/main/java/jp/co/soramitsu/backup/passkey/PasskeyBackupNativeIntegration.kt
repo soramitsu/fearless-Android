@@ -6,8 +6,10 @@ import androidx.credentials.CreatePublicKeyCredentialResponse
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.PublicKeyCredential
+import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.JsonPrimitive
 
 interface AndroidPasskeyCredentialManagerGateway {
     suspend fun createCredential(requestJson: String): String
@@ -83,12 +85,17 @@ class PasskeyBackupNativeCeremonyResult private constructor(
         fun registration(responseJson: String): PasskeyBackupNativeCeremonyResult =
             fromCredentialManager(responseJson, registration = true)
 
-        fun assertion(responseJson: String): PasskeyBackupNativeCeremonyResult =
-            fromCredentialManager(responseJson, registration = false)
+        fun assertion(responseJson: String, requestJson: String): PasskeyBackupNativeCeremonyResult =
+            fromCredentialManager(
+                responseJson,
+                registration = false,
+                allowedCredentialIds = assertionAllowedCredentialIds(requestJson)
+            )
 
         private fun fromCredentialManager(
             responseJson: String,
-            registration: Boolean
+            registration: Boolean,
+            allowedCredentialIds: Set<String>? = null
         ): PasskeyBackupNativeCeremonyResult {
             require(
                 responseJson.isNotEmpty() &&
@@ -107,6 +114,12 @@ class PasskeyBackupNativeCeremonyResult private constructor(
                     credentialId == rawId &&
                     requireCredentialId(credentialId) == credentialId
             ) { "Credential Manager returned an invalid credential identity" }
+            if (!registration) {
+                val allowed = requireNotNull(allowedCredentialIds)
+                require(allowed.isEmpty() || credentialId in allowed) {
+                    "Credential Manager returned a credential outside the assertion request"
+                }
+            }
 
             // Rebuild from a public-field allowlist. WebAuthn's toJSON() can include
             // clientExtensionResults.prf.results.first, which is wallet key material.
@@ -123,7 +136,7 @@ class PasskeyBackupNativeCeremonyResult private constructor(
                 } else {
                     addProperty("authenticatorData", rawResponse.requiredString("authenticatorData"))
                     addProperty("signature", rawResponse.requiredString("signature"))
-                    addProperty("userHandle", rawResponse.requiredString("userHandle"))
+                    add("userHandle", rawResponse.requiredUserHandle(requireNotNull(allowedCredentialIds).isEmpty()))
                 }
             }
             public.add("response", publicResponse)
@@ -131,6 +144,29 @@ class PasskeyBackupNativeCeremonyResult private constructor(
             val (publicExtensions, localPrf) = parseExtensions(raw)
             public.add("clientExtensionResults", publicExtensions)
             return PasskeyBackupNativeCeremonyResult(public.toString(), localPrf)
+        }
+
+        private fun assertionAllowedCredentialIds(requestJson: String): Set<String> {
+            require(requestJson.isNotEmpty() && requestJson.toByteArray().size <= MAX_RESPONSE_BYTES) {
+                "Invalid passkey assertion request"
+            }
+            val request = runCatching { JsonParser.parseString(requestJson).asJsonObject }.getOrNull()
+            require(request != null && request.requiredString("rpId") == PasskeyBackupContract.PASSKEY_RP_ID) {
+                "Invalid passkey assertion relying party"
+            }
+            val allowed = request.get("allowCredentials") ?: return emptySet()
+            require(allowed.isJsonArray) { "Invalid passkey assertion allowCredentials" }
+            require(allowed.asJsonArray.size() <= MAX_ALLOWED_CREDENTIALS) {
+                "Too many passkey assertion credentials"
+            }
+            val ids = allowed.asJsonArray.map { entry ->
+                require(entry.isJsonObject && entry.asJsonObject.requiredString("type") == "public-key") {
+                    "Invalid passkey assertion credential descriptor"
+                }
+                requireCredentialId(entry.asJsonObject.requiredString("id"))
+            }
+            require(ids.size == ids.toSet().size) { "Duplicate passkey assertion credential descriptor" }
+            return ids.toSet()
         }
 
         private fun parseExtensions(raw: JsonObject): Pair<JsonObject, ByteArray?> {
@@ -197,6 +233,26 @@ class PasskeyBackupNativeCeremonyResult private constructor(
             }
             return value.asString
         }
+
+        private fun JsonObject.requiredUserHandle(discoverable: Boolean): com.google.gson.JsonElement {
+            val value = get("userHandle")
+            require(value != null) { "Credential Manager returned an invalid user handle" }
+            if (value.isJsonNull) {
+                require(!discoverable) { "Discoverable passkey assertion has no user handle" }
+                return JsonNull.INSTANCE
+            }
+            require(value.isJsonPrimitive && value.asJsonPrimitive.isString) {
+                "Credential Manager returned an invalid user handle"
+            }
+            val encoded = value.asString
+            require(PasskeyBackupContract.decodeBase64Url(encoded, "userHandle").size in 1..MAX_USER_HANDLE_BYTES) {
+                "Credential Manager returned an invalid user handle"
+            }
+            return JsonPrimitive(encoded)
+        }
+
+        private const val MAX_ALLOWED_CREDENTIALS = 64
+        private const val MAX_USER_HANDLE_BYTES = 64
     }
 }
 
@@ -223,7 +279,8 @@ class CredentialManagerPasskeyBackupCeremonyExecutor(
     override suspend fun performAssertion(pending: PendingPasskeyBackupAssertion): PasskeyBackupNativeCeremonyResult {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
         return PasskeyBackupNativeCeremonyResult.assertion(
-            gateway.getCredential(pending.requestJson)
+            gateway.getCredential(pending.requestJson),
+            pending.requestJson
         )
     }
 }

@@ -86,13 +86,13 @@ class PasskeyBackupNativeIntegrationTest {
         val rawJson = ASSERTION_CREDENTIAL_JSON
             .replace("\"signature\":\"AQ\"", "\"signature\":\"AQ\",\"walletSecret\":\"never-send\"")
             .replace("\"clientExtensionResults\":{}", "\"clientExtensionResults\":{\"largeBlob\":{\"blob\":\"never-send\"}}")
-        assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(rawJson) }.isFailure)
+        assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(rawJson, pendingAssertion().requestJson) }.isFailure)
 
         val responseOnly = rawJson.replace(
             "\"clientExtensionResults\":{\"largeBlob\":{\"blob\":\"never-send\"}}",
             "\"clientExtensionResults\":{}"
         )
-        PasskeyBackupNativeCeremonyResult.assertion(responseOnly).use { result ->
+        PasskeyBackupNativeCeremonyResult.assertion(responseOnly, pendingAssertion().requestJson).use { result ->
             assertFalse(result.serverCredentialJson.contains("walletSecret"))
             assertFalse(result.serverCredentialJson.contains("never-send"))
         }
@@ -110,7 +110,55 @@ class PasskeyBackupNativeIntegrationTest {
             withPrf.replace("\"type\":\"public-key\"", "\"type\":\"password\""),
             withPrf.replace("\"id\":\"AQ\"", "\"id\":\"AQ==\"")
         ).forEach { response ->
-            assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(response) }.isFailure)
+            assertTrue(runCatching {
+                PasskeyBackupNativeCeremonyResult.assertion(response, pendingAssertion().requestJson)
+            }.isFailure)
+        }
+    }
+
+    @Test
+    fun `directed PRF assertion permits null user handle only for the requested credential`() = runBlocking {
+        val directedRequest = PasskeyBackupContract.assertionOptionsJsonWithPrf(
+            challenge = ByteArray(32), credentialId = "AQ", prfSalt = ByteArray(32) { 7 }
+        )
+        val nullHandle = ASSERTION_CREDENTIAL_JSON.replace("\"userHandle\":\"AQ\"", "\"userHandle\":null")
+        val executor = CredentialManagerPasskeyBackupCeremonyExecutor(
+            gateway = RecordingCredentialManagerGateway(REGISTRATION_CREDENTIAL_JSON, nullHandle),
+            isReleaseEnabled = true
+        )
+        executor.performAssertion(pendingAssertion(directedRequest)).use { result ->
+            assertTrue(result.serverCredentialJson.contains("\"userHandle\":null"))
+            assertFalse(result.hasLocalPrfOutput)
+        }
+
+        val wrongCredential = nullHandle.replace("\"id\":\"AQ\",\"rawId\":\"AQ\"", "\"id\":\"Ag\",\"rawId\":\"Ag\"")
+        assertTrue(runCatching {
+            PasskeyBackupNativeCeremonyResult.assertion(wrongCredential, directedRequest)
+        }.isFailure)
+        assertTrue(runCatching {
+            PasskeyBackupNativeCeremonyResult.assertion(nullHandle, pendingAssertion().requestJson)
+        }.isFailure)
+    }
+
+    @Test
+    fun `assertion rejects malformed user handles and request credential lists`() {
+        val request = pendingAssertion().requestJson
+        val tooLong = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(65) { 1 })
+        for (invalid in listOf("", "AQ==", tooLong)) {
+            val response = ASSERTION_CREDENTIAL_JSON.replace("\"userHandle\":\"AQ\"", "\"userHandle\":\"$invalid\"")
+            assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(response, request) }.isFailure)
+        }
+        val missing = ASSERTION_CREDENTIAL_JSON.replace(",\"userHandle\":\"AQ\"", "")
+        assertTrue(runCatching { PasskeyBackupNativeCeremonyResult.assertion(missing, request) }.isFailure)
+        for (invalidRequest in listOf(
+            "{}",
+            request.replace("fearlesswallet.io", "other.example"),
+            request.replace("\"timeout\":60000", "\"allowCredentials\":{\"id\":\"AQ\"},\"timeout\":60000"),
+            request.replace("\"timeout\":60000", "\"allowCredentials\":[{\"type\":\"public-key\",\"id\":\"AQ\"},{\"type\":\"public-key\",\"id\":\"AQ\"}],\"timeout\":60000")
+        )) {
+            assertTrue(runCatching {
+                PasskeyBackupNativeCeremonyResult.assertion(ASSERTION_CREDENTIAL_JSON, invalidRequest)
+            }.isFailure)
         }
     }
 
@@ -169,10 +217,10 @@ class PasskeyBackupNativeIntegrationTest {
         )
     )
 
-    private fun pendingAssertion() = PendingPasskeyBackupAssertion(
+    private fun pendingAssertion(requestJson: String = PasskeyBackupContract.assertionOptionsJson(ByteArray(32))) = PendingPasskeyBackupAssertion(
         assertionId = "assertion-1234",
         storageKey = "wallet-1234",
-        requestJson = PasskeyBackupContract.assertionOptionsJson(ByteArray(32))
+        requestJson = requestJson
     )
 
     private class RecordingCredentialManagerGateway(
