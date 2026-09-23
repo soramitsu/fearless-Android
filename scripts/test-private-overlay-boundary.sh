@@ -101,6 +101,13 @@ test_rejects_private_only_product_code() {
 
   grep -q $'A\tfeature-wallet-impl/src/main/java/jp/co/soramitsu/PrivateTransfer.kt' "$output" ||
     fail "expected added product path in audit output"
+
+  if GIT_DIR="$public_repo/.git" GIT_INDEX_FILE="$dir/empty-index" \
+    run_audit "$public_repo" "$private_repo" > "$output" 2>&1; then
+    fail "ambient Git overrides hid private-only product code"
+  fi
+  grep -q $'A\tfeature-wallet-impl/src/main/java/jp/co/soramitsu/PrivateTransfer.kt' "$output" ||
+    fail "ambient Git overrides changed the audited private file list"
 }
 
 test_rejects_tracked_public_product_code() {

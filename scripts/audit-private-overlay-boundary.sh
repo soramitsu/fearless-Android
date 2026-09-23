@@ -17,12 +17,18 @@ info() {
   echo "[private-overlay-audit] $*"
 }
 
+clean_git() {
+  /usr/bin/env -i PATH=/usr/bin:/bin HOME=/ GIT_CONFIG_NOSYSTEM=1 \
+    GIT_CONFIG_GLOBAL=/dev/null GIT_NO_REPLACE_OBJECTS=1 \
+    /usr/bin/git -c core.fsmonitor=false -c core.hooksPath=/dev/null "$@"
+}
+
 is_git_checkout() {
   local repo="$1"
   local expected_root actual_root
   [[ -d "$repo" && ! -L "$repo" && -e "$repo/.git" && ! -L "$repo/.git" ]] || return 1
   expected_root="$(cd -P "$repo" && pwd)" || return 1
-  actual_root="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  actual_root="$(clean_git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || return 1
   [[ "$actual_root" == "$expected_root" ]]
 }
 
@@ -55,7 +61,7 @@ trap 'rm -rf "$tmpdir"' EXIT
 private_files="$tmpdir/private-files"
 unexpected="$tmpdir/unexpected"
 
-git -C "$PRIVATE_REPO_DIR" ls-files | sort > "$private_files"
+clean_git -C "$PRIVATE_REPO_DIR" ls-files | sort > "$private_files"
 
 : > "$unexpected"
 
