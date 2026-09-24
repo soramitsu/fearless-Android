@@ -14,6 +14,9 @@ class PasskeyBackupAuthenticatedGenerationReadbackTest {
     @Test
     fun `verified directed assertion decrypts exact head and rechecks owner and Drive account`() = runBlocking {
         val fixture = Fixture()
+        fixture.authority.onCompletion = {
+            assertTrue(requireNotNull(fixture.ceremony.lastResult).hasLocalPrfOutput)
+        }
 
         val proof = fixture.readback().verify(fixture.storageKey, fixture.credentialId)
 
@@ -23,6 +26,7 @@ class PasskeyBackupAuthenticatedGenerationReadbackTest {
         assertEquals(2, fixture.authority.headReads)
         assertEquals(1, fixture.authority.completions)
         assertEquals(1, fixture.walletVerifications)
+        assertFalse(requireNotNull(fixture.ceremony.lastResult).hasLocalPrfOutput)
         assertEquals(4, fixture.accountAccesses)
         assertEquals(listOf("GET", "GET"), fixture.requests.map { it.method })
         assertTrue(fixture.requests.all { it.url.contains("/files/allocated-file?") })
@@ -42,6 +46,21 @@ class PasskeyBackupAuthenticatedGenerationReadbackTest {
         assertFalse(proof.toString().contains(fixture.wallet.walletId))
         assertFalse(fixture.snapshot.toString().contains(fixture.credentialId))
         assertFalse(fixture.authority.lastVerified.toString().contains(fixture.credentialId))
+    }
+
+    @Test
+    fun `server rejection occurs before local PRF is consumed or wallet material is decrypted`() = runBlocking {
+        val fixture = Fixture()
+        fixture.authority.onCompletion = {
+            assertTrue(requireNotNull(fixture.ceremony.lastResult).hasLocalPrfOutput)
+            error("Server rejected the signed assertion")
+        }
+
+        fails { fixture.readback().verify(fixture.storageKey, fixture.credentialId) }
+
+        assertEquals(1, fixture.authority.completions)
+        assertEquals(0, fixture.walletVerifications)
+        assertFalse(requireNotNull(fixture.ceremony.lastResult).hasLocalPrfOutput)
     }
 
     @Test
@@ -225,6 +244,7 @@ class PasskeyBackupAuthenticatedGenerationReadbackTest {
         var completionSnapshot: PasskeyBackupRecoveryHeadSnapshot? = null
         var latestSnapshot: PasskeyBackupRecoveryHeadSnapshot? = null
         var serverCredentialJson = ""
+        var onCompletion: (() -> Unit)? = null
         lateinit var lastVerified: PasskeyBackupVerifiedAssertionHead
 
         override suspend fun readAuthorizedHead(
@@ -252,6 +272,7 @@ class PasskeyBackupAuthenticatedGenerationReadbackTest {
         ): PasskeyBackupVerifiedAssertionHead {
             completions++
             this.serverCredentialJson = serverCredentialJson
+            onCompletion?.invoke()
             return PasskeyBackupVerifiedAssertionHead(
                 assertionId, credentialId, completionSnapshot ?: initialSnapshot
             ).also { lastVerified = it }
@@ -266,6 +287,7 @@ class PasskeyBackupAuthenticatedGenerationReadbackTest {
         var includePrf = true
         var responseCredentialId = credentialId
         var requestJson = ""
+        var lastResult: PasskeyBackupNativeCeremonyResult? = null
 
         override suspend fun performRegistration(
             pending: PendingPasskeyBackupRegistration
@@ -286,7 +308,7 @@ class PasskeyBackupAuthenticatedGenerationReadbackTest {
             return PasskeyBackupNativeCeremonyResult.assertion(
                 """{"id":"$responseCredentialId","rawId":"$responseCredentialId","type":"public-key","response":{"clientDataJSON":"AQ","authenticatorData":"AQ","signature":"AQ","userHandle":null},"clientExtensionResults":$extension}""",
                 pending.requestJson
-            )
+            ).also { lastResult = it }
         }
     }
 }

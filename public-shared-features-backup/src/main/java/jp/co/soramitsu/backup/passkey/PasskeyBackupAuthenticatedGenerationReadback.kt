@@ -107,17 +107,19 @@ class PasskeyBackupAuthenticatedGenerationReadback(
             salt.fill(0)
         }
         return ceremonyExecutor.performAssertion(pending).use { result ->
+            val responseCredential = JsonParser.parseString(result.serverCredentialJson)
+                .asJsonObject.get("id")?.asString
+            require(responseCredential == expectedCredentialId) { "Recovery assertion credential mismatch" }
+            require(result.hasLocalPrfOutput) { "Passkey provider did not return a PRF result" }
+            val after = authority.verifyAssertionAndReadHead(
+                pending.assertionId, result.serverCredentialJson
+            )
+            require(after.assertionId == pending.assertionId && after.credentialId == expectedCredentialId) {
+                "Verified recovery assertion mismatch"
+            }
+            requireSameHead(before, after.snapshot, expectedStorageKey, expectedCredentialId)
+            // Keep PRF bytes sealed until the server verifies this exact public assertion and head.
             result.withRequiredLocalPrfOutput { prf ->
-                val responseCredential = JsonParser.parseString(result.serverCredentialJson)
-                    .asJsonObject.get("id")?.asString
-                require(responseCredential == expectedCredentialId) { "Recovery assertion credential mismatch" }
-                val after = authority.verifyAssertionAndReadHead(
-                    pending.assertionId, result.serverCredentialJson
-                )
-                require(after.assertionId == pending.assertionId && after.credentialId == expectedCredentialId) {
-                    "Verified recovery assertion mismatch"
-                }
-                requireSameHead(before, after.snapshot, expectedStorageKey, expectedCredentialId)
                 val evidence = verifier.verify(generation, expectedCredentialId, prf, before.expectedWallet)
                 storage.requireSelectedAccount()
                 currentCoroutineContext().ensureActive()

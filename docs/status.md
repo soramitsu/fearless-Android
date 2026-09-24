@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android PRF consumption boundary — 2026-09-24
+
+- The disabled generation readback now checks the public credential identity and the presence of a native PRF result, then consumes the server-verified assertion and confirms the unchanged owner head **before** exposing PRF bytes to local unwrap/decryption. A native ceremony result releases its PRF output at most once, including when a callback fails or is cancelled; the callback's byte array is cleared on exit. Server rejection therefore cannot reach the wallet verifier, and a second local unwrap cannot reuse that result.
+- The complete backup-module JVM suite passes 238/238 with zero failures, errors or skips under the clean pinned Utils source; `detektAll` passes. The focused native/readback suites pass 19/19, including a server-rejection ordering case. These are local synthetic tests. A production owner authority, original-wallet verifier, real Google Password Manager PRF interoperability, replacement-device recovery and signed distribution acceptance remain open. The recovery flag remains disabled.
+
 ## Android first-owner Play Integrity request candidate — 2026-09-24
 
 - The disabled Android backup module now has a native Play Integrity Standard gateway, using Google's `com.google.android.play:integrity:1.6.0` from checksum-pinned Google Maven artifacts. It prepares a provider only with an explicitly supplied Cloud project number and requests a token with the exact canonical base64url SHA-256 nonce derived from the already signed first-owner wallet-proof message, normalized public key, scheme and signature. The nonce matches the owner-authority v1 domain/length-prefix contract. The opaque result exposes only a redacted typed token and a `kind`/`token` server-attestation shape; it never handles PRF output or wallet plaintext. The current production factory remains compile-disabled and the requester is not wired into owner bootstrap or UI.

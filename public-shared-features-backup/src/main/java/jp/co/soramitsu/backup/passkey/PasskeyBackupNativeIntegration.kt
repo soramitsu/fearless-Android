@@ -60,30 +60,36 @@ class PasskeyBackupNativeCeremonyResult private constructor(
     val serverCredentialJson: String,
     @Transient private var localPrfOutput: ByteArray?
 ) : AutoCloseable {
-    val hasLocalPrfOutput: Boolean get() = localPrfOutput != null
+    @Transient private val localPrfLock = Any()
 
+    val hasLocalPrfOutput: Boolean get() = synchronized(localPrfLock) { localPrfOutput != null }
+
+    /** A native PRF result is a one-use local capability, including when the callback fails. */
     fun <T> withLocalPrfOutput(block: (ByteArray?) -> T): T {
-        val copy = localPrfOutput?.copyOf()
+        val output = takeLocalPrfOutput()
         return try {
-            block(copy)
+            block(output)
         } finally {
-            copy?.fill(0)
+            output?.fill(0)
         }
     }
 
-    /** Keep the native PRF result local and clear its callback copy after asynchronous verification. */
+    /** Call only after the public assertion has been verified against the current owner head. */
     suspend fun <T> withRequiredLocalPrfOutput(block: suspend (ByteArray) -> T): T {
-        val copy = requireNotNull(localPrfOutput?.copyOf()) { "Passkey provider did not return a PRF result" }
+        val output = requireNotNull(takeLocalPrfOutput()) { "Passkey provider did not return a PRF result" }
         return try {
-            block(copy)
+            block(output)
         } finally {
-            copy.fill(0)
+            output.fill(0)
         }
     }
 
     override fun close() {
-        localPrfOutput?.fill(0)
-        localPrfOutput = null
+        takeLocalPrfOutput()?.fill(0)
+    }
+
+    private fun takeLocalPrfOutput(): ByteArray? = synchronized(localPrfLock) {
+        localPrfOutput.also { localPrfOutput = null }
     }
 
     override fun toString(): String = "PasskeyBackupNativeCeremonyResult(redacted)"

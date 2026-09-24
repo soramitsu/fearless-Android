@@ -62,6 +62,8 @@ class PasskeyBackupNativeIntegrationTest {
             assertArrayEquals(secret, localOutput)
         }
         assertTrue(callbackCopy!!.all { it == 0.toByte() })
+        assertFalse(result.hasLocalPrfOutput)
+        assertTrue(runCatching { result.withRequiredLocalPrfOutput { } }.isFailure)
         result.close()
         assertFalse(result.hasLocalPrfOutput)
     }
@@ -85,6 +87,8 @@ class PasskeyBackupNativeIntegrationTest {
             }.isFailure
         )
         assertTrue(requireNotNull(callbackCopy).all { it == 0.toByte() })
+        assertFalse(result.hasLocalPrfOutput)
+        assertTrue(runCatching { result.withRequiredLocalPrfOutput { } }.isFailure)
         result.close()
         assertFalse(result.hasLocalPrfOutput)
         assertTrue(runCatching { result.withRequiredLocalPrfOutput { } }.isFailure)
