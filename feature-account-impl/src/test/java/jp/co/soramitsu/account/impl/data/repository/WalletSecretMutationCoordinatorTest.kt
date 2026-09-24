@@ -33,6 +33,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -522,6 +523,42 @@ class WalletSecretMutationCoordinatorTest {
             9L,
             coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
         )
+    }
+
+    @Test
+    fun createSkipsPortableCohortReservedWalletId() = runBlocking {
+        val fixture = substrateFixture(1)
+        preferences.putEncryptedString(PortableWalletCohortJournalStore.reservationKey(8L), "reserved")
+        identifiers = FakeWalletMutationIdentifierSource(
+            metaIds = listOf(8, 9),
+            operationIds = canonicalOperationIds()
+        )
+        coordinator = coordinator()
+
+        assertEquals(
+            9L,
+            coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
+        )
+        assertNotNull(database.account(9))
+        assertEquals("reserved", preferences.value(PortableWalletCohortJournalStore.reservationKey(8L)))
+    }
+
+    @Test
+    fun createRejectsPortableCohortJournalEvenIfItsIdMarkerIsMissing() = runBlocking {
+        val fixture = substrateFixture(1)
+        preferences.putEncryptedString(PortableWalletCohortJournalStore.JOURNAL_KEY, "unreconciled")
+        identifiers = FakeWalletMutationIdentifierSource(
+            metaIds = listOf(8),
+            operationIds = canonicalOperationIds()
+        )
+        coordinator = coordinator()
+
+        val failure = assertThrows(WalletSecretMutationCoordinatorException::class.java) {
+            runBlocking { coordinator.create(substratePrototype(fixture), fixture.encoded, null, null) }
+        }
+        assertEquals(WalletMutationFailureReason.STATE_CONFLICT, failure.reason)
+        assertNull(database.account(8))
+        assertEquals("unreconciled", preferences.value(PortableWalletCohortJournalStore.JOURNAL_KEY))
     }
 
     @Test

@@ -33,33 +33,7 @@ internal class WatchOnlyWalletEnrollment private constructor(
         journalStore: WalletSecretMutationJournalStore
     ) : this(
         RoomWatchEnrollmentDatabase(appDatabase, metaAccountDao, custodyDao),
-        object : WatchEnrollmentSecretInventory {
-            override fun requireReady() {
-                encryptedPreferences.requireDurableStorageHealthy()
-                check(journalStore.load() == null) { "A wallet mutation is pending" }
-            }
-
-            override fun hasNamespace(metaId: Long): Boolean = journalStore.hasSecretNamespace(metaId)
-
-            override fun hasLegacySubstrateSource(accountId: ByteArray?): Boolean {
-                if (accountId == null) return false
-                return encryptedPreferences.keysWithPrefixes(
-                    prefixes = setOf(LEGACY_V1_PREFIX),
-                    maxResultCount = 4_096,
-                    maxKeyBytes = 256,
-                    maxTotalKeyBytes = 524_288,
-                    failOnOversizedMatch = true
-                ).any { key ->
-                    check(key.startsWith(LEGACY_V1_PREFIX)) { "Invalid V1 source inventory" }
-                    val owner = try {
-                        key.removePrefix(LEGACY_V1_PREFIX).toAccountId()
-                    } catch (_: Exception) {
-                        error("Ambiguous V1 source inventory during watch enrollment")
-                    }
-                    owner.contentEquals(accountId)
-                }
-            }
-        }
+        DefaultWatchEnrollmentSecretInventory(encryptedPreferences, journalStore)
     )
 
     internal constructor(
@@ -148,7 +122,6 @@ internal class WatchOnlyWalletEnrollment private constructor(
 
     private companion object {
         const val MAX_WALLETS = 128
-        const val LEGACY_V1_PREFIX = "security_source_"
     }
 }
 
@@ -156,6 +129,45 @@ internal interface WatchEnrollmentSecretInventory {
     fun requireReady()
     fun hasNamespace(metaId: Long): Boolean
     fun hasLegacySubstrateSource(accountId: ByteArray?): Boolean
+}
+
+internal class DefaultWatchEnrollmentSecretInventory(
+    private val encryptedPreferences: EncryptedPreferences,
+    private val journalStore: WalletSecretMutationJournalStore,
+) : WatchEnrollmentSecretInventory {
+    override fun requireReady() {
+        encryptedPreferences.requireDurableStorageHealthy()
+        check(journalStore.load() == null) { "A wallet mutation is pending" }
+        check(!encryptedPreferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY)) {
+            "A portable cohort stage is pending"
+        }
+    }
+
+    override fun hasNamespace(metaId: Long): Boolean = journalStore.hasSecretNamespace(metaId) ||
+            encryptedPreferences.hasKey(PortableWalletCohortJournalStore.reservationKey(metaId))
+
+    override fun hasLegacySubstrateSource(accountId: ByteArray?): Boolean {
+        if (accountId == null) return false
+        return encryptedPreferences.keysWithPrefixes(
+            prefixes = setOf(LEGACY_V1_PREFIX),
+            maxResultCount = 4_096,
+            maxKeyBytes = 256,
+            maxTotalKeyBytes = 524_288,
+            failOnOversizedMatch = true
+        ).any { key ->
+            check(key.startsWith(LEGACY_V1_PREFIX)) { "Invalid V1 source inventory" }
+            val owner = try {
+                key.removePrefix(LEGACY_V1_PREFIX).toAccountId()
+            } catch (_: Exception) {
+                error("Ambiguous V1 source inventory during watch enrollment")
+            }
+            owner.contentEquals(accountId)
+        }
+    }
+
+    private companion object {
+        const val LEGACY_V1_PREFIX = "security_source_"
+    }
 }
 
 internal interface WatchEnrollmentDatabase {

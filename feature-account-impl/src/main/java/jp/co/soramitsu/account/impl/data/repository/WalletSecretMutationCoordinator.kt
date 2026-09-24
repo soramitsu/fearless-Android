@@ -320,6 +320,9 @@ class WalletSecretMutationCoordinator private constructor(
     }
 
     private suspend fun WalletMutationDatabase.allocateMetaId(): Long {
+        requireState(!encryptedPreferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY)) {
+            "A portable cohort stage must be reconciled before creating a wallet"
+        }
         repeat(MAX_META_ID_ALLOCATION_ATTEMPTS) {
             val candidate = try {
                 identifierSource.nextMetaIdCandidate()
@@ -333,6 +336,7 @@ class WalletSecretMutationCoordinator private constructor(
             if (candidate <= 0L) return@repeat
             if (metaAccountExists(candidate)) return@repeat
             if (journalCall { journalStore.hasSecretNamespace(candidate) }) return@repeat
+            if (encryptedPreferences.hasKey(PortableWalletCohortJournalStore.reservationKey(candidate))) return@repeat
 
             return candidate
         }

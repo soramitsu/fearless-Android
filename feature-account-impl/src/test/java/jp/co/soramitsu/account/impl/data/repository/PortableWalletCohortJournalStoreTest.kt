@@ -32,7 +32,14 @@ class PortableWalletCohortJournalStoreTest {
         val expected = record.semanticCopy()
         try {
             val token = PortableWalletCohortJournalStore(preferences).stage(OPERATION_ID, record)
-            assertEquals(setOf(PortableWalletCohortJournalStore.JOURNAL_KEY), preferences.values.keys)
+            assertEquals(
+                setOf(
+                    PortableWalletCohortJournalStore.JOURNAL_KEY,
+                    PortableWalletCohortJournalStore.reservationKey(41L),
+                    PortableWalletCohortJournalStore.reservationKey(42L),
+                ),
+                preferences.values.keys,
+            )
             assertEquals(1, preferences.writes)
             assertEquals("PortableWalletCohortJournalStore.Token(redacted)", token.toString())
 
@@ -87,6 +94,7 @@ class PortableWalletCohortJournalStoreTest {
                 v1.candidateSecretKey,
                 v2.candidateSecretKey,
                 "41:orphaned:ACCESS_SECRETS",
+                PortableWalletCohortJournalStore.reservationKey(41L),
             )
             keys.forEach { key -> assertOccupiedKeyRejected(key, candidate) }
         } finally {
@@ -110,6 +118,59 @@ class PortableWalletCohortJournalStoreTest {
         } finally {
             candidate.clearSecrets()
         }
+    }
+
+    @Test
+    fun `concurrent ID reservation fails the same atomic staging compare and swap`() {
+        val candidate = cohort()
+        val reservation = PortableWalletCohortJournalStore.reservationKey(41L)
+        val preferences = RecordingPreferences().apply {
+            beforeCompare = { values[reservation] = "racing owner" }
+        }
+        try {
+            val failure = assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                PortableWalletCohortJournalStore(preferences).stage(OPERATION_ID, candidate)
+            }
+            assertEquals(FailureReason.CONFLICT, failure.reason)
+            assertEquals(mapOf(reservation to "racing owner"), preferences.values)
+            assertEquals(0, preferences.writes)
+        } finally {
+            candidate.clearSecrets()
+        }
+    }
+
+    @Test
+    fun `missing or changed ID reservation fails replay and cannot be abandoned`() {
+        val candidate = cohort()
+        val reservation = PortableWalletCohortJournalStore.reservationKey(41L)
+        val preferences = RecordingPreferences()
+        try {
+            val store = PortableWalletCohortJournalStore(preferences)
+            val token = store.stage(OPERATION_ID, candidate)
+            val original = requireNotNull(preferences.values.remove(reservation))
+            assertBrokenReservationBlocksReplayAndAbandon(store, token)
+            preferences.values[reservation] = "different operation"
+            assertBrokenReservationBlocksReplayAndAbandon(store, token)
+            preferences.values[reservation] = original
+            store.abandon(token)
+            assertTrue(preferences.values.isEmpty())
+        } finally {
+            candidate.clearSecrets()
+        }
+    }
+
+    private fun assertBrokenReservationBlocksReplayAndAbandon(
+        store: PortableWalletCohortJournalStore,
+        token: PortableWalletCohortJournalStore.Token,
+    ) {
+        val replayFailure = assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+            store.load()
+        }
+        assertEquals(FailureReason.CONFLICT, replayFailure.reason)
+        val abandonFailure = assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+            store.abandon(token)
+        }
+        assertEquals(FailureReason.CONFLICT, abandonFailure.reason)
     }
 
     @Test
@@ -331,6 +392,26 @@ class PortableWalletCohortJournalStoreTest {
             }
             assertEquals(FailureReason.CONFLICT, failure.reason)
             assertEquals("replaced", preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY])
+        } finally {
+            candidate.clearSecrets()
+        }
+    }
+
+    @Test
+    fun `abandon compare and swap cannot remove a replaced ID reservation`() {
+        val candidate = cohort()
+        val preferences = RecordingPreferences()
+        val reservation = PortableWalletCohortJournalStore.reservationKey(41L)
+        try {
+            val store = PortableWalletCohortJournalStore(preferences)
+            val token = store.stage(OPERATION_ID, candidate)
+            preferences.beforeCompare = { preferences.values[reservation] = "replaced" }
+            val failure = assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                store.abandon(token)
+            }
+            assertEquals(FailureReason.CONFLICT, failure.reason)
+            assertEquals("replaced", preferences.values[reservation])
+            assertTrue(preferences.values.containsKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
         } finally {
             candidate.clearSecrets()
         }

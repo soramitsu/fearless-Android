@@ -1,9 +1,11 @@
 package jp.co.soramitsu.account.impl.data.repository
 
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.WalletCustodyLocal
+import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -58,6 +60,44 @@ class WatchOnlyWalletEnrollmentTest {
         }
         assertTrue(database.wallets.isEmpty())
         assertTrue(database.markers.isEmpty())
+    }
+
+    @Test
+    fun `portable cohort reservation rolls back a colliding watch wallet insertion`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences().apply {
+            putEncryptedString(PortableWalletCohortJournalStore.reservationKey(1L), "reserved")
+        }
+        val inventory = DefaultWatchEnrollmentSecretInventory(
+            preferences, WalletSecretMutationJournalStore(preferences)
+        )
+        val database = FakeDatabase()
+        val enrollment = WatchOnlyWalletEnrollment(database, inventory, Unit)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { enrollment.enroll(prototype()) }
+        }
+        assertTrue(database.wallets.isEmpty())
+        assertTrue(database.markers.isEmpty())
+        assertEquals("reserved", preferences.getDecryptedString(PortableWalletCohortJournalStore.reservationKey(1L)))
+    }
+
+    @Test
+    fun `portable cohort journal blocks watch enrollment even with a missing marker`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences().apply {
+            putEncryptedString(PortableWalletCohortJournalStore.JOURNAL_KEY, "unreconciled")
+        }
+        val inventory = DefaultWatchEnrollmentSecretInventory(
+            preferences, WalletSecretMutationJournalStore(preferences)
+        )
+        val database = FakeDatabase()
+        val enrollment = WatchOnlyWalletEnrollment(database, inventory, Unit)
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { enrollment.enroll(prototype()) }
+        }
+        assertTrue(database.wallets.isEmpty())
+        assertTrue(database.markers.isEmpty())
+        assertEquals("unreconciled", preferences.getDecryptedString(PortableWalletCohortJournalStore.JOURNAL_KEY))
     }
 
     @Test
