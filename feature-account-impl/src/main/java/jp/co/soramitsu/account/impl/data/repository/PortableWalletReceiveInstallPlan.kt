@@ -40,7 +40,9 @@ internal object PortableWalletReceiveInstallPlan {
         val slotRole: Int? = null,
         val slotKey: String? = null,
         val metadataId: Int? = null,
-    )
+    ) {
+        override fun toString(): String = "PortableWalletReceiveInstallPlan.Blocker(redacted)"
+    }
 
     internal class Plan internal constructor(
         val selectedIndex: Int,

@@ -1,5 +1,10 @@
 # Status Summary
 
+## Portable cohort after-image candidate — 2026-09-24
+
+- An unwired, versioned `FPWCAI01` after-image now binds ordered positive local wallet IDs to the exact canonical `FPWMSM01` cohort. It retains source positions, selection, every wallet/metadata/slot byte and all receiving blockers, and derives candidate V3/V2/V1 secret namespaces without writing any store. Malformed wire, duplicate local IDs or candidate keys, unsupported V2 account IDs and mismatched V1 public addresses fail closed. Record and destination string rendering is redacted.
+- Focused JVM tests pass 6/6 against pinned Utils; forced scoped Detekt on the three touched Kotlin files and diff checks pass. This is a schema prerequisite only: the active journal still handles one wallet and up to three V3 roots, with no cohort-wide replay, Room/secret-store installation, original-source mapping or replacement-device proof. Portable recovery remains disabled.
+
 ## Portable receiving plan candidate — 2026-09-24
 
 - An unwired Android planner now decodes and independently owns every byte of a canonical `FPWMSM01` cohort. It retains wallet IDs, source positions, selection, presentation metadata, signed roots, V1 legacy sources, V2 chain accounts, favorites, auxiliary original bytes and watch identities as logical receiving intents. The plan can reproduce the exact semantic payload, erases its private byte arrays and cannot return an install-ready result. Every unproven source or role has an explicit blocker; no DAO, Keychain/secret-store, Drive or backup-completion path calls it.
