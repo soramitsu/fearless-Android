@@ -4,9 +4,13 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android historical V1 source proof candidate — 2026-09-25
+
+- The unwired V1 checker proves the retained typed historical key, SS58 identity, mnemonic/entropy, seed and path under the production validator; the existing V2 checker separately proves canonical original SCALE chain sources against an approved genesis policy. P0: qualify all real historical V1/V2 cohorts and original export behavior on signed upgrades; integrate with V3/iOS/watch/metadata checks only after exact original-key and complete-cohort proof exists, then implement crash-safe installation and replacement-device acceptance. No backup-complete decision consumes these narrow proofs.
+
 ## Android V3 original-source proof candidate — 2026-09-25
 
-- The unwired V3 checker binds exact original Android SCALE bytes to semantic Substrate/EVM/TON roots and proves local signing. P0: independently qualify the original-source parser and signed/exported key behavior; add V1, V2, iOS and watch/metadata/favorite coverage with a complete cohort identity digest and installed-key readback. Only then implement the app-owned first-generation exporter/verifier and fresh-install transaction; do not mark backup complete from this component result.
+- The unwired V3 checker binds exact original Android SCALE bytes to semantic Substrate/EVM/TON roots and proves local signing. Narrow V1 semantic and V2 exact-source proof components are also present. P0: independently qualify the parsers and signed/exported key behavior; integrate V1/V2 with iOS and watch/metadata/favorite coverage, a complete cohort identity digest and installed-key readback. Only then implement the app-owned first-generation exporter/verifier and fresh-install transaction; do not mark backup complete from these component results.
 
 ## Android first-owner bootstrap candidate — 2026-09-25
 

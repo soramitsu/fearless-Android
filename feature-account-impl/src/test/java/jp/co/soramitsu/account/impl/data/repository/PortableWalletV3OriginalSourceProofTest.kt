@@ -81,8 +81,19 @@ class PortableWalletV3OriginalSourceProofTest {
             )
         )
         val encoded = codec.encode(snapshot)
+        val tonOnly = PortableWalletSemanticMaterial.Snapshot(
+            0,
+            listOf(
+                PortableWalletSemanticMaterial.Wallet(
+                    ByteArray(16) { 2 }, 0, true, "TON",
+                    emptyList(), listOf(tonRoot, original(0, 13, 4, tonRaw))
+                )
+            )
+        )
+        val tonOnlyEncoded = codec.encode(tonOnly)
         try {
             assertEquals(2, PortableWalletV3OriginalSourceProof.verify(encoded).exactAndroidRoots)
+            assertEquals(1, PortableWalletV3OriginalSourceProof.verify(tonOnlyEncoded).exactAndroidRoots)
             assertRejected(
                 listOf(
                     substrateRoot,
@@ -95,7 +106,9 @@ class PortableWalletV3OriginalSourceProofTest {
             )
         } finally {
             snapshot.clearSecrets()
+            tonOnly.clearSecrets()
             encoded.fill(0)
+            tonOnlyEncoded.fill(0)
             substrateRaw.fill(0)
             tonRaw.fill(0)
             tonPrivate.fill(0)
