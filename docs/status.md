@@ -1,5 +1,10 @@
 # Status Summary
 
+## Portable receiving plan candidate — 2026-09-24
+
+- An unwired Android planner now decodes and independently owns every byte of a canonical `FPWMSM01` cohort. It retains wallet IDs, source positions, selection, presentation metadata, signed roots, V1 legacy sources, V2 chain accounts, favorites, auxiliary original bytes and watch identities as logical receiving intents. The plan can reproduce the exact semantic payload, erases its private byte arrays and cannot return an install-ready result. Every unproven source or role has an explicit blocker; no DAO, Keychain/secret-store, Drive or backup-completion path calls it.
+- Focused planner JVM tests pass 5/5 against the clean pinned Utils checkout; forced scoped Detekt on the two new files and diff checks pass. Current root-signing proofs remain narrower than a complete wallet. A durable cohort-wide cross-store journal, per-chain/V1/original-source signing and export proof, collision checks, replacement-device acceptance and final-source CI are still required before installing any wallet.
+
 ## Android local V1 material capture — 2026-09-24
 
 - The internal, bounded Android-local draft now retains a validated V1-only Substrate source in its own versioned slot. It records source type, exact original address and keypair/nonce, optional seed and derivation path, mnemonic and its derived entropy. Bounded V1 key-name discovery rejects malformed aliases, active addresses without a durable wallet owner, duplicate aliases and inventory changes; repository reads retain the existing recovery guard and cryptographic identity check. Unowned keys remain untouched for reconciliation. V3 Substrate, independent EVM and native TON roots, V2 chain keys, wallet selection/order and favorites remain separate and unchanged. Watch-only material still fails closed.
