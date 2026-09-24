@@ -63,6 +63,58 @@ class PasskeyBackupOwnerAuthenticationClient(
         }
     }
 
+    /**
+     * Initial-backup candidate: release local PRF bytes only after the authority verifies the
+     * selected credential and a fresh owner session still names the new, empty-head owner.
+     * This callback must only prepare local encryption; it does not commit or complete a backup.
+     */
+    suspend fun <T> withVerifiedFirstOwnerPrf(
+        expectedOwner: PasskeyBackupOwnerSession,
+        expectedCredentialId: String,
+        prfSalt: ByteArray,
+        ownerHead: PasskeyBackupOwnerHeadHttpClient,
+        onVerified: suspend (PasskeyBackupOwnerSession, PasskeyBackupAuthenticatedHead, ByteArray) -> T
+    ): T {
+        PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        require(expectedOwner.platform == ANDROID_PLATFORM && expectedOwner.generation == 0L) {
+            "First-owner session is invalid"
+        }
+        requireFresh(expectedOwner.expiresAt, MAX_SESSION_EXPIRY_AHEAD_SECONDS, "first-owner session")
+        val credentialId = requireCredentialId(expectedCredentialId)
+        PasskeyBackupContract.requirePrfSalt(prfSalt)
+        val challenge = beginChallenge()
+        val requestJson = PasskeyBackupContract.discoverableAssertionOptionsJsonWithPrf(
+            challenge.challenge, prfSalt
+        )
+        currentCoroutineContext().ensureActive()
+        val nativeResponse = credentialGateway.getCredential(requestJson)
+        currentCoroutineContext().ensureActive()
+        requireFresh(challenge.expiresAt, MAX_CHALLENGE_EXPIRY_AHEAD_SECONDS, "challenge")
+        return PasskeyBackupNativeCeremonyResult.assertion(nativeResponse, requestJson).use { result ->
+            val publicCredential = JsonParser.parseString(result.serverCredentialJson).asJsonObject
+            require(publicCredential.get("id")?.asString == credentialId && result.hasLocalPrfOutput) {
+                "First-owner credential or local PRF result mismatch"
+            }
+            val session = completeChallenge(challenge.ceremonyId, publicCredential)
+            requireFresh(session.expiresAt, MAX_SESSION_EXPIRY_AHEAD_SECONDS, "session")
+            require(
+                session.subject == expectedOwner.subject &&
+                    session.namespace == expectedOwner.namespace &&
+                    session.generation == expectedOwner.generation
+            ) { "Verified assertion changed first owner" }
+            val head = ownerHead.readHead(session)
+            require(
+                head.ownerSubject == expectedOwner.subject &&
+                    head.backupNamespace == expectedOwner.namespace &&
+                    head.head == null && head.previous == null
+            ) { "First-owner backup head is no longer empty" }
+            result.withRequiredLocalPrfOutput { prf ->
+                currentCoroutineContext().ensureActive()
+                onVerified(session, head, prf)
+            }
+        }
+    }
+
     private suspend fun beginChallenge(): OwnerChallenge {
         val body = JsonObject().apply {
             addProperty("schemaVersion", PasskeyBackupContract.SCHEMA_VERSION)

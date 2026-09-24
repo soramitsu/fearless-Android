@@ -147,6 +147,17 @@ object PasskeyBackupContract {
         return options.toString()
     }
 
+    /** Discoverable owner authentication with a local PRF evaluation; no credential ID is trusted by the server yet. */
+    fun discoverableAssertionOptionsJsonWithPrf(
+        challenge: ByteArray,
+        prfSalt: ByteArray,
+        rpId: String = PASSKEY_RP_ID
+    ): String {
+        val options = JsonParser.parseString(assertionOptionsJson(challenge, rpId)).asJsonObject
+        options.add("extensions", prfExtension(prfSalt))
+        return options.toString()
+    }
+
     private fun prfExtension(prfSalt: ByteArray): JsonObject {
         requirePrfSalt(prfSalt)
         return JsonObject().apply {

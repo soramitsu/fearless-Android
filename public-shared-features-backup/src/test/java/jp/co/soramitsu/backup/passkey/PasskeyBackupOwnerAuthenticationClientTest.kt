@@ -79,6 +79,89 @@ class PasskeyBackupOwnerAuthenticationClientTest {
     }
 
     @Test
+    fun `first-owner PRF reaches local callback only after verified assertion and empty head`() = runBlocking {
+        val prf = ByteArray(32) { 7 }
+        val gateway = RecordingGateway(assertionWithPrf(prf))
+        val transport = RecordingTransport(challengeResponse(), sessionResponse(), headResponse())
+        var received: ByteArray? = null
+
+        val result = client(gateway, transport, true).withVerifiedFirstOwnerPrf(
+            expectedOwner(), "AQ", ByteArray(32) { 8 }, headClient(transport)
+        ) { session, head, localPrf ->
+            assertEquals(SUBJECT, session.subject)
+            assertTrue(head.head == null && head.previous == null)
+            assertTrue(localPrf.contentEquals(prf))
+            received = localPrf
+            "prepared-locally"
+        }
+
+        assertEquals("prepared-locally", result)
+        assertTrue(requireNotNull(received).all { it == 0.toByte() })
+        assertEquals(3, transport.requests.size)
+        val options = JsonParser.parseString(requireNotNull(gateway.requestJson)).asJsonObject
+        assertTrue(options.has("extensions"))
+        assertFalse(options.has("allowCredentials"))
+        assertEquals("required", options.get("userVerification").asString)
+        assertTrue(transport.requests[1].isOneShot)
+        assertFalse(transport.requests[1].bodyText().contains(base64Url(prf)))
+        assertFalse(transport.requests[1].bodyText().contains("prf"))
+        assertEquals("Bearer $SESSION_TOKEN", transport.requests[2].headers["Authorization"])
+    }
+
+    @Test
+    fun `first-owner PRF never reaches local callback for wrong credential or owner`() = runBlocking {
+        val prf = ByteArray(32) { 7 }
+        val wrongCredential = RecordingTransport(challengeResponse(), sessionResponse())
+        var called = false
+        val wrongCredentialFailed = runCatching {
+            client(RecordingGateway(assertionWithPrf(prf)), wrongCredential, true)
+                .withVerifiedFirstOwnerPrf(expectedOwner(), "Ag", ByteArray(32) { 8 }, headClient(wrongCredential)) {
+                    _, _, _ ->
+                    called = true
+                }
+        }.isFailure
+        assertTrue(wrongCredentialFailed)
+        assertFalse(called)
+        assertEquals(1, wrongCredential.requests.size)
+
+        val wrongOwner = RecordingTransport(challengeResponse(), sessionResponse())
+        val other = PasskeyBackupOwnerSession(
+            SESSION_TOKEN, "owner:${base64Url(ByteArray(32) { 9 })}", NAMESPACE,
+            0, "android", nowMillis / 1_000L + 599L
+        )
+        val wrongOwnerFailed = runCatching {
+            client(RecordingGateway(assertionWithPrf(prf)), wrongOwner, true)
+                .withVerifiedFirstOwnerPrf(other, "AQ", ByteArray(32) { 8 }, headClient(wrongOwner)) {
+                    _, _, _ ->
+                    called = true
+                }
+        }.isFailure
+        assertTrue(wrongOwnerFailed)
+        assertFalse(called)
+        assertEquals(2, wrongOwner.requests.size)
+    }
+
+    @Test
+    fun `first-owner PRF is withheld when authenticated head has already advanced`() = runBlocking {
+        val prf = ByteArray(32) { 7 }
+        assertNotNull(headClient(RecordingTransport(advancedHeadResponse())).readHead(expectedOwner()).head)
+        val transport = RecordingTransport(challengeResponse(), sessionResponse(), advancedHeadResponse())
+        var called = false
+
+        val failed = runCatching {
+            client(RecordingGateway(assertionWithPrf(prf)), transport, true)
+                .withVerifiedFirstOwnerPrf(expectedOwner(), "AQ", ByteArray(32) { 8 }, headClient(transport)) {
+                    _, _, _ ->
+                    called = true
+                }
+        }.isFailure
+
+        assertTrue(failed)
+        assertFalse(called)
+        assertEquals(3, transport.requests.size)
+    }
+
+    @Test
     fun `accepts authority lifetimes when the device clock is slightly behind`() = runBlocking {
         val deviceNow = nowMillis / 1_000L
         val challenge = challengeJson().replace(
@@ -238,6 +321,36 @@ class PasskeyBackupOwnerAuthenticationClientTest {
         transport = transport,
         nowMillis = { nowMillis },
         isReleaseEnabled = enabled
+    )
+
+    private fun expectedOwner() = PasskeyBackupOwnerSession(
+        SESSION_TOKEN, SUBJECT, NAMESPACE, 0, "android", nowMillis / 1_000L + 599L
+    )
+
+    private fun headClient(transport: GoogleDriveHttpTransport) = PasskeyBackupOwnerHeadHttpClient(
+        GoogleDriveAccessTokenProvider {
+            GoogleDriveAccountAccess("google-subject-1", "owner@example.com", "test-token")
+        },
+        transport,
+        nowMillis = { nowMillis },
+        isReleaseEnabled = true
+    )
+
+    private fun headResponse() = jsonResponse(
+        """{"schemaVersion":1,"ownerSubject":"$SUBJECT","backupNamespace":"$NAMESPACE","head":null,"previous":null}"""
+    )
+
+    private fun advancedHeadResponse(): GoogleDriveHttpResponse {
+        val binding = PasskeyBackupGenerationFormat.storageAccountBinding("google-subject-1")
+        val generation = base64Url(ByteArray(32) { 10 })
+        return jsonResponse(
+            """{"schemaVersion":1,"ownerSubject":"$SUBJECT","backupNamespace":"$NAMESPACE","head":{"headRevision":"1","parentHeadRevision":"0","parentHeadSha256":null,"generationId":"$generation","bundleSha256":"${"a".repeat(64)}","keyEpoch":"1","driveFileId":"drive-file-1","storageAccountBinding":"$binding"},"previous":null}"""
+        )
+    }
+
+    private fun assertionWithPrf(prf: ByteArray) = ASSERTION_JSON.replace(
+        "\"clientExtensionResults\":{}",
+        "\"clientExtensionResults\":{\"prf\":{\"results\":{\"first\":\"${base64Url(prf)}\"}}}"
     )
 
     private fun challengeResponse() = jsonResponse(challengeJson())
