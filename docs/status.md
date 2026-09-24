@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android portable original-source sidecar candidate — 2026-09-25
+
+- The disabled cohort stager now writes a version-2 encrypted journal and a separate, bounded encrypted original-source sidecar in the same durable preference compare-and-swap as the exact ID markers. The sidecar retains canonical opaque `AUXILIARY_SOURCE` fields plus the ordered local/portable wallet IDs, source positions, per-wallet semantic commitments, operation ID and after-image digest. These opaque fields can contain wallet secrets; normalized V1/V2/V3 private-root slots remain in the still-pending cohort journal. A preexisting version-1 journal can be upgraded by an exact-token compare-and-swap during replay; missing, altered or rogue sidecar keys quarantine version-2 replay and abandonment.
+- The full account-module JVM suite passed 305/305 with no failures or skips, including the 49 focused cohort cases. API 34 real Room restart tests passed 2/2; `compileDebugKotlin`, `detektAll` and diff checks passed against clean pinned Utils `1c80a2bf`. This is staging and retention groundwork: it neither writes target secret stores or wallet rows nor authorizes journal retirement, wallet signing/export or portable recovery. A future installer must verify every target store and original identity before retaining the sidecar and retiring the cohort journal.
+
 ## Android portable receive origin reservation — 2026-09-25
 
 - Candidate Room schema 80 records the exact 16-byte portable wallet ID and historical source position beside each reserved local wallet ID. New two-wallet cohorts bind those origins inside the Room reservation transaction. Replay compares them with the encrypted `FPWCAI01` after-image, rejects swaps or altered positions, and upgrades a v79 pending row only when that exact journal is still present. Abandoned destination IDs stay fenced while a later attempt can reserve fresh local IDs for the same source wallets.

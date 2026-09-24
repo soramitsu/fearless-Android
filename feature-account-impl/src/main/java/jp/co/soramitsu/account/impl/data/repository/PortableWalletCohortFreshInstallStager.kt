@@ -104,6 +104,9 @@ internal class PortableWalletCohortFreshInstallStager private constructor(
                     return@inTransaction ReconcileOutcome.Empty
                 }
                 try {
+                    if (entry.journalVersion == 1) {
+                        journal.ensureOriginalSourceSidecar(entry.token)
+                    }
                     entry.afterImage.localMetaIdsCopy().forEach { id ->
                         check(!metaAccountExists(id) && !secretNamespaces.hasSecretNamespace(id)) {
                             "A portable cohort destination was occupied after staging"

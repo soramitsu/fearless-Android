@@ -16,6 +16,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.mnemonic.Mnemonic
+import java.security.MessageDigest
+import java.util.Base64
 
 class PortableWalletCohortAfterImageTest {
     private val cohort = PortableWalletCohortAfterImage
@@ -214,6 +216,57 @@ class PortableWalletCohortAfterImageTest {
             assertEquals(true, projection.wallets.last().selected)
             assertEquals(null, projection.wallets.first().substratePublicKeyCopy())
             assertEquals(null, projection.wallets.last().ethereumAddressCopy())
+
+            val afterWire = cohort.encode(afterImage)
+            val token = PortableWalletCohortJournalStore.Token(
+                "b32cb1f6-13c8-4466-a8fa-b10fc1fd4822",
+                MessageDigest.getInstance("SHA-256").digest(afterWire).joinToString("") {
+                    "%02x".format(it.toInt() and 0xff)
+                },
+            )
+            afterWire.fill(0)
+            val encodedSidecar = PortableWalletOriginalSourceSidecar.encode(afterImage, token)
+            val sidecar = PortableWalletOriginalSourceSidecar.decode(encodedSidecar)
+            try {
+                assertEquals(listOf(51L, 52L), sidecar.wallets.map { it.localMetaId })
+                assertEquals(listOf(8L, 9L), sidecar.wallets.map { it.sourcePosition })
+                assertArrayEquals(byteArrayOf(0x31, 0x32), sidecar.wallets[0].sources.single().fieldCopy(field.SOURCE_BYTES))
+                assertArrayEquals(byteArrayOf(0x41, 0x42), sidecar.wallets[1].sources.single().fieldCopy(field.SOURCE_BYTES))
+                assertEquals(listOf("0000", "0000"), sidecar.wallets.map { it.sources.single().ordinal })
+                val tampered = Base64.getDecoder().decode(encodedSidecar)
+                try {
+                    tampered[tampered.lastIndex] = (tampered.last() + 1).toByte()
+                    assertThrows(IllegalArgumentException::class.java) {
+                        PortableWalletOriginalSourceSidecar.decode(Base64.getEncoder().encodeToString(tampered))
+                    }
+                } finally {
+                    tampered.fill(0)
+                }
+                val resigned = Base64.getDecoder().decode(encodedSidecar)
+                try {
+                    val formatField = (79 until resigned.size - 35).first {
+                        resigned[it] == field.SOURCE_FORMAT.toByte() &&
+                            resigned[it + 1] == 0.toByte() && resigned[it + 2] == 1.toByte() &&
+                            resigned[it + 3] == 4.toByte()
+                    }
+                    resigned[formatField + 3] = 3
+                    val digest = MessageDigest.getInstance("SHA-256").apply {
+                        update(resigned, 0, resigned.size - 32)
+                    }.digest()
+                    try {
+                        System.arraycopy(digest, 0, resigned, resigned.size - 32, 32)
+                        assertThrows(IllegalArgumentException::class.java) {
+                            PortableWalletOriginalSourceSidecar.decode(Base64.getEncoder().encodeToString(resigned))
+                        }
+                    } finally {
+                        digest.fill(0)
+                    }
+                } finally {
+                    resigned.fill(0)
+                }
+            } finally {
+                sidecar.clearSecrets()
+            }
         } finally {
             projection.clearSecrets()
             afterImage.clearSecrets()

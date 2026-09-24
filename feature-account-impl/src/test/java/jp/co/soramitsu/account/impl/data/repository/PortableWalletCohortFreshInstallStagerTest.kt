@@ -40,10 +40,17 @@ class PortableWalletCohortFreshInstallStagerTest {
             )
             assertEquals(listOf(0xffff_ffffL, 0L), database.reserved.map { it.sourcePosition })
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY))
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(42L)))
             assertFalse(preferences.hasKey("41:SUBSTRATE_SECRETS"))
-            val replayToken = requireNotNull(receiver.reconcile())
+            val restarted = stager(
+                database,
+                PortableWalletCohortJournalStore(preferences),
+                preferences,
+                Ids(emptyList()),
+            )
+            val replayToken = requireNotNull(restarted.reconcile())
             assertEquals(token.operationId, replayToken.operationId)
             assertEquals(token.afterImageSha256, replayToken.afterImageSha256)
             assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
@@ -70,6 +77,7 @@ class PortableWalletCohortFreshInstallStagerTest {
             }
             receiver.abandon(token)
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY))
             assertEquals(2, database.reserved.size)
             assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))

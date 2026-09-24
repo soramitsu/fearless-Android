@@ -35,6 +35,7 @@ class PortableWalletCohortJournalStoreTest {
             assertEquals(
                 setOf(
                     PortableWalletCohortJournalStore.JOURNAL_KEY,
+                    PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY,
                     PortableWalletCohortJournalStore.reservationKey(41L),
                     PortableWalletCohortJournalStore.reservationKey(42L),
                 ),
@@ -95,6 +96,8 @@ class PortableWalletCohortJournalStoreTest {
                 v2.candidateSecretKey,
                 "41:orphaned:ACCESS_SECRETS",
                 PortableWalletCohortJournalStore.reservationKey(41L),
+                PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY,
+                PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY + "rogue",
             )
             keys.forEach { key -> assertOccupiedKeyRejected(key, candidate) }
         } finally {
@@ -157,6 +160,129 @@ class PortableWalletCohortJournalStoreTest {
         } finally {
             candidate.clearSecrets()
         }
+    }
+
+    @Test
+    fun `v2 missing changed or rogue original source blocks replay and abandonment`() {
+        val candidate = cohort()
+        val preferences = RecordingPreferences()
+        val store = PortableWalletCohortJournalStore(preferences)
+        try {
+            val token = store.stage(OPERATION_ID, candidate)
+            val sourceKey = PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY
+            val exact = requireNotNull(preferences.values.remove(sourceKey))
+            assertSidecarConflict(store, token, preferences)
+            preferences.values[sourceKey] = "different original source"
+            assertSidecarConflict(store, token, preferences)
+            preferences.values[sourceKey] = exact
+            preferences.values[sourceKey + "rogue"] = "other namespace"
+            assertSidecarConflict(store, token, preferences)
+            preferences.values.remove(sourceKey + "rogue")
+            store.abandon(token)
+            assertTrue(preferences.values.isEmpty())
+        } finally {
+            candidate.clearSecrets()
+        }
+    }
+
+    @Test
+    fun `orphaned original source blocks an empty journal replay`() {
+        val preferences = RecordingPreferences()
+        preferences.values[PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY] = "orphaned"
+        assertEquals(
+            FailureReason.CONFLICT,
+            assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                PortableWalletCohortJournalStore(preferences).load()
+            }.reason,
+        )
+    }
+
+    @Test
+    fun `legacy v1 journal upgrades exact opaque source sidecar before receiving replay`() {
+        val candidate = cohort()
+        val preferences = RecordingPreferences()
+        val store = PortableWalletCohortJournalStore(preferences)
+        val expectedSemantic = candidate.semanticCopy()
+        try {
+            val token = store.stage(OPERATION_ID, candidate)
+            val sourceKey = PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY
+            preferences.values.remove(sourceKey)
+            val v2 = requireNotNull(preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY])
+            preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY] = legacyV1Wire(v2)
+            val before = requireNotNull(store.load())
+            try {
+                assertEquals(1, before.journalVersion)
+                val actual = before.afterImage.semanticCopy()
+                try { assertArrayEquals(expectedSemantic, actual) } finally { actual.fill(0) }
+            } finally {
+                before.clearSecrets()
+            }
+            preferences.beforeCompare = { preferences.values[sourceKey] = "racing source" }
+            assertEquals(
+                FailureReason.CONFLICT,
+                assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                    store.ensureOriginalSourceSidecar(token)
+                }.reason,
+            )
+            val unchanged = Base64.getDecoder().decode(
+                requireNotNull(preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY])
+            )
+            try { assertEquals(1, unchanged[8].toInt()) } finally { unchanged.fill(0) }
+            preferences.values.remove(sourceKey)
+            store.ensureOriginalSourceSidecar(token)
+            val after = requireNotNull(store.load())
+            try {
+                assertEquals(2, after.journalVersion)
+                val actual = after.afterImage.semanticCopy()
+                try { assertArrayEquals(expectedSemantic, actual) } finally { actual.fill(0) }
+                val sidecar = requireNotNull(preferences.values[sourceKey])
+                assertTrue(sidecar.length < requireNotNull(preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY]).length)
+                assertTrue(sidecar != preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY])
+            } finally {
+                after.clearSecrets()
+            }
+            store.abandon(token)
+            assertTrue(preferences.values.isEmpty())
+        } finally {
+            expectedSemantic.fill(0)
+            candidate.clearSecrets()
+        }
+    }
+
+    private fun legacyV1Wire(v2: String): String {
+        val wire = Base64.getDecoder().decode(v2)
+        try {
+            wire[8] = 1
+            val digest = MessageDigest.getInstance("SHA-256").apply {
+                update(wire, 0, wire.size - 32)
+            }.digest()
+            try {
+                System.arraycopy(digest, 0, wire, wire.size - 32, 32)
+                return Base64.getEncoder().encodeToString(wire)
+            } finally {
+                digest.fill(0)
+            }
+        } finally {
+            wire.fill(0)
+        }
+    }
+
+    private fun assertSidecarConflict(
+        store: PortableWalletCohortJournalStore,
+        token: PortableWalletCohortJournalStore.Token,
+        preferences: RecordingPreferences,
+    ) {
+        assertEquals(
+            FailureReason.CONFLICT,
+            assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) { store.load() }.reason,
+        )
+        assertEquals(
+            FailureReason.CONFLICT,
+            assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                store.abandon(token)
+            }.reason,
+        )
+        assertTrue(preferences.values.containsKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
     }
 
     private fun assertBrokenReservationBlocksReplayAndAbandon(
@@ -277,7 +403,7 @@ class PortableWalletCohortJournalStoreTest {
                 Base64.getEncoder().encodeToString(wire.copyOf().also { it[it.lastIndex] = (it.last() + 1).toByte() }),
             )
             variants.forEach { variant -> assertMalformedReplay(preferences, variant) }
-            val unsupported = wire.copyOf().also { it[8] = 2 }
+            val unsupported = wire.copyOf().also { it[8] = 3 }
             preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY] =
                 Base64.getEncoder().encodeToString(unsupported)
             val failure = assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
@@ -562,6 +688,20 @@ class PortableWalletCohortJournalStoreTest {
         override fun hasKey(field: String): Boolean = values.containsKey(field)
 
         override fun hasKeyWithPrefix(prefix: String): Boolean = values.keys.any { it.startsWith(prefix) }
+
+        override fun keysWithPrefixes(
+            prefixes: Set<String>,
+            maxResultCount: Int,
+            maxKeyBytes: Int,
+            maxTotalKeyBytes: Int,
+            failOnOversizedMatch: Boolean,
+        ): Set<String> {
+            val matches = values.keys.filter { key -> prefixes.any(key::startsWith) }.toSet()
+            check(matches.size <= maxResultCount)
+            check(matches.all { it.toByteArray(Charsets.UTF_8).size <= maxKeyBytes })
+            check(matches.sumOf { it.toByteArray(Charsets.UTF_8).size } <= maxTotalKeyBytes)
+            return matches
+        }
 
         override fun removeKey(field: String) { values.remove(field) }
 

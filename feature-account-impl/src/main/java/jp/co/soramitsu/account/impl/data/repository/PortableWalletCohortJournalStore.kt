@@ -18,7 +18,10 @@ import java.util.UUID
  * A future installer must atomically reconcile every destination before removing it.
  *
  * Wire: ASCII FPWCJ001, u8 version, canonical ASCII UUID, u32 FPWCAI01 length, exact FPWCAI01
- * bytes, SHA-256 of all preceding bytes. The canonical Base64 wire is one encrypted preference.
+ * bytes, SHA-256 of all preceding bytes. Version 2 atomically stages a separate, bounded encrypted
+ * original-source sidecar containing exact opaque auxiliary records and full-wallet commitments.
+ * Normalized root/V1/V2 private-key slots remain in this journal until a future installer verifies
+ * target stores. Opaque auxiliary source bytes may also be secret and remain encrypted separately.
  */
 internal class PortableWalletCohortJournalStore(
     private val preferences: EncryptedPreferences,
@@ -49,6 +52,7 @@ internal class PortableWalletCohortJournalStore(
     internal class Entry internal constructor(
         val token: Token,
         val afterImage: PortableWalletCohortAfterImage.Record,
+        val journalVersion: Int,
     ) {
         fun clearSecrets() = afterImage.clearSecrets()
 
@@ -56,7 +60,7 @@ internal class PortableWalletCohortJournalStore(
     }
 
     /**
-     * Stages only the encrypted after-image and exact preference-side ID markers. Caller-supplied
+     * Stages only the encrypted after-image, its narrow original-source sidecar, and exact ID markers. Caller-supplied
      * IDs must be freshly allocated and unoccupied; Room reservation and all target-store writes
      * remain unresolved blockers. Prefix-based namespace inspection cannot join the exact-key
      * preference CAS, and a bypass or cross-process writer can occupy an ID after staging, so
@@ -69,14 +73,16 @@ internal class PortableWalletCohortJournalStore(
         val afterBytes = PortableWalletCohortAfterImage.encode(afterImage)
         try {
             requireNoConflicts(afterImage)
-            val wire = encode(operationId, afterBytes)
+            val wire = encode(operationId, afterBytes, VERSION)
             val token = Token(operationId, digestHex(afterBytes))
+            val originalSource = PortableWalletOriginalSourceSidecar.encode(afterImage, token)
             val committed = durabilityBoundary {
                 preferences.requireDurableStorageHealthy()
                 preferences.replaceEncryptedStringsDurablyIfStatesMatch(
                     expectedStates = expectedAbsentStates(afterImage),
                     valuesToPut = buildMap {
                         put(JOURNAL_KEY, wire)
+                        put(ORIGINAL_SOURCE_KEY, originalSource)
                         reservationKeys(afterImage).forEach { put(it, reservationValue(token)) }
                     },
                     keysToRemove = emptySet(),
@@ -97,6 +103,7 @@ internal class PortableWalletCohortJournalStore(
                         check(
                             readback.token.operationId == operationId &&
                                 readback.token.afterImageSha256 == token.afterImageSha256 &&
+                                readback.journalVersion == VERSION &&
                                 exact.contentEquals(afterBytes)
                         ) { "The committed portable cohort differs from its intent" }
                     } finally {
@@ -116,6 +123,56 @@ internal class PortableWalletCohortJournalStore(
     @Synchronized
     fun load(): Entry? = loadValidated()
 
+    /** Upgrades an exact pre-sidecar v1 journal without publishing any wallet or target secret. */
+    @Synchronized
+    fun ensureOriginalSourceSidecar(expected: Token) {
+        validateOperationId(expected.operationId)
+        require(expected.afterImageSha256.matches(HEX_SHA256)) { "Portable cohort commitment is invalid" }
+        val snapshot = preferences.getDecryptedStringSnapshot(JOURNAL_KEY)
+            ?: fail(FailureReason.CONFLICT, "No portable cohort journal exists")
+        val entry = decode(snapshot.plaintext)
+        try {
+            if (entry.token.operationId != expected.operationId ||
+                entry.token.afterImageSha256 != expected.afterImageSha256
+            ) {
+                fail(FailureReason.CONFLICT, "Portable cohort journal changed")
+            }
+            val reservations = requireNoConflicts(entry.afterImage, ownToken = entry.token)
+            val original = requireMatchingSidecar(entry)
+            if (entry.journalVersion == VERSION) return
+            val afterBytes = PortableWalletCohortAfterImage.encode(entry.afterImage)
+            try {
+                val upgradedWire = encode(expected.operationId, afterBytes, VERSION)
+                val originalSource = PortableWalletOriginalSourceSidecar.encode(entry.afterImage, expected)
+                val committed = durabilityBoundary {
+                    preferences.requireDurableStorageHealthy()
+                    preferences.replaceEncryptedStringsDurablyIfStatesMatch(
+                        expectedStates = expectedAbsentStates(entry.afterImage) +
+                            (JOURNAL_KEY to snapshot) + reservations + (ORIGINAL_SOURCE_KEY to original),
+                        valuesToPut = mapOf(JOURNAL_KEY to upgradedWire, ORIGINAL_SOURCE_KEY to originalSource),
+                        keysToRemove = emptySet(),
+                    )
+                }
+                if (!committed) fail(FailureReason.CONFLICT, "Portable cohort journal changed")
+                durabilityBoundary {
+                    val readback = requireNotNull(loadValidated())
+                    try {
+                        check(readback.journalVersion == VERSION &&
+                            readback.token.operationId == expected.operationId &&
+                            readback.token.afterImageSha256 == expected.afterImageSha256
+                        ) { "Portable cohort source upgrade differs from its intent" }
+                    } finally {
+                        readback.clearSecrets()
+                    }
+                }
+            } finally {
+                afterBytes.fill(0)
+            }
+        } finally {
+            entry.clearSecrets()
+        }
+    }
+
     /** Removes only this exact, still-uninstalled after-image; never removes wallet material. */
     @Synchronized
     fun abandon(expected: Token) {
@@ -128,6 +185,7 @@ internal class PortableWalletCohortJournalStore(
         val entry = decode(snapshot.plaintext)
         try {
             val reservationSnapshots = requireNoConflicts(entry.afterImage, ownToken = entry.token)
+            val original = requireMatchingSidecar(entry)
             if (
                 entry.token.operationId != expected.operationId ||
                 entry.token.afterImageSha256 != expected.afterImageSha256
@@ -138,14 +196,16 @@ internal class PortableWalletCohortJournalStore(
                 preferences.requireDurableStorageHealthy()
                 preferences.replaceEncryptedStringsDurablyIfStatesMatch(
                     expectedStates = expectedAbsentStates(entry.afterImage) +
-                        (JOURNAL_KEY to snapshot) + reservationSnapshots,
+                        (JOURNAL_KEY to snapshot) + reservationSnapshots + (ORIGINAL_SOURCE_KEY to original),
                     valuesToPut = emptyMap(),
-                    keysToRemove = setOf(JOURNAL_KEY) + reservationSnapshots.keys,
+                    keysToRemove = setOf(JOURNAL_KEY) + reservationSnapshots.keys +
+                        if (original == null) emptySet() else setOf(ORIGINAL_SOURCE_KEY),
                 )
             }
             if (!removed) fail(FailureReason.CONFLICT, "Portable cohort journal changed")
             durabilityBoundary {
-                check(!preferences.hasKey(JOURNAL_KEY) && reservationSnapshots.keys.none(preferences::hasKey)) {
+                check(!preferences.hasKey(JOURNAL_KEY) && sourceNamespaceKeys().isEmpty() &&
+                    reservationSnapshots.keys.none(preferences::hasKey)) {
                     "Portable cohort reservation remains after abandon"
                 }
             }
@@ -157,7 +217,7 @@ internal class PortableWalletCohortJournalStore(
     private fun loadValidated(): Entry? {
         val exists = preferences.hasKey(JOURNAL_KEY)
         if (!exists) {
-            if (preferences.hasKeyWithPrefix(RESERVATION_PREFIX)) {
+            if (preferences.hasKeyWithPrefix(RESERVATION_PREFIX) || sourceNamespaceKeys().isNotEmpty()) {
                 fail(FailureReason.CONFLICT, "An orphaned portable cohort reservation requires reconciliation")
             }
             return null
@@ -170,6 +230,7 @@ internal class PortableWalletCohortJournalStore(
         val entry = decode(stored)
         try {
             requireNoConflicts(entry.afterImage, ownToken = entry.token)
+            requireMatchingSidecar(entry)
             return entry
         } catch (failure: Throwable) {
             entry.clearSecrets()
@@ -186,6 +247,9 @@ internal class PortableWalletCohortJournalStore(
         val tonMutationPresent = singleWalletJournal.hasTonConnectMutationJournal()
         if (journalPresent || priorMutationPresent || tonMutationPresent) {
             fail(FailureReason.CONFLICT, "A wallet mutation journal is active")
+        }
+        if (ownToken == null && sourceNamespaceKeys().isNotEmpty()) {
+            fail(FailureReason.CONFLICT, "A portable original-source namespace is occupied")
         }
         afterImage.localMetaIdsCopy().forEach { id ->
             if (singleWalletJournal.hasSecretNamespace(id)) {
@@ -219,6 +283,7 @@ internal class PortableWalletCohortJournalStore(
         afterImage: PortableWalletCohortAfterImage.Record,
     ): Map<String, EncryptedPreferenceSnapshot?> = buildMap {
         put(JOURNAL_KEY, null)
+        put(ORIGINAL_SOURCE_KEY, null)
         put(WalletSecretMutationJournalStore.JOURNAL_KEY, null)
         put(TonConnectStorageKeys.MUTATION_JOURNAL_KEY, null)
         reservationKeys(afterImage).forEach { put(it, null) }
@@ -230,10 +295,37 @@ internal class PortableWalletCohortJournalStore(
 
     private fun reservationValue(token: Token): String = "${token.operationId}:${token.afterImageSha256}"
 
-    private fun encode(operationId: String, afterImage: ByteArray): String {
+    private fun sourceNamespaceKeys(): Set<String> = preferences.keysWithPrefixes(
+        prefixes = setOf(ORIGINAL_SOURCE_PREFIX),
+        maxResultCount = MAX_SOURCE_KEYS,
+        maxKeyBytes = MAX_SOURCE_KEY_BYTES,
+        maxTotalKeyBytes = MAX_SOURCE_KEY_BYTES * MAX_SOURCE_KEYS,
+        failOnOversizedMatch = true,
+    )
+
+    private fun requireMatchingSidecar(entry: Entry): EncryptedPreferenceSnapshot? {
+        val keys = sourceNamespaceKeys()
+        if (keys != emptySet<String>() && keys != setOf(ORIGINAL_SOURCE_KEY)) {
+            fail(FailureReason.CONFLICT, "Portable original-source namespace changed")
+        }
+        val snapshot = preferences.getDecryptedStringSnapshot(ORIGINAL_SOURCE_KEY)
+        if (snapshot == null) {
+            if (entry.journalVersion == VERSION) {
+                fail(FailureReason.CONFLICT, "Portable original-source sidecar is missing")
+            }
+            return null
+        }
+        val expected = PortableWalletOriginalSourceSidecar.encode(entry.afterImage, entry.token)
+        if (snapshot.plaintext != expected) {
+            fail(FailureReason.CONFLICT, "Portable original-source sidecar differs from its journal")
+        }
+        return snapshot
+    }
+
+    private fun encode(operationId: String, afterImage: ByteArray, version: Int): String {
         val prefix = ByteBuffer.allocate(HEADER_BYTES + afterImage.size).apply {
             put(MAGIC)
-            put(VERSION.toByte())
+            put(version.toByte())
             put(operationId.toByteArray(Charsets.US_ASCII))
             putInt(afterImage.size)
             put(afterImage)
@@ -285,7 +377,8 @@ internal class PortableWalletCohortJournalStore(
         if (!foundMagic.contentEquals(MAGIC)) {
             fail(FailureReason.MALFORMED_STORED_JOURNAL, "Portable cohort journal magic is invalid")
         }
-        if (reader.get().toInt() != VERSION) {
+        val version = reader.get().toInt()
+        if (version != LEGACY_VERSION && version != VERSION) {
             fail(FailureReason.UNSUPPORTED_VERSION, "Portable cohort journal version is unsupported")
         }
         val idBytes = ByteArray(UUID_CHARS)
@@ -311,7 +404,7 @@ internal class PortableWalletCohortJournalStore(
                 fail(FailureReason.MALFORMED_STORED_JOURNAL, "Portable cohort journal digest differs")
             }
             val afterImage = PortableWalletCohortAfterImage.decode(afterBytes)
-            return Entry(Token(operationId, digestHex(afterBytes)), afterImage)
+            return Entry(Token(operationId, digestHex(afterBytes)), afterImage, version)
         } finally {
             afterBytes.fill(0)
             expectedDigest.fill(0)
@@ -360,9 +453,14 @@ internal class PortableWalletCohortJournalStore(
 
     internal companion object {
         const val JOURNAL_KEY = "portable_wallet_cohort_journal_v1"
+        private const val ORIGINAL_SOURCE_PREFIX = "portable_wallet_cohort_original_source_"
+        const val ORIGINAL_SOURCE_KEY = "${ORIGINAL_SOURCE_PREFIX}v1"
         private const val RESERVATION_PREFIX = "portable_wallet_cohort_id_reservation_v1:"
         private val MAGIC = "FPWCJ001".toByteArray(Charsets.US_ASCII)
-        private const val VERSION = 1
+        private const val LEGACY_VERSION = 1
+        private const val VERSION = 2
+        private const val MAX_SOURCE_KEYS = 16
+        private const val MAX_SOURCE_KEY_BYTES = 128
         private const val UUID_CHARS = 36
         private const val UUID_V4 = 4
         private const val RFC_UUID_VARIANT = 2

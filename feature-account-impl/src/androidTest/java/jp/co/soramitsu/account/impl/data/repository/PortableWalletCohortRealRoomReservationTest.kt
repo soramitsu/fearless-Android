@@ -50,6 +50,19 @@ class PortableWalletCohortRealRoomReservationTest {
                 firstDatabase, firstDatabase.metaAccountDao(), preferences, Ids(listOf(41L, 42L)),
             )
             val token = first.stage(semantic)
+            val sidecar = requireNotNull(
+                preferences.getDecryptedString(PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY)
+            )
+            val original = PortableWalletOriginalSourceSidecar.decode(sidecar)
+            try {
+                assertEquals(listOf(41L, 42L), original.wallets.map { it.localMetaId })
+                assertArrayEquals(
+                    byteArrayOf(0x22, 0x33),
+                    original.wallets.first().sources.single().fieldCopy(field.SOURCE_BYTES),
+                )
+            } finally {
+                original.clearSecrets()
+            }
             assertEquals(listOf(41L, 42L), firstDatabase.portableWalletReservationDao().all().map { it.metaId })
             assertEquals(
                 listOf(0xffff_ffffL, 0L),
@@ -64,6 +77,7 @@ class PortableWalletCohortRealRoomReservationTest {
                 restarted, restarted.metaAccountDao(), preferences, Ids(emptyList()),
             )
             assertEquals(token.afterImageSha256, replay.reconcile()?.afterImageSha256)
+            assertEquals(sidecar, preferences.getDecryptedString(PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY))
             assertEquals(
                 listOf((1..16).hex(), (17..32).hex()),
                 restarted.portableWalletReservationDao().all().map { it.portableIdHex },
@@ -82,6 +96,7 @@ class PortableWalletCohortRealRoomReservationTest {
             assertTrue(restarted.metaAccountDao().getMetaAccounts().isEmpty())
             replay.abandon(token)
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.ORIGINAL_SOURCE_KEY))
             assertEquals(
                 listOf(PortableWalletReservationLocal.ABANDONED, PortableWalletReservationLocal.ABANDONED),
                 restarted.portableWalletReservationDao().all().map { it.state },

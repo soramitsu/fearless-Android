@@ -116,6 +116,12 @@ internal object PortableWalletSemanticMaterial {
 
     internal class Field(val id: Int, val value: ByteArray)
 
+    /** Reuses the canonical source-slot rules when reading a retained original-source sidecar. */
+    internal fun requireValidAuxiliarySourceSlot(slot: Slot) {
+        require(slot.role == Role.AUXILIARY_SOURCE) { "Semantic slot is not an auxiliary source" }
+        requireSlot(slot)
+    }
+
     fun encode(snapshot: Snapshot): ByteArray {
         requireValid(snapshot)
         val output = BoundedOutputStream()
