@@ -6,6 +6,8 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Production qualification — 2026-09-22
 
+- 2026-09-24 V2 chain proof: an unwired read-only verifier can prove exact Android V2 original SCALE bytes, the semantic chain key and recovery fields, and a local signature only under an explicit canonical genesis/identity-kind policy. P0: supply a reviewed immutable production genesis policy, qualify supported iOS chain originals, integrate this proof with all other wallet/source proofs and the transactional installer, and verify actual installed-key signing/export and cross-device restoration. The receive blocker and backup-completion denial remain in place.
+
 - 2026-09-24 migration verifier repair: align the seven required released-schema identities with database version 78 and assert source/test/fixture agreement. Local verifier and evidence-packaging fixtures pass; P0: rerun protected hosted CI and confirm all four API migration/restart profiles and their source-bound evidence before candidate release.
 
 - 2026-09-24 cohort journal staging: the internal versioned `FPWCJ001` encrypted preference record now retains and revalidates the exact multiwallet after-image across restart, rejects known occupied target namespaces and races at staging, and never publishes a partial wallet. P0: implement a complete installer whose durable transaction covers V1/V2/V3 and source sidecars, Room wallet/chain/favorite/metadata/selection rows and ID reservation; bind every installed key to its public identity and prove original-key signing/export. Add crash-point, rollback and exact replacement-device tests before removing the permanent installer blocker or enabling recovery.

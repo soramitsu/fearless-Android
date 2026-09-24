@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android V2 chain-account proof candidate — 2026-09-24
+
+- An unwired, read-only verifier now requires an explicit caller-supplied list of canonical chain genesis IDs and Substrate/Ethereum identity kinds before it will examine V2 chain-account slots. For each slot it requires one matching Android V2 original SCALE source, rejects any lossy canonicalization, checks the original source's public key, account ID, crypto type, private key and optional recovery material against the semantic slot, and signs and verifies a wallet- and chain-bound local challenge. Unknown chains, wrong identity kinds, missing or duplicate originals and unsupported source shapes fail closed.
+- Focused JVM tests pass 6/6 against clean pinned Utils `1c80a2bf3fa1f996cf1328873e09f282ee29b69e`; forced scoped Detekt on both new Kotlin files and diff checks pass. This is a component proof only. No reviewed production genesis policy calls it, and the receiving plan still marks every V2 chain slot and the transactional installer unavailable. SR25519/native-provider behavior, iOS-specific chain originals, actual installed-key export and replacement-device restoration still need qualification. Backup completion and portable recovery remain disabled.
+
 ## Android migration evidence identity repair — 2026-09-24
 
 - Hosted Android PR CI reached the API 30 migration verifier after the connected test task succeeded, then failed because it required seven schema-77 testcase names while the checked-in migration matrix and database version are 78. The verifier and its fixtures now require the seven exact schema-78 identities and assert that the source version, method name and parameter label agree. Local verifier fixtures pass 2 positive plus 34 adversarial cases; evidence-packaging tests pass 49/49. The hosted API 30/31/34/36 matrix must run again from the new source head before this is qualified.
