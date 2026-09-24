@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android schema-78 instrumentation assertions — 2026-09-24
+
+- [PR #1260's API 34 CI run](https://github.com/soramitsu/fearless-Android/actions/runs/35951988657/job/107482448391) failed 60 `core-db` and 5 account instrumentation tests because their production-open assertions still expected schema 77 after the database advanced to 78. The `core-db` result verifier correctly rejected the failures. The database tests now use `APP_DATABASE_VERSION`, and the account test target is 78. The hosted migration matrix must run again from the updated source head before any qualification claim.
+- Clean pinned dependency verification and changed instrumentation-source compilation pass. On an isolated local API 34 emulator, `core-db` passed 301/301 and `feature-account-impl` passed 12/12 with no failures, errors, or skips. The corrected current-schema orphan-inventory fixture also passed its separate 1/1 rerun.
+
 ## Android V2 chain-account proof candidate — 2026-09-24
 
 - An unwired, read-only verifier now requires an explicit caller-supplied list of canonical chain genesis IDs and Substrate/Ethereum identity kinds before it will examine V2 chain-account slots. For each slot it requires one matching Android V2 original SCALE source, rejects any lossy canonicalization, checks the original source's public key, account ID, crypto type, private key and optional recovery material against the semantic slot, and signs and verifies a wallet- and chain-bound local challenge. Unknown chains, wrong identity kinds, missing or duplicate originals and unsupported source shapes fail closed.

@@ -1076,7 +1076,7 @@ class WalletSecretMutationRealRoomMigrationTest {
     private companion object {
         const val DATABASE_NAME = "app.db"
         const val SOURCE_DATABASE_VERSION = 76
-        const val TARGET_DATABASE_VERSION = 77
+        const val TARGET_DATABASE_VERSION = 78
         const val META_ID = 4_242L
         const val SECOND_META_ID = 4_243L
         const val WALLET_NAME = "Interrupted ADD_EVM wallet"

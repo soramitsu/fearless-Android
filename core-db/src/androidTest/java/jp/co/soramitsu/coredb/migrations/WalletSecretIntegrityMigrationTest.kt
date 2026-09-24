@@ -34,6 +34,7 @@ import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
@@ -99,9 +100,9 @@ class WalletSecretIntegrityMigrationTest {
             values[tonSecretKey()] = ton.encoded
         }
 
-        assertEquals(78, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
+        assertEquals(APP_DATABASE_VERSION, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
         val afterFirstLaunch = backing.values.toMap()
-        assertEquals(78, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
+        assertEquals(APP_DATABASE_VERSION, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
 
         assertEquals(afterFirstLaunch, backing.values)
         assertEquals(substrate.encoded, backing.values[substrateSecretKey()])
@@ -139,7 +140,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(VERSION_74_SANITIZE_DATABASE, TestPreferences(backing))
         )
 
@@ -199,7 +200,7 @@ class WalletSecretIntegrityMigrationTest {
             values[ethereumSecretKey()] = ethereumEncoded
         }
 
-        assertEquals(78, openProductionDatabase(ENTROPY_NULL_DATABASE, TestPreferences(backing)))
+        assertEquals(APP_DATABASE_VERSION, openProductionDatabase(ENTROPY_NULL_DATABASE, TestPreferences(backing)))
 
         val substrate = SubstrateSecrets.read(backing.values.getValue(substrateSecretKey()))
         assertEquals(substratePath, substrate[SubstrateSecrets.SubstrateDerivationPath])
@@ -237,7 +238,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(VERSION_76_LEGACY_DATABASE, TestPreferences(backing))
         )
         assertFalse(legacySecretKey() in backing.values)
@@ -246,7 +247,7 @@ class WalletSecretIntegrityMigrationTest {
         val afterFirstLaunch = backing.values.toMap()
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(VERSION_76_LEGACY_DATABASE, TestPreferences(backing))
         )
         assertEquals(afterFirstLaunch, backing.values)
@@ -279,7 +280,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 VERSION_76_LEGACY_ENTROPY_NULL_DATABASE,
                 TestPreferences(backing)
@@ -354,7 +355,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 VERSION_76_LEGACY_KEYPAIR_ONLY_DATABASE,
                 TestPreferences(backing)
@@ -438,7 +439,7 @@ class WalletSecretIntegrityMigrationTest {
         val committedV3 = backing.values.toMap()
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_REPLACEMENT_RETRY_DATABASE,
                 TestPreferences(backing)
@@ -446,7 +447,7 @@ class WalletSecretIntegrityMigrationTest {
         )
         assertEquals(committedV3, backing.values)
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_REPLACEMENT_RETRY_DATABASE,
                 TestPreferences(backing)
@@ -504,7 +505,7 @@ class WalletSecretIntegrityMigrationTest {
         assertEquals(0, racingPreferences.durableWriteCount)
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_SOURCE_RACE_DATABASE,
                 TestPreferences(backing)
@@ -515,7 +516,7 @@ class WalletSecretIntegrityMigrationTest {
         assertTrue(ethereumSecretKey() in backing.values)
         val afterRetry = backing.values.toMap()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_SOURCE_RACE_DATABASE,
                 TestPreferences(backing)
@@ -564,7 +565,7 @@ class WalletSecretIntegrityMigrationTest {
 
         backing.values.remove(substrateSecretKey())
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_TARGET_CONFLICT_DATABASE,
                 TestPreferences(backing)
@@ -618,7 +619,7 @@ class WalletSecretIntegrityMigrationTest {
 
         backing.values.remove(ethereumSecretKey())
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_TARGET_RACE_DATABASE,
                 TestPreferences(backing)
@@ -654,7 +655,7 @@ class WalletSecretIntegrityMigrationTest {
         val preferences = TestPreferences(backing)
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_PARTIAL_TARGET_DATABASE,
                 preferences
@@ -667,7 +668,7 @@ class WalletSecretIntegrityMigrationTest {
         assertEquals(1, preferences.durableWriteCount)
         val afterMigration = backing.values.toMap()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 LEGACY_PARTIAL_TARGET_DATABASE,
                 TestPreferences(backing)
@@ -713,7 +714,7 @@ class WalletSecretIntegrityMigrationTest {
 
         val retryPreferences = TestPreferences(backing)
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 CANONICAL_ROOT_RACE_DATABASE,
                 retryPreferences
@@ -765,7 +766,7 @@ class WalletSecretIntegrityMigrationTest {
 
         val retryPreferences = TestPreferences(backing)
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 ROOT_SANITIZE_RACE_DATABASE,
                 retryPreferences
@@ -782,7 +783,7 @@ class WalletSecretIntegrityMigrationTest {
         assertEquals(1, retryPreferences.durableWriteCount)
         val afterRetry = backing.values.toMap()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 ROOT_SANITIZE_RACE_DATABASE,
                 TestPreferences(backing)
@@ -836,7 +837,7 @@ class WalletSecretIntegrityMigrationTest {
 
         val retryPreferences = TestPreferences(backing)
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 CHAIN_SANITIZE_RACE_DATABASE,
                 retryPreferences
@@ -888,7 +889,7 @@ class WalletSecretIntegrityMigrationTest {
 
         val retryPreferences = TestPreferences(backing)
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 MARKER_RACE_DATABASE,
                 retryPreferences
@@ -897,7 +898,7 @@ class WalletSecretIntegrityMigrationTest {
         assertEquals(0, retryPreferences.durableWriteCount)
         val afterRetry = backing.values.toMap()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 MARKER_RACE_DATABASE,
                 TestPreferences(backing)
@@ -958,7 +959,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(ETHEREUM_MISMATCH_DATABASE, TestPreferences(backing))
         )
 
@@ -987,7 +988,7 @@ class WalletSecretIntegrityMigrationTest {
             values[tonSecretKey()] = forged
         }
 
-        assertEquals(78, openProductionDatabase(TON_MISMATCH_DATABASE, TestPreferences(backing)))
+        assertEquals(APP_DATABASE_VERSION, openProductionDatabase(TON_MISMATCH_DATABASE, TestPreferences(backing)))
 
         assertFalse(tonSecretKey() in backing.values)
         assertEquals(forged, backing.values[quarantineKey(tonSecretKey())])
@@ -1015,7 +1016,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(ISOLATED_QUARANTINE_DATABASE, TestPreferences(backing))
         )
 
@@ -1042,11 +1043,11 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(EXISTING_QUARANTINE_DATABASE, TestPreferences(backing))
         )
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(EXISTING_QUARANTINE_DATABASE, TestPreferences(backing))
         )
         assertEquals(
@@ -1083,7 +1084,7 @@ class WalletSecretIntegrityMigrationTest {
         assertFalse(quarantineKey(substrateSecretKey()) in backing.values)
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(READ_FAILURE_DATABASE, TestPreferences(backing))
         )
         assertEquals(substrate.encoded, backing.values[substrateSecretKey()])
@@ -1152,9 +1153,9 @@ class WalletSecretIntegrityMigrationTest {
             SubstrateSecrets.read(sanitized)[SubstrateSecrets.SubstrateDerivationPath]
         )
 
-        assertEquals(78, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
+        assertEquals(APP_DATABASE_VERSION, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
         assertEquals(sanitized, backing.values[substrateSecretKey()])
-        assertEquals(78, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
+        assertEquals(APP_DATABASE_VERSION, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
     }
 
     @Test
@@ -1192,7 +1193,7 @@ class WalletSecretIntegrityMigrationTest {
         )
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(QUARANTINE_RETRY_DATABASE, TestPreferences(backing))
         )
         assertEquals(
@@ -1214,7 +1215,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 PARTIAL_IDENTITY_DATABASE,
                 TestPreferences(backing)
@@ -1227,7 +1228,7 @@ class WalletSecretIntegrityMigrationTest {
             backing.values[publicIdentityMarker(ethereumSecretKey())]
         )
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 PARTIAL_IDENTITY_DATABASE,
                 TestPreferences(backing)
@@ -1253,7 +1254,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 UNKNOWN_CRYPTO_DATABASE,
                 TestPreferences(backing)
@@ -1266,7 +1267,7 @@ class WalletSecretIntegrityMigrationTest {
             backing.values[publicIdentityMarker(substrateSecretKey())]
         )
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 UNKNOWN_CRYPTO_DATABASE,
                 TestPreferences(backing)
@@ -1340,7 +1341,7 @@ class WalletSecretIntegrityMigrationTest {
             backing.values[markerKey]
         )
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 IDENTITY_MARKER_RETRY_DATABASE,
                 TestPreferences(backing)
@@ -1364,7 +1365,7 @@ class WalletSecretIntegrityMigrationTest {
         val backing = SecretBacking()
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 MALFORMED_WATCH_ONLY_DATABASE,
                 TestPreferences(backing)
@@ -1378,7 +1379,7 @@ class WalletSecretIntegrityMigrationTest {
     }
 
     @Test
-    fun interruptedAddEvmSecretWithAbsentDatabaseIdentitySurvivesVersion77Open() {
+    fun interruptedAddEvmSecretWithAbsentDatabaseIdentitySurvivesProductionOpen() {
         val substrate = substrateFixture(EncryptionType.SR25519)
         val stagedEthereum = ethereumFixture()
         createFixtureDatabase(
@@ -1435,7 +1436,7 @@ class WalletSecretIntegrityMigrationTest {
         )
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(STAGED_ADD_EVM_DATABASE, preferences)
         )
 
@@ -1473,7 +1474,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 WRONG_STORAGE_CLASS_DATABASE,
                 TestPreferences(backing)
@@ -1510,7 +1511,7 @@ class WalletSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 INVALID_ETHEREUM_PREFIX_DATABASE,
                 TestPreferences(backing)
@@ -1546,7 +1547,7 @@ class WalletSecretIntegrityMigrationTest {
 
         repeat(2) {
             assertEquals(
-                77,
+                APP_DATABASE_VERSION,
                 openProductionDatabase(
                     OFF_CURVE_ETHEREUM_DATABASE,
                     TestPreferences(backing)
@@ -1606,7 +1607,7 @@ class WalletSecretIntegrityMigrationTest {
             )
         }
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 MISSING_ADDRESS_BOOK_INDEX_DATABASE,
                 preferences
@@ -1853,7 +1854,7 @@ class WalletSecretIntegrityMigrationTest {
         backing.values[markerKey] =
             WalletPublicIdentityRecovery.MARKER_VALUE
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 INVALID_EXISTING_MARKER_DATABASE,
                 TestPreferences(backing)
@@ -1861,7 +1862,7 @@ class WalletSecretIntegrityMigrationTest {
         )
         val afterRecovery = backing.values.toMap()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 INVALID_EXISTING_MARKER_DATABASE,
                 TestPreferences(backing)
@@ -1899,7 +1900,7 @@ class WalletSecretIntegrityMigrationTest {
             values[substrateSecretKey()] = encoded
         }
 
-        assertEquals(78, openProductionDatabase(databaseName, TestPreferences(backing)))
+        assertEquals(APP_DATABASE_VERSION, openProductionDatabase(databaseName, TestPreferences(backing)))
 
         assertFalse(substrateSecretKey() in backing.values)
         assertEquals(encoded, backing.values[quarantineKey(substrateSecretKey())])

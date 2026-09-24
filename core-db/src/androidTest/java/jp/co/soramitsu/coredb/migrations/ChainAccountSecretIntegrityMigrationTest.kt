@@ -24,6 +24,7 @@ import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
@@ -151,7 +152,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 PUBLIC_MISMATCH_DATABASE,
                 TestPreferences(backing)
@@ -181,7 +182,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 ACCOUNT_ID_MISMATCH_DATABASE,
                 TestPreferences(backing)
@@ -214,7 +215,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(MALFORMED_DATABASE, TestPreferences(backing))
         )
         assertFalse(activeKey in backing.values)
@@ -222,7 +223,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         val afterFirstLaunch = backing.values.toMap()
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(MALFORMED_DATABASE, TestPreferences(backing))
         )
         assertEquals(afterFirstLaunch, backing.values)
@@ -257,7 +258,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         assertEquals(fixture.encoded, backing.values[activeKey])
         assertFalse(WalletSecretQuarantine.keyFor(activeKey) in backing.values)
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 GENERIC_READ_FAILURE_DATABASE,
                 TestPreferences(backing)
@@ -329,7 +330,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         val committedQuarantine = backing.values.toMap()
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 QUARANTINE_RETRY_DATABASE,
                 TestPreferences(backing)
@@ -358,7 +359,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(SANITIZE_DATABASE, TestPreferences(backing))
         )
 
@@ -386,7 +387,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         val backing = SecretBacking()
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 ABSENT_SECRET_DATABASE,
                 TestPreferences(backing)
@@ -414,7 +415,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         )
         val unknownBacking = SecretBacking()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 ABSENT_UNKNOWN_CRYPTO_DATABASE,
                 TestPreferences(unknownBacking)
@@ -431,7 +432,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         makeChainCryptoTypeNullableAndNull(ABSENT_NULL_CRYPTO_DATABASE)
         val nullBacking = SecretBacking()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 ABSENT_NULL_CRYPTO_DATABASE,
                 TestPreferences(nullBacking)
@@ -448,7 +449,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         )
         val emptyBacking = SecretBacking()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 ABSENT_EMPTY_ACCOUNT_ID_DATABASE,
                 TestPreferences(emptyBacking)
@@ -478,7 +479,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 UNKNOWN_CRYPTO_DATABASE,
                 TestPreferences(backing)
@@ -510,7 +511,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 NULL_CRYPTO_DATABASE,
                 TestPreferences(backing)
@@ -547,7 +548,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 DUPLICATE_VALID_DATABASE,
                 TestPreferences(backing)
@@ -580,7 +581,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 DUPLICATE_CONFLICT_DATABASE,
                 TestPreferences(backing)
@@ -784,7 +785,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 OVERSIZED_DATABASE_PUBLIC_KEY_DATABASE,
                 TestPreferences(backing)
@@ -822,7 +823,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 TEXT_DATABASE_PUBLIC_KEY_DATABASE,
                 TestPreferences(backing)
@@ -949,12 +950,12 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(databaseName, TestPreferences(backing))
         )
         val afterFirstLaunch = backing.values.toMap()
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(databaseName, TestPreferences(backing))
         )
 
@@ -1005,7 +1006,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         assertFalse(WalletSecretQuarantine.keyFor(activeKey) in backing.values)
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(
                 databaseName = databaseName,
                 preferences = TestPreferences(backing)
@@ -1045,7 +1046,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(databaseName, TestPreferences(backing))
         )
 
@@ -1075,7 +1076,7 @@ class ChainAccountSecretIntegrityMigrationTest {
         }
 
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(databaseName, TestPreferences(backing))
         )
         assertFalse(activeKey in backing.values)

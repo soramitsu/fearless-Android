@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
@@ -654,7 +655,7 @@ class WalletChainAccountEcosystemMigrationTest {
 
         helper.createDatabase(
             CURRENT_VERSION_HISTORICAL_ORPHAN_DATABASE,
-            77
+            APP_DATABASE_VERSION
         ).use { database ->
             assertTrue(
                 WalletOrphanSecretInventory(preferences)

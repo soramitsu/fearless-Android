@@ -27,6 +27,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
 import jp.co.soramitsu.common.di.modules.SHARED_PREFERENCES_FILE
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.scale.toHexString
@@ -94,7 +95,7 @@ class WalletPayloadCipherMigrationTest {
 
         val retryPreferences = encryptedPreferences(EncryptionUtil(context))
         assertEquals(
-            77,
+            APP_DATABASE_VERSION,
             openProductionDatabase(PROVIDER_FAILURE_DATABASE, retryPreferences)
         )
         assertEquals(
@@ -142,8 +143,8 @@ class WalletPayloadCipherMigrationTest {
                 .commit()
             val preferences = encryptedPreferences(EncryptionUtil(context))
 
-            assertEquals(78, openProductionDatabase(databaseName, preferences))
-            assertEquals(78, rawDatabaseVersion(databaseName))
+            assertEquals(APP_DATABASE_VERSION, openProductionDatabase(databaseName, preferences))
+            assertEquals(APP_DATABASE_VERSION, rawDatabaseVersion(databaseName))
             assertFalse(walletPreferences().contains(ETHEREUM_SECRET_KEY))
             assertEquals(
                 exactCiphertext,
