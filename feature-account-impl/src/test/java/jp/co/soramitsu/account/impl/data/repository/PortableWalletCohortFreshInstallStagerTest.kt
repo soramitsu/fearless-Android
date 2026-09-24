@@ -1,5 +1,8 @@
 package jp.co.soramitsu.account.impl.data.repository
 
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshotMove
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.coredb.model.PortableWalletReservationLocal
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -12,6 +15,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
 
 class PortableWalletCohortFreshInstallStagerTest {
     private val codec = PortableWalletSemanticMaterial
@@ -61,9 +65,11 @@ class PortableWalletCohortFreshInstallStagerTest {
             }
             receiver.abandon(token)
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
-            assertTrue(database.reserved.isEmpty())
+            assertEquals(2, database.reserved.size)
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(42L)))
+            assertEquals(null, receiver.reconcile())
         } finally {
             semantic.fill(0)
         }
@@ -231,7 +237,7 @@ class PortableWalletCohortFreshInstallStagerTest {
     fun `orphaned Room reservation blocks staging even without a preference journal`() = runBlocking {
         val preferences = HashMapEncryptedPreferences()
         val database = Inventory().apply {
-            reserved += PortableWalletReservationLocal(41L, "orphan", "0".repeat(64))
+            reserved += PortableWalletReservationLocal(41L, "orphan", "0".repeat(64), "0".repeat(64))
         }
         val receiver = stager(
             database, PortableWalletCohortJournalStore(preferences), preferences, Ids(listOf(42L, 43L)),
@@ -267,7 +273,7 @@ class PortableWalletCohortFreshInstallStagerTest {
     }
 
     @Test
-    fun `failed Room commit after abandon leaves an orphan fence rather than a reusable ID`() = runBlocking {
+    fun `failed Room tombstone commit keeps the journal retryable`() = runBlocking {
         val preferences = HashMapEncryptedPreferences()
         val database = Inventory()
         val journal = PortableWalletCohortJournalStore(preferences)
@@ -279,9 +285,117 @@ class PortableWalletCohortFreshInstallStagerTest {
             assertThrows(IllegalStateException::class.java) { runBlocking { receiver.abandon(token) } }
             database.failAfterBlock = false
             assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.PENDING })
+            assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertEquals(token.operationId, receiver.reconcile()?.operationId)
+            receiver.abandon(token)
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
-            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
             Unit
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `preference failure after Room tombstone commit replays without releasing IDs`() = runBlocking {
+        val preferences = FaultPreferences()
+        val database = Inventory()
+        val journal = PortableWalletCohortJournalStore(preferences)
+        val receiver = stager(database, journal, preferences, Ids(listOf(41L, 42L)))
+        val semantic = semantic()
+        try {
+            val token = receiver.stage(semantic)
+            preferences.abandonFailure = AbandonFailure.BEFORE_COMMIT
+            assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                runBlocking { receiver.abandon(token) }
+            }
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
+            assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            preferences.abandonFailure = AbandonFailure.NONE
+            assertEquals(null, stager(database, journal, preferences, Ids(emptyList())).reconcile())
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
+
+            val next = stager(database, journal, preferences, Ids(listOf(41L, 42L, 43L, 44L)))
+                .stage(semantic)
+            val replay = requireNotNull(journal.load())
+            try {
+                assertArrayEquals(longArrayOf(43L, 44L), replay.afterImage.localMetaIdsCopy())
+            } finally {
+                replay.clearSecrets()
+            }
+            assertTrue(next.afterImageSha256.isNotEmpty())
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `ambiguous preference commit leaves exact tombstones and no active journal`() = runBlocking {
+        val preferences = FaultPreferences()
+        val database = Inventory()
+        val journal = PortableWalletCohortJournalStore(preferences)
+        val receiver = stager(database, journal, preferences, Ids(listOf(41L, 42L)))
+        val semantic = semantic()
+        try {
+            val token = receiver.stage(semantic)
+            preferences.abandonFailure = AbandonFailure.AFTER_COMMIT
+            assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                runBlocking { receiver.abandon(token) }
+            }
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
+            preferences.abandonFailure = AbandonFailure.NONE
+            assertEquals(null, stager(database, journal, preferences, Ids(emptyList())).reconcile())
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `malformed abandoned tombstones remain quarantined without an encrypted journal`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val receiver = stager(
+            database,
+            PortableWalletCohortJournalStore(preferences),
+            preferences,
+            Ids(listOf(41L, 42L)),
+        )
+        val semantic = semantic()
+        try {
+            receiver.abandon(receiver.stage(semantic))
+            val exact = database.reserved.toList()
+            database.reserved.replaceAll { it.copy(idSetSha256 = "0".repeat(64)) }
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
+            database.reserved.clear()
+            database.reserved.addAll(exact.map { it.copy(operationId = "malformed") })
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `tombstone quota blocks another cohort before any preference write`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory().apply { countOverride = 8_191 }
+        val semantic = semantic()
+        try {
+            assertThrows(IllegalStateException::class.java) {
+                runBlocking {
+                    stager(
+                        database,
+                        PortableWalletCohortJournalStore(preferences),
+                        preferences,
+                        Ids(listOf(41L, 42L)),
+                    ).stage(semantic)
+                }
+            }
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
         } finally {
             semantic.fill(0)
         }
@@ -313,7 +427,7 @@ class PortableWalletCohortFreshInstallStagerTest {
     private fun stager(
         database: Inventory,
         journal: PortableWalletCohortJournalStore,
-        preferences: HashMapEncryptedPreferences,
+        preferences: EncryptedPreferences,
         ids: Ids,
     ) = PortableWalletCohortFreshInstallStager(
         database,
@@ -395,6 +509,7 @@ class PortableWalletCohortFreshInstallStagerTest {
     private class Inventory(val walletIds: MutableSet<Long> = linkedSetOf()) : FreshInstallWalletInventory {
         var failBeforeBlock = false
         var failAfterBlock = false
+        var countOverride: Int? = null
         val reserved = mutableListOf<PortableWalletReservationLocal>()
 
         override suspend fun <T> inTransaction(block: suspend FreshInstallWalletInventory.() -> T): T {
@@ -414,21 +529,65 @@ class PortableWalletCohortFreshInstallStagerTest {
         override suspend fun hasAnyWallet(): Boolean = walletIds.isNotEmpty()
         override suspend fun metaAccountExists(metaId: Long): Boolean = metaId in walletIds
         override suspend fun reservationExists(metaId: Long): Boolean = reserved.any { it.metaId == metaId }
+        override suspend fun reservationCount(): Int = countOverride ?: reserved.size
         override suspend fun reservations(): List<PortableWalletReservationLocal> = reserved.sortedBy { it.metaId }
+        override suspend fun reservationsFor(
+            token: PortableWalletCohortJournalStore.Token,
+        ): List<PortableWalletReservationLocal> = reserved.filter {
+                it.operationId == token.operationId && it.afterImageSha256 == token.afterImageSha256
+            }
+                .sortedBy { it.metaId }
         override suspend fun reserve(rows: List<PortableWalletReservationLocal>) {
             check(rows.none { row -> reserved.any { it.metaId == row.metaId } })
             reserved.addAll(rows)
         }
-        override suspend fun release(token: PortableWalletCohortJournalStore.Token): Int {
+        override suspend fun markAbandoned(token: PortableWalletCohortJournalStore.Token): Int {
             val count = reserved.count {
-                it.operationId == token.operationId && it.afterImageSha256 == token.afterImageSha256
+                it.operationId == token.operationId &&
+                    it.afterImageSha256 == token.afterImageSha256 &&
+                    it.state == PortableWalletReservationLocal.PENDING
             }
-            reserved.removeAll {
-                it.operationId == token.operationId && it.afterImageSha256 == token.afterImageSha256
+            reserved.replaceAll { row ->
+                if (
+                    row.operationId == token.operationId &&
+                    row.afterImageSha256 == token.afterImageSha256 &&
+                    row.state == PortableWalletReservationLocal.PENDING
+                ) {
+                    row.copy(state = PortableWalletReservationLocal.ABANDONED)
+                } else {
+                    row
+                }
             }
             return count
         }
     }
+
+    private class FaultPreferences(
+        private val delegate: HashMapEncryptedPreferences = HashMapEncryptedPreferences(),
+    ) : EncryptedPreferences by delegate {
+        var abandonFailure = AbandonFailure.NONE
+
+        override fun replaceEncryptedStringsDurablyIfStatesMatch(
+            expectedStates: Map<String, EncryptedPreferenceSnapshot?>,
+            valuesToPut: Map<String, String>,
+            keysToRemove: Set<String>,
+            snapshotMoves: List<EncryptedPreferenceSnapshotMove>,
+        ): Boolean {
+            val abandoning = PortableWalletCohortJournalStore.JOURNAL_KEY in keysToRemove
+            if (abandoning && abandonFailure == AbandonFailure.BEFORE_COMMIT) {
+                throw IOException("Injected preference commit failure")
+            }
+            val result = delegate.replaceEncryptedStringsDurablyIfStatesMatch(
+                expectedStates, valuesToPut, keysToRemove, snapshotMoves,
+            )
+            if (abandoning && abandonFailure == AbandonFailure.AFTER_COMMIT) {
+                throw IOException("Injected ambiguous preference commit")
+            }
+            return result
+        }
+    }
+
+    private enum class AbandonFailure { NONE, BEFORE_COMMIT, AFTER_COMMIT }
 
     private class Ids(metaIds: List<Long>) : WalletMutationIdentifierSource {
         private val candidates = ArrayDeque(metaIds)

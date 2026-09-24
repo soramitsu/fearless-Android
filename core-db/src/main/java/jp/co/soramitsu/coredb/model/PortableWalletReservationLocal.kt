@@ -1,5 +1,6 @@
 package jp.co.soramitsu.coredb.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -13,4 +14,11 @@ data class PortableWalletReservationLocal(
     @PrimaryKey val metaId: Long,
     val operationId: String,
     val afterImageSha256: String,
-)
+    val idSetSha256: String,
+    @ColumnInfo(defaultValue = "0") val state: Int = PENDING,
+) {
+    companion object {
+        const val PENDING = 0
+        const val ABANDONED = 1
+    }
+}

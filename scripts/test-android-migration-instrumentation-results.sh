@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-instrumentation-results.sh"
 EXPECTED_POSITIVE_COUNT=2
-EXPECTED_NEGATIVE_COUNT=34
+EXPECTED_NEGATIVE_COUNT=36
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -62,6 +62,11 @@ contracts = {
                 "jp.co.soramitsu.coredb.migrations."
                 "ReleasedVersion27FailClosedMigrationTest",
                 "orphanChainAccountRejectsFullUpgradeWithoutWipeOrSecretMutation",
+            ),
+            (
+                "jp.co.soramitsu.coredb.migrations."
+                "PortableWalletReservationMigrationSafetyTest",
+                "migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem",
             ),
         ],
     ),
@@ -165,6 +170,10 @@ orphan = (
     "jp.co.soramitsu.coredb.migrations."
     "ReleasedVersion27FailClosedMigrationTest"
 )
+reservation = (
+    "jp.co.soramitsu.coredb.migrations."
+    "PortableWalletReservationMigrationSafetyTest"
+)
 gate = "jp.co.soramitsu.app.root.presentation.WalletGateActivityLifecycleTest"
 restart = (
     "jp.co.soramitsu.app.root.presentation."
@@ -194,6 +203,10 @@ module_identities = {
         (
             orphan,
             "orphanChainAccountRejectsFullUpgradeWithoutWipeOrSecretMutation",
+        ),
+        (
+            reservation,
+            "migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem",
         ),
     ],
     "app": [
@@ -456,6 +469,12 @@ replace_once "$(result_file "$fixture" core-db)" \
   'exactReleasedSchemaUpgradeRemoved[released schema 27 -&gt; 79]'
 expect_failure "missing core-db critical test" "omitted required migration/startup tests" "$fixture"
 
+fixture="$(make_fixture missing-reservation-trigger-test)"
+replace_once "$(result_file "$fixture" core-db)" \
+  'migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem' \
+  'migrationReservationTriggerCoverageRemoved'
+expect_failure "missing reservation trigger test" "omitted required migration/startup tests" "$fixture"
+
 fixture="$(make_fixture missing-app-critical-test)"
 replace_once "$(result_file "$fixture" app)" \
   'legacyGateRelaunchDiscardsNonRestorableFragmentState' \
@@ -505,6 +524,19 @@ if MIGRATION_RESULTS_ROOT="$fixture" MIGRATION_RESULTS_PROFILE=weakened \
 fi
 grep -Fq "unsupported result profile" "$output" ||
   fail "unsupported profile omitted expected diagnostic"
+negative_count=$((negative_count + 1))
+
+fixture="$(make_compatibility_fixture compatibility-missing-reservation-trigger)"
+replace_once "$(result_file "$fixture" core-db)" \
+  'migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem' \
+  'migrationReservationTriggerCoverageRemoved'
+output="$tmp_dir/compatibility-missing-reservation-trigger.log"
+if MIGRATION_RESULTS_ROOT="$fixture" MIGRATION_RESULTS_PROFILE=compatibility \
+  "$VERIFY" >"$output" 2>&1; then
+  fail "compatibility shard missing the reservation trigger test unexpectedly passed"
+fi
+grep -Fq "omitted required migration/startup tests" "$output" ||
+  fail "compatibility missing-reservation omitted expected diagnostic"
 negative_count=$((negative_count + 1))
 
 fixture="$(make_fixture full-results-as-compatibility)"

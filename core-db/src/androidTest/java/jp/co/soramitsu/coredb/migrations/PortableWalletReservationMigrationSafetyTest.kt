@@ -46,8 +46,8 @@ class PortableWalletReservationMigrationSafetyTest {
                 assertEquals(0, cursor.getInt(0))
             }
             database.execSQL(
-                "INSERT INTO portable_wallet_reservations(metaId, operationId, afterImageSha256) " +
-                    "VALUES($AUTO_RESERVED_WALLET_ID, 'receive', 'digest')"
+                "INSERT INTO portable_wallet_reservations(metaId, operationId, afterImageSha256, idSetSha256) " +
+                    "VALUES($AUTO_RESERVED_WALLET_ID, 'receive', 'digest', 'ids')"
             )
             assertThrows(RuntimeException::class.java) {
                 database.execSQL(
@@ -61,10 +61,20 @@ class PortableWalletReservationMigrationSafetyTest {
                 )
             }
             database.execSQL(
-                "INSERT INTO portable_wallet_reservations(metaId, operationId, afterImageSha256) " +
-                    "VALUES($RESERVED_WALLET_ID, 'receive', 'digest')"
+                "INSERT INTO portable_wallet_reservations(metaId, operationId, afterImageSha256, idSetSha256) " +
+                    "VALUES($RESERVED_WALLET_ID, 'receive', 'digest', 'ids')"
             )
             assertThrows(RuntimeException::class.java) { insertWallet(database, RESERVED_WALLET_ID) }
+            assertThrows(RuntimeException::class.java) {
+                database.execSQL("UPDATE meta_accounts SET id = $RESERVED_WALLET_ID WHERE id = $EXISTING_WALLET_ID")
+            }
+            database.execSQL(
+                "UPDATE portable_wallet_reservations SET state = 1 WHERE metaId = $RESERVED_WALLET_ID"
+            )
+            assertThrows(RuntimeException::class.java) { insertWallet(database, RESERVED_WALLET_ID) }
+            assertThrows(RuntimeException::class.java) {
+                database.execSQL("UPDATE meta_accounts SET id = $RESERVED_WALLET_ID WHERE id = $EXISTING_WALLET_ID")
+            }
             insertWallet(database, UNRESERVED_WALLET_ID)
             database.query("SELECT COUNT(*) FROM meta_accounts").use { cursor ->
                 cursor.moveToFirst()

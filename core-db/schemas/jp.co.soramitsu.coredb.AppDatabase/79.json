@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 79,
-    "identityHash": "cba15397fecd2fed0cbf622bfa5d544c",
+    "identityHash": "83caefa9a26907e7d948ba1fe6526fb5",
     "entities": [
       {
         "tableName": "address_book",
@@ -1573,7 +1573,7 @@
       },
       {
         "tableName": "portable_wallet_reservations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`metaId` INTEGER NOT NULL, `operationId` TEXT NOT NULL, `afterImageSha256` TEXT NOT NULL, PRIMARY KEY(`metaId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`metaId` INTEGER NOT NULL, `operationId` TEXT NOT NULL, `afterImageSha256` TEXT NOT NULL, `idSetSha256` TEXT NOT NULL, `state` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`metaId`))",
         "fields": [
           {
             "fieldPath": "metaId",
@@ -1592,6 +1592,19 @@
             "columnName": "afterImageSha256",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "idSetSha256",
+            "columnName": "idSetSha256",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -1615,7 +1628,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cba15397fecd2fed0cbf622bfa5d544c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '83caefa9a26907e7d948ba1fe6526fb5')"
     ]
   }
 }

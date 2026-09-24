@@ -15,6 +15,8 @@ internal object PortableWalletReservationMigration : Migration(PREVIOUS_VERSION,
                 `metaId` INTEGER NOT NULL,
                 `operationId` TEXT NOT NULL,
                 `afterImageSha256` TEXT NOT NULL,
+                `idSetSha256` TEXT NOT NULL,
+                `state` INTEGER NOT NULL DEFAULT 0,
                 PRIMARY KEY(`metaId`)
             )
             """.trimIndent()
@@ -33,6 +35,18 @@ internal object PortableWalletReservationMigration : Migration(PREVIOUS_VERSION,
             CREATE TRIGGER IF NOT EXISTS `portable_wallet_reserved_id_insert_fence`
             AFTER INSERT ON `meta_accounts`
             WHEN EXISTS(
+                SELECT 1 FROM `portable_wallet_reservations` WHERE `metaId` = NEW.`id`
+            )
+            BEGIN
+                SELECT RAISE(ABORT, 'portable wallet ID is reserved');
+            END
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TRIGGER IF NOT EXISTS `portable_wallet_reserved_id_update_fence`
+            BEFORE UPDATE OF `id` ON `meta_accounts`
+            WHEN NEW.`id` != OLD.`id` AND EXISTS(
                 SELECT 1 FROM `portable_wallet_reservations` WHERE `metaId` = NEW.`id`
             )
             BEGIN

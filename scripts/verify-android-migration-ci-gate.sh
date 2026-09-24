@@ -413,7 +413,7 @@ required_compatibility_runner_lines=(
   "./gradlew :common:connectedDebugAndroidTest \\"
   "  -Pandroid.testInstrumentationRunnerArguments.class=jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtilAndroidKeyStoreTest \\"
   "./gradlew :core-db:connectedDebugAndroidTest \\"
-  "  -Pandroid.testInstrumentationRunnerArguments.class=jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest,jp.co.soramitsu.coredb.migrations.ReleasedVersion27FailClosedMigrationTest \\"
+  "  -Pandroid.testInstrumentationRunnerArguments.class=jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest,jp.co.soramitsu.coredb.migrations.ReleasedVersion27FailClosedMigrationTest,jp.co.soramitsu.coredb.migrations.PortableWalletReservationMigrationSafetyTest \\"
   "./gradlew :app:connectedDebugAndroidTest \\"
   "  -Pandroid.testInstrumentationRunnerArguments.class=jp.co.soramitsu.app.root.presentation.WalletGateActivityLifecycleTest,jp.co.soramitsu.app.root.presentation.WalletSecureStorageRestartActivityLifecycleTest,jp.co.soramitsu.app.root.presentation.SecurityWarningRestorationTest \\"
   "MIGRATION_RESULTS_PROFILE=compatibility \\"

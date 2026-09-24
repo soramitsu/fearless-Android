@@ -58,6 +58,13 @@ orphan_identity = (
     orphan_class,
     "orphanChainAccountRejectsFullUpgradeWithoutWipeOrSecretMutation",
 )
+reservation_class = (
+    "jp.co.soramitsu.coredb.migrations.PortableWalletReservationMigrationSafetyTest"
+)
+reservation_identity = (
+    reservation_class,
+    "migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem",
+)
 full_contracts = {
     "common": {
         "minimum": 5,
@@ -76,6 +83,7 @@ full_contracts = {
         "required": {
             *matrix_identities,
             orphan_identity,
+            reservation_identity,
         },
     },
     "app": {
@@ -132,9 +140,9 @@ compatibility_contracts = {
         },
     },
     "core-db": {
-        "exact": 8,
-        "class_counts": {matrix_class: 7, orphan_class: 1},
-        "required": {*matrix_identities, orphan_identity},
+        "exact": 9,
+        "class_counts": {matrix_class: 7, orphan_class: 1, reservation_class: 1},
+        "required": {*matrix_identities, orphan_identity, reservation_identity},
     },
     "app": {
         "exact": 26,
@@ -209,7 +217,7 @@ try:
         exact_total = False
     elif profile == "compatibility":
         contracts = compatibility_contracts
-        required_total = 39
+        required_total = 40
         exact_total = True
     else:
         fail(f"unsupported result profile: {profile}")
