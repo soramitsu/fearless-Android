@@ -15,8 +15,27 @@ class PasskeyBackupGenerationJournal internal constructor(directory: Path, durab
         operationId: String,
         candidate: GoogleDrivePasskeyBackupGenerationStorage.Candidate,
         expectedScope: PasskeyBackupJournalEntry.Scope
+    ): PasskeyBackupJournalEntry = persistPrepared(operationId, candidate, expectedScope, firstGeneration = false)
+
+    /** A second genesis candidate cannot silently replace an uncertain first upload or owner CAS. */
+    fun persistPreparedFirstGeneration(
+        operationId: String,
+        candidate: GoogleDrivePasskeyBackupGenerationStorage.Candidate,
+        expectedScope: PasskeyBackupJournalEntry.Scope
+    ): PasskeyBackupJournalEntry = persistPrepared(operationId, candidate, expectedScope, firstGeneration = true)
+
+    private fun persistPrepared(
+        operationId: String,
+        candidate: GoogleDrivePasskeyBackupGenerationStorage.Candidate,
+        expectedScope: PasskeyBackupJournalEntry.Scope,
+        firstGeneration: Boolean
     ): PasskeyBackupJournalEntry {
         expectedScope.requireMatch(candidate.context)
+        if (firstGeneration) {
+            require(candidate.context.parentHeadRevision == 0L && candidate.context.parentHeadSha256 == null) {
+                "First backup generation must extend an empty owner head"
+            }
+        }
         val bytes = PasskeyBackupJournalRecord.encode(operationId, candidate)
         return disk.locked {
             val operations = disk.inventory()
@@ -28,6 +47,16 @@ class PasskeyBackupGenerationJournal internal constructor(directory: Path, durab
             } else {
                 require(operations.size < PasskeyBackupJournalDisk.MAX_ENTRIES) { "Backup journal is full" }
                 requireUniqueCandidate(operations, candidate)
+                if (firstGeneration) {
+                    require(
+                        operations.none { operation ->
+                            val context = loadLocked(operation, tolerateCommitMarkerDamage = true).candidate.context
+                            context.ownerSubject == candidate.context.ownerSubject &&
+                                context.backupNamespace == candidate.context.backupNamespace &&
+                                context.parentHeadRevision == 0L
+                        }
+                    ) { "First backup generation already has a journal operation" }
+                }
                 disk.create(operationId, bytes)
                 PasskeyBackupJournalRecord.decode(bytes, operationId)
             }

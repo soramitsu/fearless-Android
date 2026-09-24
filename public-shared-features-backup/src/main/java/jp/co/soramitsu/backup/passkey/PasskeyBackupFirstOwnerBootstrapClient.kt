@@ -22,7 +22,8 @@ private const val OPAQUE_BYTES = 32
 class PasskeyBackupFirstOwnerBootstrapResult internal constructor(
     val session: PasskeyBackupOwnerSession,
     val credentialId: String,
-    val emptyHead: PasskeyBackupAuthenticatedHead
+    val emptyHead: PasskeyBackupAuthenticatedHead,
+    val originalWalletIdentity: PasskeyBackupExpectedWalletIdentity
 ) {
     override fun toString(): String = "PasskeyBackupFirstOwnerBootstrapResult(redacted)"
 }
@@ -101,7 +102,7 @@ class PasskeyBackupFirstOwnerBootstrapClient(
             ) { "First-owner authenticated head is not empty" }
             requireSelectedAccount(selected.subject, accountName)
             currentCoroutineContext().ensureActive()
-            PasskeyBackupFirstOwnerBootstrapResult(session, credentialId, head)
+            PasskeyBackupFirstOwnerBootstrapResult(session, credentialId, head, expectedWallet)
         }
     }
 

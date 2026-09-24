@@ -4,11 +4,13 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.nio.file.Files
 import java.util.Base64
 
 class PasskeyBackupOwnerAuthenticationClientTest {
@@ -106,6 +108,70 @@ class PasskeyBackupOwnerAuthenticationClientTest {
         assertFalse(transport.requests[1].bodyText().contains(base64Url(prf)))
         assertFalse(transport.requests[1].bodyText().contains("prf"))
         assertEquals("Bearer $SESSION_TOKEN", transport.requests[2].headers["Authorization"])
+    }
+
+    @Test
+    fun `verified first owner prepares one decryptable journaled generation without uploading`() = runBlocking {
+        val root = Files.createTempDirectory("first-generation-preparation")
+        try {
+            val prf = ByteArray(32) { 7 }
+            val transport = RecordingTransport(
+                jsonResponse("""{"kind":"drive#generatedIds","space":"appDataFolder","ids":["allocated-file"]}"""),
+                challengeResponse(), sessionResponse(), headResponse(), headResponse()
+            )
+            val tokenProvider = GoogleDriveAccessTokenProvider {
+                GoogleDriveAccountAccess("google-subject-1", "owner@example.com", "test-token")
+            }
+            val wallet = PasskeyBackupExpectedWalletIdentity("wallet-1234", "wallet-0001", "a".repeat(64))
+            val original = "synthetic complete wallet inventory".toByteArray()
+            var verifications = 0
+            val walletVerifier = PasskeyBackupPlaintextWalletVerifier { plaintext, expected ->
+                assertArrayEquals("synthetic complete wallet inventory".toByteArray(), plaintext)
+                verifications++
+                PasskeyBackupLocalWalletEvidence(
+                    expected.storageKey, expected.walletId, expected.publicIdentitySha256,
+                    decryptionVerified = true, originalKeySigningVerified = true, originalKeyExportVerified = true
+                )
+            }
+            val head = PasskeyBackupAuthenticatedHead(
+                SUBJECT, NAMESPACE, null, null, SUBJECT, NAMESPACE,
+                PasskeyBackupGenerationFormat.storageAccountBinding("google-subject-1")
+            )
+            val firstOwner = PasskeyBackupFirstOwnerBootstrapResult(expectedOwner(), "AQ", head, wallet)
+            val journal = PasskeyBackupGenerationJournal(root.resolve("journal"), HostJournalDurability())
+            val preparer = PasskeyBackupFirstGenerationPreparer(
+                client(RecordingGateway(assertionWithPrf(prf)), transport, true),
+                PasskeyBackupOwnerHeadHttpClient(
+                    tokenProvider, transport, nowMillis = { nowMillis }, isReleaseEnabled = true
+                ),
+                tokenProvider,
+                GoogleDrivePasskeyBackupGenerationStorage("google-subject-1", tokenProvider, transport),
+                journal,
+                PasskeyBackupFirstGenerationBuilder(
+                    PasskeyBackupOriginalWalletExporter { original }, walletVerifier,
+                    nowMillis = { nowMillis }, isReleaseEnabled = true
+                ),
+                isReleaseEnabled = true
+            )
+
+            val prepared = preparer.prepare(firstOwner, "owner@example.com", wallet)
+
+            assertEquals(2, verifications)
+            assertTrue(original.all { it == 0.toByte() })
+            assertEquals(5, transport.requests.size)
+            assertTrue(transport.requests.none { it.url.contains("upload") })
+            val scope = PasskeyBackupJournalEntry.Scope(SUBJECT, NAMESPACE, head.storageAccountBinding)
+            val entry = requireNotNull(journal.read(prepared.operationId, scope))
+            assertEquals("allocated-file", entry.candidate.fileId)
+            assertEquals(prepared.bundleSha256, entry.candidate.sha256)
+            assertFalse(entry.createAttemptRecorded)
+            assertFalse(entry.candidate.bytes.toString(Charsets.UTF_8).contains("synthetic complete wallet inventory"))
+            assertFalse(entry.candidate.bytes.toString(Charsets.UTF_8).contains(base64Url(prf)))
+            assertTrue(runCatching { preparer.prepare(firstOwner, "owner@example.com", wallet) }.isFailure)
+            assertEquals(5, transport.requests.size)
+        } finally {
+            root.toFile().deleteRecursively()
+        }
     }
 
     @Test

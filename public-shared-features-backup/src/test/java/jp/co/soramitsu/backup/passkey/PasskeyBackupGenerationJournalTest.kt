@@ -77,6 +77,30 @@ class PasskeyBackupGenerationJournalTest {
     }
 
     @Test
+    fun `first generation journal forbids a replacement candidate after uncertain create`() {
+        val original = GenerationFixture.generation()
+        val firstContext = original.context.copy(parentHeadRevision = 0L, parentHeadSha256 = null)
+        val first = GoogleDrivePasskeyBackupGenerationStorage.Candidate(
+            "first-drive-id", firstContext,
+            PasskeyBackupGenerationFormat.encode(PasskeyBackupGeneration(firstContext, original.envelope, original.wrappers))
+        )
+        val firstEntry = journal().persistPreparedFirstGeneration(operation, first, scope)
+        assertEquals(first.sha256, firstEntry.candidate.sha256)
+        journal().markCreateAttempt(operation, scope)
+
+        val replacementContext = firstContext.copy(generationId = JournalFixture.identifier(9))
+        val replacement = GoogleDrivePasskeyBackupGenerationStorage.Candidate(
+            "replacement-drive-id", replacementContext,
+            PasskeyBackupGenerationFormat.encode(
+                PasskeyBackupGeneration(replacementContext, original.envelope, original.wrappers)
+            )
+        )
+        fails { journal().persistPreparedFirstGeneration(JournalFixture.identifier(10), replacement, scope) }
+        assertTrue(requireNotNull(journal().read(operation, scope)).createAttemptRecorded)
+        assertEquals(1, journal().listPending(scope).size)
+    }
+
+    @Test
     fun `owner namespace and verified Google account scope cannot be inferred from disk`() {
         journal().persistPrepared(operation, JournalFixture.candidate(), scope)
         for (wrong in listOf(

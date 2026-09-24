@@ -4,6 +4,8 @@
 
 `persistPrepared(operationId, candidate, expectedScope)` validates the complete canonical FPBKGEN1 bundle and writes its exact bytes, size, SHA-256, preallocated Drive ID, operation ID and expected context before returning. The scope must be supplied independently from authenticated wallet-owner state and the verified selected Google account; reading a file does not establish owner authority. The same operation with identical bytes is idempotent. Conflicting bytes, reusing the account/Drive file ID, or reusing an owner/namespace/generation ID under another operation are rejected.
 
+First enrollment uses `persistPreparedFirstGeneration` after an authenticated empty owner head. It atomically refuses a second genesis candidate for that owner and namespace, even when the first candidate has an uncertain create or commit outcome. The existing operation must be reconciled; allocation of another Drive ID is not a recovery procedure.
+
 `GoogleDrivePasskeyBackupGenerationStorage.createCandidate(operationId, journal, expectedScope)` requires the durable journal and independently supplied scope. It validates the prepared record, obtains and pins a verified selected-account bearer, and builds the exact request **before** invoking `markCreateAttempt` on an IO dispatcher. Token or account failure before admission leaves the same candidate retryable without a POST. The separate immutable attempt marker binds the prepared record digest, bundle digest and Drive ID, then is synchronized before the private transport call. A surviving marker prevents another admission after restart. A partial or malformed marker also fails closed and is preserved; it cannot be discarded to authorize another upload. Failure or cancellation after admission requires read-only reconciliation of the same Drive ID, even if the process may have stopped before actually sending the request. A prepared/read entry alone is not an upload permit. The public create API cannot accept an in-memory candidate or re-admit an existing marker.
 
 `read` and `listPending` strictly validate file type, private permissions, ownership, link count, bounded canonical JSON, context, size, digest and nested FPBKGEN1 bytes. They apply the independently supplied owner/namespace/account scope. Missing or corrupt data is not permission to mint another Drive ID, replace a generation or assume that a remote operation never happened. The journal provides no implicit recovery/repair of malformed records.
@@ -76,10 +78,18 @@ boundary for an existing owner head: it asks for a credential-directed
 assertion, keeps the PRF result local and one-use, waits for server assertion
 verification, then decrypts the candidate and invokes the application-owned
 original-key signing/export verifier. A fresh verifier must be created for each
-authenticated head, including after restart. An empty-head first enrollment
-still needs a separate server-verified candidate assertion API. Neither that
-API nor the production original-key callback is deployed/wired, and the
-compiled recovery gate remains false. The new tests use synthetic identities
-and test PRF material; they do not prove device/provider interoperability.
+authenticated head, including after restart. `PasskeyBackupOwnerAuthenticationClient`
+now supplies a server-verified, discoverable first-owner assertion with local-only
+PRF output. `PasskeyBackupFirstGenerationBuilder` uses an app-owned complete
+wallet exporter and plaintext verifier, generates a random 32-byte backup key,
+encrypts the envelope, wraps the key for that credential and checks a local
+unwrap/decrypt/original-key round trip. `PasskeyBackupFirstGenerationPreparer`
+rechecks the selected Drive account and empty owner head, then journals the
+exact candidate without uploading it. The original wallet identity carried
+by the bootstrap result must match the identity presented to preparation.
+These are disabled candidates: no production complete-inventory exporter,
+original-key verifier, deployed owner authority, provider interoperability or
+replacement-device flow is wired, and the compiled recovery gate remains false.
+Synthetic local tests do not establish portable recovery.
 
 Primary references: [Android backup-excluded storage](https://developer.android.com/reference/android/content/Context#getNoBackupFilesDir()), [exclusive NIO file creation](https://developer.android.com/reference/java/nio/file/StandardOpenOption#CREATE_NEW), [FileChannel force semantics](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html#force(boolean)), and [Android fsync](https://developer.android.com/reference/android/system/Os#fsync(java.io.FileDescriptor)).
