@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageFailureKin
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.WalletCustodyLocal
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.BaseKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.scale.toHexString
@@ -381,6 +382,7 @@ private class DurabilityWalletMutationDatabase(
 ) : WalletMutationDatabase {
 
     private val accounts = linkedMapOf<Long, MetaAccountLocal>()
+    private val custody = linkedMapOf<Long, WalletCustodyLocal>()
 
     var deleteCalls = 0
         private set
@@ -404,6 +406,16 @@ private class DurabilityWalletMutationDatabase(
 
     override suspend fun getMetaAccount(metaId: Long): MetaAccountLocal? {
         return account(metaId)
+    }
+
+    override suspend fun getCustody(metaId: Long): WalletCustodyLocal? = custody[metaId]
+
+    override suspend fun insertCustody(marker: WalletCustodyLocal) {
+        check(custody.putIfAbsent(marker.metaId, marker) == null)
+    }
+
+    override suspend fun deleteCustody(metaId: Long) {
+        custody.remove(metaId)
     }
 
     override suspend fun metaAccountExists(metaId: Long): Boolean {
@@ -465,6 +477,7 @@ private class DurabilityWalletMutationDatabase(
 
     override suspend fun deleteMetaAccountAndSelectSuccessor(metaId: Long): Boolean {
         val target = accounts.remove(metaId) ?: return false
+        custody.remove(metaId)
         deleteCalls += 1
         if (target.isSelected && accounts.isNotEmpty()) {
             val successor = accounts.values.minWith(

@@ -26,6 +26,7 @@ import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.model.WalletCustodyLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
@@ -550,6 +551,15 @@ class WalletSecretMutationCoordinator private constructor(
                 requireCryptographicTarget(journal.metaId, afterImage)
             }
             requireNoIdentityConflict(journal.metaId, afterImage)
+            val custody = getCustody(journal.metaId)
+            if (custody == null) {
+                insertCustody(WalletCustodyProvenance.signedMarker(afterLocal))
+            } else {
+                requireState(WalletCustodyProvenance.classify(afterLocal, emptyList(), custody) ==
+                    WalletCustodyProvenance.Kind.SIGNED) {
+                    "A staged signing wallet conflicts with custody provenance"
+                }
+            }
             if (current != null) {
                 requireState(accountsAfter.selectedIds() == selectedIdsBefore) {
                     "Creation replay changed a newer wallet selection"
@@ -627,6 +637,9 @@ class WalletSecretMutationCoordinator private constructor(
             requireState(accountsAfter.selectedIds() == selectedIdsBefore) {
                 "An EVM addition changed the selected wallet"
             }
+            // Existing roots might still be watch-only; the one new EVM key cannot prove them.
+            // A later guarded capture can re-establish SIGNED after verifying all sources.
+            deleteCustody(journal.metaId)
         }
     }
 
@@ -1492,6 +1505,12 @@ internal interface WalletMutationDatabase {
 
     suspend fun getMetaAccount(metaId: Long): MetaAccountLocal?
 
+    suspend fun getCustody(metaId: Long): WalletCustodyLocal?
+
+    suspend fun insertCustody(marker: WalletCustodyLocal)
+
+    suspend fun deleteCustody(metaId: Long)
+
     suspend fun metaAccountExists(metaId: Long): Boolean
 
     suspend fun hasIdentityConflict(
@@ -1544,6 +1563,18 @@ private class RoomWalletMutationDatabase(
 
     override suspend fun getMetaAccount(metaId: Long): MetaAccountLocal? {
         return metaAccountDao.getMetaAccount(metaId)
+    }
+
+    override suspend fun getCustody(metaId: Long): WalletCustodyLocal? {
+        return appDatabase.walletCustodyDao().get(metaId)
+    }
+
+    override suspend fun insertCustody(marker: WalletCustodyLocal) {
+        appDatabase.walletCustodyDao().insert(marker)
+    }
+
+    override suspend fun deleteCustody(metaId: Long) {
+        appDatabase.walletCustodyDao().delete(metaId)
     }
 
     override suspend fun metaAccountExists(metaId: Long): Boolean {

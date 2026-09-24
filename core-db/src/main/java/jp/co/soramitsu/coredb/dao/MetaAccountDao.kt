@@ -41,6 +41,10 @@ interface MetaAccountDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertDerivedChainAccountsIfAbsent(accounts: List<ChainAccountLocal>)
 
+    /** Used only by atomic, public-only watch enrollment; conflicts must abort the transaction. */
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertWatchChainAccounts(accounts: List<ChainAccountLocal>)
+
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateMetaAccount(metaAccount: MetaAccountLocal)
 
@@ -77,6 +81,9 @@ interface MetaAccountDao {
         ethereumAddress: ByteArray?,
         tonPublicKey: ByteArray?
     ): Boolean
+
+    @Query("SELECT EXISTS(SELECT 1 FROM chain_accounts WHERE chainId = :chainId AND accountId = :accountId)")
+    suspend fun hasChainAccountIdentity(chainId: String, accountId: ByteArray): Boolean
 
     /** Returns whether the exact primary key is currently present. */
     @Query("SELECT EXISTS(SELECT 1 FROM meta_accounts WHERE id = :metaId)")

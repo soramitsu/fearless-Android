@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.WalletCustodyLocal
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
@@ -84,6 +85,10 @@ class WalletSecretMutationCoordinatorTest {
         assertEquals(fixtures.substrate.encoded, preferences.value("77:SUBSTRATE_SECRETS"))
         assertEquals(fixtures.ethereum.encoded, preferences.value("77:ETHEREUM_SECRETS"))
         assertEquals(fixtures.ton.encoded, preferences.value("77:TON_SECRETS"))
+        assertEquals(
+            WalletCustodyProvenance.Kind.SIGNED,
+            WalletCustodyProvenance.classify(stored, emptyList(), database.custody(77))
+        )
         assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
         assertEquals(
             listOf("stage", "insert:77", "select:77", "clear"),
@@ -120,6 +125,7 @@ class WalletSecretMutationCoordinatorTest {
 
         assertEquals(WalletMutationFailureReason.SECRET_BINDING_FAILED, failure.reason)
         assertTrue(database.accounts().isEmpty())
+        assertNull(database.custody(77))
         assertTrue(preferences.keys().isEmpty())
     }
 
@@ -740,6 +746,7 @@ class WalletSecretMutationCoordinatorTest {
             isBackedUp = true
         )
         database.put(existing)
+        database.insertCustody(WalletCustodyProvenance.watchMarker(existing, emptyList()))
 
         val result = coordinator.addEvm(existing, after, ethereum.encoded)
 
@@ -751,6 +758,7 @@ class WalletSecretMutationCoordinatorTest {
         assertArrayEquals(existing.substratePublicKey, stored.substratePublicKey)
         assertEquals(setOf(10L), database.selectedIds())
         assertEquals(ethereum.encoded, preferences.value("10:ETHEREUM_SECRETS"))
+        assertNull(database.custody(10)) // Mixed watch root + signed EVM is UNKNOWN, never WATCH.
         assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
     }
 
@@ -2343,6 +2351,7 @@ private enum class DatabaseOperation {
 private class FakeWalletMutationDatabase : WalletMutationDatabase {
 
     private val accountRows = linkedMapOf<Long, MetaAccountLocal>()
+    private val custodyRows = linkedMapOf<Long, WalletCustodyLocal>()
     val chainAccountIds = linkedMapOf<Long, MutableList<ByteArray>>()
     val tonConnectionOwners =
         mutableListOf<Pair<Long, TonConnectionSecretOwner>>()
@@ -2365,6 +2374,7 @@ private class FakeWalletMutationDatabase : WalletMutationDatabase {
             throw InjectedDatabaseFailure()
         }
         val accountsSnapshot = accountRows.mapValues { (_, value) -> value.copyForTest() }
+        val custodySnapshot = custodyRows.toMap()
         val chainSnapshot = chainAccountIds.mapValues { (_, value) ->
             value.map(ByteArray::clone).toMutableList()
         }
@@ -2381,6 +2391,8 @@ private class FakeWalletMutationDatabase : WalletMutationDatabase {
         } catch (failure: Throwable) {
             accountRows.clear()
             accountRows.putAll(accountsSnapshot)
+            custodyRows.clear()
+            custodyRows.putAll(custodySnapshot)
             chainAccountIds.clear()
             chainAccountIds.putAll(chainSnapshot)
             assetMetaIds.clear()
@@ -2397,6 +2409,16 @@ private class FakeWalletMutationDatabase : WalletMutationDatabase {
 
     override suspend fun getMetaAccount(metaId: Long): MetaAccountLocal? {
         return accountRows[metaId]?.copyForTest()
+    }
+
+    override suspend fun getCustody(metaId: Long): WalletCustodyLocal? = custodyRows[metaId]
+
+    override suspend fun insertCustody(marker: WalletCustodyLocal) {
+        check(custodyRows.putIfAbsent(marker.metaId, marker) == null)
+    }
+
+    override suspend fun deleteCustody(metaId: Long) {
+        custodyRows.remove(metaId)
     }
 
     override suspend fun metaAccountExists(metaId: Long): Boolean {
@@ -2489,6 +2511,7 @@ private class FakeWalletMutationDatabase : WalletMutationDatabase {
             null
         }
         accountRows.remove(metaId)
+        custodyRows.remove(metaId)
         chainAccountIds.remove(metaId)
         tonConnectionOwners.removeAll { (ownerMetaId) ->
             ownerMetaId == metaId
@@ -2505,6 +2528,8 @@ private class FakeWalletMutationDatabase : WalletMutationDatabase {
     }
 
     fun account(metaId: Long): MetaAccountLocal? = accountRows[metaId]?.copyForTest()
+
+    fun custody(metaId: Long): WalletCustodyLocal? = custodyRows[metaId]
 
     fun accounts(): List<MetaAccountLocal> = accountRows.values.map(MetaAccountLocal::copyForTest)
 

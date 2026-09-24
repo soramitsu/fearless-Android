@@ -45,7 +45,7 @@ import org.junit.Test
 /**
  * Opens an immutable Room-v30 fixture synthesized from DDL extracted from the
  * official Fearless Wallet v2.0.0 (51) APK through the complete production
- * 30 -> 77 migration chain.
+ * 30 -> 78 migration chain.
  *
  * The wallet material is deterministic synthetic data encoded by the exact
  * historical six-field schema. In particular, it has no trailing TON option.
@@ -152,7 +152,7 @@ class ReleasedV200MigrationSafetyTest {
             createVersion30Database(TRUNCATED_DATABASE)
 
             openProductionDatabase(TRUNCATED_DATABASE, preferences).useDatabase {
-                assertEquals(77, it.openHelper.writableDatabase.version)
+                assertEquals(78, it.openHelper.writableDatabase.version)
             }
 
             assertFalse(preferences.hasKey(legacySecretKey(META_ID)))
@@ -167,7 +167,7 @@ class ReleasedV200MigrationSafetyTest {
 
             // Recovery state is stable and must not become a migration loop.
             openProductionDatabase(TRUNCATED_DATABASE, preferences).useDatabase {
-                assertEquals(77, it.openHelper.writableDatabase.version)
+                assertEquals(78, it.openHelper.writableDatabase.version)
             }
         }
 
@@ -290,7 +290,7 @@ class ReleasedV200MigrationSafetyTest {
         preferences: HashMapEncryptedPreferences
     ) {
         val migrated = database.openHelper.writableDatabase
-        assertEquals(77, migrated.version)
+        assertEquals(78, migrated.version)
         assertEquals(
             WALLET_NAME,
             migrated.singleString(

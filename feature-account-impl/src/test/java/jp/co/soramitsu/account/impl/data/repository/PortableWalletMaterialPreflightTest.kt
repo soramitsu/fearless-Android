@@ -11,14 +11,17 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets as substrateSecre
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets as tonSecrets
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.WalletCustodyDao
 import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
+import jp.co.soramitsu.coredb.model.WalletCustodyLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
@@ -47,7 +50,11 @@ class PortableWalletMaterialPreflightTest {
     private val metaAccountDao = mock<MetaAccountDao>()
     private val accountRepository = mock<AccountRepository>()
     private val encryptedPreferences = mock<EncryptedPreferences>()
-    private val preflight = PortableWalletMaterialPreflight(metaAccountDao, accountRepository, encryptedPreferences)
+    private val custodyDao = mock<WalletCustodyDao>()
+    private val journalStore = mock<WalletSecretMutationJournalStore>()
+    private val preflight = PortableWalletMaterialPreflight(
+        metaAccountDao, accountRepository, encryptedPreferences, custodyDao, journalStore
+    )
 
     @Before
     fun setUp() {
@@ -442,7 +449,117 @@ class PortableWalletMaterialPreflightTest {
             decoded.clearSecrets()
             encoded.fill(0)
         }
-        verify(accountRepository, org.mockito.kotlin.never()).getSubstrateSecrets(1)
+    }
+
+    @Test
+    fun `semantic capture retains selected watch wallets as non-signable public slots`(): Unit = runBlocking {
+        val first = watchWallet(id = 10, selected = false, position = 3)
+        val second = watchWallet(id = 11, selected = true, position = 1)
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(first, second))
+        whenever(custodyDao.get(10)).thenReturn(
+            WalletCustodyProvenance.watchMarker(first.metaAccount, first.chainAccounts)
+        )
+        whenever(custodyDao.get(11)).thenReturn(
+            WalletCustodyProvenance.watchMarker(second.metaAccount, second.chainAccounts)
+        )
+
+        val encoded = preflight.captureSemanticPlaintext()
+        val decoded = PortableWalletSemanticMaterial.decode(encoded)
+        try {
+            assertEquals(2, decoded.wallets.size)
+            assertEquals(0, decoded.selectedIndex)
+            assertEquals(listOf(1L, 3L), decoded.wallets.map { it.sourcePosition })
+            decoded.wallets.forEach { semanticWallet ->
+                assertEquals(listOf(PortableWalletSemanticMaterial.Role.WATCH_IDENTITY),
+                    semanticWallet.slots.map { it.role })
+                assertFalse(semanticWallet.slots.single().fields.any {
+                    it.id == PortableWalletSemanticMaterial.FieldId.PRIVATE_KEY
+                })
+            }
+            assertArrayEquals(encoded, PortableWalletSemanticMaterial.encode(decoded))
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+        verify(accountRepository, org.mockito.kotlin.never()).getSubstrateSecrets(any())
+    }
+
+    @Test
+    fun `semantic capture combines signed and watch wallets and marks verified signer`(): Unit = runBlocking {
+        val signed = wallet(1, ethereum = true)
+        val watch = watchWallet(id = 2, selected = false, position = 0)
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(watch, signed))
+        whenever(custodyDao.get(2)).thenReturn(
+            WalletCustodyProvenance.watchMarker(watch.metaAccount, watch.chainAccounts)
+        )
+        whenever(accountRepository.getEthereumSecrets(1)).thenReturn(
+            ethereumSecrets(ethereumKeypair = Keypair(byteArrayOf(3, 1), ByteArray(32) { 99 }))
+        )
+
+        val encoded = preflight.captureSemanticPlaintext()
+        val decoded = PortableWalletSemanticMaterial.decode(encoded)
+        try {
+            assertEquals(2, decoded.wallets.size)
+            assertEquals(1, decoded.selectedIndex)
+            assertEquals(listOf(0L, 1L), decoded.wallets.map { it.sourcePosition })
+            assertEquals(PortableWalletSemanticMaterial.Role.WATCH_IDENTITY, decoded.wallets[0].slots.single().role)
+            assertEquals(PortableWalletSemanticMaterial.Role.EVM_ROOT, decoded.wallets[1].slots.first().role)
+            verify(custodyDao).insert(org.mockito.kotlin.argThat {
+                kind == WalletCustodyLocal.SIGNED && metaId == 1L
+            })
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
+    fun `semantic capture rejects unknown missing-key row and forged watch provenance`(): Unit = runBlocking {
+        val watch = watchWallet(id = 1, selected = true, position = 0)
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo()).thenReturn(listOf(watch))
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureSemanticPlaintext() }
+        }
+
+        val valid = WalletCustodyProvenance.watchMarker(watch.metaAccount, watch.chainAccounts)
+        whenever(custodyDao.get(1)).thenReturn(valid)
+        whenever(journalStore.hasSecretNamespace(1)).thenReturn(true)
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { preflight.captureSemanticPlaintext() }
+        }
+
+        whenever(journalStore.hasSecretNamespace(1)).thenReturn(false)
+        whenever(custodyDao.get(1)).thenReturn(
+            WalletCustodyLocal(1, WalletCustodyLocal.WATCH, ByteArray(32) { 9 })
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { preflight.captureSemanticPlaintext() }
+        }
+    }
+
+    @Test
+    fun `semantic capture does not promote an unknown address-only Ethereum row to watch`(): Unit = runBlocking {
+        val meta = MetaAccountLocal(
+            substratePublicKey = null,
+            substrateCryptoType = null,
+            substrateAccountId = null,
+            ethereumPublicKey = null,
+            ethereumAddress = ByteArray(20) { 7 },
+            tonPublicKey = null,
+            name = "Historical address",
+            isSelected = true,
+            position = 0,
+            isBackedUp = false,
+            googleBackupAddress = null,
+            initialized = true
+        ).apply { id = 1 }
+        whenever(metaAccountDao.getJoinedMetaAccountsInfo())
+            .thenReturn(listOf(RelationJoinedMetaAccountInfo(meta, emptyList(), emptyList())))
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { preflight.captureSemanticPlaintext() }
+        }
+        verify(custodyDao, org.mockito.kotlin.never()).insert(any())
     }
 
     @Test
@@ -511,6 +628,29 @@ class PortableWalletMaterialPreflightTest {
         metaId, chainId, byteArrayOf(6), byteArrayOf(7), CryptoType.ED25519,
         "Chain account", true
     )
+
+    private fun watchWallet(
+        id: Long,
+        selected: Boolean,
+        position: Int
+    ): RelationJoinedMetaAccountInfo {
+        val publicKey = ByteArray(32) { id.toByte() }
+        val meta = MetaAccountLocal(
+            substratePublicKey = publicKey,
+            substrateCryptoType = CryptoType.SR25519,
+            substrateAccountId = publicKey.copyOf(),
+            ethereumPublicKey = null,
+            ethereumAddress = null,
+            tonPublicKey = null,
+            name = "Watch $id",
+            isSelected = selected,
+            position = position,
+            isBackedUp = false,
+            googleBackupAddress = null,
+            initialized = true
+        ).apply { this.id = id }
+        return RelationJoinedMetaAccountInfo(meta, emptyList(), emptyList())
+    }
 
     private fun v1Keys(vararg keys: String) {
         whenever(encryptedPreferences.keysWithPrefixes(any(), any(), any(), any(), any()))

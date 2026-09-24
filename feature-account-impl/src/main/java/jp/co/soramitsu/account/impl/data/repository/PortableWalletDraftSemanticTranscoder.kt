@@ -58,6 +58,104 @@ internal object PortableWalletDraftSemanticTranscoder {
         }
     }
 
+    /** Project one fully validated signed wallet for guarded mixed-custody capture. */
+    fun projectSignedWallet(wallet: PortableWalletMaterialDraft.Wallet): PortableWalletSemanticMaterial.Wallet {
+        val selected = PortableWalletMaterialDraft.Wallet(
+            identity = wallet.identity.copy(isSelected = true),
+            substrateSecret = wallet.substrateSecret,
+            ethereumSecret = wallet.ethereumSecret,
+            tonSecret = wallet.tonSecret,
+            chainSecrets = wallet.chainSecrets,
+            legacySubstrateSource = wallet.legacySubstrateSource
+        )
+        return toSemanticSnapshot(PortableWalletMaterialDraft.Snapshot(listOf(selected))).wallets.single()
+    }
+
+    /** Public identities only. The caller must independently prove durable WATCH provenance. */
+    fun projectWatchWallet(identity: PortableWalletMaterialDraft.WalletIdentity): PortableWalletSemanticMaterial.Wallet {
+        val allocated = ArrayList<ByteArray>()
+        try {
+            val slots = ArrayList<PortableWalletSemanticMaterial.Slot>()
+            fun watch(fields: List<PortableWalletSemanticMaterial.Field>) {
+                slots += makeSlot(
+                    role.WATCH_IDENTITY,
+                    slots.count { it.role == role.WATCH_IDENTITY }.toString(16).padStart(4, '0'),
+                    fields
+                )
+            }
+            identity.substratePublicKey?.let { publicKey ->
+                watch(listOf(
+                    bytes(field.PUBLIC_KEY, publicIdentity(publicKey, allocated), allocated),
+                    bytes(field.ACCOUNT_ID_OR_ADDRESS,
+                        publicIdentity(identity.substrateAccountId, allocated), allocated),
+                    oneByte(field.CRYPTO_TYPE, cryptoType(identity.substrateCryptoType), allocated),
+                    oneByte(field.WATCH_ECOSYSTEM, 1, allocated)
+                ))
+            }
+            identity.ethereumAddress?.let { address ->
+                watch(listOfNotNull(
+                    identity.ethereumPublicKey?.let {
+                        bytes(field.PUBLIC_KEY, publicIdentity(it, allocated), allocated)
+                    },
+                    bytes(field.ACCOUNT_ID_OR_ADDRESS, publicIdentity(address, allocated), allocated),
+                    oneByte(field.WATCH_ECOSYSTEM, 2, allocated)
+                ))
+            }
+            identity.tonPublicKey?.let { publicKey ->
+                watch(listOf(
+                    bytes(field.PUBLIC_KEY, publicIdentity(publicKey, allocated), allocated),
+                    PortableWalletSemanticMaterial.Field(
+                        field.ACCOUNT_ID_OR_ADDRESS,
+                        canonicalTonAddress(publicIdentity(publicKey, allocated)).also(allocated::add)
+                    ),
+                    oneByte(field.TON_CONTRACT_VERSION, 2, allocated),
+                    oneByte(field.TON_ADDRESS_ENCODING, 1, allocated),
+                    oneByte(field.WATCH_ECOSYSTEM, 3, allocated)
+                ))
+            }
+            identity.chainAccounts.forEach { chain ->
+                watch(listOf(
+                    bytes(field.PUBLIC_KEY, publicIdentity(chain.publicKey, allocated), allocated),
+                    bytes(field.ACCOUNT_ID_OR_ADDRESS, publicIdentity(chain.accountId, allocated), allocated),
+                    oneByte(field.CRYPTO_TYPE, cryptoType(chain.cryptoType), allocated),
+                    text(field.CHAIN_NAME, chain.name, allocated),
+                    oneByte(field.INITIALIZED_OR_FAVORITE, if (chain.initialized) 1 else 0, allocated),
+                    oneByte(field.WATCH_ECOSYSTEM, 4, allocated),
+                    text(field.WATCH_CHAIN_ID, chain.chainId, allocated)
+                ))
+            }
+            require(slots.isNotEmpty()) { "Watch wallet has no public identity" }
+            identity.favoriteChains.forEach { favorite ->
+                slots += makeSlot(
+                    role.FAVORITE_CHAIN, favorite.chainId,
+                    oneByte(field.INITIALIZED_OR_FAVORITE, if (favorite.isFavorite) 1 else 0, allocated)
+                )
+            }
+            slots.sortWith(Comparator { left, right ->
+                val roleOrder = left.role.compareTo(right.role)
+                if (roleOrder != 0) roleOrder else compareUtf8(left.key, right.key)
+            })
+            val result = PortableWalletSemanticMaterial.Wallet(
+                portableId = portableId(identity.id).also(allocated::add),
+                sourcePosition = identity.position.toLong(),
+                initialized = identity.initialized,
+                name = identity.name,
+                metadata = emptyList(),
+                slots = slots
+            )
+            try {
+                semantic.encode(PortableWalletSemanticMaterial.Snapshot(0, listOf(result))).fill(0)
+                return result
+            } catch (failure: Exception) {
+                result.clearSecrets()
+                throw failure
+            }
+        } catch (failure: Exception) {
+            allocated.forEach { it.fill(0) }
+            throw failure
+        }
+    }
+
     private fun build(draft: PortableWalletMaterialDraft.Snapshot): PortableWalletSemanticMaterial.Snapshot {
         val allocated = ArrayList<ByteArray>()
         try {

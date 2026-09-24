@@ -18,6 +18,8 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.ton.api.pk.PrivateKeyEd25519
+import java.security.MessageDigest
 import java.util.Base64
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets as chainSecrets
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets as ethereumSecrets
@@ -30,6 +32,86 @@ class PortableWalletDraftSemanticTranscoderTest {
     private val transcode = PortableWalletDraftSemanticTranscoder
     private val field = PortableWalletSemanticMaterial.FieldId
     private val role = PortableWalletSemanticMaterial.Role
+
+    @Test
+    fun `real Android TON mnemonic projects its native 32-byte seed unchanged`() {
+        val mnemonic = "cluster notice abandon frost gospel boring element situate click mix vague replace " +
+            "imitate garment useful crater resource dose tenant theme foam ancient phrase slight"
+        val nativeSeed = org.ton.mnemonic.Mnemonic.toSeed(mnemonic.split(' '))
+        val privateKey = PrivateKeyEd25519(nativeSeed)
+        val publicKey = privateKey.publicKey().key.toByteArray()
+        assertEquals("34eb4b67d64f74d989ce2bc2e3dfddb7ed4cb0eec92f29fbecd05b1eabab0254", publicKey.hex())
+        val raw = tonSecrets(
+            seed = mnemonic.encodeToByteArray(),
+            tonKeypair = Keypair(publicKey, privateKey.key.toByteArray())
+        ).toByteArray()
+        val source = PortableWalletMaterialDraft.Snapshot(listOf(
+            wallet(id = 42, selected = true, position = 0, tonPublic = publicKey, tonRaw = raw)
+        ))
+        val projected = transcode.toSemanticSnapshot(source)
+        val encoded = semantic.encode(projected)
+        try {
+            val root = projected.wallets.single().slots.single { it.role == role.TON_ROOT }
+            assertArrayEquals(nativeSeed, root.value(field.PRIVATE_KEY))
+            assertArrayEquals(mnemonic.encodeToByteArray(), root.value(field.SEED))
+            assertArrayEquals(publicKey, root.value(field.PUBLIC_KEY))
+            assertEquals(
+                "e0d14e7109cc5d4cb7b187ea83e8e5279b775e85d18971b2763e35a6580db302",
+                MessageDigest.getInstance("SHA-256").digest(encoded).hex()
+            )
+        } finally {
+            encoded.fill(0)
+            projected.clearSecrets()
+            source.clearSecrets()
+            nativeSeed.fill(0)
+            raw.fill(0)
+        }
+    }
+
+    @Test
+    fun `watch projection preserves public roots TON address chain binding and no private material`() {
+        val tonPublic = ByteArray(32) { (it + 1).toByte() }
+        val identity = PortableWalletMaterialDraft.WalletIdentity(
+            id = 41,
+            name = "Observe",
+            isSelected = true,
+            position = 2,
+            initialized = false,
+            substratePublicKey = b64(ByteArray(32) { 1 }),
+            substrateCryptoType = CryptoType.SR25519.name,
+            substrateAccountId = b64(ByteArray(32) { 1 }),
+            ethereumPublicKey = null,
+            ethereumAddress = b64(ByteArray(20) { 2 }),
+            tonPublicKey = b64(tonPublic),
+            chainAccounts = listOf(
+                PortableWalletMaterialDraft.ChainIdentity(
+                    "chain-a", b64(ByteArray(32) { 3 }), b64(ByteArray(32) { 3 }),
+                    CryptoType.ED25519.name, "Child", false
+                )
+            ),
+            favoriteChains = emptyList()
+        )
+        val wallet = transcode.projectWatchWallet(identity)
+        val snapshot = PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet))
+        val encoded = semantic.encode(snapshot)
+        val decoded = semantic.decode(encoded)
+        try {
+            assertEquals(listOf(1, 2, 3, 4), wallet.slots.map {
+                it.value(field.WATCH_ECOSYSTEM).single().toInt()
+            })
+            assertTrue(wallet.slots.all { slot -> slot.fields.none { it.id == field.PRIVATE_KEY } })
+            val ton = wallet.slots[2]
+            assertEquals(33, ton.value(field.ACCOUNT_ID_OR_ADDRESS).size)
+            assertArrayEquals(byteArrayOf(2), ton.value(field.TON_CONTRACT_VERSION))
+            assertArrayEquals(byteArrayOf(1), ton.value(field.TON_ADDRESS_ENCODING))
+            assertEquals("chain-a", wallet.slots[3].value(field.WATCH_CHAIN_ID).toString(Charsets.UTF_8))
+            assertArrayEquals(encoded, semantic.encode(decoded))
+        } finally {
+            decoded.clearSecrets()
+            wallet.clearSecrets()
+            encoded.fill(0)
+        }
+    }
 
     @Test
     fun `standalone EVM retains semantic derivation and byte-identical V3 source`() {
@@ -117,7 +199,7 @@ class PortableWalletDraftSemanticTranscoderTest {
         val tonRaw =
             tonSecrets(
                 "native ton words".toByteArray(),
-                Keypair(tonPublic, ByteArray(64) { 33 }),
+                Keypair(tonPublic, ByteArray(32) { 33 }),
             ).toByteArray()
         val chainPublic = byteArrayOf(6, 20)
         val chainAccount = byteArrayOf(7, 20)
@@ -191,8 +273,8 @@ class PortableWalletDraftSemanticTranscoderTest {
             assertArrayEquals(byteArrayOf(0), slots[5].value(field.INITIALIZED_OR_FAVORITE))
             assertArrayEquals(byteArrayOf(2), slots[2].value(field.TON_CONTRACT_VERSION))
             assertArrayEquals(byteArrayOf(1), slots[2].value(field.TON_ADDRESS_ENCODING))
-            assertArrayEquals(ByteArray(64) { 33 }, slots[2].value(field.PRIVATE_KEY))
             assertArrayEquals("native ton words".toByteArray(), slots[2].value(field.SEED))
+            assertArrayEquals(ByteArray(32) { 33 }, slots[2].value(field.PRIVATE_KEY))
             val tonAddress = slots[2].value(field.ACCOUNT_ID_OR_ADDRESS)
             assertEquals(33, tonAddress.size)
             assertEquals(0, tonAddress[0].toInt())

@@ -142,8 +142,8 @@ class WalletPayloadCipherMigrationTest {
                 .commit()
             val preferences = encryptedPreferences(EncryptionUtil(context))
 
-            assertEquals(77, openProductionDatabase(databaseName, preferences))
-            assertEquals(77, rawDatabaseVersion(databaseName))
+            assertEquals(78, openProductionDatabase(databaseName, preferences))
+            assertEquals(78, rawDatabaseVersion(databaseName))
             assertFalse(walletPreferences().contains(ETHEREUM_SECRET_KEY))
             assertEquals(
                 exactCiphertext,

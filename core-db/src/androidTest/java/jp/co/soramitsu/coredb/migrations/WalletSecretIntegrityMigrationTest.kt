@@ -99,9 +99,9 @@ class WalletSecretIntegrityMigrationTest {
             values[tonSecretKey()] = ton.encoded
         }
 
-        assertEquals(77, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
+        assertEquals(78, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
         val afterFirstLaunch = backing.values.toMap()
-        assertEquals(77, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
+        assertEquals(78, openProductionDatabase(VALID_ALL_DATABASE, TestPreferences(backing)))
 
         assertEquals(afterFirstLaunch, backing.values)
         assertEquals(substrate.encoded, backing.values[substrateSecretKey()])
@@ -199,7 +199,7 @@ class WalletSecretIntegrityMigrationTest {
             values[ethereumSecretKey()] = ethereumEncoded
         }
 
-        assertEquals(77, openProductionDatabase(ENTROPY_NULL_DATABASE, TestPreferences(backing)))
+        assertEquals(78, openProductionDatabase(ENTROPY_NULL_DATABASE, TestPreferences(backing)))
 
         val substrate = SubstrateSecrets.read(backing.values.getValue(substrateSecretKey()))
         assertEquals(substratePath, substrate[SubstrateSecrets.SubstrateDerivationPath])
@@ -987,7 +987,7 @@ class WalletSecretIntegrityMigrationTest {
             values[tonSecretKey()] = forged
         }
 
-        assertEquals(77, openProductionDatabase(TON_MISMATCH_DATABASE, TestPreferences(backing)))
+        assertEquals(78, openProductionDatabase(TON_MISMATCH_DATABASE, TestPreferences(backing)))
 
         assertFalse(tonSecretKey() in backing.values)
         assertEquals(forged, backing.values[quarantineKey(tonSecretKey())])
@@ -1152,9 +1152,9 @@ class WalletSecretIntegrityMigrationTest {
             SubstrateSecrets.read(sanitized)[SubstrateSecrets.SubstrateDerivationPath]
         )
 
-        assertEquals(77, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
+        assertEquals(78, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
         assertEquals(sanitized, backing.values[substrateSecretKey()])
-        assertEquals(77, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
+        assertEquals(78, openProductionDatabase(WRITE_RETRY_DATABASE, TestPreferences(backing)))
     }
 
     @Test
@@ -1899,7 +1899,7 @@ class WalletSecretIntegrityMigrationTest {
             values[substrateSecretKey()] = encoded
         }
 
-        assertEquals(77, openProductionDatabase(databaseName, TestPreferences(backing)))
+        assertEquals(78, openProductionDatabase(databaseName, TestPreferences(backing)))
 
         assertFalse(substrateSecretKey() in backing.values)
         assertEquals(encoded, backing.values[quarantineKey(substrateSecretKey())])

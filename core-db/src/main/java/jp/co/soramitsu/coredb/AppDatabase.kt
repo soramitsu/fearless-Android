@@ -30,6 +30,7 @@ import jp.co.soramitsu.coredb.dao.PoolDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
+import jp.co.soramitsu.coredb.dao.WalletCustodyDao
 import jp.co.soramitsu.coredb.dao.TonConnectDao
 import jp.co.soramitsu.coredb.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.coredb.migrations.AddChainExplorersTable_33_34
@@ -99,6 +100,7 @@ import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.coredb.migrations.TonMigration
 import jp.co.soramitsu.coredb.migrations.V2Migration
 import jp.co.soramitsu.coredb.migrations.WalletSecretIntegrityMigration
+import jp.co.soramitsu.coredb.migrations.WalletCustodyMigration
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
@@ -113,6 +115,7 @@ import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.coredb.model.UserPoolLocal
+import jp.co.soramitsu.coredb.model.WalletCustodyLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -145,7 +148,8 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
         NomisWalletScoreLocal::class,
         BasicPoolLocal::class,
         UserPoolLocal::class,
-        TonConnectionLocal::class
+        TonConnectionLocal::class,
+        WalletCustodyLocal::class
     ]
 )
 @TypeConverters(
@@ -301,7 +305,8 @@ abstract class AppDatabase : RoomDatabase() {
                 encryptedPreferences = encryptedPreferences,
                 chainAccountSecretValidation = chainAccountSecretValidation,
                 walletRootSecretValidation = walletRootSecretValidation
-            )
+            ),
+            WalletCustodyMigration
         )
     }
 
@@ -330,4 +335,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun poolDao(): PoolDao
 
     abstract fun tonConnectDao(): TonConnectDao
+
+    abstract fun walletCustodyDao(): WalletCustodyDao
 }
