@@ -2,11 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="${MIGRATION_RESULTS_ROOT:-$(cd "$(dirname "$0")/.." && pwd -P)}"
+SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 
-python3 - "$ROOT_DIR" <<'PY'
+python3 - "$ROOT_DIR" "$SOURCE_ROOT" <<'PY'
 from __future__ import annotations
 
 import os
+import re
 import stat
 import sys
 import time
@@ -20,7 +22,9 @@ class VerificationError(RuntimeError):
 
 
 root = Path(sys.argv[1]).resolve()
+source_root = Path(sys.argv[2]).resolve()
 profile = os.environ.get("MIGRATION_RESULTS_PROFILE", "full")
+released_schema_version = 78
 matrix_class = (
     "jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest"
 )
@@ -45,8 +49,8 @@ security_warning_class = (
 matrix_identities = {
     (
         matrix_class,
-        "exactReleasedSchemaUpgradesTo77WithoutLosingWalletState"
-        f"[released schema {version} -> 77]",
+        f"exactReleasedSchemaUpgradesTo{released_schema_version}WithoutLosingWalletState"
+        f"[released schema {version} -> {released_schema_version}]",
     )
     for version in (26, 27, 28, 73, 74, 75, 76)
 }
@@ -172,6 +176,33 @@ def exact_nonnegative_int(element: ET.Element, attribute: str) -> int:
 
 
 try:
+    migration_policy = (
+        source_root / "core-db" / "src" / "main" / "java" / "jp" / "co"
+        / "soramitsu" / "coredb" / "AppDatabaseMigrationPolicy.kt"
+    )
+    matrix_test = (
+        source_root / "core-db" / "src" / "androidTest" / "java" / "jp"
+        / "co" / "soramitsu" / "coredb" / "migrations"
+        / "ReleasedSchemaUpgradeMatrixTest.kt"
+    )
+    try:
+        policy_source = migration_policy.read_text(encoding="utf-8")
+        matrix_source = matrix_test.read_text(encoding="utf-8")
+    except OSError as error:
+        fail(f"released schema source cannot be read: {error}")
+    if not re.search(
+        rf"(?m)^internal const val APP_DATABASE_VERSION = {released_schema_version}$",
+        policy_source,
+    ):
+        fail("released schema version differs from reviewed migration identity contract")
+    if (
+        f"fun exactReleasedSchemaUpgradesTo{released_schema_version}WithoutLosingWalletState()"
+        not in matrix_source
+        or f'@Parameterized.Parameters(name = "released schema {{0}} -> {released_schema_version}")'
+        not in matrix_source
+    ):
+        fail("released schema matrix names differ from reviewed migration identity contract")
+
     if profile == "full":
         contracts = full_contracts
         required_total = 340

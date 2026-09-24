@@ -53,8 +53,8 @@ contracts = {
             *[
                 (
                     matrix_class,
-                    "exactReleasedSchemaUpgradesTo77WithoutLosingWalletState"
-                    f"[released schema {version} -> 77]",
+                    "exactReleasedSchemaUpgradesTo78WithoutLosingWalletState"
+                    f"[released schema {version} -> 78]",
                 )
                 for version in (26, 27, 28, 73, 74, 75, 76)
             ],
@@ -186,8 +186,8 @@ module_identities = {
         *[
             (
                 matrix,
-                "exactReleasedSchemaUpgradesTo77WithoutLosingWalletState"
-                f"[released schema {version} -> 77]",
+                "exactReleasedSchemaUpgradesTo78WithoutLosingWalletState"
+                f"[released schema {version} -> 78]",
             )
             for version in (26, 27, 28, 73, 74, 75, 76)
         ],
@@ -452,8 +452,8 @@ expect_failure "missing common critical test" "omitted required migration/startu
 
 fixture="$(make_fixture missing-core-db-critical-test)"
 replace_once "$(result_file "$fixture" core-db)" \
-  'exactReleasedSchemaUpgradesTo77WithoutLosingWalletState[released schema 27 -&gt; 77]' \
-  'exactReleasedSchemaUpgradeRemoved[released schema 27 -&gt; 77]'
+  'exactReleasedSchemaUpgradesTo78WithoutLosingWalletState[released schema 27 -&gt; 78]' \
+  'exactReleasedSchemaUpgradeRemoved[released schema 27 -&gt; 78]'
 expect_failure "missing core-db critical test" "omitted required migration/startup tests" "$fixture"
 
 fixture="$(make_fixture missing-app-critical-test)"
