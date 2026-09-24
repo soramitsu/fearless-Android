@@ -177,6 +177,17 @@ class EtherscanHistorySourceTest {
     }
 
     @Test
+    fun `known chain may retain an independent HTTPS history provider without leaking V2 key`() = runBlocking {
+        val api = RecordingApi { response("0", "No transactions found", JsonParser.parseString("[]")) }
+        EtherscanHistorySource(api.client, CUSTOM_HISTORY_URL, "unified-key")
+            .getOperations(25, null, TRANSFER_FILTER, ACCOUNT_ID, chain(BSCChainId), asset(), ADDRESS)
+
+        assertEquals(CUSTOM_HISTORY_URL, api.calls.single()[0])
+        assertEquals(null, api.calls.single()[1])
+        assertEquals(null, api.calls.single()[9])
+    }
+
+    @Test
     fun `unreviewed chain IDs cannot use official endpoint or cleartext explorer`() = runBlocking {
         val api = RecordingApi { response("0", "No transactions found", JsonParser.parseString("[]")) }
         listOf(V2_URL, "http://explorer.oasys.games/api").forEach { url ->
@@ -228,6 +239,7 @@ class EtherscanHistorySourceTest {
         const val V2_URL = "https://api.etherscan.io/v2/api"
         const val LEGACY_BSC_URL = "https://api.bscscan.com/api"
         const val OASYS_URL = "https://explorer.oasys.games/api"
+        const val CUSTOM_HISTORY_URL = "https://history.example/api"
         const val TOKEN = "0xtoken"
         const val ADDRESS = "0x0102"
         val ACCOUNT_ID = byteArrayOf(1, 2)

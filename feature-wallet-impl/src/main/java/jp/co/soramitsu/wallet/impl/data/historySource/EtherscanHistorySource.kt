@@ -134,25 +134,28 @@ class EtherscanHistorySource(
 
     private fun endpointFor(chainId: String): Endpoint = when (chainId) {
         in etherscanV2LegacyUrls -> {
-            if (historyUrl != ETHERSCAN_V2_URL && historyUrl != etherscanV2LegacyUrls[chainId]) {
-                throw HistoryNotSupportedException()
+            if (historyUrl == ETHERSCAN_V2_URL || historyUrl == etherscanV2LegacyUrls[chainId]) {
+                check(etherscanV2ApiKey.isNotBlank()) { "Etherscan V2 history API key is unavailable" }
+                Endpoint(ETHERSCAN_V2_URL, chainId, etherscanV2ApiKey)
+            } else {
+                independentEndpoint()
             }
-            check(etherscanV2ApiKey.isNotBlank()) { "Etherscan V2 history API key is unavailable" }
-            Endpoint(ETHERSCAN_V2_URL, chainId, etherscanV2ApiKey)
         }
         in retiredEtherscanChainIds -> throw HistoryNotSupportedException()
         // Other networks use independent Etherscan-compatible explorers. Never
         // route an unreviewed chain ID to an official host without chain binding.
-        else -> {
-            val uri = URI(historyUrl)
-            val host = uri.host
-            if (uri.scheme != "https" || host.isNullOrBlank() || uri.userInfo != null ||
-                uri.rawQuery != null || uri.rawFragment != null || host in officialEtherscanHosts
-            ) {
-                throw HistoryNotSupportedException()
-            }
-            Endpoint(historyUrl, null, null)
+        else -> independentEndpoint()
+    }
+
+    private fun independentEndpoint(): Endpoint {
+        val uri = URI(historyUrl)
+        val host = uri.host
+        if (uri.scheme != "https" || host.isNullOrBlank() || uri.userInfo != null ||
+            uri.rawQuery != null || uri.rawFragment != null || host in officialEtherscanHosts
+        ) {
+            throw HistoryNotSupportedException()
         }
+        return Endpoint(historyUrl, null, null)
     }
 
     private fun EtherscanHistoryResponse.transactions(requireFailureFlag: Boolean): List<EtherscanHistoryElement> {
