@@ -34,6 +34,13 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - P0: Review and merge those exact source candidates, pass complete Android CI/release checks from the final merged app tree, and qualify SR25519/native providers and real-device TLS before treating source boundary tests as artifact evidence.
 - P0: Provision operator-reviewed production verification keys, exact artifact version/policy and full route/catalog manifest coverage only after release evidence is complete. Do not install fixture keys or relax compiled approval/per-route gates.
 - P0: Complete the existing funded per-route XCM evidence and final reconciliation gates before changing compiled submission permission. Quote/discovery availability does not count as an executable-route qualification.
+- P0: For the frozen Polkadot Asset Hub → Moonbeam USDt discovery gap, run
+  `bash scripts/test-xcm-assethub-moonbeam-usdt-discovery.sh` and
+  `node scripts/inspect-xcm-assethub-moonbeam-usdt.js --output build/reports/xcm-assethub-moonbeam-usdt-discovery.json`.
+  Verify the source-derived asset identities against canonical chain state,
+  then review the exact runtime call, XCM locations, beneficiary, weight and
+  fee semantics. Keep the route discovery-only until funded origin/destination
+  success evidence and separate approval are complete.
 - P0: Qualify the exact source-bound target-36 release AAB, native 16 KiB alignment and actual 16 KiB-device startup/crypto behavior. Complete configured signer trust, immutable dependency/source publication, and the real Play-signed upgrade matrix on API 30, 31 and 36 from the final merged tree; preserve all legacy wallet identities, signing, backup and export behavior.
 
 ## Portfolio network headers — 2026-09-07

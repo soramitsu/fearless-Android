@@ -128,6 +128,9 @@ jobs:
             --write-gap-report build/reports/xcm-registry-gap-report.json \
             --require-route-file scripts/xcm-required-routes.tsv \
             --require-gap-file scripts/xcm-discovery-only-routes.tsv
+          bash ./scripts/test-xcm-assethub-moonbeam-usdt-discovery.sh
+          node ./scripts/inspect-xcm-assethub-moonbeam-usdt.js \
+            --output build/reports/xcm-assethub-moonbeam-usdt-discovery.json
           bash ./scripts/test-xcm-effective-registry-audit.sh
           bash ./scripts/audit-xcm-effective-registry.sh \
             --write-report build/reports/xcm-effective-registry-report.json
@@ -140,7 +143,9 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: xcm-registry-gap-report
-          path: build/reports/xcm-registry-gap-report.json
+          path: |
+            build/reports/xcm-registry-gap-report.json
+            build/reports/xcm-assethub-moonbeam-usdt-discovery.json
           if-no-files-found: ignore
           retention-days: 14
 

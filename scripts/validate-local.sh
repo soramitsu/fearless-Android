@@ -115,6 +115,8 @@ audit_xcm_registry_metadata() {
   log "Checking XCM registry metadata contract..."
   bash ./scripts/test-xcm-registry-metadata-audit.sh
   bash ./scripts/audit-xcm-registry-metadata.sh
+  bash ./scripts/test-xcm-assethub-moonbeam-usdt-discovery.sh
+  node ./scripts/inspect-xcm-assethub-moonbeam-usdt.js --output build/reports/xcm-assethub-moonbeam-usdt-discovery.json
   bash ./scripts/test-xcm-effective-registry-audit.sh
   bash ./scripts/audit-xcm-effective-registry.sh --write-report build/reports/xcm-effective-registry-report.json
 }

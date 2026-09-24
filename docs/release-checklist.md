@@ -142,6 +142,12 @@ procedure.
   `bash ./scripts/audit-xcm-registry-metadata.sh --require-executable --require-all-routes-executable`
   and confirm the registry contains real executable metadata for every
   advertised XCM route.
+- For the Polkadot Asset Hub → Moonbeam USDt discovery gap, run
+  `bash ./scripts/test-xcm-assethub-moonbeam-usdt-discovery.sh` and
+  `node ./scripts/inspect-xcm-assethub-moonbeam-usdt.js --output build/reports/xcm-assethub-moonbeam-usdt-discovery.json`.
+  Review the source digests and advertised asset identities in the report.
+  Its possible `xcusdt` destination wallet asset is a discovery candidate,
+  not a verified cross-chain mapping or execution approval.
 - Run `bash ./scripts/test-xcm-effective-registry-audit.sh`, then run
   `bash ./scripts/audit-xcm-effective-registry.sh --write-report build/reports/xcm-effective-registry-report.json`.
   Confirm the APK-owned `approved_xcm_routes.tsv`, the required-route manifest,
