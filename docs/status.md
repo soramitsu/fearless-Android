@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android authenticated owner-head read candidate — 2026-09-25
+
+- The disabled, unwired `PasskeyBackupOwnerHeadHttpClient` sends only a versioned metadata query with a fresh owner session. It derives the expected storage-account binding from the verified subject returned by the same `GoogleDriveAccessTokenProvider` used for Drive, then rechecks the selected subject after the request. It does not send the Drive token or accept a caller-supplied binding digest.
+- Strict response parsing and the authenticated-head model require the exact owner, backup namespace, current/previous generation chain, digest and Drive file identities. The client cannot read a backup, unwrap a key or install a wallet. Local backup-module JVM tests pass 251/251 and `detektAll` passes. Production owner-session integration, deployed authority and real selected-account/Drive behavior, physical-device cross-platform recovery, original-key proof and signed distribution acceptance remain open; the compiled recovery gate stays false.
+
 ## Android owner passkey authentication candidate — 2026-09-25
 
 - The backup module now has a disabled, unwired Android client for an existing owner's discoverable passkey. It sends the owner authority's exact `schemaVersion: 1` / `platform: android` challenge request, rejects duplicate or unexpected response fields, wrong RP/platform/kind, malformed identifiers and stale or overlong challenge lifetimes, then asks Credential Manager for a user-verified discoverable assertion without PRF. A challenge that expires while native UI is open cannot be completed.

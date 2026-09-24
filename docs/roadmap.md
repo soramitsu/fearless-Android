@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android authenticated owner-head read candidate — 2026-09-25
+
+- A disabled, unwired `PasskeyBackupOwnerHeadHttpClient` now binds the read-only owner-head response to the verified selected Google subject from `GoogleDriveAccessTokenProvider` and checks the exact owner, namespace, generation chain and Drive identities; backup JVM tests pass 251/251 and `detektAll` passes. P0: connect reviewed owner sessions and the deployed authority to the readback coordinator, verify selected-account/Drive behavior and PRF ceremonies on physical iOS and Android replacement devices, and complete original-key signing/export, installer, signed-upgrade and cross-platform recovery gates before enabling. This adapter alone does not authenticate a wallet backup or complete recovery.
+
 ## Android owner authentication HTTP candidate — 2026-09-25
 
 - A disabled, unwired client can request the owner authority's accountless Android challenge, perform a discoverable user-verified Credential Manager assertion without PRF, send only public WebAuthn fields and accept a bounded short-lived owner session. P0: deploy and production-admit the reviewed owner authority, add first-owner bootstrap and owner-session use across backup head/grant operations, bind real device/user verification and replacement-device acceptance, and keep the recovery flag false until full cross-platform wallet installation and original-key signing/export proof passes. This candidate has no production recovery UI or wallet install path.
