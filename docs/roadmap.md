@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android owner generation metadata HTTP candidate — 2026-09-25
+
+- The disabled grant/commit/status client now binds exact candidate metadata to a live owner session and the selected Google subject, and rejects malformed grants or substituted committed descriptors. Backup JVM tests pass 257/257 and Detekt passes. P0: integrate the deployed owner authority and fresh session with a durable coordinator that obtains grant only after exact Drive upload/download, PRF unwrap, decryption and application-owned original-key signing/export verification; reconcile unknown commits by exact operation status and head readback without duplicating uploads or retiring the last decryptable generation. Qualify real iOS↔replacement Android recovery and signed upgrades before enabling. This metadata client alone cannot establish backup completion.
+
 ## Android authenticated owner-head read candidate — 2026-09-25
 
 - A disabled, unwired `PasskeyBackupOwnerHeadHttpClient` now binds the read-only owner-head response to the verified selected Google subject from `GoogleDriveAccessTokenProvider` and checks the exact owner, namespace, generation chain and Drive identities; backup JVM tests pass 251/251 and `detektAll` passes. P0: connect reviewed owner sessions and the deployed authority to the readback coordinator, verify selected-account/Drive behavior and PRF ceremonies on physical iOS and Android replacement devices, and complete original-key signing/export, installer, signed-upgrade and cross-platform recovery gates before enabling. This adapter alone does not authenticate a wallet backup or complete recovery.

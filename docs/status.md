@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android owner generation metadata HTTP candidate — 2026-09-25
+
+- A disabled, unwired `PasskeyBackupOwnerGenerationHttpClient` now matches the owner authority's exact generation grant, commit and operation-status routes. The prepared request binds a canonical operation ID, generation context, expected authenticated head, bundle digest, key epoch and Drive file ID. Commit uses a short-lived grant bound locally and server-side to that exact request and owner session; status reconciles only the same operation and rejects a substituted descriptor. Responses use bounded, closed JSON parsing with duplicate-key, type and expiry rejection.
+- Each call derives the storage-account binding from the verified selected Google subject through `GoogleDriveAccessTokenProvider`, then rechecks account, session expiry and cancellation after transport. Only public metadata and the appropriate owner/grant token reach the authority; Drive tokens, PRF output and wallet plaintext do not. The client itself does not upload, download, decrypt, prove original keys, install a wallet or mark backup complete. The full backup-module JVM suite passes 257/257 with no failures/errors/skips, and `detektAll` passes against clean pinned Utils `1c80a2bf`. Production owner-service deployment, verified local backup evidence, durable grant/head coordination, physical-device cross-platform recovery and signed distribution remain open; the compiled recovery gate stays false.
+
 ## Android authenticated owner-head read candidate — 2026-09-25
 
 - The disabled, unwired `PasskeyBackupOwnerHeadHttpClient` sends only a versioned metadata query with a fresh owner session. It derives the expected storage-account binding from the verified subject returned by the same `GoogleDriveAccessTokenProvider` used for Drive, then rechecks the selected subject after the request. It does not send the Drive token or accept a caller-supplied binding digest.
