@@ -26,7 +26,7 @@ expect_failure() {
   if XCM_DISCOVERY_ROOT="$TEMP_DIR" node "$INSPECTOR" >"$TEMP_DIR/stdout" 2>"$TEMP_DIR/stderr"; then
     fail "$label unexpectedly passed"
   fi
-  if ! rg -Fq "$message" "$TEMP_DIR/stderr"; then
+  if ! grep -Fq "$message" "$TEMP_DIR/stderr"; then
     fail "$label failed for the wrong reason: $(cat "$TEMP_DIR/stderr")"
   fi
 }
