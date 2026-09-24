@@ -42,6 +42,7 @@ dependencies {
     implementation libs.gson
     implementation libs.okhttp
     implementation libs.play.services.auth
+    implementation libs.play.integrity
     api project(':core-api')
 
     testImplementation libs.junit

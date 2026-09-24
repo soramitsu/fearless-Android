@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android first-owner Play Integrity bootstrap — 2026-09-24
+
+- The disabled native Standard request component now derives the exact server wallet-proof attestation nonce and returns only a sanitized opaque token. P0: provision and audit the linked Google Cloud/Play project number, Play signing certificate and version allowlist; implement native first-owner wallet proof and owner-session/bootstrap HTTP composition; verify real Play-distributed device tokens against Google's server decode and the exact wallet-proof request hash; finish independent security review and cross-platform replacement-device recovery before enabling. No project ID or successful verdict is inferred from the local component.
+
 ## Authenticated Android generation readback — 2026-09-24
 
 - The disabled coordinator now binds an exact Drive generation to a fresh credential-directed PRF assertion, a server-verified owner/head response, local decryption and original-key proof, and post-verification owner/Google-account rechecks. P0: implement and deploy the owner-session/bootstrap and one-use assertion/head HTTP adapter with transactional revocation/freshness semantics; replace the synthetic wallet verifier with full application-owned V1/V2/V3/standalone EVM/native TON original-key signing/export proof; complete the transactional cohort installer. Qualify real iOS↔replacement Android and Android↔replacement iOS provider/Drive recovery before enabling. Local readback evidence alone cannot authorize installation or backup completion.

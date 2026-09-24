@@ -26,6 +26,7 @@ firebaseAppdistributionGradle = "4.2.0"
 fragmentKtx = "1.8.5"
 gmsPlayServices = "18.5.0"
 googlePlayServicesAuth = "21.6.0"
+playIntegrity = "1.6.0"
 googleServices = "4.4.1"
 gson = "2.10.1"
 hiltNavComposeVersion = "1.2.0"
@@ -181,6 +182,7 @@ fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragme
 material = { module = "com.google.android.material:material", version.ref = "material" }
 play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "gmsPlayServices" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "googlePlayServicesAuth" }
+play-integrity = { module = "com.google.android.play:integrity", version.ref = "playIntegrity" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }

@@ -293,7 +293,8 @@ import sys
 
 path = Path(sys.argv[1])
 reviewed_policy_digests = {
-    path: "a90a8619d81d0e886e0d46a5bd4d0122e50f03ed3c4dafb78f285d7af5b3c897",
+    # 2bf823661 added the IAS Git-environment preflight to settings.gradle.
+    path: "ca82e57e6ca2a657142f450f98e664b424e479b16d50dc777025fe034ba406f1",
     Path(sys.argv[2]): "f9cc5ef8c17933f0ea29483a4346bb312d87e9fd669120ac9bc7419e58a0e78d",
     Path(sys.argv[3]): "46cac72bd782b6467d7bdaf34b3cede2a6da17a333d7f7902cfecc142e837b0b",
 }
