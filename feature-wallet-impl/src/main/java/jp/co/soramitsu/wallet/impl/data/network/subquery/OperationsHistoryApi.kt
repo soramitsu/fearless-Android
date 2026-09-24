@@ -50,9 +50,10 @@ interface OperationsHistoryApi {
     @GET
     suspend fun getEtherscanOperationsHistory(
         @Url url: String,
+        @Query("chainid") chainId: String? = null,
         @Query("module") module: String = "account",
         @Query("action") action: String = "txlist",
-        @Query("contractAddress") contractAddress: String? = null,
+        @Query("contractaddress") contractAddress: String? = null,
         @Query("address") address: String,
         @Query("page") page: Int = 1,
         @Query("offset") offset: Int = 1000,

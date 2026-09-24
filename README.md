@@ -247,10 +247,11 @@ FL_BLAST_API_SEPOLIA_KEY
 FL_BLAST_API_GOERLI_KEY
 FL_BLAST_API_POLYGON_KEY
 
-// Ethereum history providers api keys
+// Etherscan V2 unified history key (Ethereum, BNB Smart Chain, Sepolia, Polygon)
 FL_ANDROID_ETHERSCAN_API_KEY
-FL_ANDROID_BSCSCAN_API_KEY
-FL_ANDROID_POLYGONSCAN_API_KEY
+
+// OP Mainnet history uses OKLink
+FL_ANDROID_OKLINK_API_KEY
 ````
 
 ## Local Validation
