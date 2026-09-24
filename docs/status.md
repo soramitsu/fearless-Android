@@ -1,5 +1,11 @@
 # Status Summary
 
+## Android history failure handling and intermediate AAB — 2026-09-24
+
+- OKLink and legacy Klaytn history providers now propagate transport, provider and malformed-page errors so a failed fetch cannot clear or advance the local history cursor as a successful empty page. OKLink binds native rows to the native symbol, token rows to the exact contract, converts amounts without silently truncating excess precision and reports token fees in native units when the utility asset is known. Bundled X Layer explorer links now point to the matching mainnet and testnet explorers; the historical testnet chain identity remains unchanged.
+- Seven focused JVM history-source tests pass (7/7, no skips), and the full wallet module passes 202/202 with no failures or skips against pinned Utils `1c80a2bf3fa1f996cf1328873e09f282ee29b69e`. `detektAll` passes but excludes this module. The source is not yet qualified with provisioned live history-provider credentials or production freshness and pagination evidence.
+- The clean pre-change Android head `bbd9f34f4fc137444ce01defe45d5ba57e5b766c` built an **unsigned intermediate** release AAB with the pinned Utils and WebSocket source checkouts, Android SDK 36 and JDK 21. Its SHA-256 is `f958b9c6da5c55228db7ca107b736f1006ddf668b30206a8f8810f6091c183bc`; the native verifier passed all 16 libraries across arm64-v8a, armeabi-v7a, x86 and x86_64 at 16 KiB alignment. This artifact predates the history fix and cannot qualify the final source, Play signing or a distribution upgrade.
+
 ## Android schema-78 instrumentation assertions — 2026-09-24
 
 - [PR #1260's API 34 CI run](https://github.com/soramitsu/fearless-Android/actions/runs/35951988657/job/107482448391) failed 60 `core-db` and 5 account instrumentation tests because their production-open assertions still expected schema 77 after the database advanced to 78. The `core-db` result verifier correctly rejected the failures. The database tests now use `APP_DATABASE_VERSION`, and the account test target is 78. The hosted migration matrix must run again from the updated source head before any qualification claim.
