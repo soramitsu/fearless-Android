@@ -34,6 +34,11 @@ class PortableWalletCohortFreshInstallStagerTest {
             val token = receiver.stage(semantic)
             assertTrue(database.walletIds.isEmpty())
             assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
+            assertEquals(
+                listOf((1..16).joinToString("") { "%02x".format(it) }, (17..32).joinToString("") { "%02x".format(it) }),
+                database.reserved.map { it.portableIdHex },
+            )
+            assertEquals(listOf(0xffff_ffffL, 0L), database.reserved.map { it.sourcePosition })
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(42L)))
@@ -93,6 +98,81 @@ class PortableWalletCohortFreshInstallStagerTest {
             }
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `v79 pending rows acquire exact wallet origins from their encrypted cohort on replay`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val receiver = stager(
+            database,
+            PortableWalletCohortJournalStore(preferences),
+            preferences,
+            Ids(listOf(41L, 42L)),
+        )
+        val semantic = semantic()
+        try {
+            val token = receiver.stage(semantic)
+            database.reserved.replaceAll { it.copy(portableIdHex = null, sourcePosition = null) }
+            assertEquals(token.operationId, receiver.reconcile()?.operationId)
+            assertEquals(listOf(0xffff_ffffL, 0L), database.reserved.map { it.sourcePosition })
+            assertEquals(
+                listOf((1..16).joinToString("") { "%02x".format(it) }, (17..32).joinToString("") { "%02x".format(it) }),
+                database.reserved.map { it.portableIdHex },
+            )
+            receiver.abandon(token)
+            assertTrue(database.reserved.all { it.state == PortableWalletReservationLocal.ABANDONED })
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `tampered wallet-origin binding quarantines staged cohort without deleting material`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val receiver = stager(
+            database,
+            PortableWalletCohortJournalStore(preferences),
+            preferences,
+            Ids(listOf(41L, 42L)),
+        )
+        val semantic = semantic()
+        try {
+            receiver.stage(semantic)
+            val exact = database.reserved[0]
+            database.reserved[0] = database.reserved[0].copy(portableIdHex = "00".repeat(16))
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
+            database.reserved[0] = exact.copy(sourcePosition = 1L)
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
+            assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertTrue(database.walletIds.isEmpty())
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `abandoned local IDs stay fenced while the same source cohort can be retried`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val journal = PortableWalletCohortJournalStore(preferences)
+        val semantic = semantic()
+        try {
+            val first = stager(database, journal, preferences, Ids(listOf(41L, 42L)))
+            first.abandon(first.stage(semantic))
+            val priorOrigins = database.reserved.map { it.portableIdHex }
+
+            val retry = stager(database, journal, preferences, Ids(listOf(41L, 42L, 51L, 52L)))
+            val token = retry.stage(semantic)
+            assertEquals(listOf(41L, 42L, 51L, 52L), database.reserved.map { it.metaId })
+            assertEquals(priorOrigins, database.reserved.takeLast(2).map { it.portableIdHex })
+            assertTrue(database.reserved.take(2).all { it.state == PortableWalletReservationLocal.ABANDONED })
+            assertTrue(database.reserved.takeLast(2).all { it.state == PortableWalletReservationLocal.PENDING })
+            assertEquals(token.afterImageSha256, retry.reconcile()?.afterImageSha256)
         } finally {
             semantic.fill(0)
         }
@@ -559,6 +639,22 @@ class PortableWalletCohortFreshInstallStagerTest {
                 }
             }
             return count
+        }
+
+        override suspend fun bindMissingOrigins(expected: List<PortableWalletReservationLocal>) {
+            expected.forEach { row ->
+                val index = reserved.indexOfFirst {
+                    it.metaId == row.metaId && it.operationId == row.operationId &&
+                        it.afterImageSha256 == row.afterImageSha256 &&
+                        it.state == PortableWalletReservationLocal.PENDING &&
+                        it.portableIdHex == null && it.sourcePosition == null
+                }
+                check(index >= 0)
+                reserved[index] = reserved[index].copy(
+                    portableIdHex = row.portableIdHex,
+                    sourcePosition = row.sourcePosition,
+                )
+            }
         }
     }
 

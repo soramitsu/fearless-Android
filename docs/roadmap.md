@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android portable receive origin reservation — 2026-09-25
+
+- Candidate Room schema 80 binds each reserved local ID to the exact source wallet ID and historical position, preserving that relation across restart and safely reconciling v79 pending rows from the encrypted cohort. P0: encode every verified original V1/V2/V3/standalone EVM/native TON secret into target stores, retain an opaque original-source sidecar, and implement a durable cohort-wide Room/secret-store commit and replay before publishing wallet rows. Prove installed identities plus original-key signing/export, run final-source migrations on API 30/31/36 and Play-signed upgrades, then qualify both real cross-platform replacement directions. This reservation increment does not enable recovery.
+
 ## Android first-owner Play Integrity bootstrap — 2026-09-24
 
 - The disabled native Standard request component now derives the exact server wallet-proof attestation nonce and returns only a sanitized opaque token. P0: provision and audit the linked Google Cloud/Play project number, Play signing certificate and version allowlist; implement native first-owner wallet proof and owner-session/bootstrap HTTP composition; verify real Play-distributed device tokens against Google's server decode and the exact wallet-proof request hash; finish independent security review and cross-platform replacement-device recovery before enabling. No project ID or successful verdict is inferred from the local component.

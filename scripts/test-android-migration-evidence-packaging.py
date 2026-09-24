@@ -27,8 +27,8 @@ SPEC.loader.exec_module(evidence)
 class PortableComponentTest(unittest.TestCase):
     def test_exact_arrow_regression_is_encoded(self) -> None:
         self.assertEqual(
-            evidence.portable_component("released schema 26 -> 79"),
-            "released schema 26 -~3E 79",
+            evidence.portable_component("released schema 26 -> 80"),
+            "released schema 26 -~3E 80",
         )
 
     def test_all_artifact_forbidden_characters_are_encoded(self) -> None:
@@ -122,14 +122,14 @@ class EvidenceStagingTest(unittest.TestCase):
         filename = (
             "logcat-jp.co.soramitsu.coredb.migrations."
             "ReleasedSchemaUpgradeMatrixTest-"
-            "exactReleasedSchemaUpgradesTo79WithoutLosingWalletState"
-            "[released schema 26 -> 79].txt"
+            "exactReleasedSchemaUpgradesTo80WithoutLosingWalletState"
+            "[released schema 26 -> 80].txt"
         )
         source_file = self._write(
             "build/reports/android-migration-compatibility/"
             "api-30/core-db/emulator-5554 - 11/"
             + filename,
-            b"all 39 tests passed\n",
+            b"all 41 tests passed\n",
         )
         source_hash = hashlib.sha256(source_file.read_bytes()).hexdigest()
         manifest = evidence.stage_evidence(self.project, self.output)

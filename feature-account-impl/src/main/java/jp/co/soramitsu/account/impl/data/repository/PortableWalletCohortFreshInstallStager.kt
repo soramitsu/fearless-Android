@@ -125,6 +125,13 @@ internal class PortableWalletCohortFreshInstallStager private constructor(
                             requireExactReservations(entry.afterImage, entry.token)
                             ReconcileOutcome.Active(entry.token)
                         }
+                        present == expected.map { it.copy(portableIdHex = null, sourcePosition = null) } &&
+                            pending == present -> {
+                            check(!hasAnyWallet()) { "A wallet was published while a cohort is pending" }
+                            bindMissingOrigins(expected)
+                            requireExactReservations(entry.afterImage, entry.token)
+                            ReconcileOutcome.Active(entry.token)
+                        }
                         present == expected && pending == expected -> {
                             check(!hasAnyWallet()) { "A wallet was published while a cohort is pending" }
                             ReconcileOutcome.Active(entry.token)
@@ -185,6 +192,19 @@ internal class PortableWalletCohortFreshInstallStager private constructor(
                                 "Room tombstones differ from the portable cohort journal"
                             }
                         }
+                        present == expected.map { it.copy(portableIdHex = null, sourcePosition = null) } -> {
+                            check(rows.filter { it.state == PortableWalletReservationLocal.PENDING } == present) {
+                                "Another pending Room reservation conflicts with the portable cohort"
+                            }
+                            bindMissingOrigins(expected)
+                            requireExactReservations(entry.afterImage, token)
+                            check(markAbandoned(token) == expected.size) {
+                                "Room did not tombstone every portable wallet ID"
+                            }
+                            check(reservationsFor(token) == expectedAbandoned) {
+                                "Room tombstones differ from the portable cohort journal"
+                            }
+                        }
                         present == expectedAbandoned -> {
                             check(rows.none { it.state == PortableWalletReservationLocal.PENDING }) {
                                 "Another pending Room reservation conflicts with abandonment"
@@ -212,10 +232,30 @@ internal class PortableWalletCohortFreshInstallStager private constructor(
         afterImage: PortableWalletCohortAfterImage.Record,
         token: PortableWalletCohortJournalStore.Token,
     ): List<PortableWalletReservationLocal> {
-        val ids = afterImage.localMetaIdsCopy().toList().sorted()
-        val idSetDigest = idSetSha256(ids)
-        return ids.map { id ->
-            PortableWalletReservationLocal(id, token.operationId, token.afterImageSha256, idSetDigest)
+        val ids = afterImage.localMetaIdsCopy()
+        val sortedIds = ids.toList().sorted()
+        val idSetDigest = idSetSha256(sortedIds)
+        val semantic = afterImage.semanticCopy()
+        try {
+            val source = PortableWalletSemanticMaterial.decode(semantic)
+            try {
+                check(source.wallets.size == ids.size) { "Portable cohort wallet origin count changed" }
+                return source.wallets.mapIndexed { index, wallet ->
+                    PortableWalletReservationLocal(
+                        metaId = ids[index],
+                        operationId = token.operationId,
+                        afterImageSha256 = token.afterImageSha256,
+                        idSetSha256 = idSetDigest,
+                        portableIdHex = wallet.portableId.joinToString("") { "%02x".format(it.toInt() and 0xff) },
+                        sourcePosition = wallet.sourcePosition,
+                    )
+                }.sortedBy(PortableWalletReservationLocal::metaId)
+            } finally {
+                source.clearSecrets()
+            }
+        } finally {
+            semantic.fill(0)
+            ids.fill(0)
         }
     }
 
@@ -250,6 +290,15 @@ internal class PortableWalletCohortFreshInstallStager private constructor(
             ) { "Room reservation state is invalid" }
             check(group.all { it.idSetSha256 == idSetDigest }) {
                 "Room reservation ID commitment is invalid"
+            }
+            val legacy = group.all { it.portableIdHex == null && it.sourcePosition == null }
+            val bound = group.all { row ->
+                row.portableIdHex?.matches(PORTABLE_ID_HEX) == true &&
+                    row.sourcePosition != null && row.sourcePosition in 0L..MAX_SOURCE_POSITION
+            }
+            check(legacy || bound) { "Room reservation source identity is missing or invalid" }
+            check(legacy || group.mapNotNull(PortableWalletReservationLocal::portableIdHex).distinct().size == group.size) {
+                "Room reservation source identities are duplicated"
             }
         }
     }
@@ -298,6 +347,8 @@ internal class PortableWalletCohortFreshInstallStager private constructor(
         const val RFC_UUID_VARIANT = 2
         val ID_SET_MAGIC = "FPWRIDS1".toByteArray(Charsets.US_ASCII)
         val HEX_SHA256 = Regex("[0-9a-f]{64}")
+        val PORTABLE_ID_HEX = Regex("[0-9a-f]{32}")
+        const val MAX_SOURCE_POSITION = 0xffff_ffffL
     }
 
     private sealed interface ReconcileOutcome {
@@ -317,6 +368,7 @@ internal interface FreshInstallWalletInventory {
     suspend fun reservationsFor(token: PortableWalletCohortJournalStore.Token): List<PortableWalletReservationLocal>
     suspend fun reserve(rows: List<PortableWalletReservationLocal>)
     suspend fun markAbandoned(token: PortableWalletCohortJournalStore.Token): Int
+    suspend fun bindMissingOrigins(expected: List<PortableWalletReservationLocal>)
 }
 
 private class RoomFreshInstallWalletInventory(
@@ -345,4 +397,18 @@ private class RoomFreshInstallWalletInventory(
 
     override suspend fun markAbandoned(token: PortableWalletCohortJournalStore.Token): Int =
         reservationDao.markAbandoned(token.operationId, token.afterImageSha256)
+
+    override suspend fun bindMissingOrigins(expected: List<PortableWalletReservationLocal>) {
+        expected.forEach { row ->
+            check(
+                reservationDao.bindMissingOrigin(
+                    row.metaId,
+                    row.operationId,
+                    row.afterImageSha256,
+                    requireNotNull(row.portableIdHex),
+                    requireNotNull(row.sourcePosition),
+                ) == 1
+            ) { "Room reservation origin changed during migration" }
+        }
+    }
 }

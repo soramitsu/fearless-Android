@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-ci-gate.sh"
 EXPECTED_POSITIVE_COUNT=1
-EXPECTED_NEGATIVE_COUNT=106
+EXPECTED_NEGATIVE_COUNT=107
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -907,6 +907,15 @@ replace_once "$fixture/scripts/run-android-migration-compatibility.sh" \
   "jp.co.soramitsu.app.root.presentation.RemovedSecurityWarningTest"
 expect_failure \
   "missing compatibility security-warning class" \
+  "Android compatibility runner line" \
+  "$fixture"
+
+fixture="$(make_fixture missing-compatibility-origin-reservation-class)"
+replace_once "$fixture/scripts/run-android-migration-compatibility.sh" \
+  "jp.co.soramitsu.coredb.migrations.PortableWalletOriginReservationMigrationSafetyTest" \
+  "jp.co.soramitsu.coredb.migrations.RemovedOriginReservationTest"
+expect_failure \
+  "missing compatibility origin reservation class" \
   "Android compatibility runner line" \
   "$fixture"
 

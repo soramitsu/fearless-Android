@@ -34,4 +34,18 @@ interface PortableWalletReservationDao {
             "WHERE operationId = :operationId AND afterImageSha256 = :digest AND state = 0"
     )
     suspend fun markAbandoned(operationId: String, digest: String): Int
+
+    /** Upgrades an exact v79 pending reservation only while its encrypted cohort is present. */
+    @Query(
+        "UPDATE portable_wallet_reservations SET portableIdHex = :portableIdHex, sourcePosition = :sourcePosition " +
+            "WHERE metaId = :metaId AND operationId = :operationId AND afterImageSha256 = :digest " +
+            "AND state = 0 AND portableIdHex IS NULL AND sourcePosition IS NULL"
+    )
+    suspend fun bindMissingOrigin(
+        metaId: Long,
+        operationId: String,
+        digest: String,
+        portableIdHex: String,
+        sourcePosition: Long,
+    ): Int
 }

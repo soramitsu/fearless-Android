@@ -16,6 +16,9 @@ data class PortableWalletReservationLocal(
     val afterImageSha256: String,
     val idSetSha256: String,
     @ColumnInfo(defaultValue = "0") val state: Int = PENDING,
+    /** Null only for historical v79 reservations; a new pending receive always binds both. */
+    val portableIdHex: String? = null,
+    val sourcePosition: Long? = null,
 ) {
     companion object {
         const val PENDING = 0

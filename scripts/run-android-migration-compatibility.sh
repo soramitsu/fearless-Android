@@ -30,7 +30,7 @@ fi
   --no-daemon --console=plain --stacktrace
 
 ./gradlew :core-db:connectedDebugAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest,jp.co.soramitsu.coredb.migrations.ReleasedVersion27FailClosedMigrationTest,jp.co.soramitsu.coredb.migrations.PortableWalletReservationMigrationSafetyTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest,jp.co.soramitsu.coredb.migrations.ReleasedVersion27FailClosedMigrationTest,jp.co.soramitsu.coredb.migrations.PortableWalletReservationMigrationSafetyTest,jp.co.soramitsu.coredb.migrations.PortableWalletOriginReservationMigrationSafetyTest \
   --no-daemon --console=plain --stacktrace
 
 ./gradlew :app:connectedDebugAndroidTest \
@@ -48,4 +48,4 @@ for module in common core-db app; do
 done
 
 echo \
-  "[android-migration-compat] API $API_LEVEL: 40 critical tests passed and archived"
+  "[android-migration-compat] API $API_LEVEL: 41 critical tests passed and archived"

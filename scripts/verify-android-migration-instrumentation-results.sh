@@ -24,7 +24,7 @@ class VerificationError(RuntimeError):
 root = Path(sys.argv[1]).resolve()
 source_root = Path(sys.argv[2]).resolve()
 profile = os.environ.get("MIGRATION_RESULTS_PROFILE", "full")
-released_schema_version = 79
+released_schema_version = 80
 matrix_class = (
     "jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest"
 )
@@ -46,6 +46,20 @@ security_warning_class = (
     "jp.co.soramitsu.app.root.presentation."
     "SecurityWarningRestorationTest"
 )
+real_room_reservation_class = (
+    "jp.co.soramitsu.account.impl.data.repository."
+    "PortableWalletCohortRealRoomReservationTest"
+)
+real_room_reservation_identities = {
+    (
+        real_room_reservation_class,
+        "twoWalletOriginsSurviveRoomRestartWithoutPublishingSignableRows",
+    ),
+    (
+        real_room_reservation_class,
+        "legacyPendingOriginsAreBoundByTheExactEncryptedJournalOnRoomReplay",
+    ),
+}
 matrix_identities = {
     (
         matrix_class,
@@ -65,6 +79,14 @@ reservation_identity = (
     reservation_class,
     "migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem",
 )
+origin_reservation_class = (
+    "jp.co.soramitsu.coredb.migrations."
+    "PortableWalletOriginReservationMigrationSafetyTest"
+)
+origin_reservation_identity = (
+    origin_reservation_class,
+    "migrationPreservesExistingWalletAndPendingCohortWithoutGuessingOrigin",
+)
 full_contracts = {
     "common": {
         "minimum": 5,
@@ -79,11 +101,12 @@ full_contracts = {
         # The API-34 full profile is deliberately a single connected shard.
         # Requiring the historical full-suite floor prevents a filtered
         # migration subset from satisfying the critical-identity checks.
-        "minimum": 290,
+        "minimum": 291,
         "required": {
             *matrix_identities,
             orphan_identity,
             reservation_identity,
+            origin_reservation_identity,
         },
     },
     "app": {
@@ -116,8 +139,9 @@ full_contracts = {
         },
     },
     "feature-account-impl": {
-        "minimum": 4,
+        "minimum": 6,
         "required": {
+            *real_room_reservation_identities,
             (
                 "jp.co.soramitsu.account.api.domain.interfaces."
                 "SignWithAccountCryptoRoutingTest",
@@ -140,9 +164,19 @@ compatibility_contracts = {
         },
     },
     "core-db": {
-        "exact": 9,
-        "class_counts": {matrix_class: 7, orphan_class: 1, reservation_class: 1},
-        "required": {*matrix_identities, orphan_identity, reservation_identity},
+        "exact": 10,
+        "class_counts": {
+            matrix_class: 7,
+            orphan_class: 1,
+            reservation_class: 1,
+            origin_reservation_class: 1,
+        },
+        "required": {
+            *matrix_identities,
+            orphan_identity,
+            reservation_identity,
+            origin_reservation_identity,
+        },
     },
     "app": {
         "exact": 26,
@@ -193,9 +227,21 @@ try:
         / "co" / "soramitsu" / "coredb" / "migrations"
         / "ReleasedSchemaUpgradeMatrixTest.kt"
     )
+    origin_reservation_test = (
+        source_root / "core-db" / "src" / "androidTest" / "java" / "jp"
+        / "co" / "soramitsu" / "coredb" / "migrations"
+        / "PortableWalletOriginReservationMigrationSafetyTest.kt"
+    )
+    real_room_reservation_test = (
+        source_root / "feature-account-impl" / "src" / "androidTest" / "java"
+        / "jp" / "co" / "soramitsu" / "account" / "impl" / "data"
+        / "repository" / "PortableWalletCohortRealRoomReservationTest.kt"
+    )
     try:
         policy_source = migration_policy.read_text(encoding="utf-8")
         matrix_source = matrix_test.read_text(encoding="utf-8")
+        origin_reservation_source = origin_reservation_test.read_text(encoding="utf-8")
+        real_room_reservation_source = real_room_reservation_test.read_text(encoding="utf-8")
     except OSError as error:
         fail(f"released schema source cannot be read: {error}")
     if not re.search(
@@ -210,14 +256,28 @@ try:
         not in matrix_source
     ):
         fail("released schema matrix names differ from reviewed migration identity contract")
+    if (
+        "class PortableWalletOriginReservationMigrationSafetyTest" not in origin_reservation_source
+        or "fun migrationPreservesExistingWalletAndPendingCohortWithoutGuessingOrigin()"
+        not in origin_reservation_source
+    ):
+        fail("origin reservation migration test differs from reviewed identity contract")
+    if (
+        "class PortableWalletCohortRealRoomReservationTest" not in real_room_reservation_source
+        or any(
+            f"fun {method}()" not in real_room_reservation_source
+            for _, method in real_room_reservation_identities
+        )
+    ):
+        fail("real Room reservation tests differ from reviewed identity contract")
 
     if profile == "full":
         contracts = full_contracts
-        required_total = 340
+        required_total = 343
         exact_total = False
     elif profile == "compatibility":
         contracts = compatibility_contracts
-        required_total = 40
+        required_total = 41
         exact_total = True
     else:
         fail(f"unsupported result profile: {profile}")

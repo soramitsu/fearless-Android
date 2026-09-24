@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-instrumentation-results.sh"
 EXPECTED_POSITIVE_COUNT=2
-EXPECTED_NEGATIVE_COUNT=36
+EXPECTED_NEGATIVE_COUNT=40
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -48,13 +48,13 @@ contracts = {
         )],
     ),
     "core-db": (
-        290,
+        291,
         [
             *[
                 (
                     matrix_class,
-                    "exactReleasedSchemaUpgradesTo79WithoutLosingWalletState"
-                    f"[released schema {version} -> 79]",
+                    "exactReleasedSchemaUpgradesTo80WithoutLosingWalletState"
+                    f"[released schema {version} -> 80]",
                 )
                 for version in (26, 27, 28, 73, 74, 75, 76)
             ],
@@ -67,6 +67,11 @@ contracts = {
                 "jp.co.soramitsu.coredb.migrations."
                 "PortableWalletReservationMigrationSafetyTest",
                 "migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem",
+            ),
+            (
+                "jp.co.soramitsu.coredb.migrations."
+                "PortableWalletOriginReservationMigrationSafetyTest",
+                "migrationPreservesExistingWalletAndPendingCohortWithoutGuessingOrigin",
             ),
         ],
     ),
@@ -106,12 +111,24 @@ contracts = {
         ],
     ),
     "feature-account-impl": (
-        4,
-        [(
-            "jp.co.soramitsu.account.api.domain.interfaces."
-            "SignWithAccountCryptoRoutingTest",
-            "substrateEcdsaChildSignsWithBoundChildKeyWithoutReadingRootSecrets",
-        )],
+        6,
+        [
+            (
+                "jp.co.soramitsu.account.api.domain.interfaces."
+                "SignWithAccountCryptoRoutingTest",
+                "substrateEcdsaChildSignsWithBoundChildKeyWithoutReadingRootSecrets",
+            ),
+            (
+                "jp.co.soramitsu.account.impl.data.repository."
+                "PortableWalletCohortRealRoomReservationTest",
+                "twoWalletOriginsSurviveRoomRestartWithoutPublishingSignableRows",
+            ),
+            (
+                "jp.co.soramitsu.account.impl.data.repository."
+                "PortableWalletCohortRealRoomReservationTest",
+                "legacyPendingOriginsAreBoundByTheExactEncryptedJournalOnRoomReplay",
+            ),
+        ],
     ),
 }
 
@@ -174,6 +191,10 @@ reservation = (
     "jp.co.soramitsu.coredb.migrations."
     "PortableWalletReservationMigrationSafetyTest"
 )
+origin_reservation = (
+    "jp.co.soramitsu.coredb.migrations."
+    "PortableWalletOriginReservationMigrationSafetyTest"
+)
 gate = "jp.co.soramitsu.app.root.presentation.WalletGateActivityLifecycleTest"
 restart = (
     "jp.co.soramitsu.app.root.presentation."
@@ -195,8 +216,8 @@ module_identities = {
         *[
             (
                 matrix,
-                "exactReleasedSchemaUpgradesTo79WithoutLosingWalletState"
-                f"[released schema {version} -> 79]",
+                "exactReleasedSchemaUpgradesTo80WithoutLosingWalletState"
+                f"[released schema {version} -> 80]",
             )
             for version in (26, 27, 28, 73, 74, 75, 76)
         ],
@@ -207,6 +228,10 @@ module_identities = {
         (
             reservation,
             "migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem",
+        ),
+        (
+            origin_reservation,
+            "migrationPreservesExistingWalletAndPendingCohortWithoutGuessingOrigin",
         ),
     ],
     "app": [
@@ -446,10 +471,10 @@ path = sys.argv[1]
 tree = ET.parse(path)
 root = tree.getroot()
 root.remove(list(root)[-1])
-root.set("tests", "289")
+root.set("tests", "290")
 tree.write(path, encoding="UTF-8", xml_declaration=True)
 PY
-expect_failure "below core-db full-shard minimum" "minimum is 290" "$fixture"
+expect_failure "below core-db full-shard minimum" "minimum is 291" "$fixture"
 
 fixture="$(make_fixture duplicate-test-identity)"
 replace_once "$(result_file "$fixture" common)" \
@@ -465,8 +490,8 @@ expect_failure "missing common critical test" "omitted required migration/startu
 
 fixture="$(make_fixture missing-core-db-critical-test)"
 replace_once "$(result_file "$fixture" core-db)" \
-  'exactReleasedSchemaUpgradesTo79WithoutLosingWalletState[released schema 27 -&gt; 79]' \
-  'exactReleasedSchemaUpgradeRemoved[released schema 27 -&gt; 79]'
+  'exactReleasedSchemaUpgradesTo80WithoutLosingWalletState[released schema 27 -&gt; 80]' \
+  'exactReleasedSchemaUpgradeRemoved[released schema 27 -&gt; 80]'
 expect_failure "missing core-db critical test" "omitted required migration/startup tests" "$fixture"
 
 fixture="$(make_fixture missing-reservation-trigger-test)"
@@ -474,6 +499,12 @@ replace_once "$(result_file "$fixture" core-db)" \
   'migrationPreservesWalletsAndFencesReservedIdsWithoutPublishingThem' \
   'migrationReservationTriggerCoverageRemoved'
 expect_failure "missing reservation trigger test" "omitted required migration/startup tests" "$fixture"
+
+fixture="$(make_fixture missing-origin-reservation-test)"
+replace_once "$(result_file "$fixture" core-db)" \
+  'migrationPreservesExistingWalletAndPendingCohortWithoutGuessingOrigin' \
+  'migrationOriginReservationCoverageRemoved'
+expect_failure "missing origin reservation test" "omitted required migration/startup tests" "$fixture"
 
 fixture="$(make_fixture missing-app-critical-test)"
 replace_once "$(result_file "$fixture" app)" \
@@ -501,6 +532,18 @@ replace_once "$(result_file "$fixture" feature-account-impl)" \
   'childSigningCoverageRemoved'
 expect_failure "missing account critical test" "omitted required migration/startup tests" "$fixture"
 
+fixture="$(make_fixture missing-real-room-origin-test)"
+replace_once "$(result_file "$fixture" feature-account-impl)" \
+  'twoWalletOriginsSurviveRoomRestartWithoutPublishingSignableRows' \
+  'realRoomOriginCoverageRemoved'
+expect_failure "missing real Room origin test" "omitted required migration/startup tests" "$fixture"
+
+fixture="$(make_fixture missing-real-room-replay-test)"
+replace_once "$(result_file "$fixture" feature-account-impl)" \
+  'legacyPendingOriginsAreBoundByTheExactEncryptedJournalOnRoomReplay' \
+  'realRoomReplayCoverageRemoved'
+expect_failure "missing real Room replay test" "omitted required migration/startup tests" "$fixture"
+
 fixture="$(make_fixture wrong-xml-root)"
 replace_once "$(result_file "$fixture" common)" '<testsuite ' '<testsuites '
 replace_once "$(result_file "$fixture" common)" '</testsuite>' '</testsuites>'
@@ -524,6 +567,19 @@ if MIGRATION_RESULTS_ROOT="$fixture" MIGRATION_RESULTS_PROFILE=weakened \
 fi
 grep -Fq "unsupported result profile" "$output" ||
   fail "unsupported profile omitted expected diagnostic"
+negative_count=$((negative_count + 1))
+
+fixture="$(make_compatibility_fixture compatibility-missing-origin-reservation)"
+replace_once "$(result_file "$fixture" core-db)" \
+  'migrationPreservesExistingWalletAndPendingCohortWithoutGuessingOrigin' \
+  'migrationOriginReservationCoverageRemoved'
+output="$tmp_dir/compatibility-missing-origin-reservation.log"
+if MIGRATION_RESULTS_ROOT="$fixture" MIGRATION_RESULTS_PROFILE=compatibility \
+  "$VERIFY" >"$output" 2>&1; then
+  fail "compatibility shard missing the origin reservation test unexpectedly passed"
+fi
+grep -Fq "omitted required migration/startup tests" "$output" ||
+  fail "compatibility missing-origin-reservation omitted expected diagnostic"
 negative_count=$((negative_count + 1))
 
 fixture="$(make_compatibility_fixture compatibility-missing-reservation-trigger)"

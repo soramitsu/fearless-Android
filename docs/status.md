@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android portable receive origin reservation — 2026-09-25
+
+- Candidate Room schema 80 records the exact 16-byte portable wallet ID and historical source position beside each reserved local wallet ID. New two-wallet cohorts bind those origins inside the Room reservation transaction. Replay compares them with the encrypted `FPWCAI01` after-image, rejects swaps or altered positions, and upgrades a v79 pending row only when that exact journal is still present. Abandoned destination IDs stay fenced while a later attempt can reserve fresh local IDs for the same source wallets.
+- Focused stager JVM tests passed 18/18, migration-policy tests 6/6, the API 34 core-db compatibility shard 10/10 (including seven released-schema→80 upgrades and the v79→80 migration), and real Room two-wallet restart plus v79 pending-origin replay tests 2/2 against clean pinned Utils `1c80a2b`. The release gate now requires all 41 compatibility identities and a full-profile floor of 343 with both real Room tests; its result-parser fixtures passed 2 positive/40 negative, CI-gate fixtures 1 positive/107 negative, and evidence packaging 49/49. These are component checks. The cohort still has no installed V1/V2/V3 or original-source secrets, wallet rows, cross-store commit/replay, signing/export proof or enabled recovery. Final-source API 30/31/36 migration, signed upgrade and replacement-device acceptance remain open.
+
 ## Android PRF consumption boundary — 2026-09-24
 
 - The disabled generation readback now checks the public credential identity and the presence of a native PRF result, then consumes the server-verified assertion and confirms the unchanged owner head **before** exposing PRF bytes to local unwrap/decryption. A native ceremony result releases its PRF output at most once, including when a callback fails or is cancelled; the callback's byte array is cleared on exit. Server rejection therefore cannot reach the wallet verifier, and a second local unwrap cannot reuse that result.

@@ -96,6 +96,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_72_73
 import jp.co.soramitsu.coredb.migrations.Migration_73_74
 import jp.co.soramitsu.coredb.migrations.Migration_74_75
 import jp.co.soramitsu.coredb.migrations.Migration_75_76
+import jp.co.soramitsu.coredb.migrations.PortableWalletOriginReservationMigration
 import jp.co.soramitsu.coredb.migrations.PortableWalletReservationMigration
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
@@ -321,7 +322,8 @@ abstract class AppDatabase : RoomDatabase() {
                 walletRootSecretValidation = walletRootSecretValidation
             ),
             WalletCustodyMigration,
-            PortableWalletReservationMigration
+            PortableWalletReservationMigration,
+            PortableWalletOriginReservationMigration
         )
     }
 

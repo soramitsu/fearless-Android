@@ -77,7 +77,7 @@ class ReleasedSchemaUpgradeMatrixTest(
     }
 
     @Test
-    fun exactReleasedSchemaUpgradesTo79WithoutLosingWalletState() = runBlocking {
+    fun exactReleasedSchemaUpgradesTo80WithoutLosingWalletState() = runBlocking {
         val encryptedPreferences = HashMapEncryptedPreferences()
         val storeV1 = SecretStoreV1Impl(encryptedPreferences)
         val storeV2 = SecretStoreV2(encryptedPreferences)
@@ -737,7 +737,7 @@ class ReleasedSchemaUpgradeMatrixTest(
         ).toHexString()
 
         @JvmStatic
-        @Parameterized.Parameters(name = "released schema {0} -> 79")
+        @Parameterized.Parameters(name = "released schema {0} -> 80")
         fun releasedVersions(): List<Array<Int>> =
             listOf(26, 27, 28, 73, 74, 75, 76).map { arrayOf(it) }
 
