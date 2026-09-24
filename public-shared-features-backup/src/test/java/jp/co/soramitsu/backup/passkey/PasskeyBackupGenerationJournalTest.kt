@@ -147,7 +147,57 @@ class PasskeyBackupGenerationJournalTest {
         val journal = journal(HostJournalDurability { observed.add(it) })
         journal.persistPrepared(operation, JournalFixture.candidate(), scope)
         journal.markCreateAttempt(operation, scope)
-        assertEquals(JournalDurabilityPoint.entries, observed)
+        assertEquals(JournalDurabilityPoint.entries.filterNot { it.name.startsWith("COMMIT") }, observed)
+    }
+
+    @Test
+    fun `commit attempt marker is private durable exact and never readmitted after restart`() {
+        journal().persistPrepared(operation, JournalFixture.candidate(), scope)
+        fails { journal().markCommitAttempt(operation, scope) }
+        journal().markCreateAttempt(operation, scope)
+        val admitted = journal().markCommitAttempt(operation, scope)
+        assertTrue(admitted.commitAttemptRecorded)
+        assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(commitPath()))
+        assertTrue(Files.size(commitPath()) <= PasskeyBackupJournalRecord.MAX_ATTEMPT_BYTES)
+        assertTrue(requireNotNull(journal().read(operation, scope)).commitAttemptRecorded)
+        fails { journal().markCommitAttempt(operation, scope) }
+        fails { journal().markCreateAttempt(operation, scope) }
+    }
+
+    @Test
+    fun `partial or swapped commit marker blocks read and another CAS admission`() {
+        journal().persistPrepared(operation, JournalFixture.candidate(), scope)
+        journal().markCreateAttempt(operation, scope)
+        val valid = PasskeyBackupJournalRecord.commitAttempt(requireNotNull(journal().read(operation, scope)))
+        val foreign = PasskeyBackupJournalRecord.commitAttempt(
+            PasskeyBackupJournalRecord.decode(
+                PasskeyBackupJournalRecord.encode(JournalFixture.identifier(2), JournalFixture.candidate(2)),
+                JournalFixture.identifier(2)
+            )
+        )
+        for (bytes in listOf(byteArrayOf(), valid.copyOf(valid.size / 2), foreign, valid + 0)) {
+            Files.write(commitPath(), bytes)
+            Files.setPosixFilePermissions(commitPath(), PosixFilePermissions.fromString("rw-------"))
+            fails { journal().read(operation, scope) }
+            fails { journal().listPending(scope) }
+            fails { journal().markCommitAttempt(operation, scope) }
+            assertTrue(requireNotNull(journal().readForReconciliation(operation, scope)).commitAttemptRecorded)
+            assertEquals(1, journal().listForReconciliation(scope).size)
+            assertArrayEquals(bytes, Files.readAllBytes(commitPath()))
+        }
+    }
+
+    @Test
+    fun `separate process crashes at every commit marker stage prevent second CAS admission`() {
+        for (point in JournalDurabilityPoint.entries.filter { it.name.startsWith("COMMIT") }) {
+            root.toFile().deleteRecursively()
+            journal().persistPrepared(operation, JournalFixture.candidate(), scope)
+            journal().markCreateAttempt(operation, scope)
+            assertEquals(23, finish(child("commit", point)))
+            val before = Files.readAllBytes(commitPath())
+            fails { journal().markCommitAttempt(operation, scope) }
+            assertArrayEquals(before, Files.readAllBytes(commitPath()))
+        }
     }
 
     @Test
@@ -248,6 +298,7 @@ class PasskeyBackupGenerationJournalTest {
         PasskeyBackupGenerationJournal(root, durability)
     private fun preparedPath(): Path = root.resolve(operation + PasskeyBackupJournalDisk.PREPARED_SUFFIX)
     private fun attemptPath(): Path = root.resolve(operation + PasskeyBackupJournalDisk.ATTEMPT_SUFFIX)
+    private fun commitPath(): Path = root.resolve(operation + PasskeyBackupJournalDisk.COMMIT_SUFFIX)
     private fun fails(action: () -> Unit) = assertTrue(runCatching(action).isFailure)
 
     private fun child(mode: String, point: JournalDurabilityPoint? = null): Process {
@@ -301,6 +352,8 @@ internal object JournalChild {
         try {
             if (arguments[2] == "prepare") {
                 journal.persistPrepared(arguments[1], JournalFixture.candidate(), JournalFixture.scope)
+            } else if (arguments[2] == "commit") {
+                journal.markCommitAttempt(arguments[1], JournalFixture.scope)
             } else {
                 journal.markCreateAttempt(arguments[1], JournalFixture.scope)
             }

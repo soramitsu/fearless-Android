@@ -19,6 +19,7 @@ internal object PasskeyBackupJournalRecord {
     private const val MAX_NAME_LENGTH = 32
     private const val RECORD_FORMAT = "FPBKJNL1"
     private const val ATTEMPT_FORMAT = "FPBKATT1"
+    private const val COMMIT_FORMAT = "FPBKCOM1"
     private val recordKeys = setOf(
         "format", "schemaVersion", "operationId", "driveFileId", "bundleSize", "bundleSha256", "context", "bundleBase64url"
     )
@@ -96,6 +97,24 @@ internal object PasskeyBackupJournalRecord {
     fun validateAttempt(bytes: ByteArray, entry: PasskeyBackupJournalEntry) {
         require(parse(bytes, MAX_ATTEMPT_BYTES).keySet() == attemptKeys && bytes.contentEquals(attempt(entry))) {
             "Malformed or conflicting backup journal attempt"
+        }
+    }
+
+    /** Same exact-record binding as create admission, with a distinct stage domain. */
+    fun commitAttempt(entry: PasskeyBackupJournalEntry): ByteArray = canonical(
+        JsonObject().apply {
+            addProperty("format", COMMIT_FORMAT)
+            addProperty("schemaVersion", 1)
+            addProperty("operationId", entry.operationId)
+            addProperty("driveFileId", entry.candidate.fileId)
+            addProperty("bundleSha256", entry.candidate.sha256)
+            addProperty("recordSha256", entry.recordSha256)
+        }
+    )
+
+    fun validateCommitAttempt(bytes: ByteArray, entry: PasskeyBackupJournalEntry) {
+        require(parse(bytes, MAX_ATTEMPT_BYTES).keySet() == attemptKeys && bytes.contentEquals(commitAttempt(entry))) {
+            "Malformed or conflicting backup commit attempt"
         }
     }
 

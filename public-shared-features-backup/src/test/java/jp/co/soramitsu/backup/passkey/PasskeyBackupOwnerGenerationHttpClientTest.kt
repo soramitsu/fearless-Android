@@ -61,6 +61,7 @@ class PasskeyBackupOwnerGenerationHttpClientTest {
         assertEquals("${PasskeyBackupReleaseConfig.CHALLENGE_SERVICE_BASE_URL}$COMMIT_PATH", transport.requests[1].url)
         assertEquals("Bearer $GRANT_TOKEN", transport.requests[1].headers["Authorization"])
         assertEquals(SESSION_TOKEN, transport.requests[1].headers["X-Passkey-Owner-Session"])
+        assertTrue(transport.requests[1].isOneShot)
         assertEquals(grantRequest.bodyText(), transport.requests[1].bodyText())
         assertEquals("${PasskeyBackupReleaseConfig.CHALLENGE_SERVICE_BASE_URL}$OPERATION_PATH", transport.requests[2].url)
         assertEquals("Bearer $SESSION_TOKEN", transport.requests[2].headers["Authorization"])

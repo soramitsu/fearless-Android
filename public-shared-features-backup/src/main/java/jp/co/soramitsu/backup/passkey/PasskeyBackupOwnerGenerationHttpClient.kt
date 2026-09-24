@@ -12,6 +12,7 @@ import okhttp3.OkHttpClient
 import java.io.StringReader
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
+import java.util.concurrent.TimeUnit
 
 /** Public metadata prepared against an authenticated owner head, not proof of a decryptable backup. */
 class PasskeyBackupGenerationMetadata(
@@ -20,7 +21,7 @@ class PasskeyBackupGenerationMetadata(
     val bundleSha256: String,
     val driveFileId: String,
     authenticatedHead: PasskeyBackupAuthenticatedHead,
-) {
+) : PasskeyBackupGenerationRequestScope {
     val expectedHeadRevision: Long = authenticatedHead.head?.headRevision ?: 0L
     val expectedHeadSha256: String? = authenticatedHead.head?.bundleSha256
     private val requestBody: ByteArray
@@ -68,7 +69,7 @@ class PasskeyBackupGenerationMetadata(
 
     internal fun body(): ByteArray = requestBody.copyOf()
 
-    internal fun requireScope(session: PasskeyBackupOwnerSession, storageBinding: String) {
+    override fun requireScope(session: PasskeyBackupOwnerSession, storageBinding: String) {
         require(context.ownerSubject == session.subject && context.backupNamespace == session.namespace) {
             "Backup generation owner mismatch"
         }
@@ -95,6 +96,70 @@ class PasskeyBackupGenerationMetadata(
     private companion object {
         const val MAX_SAFE_JS_INTEGER = 9_007_199_254_740_991L
     }
+}
+
+/** Exact status expectation reconstructed from an authenticated scope and immutable local journal. */
+class PasskeyBackupGenerationOperationReference internal constructor(
+    val operationId: String,
+    private val context: PasskeyBackupGeneration.Context,
+    private val bundleSha256: String,
+    private val driveFileId: String,
+) : PasskeyBackupGenerationRequestScope {
+    init {
+        PasskeyBackupGenerationFormat.requireIdentifier(operationId)
+        PasskeyBackupGenerationFormat.requireSha256(bundleSha256)
+        GoogleDriveGenerationResponse.requireFileId(driveFileId)
+    }
+
+    override fun requireScope(session: PasskeyBackupOwnerSession, storageBinding: String) {
+        require(context.ownerSubject == session.subject && context.backupNamespace == session.namespace) {
+            "Backup operation owner mismatch"
+        }
+        require(context.storageAccountBinding == storageBinding) { "Backup operation storage account mismatch" }
+    }
+
+    internal fun requireDescriptor(descriptor: PasskeyBackupHeadDescriptor) {
+        require(
+            descriptor.headRevision == context.parentHeadRevision + 1 &&
+                descriptor.parentHeadRevision == context.parentHeadRevision &&
+                descriptor.parentHeadSha256 == context.parentHeadSha256 &&
+                descriptor.generationId == context.generationId &&
+                descriptor.bundleSha256 == bundleSha256 &&
+                descriptor.keyEpoch == context.keyEpoch &&
+                descriptor.driveFileId == driveFileId &&
+                descriptor.storageAccountBinding == context.storageAccountBinding
+        ) { "Backup operation does not match the journaled candidate" }
+    }
+
+    internal fun matchesDescriptor(descriptor: PasskeyBackupHeadDescriptor): Boolean =
+        runCatching { requireDescriptor(descriptor) }.isSuccess
+
+    override fun toString(): String = "PasskeyBackupGenerationOperationReference(redacted)"
+
+    companion object {
+        fun fromJournal(
+            entry: PasskeyBackupJournalEntry,
+            authenticatedHead: PasskeyBackupAuthenticatedHead,
+        ): PasskeyBackupGenerationOperationReference {
+            require(entry.createAttemptRecorded) { "Backup operation has no create attempt" }
+            val context = entry.candidate.context
+            require(
+                context.ownerSubject == authenticatedHead.ownerSubject &&
+                    context.backupNamespace == authenticatedHead.backupNamespace &&
+                    context.storageAccountBinding == authenticatedHead.storageAccountBinding
+            ) { "Backup journal does not match authenticated owner scope" }
+            return PasskeyBackupGenerationOperationReference(
+                entry.operationId,
+                context,
+                entry.candidate.sha256,
+                entry.candidate.fileId,
+            )
+        }
+    }
+}
+
+internal interface PasskeyBackupGenerationRequestScope {
+    fun requireScope(session: PasskeyBackupOwnerSession, storageBinding: String)
 }
 
 /** A one-use, exact-metadata authority grant; its token is never included in diagnostics. */
@@ -131,7 +196,9 @@ sealed interface PasskeyBackupGenerationOperationStatus {
  */
 class PasskeyBackupOwnerGenerationHttpClient(
     private val tokenProvider: GoogleDriveAccessTokenProvider,
-    private val transport: GoogleDriveHttpTransport = OkHttpGoogleDriveHttpTransport(OkHttpClient()),
+    private val transport: GoogleDriveHttpTransport = OkHttpGoogleDriveHttpTransport(
+        OkHttpClient.Builder().retryOnConnectionFailure(false).callTimeout(REQUEST_TIMEOUT_SECONDS, TimeUnit.SECONDS).build()
+    ),
     baseUrl: String = PasskeyBackupReleaseConfig.CHALLENGE_SERVICE_BASE_URL,
     private val nowMillis: () -> Long = System::currentTimeMillis,
     private val isReleaseEnabled: Boolean = PasskeyBackupReleaseConfig.PASSKEY_BACKUP_ENABLED,
@@ -167,6 +234,7 @@ class PasskeyBackupOwnerGenerationHttpClient(
                 grant.token,
                 metadata.body(),
                 mapOf("X-Passkey-Owner-Session" to session.sessionToken),
+                isOneShot = true,
             )
         grant.requireFor(session, metadata, nowSeconds())
         return OwnerGenerationResponseParser.status(response.body, metadata, allowAbsent = false).let {
@@ -179,23 +247,45 @@ class PasskeyBackupOwnerGenerationHttpClient(
         session: PasskeyBackupOwnerSession,
         metadata: PasskeyBackupGenerationMetadata,
     ): PasskeyBackupGenerationOperationStatus {
+        return readOperationStatus(session, metadata.operationId, metadata) { body ->
+            OwnerGenerationResponseParser.status(body, metadata, allowAbsent = true)
+        }
+    }
+
+    /** Status remains queryable after a successful CAS advances the current head past the candidate's parent. */
+    suspend fun operationStatus(
+        session: PasskeyBackupOwnerSession,
+        reference: PasskeyBackupGenerationOperationReference,
+    ): PasskeyBackupGenerationOperationStatus {
+        return readOperationStatus(session, reference.operationId, reference) { body ->
+            OwnerGenerationResponseParser.status(body, reference, allowAbsent = true)
+        }
+    }
+
+    private suspend fun readOperationStatus(
+        session: PasskeyBackupOwnerSession,
+        operationId: String,
+        scope: PasskeyBackupGenerationRequestScope,
+        parse: (ByteArray) -> PasskeyBackupGenerationOperationStatus,
+    ): PasskeyBackupGenerationOperationStatus {
         val body =
             JsonObject().apply {
                 addProperty("schemaVersion", 1)
-                addProperty("operationId", metadata.operationId)
+                addProperty("operationId", operationId)
             }.toString().toByteArray(Charsets.UTF_8)
-        val response = execute(session, metadata, OPERATION_PATH, "session.", session.sessionToken, body)
-        return OwnerGenerationResponseParser.status(response.body, metadata, allowAbsent = true)
+        val response = execute(session, scope, OPERATION_PATH, "session.", session.sessionToken, body)
+        return parse(response.body)
     }
 
     private suspend fun execute(
         session: PasskeyBackupOwnerSession,
-        metadata: PasskeyBackupGenerationMetadata,
+        scope: PasskeyBackupGenerationRequestScope,
         path: String,
         bearerPrefix: String,
         bearerToken: String,
         body: ByteArray,
         extraHeaders: Map<String, String> = emptyMap(),
+        isOneShot: Boolean = false,
     ): GoogleDriveHttpResponse {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
         requireSession(session)
@@ -203,7 +293,7 @@ class PasskeyBackupOwnerGenerationHttpClient(
         currentCoroutineContext().ensureActive()
         val selectedSubject = tokenProvider.accessToken().subject
         currentCoroutineContext().ensureActive()
-        metadata.requireScope(session, PasskeyBackupGenerationFormat.storageAccountBinding(selectedSubject))
+        scope.requireScope(session, PasskeyBackupGenerationFormat.storageAccountBinding(selectedSubject))
         val response =
             transport.execute(
                 GoogleDriveHttpRequest(
@@ -216,6 +306,7 @@ class PasskeyBackupOwnerGenerationHttpClient(
                             "Cache-Control" to "no-store",
                         ) + extraHeaders,
                     body = body,
+                    isOneShot = isOneShot,
                     maxResponseBytes = MAX_RESPONSE_BYTES,
                 ),
             )
@@ -253,6 +344,7 @@ class PasskeyBackupOwnerGenerationHttpClient(
         const val MAX_RESPONSE_BYTES = 8 * 1024
         const val MAX_SESSION_AHEAD_SECONDS = 660L
         const val MILLIS_PER_SECOND = 1_000L
+        const val REQUEST_TIMEOUT_SECONDS = 30L
     }
 }
 
@@ -297,7 +389,23 @@ private object OwnerGenerationResponseParser {
         metadata: PasskeyBackupGenerationMetadata,
         allowAbsent: Boolean,
     ): PasskeyBackupGenerationOperationStatus = parseSafely(bytes) { root ->
-            when (root.string("status")) {
+        status(root, metadata::requireDescriptor, allowAbsent)
+    }
+
+    fun status(
+        bytes: ByteArray,
+        reference: PasskeyBackupGenerationOperationReference,
+        allowAbsent: Boolean,
+    ): PasskeyBackupGenerationOperationStatus = parseSafely(bytes) { root ->
+        status(root, reference::requireDescriptor, allowAbsent)
+    }
+
+    private fun status(
+        root: JsonObject,
+        requireDescriptor: (PasskeyBackupHeadDescriptor) -> Unit,
+        allowAbsent: Boolean,
+    ): PasskeyBackupGenerationOperationStatus {
+        return when (root.string("status")) {
                 "absent" -> {
                     require(allowAbsent && root.keySet() == setOf("status"))
                     PasskeyBackupGenerationOperationStatus.Absent
@@ -307,12 +415,12 @@ private object OwnerGenerationResponseParser {
                     val descriptorObject = root.get("descriptor")
                     require(descriptorObject != null && descriptorObject.isJsonObject)
                     val descriptor = descriptor(descriptorObject.asJsonObject)
-                    metadata.requireDescriptor(descriptor)
+                    requireDescriptor(descriptor)
                     PasskeyBackupGenerationOperationStatus.Committed(descriptor)
                 }
                 else -> error("Invalid owner backup status")
             }
-        }
+    }
 
     private fun descriptor(value: JsonObject): PasskeyBackupHeadDescriptor {
         require(value.keySet() == DESCRIPTOR_FIELDS)

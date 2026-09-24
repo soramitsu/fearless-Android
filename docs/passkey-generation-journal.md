@@ -45,4 +45,41 @@ cases use only synthetic wallet material; no production wallet callback,
 authenticated owner-head HTTP adapter, provider ceremony or replacement-device
 flow is wired, so recovery remains disabled.
 
+## Disabled verified promotion candidate
+
+`PasskeyBackupVerifiedGenerationPromotion` composes the fresh authenticated
+owner head, the exact append-only journaled Drive generation, the read-only
+reconciler, the local original-key verifier, and owner grant/commit/status
+routes. A committed response alone is insufficient: it returns
+`CurrentVerifiedHead` only after exact Drive download, local PRF unwrap,
+AEAD decryption, original-key signing/export evidence, exact operation status,
+and a fresh matching owner head. It never installs keys or tells the wallet UI
+that a backup is complete. `AwaitingDriveReadback` and
+`AwaitingOwnerOperation` never authorize another upload or CAS.
+
+The new private `<operationId>.commit.json` marker (`FPBKCOM1`) binds the
+prepared record digest, Drive ID, bundle digest and operation ID. The journal
+syncs it before commit dispatch; any surviving or partial marker denies another
+commit. The read-only reconciliation view can use an intact prepared/create
+record even if the commit marker tore during a crash; marker presence still
+forbids mutation. After a lost response or restart, status is reconstructed from the
+same durable journal candidate and independently authenticated owner/Google
+scope, even though a successful commit has already advanced the current head.
+Status must describe the exact candidate, and fresh owner-head plus Drive
+readback must show it current and byte-for-byte equal to the verified candidate.
+A status of `absent` after a commit marker remains unresolved;
+the client never retries the CAS. No prior encrypted Drive generation is
+deleted or patched.
+
+`PasskeyBackupExistingHeadCandidateVerifier` demonstrates the native proof
+boundary for an existing owner head: it asks for a credential-directed
+assertion, keeps the PRF result local and one-use, waits for server assertion
+verification, then decrypts the candidate and invokes the application-owned
+original-key signing/export verifier. A fresh verifier must be created for each
+authenticated head, including after restart. An empty-head first enrollment
+still needs a separate server-verified candidate assertion API. Neither that
+API nor the production original-key callback is deployed/wired, and the
+compiled recovery gate remains false. The new tests use synthetic identities
+and test PRF material; they do not prove device/provider interoperability.
+
 Primary references: [Android backup-excluded storage](https://developer.android.com/reference/android/content/Context#getNoBackupFilesDir()), [exclusive NIO file creation](https://developer.android.com/reference/java/nio/file/StandardOpenOption#CREATE_NEW), [FileChannel force semantics](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html#force(boolean)), and [Android fsync](https://developer.android.com/reference/android/system/Os#fsync(java.io.FileDescriptor)).

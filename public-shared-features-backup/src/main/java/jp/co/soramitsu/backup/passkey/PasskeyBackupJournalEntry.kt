@@ -5,7 +5,8 @@ class PasskeyBackupJournalEntry internal constructor(
     val operationId: String,
     val candidate: GoogleDrivePasskeyBackupGenerationStorage.Candidate,
     val recordSha256: String,
-    val createAttemptRecorded: Boolean
+    val createAttemptRecorded: Boolean,
+    val commitAttemptRecorded: Boolean = false
 ) {
     override fun toString(): String = "PasskeyBackupJournalEntry(redacted)"
 

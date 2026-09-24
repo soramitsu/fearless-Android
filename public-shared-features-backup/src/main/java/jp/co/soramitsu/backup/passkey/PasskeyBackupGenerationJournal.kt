@@ -41,6 +41,26 @@ class PasskeyBackupGenerationJournal internal constructor(directory: Path, durab
         readLocked(operationId, expectedScope)
     }
 
+    /** A partial commit marker still proves an attempted CAS; only read-only reconciliation may use this view. */
+    fun readForReconciliation(
+        operationId: String,
+        expectedScope: PasskeyBackupJournalEntry.Scope
+    ): PasskeyBackupJournalEntry? = disk.locked {
+        disk.inventory()
+        if (!disk.exists(operationId)) return@locked null
+        loadLocked(operationId, tolerateCommitMarkerDamage = true).also {
+            expectedScope.requireMatch(it.candidate.context)
+        }
+    }
+
+    /** Enumerate every prepared candidate for read-only status recovery, including a torn commit marker. */
+    fun listForReconciliation(expectedScope: PasskeyBackupJournalEntry.Scope): List<PasskeyBackupJournalEntry> =
+        disk.locked {
+            disk.inventory().sorted().map { operation ->
+                loadLocked(operation, tolerateCommitMarkerDamage = true)
+            }.filter { expectedScope.matches(it.candidate.context) }
+        }
+
     /** Validate every record before filtering by independently supplied owner/account scope. */
     fun listPending(expectedScope: PasskeyBackupJournalEntry.Scope): List<PasskeyBackupJournalEntry> = disk.locked {
         disk.inventory().sorted().map { operation ->
@@ -65,16 +85,47 @@ class PasskeyBackupGenerationJournal internal constructor(directory: Path, durab
         PasskeyBackupJournalEntry(entry.operationId, entry.candidate, entry.recordSha256, createAttemptRecorded = true)
     }
 
+    /** Durable one-way CAS admission. A surviving or partial marker forbids a second commit attempt. */
+    internal fun markCommitAttempt(
+        operationId: String,
+        expectedScope: PasskeyBackupJournalEntry.Scope
+    ): PasskeyBackupJournalEntry = disk.locked {
+        disk.inventory()
+        val entry = requireNotNull(readLocked(operationId, expectedScope)) { "Missing prepared backup journal entry" }
+        require(entry.createAttemptRecorded && !entry.commitAttemptRecorded) {
+            "Backup operation is not eligible for a new commit attempt"
+        }
+        disk.confirmPreparedDurable(operationId)
+        disk.create(operationId, PasskeyBackupJournalRecord.commitAttempt(entry), commit = true)
+        PasskeyBackupJournalEntry(
+            entry.operationId, entry.candidate, entry.recordSha256,
+            createAttemptRecorded = true, commitAttemptRecorded = true
+        )
+    }
+
     private fun readLocked(operationId: String, scope: PasskeyBackupJournalEntry.Scope): PasskeyBackupJournalEntry? {
         if (!disk.exists(operationId)) return null
         return loadLocked(operationId).also { scope.requireMatch(it.candidate.context) }
     }
 
-    private fun loadLocked(operationId: String): PasskeyBackupJournalEntry {
+    private fun loadLocked(
+        operationId: String,
+        tolerateCommitMarkerDamage: Boolean = false
+    ): PasskeyBackupJournalEntry {
         val attempted = disk.exists(operationId, attempt = true)
+        val commitAttempted = disk.exists(operationId, commit = true)
         val entry = PasskeyBackupJournalRecord.decode(disk.read(operationId), operationId, attempted)
         if (attempted) PasskeyBackupJournalRecord.validateAttempt(disk.read(operationId, attempt = true), entry)
-        return entry
+        if (commitAttempted) {
+            require(attempted) { "Backup commit attempt without create attempt" }
+            if (!tolerateCommitMarkerDamage) {
+                PasskeyBackupJournalRecord.validateCommitAttempt(disk.read(operationId, commit = true), entry)
+            }
+        }
+        return PasskeyBackupJournalEntry(
+            entry.operationId, entry.candidate, entry.recordSha256,
+            createAttemptRecorded = attempted, commitAttemptRecorded = commitAttempted
+        )
     }
 
     private fun requireUniqueCandidate(

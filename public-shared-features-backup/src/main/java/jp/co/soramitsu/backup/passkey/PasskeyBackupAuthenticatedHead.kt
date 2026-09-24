@@ -42,18 +42,19 @@ class PasskeyBackupAuthenticatedHead(
     expectedBackupNamespace: String,
     expectedStorageAccountBinding: String
 ) {
+    val storageAccountBinding: String = expectedStorageAccountBinding
     init {
         require(ownerSubject == expectedOwnerSubject && backupNamespace == expectedBackupNamespace) {
             "Backup head owner mismatch"
         }
         PasskeyBackupGeneration.Context(
             ownerSubject, backupNamespace, PLACEHOLDER_GENERATION, 0, null, 1,
-            expectedStorageAccountBinding
+            storageAccountBinding
         )
-        require(head == null || head.storageAccountBinding == expectedStorageAccountBinding) {
+        require(head == null || head.storageAccountBinding == storageAccountBinding) {
             "Backup head storage account mismatch"
         }
-        require(previous == null || previous.storageAccountBinding == expectedStorageAccountBinding) {
+        require(previous == null || previous.storageAccountBinding == storageAccountBinding) {
             "Previous backup head storage account mismatch"
         }
         when {

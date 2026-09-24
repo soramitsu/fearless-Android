@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android verified backup-head promotion candidate — 2026-09-25
+
+- A disabled, unwired coordinator now ties the immutable Drive upload journal to exact downloaded bytes, local PRF unwrap/decryption/original-key evidence, owner grant/commit/status, and a fresh authenticated owner head. It repeats exact Drive byte readback after CAS without consuming PRF twice. A private fsynced commit-attempt marker blocks a second CAS after an unknown response or restart; even a torn marker allows only read-only status/proof reconciliation against the same journaled operation. Pending outcomes cannot authorize another upload or commit, and prior Drive generations are retained.
+- The existing-head candidate verifier consumes native PRF output once, only after a server-verified credential-directed assertion. Synthetic tests cover lost responses/restart, missing media, proof failure, changed head/account, marker crashes/corruption, and credential proof ordering. The compiled recovery gate is false. Empty-head enrollment still lacks the verified candidate assertion API; production original-key signing/export callback, service deployment, real device/provider restoration, and signed distribution gates remain open.
+
 ## Android owner generation metadata HTTP candidate — 2026-09-25
 
 - A disabled, unwired `PasskeyBackupOwnerGenerationHttpClient` now matches the owner authority's exact generation grant, commit and operation-status routes. The prepared request binds a canonical operation ID, generation context, expected authenticated head, bundle digest, key epoch and Drive file ID. Commit uses a short-lived grant bound locally and server-side to that exact request and owner session; status reconciles only the same operation and rejects a substituted descriptor. Responses use bounded, closed JSON parsing with duplicate-key, type and expiry rejection.

@@ -4,9 +4,13 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android verified backup-head promotion candidate — 2026-09-25
+
+- The disabled coordinator now requires exact journaled Drive readback and local original-key evidence before a single durable-marker owner CAS. Lost commit responses and restarts query the exact operation from the immutable journal and require a fresh matching head; neither a 404 nor absent operation status permits another upload or CAS. P0: supply the production original-key signing/export callback and server-verified PRF assertion authority for first enrollment, wire reviewed owner sessions and the deployed service, then run physical provider/account replacement recovery and signed-upgrade acceptance. No wallet UI backup-complete state is emitted by this candidate.
+
 ## Android owner generation metadata HTTP candidate — 2026-09-25
 
-- The disabled grant/commit/status client now binds exact candidate metadata to a live owner session and the selected Google subject, and rejects malformed grants or substituted committed descriptors. Backup JVM tests pass 257/257 and Detekt passes. P0: integrate the deployed owner authority and fresh session with a durable coordinator that obtains grant only after exact Drive upload/download, PRF unwrap, decryption and application-owned original-key signing/export verification; reconcile unknown commits by exact operation status and head readback without duplicating uploads or retiring the last decryptable generation. Qualify real iOS↔replacement Android recovery and signed upgrades before enabling. This metadata client alone cannot establish backup completion.
+- The disabled grant/commit/status client binds exact candidate metadata to a live owner session and the selected Google subject, and rejects malformed grants or substituted committed descriptors. Its durable coordinator candidate is described above. P0: integrate the deployed owner authority and fresh session, supply production original-key signing/export and first-enrollment verification, then qualify real iOS↔replacement Android recovery and signed upgrades before enabling. This metadata client alone cannot establish backup completion.
 
 ## Android authenticated owner-head read candidate — 2026-09-25
 

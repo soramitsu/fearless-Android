@@ -27,7 +27,11 @@ internal enum class JournalDurabilityPoint {
     ATTEMPT_CREATED,
     ATTEMPT_PARTIAL,
     ATTEMPT_FILE_SYNCED,
-    ATTEMPT_DIRECTORY_SYNCED
+    ATTEMPT_DIRECTORY_SYNCED,
+    COMMIT_CREATED,
+    COMMIT_PARTIAL,
+    COMMIT_FILE_SYNCED,
+    COMMIT_DIRECTORY_SYNCED
 }
 
 internal object AndroidBackupJournalDurability : PasskeyBackupJournalDurability {
@@ -56,16 +60,17 @@ internal class PasskeyBackupJournalDisk(directory: Path, private val durability:
     fun inventory(): Set<String> {
         val prepared = mutableSetOf<String>()
         val attempted = mutableSetOf<String>()
+        val committed = mutableSetOf<String>()
         Files.newDirectoryStream(root).use { stream ->
             var count = 0
             for (path in stream) {
                 require(++count <= MAX_FILES) { "Backup journal file count exceeded" }
                 val name = path.fileName.toString()
                 requirePrivateFile(path)
-                collectOperation(name, prepared, attempted)
+                collectOperation(name, prepared, attempted, committed)
             }
         }
-        require(prepared.size <= MAX_ENTRIES && prepared.containsAll(attempted)) {
+        require(prepared.size <= MAX_ENTRIES && prepared.containsAll(attempted) && attempted.containsAll(committed)) {
             "Orphaned or excessive backup journal entries"
         }
         return prepared
@@ -74,23 +79,41 @@ internal class PasskeyBackupJournalDisk(directory: Path, private val durability:
     private fun collectOperation(
         name: String,
         prepared: MutableSet<String>,
-        attempted: MutableSet<String>
+        attempted: MutableSet<String>,
+        committed: MutableSet<String>
     ) {
         if (name == LOCK_NAME) return
-        val suffix = if (name.endsWith(PREPARED_SUFFIX)) PREPARED_SUFFIX else ATTEMPT_SUFFIX
-        require(name.endsWith(suffix)) { "Unexpected backup journal file" }
+        val suffix = when {
+            name.endsWith(PREPARED_SUFFIX) -> PREPARED_SUFFIX
+            name.endsWith(ATTEMPT_SUFFIX) -> ATTEMPT_SUFFIX
+            name.endsWith(COMMIT_SUFFIX) -> COMMIT_SUFFIX
+            else -> error("Unexpected backup journal file")
+        }
         val operation = name.removeSuffix(suffix)
         PasskeyBackupGenerationFormat.requireIdentifier(operation)
-        if (suffix == PREPARED_SUFFIX) prepared.add(operation) else attempted.add(operation)
+        when (suffix) {
+            PREPARED_SUFFIX -> prepared.add(operation)
+            ATTEMPT_SUFFIX -> attempted.add(operation)
+            else -> committed.add(operation)
+        }
     }
 
-    fun exists(operation: String, attempt: Boolean = false): Boolean =
-        Files.exists(path(operation, attempt), NOFOLLOW_LINKS)
+    fun exists(
+        operation: String,
+        attempt: Boolean = false,
+        commit: Boolean = false
+    ): Boolean {
+        return Files.exists(path(operation, attempt, commit), NOFOLLOW_LINKS)
+    }
 
-    fun read(operation: String, attempt: Boolean = false): ByteArray {
-        val file = path(operation, attempt)
+    fun read(
+        operation: String,
+        attempt: Boolean = false,
+        commit: Boolean = false
+    ): ByteArray {
+        val file = path(operation, attempt, commit)
         requirePrivateFile(file)
-        val maximum = if (attempt) PasskeyBackupJournalRecord.MAX_ATTEMPT_BYTES else PasskeyBackupJournalRecord.MAX_BYTES
+        val maximum = if (attempt || commit) PasskeyBackupJournalRecord.MAX_ATTEMPT_BYTES else PasskeyBackupJournalRecord.MAX_BYTES
         return FileChannel.open(file, READ, NOFOLLOW_LINKS).use { channel ->
             val size = channel.size()
             require(size in 1..maximum.toLong()) { "Invalid backup journal file size" }
@@ -104,21 +127,42 @@ internal class PasskeyBackupJournalDisk(directory: Path, private val durability:
     fun create(
         operation: String,
         bytes: ByteArray,
-        attempt: Boolean = false
+        attempt: Boolean = false,
+        commit: Boolean = false
     ) {
-        val maximum = if (attempt) PasskeyBackupJournalRecord.MAX_ATTEMPT_BYTES else PasskeyBackupJournalRecord.MAX_BYTES
+        val maximum = if (attempt || commit) PasskeyBackupJournalRecord.MAX_ATTEMPT_BYTES else PasskeyBackupJournalRecord.MAX_BYTES
         require(bytes.size in 1..maximum) { "Invalid backup journal record size" }
-        FileChannel.open(path(operation, attempt), setOf(CREATE_NEW, WRITE, NOFOLLOW_LINKS), filePermissions).use { channel ->
-            durability.checkpoint(if (attempt) JournalDurabilityPoint.ATTEMPT_CREATED else JournalDurabilityPoint.PREPARED_CREATED)
+        FileChannel.open(path(operation, attempt, commit), setOf(CREATE_NEW, WRITE, NOFOLLOW_LINKS), filePermissions).use { channel ->
+            durability.checkpoint(
+                checkpoint(
+                    attempt, commit, JournalDurabilityPoint.PREPARED_CREATED,
+                    JournalDurabilityPoint.ATTEMPT_CREATED, JournalDurabilityPoint.COMMIT_CREATED
+                )
+            )
             val half = bytes.size / 2
             write(channel, ByteBuffer.wrap(bytes, 0, half))
-            durability.checkpoint(if (attempt) JournalDurabilityPoint.ATTEMPT_PARTIAL else JournalDurabilityPoint.PREPARED_PARTIAL)
+            durability.checkpoint(
+                checkpoint(
+                    attempt, commit, JournalDurabilityPoint.PREPARED_PARTIAL,
+                    JournalDurabilityPoint.ATTEMPT_PARTIAL, JournalDurabilityPoint.COMMIT_PARTIAL
+                )
+            )
             write(channel, ByteBuffer.wrap(bytes, half, bytes.size - half))
             channel.force(true)
-            durability.checkpoint(if (attempt) JournalDurabilityPoint.ATTEMPT_FILE_SYNCED else JournalDurabilityPoint.PREPARED_FILE_SYNCED)
+            durability.checkpoint(
+                checkpoint(
+                    attempt, commit, JournalDurabilityPoint.PREPARED_FILE_SYNCED,
+                    JournalDurabilityPoint.ATTEMPT_FILE_SYNCED, JournalDurabilityPoint.COMMIT_FILE_SYNCED
+                )
+            )
         }
         durability.syncDirectory(root)
-        durability.checkpoint(if (attempt) JournalDurabilityPoint.ATTEMPT_DIRECTORY_SYNCED else JournalDurabilityPoint.PREPARED_DIRECTORY_SYNCED)
+        durability.checkpoint(
+            checkpoint(
+                attempt, commit, JournalDurabilityPoint.PREPARED_DIRECTORY_SYNCED,
+                JournalDurabilityPoint.ATTEMPT_DIRECTORY_SYNCED, JournalDurabilityPoint.COMMIT_DIRECTORY_SYNCED
+            )
+        )
     }
 
     /** Re-establish durability before returning a surviving record after an earlier ambiguous sync failure. */
@@ -162,9 +206,31 @@ internal class PasskeyBackupJournalDisk(directory: Path, private val durability:
         }
     }
 
-    private fun path(operation: String, attempt: Boolean): Path {
+    private fun path(
+        operation: String,
+        attempt: Boolean,
+        commit: Boolean = false
+    ): Path {
         PasskeyBackupGenerationFormat.requireIdentifier(operation)
-        return root.resolve(operation + if (attempt) ATTEMPT_SUFFIX else PREPARED_SUFFIX)
+        require(!attempt || !commit) { "Invalid backup journal marker type" }
+        val suffix = when {
+            commit -> COMMIT_SUFFIX
+            attempt -> ATTEMPT_SUFFIX
+            else -> PREPARED_SUFFIX
+        }
+        return root.resolve(operation + suffix)
+    }
+
+    private fun checkpoint(
+        attempt: Boolean,
+        commit: Boolean,
+        prepared: JournalDurabilityPoint,
+        create: JournalDurabilityPoint,
+        promotion: JournalDurabilityPoint
+    ): JournalDurabilityPoint = when {
+        commit -> promotion
+        attempt -> create
+        else -> prepared
     }
 
     private fun write(channel: FileChannel, buffer: ByteBuffer) {
@@ -175,7 +241,8 @@ internal class PasskeyBackupJournalDisk(directory: Path, private val durability:
         const val MAX_ENTRIES = 64
         const val PREPARED_SUFFIX = ".prepared.json"
         const val ATTEMPT_SUFFIX = ".attempt.json"
-        private const val MAX_FILES = MAX_ENTRIES * 2 + 1
+        const val COMMIT_SUFFIX = ".commit.json"
+        private const val MAX_FILES = MAX_ENTRIES * 3 + 1
         private const val LOCK_NAME = ".lock"
         private val processLock = Any()
         private val filePermissions = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"))

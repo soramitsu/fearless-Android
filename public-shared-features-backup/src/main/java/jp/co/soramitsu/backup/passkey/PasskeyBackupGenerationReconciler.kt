@@ -68,7 +68,7 @@ class PasskeyBackupGenerationReconciler(
     ): PasskeyBackupGenerationReconciliation {
         currentCoroutineContext().ensureActive()
         val admitted = withContext(Dispatchers.IO) {
-            requireNotNull(journal.read(operationId, expectedScope)) { "Missing prepared backup journal entry" }
+            requireNotNull(journal.readForReconciliation(operationId, expectedScope)) { "Missing prepared backup journal entry" }
         }
         require(admitted.createAttemptRecorded) { "Backup generation has no create attempt" }
         val candidate = admitted.candidate
@@ -94,7 +94,7 @@ class PasskeyBackupGenerationReconciler(
         }
         // Do not report success if local scope or the exact durable candidate changed during verification.
         val confirmed = withContext(Dispatchers.IO) {
-            requireNotNull(journal.read(operationId, expectedScope)) { "Missing prepared backup journal entry" }
+            requireNotNull(journal.readForReconciliation(operationId, expectedScope)) { "Missing prepared backup journal entry" }
         }
         require(
             confirmed.createAttemptRecorded && confirmed.recordSha256 == admitted.recordSha256 &&
