@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android owner authentication HTTP candidate — 2026-09-25
+
+- A disabled, unwired client can request the owner authority's accountless Android challenge, perform a discoverable user-verified Credential Manager assertion without PRF, send only public WebAuthn fields and accept a bounded short-lived owner session. P0: deploy and production-admit the reviewed owner authority, add first-owner bootstrap and owner-session use across backup head/grant operations, bind real device/user verification and replacement-device acceptance, and keep the recovery flag false until full cross-platform wallet installation and original-key signing/export proof passes. This candidate has no production recovery UI or wallet install path.
+
 ## Android portable receive origin reservation — 2026-09-25
 
 - Candidate Room schema 80 binds each reserved local ID to the exact source wallet ID and historical position, preserving that relation across restart and safely reconciling v79 pending rows from the encrypted cohort. A version-2 encrypted cohort journal now atomically stages the canonical opaque original-source sidecar; version-1 pending journals can be upgraded by exact-token CAS. P0: encode every verified original V1/V2/V3/standalone EVM/native TON secret into target stores, then retain the sidecar only after verified target readback and implement a durable cohort-wide Room/secret-store commit and replay before publishing wallet rows. Prove installed identities plus original-key signing/export, run final-source migrations on API 30/31/36 and Play-signed upgrades, then qualify both real cross-platform replacement directions. This staging increment does not enable recovery.

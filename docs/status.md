@@ -1,5 +1,11 @@
 # Status Summary
 
+## Android owner passkey authentication candidate — 2026-09-25
+
+- The backup module now has a disabled, unwired Android client for an existing owner's discoverable passkey. It sends the owner authority's exact `schemaVersion: 1` / `platform: android` challenge request, rejects duplicate or unexpected response fields, wrong RP/platform/kind, malformed identifiers and stale or overlong challenge lifetimes, then asks Credential Manager for a user-verified discoverable assertion without PRF. A challenge that expires while native UI is open cannot be completed.
+- Completion contains only the native sanitizer's allowlisted public WebAuthn assertion fields. Unexpected native PRF output is rejected and cleared locally; it is never placed in the server request. The returned owner session is shape-, platform-, token- and expiry-checked and redacted from diagnostics. The authority HTTP candidate itself is not deployed or production admitted; this client does not perform bootstrap, backup readback or wallet installation. The compiled passkey backup release gate remains false, and no recovery UI is connected.
+- Local backup-module JVM tests pass 245/245, including seven owner-authentication tests, and `detektAll` passes with clean pinned Utils `1c80a2bf`. These are synthetic transport/native-gateway checks; real Credential Manager and production authority interoperability remain open.
+
 ## Android portable original-source sidecar candidate — 2026-09-25
 
 - The disabled cohort stager now writes a version-2 encrypted journal and a separate, bounded encrypted original-source sidecar in the same durable preference compare-and-swap as the exact ID markers. The sidecar retains canonical opaque `AUXILIARY_SOURCE` fields plus the ordered local/portable wallet IDs, source positions, per-wallet semantic commitments, operation ID and after-image digest. These opaque fields can contain wallet secrets; normalized V1/V2/V3 private-root slots remain in the still-pending cohort journal. A preexisting version-1 journal can be upgraded by an exact-token compare-and-swap during replay; missing, altered or rogue sidecar keys quarantine version-2 replay and abandonment.

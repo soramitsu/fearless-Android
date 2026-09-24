@@ -736,7 +736,7 @@ private fun lifecycleBody(storageKey: String): JsonObject = JsonObject().apply {
     addProperty("schemaVersion", PasskeyBackupContract.SCHEMA_VERSION)
 }
 
-private fun normalizeBaseUrl(baseUrl: String): String {
+internal fun normalizeBaseUrl(baseUrl: String): String {
     require(baseUrl.isNotEmpty() && baseUrl == baseUrl.trim()) {
         "Passkey backup challenge service baseUrl must be canonical"
     }
