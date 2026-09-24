@@ -2,7 +2,10 @@ package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.account.impl.data.repository.PortableWalletCohortAfterImage.Kind
 import jp.co.soramitsu.account.impl.data.repository.PortableWalletReceiveInstallPlan.BlockerReason
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
+import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import org.junit.Assert.assertArrayEquals
@@ -11,6 +14,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.ton.api.pk.PrivateKeyEd25519
+import org.ton.mnemonic.Mnemonic
 
 class PortableWalletCohortAfterImageTest {
     private val cohort = PortableWalletCohortAfterImage
@@ -86,6 +91,179 @@ class PortableWalletCohortAfterImageTest {
             source.clearSecrets()
             semantic.fill(0)
             expectedSemantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `pure storage projection retains multiwallet rows metadata V1 V2 and opaque source bytes`() {
+        val source = snapshot()
+        val semantic = codec.encode(source)
+        val afterImage = cohort.create(semantic, listOf(41L, 42L))
+        val projection = PortableWalletCohortStorageProjection.project(afterImage)
+        try {
+            source.clearSecrets()
+            semantic.fill(0)
+            assertEquals(listOf(41L, 42L), projection.wallets.map { it.localMetaId })
+            assertEquals(listOf(false, true), projection.wallets.map { it.selected })
+            assertEquals(0xffff_ffffL, projection.wallets.first().sourcePosition)
+            assertEquals(
+                PortableWalletCohortStorageProjection.Custody.SIGNED,
+                projection.wallets.first().custody
+            )
+            assertEquals(2, projection.wallets.first().substrateCryptoTypeCode)
+            assertEquals("First", projection.wallets.first().name)
+            assertArrayEquals("JPY".toByteArray(), projection.wallets.first().metadata.single().valueCopy())
+            assertEquals("chain-x", projection.wallets.first().chains.single().chainId)
+            assertEquals(2, projection.wallets.first().chains.single().cryptoTypeCode)
+            assertEquals(true, projection.wallets.first().favorites.single().isFavorite)
+            assertEquals(1, projection.wallets.first().watchIdentities.size)
+            assertEquals(
+                listOf(Kind.V3_SUBSTRATE, Kind.V1_LEGACY_SOURCE, Kind.V2_CHAIN, Kind.V3_SUBSTRATE),
+                projection.secrets.map { it.destination },
+            )
+            val legacy = projection.secrets.single { it.destination == Kind.V1_LEGACY_SOURCE }
+            assertEquals("security_source_" + sourceAddress(), legacy.destinationKey)
+            assertArrayEquals(ByteArray(32) { 5 }, legacy.fieldCopy(field.PRIVATE_KEY))
+            assertArrayEquals(byteArrayOf(0x22, 0x33), projection.originals.first().sourceBytesCopy())
+            assertArrayEquals(byteArrayOf(0x44, 0x55), projection.originals.last().sourceBytesCopy())
+            assertTrue(projection.blockers.any { it.reason == BlockerReason.TRANSACTIONAL_INSTALLER_UNAVAILABLE })
+            assertEquals("PortableWalletCohortStorageProjection.Projection(redacted)", projection.toString())
+            val altered = requireNotNull(legacy.fieldCopy(field.PRIVATE_KEY))
+            altered.fill(0)
+            assertArrayEquals(ByteArray(32) { 5 }, legacy.fieldCopy(field.PRIVATE_KEY))
+        } finally {
+            projection.clearSecrets()
+            afterImage.clearSecrets()
+            source.clearSecrets()
+            semantic.fill(0)
+        }
+        assertTrue(projection.secrets.first().fieldCopy(field.PRIVATE_KEY)!!.all { it == 0.toByte() })
+    }
+
+    @Test
+    fun `standalone EVM and native TON keys remain exact separate receiving intents`() {
+        val evm = EthereumKeypairFactory.createWithPrivateKey(ByteArray(32) { (it + 1).toByte() })
+        val phrase = List(11) { "abandon" }.joinToString(" ") + " about"
+        val ton = PrivateKeyEd25519(Mnemonic.toSeed(phrase.split(' ')))
+        val tonPublic = ton.publicKey().key.toByteArray()
+        val tonPrivate = ton.key.toByteArray()
+        val rawTonAddress = byteArrayOf(0) + tonPublic.tonAccountId(false).substring(2).chunked(2)
+            .map { it.toInt(16).toByte() }
+        val source = PortableWalletSemanticMaterial.Snapshot(
+            1,
+            listOf(
+            PortableWalletSemanticMaterial.Wallet(
+                ByteArray(16) { (it + 1).toByte() }, 8, true, "EVM only", emptyList(),
+                    listOf(
+                    slot(
+                        role.EVM_ROOT, "",
+                        bytes(field.PUBLIC_KEY, evm.publicKey), bytes(field.PRIVATE_KEY, evm.privateKey),
+                        bytes(field.ACCOUNT_ID_OR_ADDRESS, evm.publicKey.ethereumAddressFromPublicKey()),
+                        one(field.SOURCE_RECIPE, 0)
+                    ),
+                    auxiliaryWithBinding("0000", 3, 12, byteArrayOf(0x31, 0x32)),
+                ),
+            ),
+            PortableWalletSemanticMaterial.Wallet(
+                ByteArray(16) { (it + 17).toByte() }, 9, true, "TON only", emptyList(),
+                    listOf(
+                    slot(
+                        role.TON_ROOT, "",
+                        bytes(field.PUBLIC_KEY, tonPublic), bytes(field.PRIVATE_KEY, tonPrivate),
+                        bytes(field.SEED, phrase.toByteArray()), bytes(field.ACCOUNT_ID_OR_ADDRESS, rawTonAddress),
+                        one(field.SOURCE_RECIPE, 0), one(field.TON_CONTRACT_VERSION, 2),
+                        one(field.TON_ADDRESS_ENCODING, 1)
+                    ),
+                    auxiliaryWithBinding("0000", 4, 13, byteArrayOf(0x41, 0x42)),
+                ),
+            ),
+        )
+        )
+        val semantic = codec.encode(source)
+        val afterImage = cohort.create(semantic, listOf(51L, 52L))
+        val projection = PortableWalletCohortStorageProjection.project(afterImage)
+        try {
+            source.clearSecrets()
+            semantic.fill(0)
+            assertEquals(listOf(Kind.V3_EVM, Kind.V3_TON), projection.secrets.map { it.destination })
+            assertEquals(
+                listOf("51:ETHEREUM_SECRETS", "52:TON_SECRETS"),
+                projection.secrets.map { it.destinationKey }
+            )
+            assertArrayEquals(evm.privateKey, projection.secrets.first().fieldCopy(field.PRIVATE_KEY))
+            assertArrayEquals(tonPrivate, projection.secrets.last().fieldCopy(field.PRIVATE_KEY))
+            assertArrayEquals(phrase.toByteArray(), projection.secrets.last().fieldCopy(field.SEED))
+            assertArrayEquals(rawTonAddress, projection.secrets.last().fieldCopy(field.ACCOUNT_ID_OR_ADDRESS))
+            assertArrayEquals(byteArrayOf(0x31, 0x32), projection.originals.first().sourceBytesCopy())
+            assertArrayEquals(byteArrayOf(0x41, 0x42), projection.originals.last().sourceBytesCopy())
+            assertEquals(true, projection.wallets.last().selected)
+            assertEquals(null, projection.wallets.first().substratePublicKeyCopy())
+            assertEquals(null, projection.wallets.last().ethereumAddressCopy())
+        } finally {
+            projection.clearSecrets()
+            afterImage.clearSecrets()
+            source.clearSecrets()
+            semantic.fill(0)
+            tonPrivate.fill(0)
+        }
+    }
+
+    @Test
+    fun `projection rejects repeated public wallet identity even under fresh local IDs`() {
+        val pair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, ByteArray(32) { 9 }, emptyList())
+        val source = PortableWalletSemanticMaterial.Snapshot(
+            0,
+            listOf(
+            PortableWalletSemanticMaterial.Wallet(
+                ByteArray(16) { 1 }, 0, true, "one", emptyList(),
+                listOf(root(pair.publicKey, pair.privateKey))
+            ),
+            PortableWalletSemanticMaterial.Wallet(
+                ByteArray(16) { 2 }, 1, true, "two", emptyList(),
+                listOf(root(pair.publicKey, pair.privateKey))
+            ),
+        )
+        )
+        val semantic = codec.encode(source)
+        val afterImage = cohort.create(semantic, listOf(61L, 62L))
+        try {
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletCohortStorageProjection.project(afterImage)
+            }
+        } finally {
+            afterImage.clearSecrets()
+            source.clearSecrets()
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `projection rejects repeated chain account identity across wallets`() {
+        val source = snapshot()
+        val first = source.wallets.first()
+        val second = source.wallets.last()
+        val chain = first.slots.single { it.role == role.CHAIN_ACCOUNT }
+        val repeated = PortableWalletSemanticMaterial.Snapshot(
+            source.selectedIndex,
+            listOf(
+            first,
+            PortableWalletSemanticMaterial.Wallet(
+                second.portableId, second.sourcePosition,
+                second.initialized, second.name, second.metadata, second.slots + chain
+            ),
+        )
+        )
+        val semantic = codec.encode(repeated)
+        val afterImage = cohort.create(semantic, listOf(71L, 72L))
+        try {
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletCohortStorageProjection.project(afterImage)
+            }
+        } finally {
+            afterImage.clearSecrets()
+            repeated.clearSecrets()
+            source.clearSecrets()
+            semantic.fill(0)
         }
     }
 
@@ -182,6 +360,9 @@ class PortableWalletCohortAfterImageTest {
         )
         try {
             assertThrows(IllegalArgumentException::class.java) { cohort.encode(forged) }
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletCohortStorageProjection.project(forged)
+            }
         } finally {
             forged.clearSecrets()
             source.clearSecrets()
@@ -349,6 +530,25 @@ class PortableWalletCohortAfterImageTest {
         one(field.SOURCE_FORMAT, format),
         bytes(field.SOURCE_BYTES, raw),
     )
+
+    private fun auxiliaryWithBinding(
+        key: String,
+        binding: Int,
+        sourceRole: Int,
+        raw: ByteArray
+    ) = slot(
+        role.AUXILIARY_SOURCE, key,
+        one(field.SOURCE_RECIPE, 0), one(field.SOURCE_PLATFORM, 1),
+        one(field.SOURCE_SLOT_ROLE, sourceRole), one(field.BINDING_KIND, binding),
+        one(field.SOURCE_FORMAT, 4), bytes(field.SOURCE_BYTES, raw),
+    )
+
+    private fun sourceAddress(): String {
+        val first = SubstrateKeypairFactory.generate(
+            EncryptionType.ED25519, ByteArray(32) { 1 }, emptyList(),
+        )
+        return first.publicKey.toAddress(42)
+    }
 
     private fun slot(
         roleCode: Int,

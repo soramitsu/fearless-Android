@@ -1,5 +1,11 @@
 # Status Summary
 
+## Portable cohort storage projection candidate — 2026-09-24
+
+- An unwired, pure projection now independently revalidates an allocated-ID `FPWCAI01` after-image and names each `FPWMSM01` wallet, selected position, public root, V2 chain, favorite, custody classification, metadata, exact V1/V2/V3 secret candidate and opaque original-source sidecar. It preserves standalone EVM and native TON material byte-for-byte, rejects repeated public wallet or chain identities, and keeps every receive-plan blocker. No Room or encrypted-preference mutation calls it.
+- This is a logical intent, not an installable Room image. FPWMSM01 source position may exceed Room's signed `Int`; backup flags and Google backup address are absent; custody needs a verified public-identity digest; watch and original-source storage/signing mappings remain unproven. The cohort journal does not reserve Room IDs or install any row. Cross-store atomicity, original-key signing/export, replacement-device evidence and final-source CI remain open. Portable recovery stays disabled.
+- Focused after-image/projection JVM cases pass 10/10 and the full account module passes 276/276 with no failures or skips against pinned Utils `1c80a2bf3fa1f996cf1328873e09f282ee29b69e`. Forced scoped Detekt covers both changed Kotlin files; these local checks are component evidence only.
+
 ## Android KaiaScan history source candidate — 2026-09-24
 
 - Bundled Kaia mainnet and Kairos history now route through the exact chain-bound KaiaScan OAPI hosts with a separate Bearer key. The old mainnet Scope URL can only redirect internally to the approved host. Native and fungible-token responses have separate mappings, exact decimal precision, bounded pages and fail-closed malformed/provider errors; token fees remain unknown because the token response has no fee field. Wallet and chain identities are unchanged. [The provider gate](kaia-history-production-gate-20260924.md) records the official contract and live acceptance still required.
