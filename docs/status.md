@@ -1,9 +1,19 @@
 # Status Summary
 
+## Android migration evidence identity repair — 2026-09-24
+
+- Hosted Android PR CI reached the API 30 migration verifier after the connected test task succeeded, then failed because it required seven schema-77 testcase names while the checked-in migration matrix and database version are 78. The verifier and its fixtures now require the seven exact schema-78 identities and assert that the source version, method name and parameter label agree. Local verifier fixtures pass 2 positive plus 34 adversarial cases; evidence-packaging tests pass 49/49. The hosted API 30/31/34/36 matrix must run again from the new source head before this is qualified.
+
+## Portable cohort journal staging candidate — 2026-09-24
+
+- The internal `FPWCJ001` journal now durably stages one exact, encrypted `FPWCAI01` multiwallet after-image with ordered local IDs and all canonical semantic source bytes. On restart it checks the version, length, digest, canonical encoding, V1/V2/V3 candidate keys, other active wallet journals and wallet-scoped secret namespaces. Staging and exact-token abandonment compare-and-swap the journal, TON Connect and legacy mutation journals, and known target keys; uncertain writes require read-only reconciliation. Prefix-based namespace inspection cannot join that exact-key CAS, so staged IDs are not reserved and replay rejects any later collision.
+- The focused journal JVM suite passes 14/14 against pinned Utils `1c80a2bf3fa1f996cf1328873e09f282ee29b69e`; forced scoped Detekt passes on both new Kotlin files. A supplemental read-only review found an abandonment race, corrected before publication with a targeted regression. Hosted CI must still qualify the final head.
+- The journal does **not** install wallet secrets or Room rows, reserve Room IDs, map all sidecar destinations, prove every original key, or mark backup/recovery complete. Every replayed after-image retains the installer and source blockers. The existing single-wallet journal remains the only active wallet mutation path, and portable recovery remains disabled.
+
 ## Portable cohort after-image candidate — 2026-09-24
 
 - An unwired, versioned `FPWCAI01` after-image now binds ordered positive local wallet IDs to the exact canonical `FPWMSM01` cohort. It retains source positions, selection, every wallet/metadata/slot byte and all receiving blockers, and derives candidate V3/V2/V1 secret namespaces without writing any store. Malformed wire, duplicate local IDs or candidate keys, unsupported V2 account IDs and mismatched V1 public addresses fail closed. Record and destination string rendering is redacted.
-- Focused JVM tests pass 6/6 against pinned Utils; forced scoped Detekt on the three touched Kotlin files and diff checks pass. This is a schema prerequisite only: the active journal still handles one wallet and up to three V3 roots, with no cohort-wide replay, Room/secret-store installation, original-source mapping or replacement-device proof. Portable recovery remains disabled.
+- Focused JVM tests pass 6/6 against pinned Utils; forced scoped Detekt on the three touched Kotlin files and diff checks pass. This is a schema prerequisite only: the active mutation journal still handles one wallet and up to three V3 roots, with no cohort-wide *mutation* replay, Room/secret-store installation, original-source mapping or replacement-device proof. Portable recovery remains disabled.
 
 ## Portable receiving plan candidate — 2026-09-24
 
