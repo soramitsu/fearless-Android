@@ -154,6 +154,98 @@ class PortableWalletV3OriginalSourceProofTest {
         }
     }
 
+    @Test
+    fun `mixed signed and watch cohort accounts for every Android original source`() {
+        val fixture = fixture()
+        val signed = fixture.wallets.single()
+        val favorite = slot(
+            role.FAVORITE_CHAIN, "chain-x",
+            item(field.INITIALIZED_OR_FAVORITE, byteArrayOf(1))
+        )
+        val watch = slot(
+            role.WATCH_IDENTITY, "0000",
+            item(field.ACCOUNT_ID_OR_ADDRESS, ByteArray(20) { 4 }),
+            item(field.WATCH_ECOSYSTEM, byteArrayOf(2))
+        )
+        val cohort = PortableWalletSemanticMaterial.Snapshot(
+            0,
+            listOf(
+                PortableWalletSemanticMaterial.Wallet(
+                    signed.portableId.copyOf(), signed.sourcePosition, signed.initialized,
+                    signed.name, emptyList(), listOf(signed.slots.first(), favorite, signed.slots.last())
+                ),
+                PortableWalletSemanticMaterial.Wallet(
+                    ByteArray(16) { 2 }, 1, true, "Watch", emptyList(), listOf(watch)
+                )
+            )
+        )
+        val encoded = codec.encode(cohort)
+        try {
+            val counts = PortableWalletAndroidSourceCohortProof.verify(encoded, emptyList())
+            assertEquals(2, counts.wallets)
+            assertEquals(1, counts.signedWallets)
+            assertEquals(1, counts.watchWallets)
+            assertEquals(1, counts.v3Roots)
+            assertEquals(1, counts.publicFavorites)
+            assertEquals(0, counts.v1Sources)
+            assertEquals(0, counts.v2Chains)
+            val unusedPolicy = PortableWalletChainSigningProof.ApprovedGenesis(
+                "0x" + "01".repeat(32), PortableWalletChainSigningProof.IdentityKind.SUBSTRATE
+            )
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletAndroidSourceCohortProof.verify(encoded, listOf(unusedPolicy))
+            }
+        } finally {
+            encoded.fill(0)
+            cohort.clearSecrets()
+            fixture.clearSecrets()
+        }
+    }
+
+    @Test
+    fun `cohort rejects a watch mixed with a signer and an unproved foreign source`() {
+        val fixture = fixture()
+        val signed = fixture.wallets.single()
+        val watch = slot(
+            role.WATCH_IDENTITY, "0000",
+            item(field.ACCOUNT_ID_OR_ADDRESS, ByteArray(20) { 4 }),
+            item(field.WATCH_ECOSYSTEM, byteArrayOf(2))
+        )
+        val unproved = slot(
+            role.AUXILIARY_SOURCE, "0001",
+            item(field.SOURCE_RECIPE, byteArrayOf(0)),
+            item(field.SOURCE_PLATFORM, byteArrayOf(2)),
+            item(field.SOURCE_SLOT_ROLE, byteArrayOf(2)),
+            item(field.BINDING_KIND, byteArrayOf(3)),
+            item(field.SOURCE_FORMAT, byteArrayOf(1)),
+            item(field.SOURCE_BYTES, byteArrayOf(1))
+        )
+        try {
+            assertCohortRejected(signed.slots + watch)
+            assertCohortRejected(signed.slots + unproved)
+        } finally {
+            fixture.clearSecrets()
+            watch.clearSecrets()
+            unproved.clearSecrets()
+        }
+    }
+
+    private fun assertCohortRejected(slots: List<PortableWalletSemanticMaterial.Slot>) {
+        val wallet = PortableWalletSemanticMaterial.Wallet(
+            ByteArray(16) { 1 }, 0, true, "Wallet", emptyList(),
+            slots.sortedWith(compareBy({ it.role }, { it.key }))
+        )
+        val snapshot = PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet))
+        val encoded = codec.encode(snapshot)
+        try {
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletAndroidSourceCohortProof.verify(encoded, emptyList())
+            }
+        } finally {
+            encoded.fill(0)
+        }
+    }
+
     private fun fixture(): PortableWalletSemanticMaterial.Snapshot {
         val pair = EthereumKeypairFactory.createWithPrivateKey(ByteArray(32) { (it + 1).toByte() })
         val raw = EthereumSecrets(ethereumKeypair = pair).toByteArray()

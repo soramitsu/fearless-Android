@@ -3,10 +3,13 @@ package jp.co.soramitsu.account.impl.data.repository
 import jp.co.soramitsu.account.impl.data.repository.PortableWalletChainSigningProof.ApprovedGenesis
 import jp.co.soramitsu.account.impl.data.repository.PortableWalletChainSigningProof.IdentityKind
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.utils.deriveSeed32
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
@@ -94,8 +97,17 @@ class PortableWalletV1SourceProofTest {
     }
 
     @Test
-    fun `V1 and V2 sources are independently proved in a mixed historical cohort`() {
+    fun `V1 V2 and V3 sources are independently proved in a mixed historical cohort`() {
         val legacy = legacyMnemonicSlot()
+        val evmPair = EthereumKeypairFactory.createWithPrivateKey(ByteArray(32) { (it + 1).toByte() })
+        val evmRaw = EthereumSecrets(ethereumKeypair = evmPair).toByteArray()
+        val evmRoot = slot(
+            role.EVM_ROOT, "",
+            item(field.PUBLIC_KEY, evmPair.publicKey),
+            item(field.PRIVATE_KEY, evmPair.privateKey),
+            item(field.ACCOUNT_ID_OR_ADDRESS, evmPair.publicKey.ethereumAddressFromPublicKey()),
+            item(field.SOURCE_RECIPE, byteArrayOf(0))
+        )
         val chainSeed = ByteArray(32) { 5 }
         val chainPair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, chainSeed, emptyList())
         val account = chainPair.publicKey.substrateAccountId()
@@ -123,11 +135,21 @@ class PortableWalletV1SourceProofTest {
             item(field.SOURCE_BYTES, raw),
             item(field.BINDING_ACCOUNT_ID, account)
         )
+        val evmOriginal = slot(
+            role.AUXILIARY_SOURCE, "0001",
+            item(field.SOURCE_RECIPE, byteArrayOf(0)),
+            item(field.SOURCE_PLATFORM, byteArrayOf(1)),
+            item(field.SOURCE_SLOT_ROLE, byteArrayOf(12)),
+            item(field.BINDING_KIND, byteArrayOf(3)),
+            item(field.SOURCE_FORMAT, byteArrayOf(4)),
+            item(field.SOURCE_BYTES, evmRaw)
+        )
         val snapshot = PortableWalletSemanticMaterial.Snapshot(
             0,
             listOf(
                 PortableWalletSemanticMaterial.Wallet(
-                    ByteArray(16) { 1 }, 0, true, "V1+V2", emptyList(), listOf(legacy, chain, original)
+                    ByteArray(16) { 1 }, 0, true, "V1+V2+V3", emptyList(),
+                    listOf(evmRoot, legacy, chain, original, evmOriginal)
                 )
             )
         )
@@ -136,16 +158,26 @@ class PortableWalletV1SourceProofTest {
             val legacyCounts = PortableWalletV1SourceProof.verify(encoded)
             assertEquals(1, legacyCounts.wallets)
             assertEquals(1, legacyCounts.provedLegacySources)
-            assertEquals(2, legacyCounts.otherSlots)
+            assertEquals(4, legacyCounts.otherSlots)
             val chainCounts = PortableWalletChainSigningProof.verify(
                 encoded, listOf(ApprovedGenesis(genesis, IdentityKind.SUBSTRATE))
             )
             assertEquals(1, chainCounts.chainAccounts)
             assertEquals(1, chainCounts.exactOriginalSources)
+            val cohort = PortableWalletAndroidSourceCohortProof.verify(
+                encoded, listOf(ApprovedGenesis(genesis, IdentityKind.SUBSTRATE))
+            )
+            assertEquals(1, cohort.wallets)
+            assertEquals(1, cohort.signedWallets)
+            assertEquals(1, cohort.v1Sources)
+            assertEquals(1, cohort.v2Chains)
+            assertEquals(1, cohort.v3Roots)
+            assertEquals("PortableWalletAndroidSourceCohortProof.Counts(redacted)", cohort.toString())
         } finally {
             snapshot.clearSecrets()
             encoded.fill(0)
             raw.fill(0)
+            evmRaw.fill(0)
             chainSeed.fill(0)
         }
     }

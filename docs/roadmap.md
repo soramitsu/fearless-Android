@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android mixed-cohort original-source proof candidate — 2026-09-25
+
+- A read-only verifier now composes V1, approved-genesis V2 and exact V3 source proofs across mixed signed/watch cohorts, while rejecting unsupported originals and inconsistent custody. P0: derive and bind the complete public-identity digest to an application-owned exporter and independent plaintext verifier; qualify every released V1/V2/V3/standalone EVM/native TON cohort, watch/favorite/metadata mapping and original-key export after transactional installation. Then test real passkey/Drive replacement recovery and signed upgrades on both platforms before enabling backup completion. Structural watch/favorite checks are not an installer proof.
+
 ## Android historical V1 source proof candidate — 2026-09-25
 
 - The unwired V1 checker proves the retained typed historical key, SS58 identity, mnemonic/entropy, seed and path under the production validator; the existing V2 checker separately proves canonical original SCALE chain sources against an approved genesis policy. P0: qualify all real historical V1/V2 cohorts and original export behavior on signed upgrades; integrate with V3/iOS/watch/metadata checks only after exact original-key and complete-cohort proof exists, then implement crash-safe installation and replacement-device acceptance. No backup-complete decision consumes these narrow proofs.

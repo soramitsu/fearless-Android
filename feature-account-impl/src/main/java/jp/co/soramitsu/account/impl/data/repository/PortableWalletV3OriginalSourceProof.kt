@@ -24,10 +24,17 @@ internal object PortableWalletV3OriginalSourceProof {
     }
 
     fun verify(encoded: ByteArray): Counts {
+        return verifyRoots(encoded, allowOtherSlots = false)
+    }
+
+    /** Proves every V3 root in a mixed Android cohort; the caller must account for other slots. */
+    internal fun verifyEmbedded(encoded: ByteArray): Counts = verifyRoots(encoded, allowOtherSlots = true)
+
+    private fun verifyRoots(encoded: ByteArray, allowOtherSlots: Boolean): Counts {
         val signing = PortableWalletRootSigningProof.verify(encoded)
         val decoded = codec.decode(encoded)
         try {
-            val proved = decoded.wallets.sumOf(::verifyWallet)
+            val proved = decoded.wallets.sumOf { verifyWallet(it, allowOtherSlots) }
             require(proved > 0 && proved == signing.substrateRoots + signing.evmRoots + signing.nativeTonRoots) {
                 "V3 original source proof is incomplete"
             }
@@ -37,10 +44,18 @@ internal object PortableWalletV3OriginalSourceProof {
         }
     }
 
-    private fun verifyWallet(wallet: PortableWalletSemanticMaterial.Wallet): Int {
-        val sources = wallet.slots.filter { it.role == role.AUXILIARY_SOURCE }
+    private fun verifyWallet(wallet: PortableWalletSemanticMaterial.Wallet, allowOtherSlots: Boolean): Int {
+        val sources = wallet.slots.filter { slot ->
+            if (slot.role != role.AUXILIARY_SOURCE) {
+                false
+            } else {
+                val platform = slot.number(field.SOURCE_PLATFORM)
+                val sourceRole = slot.number(field.SOURCE_SLOT_ROLE)
+                !allowOtherSlots || platform == 1 && sourceRole in 11..13
+            }
+        }
         val roots = wallet.slots.filter { it.role in role.SUBSTRATE_ROOT..role.TON_ROOT }
-        require(wallet.slots.size == sources.size + roots.size) {
+        require(allowOtherSlots || wallet.slots.size == sources.size + roots.size) {
             "V1, V2, watch, favorite or other semantic slots are not V3 root proof"
         }
         roots.forEach { root ->
