@@ -53,6 +53,54 @@ class PortableWalletRootSigningProofTest {
     }
 
     @Test
+    fun `iOS 64-byte ED25519 root proves its miniSeed signer but retains an unproven suffix`() {
+        val root = SubstrateKeypairFactory.generate(
+            EncryptionType.ED25519, ByteArray(32) { 7 }, emptyList(),
+        )
+        // iOS SigningWrapperProtocol.signEd25519 uses Data.miniSeed, the first
+        // 32 bytes, even when its Keychain entry is a 64-byte seed.
+        val iosSecret = root.privateKey + ByteArray(32) { (it + 33).toByte() }
+        val source = snapshot(listOf(substrateSlot(root.publicKey, iosSecret)))
+        val encoded = codec.encode(source)
+        try {
+            val counts = proof.verify(encoded)
+            assertEquals(1, counts.substrateRoots)
+            assertEquals(1, counts.unprovenRecoveryFields)
+            assertInvalid(
+                slot(
+                    role.SUBSTRATE_ROOT, "",
+                    bytes(field.PUBLIC_KEY, root.publicKey), bytes(field.PRIVATE_KEY, iosSecret),
+                    bytes(field.NONCE, ByteArray(32)),
+                    bytes(field.ACCOUNT_ID_OR_ADDRESS, root.publicKey),
+                    one(field.CRYPTO_TYPE, 2), one(field.SOURCE_RECIPE, 0),
+                ),
+            )
+        } finally {
+            source.clearSecrets()
+            encoded.fill(0)
+            iosSecret.fill(0)
+        }
+
+        val different = SubstrateKeypairFactory.generate(
+            EncryptionType.ED25519, ByteArray(32) { 8 }, emptyList(),
+        )
+        assertInvalid(substrateSlot(root.publicKey, different.privateKey + ByteArray(32) { 9 }))
+    }
+
+    @Test
+    fun `ECDSA cannot acquire the iOS 64-byte ED25519 secret shape`() {
+        val root = SubstrateKeypairFactory.generate(
+            EncryptionType.ECDSA, ByteArray(32) { 12 }, emptyList(),
+        )
+        assertInvalid(
+            substrateSlot(
+                root.publicKey, root.privateKey + ByteArray(32) { 1 },
+                account = root.publicKey.substrateAccountId(), cryptoType = 3,
+            ),
+        )
+    }
+
+    @Test
     fun `a public match cannot hide a different substrate or EVM private key`() {
         val substrate = SubstrateKeypairFactory.generate(
             EncryptionType.ED25519, ByteArray(32) { 8 }, emptyList(),

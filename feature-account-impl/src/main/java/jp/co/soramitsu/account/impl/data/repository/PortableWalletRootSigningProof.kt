@@ -81,6 +81,14 @@ internal object PortableWalletRootSigningProof {
                     unprovenRecovery += slot.countUnprovenRecoveryFields(
                         includeNonce = slot.number(field.CRYPTO_TYPE) != 1,
                     )
+                    // Released iOS ED25519 signs from Data.miniSeed (the first 32 bytes).
+                    // Its remaining stored bytes have no signing proof and must still be
+                    // preserved and separately qualified before any installer can run.
+                    if (slot.number(field.CRYPTO_TYPE) == 2 &&
+                        slot.value(field.PRIVATE_KEY).size == 64
+                    ) {
+                        unprovenRecovery++
+                    }
                 }
                 role.EVM_ROOT -> {
                     verifyEvm(slot, wallet.portableId)
@@ -111,26 +119,66 @@ internal object PortableWalletRootSigningProof {
             CryptoType.ED25519 -> EncryptionType.ED25519
             CryptoType.ECDSA -> EncryptionType.ECDSA
         }
-        val keypair = Keypair(publicKey, slot.value(field.PRIVATE_KEY), slot.optional(field.NONCE))
-        WalletRootSecretValidator.validateSubstrateKeypair(
-            keypair = keypair,
-            expectedPublicKey = publicKey,
-            expectedCryptoType = cryptoType,
-            expectedAccountId = slot.value(field.ACCOUNT_ID_OR_ADDRESS),
-        )
-        val message = proofMessage(portableId, slot.role, publicKey)
+        val (privateKey, nonce) = unpackSubstrateSecret(slot, cryptoType)
         try {
-            val signature = Signer.sign(MultiChainEncryption.Substrate(encryption), message, keypair)
-            require(
-                when (cryptoType) {
-                    CryptoType.SR25519 -> Signer.verifySr25519(message, signature.signature, publicKey)
-                    CryptoType.ED25519 -> Signer.verifyEd25519(message, signature.signature, publicKey)
-                    CryptoType.ECDSA -> verifyEcdsa(message.blake2b256(), signature, publicKey)
-                },
-            ) { "Substrate root cannot sign for its public identity" }
+            val keypair = Keypair(publicKey, privateKey, nonce)
+            WalletRootSecretValidator.validateSubstrateKeypair(
+                keypair = keypair,
+                expectedPublicKey = publicKey,
+                expectedCryptoType = cryptoType,
+                expectedAccountId = slot.value(field.ACCOUNT_ID_OR_ADDRESS),
+            )
+            val message = proofMessage(portableId, slot.role, publicKey)
+            try {
+                val signature = Signer.sign(MultiChainEncryption.Substrate(encryption), message, keypair)
+                require(
+                    when (cryptoType) {
+                        CryptoType.SR25519 -> Signer.verifySr25519(message, signature.signature, publicKey)
+                        CryptoType.ED25519 -> Signer.verifyEd25519(message, signature.signature, publicKey)
+                        CryptoType.ECDSA -> verifyEcdsa(message.blake2b256(), signature, publicKey)
+                    },
+                ) { "Substrate root cannot sign for its public identity" }
+            } finally {
+                message.fill(0)
+            }
         } finally {
-            message.fill(0)
+            privateKey.fill(0)
+            nonce?.fill(0)
         }
+    }
+
+    private fun unpackSubstrateSecret(
+        slot: PortableWalletSemanticMaterial.Slot,
+        cryptoType: CryptoType,
+    ): Pair<ByteArray, ByteArray?> {
+        val secret = slot.value(field.PRIVATE_KEY)
+        val storedNonce = slot.optional(field.NONCE)
+        // Android V3 stores the SR scalar and nonce in separate fields. Released iOS
+        // stores the same native SR secret as scalar||nonce in field 2. iOS ED25519
+        // signs with the first 32 bytes of its stored seed, including a 64-byte seed.
+        // A 64-byte value is never accepted for ECDSA or with an ambiguous nonce.
+        when (cryptoType) {
+            CryptoType.SR25519 -> require(
+                secret.size == 64 && storedNonce == null ||
+                    secret.size == 32 && storedNonce?.size == 32
+            ) { "SR25519 secret has an invalid scalar or nonce" }
+            CryptoType.ED25519 -> require(
+                secret.size in setOf(32, 64) && storedNonce == null
+            ) { "ED25519 secret has an invalid shape" }
+            CryptoType.ECDSA -> require(
+                secret.size == 32 && storedNonce == null
+            ) { "ECDSA secret has an invalid shape" }
+        }
+        val nonce = if (cryptoType == CryptoType.SR25519) {
+            if (secret.size == 64) {
+                secret.copyOfRange(32, 64)
+            } else {
+                requireNotNull(storedNonce).copyOf()
+            }
+        } else {
+            null
+        }
+        return secret.copyOfRange(0, 32) to nonce
     }
 
     private fun verifyEvm(slot: PortableWalletSemanticMaterial.Slot, portableId: ByteArray) {
