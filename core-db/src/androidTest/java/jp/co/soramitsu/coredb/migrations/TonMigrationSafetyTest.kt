@@ -34,6 +34,7 @@ import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.migrations.fixtures.ReleasedV374DatabaseFixture
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -59,7 +60,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Exercises the real Room 71 -> 78 production open path from an immutable
+ * Exercises the real Room 71 -> current production open path from an immutable
  * binary fixture synthesized from DDL and a Room identity extracted from the
  * official Fearless Wallet 3.7.4 (209) APK.
  *
@@ -665,7 +666,7 @@ class TonMigrationSafetyTest {
 
         openProductionDatabase(ETHEREUM_PRIVATE_MISMATCH_DATABASE, preferences)
             .useDatabase { database ->
-                assertEquals(78, database.openHelper.writableDatabase.version)
+                assertEquals(APP_DATABASE_VERSION, database.openHelper.writableDatabase.version)
             }
 
         assertProofFailureQuarantined(preferences, encoded)
@@ -693,7 +694,7 @@ class TonMigrationSafetyTest {
 
             openProductionDatabase(databaseName, preferences).useDatabase { database ->
                 val db = database.openHelper.writableDatabase
-                assertEquals(78, db.version)
+                assertEquals(APP_DATABASE_VERSION, db.version)
                 assertArrayEquals(
                     keypair.publicKey,
                     db.singleBlob("SELECT substratePublicKey FROM meta_accounts WHERE id = ?", META_ID)
@@ -864,7 +865,7 @@ class TonMigrationSafetyTest {
             PARTIAL_ETHEREUM_IDENTITY_DATABASE,
             preferences
         ).useDatabase {
-            assertEquals(78, it.openHelper.writableDatabase.version)
+            assertEquals(APP_DATABASE_VERSION, it.openHelper.writableDatabase.version)
         }
         assertEquals(encoded, preferences.getDecryptedString(oldSecretKey(META_ID)))
         assertFalse(preferences.hasKey(quarantineKey(oldSecretKey(META_ID))))
@@ -896,7 +897,7 @@ class TonMigrationSafetyTest {
             UNKNOWN_SUBSTRATE_CRYPTO_DATABASE,
             preferences
         ).useDatabase {
-            assertEquals(78, it.openHelper.writableDatabase.version)
+            assertEquals(APP_DATABASE_VERSION, it.openHelper.writableDatabase.version)
         }
         assertEquals(encoded, preferences.getDecryptedString(oldSecretKey(META_ID)))
         assertFalse(preferences.hasKey(quarantineKey(oldSecretKey(META_ID))))
@@ -955,7 +956,7 @@ class TonMigrationSafetyTest {
                 OFF_CURVE_ETHEREUM_DATABASE,
                 preferences
             ).useDatabase { database ->
-                assertEquals(78, database.openHelper.writableDatabase.version)
+                assertEquals(APP_DATABASE_VERSION, database.openHelper.writableDatabase.version)
             }
             assertEquals(
                 encoded,
@@ -1127,7 +1128,7 @@ class TonMigrationSafetyTest {
         )
 
         openProductionDatabase(KEYPAIR_ONLY_DATABASE, preferences).useDatabase { database ->
-            assertEquals(78, database.openHelper.writableDatabase.version)
+            assertEquals(APP_DATABASE_VERSION, database.openHelper.writableDatabase.version)
         }
 
         assertSubstrateSecretsMoved(
@@ -1790,11 +1791,11 @@ class TonMigrationSafetyTest {
 
         repair()
         openProductionDatabase(databaseName, preferences).useDatabase {
-            assertEquals(78, it.openHelper.writableDatabase.version)
+            assertEquals(APP_DATABASE_VERSION, it.openHelper.writableDatabase.version)
         }
         val exactAfterRecovery = preferences.rawSnapshot()
         openProductionDatabase(databaseName, preferences).useDatabase {
-            assertEquals(78, it.openHelper.writableDatabase.version)
+            assertEquals(APP_DATABASE_VERSION, it.openHelper.writableDatabase.version)
         }
         assertEquals(exactAfterRecovery, preferences.rawSnapshot())
     }
@@ -1827,7 +1828,7 @@ class TonMigrationSafetyTest {
 
         openProductionDatabase(databaseName, preferences).useDatabase { database ->
             val db = database.openHelper.writableDatabase
-            assertEquals(78, db.version)
+            assertEquals(APP_DATABASE_VERSION, db.version)
             assertArrayEquals(
                 validKeypair.publicKey,
                 db.singleBlob("SELECT substratePublicKey FROM meta_accounts WHERE id = ?", META_ID)
@@ -1859,7 +1860,7 @@ class TonMigrationSafetyTest {
         )
 
         openProductionDatabase(databaseName, preferences).useDatabase { database ->
-            assertEquals(78, database.openHelper.writableDatabase.version)
+            assertEquals(APP_DATABASE_VERSION, database.openHelper.writableDatabase.version)
         }
 
         assertProofFailureQuarantined(preferences, encodedLegacySecret)
@@ -1887,7 +1888,7 @@ class TonMigrationSafetyTest {
         )
 
         openProductionDatabase(databaseName, preferences).useDatabase { database ->
-            assertEquals(78, database.openHelper.writableDatabase.version)
+            assertEquals(APP_DATABASE_VERSION, database.openHelper.writableDatabase.version)
         }
 
         assertEquals(
@@ -1919,7 +1920,7 @@ class TonMigrationSafetyTest {
     }
 
     private fun SupportSQLiteDatabase.assertMigratedRowsPreserved() {
-        assertEquals(78, version)
+        assertEquals(APP_DATABASE_VERSION, version)
         assertEquals(
             ADVERSARIAL_WALLET_NAME,
             singleString("SELECT name FROM meta_accounts WHERE id = ?", META_ID)

@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.migrations.fixtures.ReleasedV200DatabaseFixture
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -45,7 +46,7 @@ import org.junit.Test
 /**
  * Opens an immutable Room-v30 fixture synthesized from DDL extracted from the
  * official Fearless Wallet v2.0.0 (51) APK through the complete production
- * 30 -> 78 migration chain.
+ * 30 -> current migration chain.
  *
  * The wallet material is deterministic synthetic data encoded by the exact
  * historical six-field schema. In particular, it has no trailing TON option.
@@ -152,7 +153,7 @@ class ReleasedV200MigrationSafetyTest {
             createVersion30Database(TRUNCATED_DATABASE)
 
             openProductionDatabase(TRUNCATED_DATABASE, preferences).useDatabase {
-                assertEquals(78, it.openHelper.writableDatabase.version)
+                assertEquals(APP_DATABASE_VERSION, it.openHelper.writableDatabase.version)
             }
 
             assertFalse(preferences.hasKey(legacySecretKey(META_ID)))
@@ -167,7 +168,7 @@ class ReleasedV200MigrationSafetyTest {
 
             // Recovery state is stable and must not become a migration loop.
             openProductionDatabase(TRUNCATED_DATABASE, preferences).useDatabase {
-                assertEquals(78, it.openHelper.writableDatabase.version)
+                assertEquals(APP_DATABASE_VERSION, it.openHelper.writableDatabase.version)
             }
         }
 
@@ -290,7 +291,7 @@ class ReleasedV200MigrationSafetyTest {
         preferences: HashMapEncryptedPreferences
     ) {
         val migrated = database.openHelper.writableDatabase
-        assertEquals(78, migrated.version)
+        assertEquals(APP_DATABASE_VERSION, migrated.version)
         assertEquals(
             WALLET_NAME,
             migrated.singleString(

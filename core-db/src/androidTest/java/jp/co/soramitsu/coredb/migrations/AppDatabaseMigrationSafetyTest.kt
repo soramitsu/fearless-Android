@@ -24,6 +24,7 @@ import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.migrations.fixtures.ReleasedV04Account
 import jp.co.soramitsu.coredb.migrations.fixtures.ReleasedV04DatabaseFixture
@@ -192,13 +193,14 @@ class AppDatabaseMigrationSafetyTest {
     @Test
     fun futureVersionFailsClosedAndDoesNotEraseUserData() {
         createVersion76DatabaseWithUserData(FUTURE_DATABASE)
-        setDatabaseVersion(FUTURE_DATABASE, 79)
+        val futureVersion = APP_DATABASE_VERSION + 1
+        setDatabaseVersion(FUTURE_DATABASE, futureVersion)
 
         val failure = openWithProductionPolicyExpectingFailure(FUTURE_DATABASE)
 
-        assertTrue(failure.message.orEmpty().contains("79"))
-        assertTrue(failure.message.orEmpty().contains("78"))
-        assertRawUserDataPreserved(FUTURE_DATABASE, expectedVersion = 79)
+        assertTrue(failure.message.orEmpty().contains(futureVersion.toString()))
+        assertTrue(failure.message.orEmpty().contains(APP_DATABASE_VERSION.toString()))
+        assertRawUserDataPreserved(FUTURE_DATABASE, expectedVersion = futureVersion)
     }
 
     @Test
@@ -209,22 +211,22 @@ class AppDatabaseMigrationSafetyTest {
         val failure = openWithProductionPolicyExpectingFailure(ANCIENT_DATABASE)
 
         assertTrue(failure.message.orEmpty().contains("8"))
-        assertTrue(failure.message.orEmpty().contains("78"))
+        assertTrue(failure.message.orEmpty().contains(APP_DATABASE_VERSION.toString()))
         assertRawUserDataPreserved(ANCIENT_DATABASE, expectedVersion = 8)
     }
 
     @Test
-    fun productionOpenMigratesShippedVersion26SchemaTo78AndPreservesWallets() {
-        assertShippedLegacySchemaMigratesTo78(VERSION_26_DATABASE, sourceVersion = 26)
+    fun productionOpenMigratesShippedVersion26SchemaToCurrentAndPreservesWallets() {
+        assertShippedLegacySchemaMigratesToCurrent(VERSION_26_DATABASE, sourceVersion = 26)
     }
 
     @Test
-    fun productionOpenMigratesShippedVersion27SchemaTo78AndPreservesWallets() {
-        assertShippedLegacySchemaMigratesTo78(VERSION_27_DATABASE, sourceVersion = 27)
+    fun productionOpenMigratesShippedVersion27SchemaToCurrentAndPreservesWallets() {
+        assertShippedLegacySchemaMigratesToCurrent(VERSION_27_DATABASE, sourceVersion = 27)
     }
 
     @Test
-    fun productionOpenMigratesReleasedV04Version9To78AndPreservesSplitSecrets() =
+    fun productionOpenMigratesReleasedV04Version9ToCurrentAndPreservesSplitSecrets() =
         runBlocking {
             val preferences = HashMapEncryptedPreferences()
             val originalSplitSecrets = putReleasedV04Secrets(
@@ -253,7 +255,7 @@ class AppDatabaseMigrationSafetyTest {
             )
             try {
                 val migrated = stores.database.openHelper.writableDatabase
-                assertEquals(78, migrated.version)
+                assertEquals(APP_DATABASE_VERSION, migrated.version)
                 assertEquals(2, migrated.singleInt("SELECT COUNT(*) FROM meta_accounts"))
                 assertEquals(
                     1,
@@ -411,7 +413,7 @@ class AppDatabaseMigrationSafetyTest {
             )
             try {
                 val migrated = stores.database.openHelper.writableDatabase
-                assertEquals(78, migrated.version)
+                assertEquals(APP_DATABASE_VERSION, migrated.version)
                 assertEquals(2, migrated.singleInt("SELECT COUNT(*) FROM meta_accounts"))
 
                 val corruptMetaId = migrated.singleLong(
@@ -541,7 +543,7 @@ class AppDatabaseMigrationSafetyTest {
         val ethereumSecretStore: EthereumSecretStore
     )
 
-    private fun assertShippedLegacySchemaMigratesTo78(
+    private fun assertShippedLegacySchemaMigratesToCurrent(
         databaseName: String,
         sourceVersion: Int
     ) = runBlocking {
@@ -578,7 +580,7 @@ class AppDatabaseMigrationSafetyTest {
         )
         try {
             val migrated = database.openHelper.writableDatabase
-            assertEquals(78, migrated.version)
+            assertEquals(APP_DATABASE_VERSION, migrated.version)
             assertEquals(2, migrated.singleInt("SELECT COUNT(*) FROM meta_accounts"))
             assertEquals(1, migrated.singleInt("SELECT COUNT(*) FROM meta_accounts WHERE isSelected = 1"))
             assertEquals(
