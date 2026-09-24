@@ -150,11 +150,17 @@ class EtherscanHistorySourceTest {
     @Test
     fun `wrong official host and transport failure cannot be mistaken for empty history`() = runBlocking {
         val api = RecordingApi { throw IllegalStateException("network unavailable") }
-        val mismatchedHost = runCatching {
-            EtherscanHistorySource(api.client, "https://api.polygonscan.com/api", "unified-key")
-                .getOperations(25, null, TRANSFER_FILTER, ACCOUNT_ID, chain(BSCChainId), asset(), ADDRESS)
+        listOf(
+            "https://api.polygonscan.com/api",
+            "https://API.POLYGONSCAN.COM/api",
+            "https://API.POLYGONSCAN.COM./api"
+        ).forEach { wrongHost ->
+            val mismatchedHost = runCatching {
+                EtherscanHistorySource(api.client, wrongHost, "unified-key")
+                    .getOperations(25, null, TRANSFER_FILTER, ACCOUNT_ID, chain(BSCChainId), asset(), ADDRESS)
+            }
+            assertTrue(mismatchedHost.exceptionOrNull() is HistoryNotSupportedException)
         }
-        assertTrue(mismatchedHost.exceptionOrNull() is HistoryNotSupportedException)
         assertTrue(api.calls.isEmpty())
 
         val transportFailure = runCatching {

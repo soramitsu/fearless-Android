@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.data.historySource
 
 import com.google.gson.Gson
 import java.net.URI
+import java.util.Locale
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.isNotZero
@@ -149,7 +150,7 @@ class EtherscanHistorySource(
 
     private fun independentEndpoint(): Endpoint {
         val uri = URI(historyUrl)
-        val host = uri.host
+        val host = uri.host?.lowercase(Locale.ROOT)?.removeSuffix(".")
         if (uri.scheme != "https" || host.isNullOrBlank() || uri.userInfo != null ||
             uri.rawQuery != null || uri.rawFragment != null || host in officialEtherscanHosts
         ) {
