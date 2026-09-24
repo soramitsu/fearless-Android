@@ -71,6 +71,16 @@ class PasskeyBackupNativeCeremonyResult private constructor(
         }
     }
 
+    /** Keep the native PRF result local and clear its callback copy after asynchronous verification. */
+    suspend fun <T> withRequiredLocalPrfOutput(block: suspend (ByteArray) -> T): T {
+        val copy = requireNotNull(localPrfOutput?.copyOf()) { "Passkey provider did not return a PRF result" }
+        return try {
+            block(copy)
+        } finally {
+            copy.fill(0)
+        }
+    }
+
     override fun close() {
         localPrfOutput?.fill(0)
         localPrfOutput = null

@@ -67,6 +67,36 @@ class PasskeyBackupNativeIntegrationTest {
     }
 
     @Test
+    fun `required PRF callback clears its copy after suspended failure and refuses missing output`() = runBlocking {
+        val secret = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(32) { 9 })
+        val rawJson = ASSERTION_CREDENTIAL_JSON.replace(
+            "\"clientExtensionResults\":{}",
+            "\"clientExtensionResults\":{\"prf\":{\"results\":{\"first\":\"$secret\"}}}"
+        )
+        val result = PasskeyBackupNativeCeremonyResult.assertion(rawJson, pendingAssertion().requestJson)
+        var callbackCopy: ByteArray? = null
+        assertTrue(
+            runCatching {
+                result.withRequiredLocalPrfOutput { prf ->
+                    callbackCopy = prf
+                    kotlinx.coroutines.yield()
+                    error("synthetic verification failure")
+                }
+            }.isFailure
+        )
+        assertTrue(requireNotNull(callbackCopy).all { it == 0.toByte() })
+        result.close()
+        assertFalse(result.hasLocalPrfOutput)
+        assertTrue(runCatching { result.withRequiredLocalPrfOutput { } }.isFailure)
+
+        PasskeyBackupNativeCeremonyResult.assertion(
+            ASSERTION_CREDENTIAL_JSON, pendingAssertion().requestJson
+        ).use { missing ->
+            assertTrue(runCatching { missing.withRequiredLocalPrfOutput { } }.isFailure)
+        }
+    }
+
+    @Test
     fun `registration keeps public credential properties but removes local PRF output`() {
         val secret = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(32) { 7 })
         val rawJson = REGISTRATION_CREDENTIAL_JSON.replace(

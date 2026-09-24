@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Authenticated Android generation readback — 2026-09-24
+
+- The disabled coordinator now binds an exact Drive generation to a fresh credential-directed PRF assertion, a server-verified owner/head response, local decryption and original-key proof, and post-verification owner/Google-account rechecks. P0: implement and deploy the owner-session/bootstrap and one-use assertion/head HTTP adapter with transactional revocation/freshness semantics; replace the synthetic wallet verifier with full application-owned V1/V2/V3/standalone EVM/native TON original-key signing/export proof; complete the transactional cohort installer. Qualify real iOS↔replacement Android and Android↔replacement iOS provider/Drive recovery before enabling. Local readback evidence alone cannot authorize installation or backup completion.
+
 ## Android portable receive abandonment tombstones — 2026-09-24
 
 - Candidate schema 79 now leaves exact, permanently fenced Room tombstones after a cohort is abandoned, closing the preference-first deletion crash window. P0: run revised v78→79 migration and full released-schema instrumentation on API 30/31/36, review the 8,192-row quota and a safe maintenance protocol before exposing repeated recovery attempts, and prove no cross-process writer bypasses the reservation fence. The compatibility evidence gate must identify the trigger test on every API, and final signed upgrade/device results are still required. This still does not install a wallet or enable recovery.
