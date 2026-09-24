@@ -3,6 +3,7 @@ package jp.co.soramitsu.account.impl.data.repository
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityRecovery
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 
@@ -47,16 +48,17 @@ internal class PortableWalletExportInventoryGuard(
 
     /** Unknown, quarantined and orphaned wallet-scoped keys must never be silently omitted. */
     fun walletSecretNamespaces(wallets: List<ExportWalletIdentity>): Map<Long, Set<String>> {
-        val prefixes = wallets.flatMap { wallet ->
-            listOf(
-                "${wallet.id}:",
-                "wallet_secret_quarantine:${wallet.id}:",
-                "${WalletPublicIdentityRecovery.KEY_PREFIX}${wallet.id}:"
-            )
-        }.toSet()
+        // An exact scan of the current Room IDs misses active V2/V3 ciphertext
+        // whose owner row was deleted. Reserve the numeric wallet-key grammar
+        // globally, while ignoring ordinary numeric-prefixed preference names.
+        val prefixes = buildSet {
+            ('0'..'9').mapTo(this, Char::toString)
+            add(WalletSecretQuarantine.KEY_PREFIX)
+            add(WalletPublicIdentityRecovery.KEY_PREFIX)
+        }
         val keys = encryptedPreferences.keysWithPrefixes(
             prefixes = prefixes,
-            maxResultCount = 4_096,
+            maxResultCount = 8_192,
             maxKeyBytes = 1_024,
             maxTotalKeyBytes = 1_048_576,
             failOnOversizedMatch = true
@@ -64,13 +66,27 @@ internal class PortableWalletExportInventoryGuard(
         check(keys.all { key -> prefixes.any(key::startsWith) }) {
             "Wallet secret namespace enumeration returned an unrelated key"
         }
+        val ownedPrefixes = wallets.map { "${it.id}:" }
+        val hasOrphan = keys.any { key ->
+            val recoveryNamespace = key.startsWith(WalletSecretQuarantine.KEY_PREFIX) ||
+                key.startsWith(WalletPublicIdentityRecovery.KEY_PREFIX)
+            val orphanActive = ownedPrefixes.none(key::startsWith) &&
+                isOrphanWalletSecretNamespace(key)
+            recoveryNamespace || orphanActive
+        }
+        check(!hasOrphan) { "An orphaned or quarantined wallet secret namespace is present" }
         return wallets.associate { wallet ->
             wallet.id to keys.filterTo(linkedSetOf()) { key ->
-                key.startsWith("${wallet.id}:") ||
-                    key.startsWith("wallet_secret_quarantine:${wallet.id}:") ||
-                    key.startsWith("${WalletPublicIdentityRecovery.KEY_PREFIX}${wallet.id}:")
+                key.startsWith("${wallet.id}:")
             }
         }
+    }
+
+    private fun isOrphanWalletSecretNamespace(key: String): Boolean {
+        val separator = key.indexOf(':')
+        if (separator <= 0 || key.first() !in '0'..'9') return false
+        val suffix = key.substring(separator + 1)
+        return suffix in ROOT_SECRET_SUFFIXES || suffix.endsWith(":ACCESS_SECRETS")
     }
 
     fun requireExactSourceInventory(
@@ -110,5 +126,14 @@ internal class PortableWalletExportInventoryGuard(
             }
             else -> null
         }
+    }
+
+    private companion object {
+        val ROOT_SECRET_SUFFIXES = setOf(
+            "ACCESS_SECRETS",
+            "SUBSTRATE_SECRETS",
+            "ETHEREUM_SECRETS",
+            "TON_SECRETS"
+        )
     }
 }

@@ -129,6 +129,60 @@ class PortableWalletVerifiedExporterTest {
     }
 
     @Test
+    fun `rejects orphaned V2 and V3 namespaces outside Room without rejecting ordinary preferences`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        try {
+            fixture.namespace += setOf("99:display_order", "2026:sync_height", "99:api_secret_token")
+            exporter.captureVerifiedSemanticPlaintext(policy).fill(0)
+            listOf(
+                "99:ACCESS_SECRETS",
+                "99:SUBSTRATE_SECRETS",
+                "99:ETHEREUM_SECRETS",
+                "99:TON_SECRETS",
+                "99:${"ab".repeat(32)}:ACCESS_SECRETS",
+                "099:ETHEREUM_SECRETS"
+            ).forEach { orphan ->
+                fixture.namespace += orphan
+                assertThrows(IllegalStateException::class.java) {
+                    runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
+                }
+                fixture.namespace -= orphan
+            }
+            verify(custodyDao, never()).insert(any())
+        } finally {
+            fixture.clear()
+        }
+    }
+
+    @Test
+    fun `rejects globally orphaned quarantine and recovery aliases`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        try {
+            listOf(
+                "security_source_${ByteArray(32) { 51 }.toAddress(42)}",
+                "private_orphan",
+                "wallet_secret_quarantine:99:ETHEREUM_SECRETS",
+                "wallet_secret_quarantine:legacy_v1_public_deadbeef",
+                "wallet_secret_quarantine:legacy_v04_meta_99_public_deadbeef",
+                "wallet_secret_quarantine:security_source_orphan",
+                "wallet_public_identity_recovery:99:deadbeef",
+                "wallet_public_identity_recovery:3:deadbeef"
+            ).forEach { orphan ->
+                fixture.namespace += orphan
+                assertThrows(IllegalStateException::class.java) {
+                    runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
+                }
+                fixture.namespace -= orphan
+            }
+            verify(custodyDao, never()).insert(any())
+        } finally {
+            fixture.clear()
+        }
+    }
+
+    @Test
     fun `rejects a namespace changed after signing proof without returning plaintext`() = runBlocking {
         val fixture = fixture()
         install(fixture)
@@ -137,9 +191,9 @@ class PortableWalletVerifiedExporterTest {
             val prefixes = invocation.getArgument<Set<String>>(0)
             if ("security_source_" in prefixes) {
                 setOf("security_source_${fixture.v1Address}")
-            } else if ("1:" in prefixes) {
+            } else if ("0" in prefixes) {
                 reads++
-                if (reads == 1) fixture.namespace.toSet() else fixture.namespace + "3:orphan:ACCESS_SECRETS"
+                if (reads == 1) fixture.namespace.toSet() else fixture.namespace + "99:ETHEREUM_SECRETS"
             } else {
                 emptySet<String>()
             }
@@ -175,7 +229,7 @@ class PortableWalletVerifiedExporterTest {
                 when {
                     "security_source_" in prefixes -> setOf("security_source_${fixture.v1Address}")
                     "private_" in prefixes -> setOf("private_old_key")
-                    "1:" in prefixes -> fixture.namespace.toSet()
+                    "0" in prefixes -> fixture.namespace.toSet()
                     else -> emptySet<String>()
                 }
             }
@@ -203,13 +257,8 @@ class PortableWalletVerifiedExporterTest {
         }
         whenever(preferences.keysWithPrefixes(any(), any(), any(), any(), any())).thenAnswer { invocation ->
             val prefixes = invocation.getArgument<Set<String>>(0)
-            if ("security_source_" in prefixes) {
-                setOf("security_source_${fixture.v1Address}")
-            } else if ("1:" in prefixes) {
-                fixture.namespace.toSet()
-            } else {
-                emptySet<String>()
-            }
+            (fixture.namespace + "security_source_${fixture.v1Address}")
+                .filterTo(linkedSetOf()) { key -> prefixes.any(key::startsWith) }
         }
     }
 
