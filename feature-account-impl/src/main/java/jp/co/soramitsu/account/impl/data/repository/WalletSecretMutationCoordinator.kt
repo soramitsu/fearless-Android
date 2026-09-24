@@ -1582,7 +1582,8 @@ private class RoomWalletMutationDatabase(
     }
 
     override suspend fun metaAccountExists(metaId: Long): Boolean {
-        return metaAccountDao.metaAccountExists(metaId)
+        return metaAccountDao.metaAccountExists(metaId) ||
+            appDatabase.portableWalletReservationDao().contains(metaId)
     }
 
     override suspend fun hasIdentityConflict(

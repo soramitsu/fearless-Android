@@ -2,7 +2,7 @@ package jp.co.soramitsu.coredb
 
 import androidx.room.migration.Migration
 
-internal const val APP_DATABASE_VERSION = 78
+internal const val APP_DATABASE_VERSION = 79
 internal const val EARLIEST_SUPPORTED_DATABASE_VERSION = 9
 
 /**

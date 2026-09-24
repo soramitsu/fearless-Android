@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android portable receive Room reservation — 2026-09-24
+
+- Schema 79 now fences staged portable receive IDs inside Room, preserving a replayable preference/Room split after interruption and refusing mismatched or orphaned reservations. The cohort remains invisible and recovery disabled. P0: run the v78→79 migration/trigger test and full released-schema matrix on API 30/31/36, then prove exact source-to-target V1/V2/V3/standalone EVM/native TON encoding and installed original-key signing/export before adding any wallet-row commit. Define explicit restored backup-state, Google-address and custody-digest semantics; finish cohort-wide secret/Room cutover with interruption rollback, then qualify iOS↔Android real-device restoration and exact signed upgrades.
+
 ## Production qualification — 2026-09-22
 
 - 2026-09-24 fresh-install cohort staging: an internal Android path now checks an empty Room wallet set under the wallet mutation mutex, allocates distinct IDs, and atomically stages encrypted cohort bytes plus exact preference-side reservation markers. Both current wallet allocators reject marked IDs and an active cohort journal blocks new wallet creation even if a marker disappears; restart replay and exact-token abandonment retain or release the whole cohort together. P0: finish an actual cohort-wide installer and crash-safe replay spanning Room and every original V1/V2/V3/standalone EVM/native TON store, recheck IDs against Room and target namespaces before publication, and prove every installed public identity, signing and export path. Define the separate existing-wallet merge policy and the missing backup-state/custody representation. Treat orphan markers as occupied pending explicit reconciliation. No staged row is a usable wallet and recovery remains disabled.

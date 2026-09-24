@@ -24,7 +24,7 @@ class VerificationError(RuntimeError):
 root = Path(sys.argv[1]).resolve()
 source_root = Path(sys.argv[2]).resolve()
 profile = os.environ.get("MIGRATION_RESULTS_PROFILE", "full")
-released_schema_version = 78
+released_schema_version = 79
 matrix_class = (
     "jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest"
 )

@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecretValidation
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecretValidator
@@ -26,6 +27,7 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
+import jp.co.soramitsu.coredb.dao.PortableWalletReservationDao
 import jp.co.soramitsu.coredb.dao.PoolDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
@@ -94,13 +96,14 @@ import jp.co.soramitsu.coredb.migrations.Migration_72_73
 import jp.co.soramitsu.coredb.migrations.Migration_73_74
 import jp.co.soramitsu.coredb.migrations.Migration_74_75
 import jp.co.soramitsu.coredb.migrations.Migration_75_76
+import jp.co.soramitsu.coredb.migrations.PortableWalletReservationMigration
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.coredb.migrations.TonMigration
 import jp.co.soramitsu.coredb.migrations.V2Migration
-import jp.co.soramitsu.coredb.migrations.WalletSecretIntegrityMigration
 import jp.co.soramitsu.coredb.migrations.WalletCustodyMigration
+import jp.co.soramitsu.coredb.migrations.WalletSecretIntegrityMigration
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
@@ -110,6 +113,7 @@ import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
+import jp.co.soramitsu.coredb.model.PortableWalletReservationLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
@@ -149,7 +153,8 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
         BasicPoolLocal::class,
         UserPoolLocal::class,
         TonConnectionLocal::class,
-        WalletCustodyLocal::class
+        WalletCustodyLocal::class,
+        PortableWalletReservationLocal::class
     ]
 )
 @TypeConverters(
@@ -217,6 +222,15 @@ abstract class AppDatabase : RoomDatabase() {
                 databaseName
             )
                 .addMigrations(*migrations)
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        PortableWalletReservationMigration.installInsertFence(db)
+                    }
+
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        PortableWalletReservationMigration.installInsertFence(db)
+                    }
+                })
                 .build()
         }
 
@@ -306,13 +320,16 @@ abstract class AppDatabase : RoomDatabase() {
                 chainAccountSecretValidation = chainAccountSecretValidation,
                 walletRootSecretValidation = walletRootSecretValidation
             ),
-            WalletCustodyMigration
+            WalletCustodyMigration,
+            PortableWalletReservationMigration
         )
     }
 
     abstract fun assetDao(): AssetDao
 
     abstract fun operationDao(): OperationDao
+
+    abstract fun portableWalletReservationDao(): PortableWalletReservationDao
 
     abstract fun phishingDao(): PhishingDao
 

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
+import jp.co.soramitsu.coredb.model.PortableWalletReservationLocal
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
@@ -25,12 +26,18 @@ class PortableWalletCohortFreshInstallStagerTest {
         val journal = PortableWalletCohortJournalStore(preferences)
         val semantic = semantic()
         try {
-            val token = stager(database, journal, preferences, ids).stage(semantic)
+            val receiver = stager(database, journal, preferences, ids)
+            val token = receiver.stage(semantic)
             assertTrue(database.walletIds.isEmpty())
+            assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(42L)))
             assertFalse(preferences.hasKey("41:SUBSTRATE_SECRETS"))
+            val replayToken = requireNotNull(receiver.reconcile())
+            assertEquals(token.operationId, replayToken.operationId)
+            assertEquals(token.afterImageSha256, replayToken.afterImageSha256)
+            assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
 
             val replay = requireNotNull(journal.load())
             try {
@@ -52,8 +59,9 @@ class PortableWalletCohortFreshInstallStagerTest {
             } finally {
                 replay.clearSecrets()
             }
-            journal.abandon(token)
+            receiver.abandon(token)
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertTrue(database.reserved.isEmpty())
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(42L)))
         } finally {
@@ -102,7 +110,7 @@ class PortableWalletCohortFreshInstallStagerTest {
                 replay.clearSecrets()
             }
             assertEquals("old secret", preferences.getDecryptedString("42:orphaned:ACCESS_SECRETS"))
-            journal.abandon(token)
+            stager(database, journal, preferences, Ids(emptyList())).abandon(token)
         } finally {
             semantic.fill(0)
         }
@@ -148,6 +156,7 @@ class PortableWalletCohortFreshInstallStagerTest {
                 runBlocking { stager(database, journal, preferences, Ids(listOf(41L, 42L))).stage(semantic) }
             }
             assertTrue(database.walletIds.isEmpty())
+            assertTrue(database.reserved.isEmpty())
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
             assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(42L)))
             val restartedJournal = PortableWalletCohortJournalStore(preferences)
@@ -161,7 +170,11 @@ class PortableWalletCohortFreshInstallStagerTest {
                             .stage(semantic)
                     }
                 }
-                restartedJournal.abandon(replay.token)
+                database.failAfterBlock = false
+                val receiver = stager(database, restartedJournal, preferences, Ids(emptyList()))
+                receiver.reconcile()
+                assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
+                receiver.abandon(replay.token)
             } finally {
                 replay.clearSecrets()
             }
@@ -189,6 +202,86 @@ class PortableWalletCohortFreshInstallStagerTest {
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
             assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(42L)))
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `replay rejects a changed Room reservation without releasing the encrypted journal`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val journal = PortableWalletCohortJournalStore(preferences)
+        val receiver = stager(database, journal, preferences, Ids(listOf(41L, 42L)))
+        val semantic = semantic()
+        try {
+            receiver.stage(semantic)
+            database.reserved[0] = database.reserved[0].copy(afterImageSha256 = "0".repeat(64))
+            assertThrows(IllegalStateException::class.java) {
+                runBlocking { receiver.reconcile() }
+            }
+            assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertEquals("0".repeat(64), database.reserved[0].afterImageSha256)
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `orphaned Room reservation blocks staging even without a preference journal`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory().apply {
+            reserved += PortableWalletReservationLocal(41L, "orphan", "0".repeat(64))
+        }
+        val receiver = stager(
+            database, PortableWalletCohortJournalStore(preferences), preferences, Ids(listOf(42L, 43L)),
+        )
+        val semantic = semantic()
+        try {
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.stage(semantic) } }
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
+            assertTrue(database.walletIds.isEmpty())
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `a wallet inserted after staging makes replay and abandon fail closed`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val journal = PortableWalletCohortJournalStore(preferences)
+        val receiver = stager(database, journal, preferences, Ids(listOf(41L, 42L)))
+        val semantic = semantic()
+        try {
+            val token = receiver.stage(semantic)
+            database.walletIds += 99L
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.abandon(token) } }
+            assertEquals(2, database.reserved.size)
+            assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `failed Room commit after abandon leaves an orphan fence rather than a reusable ID`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val journal = PortableWalletCohortJournalStore(preferences)
+        val receiver = stager(database, journal, preferences, Ids(listOf(41L, 42L)))
+        val semantic = semantic()
+        try {
+            val token = receiver.stage(semantic)
+            database.failAfterBlock = true
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.abandon(token) } }
+            database.failAfterBlock = false
+            assertEquals(listOf(41L, 42L), database.reserved.map { it.metaId })
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertThrows(IllegalStateException::class.java) { runBlocking { receiver.reconcile() } }
+            Unit
         } finally {
             semantic.fill(0)
         }
@@ -302,16 +395,39 @@ class PortableWalletCohortFreshInstallStagerTest {
     private class Inventory(val walletIds: MutableSet<Long> = linkedSetOf()) : FreshInstallWalletInventory {
         var failBeforeBlock = false
         var failAfterBlock = false
+        val reserved = mutableListOf<PortableWalletReservationLocal>()
 
         override suspend fun <T> inTransaction(block: suspend FreshInstallWalletInventory.() -> T): T {
             if (failBeforeBlock) error("Injected Room transaction start failure")
-            val result = block(this)
-            if (failAfterBlock) error("Injected Room transaction failure")
-            return result
+            val before = reserved.toList()
+            return try {
+                val result = block(this)
+                if (failAfterBlock) error("Injected Room transaction failure")
+                result
+            } catch (failure: Throwable) {
+                reserved.clear()
+                reserved.addAll(before)
+                throw failure
+            }
         }
 
         override suspend fun hasAnyWallet(): Boolean = walletIds.isNotEmpty()
         override suspend fun metaAccountExists(metaId: Long): Boolean = metaId in walletIds
+        override suspend fun reservationExists(metaId: Long): Boolean = reserved.any { it.metaId == metaId }
+        override suspend fun reservations(): List<PortableWalletReservationLocal> = reserved.sortedBy { it.metaId }
+        override suspend fun reserve(rows: List<PortableWalletReservationLocal>) {
+            check(rows.none { row -> reserved.any { it.metaId == row.metaId } })
+            reserved.addAll(rows)
+        }
+        override suspend fun release(token: PortableWalletCohortJournalStore.Token): Int {
+            val count = reserved.count {
+                it.operationId == token.operationId && it.afterImageSha256 == token.afterImageSha256
+            }
+            reserved.removeAll {
+                it.operationId == token.operationId && it.afterImageSha256 == token.afterImageSha256
+            }
+            return count
+        }
     }
 
     private class Ids(metaIds: List<Long>) : WalletMutationIdentifierSource {
