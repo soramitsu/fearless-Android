@@ -252,6 +252,9 @@ FL_ANDROID_ETHERSCAN_API_KEY
 
 // OP Mainnet history uses OKLink
 FL_ANDROID_OKLINK_API_KEY
+
+// Kaia mainnet and Kairos native/token history use KaiaScan OAPI
+FL_ANDROID_KAIASCAN_API_KEY
 ````
 
 ## Local Validation

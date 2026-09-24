@@ -53,6 +53,7 @@ android {
         buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("FL_BLAST_API_POLYGON_KEY")
         buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
         buildConfigField "String", "OKLINK_API_KEY", readSecretInQuotes("FL_ANDROID_OKLINK_API_KEY")
+        buildConfigField "String", "KAIASCAN_API_KEY", readSecretInQuotes("FL_ANDROID_KAIASCAN_API_KEY")
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
         buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")

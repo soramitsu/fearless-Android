@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android KaiaScan history source candidate — 2026-09-24
+
+- Bundled Kaia mainnet and Kairos history now route through the exact chain-bound KaiaScan OAPI hosts with a separate Bearer key. The old mainnet Scope URL can only redirect internally to the approved host. Native and fungible-token responses have separate mappings, exact decimal precision, bounded pages and fail-closed malformed/provider errors; token fees remain unknown because the token response has no fee field. Wallet and chain identities are unchanged. [The provider gate](kaia-history-production-gate-20260924.md) records the official contract and live acceptance still required.
+- Focused Kaia JVM tests pass 9/9; the complete wallet module passes 208/208 with no failures or skips. Runtime tests report 58 cases, 48 passed and 10 pre-existing skips. `detektAll` passes but does not cover the wallet module. A provisioned live key, independent receipt/freshness/pagination comparison, final-source signed artifacts and store-upgrade evidence remain open. The clean `9180bc535a55ad93f79c16e53b1f17a16364c82b` unsigned AAB (`90fdb72e05b4db15192ac474983a535f90e0834d08f7e899278db4b5cfe5d745`) passed 16/16 native 16 KiB alignment but predates this change and is supporting evidence only.
+
 ## Android history failure handling and intermediate AAB — 2026-09-24
 
 - OKLink and legacy Klaytn history providers now propagate transport, provider and malformed-page errors so a failed fetch cannot clear or advance the local history cursor as a successful empty page. OKLink binds native rows to the native symbol, token rows to the exact contract, converts amounts without silently truncating excess precision and reports token fees in native units when the utility asset is known. Bundled X Layer explorer links now point to the matching mainnet and testnet explorers; the historical testnet chain identity remains unchanged.

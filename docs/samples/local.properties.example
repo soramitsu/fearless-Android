@@ -31,6 +31,8 @@ FL_BLAST_API_POLYGON_KEY=<your_blast_api_polygon_key>
 # OP Mainnet uses the separate OKLink history provider.
 FL_ANDROID_ETHERSCAN_API_KEY=<your_etherscan_api_key>
 FL_ANDROID_OKLINK_API_KEY=<your_oklink_api_key>
+# Kaia mainnet and Kairos history; this is sent only to the chain-bound KaiaScan OAPI host.
+FL_ANDROID_KAIASCAN_API_KEY=<your_kaiascan_api_key>
 
 FL_ANDROID_OKX_PROJECT_ID=<your_okx_project_id>
 FL_ANDROID_OKX_API_KEY=<your_okx_api_key>

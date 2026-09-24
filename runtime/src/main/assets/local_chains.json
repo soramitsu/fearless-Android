@@ -9190,8 +9190,8 @@
     "ecosystem": "ethereum",
     "externalApi": {
       "history": {
-        "type": "oklink",
-        "url": "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=KLAYTN"
+        "type": "klaytn",
+        "url": "https://mainnet-oapi.kaiascan.io/api/v1"
       },
       "explorers": [
         {
@@ -9272,6 +9272,12 @@
     "chainId": "1001",
     "name": "Kaia Kairos Testnet",
     "ecosystem": "ethereum",
+    "externalApi": {
+      "history": {
+        "type": "klaytn",
+        "url": "https://kairos-oapi.kaiascan.io/api/v1"
+      }
+    },
     "assets": [
       {
         "isUtility": true,
