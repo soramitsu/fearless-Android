@@ -105,6 +105,7 @@ class PortableWalletCohortAfterImageTest {
             semantic.fill(0)
             assertEquals(listOf(41L, 42L), projection.wallets.map { it.localMetaId })
             assertEquals(listOf(false, true), projection.wallets.map { it.selected })
+            assertEquals(listOf(0, 1), projection.wallets.map { it.freshInstallRoomPosition })
             assertEquals(0xffff_ffffL, projection.wallets.first().sourcePosition)
             assertEquals(
                 PortableWalletCohortStorageProjection.Custody.SIGNED,
@@ -138,6 +139,20 @@ class PortableWalletCohortAfterImageTest {
             semantic.fill(0)
         }
         assertTrue(projection.secrets.first().fieldCopy(field.PRIVATE_KEY)!!.all { it == 0.toByte() })
+    }
+
+    @Test
+    fun `fresh install positions follow canonical list order through uint32 extremes and ties`() {
+        val policy = PortableWalletCohortStorageProjection.FreshInstallPositionPolicy
+        val sourcePositions = listOf(0xffff_ffffL, 0L, 0L, 0x7fff_ffffL, 0xffff_ffffL)
+        val expected = listOf(0, 1, 2, 3, 4)
+        assertEquals(expected, policy.project(sourcePositions))
+        assertEquals(expected, policy.project(sourcePositions))
+        assertEquals((0 until 128).toList(), policy.project(List(128) { 0L }))
+        assertThrows(IllegalArgumentException::class.java) { policy.project(emptyList()) }
+        assertThrows(IllegalArgumentException::class.java) { policy.project(listOf(-1L)) }
+        assertThrows(IllegalArgumentException::class.java) { policy.project(listOf(0x1_0000_0000L)) }
+        assertThrows(IllegalArgumentException::class.java) { policy.project(List(129) { 0L }) }
     }
 
     @Test

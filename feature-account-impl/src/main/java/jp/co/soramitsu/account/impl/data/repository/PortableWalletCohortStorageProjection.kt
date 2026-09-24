@@ -7,8 +7,8 @@ import java.util.Collections
 /**
  * A pure receiving projection of one exact FPWCAI01 after-image. It names every public row and
  * secret source without publishing Room rows or encrypted preferences. This is a logical intent,
- * not a Room-ready row: an unsigned source position may exceed Room's Int, backup flags have no
- * semantic field, and a custody marker still needs a verified public-identity digest. A semantic
+ * not a Room-ready row: the fresh-install position policy does not merge existing local wallets,
+ * backup flags have no semantic field, and custody needs a verified public-identity digest. A semantic
  * root is never re-derived from a phrase and an opaque original-source sidecar is never discarded.
  * The permanent installer and source blockers from the receiving plan remain attached.
  */
@@ -19,6 +19,20 @@ internal object PortableWalletCohortStorageProjection {
     private const val BYTE_MASK = 0xff
 
     internal enum class Custody { SIGNED, WATCH }
+
+    /** FPWMSM01 list order is authoritative. Source positions are historical uint32 evidence. */
+    internal object FreshInstallPositionPolicy {
+        private const val MAX_WALLETS = 128
+        private const val MAX_SOURCE_POSITION = 0xffff_ffffL
+
+        fun project(sourcePositions: List<Long>): List<Int> {
+            require(sourcePositions.size in 1..MAX_WALLETS) { "Receiving wallet count is invalid" }
+            require(sourcePositions.all { it in 0..MAX_SOURCE_POSITION }) {
+                "Receiving source position is not uint32"
+            }
+            return sourcePositions.indices.toList()
+        }
+    }
 
     internal class RootFields(
         val substratePublicKey: ByteArray?,
@@ -54,6 +68,7 @@ internal object PortableWalletCohortStorageProjection {
         val localMetaId: Long,
         source: PortableWalletSemanticMaterial.Wallet,
         val selected: Boolean,
+        val freshInstallRoomPosition: Int,
         val custody: Custody,
         val chains: List<ChainRowIntent>,
         val favorites: List<FavoriteRowIntent>,
@@ -191,6 +206,7 @@ internal object PortableWalletCohortStorageProjection {
         val secrets = ArrayList<SecretIntent>()
         val originals = ArrayList<OriginalSourceIntent>()
         try {
+            val roomPositions = FreshInstallPositionPolicy.project(source.wallets.map { it.sourcePosition })
             source.wallets.forEachIndexed { index, wallet ->
                 val localId = ids[index]
                 val watchSlots = wallet.slots.filter { it.role == role.WATCH_IDENTITY }
@@ -218,7 +234,7 @@ internal object PortableWalletCohortStorageProjection {
                     ton?.value(field.PUBLIC_KEY),
                 )
                 wallets += WalletRowIntent(
-                    localId, wallet, index == source.selectedIndex,
+                    localId, wallet, index == source.selectedIndex, roomPositions[index],
                     if (signed) Custody.SIGNED else Custody.WATCH,
                     Collections.unmodifiableList(chainRows), Collections.unmodifiableList(favorites),
                     Collections.unmodifiableList(metadata), Collections.unmodifiableList(watch),
