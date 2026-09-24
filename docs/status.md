@@ -1,5 +1,9 @@
 # Status Summary
 
+## Android V3 original-source proof candidate — 2026-09-25
+
+- An unwired, read-only verifier now requires every Android V3 Substrate, EVM and native TON semantic root to have one exact original SCALE source. It validates each original against the public identity and recorded recovery material, compares every parsed key, nonce, phrase, seed and path to its semantic slot, and invokes the existing local signing proof. Missing, duplicate, noncanonical, substituted or unsupported sources and all other slot families fail closed. Focused JVM cases pass 4/4 and the full account module passes 309/309; default and forced scoped Detekt pass against pinned Utils `1c80a2bf`. It does not establish a complete wallet cohort: V1, V2, iOS, watch, favorites, metadata, installed-key export and transactional restore still need separate proof. The compiled portable-recovery gate remains false.
+
 ## Android first-owner bootstrap candidate — 2026-09-25
 
 - A disabled, unwired client now requires application-owned local authorization and original-key identity/signing/export evidence before requesting a new owner challenge. It builds the owner authority's exact v1 positional WebAuthn registration commitment and length-prefixed wallet message, requires a native discoverable registration with local PRF availability, obtains a Play Integrity Standard token bound to the signed proof, and sends only sanitized public credential/proof/attestation fields in a one-shot completion request. The returned session must match the random owner and namespace in the challenge; a fresh authenticated head read must be empty and use the same verified Google subject. No PRF output, Drive token or wallet secret enters the owner request.

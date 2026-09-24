@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android V3 original-source proof candidate — 2026-09-25
+
+- The unwired V3 checker binds exact original Android SCALE bytes to semantic Substrate/EVM/TON roots and proves local signing. P0: independently qualify the original-source parser and signed/exported key behavior; add V1, V2, iOS and watch/metadata/favorite coverage with a complete cohort identity digest and installed-key readback. Only then implement the app-owned first-generation exporter/verifier and fresh-install transaction; do not mark backup complete from this component result.
+
 ## Android first-owner bootstrap candidate — 2026-09-25
 
 - The disabled client now composes local original-wallet authorization, native PRF-capable registration, exact signed owner-bootstrap proof, Play Integrity token, one-shot server completion and an authenticated empty-head read. A separate disabled owner-authentication method evaluates PRF only after the selected credential's public assertion and empty head are verified. P0: implement the application-owned authorizer against every original V1/V2/V3/standalone EVM/native TON root, prove its signing key belongs to the selected wallet, provision the exact Play app/project identity, deploy and independently review the owner authority, and qualify provider PRF/Drive behavior on Play-distributed replacement devices. Use the verified local PRF to build a first-generation wrapper and complete journaled upload/download/decrypt/original-key readback before claiming portable backup. Unknown owner-creation outcomes must recover through discoverable authentication, not automatic re-enrollment. No backup-complete or production recovery path is present.
