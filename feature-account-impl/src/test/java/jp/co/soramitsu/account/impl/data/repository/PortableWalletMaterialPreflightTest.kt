@@ -10,12 +10,14 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets as substrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets as tonSecrets
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.WalletCustodyDao
 import jp.co.soramitsu.coredb.model.ChainAccountLocal
@@ -52,8 +54,11 @@ class PortableWalletMaterialPreflightTest {
     private val encryptedPreferences = mock<EncryptedPreferences>()
     private val custodyDao = mock<WalletCustodyDao>()
     private val journalStore = mock<WalletSecretMutationJournalStore>()
+    private val preferences = mock<Preferences>()
+    private val assetDao = mock<AssetDao>()
     private val preflight = PortableWalletMaterialPreflight(
-        metaAccountDao, accountRepository, encryptedPreferences, custodyDao, journalStore
+        metaAccountDao, accountRepository, encryptedPreferences, custodyDao, journalStore,
+        preferences, assetDao
     )
 
     @Before

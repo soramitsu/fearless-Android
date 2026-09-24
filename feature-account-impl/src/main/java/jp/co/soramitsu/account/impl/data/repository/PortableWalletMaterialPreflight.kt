@@ -3,6 +3,7 @@ package jp.co.soramitsu.account.impl.data.repository
 import java.util.Base64
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
@@ -10,6 +11,7 @@ import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.WalletCustodyDao
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
@@ -33,8 +35,13 @@ class PortableWalletMaterialPreflight @Inject constructor(
     private val accountRepository: AccountRepository,
     private val encryptedPreferences: EncryptedPreferences,
     private val custodyDao: WalletCustodyDao,
-    private val journalStore: WalletSecretMutationJournalStore
+    private val journalStore: WalletSecretMutationJournalStore,
+    preferences: Preferences,
+    assetDao: AssetDao
 ) {
+    private val exportInventory = PortableWalletExportInventoryGuard(
+        encryptedPreferences, preferences, assetDao
+    )
     data class Coverage(
         val walletCount: Int,
         val substrateRootCount: Int,
@@ -155,13 +162,35 @@ class PortableWalletMaterialPreflight @Inject constructor(
      * Separate, unwired semantic capture. Existing rows without provenance remain UNKNOWN and must
      * prove signing material; only an exact WATCH marker permits public role-8 slots.
      */
-    internal suspend fun captureSemanticPlaintext(): ByteArray = withContext(Dispatchers.IO) {
+    internal suspend fun captureSemanticPlaintext(): ByteArray = captureSemanticPlaintextInternal(null)
+
+    /**
+     * Captures fresh caller-owned FPWMSM01 bytes from the application's authoritative stores.
+     * A reviewed caller supplies the exact approved V2 genesis/identity policy. Every original
+     * source must prove its signing identity before plaintext leaves the cross-store lock. This
+     * read-only entry point neither promotes custody markers nor marks a backup complete.
+     */
+    internal suspend fun captureVerifiedSemanticPlaintext(
+        approvedGenesis: List<PortableWalletChainSigningProof.ApprovedGenesis>
+    ): ByteArray = captureSemanticPlaintextInternal(approvedGenesis.toList())
+
+    private suspend fun captureSemanticPlaintextInternal(
+        approvedGenesis: List<PortableWalletChainSigningProof.ApprovedGenesis>?
+    ): ByteArray = withContext(Dispatchers.IO) {
         WalletCrossStoreMutationMutex.instance.withLock {
             val rows = metaAccountDao.getJoinedMetaAccountsInfo()
             val before = snapshot(rows, allowAddressOnlyEvm = true)
             check(before.isNotEmpty()) { "No wallets are available for portable backup" }
+            check(before.count(WalletIdentity::isSelected) == 1) {
+                "Portable wallet selection is inconsistent"
+            }
             val rowById = rows.associateBy { it.metaAccount.id }
             val legacyAddresses = discoverLegacyAddresses(before)
+            val secretNamespaceBefore = approvedGenesis?.let { exportInventory.walletSecretNamespaces(before) }
+            if (approvedGenesis != null) {
+                exportInventory.requireNoUnmappedMetadata(before)
+                exportInventory.requireNoUnsupportedLegacyMaterial()
+            }
             val markers = before.associate { identity ->
                 identity.id to custodyDao.get(identity.id)
             }
@@ -222,7 +251,36 @@ class PortableWalletMaterialPreflight @Inject constructor(
                 val semantic = PortableWalletSemanticMaterial.Snapshot(selectedIndex, ordered)
                 val encoded = PortableWalletSemanticMaterial.encode(semantic)
                 try {
-                    newlySigned.forEach { custodyDao.insert(it) }
+                    if (approvedGenesis != null) {
+                        exportInventory.requireExactSourceInventory(
+                            before, projected, secretNamespaceBefore!!, approvedGenesis
+                        )
+                        val proof = PortableWalletAndroidSourceCohortProof.verify(encoded, approvedGenesis)
+                        check(proof.wallets == before.size &&
+                            proof.signedWallets + proof.watchWallets == before.size) {
+                            "Portable source proof missed a wallet"
+                        }
+                        check(before == snapshot(metaAccountDao.getJoinedMetaAccountsInfo(), allowAddressOnlyEvm = true) &&
+                            legacyAddresses == discoverLegacyAddresses(before) &&
+                            secretNamespaceBefore == exportInventory.walletSecretNamespaces(before)) {
+                            "Wallet source inventory changed during portable-backup proof"
+                        }
+                        exportInventory.requireNoUnmappedMetadata(before)
+                        exportInventory.requireNoUnsupportedLegacyMaterial()
+                        before.forEach { identity ->
+                            check(!accountRepository.isWalletRecoveryRequired(identity.id)) {
+                                "A wallet requires recovery before portable backup"
+                            }
+                            val row = checkNotNull(rowById[identity.id])
+                            check(WalletCustodyProvenance.classify(
+                                row.metaAccount, row.chainAccounts, custodyDao.get(identity.id)
+                            ) == WalletCustodyProvenance.classify(
+                                row.metaAccount, row.chainAccounts, markers[identity.id]
+                            )) { "Wallet custody changed during portable-backup proof" }
+                        }
+                    } else {
+                        newlySigned.forEach { custodyDao.insert(it) }
+                    }
                     encoded
                 } catch (failure: Exception) {
                     encoded.fill(0)

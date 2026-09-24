@@ -63,6 +63,14 @@ interface AssetReadOnlyCache {
 @Dao
 abstract class AssetDao : AssetReadOnlyCache {
 
+    /** Presence-only backup guard for wallet preferences not yet mapped into FPWMSM01. */
+    @Query(
+        """SELECT EXISTS(SELECT 1 FROM assets WHERE metaId = :metaId
+            AND (enabled IS NOT NULL OR sortIndex != 2147483647
+                OR markedNotNeed = 1 OR chainAccountName IS NOT NULL))"""
+    )
+    abstract suspend fun hasUnmappedWalletAssetPreferences(metaId: Long): Boolean
+
     @Query("SELECT * FROM assets where metaId = :metaId")
     abstract fun observeBalances(metaId: Long): Flow<List<AssetLocal>>
 

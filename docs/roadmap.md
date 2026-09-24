@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android verified application export candidate — 2026-09-25
+
+- An unwired, read-only account-owned capture now takes fresh authoritative Room/secret-store data through exact V1/V2/V3 proof, approved V2 genesis policy, wallet-scoped source-key inventory and post-proof stability checks before releasing caller-owned `FPWMSM01` plaintext. It refuses known unmapped wallet-specific preferences, explicit asset settings, pre-V1 private aliases and quarantined legacy material. P0: map and preserve all remaining wallet presentation metadata from its authoritative stores, detect globally orphaned recoverable namespaces, bind a reviewed compiled chain policy and cross-platform identity digest, then integrate encrypted immutable Drive generations only after complete Android/iOS installer and readback qualification. The exporter neither uploads nor marks a wallet backed up; recovery stays disabled.
+
 ## Android mixed-cohort original-source proof candidate — 2026-09-25
 
 - A read-only verifier now composes V1, approved-genesis V2 and exact V3 source proofs across mixed signed/watch cohorts, while rejecting unsupported originals and inconsistent custody. P0: derive and bind the complete public-identity digest to an application-owned exporter and independent plaintext verifier; qualify every released V1/V2/V3/standalone EVM/native TON cohort, watch/favorite/metadata mapping and original-key export after transactional installation. Then test real passkey/Drive replacement recovery and signed upgrades on both platforms before enabling backup completion. Structural watch/favorite checks are not an installer proof.
@@ -14,7 +18,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Android V3 original-source proof candidate — 2026-09-25
 
-- The unwired V3 checker binds exact original Android SCALE bytes to semantic Substrate/EVM/TON roots and proves local signing. Narrow V1 semantic and V2 exact-source proof components are also present. P0: independently qualify the parsers and signed/exported key behavior; integrate V1/V2 with iOS and watch/metadata/favorite coverage, a complete cohort identity digest and installed-key readback. Only then implement the app-owned first-generation exporter/verifier and fresh-install transaction; do not mark backup complete from these component results.
+- The unwired V3 checker binds exact original Android SCALE bytes to semantic Substrate/EVM/TON roots and proves local signing. Narrow V1 semantic and V2 exact-source proof components are also present. P0: independently qualify the parsers and signed/exported key behavior; align V1/V2/V3 with iOS, preserve unmapped metadata, bind a complete cohort identity digest, and prove installed-key readback. Finish the app-owned exporter and fresh-install transaction before any backup-complete decision; the present capture remains partial where metadata is unmapped.
 
 ## Android first-owner bootstrap candidate — 2026-09-25
 
