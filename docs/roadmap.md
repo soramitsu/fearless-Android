@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android watch-wallet identity proof candidate — 2026-09-25
+
+- The disabled read-only Android export proof now rejects public key/address mismatches for watch Substrate, EVM, native TON V4R2 and chain accounts, while retaining valid address-only EVM watches. P0: independently qualify foreign TON JSON and named-chain identities, bind the complete cohort public-identity digest, and prove transactionally installed watch rows and preferences on replacement devices. This local public check is not watch-address ownership, restored-wallet readback or production recovery authorization.
+
 ## Android verified application export candidate — 2026-09-25
 
 - An unwired, read-only account-owned capture now takes fresh authoritative Room/secret-store data through exact V1/V2/V3 proof, approved V2 genesis policy, bounded global secret-key inventory and post-proof stability checks before releasing caller-owned `FPWMSM01` plaintext. It rejects V2/V3 keys under missing Room IDs and quarantine/recovery-marker aliases while ignoring unrelated numeric preference names. Wallet-selected chain ID and chain-selector filter are exact optional UTF-8 metadata IDs 10/11; bounded ID 12 now preserves explicit asset-row presentation, including generic empty-account rows and nullable flags/name. All three are rechecked after source proof. Pre-V1 private aliases still block capture. P0: bind a reviewed compiled chain policy and cross-platform identity digest; implement transactional receiving storage/readback for these platform preferences and all original keys; then integrate encrypted immutable Drive generations after complete Android/iOS installer qualification. The exporter neither uploads nor marks a wallet backed up; recovery stays disabled.

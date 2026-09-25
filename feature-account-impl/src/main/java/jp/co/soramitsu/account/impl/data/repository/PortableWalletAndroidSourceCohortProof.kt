@@ -95,6 +95,11 @@ internal object PortableWalletAndroidSourceCohortProof {
             require(hasSigner != hasWatch) {
                 "Android wallet has mixed or missing custody material"
             }
+            if (hasWatch) {
+                require(PortableWalletWatchIdentityProof.verifyWallet(wallet) == watchSlots) {
+                    "Android watch identity proof is incomplete"
+                }
+            }
             originals.forEach { source ->
                 val platform = source.number(field.SOURCE_PLATFORM)
                 val sourceRole = source.number(field.SOURCE_SLOT_ROLE)
