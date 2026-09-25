@@ -14,7 +14,7 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
         buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
@@ -52,10 +52,8 @@ android {
         buildConfigField "String", "BLAST_API_GOERLI_KEY", readSecretInQuotes("FL_BLAST_API_GOERLI_KEY")
         buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("FL_BLAST_API_POLYGON_KEY")
         buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
-        buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_BSCSCAN_API_KEY")
-        buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_POLYGONSCAN_API_KEY")
         buildConfigField "String", "OKLINK_API_KEY", readSecretInQuotes("FL_ANDROID_OKLINK_API_KEY")
-        buildConfigField "String", "OPMAINNET_API_KEY", readSecretInQuotes("FL_ANDROID_OPMAINNET_API_KEY")
+        buildConfigField "String", "KAIASCAN_API_KEY", readSecretInQuotes("FL_ANDROID_KAIASCAN_API_KEY")
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
         buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")
@@ -100,6 +98,15 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
+
+    packaging {
+        resources {
+            // JVM multi-release metadata is duplicated by transitive crypto
+            // dependencies but is not used by the Android runtime.
+            excludes += ["META-INF/versions/**"]
+        }
+    }
+
     namespace = 'jp.co.soramitsu.common'
 }
 
@@ -160,6 +167,10 @@ dependencies {
     testImplementation libs.junit
     testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
+
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
 
     api libs.sharedFeaturesCoreDep
 }

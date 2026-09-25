@@ -23,9 +23,76 @@ class PreferencesImpl(
     companion object {
 
         private const val PREFS_SELECTED_LANGUAGE = "selected_language"
+        private const val MAX_KEY_PREFIXES = 32
+        private const val MAX_KEY_PREFIX_BYTES = 256
+        private const val MAX_KEY_QUERY_RESULTS = 8_192
+        private const val MAX_PREFERENCE_KEY_BYTES = 1_024
+        private const val MAX_KEY_QUERY_TOTAL_BYTES = 1_048_576
     }
 
     override fun contains(field: String) = sharedPreferences.contains(field)
+
+    override fun hasKeyWithPrefix(prefix: String): Boolean {
+        require(prefix.isNotEmpty()) { "A preference key prefix cannot be empty" }
+        return sharedPreferences.all.keys.any { it.startsWith(prefix) }
+    }
+
+    override fun keysWithPrefixes(
+        prefixes: Set<String>,
+        maxResultCount: Int,
+        maxKeyBytes: Int,
+        maxTotalKeyBytes: Int,
+        failOnOversizedMatch: Boolean
+    ): Set<String> {
+        require(prefixes.isNotEmpty() && prefixes.size <= MAX_KEY_PREFIXES) {
+            "The preference key prefix set has an invalid size"
+        }
+        require(
+            prefixes.all {
+                it.isNotEmpty() &&
+                    it.encodeToByteArray().size <= MAX_KEY_PREFIX_BYTES
+            }
+        ) {
+            "A preference key prefix has an invalid size"
+        }
+        require(maxResultCount in 1..MAX_KEY_QUERY_RESULTS) {
+            "The preference key result bound is invalid"
+        }
+        require(maxKeyBytes in 1..MAX_PREFERENCE_KEY_BYTES) {
+            "The preference key size bound is invalid"
+        }
+        require(maxTotalKeyBytes in maxKeyBytes..MAX_KEY_QUERY_TOTAL_BYTES) {
+            "The preference key total-size bound is invalid"
+        }
+
+        var totalKeyBytes = 0
+        val result = linkedSetOf<String>()
+        sharedPreferences.all.keys.forEach { key ->
+            if (prefixes.any(key::startsWith)) {
+                val keyBytes = if (key.length > maxKeyBytes) {
+                    null
+                } else {
+                    key.encodeToByteArray().size
+                }
+                if (keyBytes == null || keyBytes > maxKeyBytes) {
+                    check(!failOnOversizedMatch) {
+                        "The bounded preference key query matched an oversized key"
+                    }
+                } else {
+                    check(result.size < maxResultCount) {
+                        "The bounded preference key query matched too many keys"
+                    }
+                    check(totalKeyBytes <= maxTotalKeyBytes - keyBytes) {
+                        "The bounded preference key query matched too many key bytes"
+                    }
+                    result += key
+                    totalKeyBytes += keyBytes
+                }
+            }
+        }
+
+        return result.toSortedSet()
+    }
 
     override fun putString(field: String, value: String?) {
         sharedPreferences.edit().putString(field, value).apply()
@@ -85,6 +152,21 @@ class PreferencesImpl(
 
     override fun removeField(field: String) {
         sharedPreferences.edit().remove(field).apply()
+    }
+
+    override fun replaceStringsDurably(
+        valuesToPut: Map<String, String>,
+        keysToRemove: Set<String>
+    ): Boolean {
+        require(valuesToPut.keys.intersect(keysToRemove).isEmpty()) {
+            "A durable preference replacement cannot put and remove the same key"
+        }
+
+        val editor = sharedPreferences.edit()
+        valuesToPut.forEach { (key, value) -> editor.putString(key, value) }
+        keysToRemove.forEach { key -> editor.remove(key) }
+
+        return editor.commit()
     }
 
     override fun stringFlow(

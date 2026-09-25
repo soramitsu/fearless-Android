@@ -19,13 +19,18 @@ class XcmLocalChainsRegistryTest {
                 .asJsonObject["availableDestinations"]
                 .asJsonArray
                 .firstObject { it["chainId"].asString == route.destinationChainId }
+            val routeAssets = destination["assets"].asJsonArray.filter {
+                it.asJsonObject["symbol"].asString == route.assetSymbol
+            }
 
-            assertTrue(
-                "${route.assetSymbol} route ${route.originChainId} -> ${route.destinationChainId} is missing asset metadata",
-                destination["assets"].asJsonArray.any { it.asJsonObject["symbol"].asString == route.assetSymbol }
+            assertEquals(
+                "${route.assetSymbol} route ${route.originChainId} -> ${route.destinationChainId} must have one exact asset",
+                1,
+                routeAssets.size
             )
+            assertTrue("legacy destination-scoped execution must be absent", !destination.has("execution"))
 
-            val execution = destination["execution"].asJsonObject
+            val execution = routeAssets.single().asJsonObject["execution"].asJsonObject
             assertEquals("PolkadotXcm", execution["palletName"].asString)
             assertEquals("limitedReserveTransferAssets", execution["callName"].asString)
             assertEquals("limitedReserveTransferAssets", execution["transferType"].asString)
@@ -42,6 +47,27 @@ class XcmLocalChainsRegistryTest {
             assertEquals("Included", execution["destinationFee"].asJsonObject["mode"].asString)
             assertEquals(route.assetSymbol, execution["destinationFee"].asJsonObject["assetSymbol"].asString)
         }
+    }
+
+    @Test
+    fun `bundled XCM registry keeps execution authority per asset and unknown routes disabled`() {
+        val chains = JsonParser.parseString(localChainsFile().readText()).asJsonArray
+        val destinations = chains.flatMap { chain ->
+            chain.asJsonObject["xcm"]?.asJsonObject
+                ?.get("availableDestinations")?.asJsonArray
+                ?.map { it.asJsonObject }
+                .orEmpty()
+        }
+        val routeAssets = destinations.flatMap { destination ->
+            assertTrue("legacy destination-scoped execution must be absent", !destination.has("execution"))
+            destination["assets"]?.asJsonArray?.map { it.asJsonObject }.orEmpty()
+        }
+
+        assertEquals(15, routeAssets.count { it.has("execution") })
+        assertEquals(59, routeAssets.count { !it.has("execution") })
+        assertEquals(34, destinations.count { destination ->
+            destination["assets"]?.asJsonArray?.none { it.asJsonObject.has("execution") } != false
+        })
     }
 
     private fun JsonObject.location(name: String): JsonObject = get(name).asJsonObject

@@ -49,4 +49,6 @@ dependencies {
     implementation(projects.featurePolkaswapApi)
     implementation(projects.featureWalletApi)
     implementation(projects.featureAccountApi)
+
+    testImplementation(projects.testShared)
 }

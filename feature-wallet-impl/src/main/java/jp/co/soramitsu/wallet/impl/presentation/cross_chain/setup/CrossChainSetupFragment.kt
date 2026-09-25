@@ -4,9 +4,11 @@ import android.Manifest
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
-import android.widget.FrameLayout
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,32 +19,34 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.common.presentation.ErrorDialog
+import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.TransferValidationDialogContract
+import jp.co.soramitsu.wallet.impl.presentation.TransferValidationDialogCoordinator
+import jp.co.soramitsu.wallet.impl.presentation.bindTransferValidationDialog
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainSetupViewModel>() {
+class CrossChainSetupFragment : BaseComposeFragment<CrossChainSetupViewModel>() {
 
     companion object {
 
         const val KEY_PAYLOAD = "payload"
-
         fun getBundle(payload: AssetPayload?) = bundleOf(
             KEY_PAYLOAD to payload
         )
     }
 
     override val viewModel: CrossChainSetupViewModel by viewModels()
+    private val validationDialogCoordinator:
+        TransferValidationDialogCoordinator by viewModels()
 
     private val barcodeLauncher: ActivityResultLauncher<ScanOptions> = registerForActivityResult(ScanTextContract()) { result ->
         println("barcodeLauncher: $result")
@@ -51,8 +55,13 @@ class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainS
         }
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    override fun Content(padding: PaddingValues) {
+    override fun Content(
+        padding: PaddingValues,
+        scrollState: ScrollState,
+        modalBottomSheetState: ModalBottomSheetState
+    ) {
         val state by viewModel.state.collectAsState()
         CrossChainSetupContent(
             state = state,
@@ -70,15 +79,18 @@ class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainS
                     .launchIn(this)
             }
         }
+        childFragmentManager.bindTransferValidationDialog(
+            TransferValidationDialogContract.CROSS_CHAIN_SETUP,
+            validationDialogCoordinator,
+            viewLifecycleOwner,
+            onPositive = viewModel::warningConfirmed
+        )
         viewModel.openValidationWarningEvent.observeEvent { (result, warning) ->
-            ErrorDialog(
-                title = warning.message,
-                message = warning.explanation,
-                positiveButtonText = warning.positiveButtonText,
-                negativeButtonText = warning.negativeButtonText,
-                positiveClick = { viewModel.warningConfirmed(result) },
-                isHideable = false
-            ).show(childFragmentManager)
+            validationDialogCoordinator.enqueue(
+                TransferValidationDialogContract.CROSS_CHAIN_SETUP,
+                result,
+                warning
+            )
         }
 
         view.viewTreeObserver.addOnGlobalLayoutListener {
@@ -112,9 +124,4 @@ class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainS
         barcodeLauncher.launch(options)
     }
 
-    override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.isHideable = true
-        behavior.skipCollapsed = true
-    }
 }

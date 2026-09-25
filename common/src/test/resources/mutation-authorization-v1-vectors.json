@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "testOnly": true,
+  "keyId": "rfc8032-test-only",
+  "publicKeyHex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+  "keySource": "RFC8032 section7.1 TEST1 public test vector; never production trust",
+  "context": {
+    "audience": "jp.co.soramitsu.fearless",
+    "appVersion": "230",
+    "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "nowEpochSeconds": "1800000010"
+  },
+  "vectors": [
+    {
+      "name": "valid_all_denied",
+      "payload": {
+        "schema": "1",
+        "audience": "jp.co.soramitsu.fearless",
+        "environment": "production",
+        "minAppVersion": "230",
+        "maxAppVersion": "230",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": "42",
+        "issuedAt": "1800000000",
+        "expiresAt": "1800000900",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": false
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMwIiwibWF4QXBwVmVyc2lvbiI6IjIzMCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsInJldmlzaW9uIjoiNDIiLCJpc3N1ZWRBdCI6IjE4MDAwMDAwMDAiLCJleHBpcmVzQXQiOiIxODAwMDAwOTAwIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjpmYWxzZX19.71iDNk96vvFDsp19OO1BAsYtS_35s-BNiLLzIbV8lHoJyHA-qhS2_leltVg7C7s3x6aT0WZPVxZZYdvQ9jYTDw",
+      "expectedValid": true
+    },
+    {
+      "name": "valid_xcm_enabled",
+      "payload": {
+        "schema": "1",
+        "audience": "jp.co.soramitsu.fearless",
+        "environment": "production",
+        "minAppVersion": "230",
+        "maxAppVersion": "230",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": "42",
+        "issuedAt": "1800000000",
+        "expiresAt": "1800000900",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": true
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMwIiwibWF4QXBwVmVyc2lvbiI6IjIzMCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsInJldmlzaW9uIjoiNDIiLCJpc3N1ZWRBdCI6IjE4MDAwMDAwMDAiLCJleHBpcmVzQXQiOiIxODAwMDAwOTAwIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjp0cnVlfX0.M_FCkj1UBhdvP3oIiLqOHwfTJDbsrexNnINB7F3nPY1m426GCnDbRyv_yA6OSfhkIippuMOjugP6I_52i6VSBg",
+      "expectedValid": true
+    },
+    {
+      "name": "valid_next_revision_revoked",
+      "payload": {
+        "schema": "1",
+        "audience": "jp.co.soramitsu.fearless",
+        "environment": "production",
+        "minAppVersion": "230",
+        "maxAppVersion": "230",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": "43",
+        "issuedAt": "1800000000",
+        "expiresAt": "1800000900",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": false
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMwIiwibWF4QXBwVmVyc2lvbiI6IjIzMCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsInJldmlzaW9uIjoiNDMiLCJpc3N1ZWRBdCI6IjE4MDAwMDAwMDAiLCJleHBpcmVzQXQiOiIxODAwMDAwOTAwIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjpmYWxzZX19.DewL-f5rmkO1peHh7Gv7RPj2MOmJU3SebxkFX1f41xU2S-N0bCo6YExQKAogB3C1u0Px5Tl3YEglIO5zuMyNCg",
+      "expectedValid": true
+    },
+    {
+      "name": "wrong_audience",
+      "payload": {
+        "schema": "1",
+        "audience": "untrusted.wallet",
+        "environment": "production",
+        "minAppVersion": "230",
+        "maxAppVersion": "230",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": "42",
+        "issuedAt": "1800000000",
+        "expiresAt": "1800000900",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": false
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJ1bnRydXN0ZWQud2FsbGV0IiwiZW52aXJvbm1lbnQiOiJwcm9kdWN0aW9uIiwibWluQXBwVmVyc2lvbiI6IjIzMCIsIm1heEFwcFZlcnNpb24iOiIyMzAiLCJwb2xpY3lTaGEyNTYiOiIxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwicm91dGVNYW5pZmVzdFNoYTI1NiI6IjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIiLCJyZXZpc2lvbiI6IjQyIiwiaXNzdWVkQXQiOiIxODAwMDAwMDAwIiwiZXhwaXJlc0F0IjoiMTgwMDAwMDkwMCIsImNhcGFiaWxpdGllcyI6eyJkZW1ldGVyIjpmYWxzZSwicG9sa2FtYXJrdCI6ZmFsc2UsInBvbGthc3dhcCI6ZmFsc2UsInBvbGthc3dhcEJyaWRnZSI6ZmFsc2UsInhjbSI6ZmFsc2V9fQ.9AUZICTFjdObqEwHWWFvkbwTpmD1e5wETPWsP_q4wvGczFXdcRyUIcrHXmdI-ALUUWAHayP-BwMMlQJEmsaXBg",
+      "expectedValid": false
+    },
+    {
+      "name": "wrong_route_manifest",
+      "payload": {
+        "schema": "1",
+        "audience": "jp.co.soramitsu.fearless",
+        "environment": "production",
+        "minAppVersion": "230",
+        "maxAppVersion": "230",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "revision": "42",
+        "issuedAt": "1800000000",
+        "expiresAt": "1800000900",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": false
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMwIiwibWF4QXBwVmVyc2lvbiI6IjIzMCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMyIsInJldmlzaW9uIjoiNDIiLCJpc3N1ZWRBdCI6IjE4MDAwMDAwMDAiLCJleHBpcmVzQXQiOiIxODAwMDAwOTAwIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjpmYWxzZX19.55WD65A7zrV6mCh_sRk6WgjNQNtVU83EQy8a6UYlgJaHiR4_dwdCWqQrQo1d_WoDypK6Ytmm5lC_7YykH7wDDQ",
+      "expectedValid": false
+    },
+    {
+      "name": "expired",
+      "payload": {
+        "schema": "1",
+        "audience": "jp.co.soramitsu.fearless",
+        "environment": "production",
+        "minAppVersion": "230",
+        "maxAppVersion": "230",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": "42",
+        "issuedAt": "1799999000",
+        "expiresAt": "1799999900",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": false
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMwIiwibWF4QXBwVmVyc2lvbiI6IjIzMCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsInJldmlzaW9uIjoiNDIiLCJpc3N1ZWRBdCI6IjE3OTk5OTkwMDAiLCJleHBpcmVzQXQiOiIxNzk5OTk5OTAwIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjpmYWxzZX19.4PFzk1eJElLA-6pjZZvlfmrH7BfzlpfaZQBEHz5GNnRFQeHtxTf--qrmKZ3FJcfmOT_V8vb7YdLJxPJuwEgBCA",
+      "expectedValid": false
+    },
+    {
+      "name": "too_long_lifetime",
+      "payload": {
+        "schema": "1",
+        "audience": "jp.co.soramitsu.fearless",
+        "environment": "production",
+        "minAppVersion": "230",
+        "maxAppVersion": "230",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": "42",
+        "issuedAt": "1800000000",
+        "expiresAt": "1800000901",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": false
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMwIiwibWF4QXBwVmVyc2lvbiI6IjIzMCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsInJldmlzaW9uIjoiNDIiLCJpc3N1ZWRBdCI6IjE4MDAwMDAwMDAiLCJleHBpcmVzQXQiOiIxODAwMDAwOTAxIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjpmYWxzZX19.oyiOI2KqByqUCb1q2uluf7axRdodkO3jKKy6lTRi8mpVFIhIkvAhMrIvT0C_YFOOiij2po0ka5pry9AUU57XAA",
+      "expectedValid": false
+    },
+    {
+      "name": "version_outside_bounds",
+      "payload": {
+        "schema": "1",
+        "audience": "jp.co.soramitsu.fearless",
+        "environment": "production",
+        "minAppVersion": "231",
+        "maxAppVersion": "240",
+        "policySha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "routeManifestSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "revision": "42",
+        "issuedAt": "1800000000",
+        "expiresAt": "1800000900",
+        "capabilities": {
+          "demeter": false,
+          "polkamarkt": false,
+          "polkaswap": false,
+          "polkaswapBridge": false,
+          "xcm": false
+        }
+      },
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMxIiwibWF4QXBwVmVyc2lvbiI6IjI0MCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsInJldmlzaW9uIjoiNDIiLCJpc3N1ZWRBdCI6IjE4MDAwMDAwMDAiLCJleHBpcmVzQXQiOiIxODAwMDAwOTAwIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjpmYWxzZX19.WGqEpmDd-sGfnlTwOQB2eLEz7j8aHRToiEAPwFCiiOWLiyf1dJF7CFj4_QAP_Mr9BWhwrP2tHX3eDGmNX5e0Bw",
+      "expectedValid": false
+    },
+    {
+      "name": "invalid_signature",
+      "token": "FWMA1.rfc8032-test-only.eyJzY2hlbWEiOiIxIiwiYXVkaWVuY2UiOiJqcC5jby5zb3JhbWl0c3UuZmVhcmxlc3MiLCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJtaW5BcHBWZXJzaW9uIjoiMjMwIiwibWF4QXBwVmVyc2lvbiI6IjIzMCIsInBvbGljeVNoYTI1NiI6IjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJyb3V0ZU1hbmlmZXN0U2hhMjU2IjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsInJldmlzaW9uIjoiNDIiLCJpc3N1ZWRBdCI6IjE4MDAwMDAwMDAiLCJleHBpcmVzQXQiOiIxODAwMDAwOTAwIiwiY2FwYWJpbGl0aWVzIjp7ImRlbWV0ZXIiOmZhbHNlLCJwb2xrYW1hcmt0IjpmYWxzZSwicG9sa2Fzd2FwIjpmYWxzZSwicG9sa2Fzd2FwQnJpZGdlIjpmYWxzZSwieGNtIjpmYWxzZX19.7liDNk96vvFDsp19OO1BAsYtS_35s-BNiLLzIbV8lHoJyHA-qhS2_leltVg7C7s3x6aT0WZPVxZZYdvQ9jYTDw",
+      "expectedValid": false
+    }
+  ]
+}

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">https://polkagate.xyz/</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
     <!-- only for debug builds -->
     <debug-overrides>
         <trust-anchors>

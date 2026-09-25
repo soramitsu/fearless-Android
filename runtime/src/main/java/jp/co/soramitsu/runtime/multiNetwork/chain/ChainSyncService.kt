@@ -10,6 +10,8 @@ import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.async
@@ -17,6 +19,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ChainSyncService(
     private val dao: ChainDao,
@@ -25,11 +29,22 @@ class ChainSyncService(
     private val assetsDao: AssetDao,
     private val contextManager: ContextManager,
     private val logger: (String) -> Unit = {}
-) {
+) : XcmDiscoverySnapshotProvider {
 
-    suspend fun syncUp() {
-        kotlin.runCatching { configChainsSyncUp() }.onFailure { it.printStackTrace() }.getOrNull() ?: return
+    private val xcmDiscoveryRefreshMutex = Mutex()
+    @Volatile
+    private var currentProcessXcmDiscoveryChains: List<Chain>? = null
+
+    suspend fun syncUp() = xcmDiscoveryRefreshMutex.withLock {
+        // Clear before every attempt. A failed refresh must never leave a
+        // previously fetched or persisted route eligible for XCM discovery.
+        currentProcessXcmDiscoveryChains = null
+        val remoteChains = configChainsSyncUp()
+        currentProcessXcmDiscoveryChains = remoteChains.toList()
     }
+
+    override suspend fun getCurrentProcessXcmDiscoveryChains(): List<Chain> =
+        currentProcessXcmDiscoveryChains?.toList().orEmpty()
 
     private suspend fun configChainsSyncUp(): List<Chain> = supervisorScope {
         val localChainsJoinedInfo = dao.getJoinChainInfo()
@@ -76,7 +91,11 @@ class ChainSyncService(
                 val remoteAssets =
                     mappedRemoteChains.map { it.assets }.flatten()
 
-                val chainsWithRemoteAssetsIds = remoteChains.filter { it.remoteAssetsSource != null }.map { it.id }.toSet()
+                val chainsWithRemoteAssetsIds = remoteChains.filter {
+                    it.remoteAssetsSource != null ||
+                        it.isUniversalWalletSolana() ||
+                        it.isUniversalWalletIroha()
+                }.map { it.id }.toSet()
 
                 val assetsToAdd: MutableList<ChainAssetLocal> = mutableListOf()
                 val assetsToUpdate: MutableList<ChainAssetLocal> = mutableListOf()
@@ -114,13 +133,18 @@ class ChainSyncService(
                             chainId = it.chainId,
                             metaId = metaAccount.id,
                             tokenPriceId = it.priceId,
-                            enabled = false
+                            // Registry additions start in automatic visibility. Persisting false
+                            // here would turn a catalog default into a user hide tombstone and
+                            // prevent a later positive balance from appearing after discovery.
+                            enabled = null
                         )
                     }
                 }.flatten()
 
                 assetsDao.insertAssets(newLocalAssets)
-                assetsDao.deleteAssets(assetsToRemove.map { it.id})
+                // Keep wallet-scoped balance/preference rows when a registry definition is
+                // removed. Besides avoiding cross-network deletion by a non-unique asset id,
+                // this preserves explicit hide tombstones if the same AssetKey is reintroduced.
             }
             launch {
                 val remoteNodes = mappedRemoteChains.map { it.nodes }.flatten()

@@ -11,7 +11,6 @@ import jp.co.soramitsu.account.impl.data.mappers.mapJoinedMetaAccountInfoToLight
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountToAccount
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
-import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.inBackground
@@ -19,7 +18,6 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountPositionUpdate
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -34,7 +32,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val PREFS_AUTH_TYPE = "auth_type"
@@ -47,7 +44,6 @@ class AccountDataSourceImpl(
     private val encryptedPreferences: EncryptedPreferences,
     private val jsonMapper: Gson,
     private val metaAccountDao: MetaAccountDao,
-    private val secretStoreV2: SecretStoreV2,
     secretStoreV1: SecretStoreV1,
     private val chainsRepository: ChainsRepository
 ) : AccountDataSource, SecretStoreV1 by secretStoreV1 {
@@ -219,21 +215,6 @@ class AccountDataSourceImpl(
 
     override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
         metaAccountDao.clearGoogleBackupInfo(metaId)
-    }
-
-    override suspend fun deleteMetaAccount(metaId: Long) {
-        val joinedMetaAccountInfo = metaAccountDao.getJoinedMetaAccountInfo(metaId)
-        val chainAccountIds = joinedMetaAccountInfo.chainAccounts.map(ChainAccountLocal::accountId)
-
-        metaAccountDao.delete(metaId)
-        metaAccountDao.deleteChainAccounts(metaId)
-        secretStoreV2.clearSecrets(metaId, chainAccountIds)
-    }
-
-    private inline fun async(crossinline action: suspend () -> Unit) {
-        GlobalScope.launch(Dispatchers.Default) {
-            action()
-        }
     }
 
     override fun observeFavoriteChains(metaId: Long) = metaAccountDao.observeFavoriteChains(metaId)

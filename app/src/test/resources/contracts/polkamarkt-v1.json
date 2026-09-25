@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "contract": "fearless-polkamarkt-v1",
+  "network": {
+    "ecosystem": "substrate",
+    "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+    "name": "SORA Mainnet",
+    "collateral": {
+      "assetId": "0x02000c0000000000000000000000000000000000000000000000000000000000",
+      "symbol": "KUSD",
+      "precision": 18
+    },
+    "feeAsset": {
+      "assetId": "0x0200000000000000000000000000000000000000000000000000000000000000",
+      "symbol": "XOR",
+      "precision": 18
+    }
+  },
+  "catalog": {
+    "currentBlock": "100",
+    "latestQueryFailure": {
+      "message": "Cannot query field \"dpmCollateral\" on type \"Market\"",
+      "expectedAction": "retryLegacyQuery"
+    },
+    "legacyQueryResponse": {
+      "data": {
+        "markets": {
+          "edges": [
+            {
+              "node": {
+                "id": "indexed-7",
+                "marketId": "7",
+                "conditionId": "4",
+                "title": "Will SORA ship the wallet market integration?",
+                "description": "Indexed market used by every Fearless client",
+                "category": "Crypto",
+                "creator": "cnCreator",
+                "closeBlock": "120",
+                "liquidityUSD": "1000000000000000000.000000000000000001",
+                "volumeUSD": "250.125",
+                "priceYes": "0.625",
+                "status": "Open"
+              }
+            },
+            {
+              "node": {
+                "id": "indexed-8",
+                "marketId": "8",
+                "conditionId": "5",
+                "title": "Already closed by the current block",
+                "description": "Indexer status is stale on purpose",
+                "category": "Other",
+                "creator": "cnOther",
+                "closeBlock": "99",
+                "liquidityUSD": "0",
+                "volumeUSD": "0",
+                "priceYes": "0.5",
+                "status": "Open"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "runtimeEntries": [
+      {
+        "marketId": "7",
+        "conditionId": "4",
+        "creator": "cnCreator",
+        "closeBlock": "120",
+        "status": "Open",
+        "mechanism": "DynamicPariMutuel"
+      },
+      {
+        "marketId": "9",
+        "conditionId": "6",
+        "creator": "cnRuntimeOnly",
+        "closeBlock": "150",
+        "status": "Open",
+        "mechanism": "DynamicPariMutuel",
+        "question": "Runtime-only market while the indexer catches up",
+        "category": "AI"
+      }
+    ],
+    "expectedSortedMarketIds": ["7", "9", "8"],
+    "expectedDisplayStatus": {
+      "7": "open",
+      "8": "closed",
+      "9": "open"
+    },
+    "noActiveMarketCase": {
+      "currentBlock": "151",
+      "expectedActiveMarketIds": [],
+      "expectedVisibleFinalizedMarketIds": ["7", "8", "9"]
+    }
+  },
+  "history": {
+    "marketId": "7",
+    "indexerResponse": {
+      "data": {
+        "marketSnapshots": {
+          "edges": [
+            {
+              "node": {
+                "id": "market-7-BLOCK-10",
+                "marketId": "7",
+                "timestamp": "1780229164",
+                "blockHeight": "10",
+                "probability": "0.54",
+                "priceYes": "0.54",
+                "priceNo": "0.46",
+                "liquidityUSD": "250.000000000000000001",
+                "volumeUSD": "30",
+                "status": "Open"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "runtime": {
+    "completeCapabilities": {
+      "pallet": "polkamarkt",
+      "storage": ["markets", "conditions", "marketState"],
+      "rpc": ["quoteBuy", "quoteSell", "marketState", "claimable"],
+      "calls": ["buy", "sell", "claimMarket", "claimCreatorFees"]
+    },
+    "capabilityDriftCases": [
+      {
+        "missing": "rpc.marketState",
+        "expected": "browseAndHistoryAvailableTradingUnavailable"
+      },
+      {
+        "missing": "rpc.claimable.claimablePayout",
+        "expected": "useTraderPayoutAndKeepCreatorClaimCapability"
+      },
+      {
+        "missing": "tx.claimCreatorFees",
+        "expected": "creatorClaimUnavailableWithReason"
+      }
+    ],
+    "marketState": {
+      "marketId": "7",
+      "mechanism": "DynamicPariMutuel",
+      "virtualDepth": "100000000000000000000",
+      "realYesShares": "150000000000000000000",
+      "realNoShares": "50000000000000000000",
+      "dpmCollateral": "275000000000000000000",
+      "marginalYesPriceBps": "5100",
+      "marginalNoPriceBps": "4900",
+      "impliedYesProbabilityBps": "6250",
+      "impliedNoProbabilityBps": "3750"
+    }
+  },
+  "quotes": [
+    {
+      "name": "buyAboveSafeInteger",
+      "rpcMethod": "polkamarkt_quoteBuy",
+      "domainParams": {
+        "marketId": "7",
+        "outcome": "Yes",
+        "collateralIn": "1000000000000000001"
+      },
+      "wireParamsJson": "[7,\"Yes\",1000000000000000001]",
+      "response": {
+        "marketId": "7",
+        "outcome": "Yes",
+        "collateralIn": "1000000000000000001",
+        "feeAmount": "1000000000000000",
+        "pricingCollateral": "999000000000000001",
+        "sharesOut": "1800000000000000002"
+      }
+    },
+    {
+      "name": "sellAboveSafeInteger",
+      "rpcMethod": "polkamarkt_quoteSell",
+      "domainParams": {
+        "marketId": "7",
+        "outcome": "No",
+        "sharesIn": "2000000000000000001"
+      },
+      "wireParamsJson": "[7,\"No\",2000000000000000001]",
+      "response": {
+        "marketId": "7",
+        "outcome": "No",
+        "sharesIn": "2000000000000000001",
+        "grossCollateralOut": "1200000000000000000",
+        "feeAmount": "2000000000000000",
+        "collateralOut": "1198000000000000000"
+      }
+    }
+  ],
+  "accountActivity": {
+    "account": "cnTrader",
+    "indexerResponse": {
+      "positions": [
+        {
+          "id": "cnTrader-7-YES",
+          "marketId": "7",
+          "outcome": "YES",
+          "shares": "1800000000000000002",
+          "netCollateralPaid": "1000000000000000001",
+          "status": "Open"
+        }
+      ],
+      "trades": [
+        {
+          "id": "trade-1",
+          "marketId": "7",
+          "side": "buy",
+          "outcome": "YES",
+          "collateral": "1000000000000000001",
+          "sharesOut": "1800000000000000002",
+          "fee": "1000000000000000",
+          "blockNumber": "90",
+          "extrinsicHash": "0x0102"
+        }
+      ]
+    },
+    "runtimeClaimable": {
+      "marketId": "7",
+      "account": "cnTrader",
+      "status": "Resolved",
+      "resolutionOutcome": "Yes",
+      "yesShares": "1800000000000000002",
+      "noShares": "0",
+      "netCollateralPaid": "1000000000000000001",
+      "traderPayout": "2200000000000000000",
+      "claimablePayout": "2200000000000000000",
+      "creatorFees": "5000000000000000",
+      "isCreator": true
+    },
+    "expectedCalls": {
+      "trader": {
+        "method": "polkamarkt.claimMarket",
+        "params": ["7"]
+      },
+      "creator": {
+        "method": "polkamarkt.claimCreatorFees",
+        "params": ["7"]
+      }
+    }
+  },
+  "tradeCalls": {
+    "buy": {
+      "method": "polkamarkt.buy",
+      "params": ["7", "Yes", "1000000000000000001", "1700000000000000000"]
+    },
+    "sell": {
+      "method": "polkamarkt.sell",
+      "params": ["7", "No", "2000000000000000001", "1100000000000000000"]
+    }
+  },
+  "share": {
+    "marketId": "7",
+    "deepLink": "fearless://defi/polkamarkt/7",
+    "webPath": "/defi/polkamarkt/7"
+  },
+  "deferredActions": ["createMarket", "reportEarlyResolution"]
+}

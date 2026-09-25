@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
+import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,10 +43,13 @@ class SessionProposalViewModel @Inject constructor(
 ) : SessionProposalScreenInterface, BaseViewModel() {
 
 //    private val pairingTopic: String? = savedStateHandle[SessionProposalFragment.PAIRING_TOPIC_KEY]
-    private val proposal: Wallet.Model.SessionProposal = WCDelegate.sessionProposalEvent?.first ?: error("No proposal provided")
+    private val proposal: Wallet.Model.SessionProposal? = walletConnectValueOrBack(
+        value = WCDelegate.sessionProposalEvent?.first,
+        onUnavailable = walletConnectRouter::back
+    )
 
     private val selectedOptionalNetworkIds = MutableStateFlow(
-        proposal.optionalNamespaces.flatMap {
+        proposal?.optionalNamespaces.orEmpty().flatMap {
             it.value.chains.orEmpty()
         }.toSet()
     )
@@ -73,14 +77,15 @@ class SessionProposalViewModel @Inject constructor(
         isApproving,
         isRejecting
     ) { walletItems, isApproving, isRejecting ->
+        val activeProposal = proposal ?: return@combine SessionProposalViewState.default
         val chains = walletConnectInteractor.getChains()
 
-        val proposalRequiredChains = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
+        val proposalRequiredChains = activeProposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
         val requiredChains = chains.filter {
             it.caip2id in proposalRequiredChains
         }
 
-        val proposalOptionalChains = proposal.optionalNamespaces.flatMap { it.value.chains.orEmpty() }
+        val proposalOptionalChains = activeProposal.optionalNamespaces.flatMap { it.value.chains.orEmpty() }
         val optionalChains = chains.filter {
             it.caip2id in proposalOptionalChains
         }
@@ -100,8 +105,8 @@ class SessionProposalViewModel @Inject constructor(
             iconUrl = null,
         ).takeIf { optionalChains.isNotEmpty() }
 
-        val requiredMethods = proposal.requiredNamespaces.flatMap { it.value.methods }
-        val requiredEvents = proposal.requiredNamespaces.flatMap { it.value.events }
+        val requiredMethods = activeProposal.requiredNamespaces.flatMap { it.value.methods }
+        val requiredEvents = activeProposal.requiredNamespaces.flatMap { it.value.events }
 
         val requiredInfoItems = mutableListOf<InfoItemViewState>()
         if (requiredMethods.isNotEmpty()) {
@@ -127,8 +132,8 @@ class SessionProposalViewModel @Inject constructor(
         ).takeIf { requiredInfoItems.isNotEmpty() }
 
         // optional
-        val optionalMethods = proposal.optionalNamespaces.flatMap { it.value.methods }
-        val optionalEvents = proposal.optionalNamespaces.flatMap { it.value.events }
+        val optionalMethods = activeProposal.optionalNamespaces.flatMap { it.value.methods }
+        val optionalEvents = activeProposal.optionalNamespaces.flatMap { it.value.events }
 
         val optionalInfoItems = mutableListOf<InfoItemViewState>()
 
@@ -154,7 +159,7 @@ class SessionProposalViewModel @Inject constructor(
         ).takeIf { optionalInfoItems.isNotEmpty() }
 
         SessionProposalViewState(
-            sessionProposal = proposal,
+            sessionProposal = activeProposal,
             requiredPermissions = requiredPermissions,
             optionalPermissions = optionalPermissions,
             requiredNetworksSelectorState = requiredNetworksSelectorState,
@@ -167,7 +172,8 @@ class SessionProposalViewModel @Inject constructor(
 
     init {
         launch {
-            walletConnectInteractor.checkChainsSupported(proposal).getOrNull()?.let { isSupported ->
+            val activeProposal = proposal ?: return@launch
+            walletConnectInteractor.checkChainsSupported(activeProposal).getOrNull()?.let { isSupported ->
                 if (isSupported.not()) {
                     showError(
                         title = resourceManager.getString(R.string.common_error_general_title),
@@ -191,7 +197,11 @@ class SessionProposalViewModel @Inject constructor(
     }
 
     override fun onApproveClick() {
-        val requiredMethods = proposal.requiredNamespaces.flatMap { it.value.methods }
+        val activeProposal = proposal ?: run {
+            walletConnectRouter.back()
+            return
+        }
+        val requiredMethods = activeProposal.requiredNamespaces.flatMap { it.value.methods }
         val isAllMethodsSupported = WalletConnectMethod.values().map { it.method }.containsAll(requiredMethods)
 
         if (isAllMethodsSupported) {
@@ -209,27 +219,33 @@ class SessionProposalViewModel @Inject constructor(
 
     private fun callSessionApprove() {
         if (isApproving.value) return
+        val activeProposal = proposal ?: run {
+            walletConnectRouter.back()
+            return
+        }
         isApproving.value = true
 
         launch {
             val selectedWalletIds = selectedWalletIds.value
             val selectedOptionalChainIds = selectedOptionalNetworkIds.value
             walletConnectInteractor.approveSession(
-                proposal = proposal,
+                proposal = activeProposal,
                 selectedWalletIds = selectedWalletIds,
                 selectedOptionalChainIds = selectedOptionalChainIds,
-                onSuccess = onApproveSessionSuccess(),
+                onSuccess = onApproveSessionSuccess(activeProposal),
                 onError = ::onApproveSessionError
             )
         }
     }
 
-    private fun onApproveSessionSuccess(): (Wallet.Params.SessionApprove) -> Unit = {
+    private fun onApproveSessionSuccess(
+        activeProposal: Wallet.Model.SessionProposal
+    ): (Wallet.Params.SessionApprove) -> Unit = {
         viewModelScope.launch(Dispatchers.Main.immediate) {
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 null,
                 null,
-                resourceManager.getString(R.string.connection_approve_success_message, proposal.name),
+                resourceManager.getString(R.string.connection_approve_success_message, activeProposal.name),
                 resourceManager.getString(R.string.all_done)
             )
         }
@@ -237,7 +253,7 @@ class SessionProposalViewModel @Inject constructor(
         WCDelegate.refreshConnections()
     }
 
-    private fun onApproveSessionError(error: Wallet.Model.Error): () -> Unit = {
+    private fun onApproveSessionError(error: Wallet.Model.Error) {
         isApproving.value = false
         viewModelScope.launch(Dispatchers.Main.immediate) {
             showError(
@@ -256,10 +272,14 @@ class SessionProposalViewModel @Inject constructor(
 
     private fun callRejectSession() {
         if (isRejecting.value) return
+        val activeProposal = proposal ?: run {
+            walletConnectRouter.back()
+            return
+        }
         isRejecting.value = true
 
         walletConnectInteractor.rejectSession(
-            proposal = proposal,
+            proposal = activeProposal,
             onSuccess = onRejectSessionSuccess(),
             onError = {
                 isRejecting.value = false
@@ -281,15 +301,23 @@ class SessionProposalViewModel @Inject constructor(
     }
 
     private fun callSilentRejectSession() {
+        val activeProposal = proposal ?: run {
+            onClose()
+            return
+        }
         walletConnectInteractor.silentRejectSession(
-            proposal = proposal,
+            proposal = activeProposal,
             onSuccess = { onClose() },
             onError = { onClose() }
         )
     }
 
     override fun onOptionalNetworksClicked() {
-        val optionalChains = proposal.optionalNamespaces.flatMap { it.value.chains.orEmpty() }
+        val activeProposal = proposal ?: run {
+            walletConnectRouter.back()
+            return
+        }
+        val optionalChains = activeProposal.optionalNamespaces.flatMap { it.value.chains.orEmpty() }
         val selected = selectedOptionalNetworkIds.value
         if (optionalChains.isNotEmpty()) {
             walletConnectRouter.openSelectMultipleChainsForResult(optionalChains, selected.toList())
@@ -303,7 +331,11 @@ class SessionProposalViewModel @Inject constructor(
     }
 
     override fun onRequiredNetworksClicked() {
-        val requiredNetworks = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
+        val activeProposal = proposal ?: run {
+            walletConnectRouter.back()
+            return
+        }
+        val requiredNetworks = activeProposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
 
         launch {
             val chains = walletConnectInteractor.getChains()

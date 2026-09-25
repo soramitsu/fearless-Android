@@ -4,11 +4,247 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android durable receiving-policy binding — 2026-09-25
+
+- `FPWCAI01` v2 binds the exact compiled Substrate identity inventory through staging, restart, original-source commitments and storage projection. Existing v1 bytes and tokens retain their original interpretation; unknown policy digests preserve the quarantined record. P0: independently review the frozen inventory, qualify mixed cross-platform cohorts on supported devices, finish the transactional installer and installed signing/export proof, and retain a migration-safe policy strategy for future inventory revisions before enabling recovery.
+
+## Android incoming Substrate watch-chain policy candidate — 2026-09-25
+
+- The receiving plan checks raw lowercase 64-hex chain-watch IDs against exact `SUBSTRATE` entries in the existing `ApprovedGenesis` policy without aliases. The bundled chain registry uses raw IDs, but the signed V2 policy uses `0x`-prefixed IDs; the single-prefix comparison is explicit. Direct callers still default to an empty policy; v2 after-images bind the compiled inventory above. P0: qualify the candidate inventory and installed identities on replacement devices before removing watch and installer blockers. Recovery remains disabled.
+
+## Android iOS TON watch-address compatibility candidate — 2026-09-25
+
+- The receiving watch proof now reuses the signed-root verifier for the canonical iOS TonSwift JSON Wallet V4R2 address, requiring a present public key and an exact workchain-zero account hash while retaining the original bytes. P0: prove the released iOS watch serializer emits this qualified shape, reject any remaining address-only or alternative JSON variants until separately reviewed, and verify original wallet identity after transactional installation on replacement devices. Named universal chains remain unsupported; the Substrate genesis policy still needs to be bound to the reviewed compiled inventory. Recovery stays disabled.
+
+## Android incoming watch-identity guard candidate — 2026-09-25
+
+- The disabled receiving path rejects unverified watch public identities before cohort staging, including mismatched native TON, Substrate, EVM and supported chain fields; it retains valid address-only EVM watches. Unqualified iOS TON JSON and named universal chains are rejected before any journal write. P0: independently verify the remaining iOS-origin identity interpretations, then bind the complete public-identity digest and prove transactional installation/readback with original signing/export and cross-platform replacement-device tests. This guard is not a recovery-enablement or installer proof.
+
+## Android watch-wallet identity proof candidate — 2026-09-25
+
+- The disabled read-only Android export proof now rejects public key/address mismatches for watch Substrate, EVM, native TON V4R2 and chain accounts, while retaining valid address-only EVM watches. P0: independently qualify foreign TON JSON and named-chain identities, bind the complete cohort public-identity digest, and prove transactionally installed watch rows and preferences on replacement devices. This local public check is not watch-address ownership, restored-wallet readback or production recovery authorization.
+
+## Android verified application export candidate — 2026-09-25
+
+- An unwired, read-only account-owned capture now takes fresh authoritative Room/secret-store data through exact V1/V2/V3 proof, approved V2 genesis policy, bounded global secret-key inventory and post-proof stability checks before releasing caller-owned `FPWMSM01` plaintext. It rejects V2/V3 keys under missing Room IDs and quarantine/recovery-marker aliases while ignoring unrelated numeric preference names. Wallet-selected chain ID and chain-selector filter are exact optional UTF-8 metadata IDs 10/11; bounded ID 12 now preserves explicit asset-row presentation, including generic empty-account rows and nullable flags/name. All three are rechecked after source proof. Pre-V1 private aliases still block capture. P0: bind a reviewed compiled chain policy and cross-platform identity digest; implement transactional receiving storage/readback for these platform preferences and all original keys; then integrate encrypted immutable Drive generations after complete Android/iOS installer qualification. The exporter neither uploads nor marks a wallet backed up; recovery stays disabled.
+
+## Android mixed-cohort original-source proof candidate — 2026-09-25
+
+- A read-only verifier now composes V1, approved-genesis V2 and exact V3 source proofs across mixed signed/watch cohorts, while rejecting unsupported originals and inconsistent custody. P0: derive and bind the complete public-identity digest to an application-owned exporter and independent plaintext verifier; qualify every released V1/V2/V3/standalone EVM/native TON cohort, watch/favorite/metadata mapping and original-key export after transactional installation. Then test real passkey/Drive replacement recovery and signed upgrades on both platforms before enabling backup completion. Structural watch/favorite checks are not an installer proof.
+
+## Android historical V1 source proof candidate — 2026-09-25
+
+- The unwired V1 checker proves the retained typed historical key, SS58 identity, mnemonic/entropy, seed and path under the production validator; the existing V2 checker separately proves canonical original SCALE chain sources against an approved genesis policy. P0: qualify all real historical V1/V2 cohorts and original export behavior on signed upgrades; integrate with V3/iOS/watch/metadata checks only after exact original-key and complete-cohort proof exists, then implement crash-safe installation and replacement-device acceptance. No backup-complete decision consumes these narrow proofs.
+
+## Android V3 original-source proof candidate — 2026-09-25
+
+- The unwired V3 checker binds exact original Android SCALE bytes to semantic Substrate/EVM/TON roots and proves local signing. Narrow V1 semantic and V2 exact-source proof components are also present. P0: independently qualify the parsers and signed/exported key behavior; align V1/V2/V3 with iOS, preserve unmapped metadata, bind a complete cohort identity digest, and prove installed-key readback. Finish the app-owned exporter and fresh-install transaction before any backup-complete decision; the present capture remains partial where metadata is unmapped.
+
+## Android first-owner bootstrap candidate — 2026-09-25
+
+- The disabled client now composes local original-wallet authorization, native PRF-capable registration, exact signed owner-bootstrap proof, Play Integrity token, one-shot server completion and an authenticated empty-head read. A separate disabled owner-authentication method evaluates PRF only after the selected credential's public assertion and empty head are verified. P0: implement the application-owned authorizer against every original V1/V2/V3/standalone EVM/native TON root, prove its signing key belongs to the selected wallet, provision the exact Play app/project identity, deploy and independently review the owner authority, and qualify provider PRF/Drive behavior on Play-distributed replacement devices. Use the verified local PRF to build a first-generation wrapper and complete journaled upload/download/decrypt/original-key readback before claiming portable backup. Unknown owner-creation outcomes must recover through discoverable authentication, not automatic re-enrollment. No backup-complete or production recovery path is present.
+
+## Android verified backup-head promotion candidate — 2026-09-25
+
+- The disabled coordinator now requires exact journaled Drive readback and local original-key evidence before a single durable-marker owner CAS. Lost commit responses and restarts query the exact operation from the immutable journal and require a fresh matching head; neither a 404 nor absent operation status permits another upload or CAS. P0: supply the production original-key signing/export callback and first-generation wrapper builder, wire the reviewed PRF owner assertion and deployed owner service, then run physical provider/account replacement recovery and signed-upgrade acceptance. No wallet UI backup-complete state is emitted by this candidate.
+
+## Android owner generation metadata HTTP candidate — 2026-09-25
+
+- The disabled grant/commit/status client binds exact candidate metadata to a live owner session and the selected Google subject, and rejects malformed grants or substituted committed descriptors. Its durable coordinator candidate is described above. P0: integrate the deployed owner authority and fresh session, supply production original-key signing/export and first-enrollment verification, then qualify real iOS↔replacement Android recovery and signed upgrades before enabling. This metadata client alone cannot establish backup completion.
+
+## Android authenticated owner-head read candidate — 2026-09-25
+
+- A disabled, unwired `PasskeyBackupOwnerHeadHttpClient` now binds the read-only owner-head response to the verified selected Google subject from `GoogleDriveAccessTokenProvider` and checks the exact owner, namespace, generation chain and Drive identities; backup JVM tests pass 251/251 and `detektAll` passes. P0: connect reviewed owner sessions and the deployed authority to the readback coordinator, verify selected-account/Drive behavior and PRF ceremonies on physical iOS and Android replacement devices, and complete original-key signing/export, installer, signed-upgrade and cross-platform recovery gates before enabling. This adapter alone does not authenticate a wallet backup or complete recovery.
+
+## Android owner authentication HTTP candidate — 2026-09-25
+
+- A disabled, unwired client can request the owner authority's accountless Android challenge, perform a discoverable user-verified Credential Manager assertion without PRF, send only public WebAuthn fields and accept a bounded short-lived owner session. P0: deploy and production-admit the reviewed owner authority, add first-owner bootstrap and owner-session use across backup head/grant operations, bind real device/user verification and replacement-device acceptance, and keep the recovery flag false until full cross-platform wallet installation and original-key signing/export proof passes. This candidate has no production recovery UI or wallet install path.
+
+## Android portable receive origin reservation — 2026-09-25
+
+- Candidate Room schema 80 binds each reserved local ID to the exact source wallet ID and historical position, preserving that relation across restart and safely reconciling v79 pending rows from the encrypted cohort. A version-2 encrypted cohort journal now atomically stages the canonical opaque original-source sidecar; version-1 pending journals can be upgraded by exact-token CAS. P0: encode every verified original V1/V2/V3/standalone EVM/native TON secret into target stores, then retain the sidecar only after verified target readback and implement a durable cohort-wide Room/secret-store commit and replay before publishing wallet rows. Prove installed identities plus original-key signing/export, run final-source migrations on API 30/31/36 and Play-signed upgrades, then qualify both real cross-platform replacement directions. This staging increment does not enable recovery.
+
+## Android first-owner Play Integrity bootstrap — 2026-09-24
+
+- The disabled native Standard request component now derives the exact server wallet-proof attestation nonce and returns only a sanitized opaque token. P0: provision and audit the linked Google Cloud/Play project number, Play signing certificate and version allowlist; implement native first-owner wallet proof and owner-session/bootstrap HTTP composition; verify real Play-distributed device tokens against Google's server decode and the exact wallet-proof request hash; finish independent security review and cross-platform replacement-device recovery before enabling. No project ID or successful verdict is inferred from the local component.
+
+## Authenticated Android generation readback — 2026-09-24
+
+- The disabled coordinator now binds an exact Drive generation to a fresh credential-directed PRF assertion, a server-verified owner/head response, local decryption and original-key proof, and post-verification owner/Google-account rechecks. P0: implement and deploy the owner-session/bootstrap and one-use assertion/head HTTP adapter with transactional revocation/freshness semantics; replace the synthetic wallet verifier with full application-owned V1/V2/V3/standalone EVM/native TON original-key signing/export proof; complete the transactional cohort installer. Qualify real iOS↔replacement Android and Android↔replacement iOS provider/Drive recovery before enabling. Local readback evidence alone cannot authorize installation or backup completion.
+
+## Android portable receive abandonment tombstones — 2026-09-24
+
+- Candidate schema 79 now leaves exact, permanently fenced Room tombstones after a cohort is abandoned, closing the preference-first deletion crash window. P0: run revised v78→79 migration and full released-schema instrumentation on API 30/31/36, review the 8,192-row quota and a safe maintenance protocol before exposing repeated recovery attempts, and prove no cross-process writer bypasses the reservation fence. The compatibility evidence gate must identify the trigger test on every API, and final signed upgrade/device results are still required. This still does not install a wallet or enable recovery.
+
+## Android portable receive Room reservation — 2026-09-24
+
+- Schema 79 now fences staged portable receive IDs inside Room, preserving a replayable preference/Room split after interruption and refusing mismatched or orphaned reservations. The cohort remains invisible and recovery disabled. P0: run the v78→79 migration/trigger test and full released-schema matrix on API 30/31/36, then prove exact source-to-target V1/V2/V3/standalone EVM/native TON encoding and installed original-key signing/export before adding any wallet-row commit. Define explicit restored backup-state, Google-address and custody-digest semantics; finish cohort-wide secret/Room cutover with interruption rollback, then qualify iOS↔Android real-device restoration and exact signed upgrades.
+
+## Production qualification — 2026-09-22
+
+- 2026-09-24 fresh-install cohort staging: an internal Android path checks an empty Room wallet set under the wallet mutation mutex, allocates distinct IDs, and atomically stages encrypted cohort bytes plus exact preference-side reservation markers. Both current wallet allocators reject marked IDs and an active cohort journal blocks new wallet creation even if a marker disappears; restart replay preserves the staged cohort, and exact-token abandonment retains permanently fenced Room tombstones. P0: finish an actual cohort-wide installer and crash-safe replay spanning Room and every original V1/V2/V3/standalone EVM/native TON store, recheck IDs against Room and target namespaces before publication, and prove every installed public identity, signing and export path. Define the separate existing-wallet merge policy and the missing backup-state/custody representation. Treat orphan markers as occupied pending explicit reconciliation. No staged row is a usable wallet and recovery remains disabled.
+
+- 2026-09-24 portable cohort projection: a pure Android `FPWMSM01`/`FPWCAI01` projection now pins allocated local IDs to logical wallet/chain/favorite/custody/metadata and exact V1/V2/V3/source-sidecar intents, with cross-wallet public-identity collision rejection. Fresh-install Room positions are compact `0..N-1` in authoritative wallet-list order, with exact uint32 source positions retained separately; equal positions preserve list order. P0: qualify this fresh-install policy with final cross-platform cohorts and define the separate merge policy for existing local wallets, resolve absent backup-state fields, derive and prove custody identity digests, map watch and original-source storage without loss, and build a cohort-wide transaction with reserved IDs and crash-safe replay. Prove installed original-key signing/export and iOS↔Android restoration before removing the installer blocker; this projection neither writes storage nor enables recovery.
+
+- 2026-09-24 Kaia history candidate: the bundled mainnet/Kairos history configuration and legacy `KLAYTN` route now use chain-bound KaiaScan OAPI native/token endpoints, Bearer credentials, exact decimals and fail-closed pagination; token fees are not invented. P0: provision the Android KaiaScan key, prove native/token amount, fee and terminal receipt parity, fee delegation, multi-page freshness and retry/explorer recovery on both networks, and repeat on exact final signed builds. See [the provider gate](kaia-history-production-gate-20260924.md). The `9180bc535` unsigned AAB predates this source and cannot qualify it.
+
+- 2026-09-24 history provider hardening: OKLink and legacy Klaytn no longer turn provider or transport failures into empty successful history, and the bundled X Layer explorer templates match their networks. Focused tests pass 7/7. P0: qualify the final-source history providers with operator-provisioned credentials, representative native/token transfers, pagination and freshness on X Layer and Kaia; replace any retired provider path through a reviewed contract. Keep provider failures visible and preserve retry/explorer recovery. The source-bound unsigned AAB at `bbd9f34f4fc137444ce01defe45d5ba57e5b766c` passed a 16-library/16 KiB structural audit, but final-head rebuild, actual 16 KiB device checks and Play-signed upgrade acceptance remain required.
+
+- 2026-09-24 V2 chain proof: an unwired read-only verifier can prove exact Android V2 original SCALE bytes, the semantic chain key and recovery fields, and a local signature only under an explicit canonical genesis/identity-kind policy. P0: supply a reviewed immutable production genesis policy, qualify supported iOS chain originals, integrate this proof with all other wallet/source proofs and the transactional installer, and verify actual installed-key signing/export and cross-device restoration. The receive blocker and backup-completion denial remain in place.
+
+- 2026-09-24 migration verifier repair: align the seven required released-schema identities and stale production-open instrumentation expectations with database version 78. Local verifier and evidence-packaging fixtures pass; P0: rerun protected hosted CI and confirm the API 34 full suite, all four API migration/restart profiles, and their source-bound evidence before candidate release.
+
+- 2026-09-24 cohort journal staging: the internal versioned `FPWCJ001` encrypted preference record now retains and revalidates the exact multiwallet after-image across restart, rejects known occupied target namespaces and races at staging, and never publishes a partial wallet. P0: implement a complete installer whose durable transaction covers V1/V2/V3 and source sidecars, Room wallet/chain/favorite/metadata/selection rows and ID reservation; bind every installed key to its public identity and prove original-key signing/export. Add crash-point, rollback and exact replacement-device tests before removing the permanent installer blocker or enabling recovery.
+
+- 2026-09-24 cohort after-image: the pure versioned `FPWCAI01` schema binds ordered local IDs to exact canonical portable bytes, names candidate V3/V2/V1 destinations, retains metadata/originals/selection and every blocker, and rejects duplicate or unrepresentable keys. Focused tests pass 6/6 with scoped Detekt. P0: complete cross-store mutation replay and installation using the verified after-image, with exact V1/V2/V3/sidecar namespace and Room image coverage, crash/rollback tests and original-key/export proof. The after-image alone has no storage call and cannot enable recovery.
+
+- 2026-09-24 receiving-install plan: an unwired pure Android plan now retains exact `FPWMSM01` cohorts and marks V1/V2/auxiliary/watch/metadata and incomplete root proof as blockers; it never writes wallet storage. P0: add a replayable cohort-wide transaction journal covering all root, chain and original-source secrets plus Room wallet, chain, favorite, custody and selection rows; prove namespace collisions, readback, restart recovery and original-key signing/export for every slot before enabling installation. The existing single-wallet V3-root CREATE journal cannot serve as that installer.
+
+- 2026-09-24 wallet-material capture: the Android candidate has an internal bounded draft serializer for validated V3 Substrate/EVM/TON roots, V2 chain keys and guarded V1-only sources across multiple wallets, with public identity, selection/order and favorites. V1 source type, original address, exact keypair, optional seed/path and mnemonic-derived entropy use a distinct slot; malformed or unowned active aliases, duplicate aliases and changing inventories fail closed without deleting the source. Watch-only cohorts still fail closed. P0: agree one semantic and binary iOS/Android plaintext contract, prove all historical cohorts, implement atomic replacement-device installation and verify original-key signing/export. This Android-only draft is not wired to Drive or backup completion and cannot make passkey recovery eligible by itself.
+
+- 2026-09-23 wallet-material inventory: legacy mnemonic backup restoration now preserves a separately backed-up EVM private key in the same durable wallet creation. P0: agree the portable iOS/Android plaintext format and implement wallet-owned serialization/verification for all V3 Substrate/EVM/TON roots, V2 chain keys, historical V1 material and multiple wallet identities; prove locked/interrupted migration and original-key signing/export. See [the source inventory](portable-wallet-material-inventory.md). The public legacy remote-backup compatibility stub and disabled passkey generation code are not release acceptance.
+
+- 2026-09-23 immutable-generation candidate: FPBKGEN1 canonical bytes and a separate append-only Drive store pass local vector/max-envelope/unknown-outcome tests. A bounded local journal candidate now records exact ciphertext and requires a durable single create-attempt marker through the public upload API. The disabled legacy single-file save path verifies exact Drive readback and local decryption before success, with credential compensation on registration failure. P0: qualify physical-device filesystem behavior, integrate downloaded DEK/envelope and wallet-identity verification into owner-authorized head CAS/status, reconcile competing writers and revocation, retain the last usable generation, and qualify Android↔iOS recovery on real devices before enabling. No automatic deletion or final-credential retirement is implemented.
+
+- 2026-09-23 Drive identity candidate: retain stable Google UserInfo `sub` across email rename, bind every request to the verified selected subject, and preserve original envelope AAD/ciphertext. P0: qualify consent/UI and the same Google Cloud appData project on both platforms, migrate the deprecated token-fetch consent path to AuthorizationClient, integrate owner/lifecycle and generation checks, and collect real replacement-device evidence before enabling recovery.
+
+- 2026-09-23 CI repair: retain the seven-checkout release architecture contract and per-checkout pin/credential negatives, require the liquidity-pools/Polkamarkt/Polkaswap mutation suites in `runTest`, keep the debt baseline equal to the current source markers, and preserve exact first-party audit boundaries around independently verified dependency checkouts. Complete the full Android CI run at the repaired source head, including required API 30/31/36 migration and restart evidence, before release qualification.
+
+- Completed baseline: target API 36; retain reviewed XCM discovery/quotes with a hardcoded false release submission flag; reject direct engine transfer before entering signing/submission even when the remote switch enables mutations. Keep the 15-route approval set, 34 discovery-only routes and blocked production-evidence requirements intact.
+- Completed fee isolation: preparing quotes does not read wallet secrets; origin-fee RPC uses a correctly typed invalid signature placeholder without invoking the wallet signer. The 121 scoped JVM tests include private-key exclusion and Substrate/Ethereum encoding fixtures. Verify fee/weight parity against each approved live runtime before release enablement.
+- Completed authorization core: closed canonical Ed25519 FWMA1 verification, production package/version and policy/route-manifest binding, 900-second maximum lifetime, five-minute refresh, durable monotonic revision/digest and clock high-water, startup-denied state, and intent-bound process leases. Missing production trust and immutable all-false policy keep new Polkamarkt/XCM/bridge mutations denied; legacy behavior and read-only discovery are independent.
+- Completed source integration: freeze SCALE bytes and bind chain/account/payload intent before key acquisition; check the same lease inside physical key reads, signing, and the Utils WebSocket handoff. New-feature discovery/quotes use public metadata or key-presence checks; guarded SocketService requests terminate without reconnect replay.
+- Completed guarded source candidate: pass intent leases through physical unwrap/attestation/decryption, prepared signing primitives, Utils queues and the nv-websocket underlying output. Reject guarded compression before compressor state, finish owned blocking work before the final sample, and never replay uncertain mutations. Utils PR153 and transport PR1 are published source candidates; Android CI/release verifies their exact commits/trees without checkout mutation.
+- P0: Review and merge those exact source candidates, pass complete Android CI/release checks from the final merged app tree, and qualify SR25519/native providers and real-device TLS before treating source boundary tests as artifact evidence.
+- P0: Provision operator-reviewed production verification keys, exact artifact version/policy and full route/catalog manifest coverage only after release evidence is complete. Do not install fixture keys or relax compiled approval/per-route gates.
+- P0: Complete the existing funded per-route XCM evidence and final reconciliation gates before changing compiled submission permission. Quote/discovery availability does not count as an executable-route qualification.
+- P0: For the frozen Polkadot Asset Hub → Moonbeam USDt discovery gap, run
+  `bash scripts/test-xcm-assethub-moonbeam-usdt-discovery.sh` and
+  `node scripts/inspect-xcm-assethub-moonbeam-usdt.js --output build/reports/xcm-assethub-moonbeam-usdt-discovery.json`.
+  Verify the source-derived asset identities against canonical chain state,
+  then review the exact runtime call, XCM locations, beneficiary, weight and
+  fee semantics. Keep the route discovery-only until funded origin/destination
+  success evidence and separate approval are complete.
+- P0: Qualify the exact source-bound target-36 release AAB, native 16 KiB alignment and actual 16 KiB-device startup/crypto behavior. Complete configured signer trust, immutable dependency/source publication, and the real Play-signed upgrade matrix on API 30, 31 and 36 from the final merged tree; preserve all legacy wallet identities, signing, backup and export behavior.
+
+## Portfolio network headers — 2026-09-07
+
+- Healthy headings now show the network name and available fiat subtotal. Routine scan coverage/timestamps, repeated account/ecosystem metadata, asset counts and missing-price placeholders are hidden; failed, outdated and unloaded balances retain short localized status messages. Collapse and detected-asset review are unchanged.
+- Validation: five focused JVM status tests and the native 320dp/200% text header fixture pass; debug app/test APKs build successfully. Screenshot and exact artifact hashes are in `build/ux-evidence/20260907-portfolio-header/`.
+
+## Completed TalkBack and large-text acceptance — 2026-09-06
+
+- Official-source TalkBack and audible RHVoice output now support the isolated 5560 checks. The scoped real-wallet and synthetic production-view matrix passes; service availability is no longer an Android blocker.
+- Preserve the verified raised center artwork/single accessible Polkaswap action, opaque bar and matching content inset, responsive wallet states, task-first setup/Back behavior, full options text and reusable dialog ownership. Targeted validation totals 41 JVM / 15 native passes; final app/test artifacts and reviewed screenshots/audio are in `build/ux-evidence/20260906-talkback/`.
+- The evidence README records exact case/artifact scope and diagnostic history. Normal text size and disabled TalkBack are restored after acceptance, with the official service and four synthetic wallets retained for owner review. No release or account/crypto behavior was changed for accessibility tooling.
+
+## Legacy upgrade acceptance — 2026-09-06
+
+- Preserve all legacy keys/addresses and existing wallet access while adding supported network accounts; implementation and targeted checks are recorded in [legacy-upgrade-audit-20260906.md](legacy-upgrade-audit-20260906.md).
+- Repeat the existing source-bound migration compatibility/release gate from the final merged release tree on API 30, 31 and 36 before distribution. The present working tree contains unrelated development changes and is not a releasable artifact.
+- Seed-only, raw-key, watch-only and other wallets without a recoverable mnemonic retain their legacy accounts. Adding a mnemonic-based network requires explicit user import/create; automatic upgrade never invents or silently replaces their recovery phrase.
+
+## UX validation follow-up
+- 2026-09-06 Receive follow-up: the SORA Request share-asset mismatch and actual Request typography crash are fixed. Current display/QR/share snapshot, cancellation/stale-result handling, share retry and selector reopening have six passing regressions; Copy address/Share address use localized labels. Scoped totals are 37 JVM and 10 native passes; both APKs build successfully. Actual Receive passes 4/4 cases across two SORA wallets, TON and ETH/Ethereum on the recorded `c493...` APK. Request at 200% text, amount/shared-QR equality and actual CERES→DEO switching pass. The fixture-only host-sizing/full-bounds correction builds and its native rerun passes 3/3 in 5.706s; corrected captures were inspected and the earlier clipped images remain diagnostics. The final scoped crash buffer is empty. Existing Manage assets toggles and Search provide zero-balance Receive entry without changing the tested Portfolio policy. That checkpoint predates the completed official TalkBack checks above.
+- Confirmation follow-up: returned/thrown create and backup errors now permit retry, cancellation releases the guard, and retry after partial completion reuses the saved wallet. Seven new JVM cases pass (31 scoped JVM total). Both debug APKs build successfully. The selected/source word panels share bounded scrolling, empty selection no longer preallocates the full phrase height, word targets are at least 48dp, and the exercised confirmation/export toolbar actions have named 48dp bounds. The new `MnemonicConfirmationLayoutInstrumentedTest` passes (9 scoped native total). The actual 24-word/200% text walkthrough and persisted backup status after restart also pass on the exact confirmation APK. Build-specific evidence is in `build/ux-evidence/20260905-real-onboarding/README.md`.
+- 2026-09-05: Retain the raised central Polkaswap artwork and existing destination. The ordinary center menu item is hidden from accessibility so the labeled FAB is the single accessible action. Future contextual Polkaswap/Soraswap selection remains deferred; this change does not add a provider router.
+- Center restoration: debug APK/test APK builds, 6 navigation JVM checks and 7 API 34 native layout/back-stack/screen checks pass. Production navigation fixtures at 320dp and 100%/200% text are saved under `build/ux-evidence/20260905-polkaswap/`; captions wrap without truncation. Production onboarding/Receive/Swap fixtures at the same widths/scales are saved under `build/ux-evidence/20260905-screens/ux-evidence/`; full text fit, scroll reachability and disclosure behavior pass. The later official TalkBack checks above complete that follow-up.
+- 2026-09-05: Implemented task-first onboarding, persistent wallet protection, explicit receive-network instructions, accessible toolbar/swap controls, transaction-focused swap details and consistent task labels. Existing backend capability checks and authenticated navigation graph IDs are preserved.
+- Actual Substrate/EVM and TON Create/Restore, invalid-phrase retry, Back, PIN unlock and saved-wallet switching have been exercised on an isolated API 34 emulator. Follow-up runtime testing found and fixed banner typography context, the TON header network identity and a TON initialization ordering deadlock; the final debug APK and three repeated TON cold starts pass; evidence is recorded in `build/ux-evidence/20260905-real-onboarding/README.md`. Spoken TalkBack remains required and unavailable in the QA image; cloud recovery is additional validation. The later full generated-word confirmation passed at 200% text. The generated TON empty-state copy and same-chain wallet address refresh are fixed, with four empty-state tests, three address-flow tests and real model/display switch checks. Final scoped totals: 24 JVM and 8 native passes.
+- A future global Activity destination needs a real multi-network operation feed and pagination contract; the existing AddressHistory screen selects recipients and cannot serve that role.
+- 6 focused onboarding/icon tests and common/onboarding/wallet/Polkaswap/staking debug compilation passed with the existing runtime-compatible fearless-utils checkout. App integration compilation passed. Finish device acceptance; see docs/status.md for exact current results. No production build is generated for this UX change.
+
 ## Recent Updates
+- 2026-08-01: Added a URL-redacted, digest-bound contract for the observed
+  Google Play Internal App Sharing publication, including a mode-`0600`
+  private handoff writer and 6-positive / 184-adversarial audit. The evidence
+  remains test-only and records its missing device, independent-tester,
+  production-signing, and current-availability proof. Added a bounded AAB ELF
+  verifier with 1 positive / 20 negative fixtures and wired exact CI, IAS,
+  unsigned-release, and signed-release artifacts through its 16 KiB PT_LOAD
+  alignment checks.
+- 2026-07-30: Removed Reown delegate calls from `WCDelegate` static
+  initialization after a delayed release-like startup crash. Delegate
+  registration is now synchronized, idempotent, refreshes persisted sessions
+  when initialization succeeds, and safely retries partial readiness.
+  Recoverable synchronous SDK failures across pairing and session actions now
+  reach UI error callbacks; cancellation and fatal errors still propagate.
+  Stale proposal/session/request destinations route back without dereferencing
+  missing process-memory state. Pull-request IAS builds stay
+  WalletConnect-secretless, while a protected-`develop` manual dispatch binds
+  a required non-logged 32-hex project ID only to the exact bundle step.
+- 2026-07-27: Retired the legacy MoonPay secret/HMAC flow and removed every
+  signing-secret BuildConfig field and release requirement. The replacement
+  uses only publishable keys, an exact hosted-checkout allowlist, and manual
+  wallet entry; prefilled-wallet URLs still require a backend signer. The
+  formerly exposed secret must be revoked/rotated. The policy gate scans every
+  tracked Android source set, build input, release script, and workflow, with
+  alternate-module adversarial fixtures.
+- 2026-07-27: Made release Firebase overlay backup creation crash-safe by
+  validating size, SHA-256, and `0600` permissions on a same-directory
+  temporary before atomic rename. Cleanup discards partial temporaries. The
+  finalized split-overlay suite covers 20 restore and 8 cleanup TERM/SIGKILL
+  cases, 2 independent positive phases, 20 phase/credential-isolation
+  negatives, and separate corruption and permission-negative cases.
+- 2026-07-27: Reserved Google Play version code 230 and replaced mutable
+  release versioning/debug-signing fallback with a fail-closed Play testing
+  artifact pipeline. A credential-free first job validates the signed tag,
+  prior CI, governance, adversarial controls, and exact source tree. The
+  protected build runner then creates only an exact CI/source-bound unsigned
+  Gradle AAB with no signing material and transfers its exact, individually
+  attested four-file evidence, including the bounded verified Gradle/R8 build
+  log, to a separate protected signing runner. That
+  runner revalidates every file digest, exact provenance, all attestations,
+  tag, `master`, and source tree before restoring the upload key and invoking
+  the standalone signer pinned to the registered upload certificate. It
+  derives identity and permissions from the signed bytes and separately
+  attests the exact final three-file artifact. CI performs no Play mutation
+  and receives no Play service-account credential; the final AAB is uploaded
+  manually to the existing Open Testing track after evidence review.
+- 2026-07-27: Pinned release dependency provenance with the Gradle 9.0
+  distribution SHA-256, strict verification metadata plus a tracked digest,
+  the strict root buildscript-classpath lock, and the production dependency
+  lock. CI/release graphs reject
+  `mavenLocal()`, verification-off flags, and metadata/lock rewrite attempts.
+- 2026-07-30: Advanced the release toolchain from AGP 8.9.1 to exact AGP
+  8.10.1 / R8 8.10.24 so Reown's Kotlin 2.2 metadata is parsed by a supported
+  shrinker; clean release logs and embedded AAB metadata are fail-closed.
+- 2026-07-13: Added the production-satisfiable Android Iroha wallet-smoke
+  metadata seam without enabling send. A closed immutable wallet model and the
+  Nexus-only request factory enforce the exact four-key/all-string schema,
+  canonical route hash and wallet commit, Android platform/role binding, and
+  defensive snapshots. The operator seam also requires the exact Nexus global
+  chain and canonical Minamoto endpoint. The staged Java codec remains
+  Taira-only and rejects every non-empty metadata map before signing. Focused
+  adversarial tests cover malformed keys, types, case, controls, confusables,
+  sentinels, mutable aliasing, wrong network/chain, and endpoint substitution;
+  ordinary transfers still use empty metadata and production DI still injects
+  `UnavailableIrohaTransferSigner`.
+- 2026-07-11: Added a fail-closed, non-production Iroha staging lane. The
+  bounded materializer extracts only the pinned `core-jvm` coordinate; a
+  Java-only Taira bridge and Kotlin 2.1 smoke module run behind an explicit
+  CI/local gate; app debug/release graphs are proven free of the SDK. A custom
+  compact-length transaction hasher works around the pinned SDK's confirmed
+  fixed-`u64` defect and matches the inspected Rust/current-native diagnostic
+  vector. Production DI, live Torii/funded evidence, exact binary provenance,
+  device/R8 proof, authoritative live registry/precision/fee mapping,
+  deployed-node compatibility, and private-key residue acceptance remain
+  blockers. The tag fixture and current live Taira expose different canonical
+  XOR definition IDs, so neither is a valid hard-coded production mapping.
+- 2026-07-10: Hardened Android production release provenance: strict tag/master
+  and exact prior-CI binding, immutable committed versioning, AAB signer
+  verification, pinned build attestation/actions, and destructive release-gate
+  tests. `runTest` now dynamically covers all 14 source-backed test modules,
+  including the previously omitted `core-api`, backup, and XCM modules.
+- 2026-07-10: Removed MoonPay server-secret/HMAC signing from the APK and kept
+  the hosted checkout in publishable-key/manual-wallet mode with an exact host
+  allowlist and adversarial query/control/size tests. Credential Manager
+  transport and trust-all TLS lint checks are now fatal, and unused legacy
+  Spongy Castle PKIX/PGP artifacts no longer ship at runtime.
 - 2026-03-12: `scripts/build-libsodium.sh` now detects the correct host-specific NDK toolchain directory (darwin/linux/windows) instead of hardcoding macOS paths, so rebuilding libsodium works on Linux and CI hosts.
 - 2026-03-12: Local validation script now installs Android platform/build-tools 36 so fresh environments match the Gradle compileSdk configuration before running tasks.
 - 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) so the pinned `fearless-utils-Android` composite checkout remains buildable on the current Gradle stack until the upstream repository upgrades.
-- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
+- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and initially bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
 - 2026-03-12: Temporarily excluded the WalletConnect Pay dependency (and its `yttrium-wcpay` natives) until Reown publishes 16 KB–aligned builds.
 - 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.
 - 2026-03-05: Completed security remediation batch for TON and account flows (TonConnect origin validation, TON network client hardening, WebView restrictions, encrypted preferences migration to AES-GCM, PIN lockout throttling, and internal-cache JSON export hygiene).
@@ -38,10 +274,10 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   1) Registry overrides: In `local.properties`, set
      - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
      - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
-     - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (points to chain list validated against stable2503)
+     - `CHAINS_URL_DEBUG_OVERRIDE=https://<your>/chains.json` (debug-only chain list validated against stable2503; release remains pinned)
   2) Utils alignment (pinned source checkout): The build includes `soramitsu/fearless-utils-Android` as a composite source dependency.
      - Ensure NDK r28 (android-ndk-r28 / 28.0.x) and Rust toolchain with Android targets are installed (see README and CI config).
-     - CI checks out `7500809f33243ee47ecb2ec8563fc284ac4de0d6`; local builds should clone that repo next to this checkout or set `FEARLESS_UTILS_PATH`.
+     - CI checks out the exact Utils and guarded transport commits from `config/android-runtime-source-pins.json`; local builds should clone that repo next to this checkout or set `FEARLESS_UTILS_PATH`.
   3) Library version pinning (shared_features): If required, pin via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` in `local.properties` or env.
   4) Build + quick checks:
      - `./gradlew detektAll runTest :app:lint`
@@ -147,13 +383,21 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 - Prompt:
   - Add a build-time flag or comment with target version; plan a small PR once utils/runtime upgraded.
 
-10) Tests for DB migrations & runtime flows
-- Why: Critical to stability across releases.
-- Files: `core-db/.../migrations/*`, `runtime/...`
+10) Expand runtime-flow tests (Room migration coverage delivered)
+- Status: API 34 runs the full 61-test database suite, including malformed,
+  oversized, interrupted, and no-wipe preservation cases. APIs 30, 31, and 36
+  each run the compact 8-test released-schema/fail-closed database profile as
+  part of a 39-test compatibility gate.
+- Remaining why: Runtime connection lifecycle behavior still needs the same
+  deterministic regression depth.
+- Files: `runtime/...`
 - Acceptance:
-  - Migration tests for latest versions; smoke tests for ChainRegistry start/stop.
+  - Smoke tests cover `ChainRegistry` start, stop, reconnection, cancellation,
+    and concurrent `syncUp()` calls without live-network timing dependencies.
 - Prompt:
-  - Add Room migration tests for recent migrations; create lightweight tests for `ChainRegistry.syncUp()` using fakes.
+  - Build lightweight `ChainRegistry.syncUp()` tests with fakes and adversarial
+    cancellation/reconnection cases; keep the existing migration device matrix
+    mandatory for every database schema change.
 
 11) Per-module READMEs and entry points
 - Why: Speeds onboarding and code navigation.

@@ -50,6 +50,7 @@ class TonConnectModule {
         tonApiClient
     )
 
+    @Singleton
     @Provides
     fun provideTonConnectRepo(
         tonConnectDao: TonConnectDao,

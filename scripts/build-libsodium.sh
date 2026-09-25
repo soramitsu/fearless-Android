@@ -11,6 +11,24 @@ if [[ ! -d "${LIBSODIUM_SRC}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${LIBSODIUM_SRC}/configure" ]]; then
+  if ! command -v autoreconf >/dev/null 2>&1; then
+    echo "error: autoreconf is required to generate libsodium's configure script" >&2
+    exit 1
+  fi
+
+  echo "Generating libsodium configure script from the vendored autotools sources"
+  (
+    cd "${LIBSODIUM_SRC}"
+    ./autogen.sh
+  )
+fi
+
+if [[ ! -x "${LIBSODIUM_SRC}/configure" ]]; then
+  echo "error: libsodium configure script is missing or not executable" >&2
+  exit 1
+fi
+
 ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$HOME/Library/Android/sdk/ndk/28.0.12674087}"
 if [[ ! -d "${ANDROID_NDK_HOME}" ]]; then
   echo "error: ANDROID_NDK_HOME (${ANDROID_NDK_HOME}) does not exist" >&2

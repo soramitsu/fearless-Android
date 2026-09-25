@@ -84,7 +84,8 @@ fun ChainLocal.assetOf(
     existentialDeposit = null,
     color = null,
     isNative = null,
-    priceProvider = null
+    priceProvider = null,
+    coinbaseUrl = null
 )
 
 suspend fun ChainDao.addChain(joinedChainInfo: JoinedChainInfo) {

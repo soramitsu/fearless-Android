@@ -83,6 +83,18 @@ class MortalityConstructorTest {
     }
 
     @Test
+    fun `accepts largest current block number representable by mortal era`() {
+        val mortality = constructMortalEra(
+            currentBlock = BigInteger.valueOf(Int.MAX_VALUE.toLong()),
+            blockHashCount = null,
+            expectedBlockTimeInMillis = BigInteger.valueOf(6_000),
+            blockHash = "0x" + "66".repeat(32)
+        )
+
+        assertTrue(requireNotNull(mortality).era is Era.Mortal)
+    }
+
+    @Test
     fun `rejects malformed block hashes`() {
         val mortality = constructMortalEra(
             currentBlock = BigInteger.TEN,

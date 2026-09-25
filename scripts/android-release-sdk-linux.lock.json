@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "host": {
+    "os": "linux",
+    "arch": "x86_64"
+  },
+  "license": {
+    "id": "android-sdk-license",
+    "textSha256": "1f8729233617b193fd619213792ae16a41b95d2bbbf525dfe66998252ba68b16",
+    "runtimeAcceptance": "not-performed-direct-archive"
+  },
+  "packages": [
+    {
+      "packageType": "platform",
+      "packageId": "platforms;android-36",
+      "revision": "2",
+      "archiveFilename": "platform-36_r02.zip",
+      "archiveUrl": "https://dl.google.com/android/repository/platform-36_r02.zip",
+      "archiveSize": 65878410,
+      "archiveSha1": "2c1a80dd4d9f7d0e6dd336ec603d9b5c55a6f576",
+      "archiveSha256": "37607369a28c5b640b3a7998868d45898ebcb777565a0e85f9acf36f29631d2e",
+      "archiveEntryCount": 11342,
+      "archiveUncompressedSize": 106177284,
+      "archiveRoot": "android-36",
+      "installPath": "platforms/android-36",
+      "sourcePropertiesSha256": "72291ff6611dbfc46fdfb6de2821c4a62c87befa5200713847eda426e3a501c2",
+      "sourceProperties": {
+        "Pkg.Desc": "Android SDK Platform 16",
+        "Pkg.UserSrc": "false",
+        "Platform.Version": "16",
+        "Platform.CodeName": "",
+        "Pkg.Revision": "2",
+        "AndroidVersion.ApiLevel": "36",
+        "AndroidVersion.ExtensionLevel": "17",
+        "AndroidVersion.IsBaseSdk": "true",
+        "Layoutlib.Api": "15",
+        "Layoutlib.Revision": "1",
+        "Platform.MinToolsRev": "22"
+      },
+      "requiredFiles": [
+        "android.jar",
+        "core-for-system-modules.jar",
+        "framework.aidl",
+        "source.properties"
+      ]
+    },
+    {
+      "packageType": "build-tools",
+      "packageId": "build-tools;35.0.0",
+      "revision": "35.0.0",
+      "archiveFilename": "build-tools_r35_linux.zip",
+      "archiveUrl": "https://dl.google.com/android/repository/build-tools_r35_linux.zip",
+      "archiveSize": 61958799,
+      "archiveSha1": "2cfaa0bbb2336e9ec18ed3ecea84fa2e2af607bc",
+      "archiveSha256": "bd3a4966912eb8b30ed0d00b0cda6b6543b949d5ffe00bea54c04c81e1561d88",
+      "archiveEntryCount": 168,
+      "archiveUncompressedSize": 153245182,
+      "archiveRoot": "android-15",
+      "installPath": "build-tools/35.0.0",
+      "sourcePropertiesSha256": "084847d70abc41284feee7ea717e7c92eab0d1be05f048c27445a359cfe109d8",
+      "sourceProperties": {
+        "Pkg.UserSrc": "false",
+        "Pkg.Revision": "35.0.0"
+      },
+      "requiredFiles": [
+        "aapt2",
+        "aidl",
+        "apksigner",
+        "core-lambda-stubs.jar",
+        "lib/apksigner.jar",
+        "lib/d8.jar",
+        "source.properties",
+        "zipalign"
+      ]
+    }
+  ]
+}

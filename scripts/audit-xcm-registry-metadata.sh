@@ -114,14 +114,18 @@ const [
 const requireExecutable = requireExecutableRaw === 'true';
 const requireAllRoutesExecutable = requireAllRoutesExecutableRaw === 'true';
 const errors = [];
+let unsafeGapReportErrorCount = 0;
 const executableRouteKeys = new Set();
 const missingExecutableDestinations = [];
 const requiredGaps = [];
 const allowedGapReasons = new Set(['bridge-sora', 'non-native-asset', 'cross-parachain-native']);
 const requireGapManifest = requiredGapFilesRaw.split('\n').filter(Boolean).length > 0;
 
-function fail(message) {
+function fail(message, options = {}) {
   errors.push(message);
+  if (!options.safeForGapReport) {
+    unsafeGapReportErrorCount += 1;
+  }
 }
 
 function label(...parts) {
@@ -375,14 +379,15 @@ function requiredMultiLocation(value, field, context) {
   const mlContext = `${context}: ${field}`;
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     fail(`${mlContext} is required`);
-    return;
+    return null;
   }
 
   nonNegativeInteger(value.parents, 'parents', mlContext);
   const interior = requiredString(value.interior, 'interior', mlContext);
   if (interior !== null) {
-    validateMultiLocationInterior(interior, `${mlContext}.interior`);
+    return validateMultiLocationInterior(interior, `${mlContext}.interior`);
   }
+  return null;
 }
 
 function splitTopLevel(value, context) {
@@ -425,7 +430,7 @@ function validateJunction(value, context) {
   const match = /^([A-Za-z][A-Za-z0-9]*)(?:\((.*)\))?$/.exec(value.trim());
   if (!match) {
     fail(`${context} has malformed junction`);
-    return;
+    return null;
   }
 
   const type = normalizedEnum(match[1]);
@@ -450,35 +455,38 @@ function validateJunction(value, context) {
     requireArgument(match[1]);
   } else if (type === 'ACCOUNT_ID32' || type === 'ACCOUNT_KEY20') {
     const parsed = requireArgument(match[1]);
-    if (parsed !== null && !parsed.includes('<account>')) {
-      fail(`${context} ${match[1]} must include <account> recipient placeholder`);
+    const accountField = type === 'ACCOUNT_ID32' ? 'id' : 'key';
+    const expected = `{network: Any, ${accountField}: <account>}`;
+    if (parsed !== null && parsed !== expected) {
+      fail(`${context} ${match[1]} must use exact ${expected} recipient authority`);
     }
   } else {
     fail(`${context} has unsupported junction ${match[1]}`);
   }
+  return { type, argument };
 }
 
 function validateMultiLocationInterior(value, context) {
-  if (value === 'Here') return;
+  if (value === 'Here') return [];
 
   const match = /^X([1-8])\((.*)\)$/.exec(value);
   if (!match) {
     fail(`${context} must be Here or X1..X8 junctions`);
-    return;
+    return null;
   }
 
   const expectedCount = Number(match[1]);
   const junctions = splitTopLevel(match[2], context);
-  if (junctions === null) return;
+  if (junctions === null) return null;
 
   if (junctions.length !== expectedCount) {
     fail(`${context} declares X${expectedCount} but contains ${junctions.length} junctions`);
-    return;
+    return null;
   }
 
-  junctions.forEach((junction, index) => {
-    validateJunction(junction, `${context} junction ${index + 1}`);
-  });
+  return junctions.map((junction, index) =>
+    validateJunction(junction, `${context} junction ${index + 1}`)
+  ).filter(Boolean);
 }
 
 function validateWeightLimit(value, context) {
@@ -505,11 +513,11 @@ function validateDestinationFee(value, context) {
   const feeContext = `${context}: destinationFee`;
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     fail(`${feeContext} is required`);
-    return;
+    return null;
   }
 
-  const mode = requiredEnum(value.mode, 'mode', ['INCLUDED', 'ESTIMATED', 'FIXED'], feeContext);
-  requiredString(value.assetSymbol, 'assetSymbol', feeContext);
+  const mode = requiredEnum(value.mode, 'mode', ['INCLUDED', 'FIXED'], feeContext);
+  const assetSymbol = requiredString(value.assetSymbol, 'assetSymbol', feeContext);
   const amount = nonNegativeIntegerString(value.amount, 'amount', feeContext);
 
   if (mode === 'FIXED' && amount === null) {
@@ -519,15 +527,76 @@ function validateDestinationFee(value, context) {
   if (mode !== null && mode !== 'FIXED' && amount !== null) {
     fail(`${feeContext}: amount is only valid for fixed destination fees`);
   }
+
+  return assetSymbol === null ? null : normalizeAssetSymbol(assetSymbol);
 }
 
-function validateExecutionSpec(execution, destination, xcmVersion, context) {
+function validateProductionRouteChains(originChain, destinationChain, beneficiaryJunctions, context) {
+  const routeChainSemantics = (chain, role) => {
+    if (!chain || typeof chain !== 'object' || Array.isArray(chain)) {
+      fail(`${context}: ${role} chain metadata is missing`);
+      return null;
+    }
+
+    const ecosystemValue = requiredString(chain.ecosystem, 'ecosystem', `${context}: ${role} chain`);
+    const ecosystem = ecosystemValue === null ? null : normalizedEnum(ecosystemValue);
+    if (ecosystem !== null && !['SUBSTRATE', 'ETHEREUM_BASED'].includes(ecosystem)) {
+      fail(`${context}: ${role} chain ecosystem is not supported for XCM execution`);
+    }
+
+    const options = chain.options === undefined || chain.options === null ? [] : chain.options;
+    if (!Array.isArray(options) || options.some((option) => !nonEmptyString(option) || option !== option.trim())) {
+      fail(`${context}: ${role} chain options must be canonical non-blank strings`);
+      return ecosystem;
+    }
+    const optionSet = new Set(options);
+    const isEthereumBased = optionSet.has('ethereum') || optionSet.has('ethereumBased');
+    if (ecosystem !== null && isEthereumBased !== (ecosystem === 'ETHEREUM_BASED')) {
+      fail(`${context}: ${role} chain ecosystem and account-width metadata must agree`);
+    }
+    if (optionSet.has('testnet')) {
+      fail(`${context}: ${role} chain must not be a testnet for approved production XCM execution`);
+    }
+
+    return ecosystem;
+  };
+
+  routeChainSemantics(originChain, 'origin');
+  const destinationEcosystem = routeChainSemantics(destinationChain, 'destination');
+  if (!beneficiaryJunctions || destinationEcosystem === null) return;
+
+  const accountTypes = beneficiaryJunctions
+    .filter((junction) => junction.type === 'ACCOUNT_ID32' || junction.type === 'ACCOUNT_KEY20')
+    .map((junction) => junction.type);
+  if (accountTypes.length !== 1) return;
+
+  const expectedAccountType = destinationEcosystem === 'ETHEREUM_BASED' ? 'ACCOUNT_KEY20' : 'ACCOUNT_ID32';
+  if (accountTypes[0] !== expectedAccountType) {
+    fail(`${context}: destination ecosystem requires ${expectedAccountType === 'ACCOUNT_KEY20' ? 'AccountKey20' : 'AccountId32'} beneficiary`);
+  }
+}
+
+function validateExecutionSpec(
+  execution,
+  destination,
+  routeAsset,
+  xcmVersion,
+  originChain,
+  destinationChain,
+  context
+) {
   if (!execution || typeof execution !== 'object' || Array.isArray(execution)) {
     fail(`${context}: execution must be an object`);
     return;
   }
 
-  requiredString(xcmVersion, 'xcmVersion', context);
+  const normalizedXcmVersion = requiredString(xcmVersion, 'xcmVersion', context);
+  if (normalizedXcmVersion !== null && xcmVersion !== normalizedXcmVersion) {
+    fail(`${context}: xcmVersion must not contain surrounding whitespace`);
+  }
+  if (normalizedXcmVersion !== null && !/^v[1-9][0-9]*$/.test(normalizedXcmVersion)) {
+    fail(`${context}: xcmVersion must use canonical v<number> syntax`);
+  }
   const palletName = requiredString(execution.palletName, 'palletName', context);
   const callName = requiredString(execution.callName, 'callName', context);
   const transferType = requiredEnum(
@@ -544,13 +613,54 @@ function validateExecutionSpec(execution, destination, xcmVersion, context) {
     context
   );
   validateCallShape(palletName, callName, transferType, argumentShape, context);
-  requiredMultiLocation(execution.destinationLocation, 'destinationLocation', context);
-  requiredMultiLocation(execution.assetLocation, 'assetLocation', context);
-  requiredMultiLocation(execution.beneficiaryLocation, 'beneficiaryLocation', context);
-  requiredMultiLocation(execution.feeAssetLocation, 'feeAssetLocation', context);
-  nonNegativeInteger(execution.feeAssetItem, 'feeAssetItem', context);
+  const destinationJunctions = requiredMultiLocation(execution.destinationLocation, 'destinationLocation', context);
+  const assetJunctions = requiredMultiLocation(execution.assetLocation, 'assetLocation', context);
+  const beneficiaryJunctions = requiredMultiLocation(execution.beneficiaryLocation, 'beneficiaryLocation', context);
+  const feeAssetJunctions = requiredMultiLocation(execution.feeAssetLocation, 'feeAssetLocation', context);
+  const isRecipientAccount = (junction) =>
+    junction.type === 'ACCOUNT_ID32' || junction.type === 'ACCOUNT_KEY20';
+  for (const [field, junctions] of [
+    ['destinationLocation', destinationJunctions],
+    ['assetLocation', assetJunctions],
+    ['feeAssetLocation', feeAssetJunctions]
+  ]) {
+    if (junctions && junctions.some(isRecipientAccount)) {
+      fail(`${context}: ${field} must not contain a recipient account junction`);
+    }
+  }
+  if (beneficiaryJunctions && beneficiaryJunctions.filter(isRecipientAccount).length !== 1) {
+    fail(`${context}: beneficiaryLocation must contain exactly one recipient account junction`);
+  }
+  validateProductionRouteChains(originChain, destinationChain, beneficiaryJunctions, context);
+  if (
+    execution.assetLocation &&
+    execution.feeAssetLocation &&
+    (
+      execution.assetLocation.parents !== execution.feeAssetLocation.parents ||
+      String(execution.assetLocation.interior || '').trim() !== String(execution.feeAssetLocation.interior || '').trim()
+    )
+  ) {
+    fail(`${context}: single-asset feeAssetLocation must equal assetLocation`);
+  }
+  const feeAssetItem = nonNegativeInteger(execution.feeAssetItem, 'feeAssetItem', context);
+  if (feeAssetItem !== null && feeAssetItem !== 0) {
+    fail(`${context}: single-asset feeAssetItem must be zero`);
+  }
   validateWeightLimit(execution.weightLimit, context);
-  validateDestinationFee(execution.destinationFee, context);
+  const destinationFeeAssetSymbol = validateDestinationFee(execution.destinationFee, context);
+
+  if (!routeAsset || typeof routeAsset !== 'object' || Array.isArray(routeAsset)) {
+    fail(`${context}: execution must belong to an exact route asset`);
+  } else if (destinationFeeAssetSymbol !== null && nonEmptyString(routeAsset.symbol)) {
+    const routeAssetSymbol = normalizeAssetSymbol(routeAsset.symbol);
+    if (destinationFeeAssetSymbol !== routeAssetSymbol) {
+      fail(`${context}: destinationFee.assetSymbol must match the exact route asset ${routeAssetSymbol}`);
+    }
+  }
+
+  const routeBridgeParachainId = typeof destination.bridgeParachainId === 'string'
+    ? destination.bridgeParachainId.trim()
+    : '';
 
   if (execution.bridge !== undefined && execution.bridge !== null) {
     const bridgeContext = `${context}: bridge`;
@@ -561,13 +671,16 @@ function validateExecutionSpec(execution, destination, xcmVersion, context) {
       requiredMultiLocation(execution.bridge.feeAssetLocation, 'feeAssetLocation', bridgeContext);
       nonNegativeInteger(execution.bridge.feeAssetItem, 'feeAssetItem', bridgeContext);
 
-      const routeBridgeParachainId = typeof destination.bridgeParachainId === 'string'
-        ? destination.bridgeParachainId.trim()
-        : '';
-      if (routeBridgeParachainId && bridgeParachainId !== null && bridgeParachainId !== routeBridgeParachainId) {
+      if (!routeBridgeParachainId) {
+        fail(`${context}: execution.bridge requires destination.bridgeParachainId`);
+      } else if (bridgeParachainId !== null && bridgeParachainId !== routeBridgeParachainId) {
         fail(`${context}: bridge.parachainId must match destination.bridgeParachainId`);
       }
+
+      fail(`${context}: bridge execution is unsupported until the production transfer engine consumes bridge fee semantics`);
     }
+  } else if (routeBridgeParachainId) {
+    fail(`${context}: destination.bridgeParachainId requires execution.bridge`);
   }
 }
 
@@ -606,6 +719,7 @@ let routeAssetCount = 0;
 let executableDestinationCount = 0;
 let executableRouteAssetCount = 0;
 const chainNamesById = new Map();
+const chainsById = new Map();
 
 for (const chain of Array.isArray(chains) ? chains : []) {
   if (!chain || typeof chain !== 'object' || Array.isArray(chain)) {
@@ -614,7 +728,13 @@ for (const chain of Array.isArray(chains) ? chains : []) {
 
   const chainId = chain.chainId || chain.id;
   if (nonEmptyString(chainId)) {
-    chainNamesById.set(chainId.trim(), nonEmptyString(chain.name) ? chain.name.trim() : null);
+    const normalizedChainId = chainId.trim();
+    if (chainsById.has(normalizedChainId)) {
+      fail(`Registry contains duplicate chain id: ${normalizedChainId}`);
+    } else {
+      chainsById.set(normalizedChainId, chain);
+      chainNamesById.set(normalizedChainId, nonEmptyString(chain.name) ? chain.name.trim() : null);
+    }
   }
 }
 
@@ -651,55 +771,81 @@ for (const chain of chains) {
     const context = label(originId, '->', destinationId);
     const assets = Array.isArray(destination.assets) ? destination.assets : [];
 
+    if (Object.prototype.hasOwnProperty.call(destination, 'execution')) {
+      fail(`${context}: legacy destination-scoped execution is forbidden; attach execution to an exact asset`);
+    }
+
     if (destination.assets !== undefined && !Array.isArray(destination.assets)) {
       fail(`${context}: destination.assets must be an array`);
     }
 
+    const normalizedAssetSymbols = new Set();
+    const missingAssetSymbols = [];
+    let validExecutableAssets = 0;
     for (const asset of assets) {
       routeAssetCount += 1;
       validateRouteAsset(asset, context);
-    }
+      const normalizedSymbol = nonEmptyString(asset?.symbol) ? normalizeAssetSymbol(asset.symbol) : null;
+      if (normalizedSymbol !== null) {
+        if (normalizedAssetSymbols.has(normalizedSymbol)) {
+          fail(`${context}: destination contains duplicate or ambiguous normalized route asset ${normalizedSymbol}`);
+        }
+        normalizedAssetSymbols.add(normalizedSymbol);
+      }
 
-    if (destination.execution) {
-      executableDestinationCount += 1;
-      executableRouteAssetCount += assets.length;
-      const errorCountBeforeExecutionValidation = errors.length;
-      validateExecutionSpec(destination.execution, destination, xcm.xcmVersion, `${context}: execution`);
-      if (errors.length === errorCountBeforeExecutionValidation) {
-        for (const asset of assets) {
-          if (nonEmptyString(asset?.symbol)) {
-            executableRouteKeys.add(`${originId}|${destinationId}|${normalizeAssetSymbol(asset.symbol)}`);
+      if (asset?.execution !== undefined && asset.execution !== null) {
+        const errorCountBeforeExecutionValidation = errors.length;
+        validateExecutionSpec(
+          asset.execution,
+          destination,
+          asset,
+          xcm.xcmVersion,
+          chain,
+          chainsById.get(destinationId),
+          `${context}: ${normalizedSymbol || '<unknown asset>'} execution`
+        );
+        if (errors.length === errorCountBeforeExecutionValidation) {
+          validExecutableAssets += 1;
+          executableRouteAssetCount += 1;
+          if (normalizedSymbol !== null) {
+            executableRouteKeys.add(`${originId}|${destinationId}|${normalizedSymbol}`);
           }
         }
+      } else if (normalizedSymbol !== null) {
+        missingAssetSymbols.push(normalizedSymbol);
       }
-    } else if (assets.length > 0) {
+    }
+
+    if (validExecutableAssets > 0) {
+      executableDestinationCount += 1;
+    }
+
+    if (missingAssetSymbols.length > 0) {
       missingExecutableDestinations.push({
         originChainId: String(originId),
         originName: nonEmptyString(chain.name) ? chain.name.trim() : null,
         destinationChainId: String(destinationId),
         destinationName: chainNamesById.get(destinationId) || null,
-        assetSymbols: assets
-          .map((asset) => nonEmptyString(asset?.symbol) ? normalizeAssetSymbol(asset.symbol) : null)
-          .filter(Boolean),
+        assetSymbols: missingAssetSymbols,
         bridgeParachainId: nonEmptyString(destination.bridgeParachainId) ? destination.bridgeParachainId.trim() : null,
         reason: 'missingExecutionSpec'
       });
 
       if (requireAllRoutesExecutable) {
-        fail(`${context}: executable route metadata is required`);
+        fail(`${context}: executable route metadata is required for every asset`, { safeForGapReport: true });
       }
     }
   }
 }
 
 if (requireExecutable && executableDestinationCount === 0) {
-  fail('No executable XCM route metadata found');
+  fail('No executable XCM route metadata found', { safeForGapReport: true });
 }
 
 for (const route of requiredRoutes) {
   const key = `${route.originId}|${route.destinationId}|${route.assetSymbol}`;
   if (!executableRouteKeys.has(key)) {
-    fail(`Required executable XCM route missing: ${route.originId} -> ${route.destinationId} ${route.assetSymbol}`);
+    fail(`Required executable XCM route missing: ${route.originId} -> ${route.destinationId} ${route.assetSymbol}`, { safeForGapReport: true });
   }
 }
 
@@ -731,35 +877,27 @@ if (requireGapManifest) {
 
     const actual = actualGaps.get(key);
     if (!actual) {
-      fail(`Required discovery-only XCM gap is stale or executable: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`);
+      fail(`Required discovery-only XCM gap is stale or executable: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`, { safeForGapReport: true });
       continue;
     }
 
     if (gap.reason !== actual.reason) {
-      fail(`Required discovery-only XCM gap reason mismatch: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols} expected ${gap.reason} actual ${actual.reason}`);
+      fail(`Required discovery-only XCM gap reason mismatch: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols} expected ${gap.reason} actual ${actual.reason}`, { safeForGapReport: true });
     }
 
     if (gap.bridgeParachainId !== actual.bridgeParachainId) {
-      fail(`Required discovery-only XCM gap bridge mismatch: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`);
+      fail(`Required discovery-only XCM gap bridge mismatch: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`, { safeForGapReport: true });
     }
   }
 
   for (const [key, actual] of actualGaps.entries()) {
     if (!expectedGaps.has(key)) {
-      fail(`Untracked discovery-only XCM gap: ${actual.originId} -> ${actual.destinationId} ${actual.assetSymbols}`);
+      fail(`Untracked discovery-only XCM gap: ${actual.originId} -> ${actual.destinationId} ${actual.assetSymbols}`, { safeForGapReport: true });
     }
   }
 }
 
-if (errors.length > 0) {
-  console.error('[xcm-registry][error] XCM registry metadata audit failed:');
-  for (const error of errors) {
-    console.error(`  - ${error}`);
-  }
-  process.exit(1);
-}
-
-if (gapReportFile) {
+if (gapReportFile && unsafeGapReportErrorCount === 0) {
   const report = {
     schemaVersion: 1,
     registryFile: path.relative(process.cwd(), registryFile),
@@ -770,7 +908,11 @@ if (gapReportFile) {
       routeAssets: routeAssetCount,
       executableDestinations: executableDestinationCount,
       executableRouteAssets: executableRouteAssetCount,
-      remainingDiscoveryOnlyDestinations: missingExecutableDestinations.length
+      remainingDiscoveryOnlyDestinations: missingExecutableDestinations.length,
+      remainingDiscoveryOnlyRouteAssets: missingExecutableDestinations.reduce(
+        (count, destination) => count + destination.assetSymbols.length,
+        0
+      )
     },
     missingExecutableDestinations
   };
@@ -782,6 +924,14 @@ if (gapReportFile) {
     console.error(`[xcm-registry][error] Failed to write XCM gap report ${gapReportFile}: ${error.message}`);
     process.exit(1);
   }
+}
+
+if (errors.length > 0) {
+  console.error('[xcm-registry][error] XCM registry metadata audit failed:');
+  for (const error of errors) {
+    console.error(`  - ${error}`);
+  }
+  process.exit(1);
 }
 
 console.log(

@@ -364,7 +364,12 @@ class RetrofitSolanaRpcClient(
             return null
         }
 
-        return runCatching { BigInteger(text).intValueExact() }.getOrNull()
+        val parsed = BigInteger(text)
+        if (parsed < INT_MIN || parsed > INT_MAX) {
+            return null
+        }
+
+        return parsed.toInt()
     }
 
     private fun jsonArray(vararg values: Any): JsonArray {
@@ -391,6 +396,8 @@ class RetrofitSolanaRpcClient(
     }
 
     private companion object {
+        val INT_MIN = BigInteger.valueOf(Int.MIN_VALUE.toLong())
+        val INT_MAX = BigInteger.valueOf(Int.MAX_VALUE.toLong())
         val LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE)
         val GSON = Gson()
         val UNSIGNED_INTEGER = Regex("^(0|[1-9][0-9]*)$")

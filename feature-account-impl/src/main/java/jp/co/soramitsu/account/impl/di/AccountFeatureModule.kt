@@ -20,6 +20,7 @@ import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.account.impl.data.repository.KeyPairRepository
 import jp.co.soramitsu.account.impl.data.repository.SubstrateOrEvmAccountRepository
 import jp.co.soramitsu.account.impl.data.repository.TonAccountRepository
+import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
@@ -43,6 +44,8 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -50,6 +53,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
+import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
@@ -92,7 +96,8 @@ class AccountFeatureModule {
         ethereumSecretStore: EthereumSecretStore,
         tonSecretStore: TonSecretStore,
         accountRepositoryDelegate: AccountRepositoryDelegate,
-        assetDao: AssetDao
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+        walletSecretAccessGuard: WalletSecretAccessGuard
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -107,7 +112,8 @@ class AccountFeatureModule {
             ethereumSecretStore,
             tonSecretStore,
             accountRepositoryDelegate,
-            assetDao
+            walletSecretMutationCoordinator,
+            walletSecretAccessGuard
         )
     }
 
@@ -124,23 +130,36 @@ class AccountFeatureModule {
     @Singleton
     fun provideSubstrateOrEvmAccountRepository(
         metaAccountDao: MetaAccountDao,
-        substrateSecretStore: SubstrateSecretStore,
-        ethereumSecretStore: EthereumSecretStore
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator
     ): SubstrateOrEvmAccountRepository {
         return SubstrateOrEvmAccountRepository(
             metaAccountDao,
-            substrateSecretStore,
-            ethereumSecretStore
+            walletSecretMutationCoordinator
         )
     }
 
     @Provides
     @Singleton
     fun providesTonAccountRepository(
-        metaAccountDao: MetaAccountDao,
-        tonSecretStore: TonSecretStore
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator
     ): TonAccountRepository {
-        return TonAccountRepository(metaAccountDao, tonSecretStore)
+        return TonAccountRepository(walletSecretMutationCoordinator)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWalletSecretMutationCoordinator(
+        appDatabase: AppDatabase,
+        metaAccountDao: MetaAccountDao,
+        journalStore: WalletSecretMutationJournalStore,
+        encryptedPreferences: EncryptedPreferences
+    ): WalletSecretMutationCoordinator {
+        return WalletSecretMutationCoordinator(
+            appDatabase = appDatabase,
+            metaAccountDao = metaAccountDao,
+            journalStore = journalStore,
+            encryptedPreferences = encryptedPreferences
+        )
     }
 
     @Provides
@@ -149,14 +168,16 @@ class AccountFeatureModule {
         accountRepository: AccountRepository,
         substrateSecretStore: SubstrateSecretStore,
         ethereumSecretStore: EthereumSecretStore,
-        tonSecretStore: TonSecretStore
+        tonSecretStore: TonSecretStore,
+        walletSecretAccessGuard: WalletSecretAccessGuard
     ): KeypairProvider {
         return KeyPairRepository(
             secretStoreV2,
             ethereumSecretStore,
             substrateSecretStore,
             tonSecretStore,
-            accountRepository
+            accountRepository,
+            walletSecretAccessGuard
         )
     }
 
@@ -197,7 +218,6 @@ class AccountFeatureModule {
         jsonMapper: Gson,
         secretStoreV1: SecretStoreV1,
         metaAccountDao: MetaAccountDao,
-        secretStoreV2: SecretStoreV2,
         chainsRepository: ChainsRepository
     ): AccountDataSource {
         return AccountDataSourceImpl(
@@ -205,7 +225,6 @@ class AccountFeatureModule {
             encryptedPreferences,
             jsonMapper,
             metaAccountDao,
-            secretStoreV2,
             secretStoreV1,
             chainsRepository
         )

@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.data.network.solana.SolanaWalletBalancesResponse
 import jp.co.soramitsu.common.data.network.solana.SolanaWalletStateResponse
 import jp.co.soramitsu.common.data.network.solana.SolanaWalletTransactionsResponse
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.model.NetworkScanKey
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
@@ -115,6 +116,217 @@ class SolanaBalanceLoaderTest {
     }
 
     @Test
+    fun `discovers positive spl and token 2022 holdings by mint without merging symbols`() = runBlocking {
+        val chain = solanaChain(isTestNet = false)
+        val account = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = account.publicKey)
+        val tokens = listOf(
+            tokenBalance(account.address, USDC_MINT, USDC_TOKEN_ACCOUNT, "10", 6, "spl-token"),
+            tokenBalance(account.address, SECOND_MINT, SECOND_TOKEN_ACCOUNT, "20", 6, "token-2022")
+        )
+        val client = FakeSolanaIndexerClient(
+            response = balancesResponse(wallet = account.address, tokens = tokens),
+            metadata = tokens.map {
+                SolanaTokenMetadata(
+                    mint = it.mint,
+                    exists = true,
+                    program = it.program,
+                    decimals = it.decimals,
+                    name = "Duplicate symbol token",
+                    symbol = "DUP",
+                    syncedAt = 1L
+                )
+            }
+        )
+        val discovered = mutableListOf<Asset>()
+
+        val updates = SolanaBalanceLoader(
+            chain,
+            SolanaBalanceSync(client),
+            persistDiscoveredAssets = { discovered += it }
+        ).loadBalance(setOf(metaAccount))
+
+        assertEquals(setOf(USDC_MINT, SECOND_MINT), discovered.map { it.id }.toSet())
+        assertTrue(discovered.all { it.symbol == "DUP" && it.type == ChainAssetType.Unknown && it.priceId == null })
+        assertEquals(setOf("SOL", USDC_MINT, SECOND_MINT), updates.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `aggregates multiple token accounts for the same canonical mint`() = runBlocking {
+        val chain = solanaChain(isTestNet = false)
+        val account = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = account.publicKey)
+        val client = FakeSolanaIndexerClient(
+            response = balancesResponse(
+                wallet = account.address,
+                tokens = listOf(
+                    tokenBalance(account.address, USDC_MINT, USDC_TOKEN_ACCOUNT, "40", 6, "spl-token"),
+                    tokenBalance(account.address, USDC_MINT, SECOND_TOKEN_ACCOUNT, "2", 6, "spl-token")
+                )
+            )
+        )
+
+        val update = SolanaBalanceLoader(chain, SolanaBalanceSync(client))
+            .loadBalance(setOf(metaAccount))
+            .single { it.id == USDC_MINT }
+
+        assertEquals(BigInteger.valueOf(42), update.freeInPlanks)
+    }
+
+    @Test
+    fun `successful complete scan zeros a previously held token omitted by indexer`() = runBlocking {
+        val chain = solanaChain(
+            isTestNet = false,
+            assets = listOf(
+                solanaAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false),
+                solanaTokenAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false)
+            )
+        )
+        val account = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = account.publicKey)
+        val client = FakeSolanaIndexerClient(
+            response = balancesResponse(
+                wallet = account.address,
+                tokens = listOf(
+                    tokenBalance(account.address, USDC_MINT, USDC_TOKEN_ACCOUNT, "42", 6, "spl-token")
+                )
+            )
+        )
+        val loader = SolanaBalanceLoader(chain, SolanaBalanceSync(client))
+
+        assertEquals(
+            BigInteger.valueOf(42),
+            loader.loadBalance(setOf(metaAccount)).single { it.id == USDC_MINT }.freeInPlanks
+        )
+
+        client.balanceResponse = balancesResponse(wallet = account.address, tokens = emptyList())
+
+        assertEquals(
+            BigInteger.ZERO,
+            loader.loadBalance(setOf(metaAccount)).single { it.id == USDC_MINT }.freeInPlanks
+        )
+    }
+
+    @Test
+    fun `malformed known token row fails scan and preserves last solana balances`() = runBlocking {
+        val chain = solanaChain(
+            isTestNet = false,
+            assets = listOf(
+                solanaAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false),
+                solanaTokenAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false)
+            )
+        )
+        val account = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = account.publicKey)
+        val client = FakeSolanaIndexerClient(
+            response = balancesResponse(
+                wallet = account.address,
+                lamports = "55",
+                tokens = listOf(
+                    tokenBalance(account.address, USDC_MINT, USDC_TOKEN_ACCOUNT, "42", 6, "spl-token")
+                )
+            )
+        )
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = SolanaBalanceLoader(chain, SolanaBalanceSync(client), scanStateStore = scanState)
+
+        val firstUpdates = loader.loadBalance(setOf(metaAccount))
+        var storedSol = firstUpdates.single { it.id == "SOL" }.freeInPlanks
+        var storedUsdc = firstUpdates.single { it.id == USDC_MINT }.freeInPlanks
+        val successfulState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+
+        client.balanceResponse = balancesResponse(
+            wallet = account.address,
+            lamports = "0",
+            tokens = listOf(
+                tokenBalance(account.address, USDC_MINT, USDC_TOKEN_ACCOUNT, "-1", 6, "spl-token")
+            )
+        )
+        loader.loadBalance(setOf(metaAccount)).forEach { update ->
+            when (update.id) {
+                "SOL" -> storedSol = update.freeInPlanks
+                USDC_MINT -> storedUsdc = update.freeInPlanks
+            }
+        }
+
+        assertEquals(BigInteger.valueOf(55), storedSol)
+        assertEquals(BigInteger.valueOf(42), storedUsdc)
+        val failedState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(failedState.isStale)
+        assertEquals(successfulState.lastSuccessMillis, failedState.lastSuccessMillis)
+        assertEquals("INVALID_TOKEN_BALANCE", failedState.errorMessage)
+    }
+
+    @Test
+    fun `inconsistent decimals across token accounts fail scan and preserve known balance`() = runBlocking {
+        val chain = solanaChain(
+            isTestNet = false,
+            assets = listOf(
+                solanaAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false),
+                solanaTokenAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false)
+            )
+        )
+        val account = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = account.publicKey)
+        val client = FakeSolanaIndexerClient(
+            response = balancesResponse(
+                wallet = account.address,
+                tokens = listOf(
+                    tokenBalance(account.address, USDC_MINT, USDC_TOKEN_ACCOUNT, "42", 6, "spl-token")
+                )
+            )
+        )
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = SolanaBalanceLoader(chain, SolanaBalanceSync(client), scanStateStore = scanState)
+
+        var storedUsdc = loader.loadBalance(setOf(metaAccount))
+            .single { it.id == USDC_MINT }
+            .freeInPlanks
+        val successfulState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+
+        client.balanceResponse = balancesResponse(
+            wallet = account.address,
+            tokens = listOf(
+                tokenBalance(account.address, USDC_MINT, USDC_TOKEN_ACCOUNT, "40", 6, "spl-token"),
+                tokenBalance(account.address, USDC_MINT, SECOND_TOKEN_ACCOUNT, "2", 9, "spl-token")
+            )
+        )
+        loader.loadBalance(setOf(metaAccount))
+            .singleOrNull { it.id == USDC_MINT }
+            ?.let { storedUsdc = it.freeInPlanks }
+
+        assertEquals(BigInteger.valueOf(42), storedUsdc)
+        val failedState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(failedState.isStale)
+        assertEquals(successfulState.lastSuccessMillis, failedState.lastSuccessMillis)
+        assertEquals("INVALID_TOKEN_BALANCE", failedState.errorMessage)
+    }
+
+    @Test
+    fun `endpoint failure after success preserves last solana amount and marks scan stale`() = runBlocking {
+        val chain = solanaChain(isTestNet = false)
+        val account = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = account.publicKey)
+        val client = FakeSolanaIndexerClient(
+            response = balancesResponse(wallet = account.address, lamports = "55")
+        )
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = SolanaBalanceLoader(chain, SolanaBalanceSync(client), scanStateStore = scanState)
+
+        var storedAmount = loader.loadBalance(setOf(metaAccount)).single { it.id == "SOL" }.freeInPlanks
+        client.balanceFailure = IllegalStateException("solana endpoint down")
+        loader.loadBalance(setOf(metaAccount)).singleOrNull { it.id == "SOL" }?.let {
+            storedAmount = it.freeInPlanks
+        }
+
+        assertEquals(BigInteger.valueOf(55), storedAmount)
+        val state = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(state.isStale)
+        assertTrue(state.lastSuccessMillis != null)
+        assertEquals("solana endpoint down", state.errorMessage)
+    }
+
+    @Test
     fun `rejects malformed solana public key before balance fetch`() = runBlocking {
         val chain = solanaChain(isTestNet = false)
         val metaAccount = metaAccount(chain, publicKey = ByteArray(31), accountId = ByteArray(31))
@@ -163,8 +375,11 @@ class SolanaBalanceLoaderTest {
     }
 
     private class FakeSolanaIndexerClient(
-        private val response: SolanaWalletBalancesResponse = balancesResponse()
+        response: SolanaWalletBalancesResponse = balancesResponse(),
+        private val metadata: List<SolanaTokenMetadata> = emptyList()
     ) : SolanaIndexerClient {
+        var balanceResponse: SolanaWalletBalancesResponse = response
+        var balanceFailure: Throwable? = null
         val verifiedBaseUrls = mutableListOf<String>()
         val receivedWallets = mutableListOf<String>()
         val receivedBaseUrls = mutableListOf<String?>()
@@ -190,7 +405,8 @@ class SolanaBalanceLoaderTest {
         override suspend fun balances(wallet: String, baseUrl: String?): SolanaWalletBalancesResponse {
             receivedWallets += wallet
             receivedBaseUrls += baseUrl
-            return response
+            balanceFailure?.let { throw it }
+            return balanceResponse
         }
 
         override suspend fun assets(wallet: String, baseUrl: String?): SolanaWalletAssetsResponse {
@@ -217,9 +433,11 @@ class SolanaBalanceLoaderTest {
         override suspend fun tokenMetadataBatch(
             mints: List<String>,
             baseUrl: String?
-        ): SolanaTokenMetadataBatchResponse {
-            error("Unexpected Solana metadata batch call")
-        }
+        ): SolanaTokenMetadataBatchResponse = SolanaTokenMetadataBatchResponse(
+            total = mints.size,
+            syncedAt = 1L,
+            tokens = metadata.filter { it.mint in mints }
+        )
     }
 
     private class NoopOperationDao : OperationDao() {
@@ -237,6 +455,14 @@ class SolanaBalanceLoaderTest {
         override suspend fun getOperation(hash: String): OperationLocal? = null
 
         override suspend fun getOperations(): List<OperationLocal> = emptyList()
+
+        override suspend fun getCompletedModuleOperations(
+            address: String,
+            chainId: String,
+            chainAssetId: String,
+            module: String,
+            status: OperationLocal.Status
+        ): List<OperationLocal> = emptyList()
 
         override fun observeOperations(): Flow<List<OperationLocal>> = flowOf(emptyList())
 
@@ -440,5 +666,7 @@ class SolanaBalanceLoaderTest {
 
         const val USDC_MINT = "So11111111111111111111111111111111111111112"
         const val USDC_TOKEN_ACCOUNT = "9xQeWvG816bUx9EPfQ4vF5xXw4wa9VFeTuzA7h4sFnH"
+        const val SECOND_MINT = "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5i7Twj9EonXy7"
+        const val SECOND_TOKEN_ACCOUNT = "11111111111111111111111111111111"
     }
 }

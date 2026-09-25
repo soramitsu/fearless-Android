@@ -1,8 +1,6 @@
 # Copy this file to local.properties (root) and replace placeholders with your real values.
 # Do NOT commit local.properties to VCS.
 
-MOONPAY_TEST_SECRET="<your_moonpay_test_secret>"
-MOONPAY_PRODUCTION_SECRET="<your_moonpay_production_secret>"
 MOONPAY_TEST_PUBLIC_KEY=<your_moonpay_test_public_key>
 MOONPAY_PRODUCTION_PUBLIC_KEY=<your_moonpay_production_public_key>
 
@@ -29,12 +27,12 @@ FL_BLAST_API_SEPOLIA_KEY=<your_blast_api_sepolia_key>
 FL_BLAST_API_GOERLI_KEY=<your_blast_api_goerli_key>
 FL_BLAST_API_POLYGON_KEY=<your_blast_api_polygon_key>
 
-# Ethereum history providers api keys
+# One Etherscan V2 key covers Ethereum, BNB Smart Chain, Sepolia and Polygon history.
+# OP Mainnet uses the separate OKLink history provider.
 FL_ANDROID_ETHERSCAN_API_KEY=<your_etherscan_api_key>
-FL_ANDROID_BSCSCAN_API_KEY=<your_bscscan_api_key>
-FL_ANDROID_POLYGONSCAN_API_KEY=<your_polygonscan_api_key>
 FL_ANDROID_OKLINK_API_KEY=<your_oklink_api_key>
-FL_ANDROID_OPMAINNET_API_KEY=<your_op_mainnet_api_key>
+# Kaia mainnet and Kairos history; this is sent only to the chain-bound KaiaScan OAPI host.
+FL_ANDROID_KAIASCAN_API_KEY=<your_kaiascan_api_key>
 
 FL_ANDROID_OKX_PROJECT_ID=<your_okx_project_id>
 FL_ANDROID_OKX_API_KEY=<your_okx_api_key>

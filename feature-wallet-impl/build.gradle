@@ -7,6 +7,11 @@ apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
+def enableDebugXcmTransfers = readOptionalSecret("ENABLE_DEBUG_XCM_TRANSFERS") ?: "false"
+if (!(enableDebugXcmTransfers in ["true", "false"])) {
+    throw new GradleException("ENABLE_DEBUG_XCM_TRANSFERS must be literal true or false")
+}
+
 android {
     compileSdkVersion rootProject.compileSdkVersion
 
@@ -22,19 +27,25 @@ android {
         buildConfigField "String", "COINBASE_HOST", "\"pay.coinbase.com/buy/select-asset\""
         buildConfigField "String", "COINBASE_APP_ID", readOptionalSecretInQuotes("COINBASE_APP_ID")
 
-        buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_TEST_SECRET")
-        buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
+        buildConfigField "String", "MOONPAY_HOST", "\"buy-sandbox.moonpay.com\""
         buildConfigField "String", "MOONPAY_PUBLIC_KEY", readOptionalSecretInQuotes("MOONPAY_TEST_PUBLIC_KEY")
 
         buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
     }
 
     buildTypes {
+        debug {
+            buildConfigField "boolean", "ENABLE_PRODUCTION_XCM_TRANSFERS", enableDebugXcmTransfers
+        }
+
         release {
+            // Keep reviewed discovery and quotes available independently of submission authority.
+            // No remote switch may enable release submissions before the funded route evidence
+            // and release qualification gates are complete.
+            buildConfigField "boolean", "ENABLE_PRODUCTION_XCM_TRANSFERS", "false"
             buildConfigField "String", "RAMP_TOKEN", readOptionalSecretInQuotes("RAMP_TOKEN_RELEASE")
             buildConfigField "String", "RAMP_HOST", "\"app.ramp.network\""
 
-            buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_PRODUCTION_SECRET")
             buildConfigField "String", "MOONPAY_PUBLIC_KEY", readOptionalSecretInQuotes("MOONPAY_PRODUCTION_PUBLIC_KEY")
             buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
         }
@@ -62,6 +73,7 @@ dependencies {
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-crowdloan-api')
     implementation project(':feature-polkaswap-api')
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')

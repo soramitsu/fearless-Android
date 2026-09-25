@@ -1,11 +1,38 @@
 package jp.co.soramitsu.backup.passkey
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import okhttp3.Call
+import okhttp3.EventListener
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody
+import okio.Buffer
+import okio.BufferedSource
+import okio.Source
+import okio.Timeout
+import okio.buffer
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.net.Socket
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 class GoogleDrivePasskeyBackupCloudStorageTest {
     @Test
@@ -16,12 +43,13 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         )
         val storage = storage(transport)
 
-        storage.savePasskeyBackup(payload(encryptedPayload = "ABC".toByteArray()))
+        val envelope = validTestEnvelope(plaintext = "ABC".toByteArray())
+        storage.savePasskeyBackup(payload(encryptedPayload = envelope))
 
         assertEquals("GET", transport.requests[0].method)
         assertTrue(transport.requests[0].url.startsWith("https://www.googleapis.com/drive/v3/files?"))
         assertTrue(transport.requests[0].url.contains("spaces=appDataFolder"))
-        assertTrue(transport.requests[0].url.contains("fields=files%28id%2Cname%2CappProperties%29"))
+        assertTrue(transport.requests[0].url.contains("fields=nextPageToken%2CincompleteSearch%2Cfiles%28id%2Cname%2CappProperties%29"))
         assertTrue(transport.requests[0].url.contains("q=name%20%3D%20%27fearless-passkey-backup-wallet-1234.bin%27%20and%20trashed%20%3D%20false"))
         assertEquals("Bearer token-123", transport.requests[0].headers["Authorization"])
 
@@ -39,28 +67,35 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         assertTrue(uploadBody.contains(""""accountName":"alice@example.com""""))
         assertTrue(uploadBody.contains(""""createdAtMillis":"1767225600000""""))
         assertTrue(uploadBody.contains(""""schemaVersion":"1""""))
-        assertTrue(uploadBody.contains("ABC"))
+        assertTrue(uploadBody.contains("FPBKAEAD"))
     }
 
     @Test
-    fun `save updates existing backup file instead of creating duplicate`() = runBlocking {
-        val transport = RecordingDriveTransport(
-            jsonResponse(fileListJson()),
-            jsonResponse("""{"id":"file-1"}""")
-        )
+    fun `save refuses to overwrite existing legacy backup without uploading`() = runBlocking {
+        val transport = RecordingDriveTransport(jsonResponse(fileListJson()))
         val storage = storage(transport)
 
-        storage.savePasskeyBackup(payload())
+        val failure = runCatching { storage.savePasskeyBackup(payload()) }.exceptionOrNull()
 
-        assertEquals("PATCH", transport.requests[1].method)
-        assertTrue(transport.requests[1].url.startsWith("https://www.googleapis.com/upload/drive/v3/files/file-1?"))
+        assertTrue(failure is IllegalStateException)
+        assertEquals(1, transport.requests.size)
+        assertEquals("GET", transport.requests.single().method)
+    }
+
+    @Test
+    fun `save never replaces a file owned by another wallet`() = runBlocking {
+        val transport = RecordingDriveTransport(jsonResponse(fileListJson(walletId = "wallet-999")))
+        val failure = runCatching { storage(transport).savePasskeyBackup(payload()) }.exceptionOrNull()
+        assertTrue(failure is IllegalArgumentException)
+        assertEquals(1, transport.requests.size)
     }
 
     @Test
     fun `load returns encrypted payload from appDataFolder`() = runBlocking {
+        val envelope = validTestEnvelope(plaintext = byteArrayOf(7, 8, 9))
         val transport = RecordingDriveTransport(
             jsonResponse(fileListJson()),
-            GoogleDriveHttpResponse(code = 200, body = byteArrayOf(7, 8, 9))
+            GoogleDriveHttpResponse(code = 200, body = envelope)
         )
         val storage = storage(transport)
 
@@ -70,7 +105,7 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         assertEquals("wallet-001", loaded?.walletId)
         assertEquals("alice@example.com", loaded?.accountName)
         assertEquals(1_767_225_600_000L, loaded?.createdAtMillis)
-        assertArrayEquals(byteArrayOf(7, 8, 9), loaded?.encryptedPayload)
+        assertArrayEquals(envelope, loaded?.encryptedPayload)
         assertEquals("GET", transport.requests[1].method)
         assertEquals("https://www.googleapis.com/drive/v3/files/file-1?alt=media", transport.requests[1].url)
     }
@@ -82,6 +117,144 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
 
         assertNull(storage.loadPasskeyBackup("wallet-1234"))
         assertEquals(1, transport.requests.size)
+    }
+
+    @Test
+    fun `load follows Drive pagination under the same selected account and token`() = runBlocking {
+        val envelope = validTestEnvelope(plaintext = byteArrayOf(7, 8, 9))
+        val transport = RecordingDriveTransport(
+            jsonResponse("""{"files":[],"nextPageToken":"page-two"}"""),
+            jsonResponse(fileListJson()),
+            GoogleDriveHttpResponse(code = 200, body = envelope)
+        )
+        val storage = storage(transport)
+
+        val loaded = storage.loadPasskeyBackup("wallet-1234")
+
+        assertArrayEquals(envelope, loaded?.encryptedPayload)
+        assertTrue(transport.requests[1].url.contains("pageToken=page-two"))
+        assertTrue(transport.requests.all { it.headers["Authorization"] == "Bearer token-123" })
+    }
+
+    @Test
+    fun `load rejects duplicate file on a later page before downloading`() = runBlocking {
+        val transport = RecordingDriveTransport(
+            jsonResponse(fileListJson().replace("\"files\":", "\"nextPageToken\":\"page-two\",\"files\":")),
+            jsonResponse(fileListJson())
+        )
+        val failure = runCatching { storage(transport).loadPasskeyBackup("wallet-1234") }.exceptionOrNull()
+
+        assertTrue(failure is IllegalArgumentException)
+        assertEquals(2, transport.requests.size)
+    }
+
+    @Test
+    fun `load rejects repeated page token and incomplete search without reporting absence`() = runBlocking {
+        val repeated = RecordingDriveTransport(
+            jsonResponse("""{"files":[],"nextPageToken":"again"}"""),
+            jsonResponse("""{"files":[],"nextPageToken":"again"}""")
+        )
+        assertTrue(runCatching { storage(repeated).loadPasskeyBackup("wallet-1234") }.isFailure)
+        assertEquals(2, repeated.requests.size)
+
+        val incomplete = RecordingDriveTransport(jsonResponse("""{"files":[],"incompleteSearch":true}"""))
+        assertTrue(runCatching { storage(incomplete).loadPasskeyBackup("wallet-1234") }.isFailure)
+        assertEquals(1, incomplete.requests.size)
+    }
+
+    @Test
+    fun `selected subject is checked before every upload download delete and list page`() = runBlocking {
+        for (operation in listOf("save", "load", "delete", "page")) {
+            for (switchAt in listOf(0, 1)) {
+                var calls = 0
+                val transport = RecordingDriveTransport(
+                    jsonResponse(
+                        when (operation) {
+                            "page" -> """{"files":[],"nextPageToken":"two"}"""
+                            "save" -> """{"files":[]}"""
+                            else -> fileListJson()
+                        }
+                    )
+                )
+                val client = GoogleDrivePasskeyBackupDriveClient(
+                    accountSubject = "google-subject-123",
+                    accessTokenProvider = GoogleDriveAccessTokenProvider {
+                        GoogleDriveAccountAccess(
+                            if (calls++ == switchAt) "different-subject" else "google-subject-123",
+                            "alice@example.com", "token-123"
+                        )
+                    },
+                    transport = transport
+                )
+                val failure = runCatching {
+                    when (operation) {
+                        "save" -> client.saveBackup(payload())
+                        "delete" -> client.deleteBackup("wallet-1234")
+                        else -> client.loadBackup("wallet-1234")
+                    }
+                }.exceptionOrNull()
+                assertTrue(failure is IllegalArgumentException)
+                assertEquals(switchAt, transport.requests.size)
+            }
+        }
+    }
+
+    @Test
+    fun `renamed email preserves original envelope metadata and refuses legacy overwrite`() = runBlocking {
+        val original = payload()
+        val transport = RecordingDriveTransport(
+            jsonResponse(fileListJson()), GoogleDriveHttpResponse(200, original.encryptedPayload),
+            jsonResponse(fileListJson()),
+            jsonResponse(fileListJson()), GoogleDriveHttpResponse(204)
+        )
+        val client = GoogleDrivePasskeyBackupDriveClient(
+            accountSubject = "google-subject-123",
+            accessTokenProvider = GoogleDriveAccessTokenProvider {
+                GoogleDriveAccountAccess("google-subject-123", "renamed@example.com", "token-123")
+            },
+            transport = transport
+        )
+        val loaded = requireNotNull(client.loadBackup("wallet-1234"))
+        assertEquals("alice@example.com", loaded.accountName)
+        assertArrayEquals(original.encryptedPayload, loaded.encryptedPayload)
+        val failure = runCatching { client.saveBackup(loaded) }.exceptionOrNull()
+        assertTrue(failure is IllegalStateException)
+        assertEquals(3, transport.requests.size)
+        assertTrue(transport.requests.all { it.method == "GET" })
+        client.deleteBackup("wallet-1234")
+        assertEquals("DELETE", transport.requests.last().method)
+    }
+
+    @Test
+    fun `oversized Drive appProperty fails before token and network access`() = runBlocking {
+        val transport = RecordingDriveTransport()
+        val client = GoogleDrivePasskeyBackupDriveClient(
+            accountSubject = "google-subject-123",
+            accessTokenProvider = GoogleDriveAccessTokenProvider {
+                throw AssertionError("token provider should not be called")
+            },
+            transport = transport
+        )
+        val accountName = "a".repeat(112) + "@example.com"
+        val failure = runCatching { client.saveBackup(payload(accountName = accountName)) }.exceptionOrNull()
+
+        assertTrue(failure is IllegalArgumentException)
+        assertTrue(transport.requests.isEmpty())
+    }
+
+    @Test
+    fun `request diagnostics do not stringify bearer token or request body`() {
+        val request = GoogleDriveHttpRequest(
+            method = "POST",
+            url = "https://www.googleapis.com/upload/drive/v3/files",
+            headers = mapOf("Authorization" to "Bearer secret-token"),
+            body = "private-ciphertext".toByteArray()
+        )
+        assertTrue(!request.toString().contains("secret-token"))
+        assertTrue(!request.toString().contains("private-ciphertext"))
+        val access = GoogleDriveAccountAccess("google-subject-123", "alice@example.com", "secret-token")
+        assertTrue(!access.toString().contains("secret-token"))
+        assertTrue(!com.google.gson.Gson().toJson(access).contains("secret-token"))
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -105,6 +278,7 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
                   "files": [
                     {
                       "id":"file-1",
+                      "name":"fearless-passkey-backup-wallet-1234.bin",
                       "appProperties":{
                         "storageKey":"wallet-1234",
                         "walletId":"wallet-001",
@@ -115,6 +289,7 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
                     },
                     {
                       "id":"file-2",
+                      "name":"fearless-passkey-backup-wallet-1234.bin",
                       "appProperties":{
                         "storageKey":"wallet-1234",
                         "walletId":"wallet-001",
@@ -147,7 +322,9 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
 
     @Test(expected = IllegalStateException::class)
     fun `load rejects missing Drive backup metadata before downloading file`() {
-        val transport = RecordingDriveTransport(jsonResponse("""{"files":[{"id":"file-1"}]}"""))
+        val transport = RecordingDriveTransport(
+            jsonResponse("""{"files":[{"id":"file-1","name":"fearless-passkey-backup-wallet-1234.bin"}]}""")
+        )
         val storage = storage(transport)
 
         runBlocking {
@@ -234,6 +411,7 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         val transport = RecordingDriveTransport()
         val storage = GoogleDrivePasskeyBackupCloudStorage(
             GoogleDrivePasskeyBackupDriveClient(
+                accountSubject = "google-subject-123",
                 accessTokenProvider = GoogleDriveAccessTokenProvider {
                     throw AssertionError("token provider should not be called for invalid keys")
                 },
@@ -256,10 +434,282 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         }
     }
 
+    @Test
+    fun `OkHttp transport preserves one-shot request body and closes response`() = runBlocking {
+        val expectedBody = "drive-response".toByteArray()
+        val responseBody = CloseTrackingResponseBody(expectedBody)
+        val observedOneShotBody = AtomicBoolean(false)
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                observedOneShotBody.set(chain.request().body?.isOneShot() == true)
+                response(chain.request(), responseBody)
+            }
+            .build()
+        val transport = OkHttpGoogleDriveHttpTransport(client)
+
+        val response = transport.execute(
+            GoogleDriveHttpRequest(
+                method = "POST",
+                url = "https://example.invalid/upload",
+                headers = mapOf("Content-Type" to GoogleDrivePasskeyBackup.MIME_TYPE),
+                body = byteArrayOf(1, 2, 3),
+                isOneShot = true
+            )
+        )
+
+        assertTrue(observedOneShotBody.get())
+        assertArrayEquals(expectedBody, response.body)
+        assertTrue(responseBody.awaitClosed())
+    }
+
+    @Test
+    fun `OkHttp transport never follows a Drive redirect with bearer authorization`() = runBlocking {
+        var requests = 0
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                requests += 1
+                Response.Builder()
+                    .request(chain.request())
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(302)
+                    .message("Found")
+                    .header("Location", "https://untrusted.example/steal")
+                    .body(CloseTrackingResponseBody(ByteArray(0)))
+                    .build()
+            }
+            .build()
+
+        val result = OkHttpGoogleDriveHttpTransport(client).execute(
+            GoogleDriveHttpRequest(
+                method = "GET",
+                url = "https://www.googleapis.com/drive/v3/files",
+                headers = mapOf("Authorization" to "Bearer secret-token")
+            )
+        )
+
+        assertEquals(302, result.code)
+        assertEquals(1, requests)
+    }
+
+    @Test
+    fun `OkHttp transport closes response when reading body fails`() = runBlocking {
+        val responseBody = CloseTrackingResponseBody(
+            bytes = ByteArray(0),
+            readFailure = IOException("simulated response read failure")
+        )
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain -> response(chain.request(), responseBody) }
+            .build()
+        val transport = OkHttpGoogleDriveHttpTransport(client)
+
+        val failure = runCatching {
+            transport.execute(
+                GoogleDriveHttpRequest(
+                    method = "GET",
+                    url = "https://example.invalid/read-failure"
+                )
+            )
+        }.exceptionOrNull()
+
+        assertTrue(failure is IOException)
+        assertTrue(responseBody.awaitClosed())
+    }
+
+    @Test
+    fun `OkHttp transport rejects oversized declared response before reading and closes it`() = runBlocking {
+        val readStarted = CountDownLatch(1)
+        val responseBody = CloseTrackingResponseBody(
+            bytes = ByteArray(0),
+            declaredLength = GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES.toLong() + 1,
+            readStarted = readStarted
+        )
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain -> response(chain.request(), responseBody) }
+            .build()
+        val transport = OkHttpGoogleDriveHttpTransport(client)
+
+        val failure = runCatching {
+            transport.execute(
+                GoogleDriveHttpRequest(
+                    method = "GET",
+                    url = "https://example.invalid/declared-overflow"
+                )
+            )
+        }.exceptionOrNull()
+
+        assertTrue(failure is IOException)
+        assertEquals(1L, readStarted.count)
+        assertTrue(responseBody.awaitClosed())
+    }
+
+    @Test
+    fun `OkHttp transport rejects chunked response after bounded overflow and closes it`() = runBlocking {
+        val responseBody = CloseTrackingResponseBody(
+            bytes = ByteArray(GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES + 1),
+            declaredLength = -1
+        )
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain -> response(chain.request(), responseBody) }
+            .build()
+        val transport = OkHttpGoogleDriveHttpTransport(client)
+
+        val failure = runCatching {
+            transport.execute(
+                GoogleDriveHttpRequest(
+                    method = "GET",
+                    url = "https://example.invalid/chunked-overflow"
+                )
+            )
+        }.exceptionOrNull()
+
+        assertTrue(failure is IOException)
+        assertTrue(responseBody.awaitClosed())
+    }
+
+    @Test
+    fun `HTTP request rejects response limits outside bounded contract`() {
+        listOf(0, GoogleDrivePasskeyBackup.MAX_GENERATION_HTTP_RESPONSE_BYTES + 1).forEach { limit ->
+            assertTrue(
+                runCatching {
+                    GoogleDriveHttpRequest(
+                        method = "GET",
+                        url = "https://example.invalid/invalid-limit",
+                        maxResponseBytes = limit
+                    )
+                }.isFailure
+            )
+        }
+    }
+
+    @Test
+    fun `cancelling stalled socket request disconnects peer promptly and drains dispatcher`() = runBlocking {
+        val server = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
+        val acceptedSocket = AtomicReference<Socket?>()
+        val requestReceived = CompletableDeferred<Unit>()
+        val peerDisconnected = CompletableDeferred<Unit>()
+        val callCancelled = CountDownLatch(1)
+        val serverJob = async(Dispatchers.IO) {
+            server.accept().use { socket ->
+                acceptedSocket.set(socket)
+                socket.soTimeout = TEST_TIMEOUT_MILLIS.toInt()
+                val reader = socket.getInputStream().bufferedReader()
+                do {
+                    val header = reader.readLine()
+                        ?: throw IOException("Client disconnected before sending request headers")
+                } while (header.isNotEmpty())
+                requestReceived.complete(Unit)
+                if (reader.read() == -1) {
+                    peerDisconnected.complete(Unit)
+                }
+            }
+        }
+        val client = OkHttpClient.Builder()
+            .eventListener(
+                object : EventListener() {
+                    override fun canceled(call: Call) {
+                        callCancelled.countDown()
+                    }
+                }
+            )
+            .readTimeout(TEST_TIMEOUT_SECONDS * 2, TimeUnit.SECONDS)
+            .build()
+        val transport = OkHttpGoogleDriveHttpTransport(client)
+        val request = async(Dispatchers.IO) {
+            transport.execute(
+                GoogleDriveHttpRequest(
+                    method = "GET",
+                    url = "http://127.0.0.1:${server.localPort}/stalled"
+                )
+            )
+        }
+
+        try {
+            withTimeout(TEST_TIMEOUT_MILLIS) {
+                requestReceived.await()
+            }
+
+            withTimeout(TEST_PROMPT_CANCELLATION_MILLIS) {
+                request.cancelAndJoin()
+            }
+
+            assertTrue(request.isCancelled)
+            assertTrue(callCancelled.await(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+            withTimeout(TEST_TIMEOUT_MILLIS) {
+                peerDisconnected.await()
+                while (client.dispatcher.runningCallsCount() != 0) {
+                    delay(DISPATCHER_POLL_MILLIS)
+                }
+            }
+            assertEquals(0, client.dispatcher.runningCallsCount())
+        } finally {
+            request.cancel()
+            acceptedSocket.getAndSet(null)?.close()
+            server.close()
+            serverJob.cancel()
+            withTimeout(TEST_TIMEOUT_MILLIS) {
+                request.join()
+                serverJob.join()
+            }
+        }
+    }
+
+    @Test
+    fun `cancelling OkHttp transport cancels call promptly and closes racing response`() = runBlocking {
+        val responseReadStarted = CountDownLatch(1)
+        val releaseResponseRead = CountDownLatch(1)
+        val callCancelled = CountDownLatch(1)
+        val responseBody = CloseTrackingResponseBody(
+            bytes = "late-response".toByteArray(),
+            readStarted = responseReadStarted,
+            releaseRead = releaseResponseRead
+        )
+        val client = OkHttpClient.Builder()
+            .eventListener(
+                object : EventListener() {
+                    override fun canceled(call: Call) {
+                        callCancelled.countDown()
+                    }
+                }
+            )
+            .addInterceptor { chain -> response(chain.request(), responseBody) }
+            .build()
+        val transport = OkHttpGoogleDriveHttpTransport(client)
+        val request = async(Dispatchers.IO) {
+            transport.execute(
+                GoogleDriveHttpRequest(
+                    method = "GET",
+                    url = "https://example.invalid/cancel"
+                )
+            )
+        }
+
+        try {
+            assertTrue(responseReadStarted.await(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+
+            request.cancel()
+            withTimeout(TEST_PROMPT_CANCELLATION_MILLIS) {
+                request.join()
+            }
+
+            assertTrue(request.isCancelled)
+            assertTrue(callCancelled.await(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+        } finally {
+            releaseResponseRead.countDown()
+            assertTrue(responseBody.awaitClosed())
+            request.cancel()
+            withTimeout(TEST_TIMEOUT_MILLIS) {
+                request.join()
+            }
+        }
+    }
+
     private fun storage(transport: RecordingDriveTransport): GoogleDrivePasskeyBackupCloudStorage {
         return GoogleDrivePasskeyBackupCloudStorage(
             GoogleDrivePasskeyBackupDriveClient(
-                accessTokenProvider = GoogleDriveAccessTokenProvider { "token-123" },
+                accountSubject = "google-subject-123",
+                accessTokenProvider = GoogleDriveAccessTokenProvider {
+                    GoogleDriveAccountAccess("google-subject-123", "alice@example.com", "token-123")
+                },
                 transport = transport
             )
         )
@@ -270,7 +720,12 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         walletId: String = "wallet-001",
         accountName: String = "alice@example.com",
         createdAtMillis: Long = 1_767_225_600_000L,
-        encryptedPayload: ByteArray = byteArrayOf(1, 2, 3)
+        encryptedPayload: ByteArray = validTestEnvelope(
+            storageKey = storageKey,
+            walletId = walletId,
+            accountName = accountName,
+            createdAtMillis = createdAtMillis
+        )
     ): PasskeyBackupEncryptedPayload {
         return PasskeyBackupEncryptedPayload(
             storageKey = storageKey,
@@ -293,6 +748,7 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
               "files": [
                 {
                   "id": "file-1",
+                  "name": "fearless-passkey-backup-$storageKey.bin",
                   "appProperties": {
                     "storageKey": "$storageKey",
                     "walletId": "$walletId",
@@ -314,6 +770,53 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
         return body?.toString(Charsets.UTF_8).orEmpty()
     }
 
+    private fun response(request: Request, body: ResponseBody): Response {
+        return Response.Builder()
+            .request(request)
+            .protocol(Protocol.HTTP_1_1)
+            .code(200)
+            .message("OK")
+            .body(body)
+            .build()
+    }
+
+    private class CloseTrackingResponseBody(
+        bytes: ByteArray,
+        private val declaredLength: Long = bytes.size.toLong(),
+        private val readStarted: CountDownLatch? = null,
+        private val releaseRead: CountDownLatch? = null,
+        private val readFailure: IOException? = null
+    ) : ResponseBody() {
+        private val closed = CountDownLatch(1)
+        private val source = object : Source {
+            private val buffer = Buffer().write(bytes)
+
+            override fun read(sink: Buffer, byteCount: Long): Long {
+                readStarted?.countDown()
+                if (releaseRead?.await(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS) == false) {
+                    throw IOException("Timed out waiting to release response body")
+                }
+                readFailure?.let { throw it }
+                return buffer.read(sink, byteCount)
+            }
+
+            override fun timeout(): Timeout = Timeout.NONE
+
+            override fun close() {
+                buffer.close()
+                closed.countDown()
+            }
+        }.buffer()
+
+        override fun contentType(): MediaType? = null
+
+        override fun contentLength(): Long = declaredLength
+
+        override fun source(): BufferedSource = source
+
+        fun awaitClosed(): Boolean = closed.await(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    }
+
     private class RecordingDriveTransport(
         vararg responses: GoogleDriveHttpResponse
     ) : GoogleDriveHttpTransport {
@@ -324,5 +827,12 @@ class GoogleDrivePasskeyBackupCloudStorageTest {
             requests += request
             return responses.removeFirstOrNull() ?: error("Unexpected request: $request")
         }
+    }
+
+    private companion object {
+        const val DISPATCHER_POLL_MILLIS = 10L
+        const val TEST_PROMPT_CANCELLATION_MILLIS = 1_000L
+        const val TEST_TIMEOUT_MILLIS = 5_000L
+        const val TEST_TIMEOUT_SECONDS = 5L
     }
 }

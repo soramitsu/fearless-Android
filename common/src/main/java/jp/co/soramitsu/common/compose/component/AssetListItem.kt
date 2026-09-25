@@ -39,6 +39,7 @@ import coil.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -101,7 +102,10 @@ fun AssetListItem(
                 ) {
                     Row {
                         Text(
-                            text = state.assetName.uppercase(),
+                            text = listOf(state.assetName, state.assetChainName)
+                                .filter(String::isNotBlank)
+                                .joinToString(" · ")
+                                .uppercase(),
                             style = MaterialTheme.customTypography.capsTitle2,
                             modifier = Modifier
                                 .alpha(0.64f)
@@ -163,6 +167,21 @@ fun AssetListItem(
                                 .weight(1f)
                         ) {
                             Text(
+                                text = stringResource(
+                                    when (state.metadataTrust) {
+                                        "verified" -> R.string.portfolio_asset_verified
+                                        "missing" -> R.string.portfolio_asset_metadata_missing
+                                        else -> R.string.portfolio_asset_unverified
+                                    }
+                                ),
+                                style = MaterialTheme.customTypography.body1.copy(
+                                    color = if (state.metadataTrust == "verified") white64 else alertYellow
+                                ),
+                                modifier = Modifier
+                                    .padding(end = 4.dp)
+                                    .testTag("AssetListItem_${state.assetSymbol}_trust")
+                            )
+                            Text(
                                 text = state.assetTokenFiat.orEmpty(),
                                 style = MaterialTheme.customTypography.body1,
                                 modifier = Modifier
@@ -181,7 +200,8 @@ fun AssetListItem(
                             )
                         }
                         Text(
-                            text = state.assetTransferableBalanceFiat.orEmpty(),
+                            text = state.assetTransferableBalanceFiat
+                                ?: stringResource(R.string.portfolio_price_unavailable),
                             style = MaterialTheme.customTypography.body1.copy(textAlign = TextAlign.End),
                             modifier = Modifier
                                 .wrapContentWidth()

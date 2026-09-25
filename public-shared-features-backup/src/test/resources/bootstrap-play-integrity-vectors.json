@@ -1,0 +1,39 @@
+{
+  "comment": "Public, synthetic cross-platform proof vectors. No wallet secret is present. Not a device or provider attestation.",
+  "ceremony": {
+    "ceremonyId": "ceremony.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    "kind": "bootstrap",
+    "challenge": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI",
+    "rpId": "fearlesswallet.io",
+    "platform": "android",
+    "subject": "owner:AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM",
+    "namespace": "backup:BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ",
+    "userHandle": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
+    "expiresAt": 1760000000
+  },
+  "credential": {
+    "id": "BgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgY",
+    "rawId": "BgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgY",
+    "type": "public-key",
+    "clientExtensionResults": {},
+    "response": {
+      "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIn0",
+      "attestationObject": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc"
+    }
+  },
+  "walletMessage": "RlBfT1dORVJfQk9PVFNUUkFQX1dBTExFVF9WMQAAAAA0Y2VyZW1vbnkuQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRQAAACACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgAAABFmZWFybGVzc3dhbGxldC5pbwAAAAdhbmRyb2lkAAAAMW93bmVyOkF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd00AAAAyYmFja3VwOkJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVFFQkFRRUJBUUVCQVEAAAAgBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUAAAAg20_SxRKRLbM89cxyBDMSjGaAhm7Ol1BVx9qHWoPSS9s",
+  "proofs": [
+    {
+      "scheme": "ed25519",
+      "publicKey": "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc",
+      "signature": "ozog_N56jR0GuJfDsGTU_Tj_OMwgVPlQ9cHI967VQcs1JkkYQzmAsoIWi0ZMKbZvF8T3s9LxWgQNiXeIUOusDg",
+      "requestHash": "Dr_VXH8Ai6s3QRzd55kKMpjlZqONU85h3ibeqqto63E"
+    },
+    {
+      "scheme": "secp256k1",
+      "publicKey": "BEZtf8rlY-XLCaDRhwu1gDRIBGF4eaFJSc8iKF8brj8nZygXbDxkMfju2kU43DfIZeJ4Tzqed9BE8z5Ad5fhJ4o",
+      "signature": "cazypUdzZk2m8V1jdVTtzNNBau-T9Nc4GXlnpbsZpTrGABt-z2kgLYGF8341BQ2IXGEf3D95cofbzx0tBP5Y8g",
+      "requestHash": "9x058rszLaGLNZygww8u8wdT1V91_W9HvLAn_PDMGwY"
+    }
+  ]
+}

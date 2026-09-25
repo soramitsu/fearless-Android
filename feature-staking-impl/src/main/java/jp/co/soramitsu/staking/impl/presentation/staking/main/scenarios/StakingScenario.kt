@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
@@ -11,6 +12,9 @@ import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDat
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
+import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
@@ -31,7 +35,11 @@ class StakingScenario(
     private val stakingViewStateFactory: StakingViewStateFactory,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
-    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl
+    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl,
+    private val setupStakingSharedState: SetupStakingSharedState,
+    private val router: StakingRouter,
+    private val validationExecutor: ValidationExecutor,
+    private val soraStakingRewardsScenario: SoraStakingRewardsScenario
 ) {
 
     private val parachainViewModel by lazy {
@@ -41,7 +49,10 @@ class StakingScenario(
             resourceManager,
             baseViewModel,
             stakingViewStateFactory,
-            stakingParachainStoriesDataSourceImpl
+            stakingParachainStoriesDataSourceImpl,
+            rewardCalculatorFactory,
+            setupStakingSharedState,
+            router
         )
     }
     private val relaychainViewModel by lazy {
@@ -53,7 +64,12 @@ class StakingScenario(
             alertsInteractor,
             stakingViewStateFactory,
             stakingStoriesDataSourceImpl,
-            state
+            state,
+            rewardCalculatorFactory,
+            setupStakingSharedState,
+            router,
+            validationExecutor,
+            soraStakingRewardsScenario
         )
     }
     private val stakingPoolViewModel by lazy {

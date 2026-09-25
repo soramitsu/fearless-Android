@@ -132,6 +132,7 @@ private fun PoolInfoToolbar(
     ) {
         jp.co.soramitsu.common.compose.component.IconButton(
             painter = painterResource(id = R.drawable.ic_close),
+            contentDescription = stringResource(R.string.ux_close),
             tint = Color.Unspecified,
             onClick = onNavigationClick
         )
@@ -151,6 +152,7 @@ private fun PoolInfoToolbar(
             jp.co.soramitsu.common.compose.component.IconButton(
                 modifier = Modifier.align(Alignment.CenterEnd),
                 painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
+                contentDescription = stringResource(R.string.ux_more),
                 tint = Color.Unspecified,
                 onClick = onOptionsClick
             )

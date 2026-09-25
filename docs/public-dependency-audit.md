@@ -4,6 +4,19 @@ Fearless Android must build from public source and public artifacts without
 private Maven repositories or private GitHub repositories. This file tracks
 nonstandard Soramitsu dependencies that affect that requirement.
 
+## Governed Snapshot
+
+These counts are derived from the checked-in build, route, and provenance gates;
+`scripts/export-public-dependency-upstream-delta.sh` rejects this document when
+they drift:
+
+- Pinned `fearless-utils-Android` revision: `1c80a2bf3fa1f996cf1328873e09f282ee29b69e`.
+- Public compatibility-module substitutions: `6`.
+- Approved/required executable XCM route rows: `15` / `15`.
+- Discovery-only XCM destinations/assets: `34` / `59`; `14` of those
+  destinations carry `39` multi-asset route entries.
+- Strict-provenance allowlisted binary artifacts: `9`.
+
 ## Resolved Locally
 
 ### `jp.co.soramitsu:android-foundation:0.0.4`
@@ -55,14 +68,24 @@ coordinate with the local module.
 The app resolves `fearless-utils` from a public source checkout via Gradle
 composite build. CI and release workflows check out
 `soramitsu/fearless-utils-Android` at
-`7500809f33243ee47ecb2ec8563fc284ac4de0d6`, set `FEARLESS_UTILS_PATH`, force
+`1c80a2bf3fa1f996cf1328873e09f282ee29b69e`, set `FEARLESS_UTILS_PATH`, force
 the local include with `FORCE_LOCAL_UTILS=true`, and run
 `scripts/ensure-fearless-utils.sh` before Gradle resolution.
+The verifier accepts only pristine committed source, including raw blob hashes,
+file modes, origin, replacement-ref, submodule and bounded generated-file checks.
+Library-only build compatibility, runtime-id handling and guarded mutation paths
+are now in the source candidate; no overlay is applied. The transport is pinned to
+`soramitsu/fearless-nv-websocket-client@9714b30b6a16d40a2122765077bb71cf44314798`.
+`config/android-runtime-source-pins.json` binds both commits and exact trees.
+CI/release Gradle validates both before included-build evaluation and again after a
+successful build. `FEARLESS_NV_WEBSOCKET_PATH` must identify the reviewed source;
+the new guarded version has no fallback to the old unguarded Maven binary.
 
-Local developers can use the same contract by cloning the repo next to
-`fearless-Android` or setting `FEARLESS_UTILS_PATH` explicitly. The Gradle
-`USE_REMOTE_UTILS=true` source-control fallback is not used by public CI because
-it does not currently resolve the requested published module version.
+The source PRs are Utils153 and guarded transport1. Their tests passing does not
+replace required review/merge, native-device or production-route qualification.
+Local development may use the same pinned checkouts via `FEARLESS_UTILS_PATH`
+and `FEARLESS_NV_WEBSOCKET_PATH`. Run the source verifier and adversarial fixtures
+before treating a build as a release candidate.
 
 The carried upstream delta is exported with:
 
@@ -72,8 +95,8 @@ bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports
 ```
 
 The generated `handoff-manifest.json` records the pinned
-`fearless-utils-Android` revision, the library-only overlay patch checksum and
-touched paths, and SHA-256 digests for all public compatibility modules. Release
+`fearless-utils-Android` revision, pristine committed source mode without
+post-resolution patching, and SHA-256 digests for all public compatibility modules. Release
 reviewers should attach or archive this bundle whenever the pinned dependency
 surface changes.
 
@@ -96,11 +119,15 @@ Known limits:
   real account, nonce, crypto type, signer, tip, app id, and mortal era. Android
   production call sites now avoid the anonymous dummy estimator; accountless UI
   placeholders return zero instead of building dummy signed fee payloads.
-- The public XCM compatibility surface now preserves route metadata from chain
-  config through Room and exposes origin, destination, asset, and min-amount
-  discovery with malformed-route filtering. Public builds still keep XCM
-  transfer execution disabled and fee/submission calls fail explicitly until an
-  open-source XCM extrinsic engine and end-to-end coverage are added.
+- The public XCM compatibility surface preserves route metadata from chain
+  config through Room, loads the APK-owned approved-route registry, validates
+  reviewed execution specs, and contains an open-source Substrate fee and
+  submission engine. The checked-in approved and required manifests contain the
+  same 15 executable single-asset routes. Release builds still hardcode
+  `ENABLE_PRODUCTION_XCM_TRANSFERS=false`: production activation remains blocked
+  on funded per-route evidence, complete live-discovery intersection, and
+  reviewed semantics for the 34 discovery-only destinations covering 59 route
+  assets. Discovery-only or malformed routes remain non-executable.
 - The private Soramitsu Nexus Maven repository remains opt-in only through
   `INCLUDE_SORAMITSU_NEXUS=1`; public CI should not require it.
 
@@ -109,8 +136,22 @@ Known limits:
 The pinned public `fearless-utils` checkout guard passes:
 
 ```
+bash ./scripts/test-fearless-utils-derived-tree.sh
 FEARLESS_UTILS_PATH=../fearless-utils-Android \
+FEARLESS_UTILS_COMMIT=1c80a2bf3fa1f996cf1328873e09f282ee29b69e \
+FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android \
+FEARLESS_UTILS_LIBRARY_ONLY=true \
 ./scripts/ensure-fearless-utils.sh
+```
+
+The documentation, handoff manifest, and strict binary provenance contract pass
+their executable governance gates:
+
+```
+bash ./scripts/test-public-dependency-upstream-delta-export.sh
+bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
+bash ./scripts/test-public-artifact-provenance-audit.sh
+./scripts/audit-public-artifacts.sh --strict-provenance
 ```
 
 The public replacement modules and affected app modules compile:
@@ -158,6 +199,13 @@ The public XCM route catalog and unsupported-path guards also pass:
 ```
 ./gradlew \
   :public-shared-features-xcm:testDebugUnitTest \
+  --tests 'jp.co.soramitsu.xcm.SubstrateXcmTransferEngineTest' \
+  --tests 'jp.co.soramitsu.xcm.XcmServiceTest' \
+  --tests 'jp.co.soramitsu.xcm.domain.ApprovedXcmRouteRegistryTest' \
+  --tests 'jp.co.soramitsu.xcm.domain.XcmEntitiesFetcherTest' \
+  --no-daemon --console=plain --stacktrace
+
+./gradlew \
   :runtime:testDebugUnitTest \
   :core-db:compileDebugKotlin \
   :feature-wallet-impl:compileDebugKotlin \

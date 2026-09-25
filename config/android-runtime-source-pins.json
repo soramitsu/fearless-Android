@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "utils": {
+    "repository": "soramitsu/fearless-utils-Android",
+    "commit": "1c80a2bf3fa1f996cf1328873e09f282ee29b69e",
+    "tree": "a5a82bdee79a3f5793e518475c8f79869a6c0324"
+  },
+  "websocket": {
+    "repository": "soramitsu/fearless-nv-websocket-client",
+    "commit": "9714b30b6a16d40a2122765077bb71cf44314798",
+    "tree": "7c0b4ce31735a23acf95e783c5d428b64a51c06d"
+  }
+}

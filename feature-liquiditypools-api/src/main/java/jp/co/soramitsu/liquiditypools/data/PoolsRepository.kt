@@ -1,6 +1,7 @@
 package jp.co.soramitsu.liquiditypools.data
 
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -11,6 +12,8 @@ import java.math.BigDecimal
 interface PoolsRepository {
 
     val poolsChainId: String
+
+    suspend fun mutationCapabilityReason(chainId: ChainId, action: LiquidityMutationAction): String?
 
     suspend fun isPairAvailable(
         chainId: ChainId,

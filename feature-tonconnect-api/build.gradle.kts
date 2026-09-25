@@ -26,6 +26,7 @@ android {
 
 dependencies {
     implementation(projects.common)
+    implementation(projects.coreDb)
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
     implementation(libs.hilt.android)

@@ -73,7 +73,8 @@ class TonConnectionInfoViewModel @Inject constructor(
 
     override fun onDisconnectClick() {
         viewModelScope.launch {
-            tonConnectInteractor.disconnect(dapp.identifier)
+            val identity = dapp.connectionIdentityOrNull() ?: return@launch
+            tonConnectInteractor.disconnect(identity)
             tonConnectRouter.back()
 
             val dappName = dapp.name ?: resourceManager.getString(R.string.common_dapp)

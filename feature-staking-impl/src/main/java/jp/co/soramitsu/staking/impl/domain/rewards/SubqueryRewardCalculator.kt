@@ -45,7 +45,7 @@ class SubqueryRewardCalculator(
     }
 
     private suspend fun calculateSubsquidMaxAPY(stakingUrl: String): BigDecimal {
-        return getSubsquidRewards(stakingUrl).maxOf { it.value.orZero() }
+        return maximumRewardOrZero(getSubsquidRewards(stakingUrl))
     }
 
     private suspend fun calculateSubqueryMaxAPY(stakingUrl: String): BigDecimal {
@@ -161,4 +161,11 @@ class SubqueryRewardCalculator(
             emptyMap()
         })
     }
+}
+
+internal fun maximumRewardOrZero(rewards: Map<String, BigDecimal?>): BigDecimal {
+    return rewards.values
+        .maxOfOrNull { it.orZero() }
+        .orZero()
+        .coerceAtLeast(BigDecimal.ZERO)
 }

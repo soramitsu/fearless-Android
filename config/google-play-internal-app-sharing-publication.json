@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "platform": "android",
+  "evidenceKind": "google-play-internal-app-sharing-publication",
+  "publication": {
+    "service": "google-play",
+    "channel": "internal-app-sharing",
+    "statusAtObservation": "published",
+    "shareUrlCommitted": false,
+    "publiclyDisclosed": false,
+    "shareUrlSha256": "3f04ae9bf0efbd03d43b346945f07a5311b988de8500dec68f1a0263ebe1b59c",
+    "canonicalOrigin": "https://play.google.com",
+    "pathShape": "/apps/test/{upload-token}/{install-token}",
+    "tokenAlphabet": "base64url-unpadded",
+    "uploadTokenValidatorLengthBounds": {
+      "minimum": 10,
+      "maximum": 64
+    },
+    "installTokenValidatorLengthBounds": {
+      "minimum": 43,
+      "maximum": 256
+    },
+    "tokenValidatorBoundsBasis": "local-defensive-parser-not-google-protocol",
+    "observedUploadTokenLength": 11,
+    "observedInstallTokenLength": 90,
+    "maximumDistinctDownloaders": 100,
+    "lifetimeDays": 60,
+    "policySourceUrl": "https://support.google.com/googleplay/android-developer/answer/9844679",
+    "googleReSignsDeliveredApks": true
+  },
+  "localSelectedArtifact": {
+    "repositoryRelativePath": "app/build/outputs/bundle/internalAppSharing/app-internalAppSharing.aab",
+    "fileName": "app-internalAppSharing.aab",
+    "sha256": "e963c993afb013451b3c241a6a40f9f267dbb0e9740ae1b79ad2e808b6650dad",
+    "bytes": 42215593,
+    "packageName": "jp.co.soramitsu.fearless",
+    "versionName": "4.2.0-ias",
+    "versionCode": 230,
+    "signingClassification": "debug-signed",
+    "firebaseConfiguration": "public-placeholder"
+  },
+  "googleDisplayedArtifact": {
+    "packageName": "jp.co.soramitsu.fearless",
+    "versionName": "4.2.0-ias",
+    "versionCode": null,
+    "serverArtifactSha256": null,
+    "serverArtifactBytes": null,
+    "serverSigningCertificateSha256": null,
+    "serverCryptographicBindingObserved": false,
+    "bindingStrength": "operator-observed-file-selection-plus-package-version-name-and-time-not-server-cryptographic"
+  },
+  "googleConsoleObservation": {
+    "browser": "Safari",
+    "locale": "ja-JP",
+    "uploadedAsDisplayed": {
+      "rawText": "7月26日 10:49にアップロードしました",
+      "monthDay": "7月26日",
+      "time": "10:49",
+      "yearDisplayed": false
+    },
+    "normalizedUploadLocal": "2026-07-26T10:49",
+    "normalizedUploadYearInference": "expiry-and-observation-year-2026",
+    "expiresAsDisplayed": {
+      "rawDate": "2026年9月24日",
+      "rawTime": "10:49",
+      "date": "2026-09-24",
+      "time": "10:49"
+    },
+    "normalizedExpiryLocal": "2026-09-24T10:49",
+    "timezone": "not-displayed-by-google",
+    "intervalCalculation": "displayed-wall-clock-without-timezone-conversion",
+    "displayedIntervalSeconds": 5184000,
+    "accessControl": {
+      "selectedRadioRawLabel": "リンクを共有したユーザーはダウンロードできます",
+      "unselectedMailingListRawLabel": "メーリング リストへのアクセスの制限",
+      "selectedRadioSemantic": "users-shared-link-can-download",
+      "anyoneWithSharedLinkCanDownload": true,
+      "mailingListRestrictionEnabled": false,
+      "saveButtonState": "disabled",
+      "authority": "operator-visible-console-state",
+      "unauthenticatedAccessVerified": false
+    }
+  },
+  "testerPageObservation": {
+    "signedInGoogleSession": true,
+    "appName": "Fearless Wallet: DeFi Wallet",
+    "developerName": "Soramitsu",
+    "instruction": "open-link-on-android-device",
+    "pageHost": "play.google.com",
+    "requestedShareUrlSha256": "3f04ae9bf0efbd03d43b346945f07a5311b988de8500dec68f1a0263ebe1b59c",
+    "deviceInstallVerified": false,
+    "independentAccountInstallVerified": false,
+    "testersObserved": 0,
+    "requirements": {
+      "googleAccountRequired": true,
+      "androidDeviceRequired": true,
+      "googlePlayStoreRequired": true,
+      "internalAppSharingOptInRequired": true,
+      "playStoreListingEligibilityRequired": true
+    },
+    "privateSafariObservation": {
+      "result": "google-sign-in-required",
+      "continueUrlSha256": "3f04ae9bf0efbd03d43b346945f07a5311b988de8500dec68f1a0263ebe1b59c",
+      "unauthenticatedTesterPageObserved": false
+    }
+  },
+  "sourceProvenance": {
+    "sourceCommit": null,
+    "sourceCommitBound": false,
+    "sourceReproducibleFromCommit": false,
+    "treeStateAtEvidenceReview": "dirty-uncommitted"
+  },
+  "classification": {
+    "testOnly": true,
+    "productionEquivalent": false,
+    "productionReady": false,
+    "productionSigned": false,
+    "playAppSigningValidated": false,
+    "playIntegrityValidated": false,
+    "appLinkCertificateAssociationValidated": false,
+    "productionFirebaseValidated": false,
+    "productionUpgradePathValidated": false,
+    "normalPlayTestingTrackValidated": false,
+    "allowedUse": [
+      "ui-testing",
+      "installation-testing"
+    ],
+    "prohibitedClaims": [
+      "production-release-evidence",
+      "production-signing-evidence",
+      "play-app-signing-evidence",
+      "play-integrity-evidence",
+      "app-link-certificate-evidence",
+      "production-firebase-evidence",
+      "production-upgrade-evidence",
+      "normal-play-testing-track-evidence",
+      "device-install-evidence",
+      "independent-tester-evidence"
+    ]
+  },
+  "evidenceLimitations": {
+    "observationMethod": "manual-safari",
+    "supportingScreenshotCommitted": false,
+    "trackedManifestContainsShareUrl": false,
+    "trackedManifestContainsSecrets": false,
+    "localLinkHandoff": "ignored-mode-0600-build-report",
+    "currentGoogleAvailabilityRecheckedByAudit": false
+  }
+}

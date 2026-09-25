@@ -13,6 +13,7 @@ import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingVali
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingRewardEstimationBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +36,10 @@ interface StakingScenarioViewModel {
     val stakingViewStateFlowOld: Flow<StakingViewStateOld>
 
     suspend fun getStakingViewStateFlow(): Flow<StakingViewState>
+
+    suspend fun rewardEstimationPayload(): StakingRewardEstimationBottomSheet.Payload
+
+    fun startStaking() = Unit
 
     suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>>
     suspend fun alerts(): Flow<LoadingState<List<AlertModel>>>
