@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.impl.data.repository.PortableWalletChainSigningPr
  * Read-only proof that every Android signing slot in a mixed FPWMSM01 capture has its original
  * V1, V2 or V3 export source and can sign for its recorded identity. Public watch and favorite
  * slots receive structural validation from the semantic codec, not an installation proof.
+ * The caller must separately bind mapped display metadata to authoritative preference reads.
  * This does not prove an installed replacement wallet, complete UX metadata, or backup success.
  * The caller owns and must erase [encoded] after use.
  */
@@ -14,6 +15,7 @@ internal object PortableWalletAndroidSourceCohortProof {
     private val codec = PortableWalletSemanticMaterial
     private val role = PortableWalletSemanticMaterial.Role
     private val field = PortableWalletSemanticMaterial.FieldId
+    private val metadata = PortableWalletSemanticMaterial.MetadataId
 
     internal class Counts(
         val wallets: Int,
@@ -75,7 +77,12 @@ internal object PortableWalletAndroidSourceCohortProof {
         var chains = 0
         var favorites = 0
         snapshot.wallets.forEach { wallet ->
-            require(wallet.metadata.isEmpty()) { "Android wallet metadata has no source proof" }
+            require(
+                wallet.metadata.all {
+                    it.id == metadata.ANDROID_SELECTED_CHAIN_ID ||
+                        it.id == metadata.ANDROID_CHAIN_SELECT_FILTER
+                }
+            ) { "Android wallet metadata has no source proof" }
             val rootSlots = wallet.slots.count { it.role in role.SUBSTRATE_ROOT..role.TON_ROOT }
             val legacySlots = wallet.slots.count { it.role == role.LEGACY_SUBSTRATE }
             val chainSlots = wallet.slots.count { it.role == role.CHAIN_ACCOUNT }

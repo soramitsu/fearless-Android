@@ -15,14 +15,69 @@ internal class PortableWalletExportInventoryGuard(
     private val preferences: Preferences,
     private val assetDao: AssetDao
 ) {
-    suspend fun requireNoUnmappedMetadata(wallets: List<ExportWalletIdentity>) {
-        wallets.forEach { wallet ->
-            check(
-                !preferences.contains("wallet_selected_chain_id${wallet.id}") &&
-                    !preferences.contains("chain_select_filter_applied_${wallet.id}") &&
-                    !assetDao.hasUnmappedWalletAssetPreferences(wallet.id)
-            ) { "A wallet has presentation metadata without a portable source mapping" }
+    internal data class DisplayPreferences(
+        val selectedChainId: String?,
+        val chainSelectFilter: String?
+    ) {
+        fun toSemanticMetadata(): List<PortableWalletSemanticMaterial.Metadata> {
+            val metadata = ArrayList<PortableWalletSemanticMaterial.Metadata>(2)
+            try {
+                selectedChainId?.let { value ->
+                    metadata += PortableWalletSemanticMaterial.Metadata(
+                        PortableWalletSemanticMaterial.MetadataId.ANDROID_SELECTED_CHAIN_ID,
+                        PortableWalletSemanticMaterial.encodeMetadataText(value)
+                    )
+                }
+                chainSelectFilter?.let { value ->
+                    metadata += PortableWalletSemanticMaterial.Metadata(
+                        PortableWalletSemanticMaterial.MetadataId.ANDROID_CHAIN_SELECT_FILTER,
+                        PortableWalletSemanticMaterial.encodeMetadataText(value)
+                    )
+                }
+                return metadata
+            } catch (failure: Exception) {
+                metadata.forEach { it.value.fill(0) }
+                throw failure
+            }
         }
+    }
+
+    /** Capture only the two mapped wallet preferences; asset-row presentation remains blocked. */
+    suspend fun captureDisplayPreferences(wallets: List<ExportWalletIdentity>): Map<Long, DisplayPreferences> =
+        wallets.associate { wallet ->
+            check(!assetDao.hasUnmappedWalletAssetPreferences(wallet.id)) {
+                "A wallet has asset presentation metadata without a portable source mapping"
+            }
+            wallet.id to DisplayPreferences(
+                exactOptionalString("wallet_selected_chain_id${wallet.id}"),
+                exactOptionalString("chain_select_filter_applied_${wallet.id}")
+            )
+        }
+
+    fun withDisplayMetadata(
+        wallet: PortableWalletSemanticMaterial.Wallet,
+        display: DisplayPreferences
+    ): PortableWalletSemanticMaterial.Wallet = try {
+        PortableWalletSemanticMaterial.Wallet(
+            portableId = wallet.portableId,
+            sourcePosition = wallet.sourcePosition,
+            initialized = wallet.initialized,
+            name = wallet.name,
+            metadata = display.toSemanticMetadata(),
+            slots = wallet.slots
+        )
+    } catch (failure: Exception) {
+        wallet.clearSecrets()
+        throw failure
+    }
+
+    private fun exactOptionalString(key: String): String? {
+        if (!preferences.contains(key)) return null
+        val value = checkNotNull(preferences.getString(key)) {
+            "A present wallet display preference is not a string"
+        }
+        PortableWalletSemanticMaterial.encodeMetadataText(value).fill(0)
+        return value
     }
 
     fun requireNoUnsupportedLegacyMaterial() {

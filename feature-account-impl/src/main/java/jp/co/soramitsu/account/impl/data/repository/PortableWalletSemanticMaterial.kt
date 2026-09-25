@@ -84,6 +84,12 @@ internal object PortableWalletSemanticMaterial {
         const val ASSET_FILTER_OPTIONS = 7
         const val ZERO_BALANCE_ASSETS_HIDDEN = 8
         const val CAN_EXPORT_ETHEREUM_MNEMONIC = 9
+
+        /** Exact stored Android wallet-selected chain ID; absent differs from present-empty. */
+        const val ANDROID_SELECTED_CHAIN_ID = 10
+
+        /** Exact stored Android chain-selector filter; absent differs from present-empty. */
+        const val ANDROID_CHAIN_SELECT_FILTER = 11
     }
 
     internal class Snapshot(val selectedIndex: Int, val wallets: List<Wallet>) {
@@ -185,7 +191,7 @@ internal object PortableWalletSemanticMaterial {
                 val initialized = reader.readCanonicalBoolean()
                 val name = reader.readText(allowEmpty = true, allocated = allocated)
                 val metadataCount = reader.readUnsignedByte()
-                require(metadataCount <= MetadataId.CAN_EXPORT_ETHEREUM_MNEMONIC) {
+                require(metadataCount <= MetadataId.ANDROID_CHAIN_SELECT_FILTER) {
                     "Semantic wallet metadata count is invalid"
                 }
                 val metadata = ArrayList<Metadata>(metadataCount)
@@ -239,7 +245,7 @@ internal object PortableWalletSemanticMaterial {
                 "Semantic wallet identity is duplicated"
             }
             requireText(wallet.name, allowEmpty = true)
-            require(wallet.metadata.size <= MetadataId.CAN_EXPORT_ETHEREUM_MNEMONIC) {
+            require(wallet.metadata.size <= MetadataId.ANDROID_CHAIN_SELECT_FILTER) {
                 "Semantic wallet metadata count is invalid"
             }
             requireStrictAscending(wallet.metadata.map(Metadata::id))
@@ -298,14 +304,15 @@ internal object PortableWalletSemanticMaterial {
 
     private fun requireMetadata(metadata: Metadata) {
         require(
-            metadata.id in MetadataId.ASSET_KEYS_ORDER..MetadataId.CAN_EXPORT_ETHEREUM_MNEMONIC &&
+            metadata.id in MetadataId.ASSET_KEYS_ORDER..MetadataId.ANDROID_CHAIN_SELECT_FILTER &&
             metadata.value.size <= MAX_SECRET
         ) { "Semantic wallet metadata is invalid" }
         when (metadata.id) {
             MetadataId.ASSET_KEYS_ORDER, MetadataId.UNUSED_CHAIN_IDS,
             MetadataId.FAVORITE_CHAIN_IDS, MetadataId.ASSET_FILTER_OPTIONS ->
                 requireStringList(metadata.value)
-            MetadataId.SELECTED_CURRENCY, MetadataId.NETWORK_MANAGEMENT_FILTER ->
+            MetadataId.SELECTED_CURRENCY, MetadataId.NETWORK_MANAGEMENT_FILTER,
+            MetadataId.ANDROID_SELECTED_CHAIN_ID, MetadataId.ANDROID_CHAIN_SELECT_FILTER ->
                 requireTextBytes(metadata.value, allowEmpty = true)
             MetadataId.ASSET_VISIBILITY -> requireVisibilityMap(metadata.value)
             MetadataId.ZERO_BALANCE_ASSETS_HIDDEN,
@@ -565,6 +572,20 @@ internal object PortableWalletSemanticMaterial {
             requireTextBytes(bytes, allowEmpty)
         } finally {
             bytes.fill(0)
+        }
+    }
+
+    /** Encode a stored preference without replacing malformed UTF-16 or losing empty presence. */
+    internal fun encodeMetadataText(value: String): ByteArray {
+        require(value.length <= MAX_TEXT) { "Semantic wallet metadata text is oversized" }
+        val bytes = value.toByteArray(Charsets.UTF_8)
+        try {
+            requireTextBytes(bytes, allowEmpty = true)
+            require(strictUtf8(bytes) == value) { "Semantic wallet metadata text is not exact UTF-8" }
+            return bytes
+        } catch (failure: Exception) {
+            bytes.fill(0)
+            throw failure
         }
     }
 

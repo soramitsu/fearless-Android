@@ -187,8 +187,8 @@ class PortableWalletMaterialPreflight @Inject constructor(
             val rowById = rows.associateBy { it.metaAccount.id }
             val legacyAddresses = discoverLegacyAddresses(before)
             val secretNamespaceBefore = approvedGenesis?.let { exportInventory.walletSecretNamespaces(before) }
+            val displayPreferencesBefore = exportInventory.captureDisplayPreferences(before)
             if (approvedGenesis != null) {
-                exportInventory.requireNoUnmappedMetadata(before)
                 exportInventory.requireNoUnsupportedLegacyMaterial()
             }
             val markers = before.associate { identity ->
@@ -213,13 +213,19 @@ class PortableWalletMaterialPreflight @Inject constructor(
                                 !journalStore.hasSecretNamespace(identity.id)) {
                                 "A WATCH wallet has signing material or recovery evidence"
                             }
-                            projected += PortableWalletDraftSemanticTranscoder.projectWatchWallet(identity)
+                            projected += exportInventory.withDisplayMetadata(
+                                PortableWalletDraftSemanticTranscoder.projectWatchWallet(identity),
+                                checkNotNull(displayPreferencesBefore[identity.id])
+                            )
                         }
                         WalletCustodyProvenance.Kind.SIGNED,
                         WalletCustodyProvenance.Kind.UNKNOWN -> {
                             val signed = captureSignedWallet(identity, legacyAddresses[identity.id])
                             try {
-                                projected += PortableWalletDraftSemanticTranscoder.projectSignedWallet(signed)
+                                projected += exportInventory.withDisplayMetadata(
+                                    PortableWalletDraftSemanticTranscoder.projectSignedWallet(signed),
+                                    checkNotNull(displayPreferencesBefore[identity.id])
+                                )
                             } finally {
                                 signed.clearSecrets()
                             }
@@ -265,7 +271,9 @@ class PortableWalletMaterialPreflight @Inject constructor(
                             secretNamespaceBefore == exportInventory.walletSecretNamespaces(before)) {
                             "Wallet source inventory changed during portable-backup proof"
                         }
-                        exportInventory.requireNoUnmappedMetadata(before)
+                        check(displayPreferencesBefore == exportInventory.captureDisplayPreferences(before)) {
+                            "Wallet display preferences changed during portable-backup proof"
+                        }
                         exportInventory.requireNoUnsupportedLegacyMaterial()
                         before.forEach { identity ->
                             check(!accountRepository.isWalletRecoveryRequired(identity.id)) {

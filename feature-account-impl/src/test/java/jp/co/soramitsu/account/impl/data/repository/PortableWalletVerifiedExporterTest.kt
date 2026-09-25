@@ -100,6 +100,77 @@ class PortableWalletVerifiedExporterTest {
     }
 
     @Test
+    fun `exports exact display preferences for mixed cohort without backup mutation`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        whenever(userPreferences.contains("wallet_selected_chain_id1")).thenReturn(true)
+        whenever(userPreferences.getString("wallet_selected_chain_id1")).thenReturn("")
+        whenever(userPreferences.contains("chain_select_filter_applied_2")).thenReturn(true)
+        whenever(userPreferences.getString("chain_select_filter_applied_2")).thenReturn("All")
+        whenever(userPreferences.contains("wallet_selected_chain_id3")).thenReturn(true)
+        whenever(userPreferences.getString("wallet_selected_chain_id3")).thenReturn(genesis)
+        whenever(userPreferences.contains("chain_select_filter_applied_3")).thenReturn(true)
+        whenever(userPreferences.getString("chain_select_filter_applied_3")).thenReturn("")
+        val encoded = exporter.captureVerifiedSemanticPlaintext(policy)
+        val decoded = PortableWalletSemanticMaterial.decode(encoded)
+        val metadata = PortableWalletSemanticMaterial.MetadataId
+        try {
+            assertEquals(listOf(metadata.ANDROID_SELECTED_CHAIN_ID), decoded.wallets[0].metadata.map { it.id })
+            assertArrayEquals(byteArrayOf(), decoded.wallets[0].metadata.single().value)
+            assertEquals(listOf(metadata.ANDROID_CHAIN_SELECT_FILTER), decoded.wallets[1].metadata.map { it.id })
+            assertArrayEquals("All".toByteArray(), decoded.wallets[1].metadata.single().value)
+            assertEquals(listOf(10, 11), decoded.wallets[2].metadata.map { it.id })
+            assertArrayEquals(genesis.toByteArray(), decoded.wallets[2].metadata[0].value)
+            assertArrayEquals(byteArrayOf(), decoded.wallets[2].metadata[1].value)
+            assertTrue(decoded.wallets[3].metadata.isEmpty())
+            assertTrue(fixture.rows.none { it.metaAccount.isBackedUp })
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+            fixture.clear()
+        }
+        verify(metaDao, never()).updateBackedUp(any<Long>(), any<Int>())
+        verify(metaDao, never()).updateMetaAccount(any())
+        verify(custodyDao, never()).insert(any())
+    }
+
+    @Test
+    fun `rejects display preference changed after source proof`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        whenever(userPreferences.contains("wallet_selected_chain_id3")).thenReturn(true)
+        whenever(userPreferences.getString("wallet_selected_chain_id3")).thenReturn("before", "after")
+        try {
+            assertThrows(IllegalStateException::class.java) {
+                runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
+            }
+            verify(userPreferences, org.mockito.kotlin.times(2)).getString("wallet_selected_chain_id3")
+            verify(metaDao, never()).updateBackedUp(any<Long>(), any<Int>())
+        } finally {
+            fixture.clear()
+        }
+    }
+
+    @Test
+    fun `rejects present non-string oversized and malformed display preferences`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        whenever(userPreferences.contains("chain_select_filter_applied_2")).thenReturn(true)
+        try {
+            listOf(null, "x".repeat(2_049), "\uD800").forEach { value ->
+                whenever(userPreferences.getString("chain_select_filter_applied_2")).thenReturn(value)
+                assertThrows(Exception::class.java) {
+                    runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
+                }
+            }
+            verify(metaDao, never()).updateBackedUp(any<Long>(), any<Int>())
+            verify(custodyDao, never()).insert(any())
+        } finally {
+            fixture.clear()
+        }
+    }
+
+    @Test
     fun `rejects an unapproved chain or orphaned original namespace without promoting custody`() = runBlocking {
         val fixture = fixture()
         install(fixture)
@@ -210,15 +281,10 @@ class PortableWalletVerifiedExporterTest {
     }
 
     @Test
-    fun `rejects unmapped wallet preferences and historical private-key aliases`() = runBlocking {
+    fun `rejects unmapped asset presentation and historical private-key aliases`() = runBlocking {
         val fixture = fixture()
         install(fixture)
         try {
-            whenever(userPreferences.contains("wallet_selected_chain_id3")).thenReturn(true)
-            assertThrows(IllegalStateException::class.java) {
-                runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
-            }
-            whenever(userPreferences.contains("wallet_selected_chain_id3")).thenReturn(false)
             whenever(assetDao.hasUnmappedWalletAssetPreferences(3)).thenReturn(true)
             assertThrows(IllegalStateException::class.java) {
                 runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }

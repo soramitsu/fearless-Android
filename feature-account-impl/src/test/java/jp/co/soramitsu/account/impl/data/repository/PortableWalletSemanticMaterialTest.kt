@@ -134,6 +134,93 @@ class PortableWalletSemanticMaterialTest {
     }
 
     @Test
+    fun `Android display metadata preserves absent empty and exact UTF-8 values`() {
+        val selected = codec.encodeMetadataText("")
+        val filter = codec.encodeMetadataText("All / 日本語")
+        val source = PortableWalletSemanticMaterial.Snapshot(
+            0,
+            listOf(
+                wallet(
+                    metadata = listOf(
+                        PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_SELECTED_CHAIN_ID, selected),
+                        PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_CHAIN_SELECT_FILTER, filter)
+                    ),
+                    slots = listOf(evmSlot())
+                )
+            )
+        )
+        val encoded = codec.encode(source)
+        val decoded = codec.decode(encoded)
+        try {
+            assertEquals(listOf(10, 11), decoded.wallets.single().metadata.map { it.id })
+            assertArrayEquals(byteArrayOf(), decoded.wallets.single().metadata[0].value)
+            assertArrayEquals("All / 日本語".toByteArray(Charsets.UTF_8), decoded.wallets.single().metadata[1].value)
+            assertArrayEquals(encoded, codec.encode(decoded))
+            assertEquals(emptyList<Int>(), evmWallet().metadata.map { it.id })
+            val unknown = encoded.copyOf().also { it[38] = 12 }
+            try {
+                assertThrows(IllegalArgumentException::class.java) { codec.decode(unknown).clearSecrets() }
+            } finally {
+                unknown.fill(0)
+            }
+        } finally {
+            source.clearSecrets()
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
+    fun `Android display metadata matches cross-platform watch wallet vector`() {
+        val watch = PortableWalletSemanticMaterial.Wallet(
+            portableId = ByteArray(16) { 0x33 },
+            sourcePosition = 0,
+            initialized = true,
+            name = "watch",
+            metadata = listOf(
+                PortableWalletSemanticMaterial.Metadata(
+                    metadata.ANDROID_SELECTED_CHAIN_ID, "sora".toByteArray(Charsets.UTF_8)
+                ),
+                PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_CHAIN_SELECT_FILTER, byteArrayOf())
+            ),
+            slots = listOf(
+                slot(role.WATCH_IDENTITY, "0000", bytes(field.ACCOUNT_ID_OR_ADDRESS, 9), bytes(field.WATCH_ECOSYSTEM, 2))
+            )
+        )
+        val source = PortableWalletSemanticMaterial.Snapshot(0, listOf(watch))
+        val encoded = codec.encode(source)
+        val decoded = codec.decode(encoded)
+        try {
+            assertEquals(DISPLAY_WATCH_VECTOR, encoded.hex())
+            assertEquals(DISPLAY_WATCH_SHA256, encoded.sha256())
+            assertArrayEquals(encoded, codec.encode(decoded))
+        } finally {
+            source.clearSecrets()
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
+    fun `Android display metadata rejects malformed text and noncanonical tags`() {
+        assertThrows(IllegalArgumentException::class.java) { codec.encodeMetadataText("\uD800") }
+        assertThrows(IllegalArgumentException::class.java) { codec.encodeMetadataText("x".repeat(2_049)) }
+        val malformed = listOf(
+            listOf(PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_SELECTED_CHAIN_ID, byteArrayOf(0xff.toByte()))),
+            listOf(PortableWalletSemanticMaterial.Metadata(12, byteArrayOf())),
+            listOf(
+                PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_CHAIN_SELECT_FILTER, byteArrayOf()),
+                PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_SELECTED_CHAIN_ID, byteArrayOf())
+            )
+        ).map { PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet(metadata = it, slots = listOf(evmSlot())))) }
+        try {
+            malformed.forEach { assertThrows(IllegalArgumentException::class.java) { codec.encode(it) } }
+        } finally {
+            malformed.forEach { it.clearSecrets() }
+        }
+    }
+
+    @Test
     fun `address-only TON watch identity has no signing material`() {
         val watch = slot(
             role.WATCH_IDENTITY, "0000",
@@ -453,5 +540,7 @@ class PortableWalletSemanticMaterialTest {
         const val EVM_VECTOR = "4650574d534d303101000100000102030405060708090a0b0c0d0e0f10000000070100014500000102000004010002020302000104070001050b000100"
         const val MULTI_ROOT_SHA256 = "784647ca5aa76953d4d19404d7fe78c461b9df329a2dd698cc8b5cc18b49d22c"
         const val FULL_METADATA_SHA256 = "181f843dcbafbd0ba151a7476b1f63c3a6060df9c9fd45055869ff8383608b16"
+        const val DISPLAY_WATCH_VECTOR = "4650574d534d3031010001000033333333333333333333333333333333000000000100057761746368020a0004736f72610b0000000108000430303030020700010916000102"
+        const val DISPLAY_WATCH_SHA256 = "e8959e6aa11fd339fd92ddd65798beda0b6443fe1d1be60f6ad219e2d26c3477"
     }
 }

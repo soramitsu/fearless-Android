@@ -78,3 +78,22 @@ second durable-inventory read catches metadata changes outside that lock. A
 reviewed cross-platform format, atomic restore with original-key
 signing/export verification, interrupted-write tests and replacement-device
 evidence remain required before backup completion can be enabled.
+
+The current read-only `FPWMSM01` exporter preserves two wallet-specific
+Android string preferences as ascending metadata TLVs. ID `10` is the exact
+UTF-8 value at `wallet_selected_chain_id<Android wallet ID>`; ID `11` is the
+exact UTF-8 value at `chain_select_filter_applied_<Android wallet ID>`. Omitted
+TLV means the preference is absent. Present TLV with a `u16` length of zero
+means the preference exists with an empty string. Each value is at most 2048
+UTF-8 bytes, with no replacement of malformed text. The exporter captures
+these under the wallet cross-store lock and compares the current values again
+after original-key signing proof. Both signed and watch wallets retain them;
+the values do not confer signing authority. The codec continues to reject
+unknown, duplicate and unordered metadata IDs. Explicit asset-row display
+settings remain outside this mapping and block verified capture.
+
+The cross-platform watch-wallet fixture for this extension is 70 bytes: one
+wallet with ID `0x33` repeated 16 times, position zero, name `watch`, metadata
+`10 = sora` and `11 =` present-empty, and one EVM watch identity. Canonical
+SHA-256 is `e8959e6aa11fd339fd92ddd65798beda0b6443fe1d1be60f6ad219e2d26c3477`.
+It is a shared codec fixture, not an installed-wallet or Drive recovery proof.
