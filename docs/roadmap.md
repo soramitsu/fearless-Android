@@ -4,9 +4,13 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android iOS TON watch-address compatibility candidate — 2026-09-25
+
+- The receiving watch proof now reuses the signed-root verifier for the canonical iOS TonSwift JSON Wallet V4R2 address, requiring a present public key and an exact workchain-zero account hash while retaining the original bytes. P0: prove the released iOS watch serializer emits this qualified shape, reject any remaining address-only or alternative JSON variants until separately reviewed, and verify original wallet identity after transactional installation on replacement devices. Named universal chains and nonapproved Substrate genesis identities still need a frozen receiving policy. Recovery stays disabled.
+
 ## Android incoming watch-identity guard candidate — 2026-09-25
 
-- The disabled receiving path now rejects unverified watch public identities before cohort staging, including mismatched native TON, Substrate, EVM and supported chain fields; it retains valid address-only EVM watches. TonSwift JSON TON addresses and named universal chains remain unqualified and are rejected before any journal write. P0: define and independently verify those iOS-origin identity interpretations, then bind the complete public-identity digest and prove transactional installation/readback with original signing/export and cross-platform replacement-device tests. This guard is not a recovery-enablement or installer proof.
+- The disabled receiving path rejects unverified watch public identities before cohort staging, including mismatched native TON, Substrate, EVM and supported chain fields; it retains valid address-only EVM watches. Unqualified iOS TON JSON and named universal chains are rejected before any journal write. P0: independently verify the remaining iOS-origin identity interpretations, then bind the complete public-identity digest and prove transactional installation/readback with original signing/export and cross-platform replacement-device tests. This guard is not a recovery-enablement or installer proof.
 
 ## Android watch-wallet identity proof candidate — 2026-09-25
 

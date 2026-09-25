@@ -3,13 +3,12 @@ package jp.co.soramitsu.account.impl.data.repository
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.isValidEthereumCompressedPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
-import jp.co.soramitsu.common.utils.tonAccountId
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 
 /**
  * Independent public-identity proof for watch wallets. This checks the address represented by
  * every present public key, but never claims key ownership or that a restored row has been
- * installed. Foreign TON JSON and named universal chains fail closed until separately qualified.
+ * installed. A canonical iOS TON JSON address is accepted only with a V4R2 public-key match;
+ * address-only TON and named universal chains remain unqualified.
  */
 internal object PortableWalletWatchIdentityProof {
     private val role = PortableWalletSemanticMaterial.Role
@@ -22,9 +21,6 @@ internal object PortableWalletWatchIdentityProof {
     private const val SUBSTRATE_KEY_BYTES = 32
     private const val COMPRESSED_KEY_BYTES = 33
     private const val EVM_ADDRESS_BYTES = 20
-    private const val TON_KEY_BYTES = 32
-    private const val RAW_TON_ADDRESS = 1
-    private const val RAW_TON_ADDRESS_BYTES = 33
     private const val BYTE_MASK = 0xff
 
     fun verifyWallet(wallet: PortableWalletSemanticMaterial.Wallet): Int {
@@ -98,21 +94,12 @@ internal object PortableWalletWatchIdentityProof {
         val publicKey = requireNotNull(slot.optional(field.PUBLIC_KEY)) {
             "Watch TON identity has no public key"
         }
-        require(publicKey.size == TON_KEY_BYTES && slot.number(field.TON_ADDRESS_ENCODING) == RAW_TON_ADDRESS) {
-            "Watch TON identity is not a qualified raw V4R2 identity"
-        }
-        val address = slot.value(field.ACCOUNT_ID_OR_ADDRESS)
-        require(address.size == RAW_TON_ADDRESS_BYTES && address[0] == 0.toByte()) {
-            "Watch TON address has an invalid workchain or length"
-        }
-        val expected = try {
-            publicKey.tonAccountId(isTestnet = false)
-        } catch (_: Exception) {
-            throw IllegalArgumentException("Watch TON V4R2 address cannot be derived")
-        }
-        require(expected == "0:${address.copyOfRange(1, address.size).toHexString()}") {
-            "Watch TON key and V4R2 address disagree"
-        }
+        PortableWalletTonAddressProof.verifyV4R2(
+            publicKey,
+            slot.value(field.ACCOUNT_ID_OR_ADDRESS),
+            slot.number(field.TON_ADDRESS_ENCODING),
+            slot.number(field.TON_CONTRACT_VERSION),
+        )
     }
 
     private fun PortableWalletSemanticMaterial.Slot.value(id: Int): ByteArray = fields.single { it.id == id }.value

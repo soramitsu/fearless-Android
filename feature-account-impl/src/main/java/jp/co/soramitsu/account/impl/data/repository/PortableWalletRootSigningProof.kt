@@ -1,12 +1,9 @@
 package jp.co.soramitsu.account.impl.data.repository
 
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonToken
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.SolanaSigner
-import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
@@ -20,9 +17,7 @@ import jp.co.soramitsu.fearless_utils.hash.Hasher.keccak256
 import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.mnemonic.Mnemonic
 import org.web3j.crypto.Sign
-import java.io.StringReader
 import java.math.BigInteger
-import java.util.Base64
 
 /**
  * Read-only ownership proof for signed root slots in canonical FPWMSM01 plaintext.
@@ -233,63 +228,12 @@ internal object PortableWalletRootSigningProof {
     }
 
     private fun verifyTonAddress(slot: PortableWalletSemanticMaterial.Slot, publicKey: ByteArray) {
-        require(slot.number(field.TON_CONTRACT_VERSION) == 2) { "TON contract is not V4R2" }
-        val address = slot.value(field.ACCOUNT_ID_OR_ADDRESS)
-        val raw = publicKey.tonAccountId(isTestnet = false)
-        require(raw.startsWith("0:") && raw.length == 66) { "TON V4R2 address is invalid" }
-        val expectedHash = raw.substring(2).hexToBytes()
-        when (slot.number(field.TON_ADDRESS_ENCODING)) {
-            1 -> require(
-                address.size == 33 && address[0] == 0.toByte() &&
-                address.copyOfRange(1, 33).contentEquals(expectedHash)
-            ) {
-                "TON V4R2 address differs from its public key"
-            }
-            2 -> verifyIosTonAddress(address, expectedHash)
-            else -> error("The semantic codec accepted an invalid TON address encoding")
-        }
-        expectedHash.fill(0)
-    }
-
-    private fun verifyIosTonAddress(encoded: ByteArray, expectedHash: ByteArray) {
-        val text = encoded.decodeToString(throwOnInvalidSequence = true)
-        JsonReader(StringReader(text)).use { reader ->
-            readIosTonAddress(reader, expectedHash)
-        }
-    }
-
-    private fun readIosTonAddress(reader: JsonReader, expectedHash: ByteArray) {
-        var workchain: Int? = null
-        var hash: ByteArray? = null
-        reader.beginObject()
-        while (reader.hasNext()) {
-            when (reader.nextName()) {
-                "workchain" -> {
-                    require(workchain == null && reader.peek() == JsonToken.NUMBER) {
-                        "iOS TON workchain is duplicated or invalid"
-                    }
-                    workchain = reader.nextInt()
-                }
-                "hash" -> {
-                    require(hash == null && reader.peek() == JsonToken.STRING) {
-                        "iOS TON hash is duplicated or invalid"
-                    }
-                    val base64 = reader.nextString()
-                    hash = Base64.getDecoder().decode(base64)
-                    require(Base64.getEncoder().encodeToString(hash) == base64) {
-                        "iOS TON hash is not canonical Base64"
-                    }
-                }
-                else -> throw IllegalArgumentException("iOS TON address has an unknown field")
-            }
-        }
-        reader.endObject()
-        require(
-            reader.peek() == JsonToken.END_DOCUMENT && workchain == 0 &&
-                hash?.contentEquals(expectedHash) == true
-        ) {
-            "iOS TON V4R2 address differs from its public key"
-        }
+        PortableWalletTonAddressProof.verifyV4R2(
+            publicKey,
+            slot.value(field.ACCOUNT_ID_OR_ADDRESS),
+            slot.number(field.TON_ADDRESS_ENCODING),
+            slot.number(field.TON_CONTRACT_VERSION),
+        )
     }
 
     private fun verifyTonPhrase(
@@ -357,16 +301,6 @@ internal object PortableWalletRootSigningProof {
         slotRole: Int,
         publicKey: ByteArray
     ): ByteArray = proofDomain + portableId + byteArrayOf(slotRole.toByte()) + publicKey
-
-    private fun String.hexToBytes(): ByteArray {
-        require(length == 64) { "TON address hash is invalid" }
-        return ByteArray(32) { index ->
-            val high = this[index * 2].digitToIntOrNull(16)
-            val low = this[index * 2 + 1].digitToIntOrNull(16)
-            require(high != null && low != null) { "TON address hash is invalid" }
-            (high shl 4 or low).toByte()
-        }
-    }
 
     private fun PortableWalletSemanticMaterial.Slot.value(id: Int): ByteArray = fields.single { it.id == id }.value
 

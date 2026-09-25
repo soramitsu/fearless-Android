@@ -4,11 +4,13 @@ import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.mnemonic.Mnemonic
+import java.util.Base64
 
 class PortableWalletWatchIdentityProofTest {
     private val codec = PortableWalletSemanticMaterial
@@ -170,6 +172,103 @@ class PortableWalletWatchIdentityProofTest {
             )
         }
     }
+
+    @Test
+    fun `receiving preserves canonical iOS TON JSON watch bound to its V4R2 public key`() {
+        val (publicKey, json) = iosTonWatchMaterial()
+        val wallet = iosTonWatchWallet(publicKey, json)
+        val encoded = codec.encode(PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet)))
+        try {
+            val plan = PortableWalletReceiveInstallPlan.decode(encoded)
+            try {
+                assertEquals(1, plan.wallets.single().materials.size)
+                assertEquals(
+                    PortableWalletReceiveInstallPlan.BlockerReason.WATCH_IDENTITY_UNPROVEN,
+                    plan.blockers.last().reason,
+                )
+            } finally {
+                plan.clearSecrets()
+            }
+            assertIosTonAfterImage(encoded)
+        } finally {
+            publicKey.fill(0)
+            json.fill(0)
+            encoded.fill(0)
+            wallet.clearSecrets()
+        }
+    }
+
+    @Test
+    fun `receiving rejects iOS TON JSON without key or with ambiguous address fields`() {
+        val (publicKey, json) = iosTonWatchMaterial()
+        val valid = json.decodeToString()
+        val originalHash = valid.substringAfter("\"hash\":\"").substringBefore('"')
+        val wrongHash = Base64.getEncoder().encodeToString(ByteArray(32) { 1 })
+        try {
+            assertReceiveRejected(iosTonWatchWallet(null, json))
+            listOf(
+                valid.replace("\"workchain\":0", "\"workchain\":1"),
+                valid.replace("\"workchain\":0", "\"workchain\":0,\"workchain\":0"),
+                valid.replace("\"workchain\":0", "\"workchain\":0,\"extra\":1"),
+                valid.replace(originalHash, wrongHash),
+                valid.replace("\"hash\":\"", "\"hash\":\"$originalHash\",\"hash\":\""),
+                valid.replace("=\"}", "\"}"),
+            ).forEach { mutated ->
+                assertReceiveRejected(iosTonWatchWallet(publicKey, mutated.toByteArray()))
+            }
+        } finally {
+            publicKey.fill(0)
+            json.fill(0)
+        }
+    }
+
+    private fun assertIosTonAfterImage(encoded: ByteArray) {
+        val afterImage = PortableWalletCohortAfterImage.create(encoded, listOf(41L))
+        try {
+            assertEquals(
+                1,
+                afterImage.destinations.count {
+                    it.kind == PortableWalletCohortAfterImage.Kind.WATCH_IDENTITY
+                },
+            )
+            val retained = afterImage.semanticCopy()
+            try {
+                assertArrayEquals(encoded, retained)
+            } finally {
+                retained.fill(0)
+            }
+        } finally {
+            afterImage.clearSecrets()
+        }
+    }
+
+    private fun iosTonWatchMaterial(): Pair<ByteArray, ByteArray> {
+        val source = completeWatchWallet()
+        try {
+            val ton = source.slots[2]
+            val publicKey = ton.fields.single { it.id == field.PUBLIC_KEY }.value.copyOf()
+            val rawAddress = ton.fields.single { it.id == field.ACCOUNT_ID_OR_ADDRESS }.value
+            val hash = Base64.getEncoder().encodeToString(rawAddress.copyOfRange(1, rawAddress.size))
+            return publicKey to "{\"workchain\":0,\"hash\":\"$hash\"}".toByteArray()
+        } finally {
+            source.clearSecrets()
+        }
+    }
+
+    private fun iosTonWatchWallet(publicKey: ByteArray?, json: ByteArray) = watchWallet(
+        listOf(
+            watch(
+                0,
+                *listOfNotNull(
+                    publicKey?.let { bytes(field.PUBLIC_KEY, it) },
+                    bytes(field.ACCOUNT_ID_OR_ADDRESS, json),
+                    one(field.TON_CONTRACT_VERSION, 2),
+                    one(field.TON_ADDRESS_ENCODING, 2),
+                    one(field.WATCH_ECOSYSTEM, 3),
+                ).toTypedArray(),
+            )
+        )
+    )
 
     private fun assertReceiveRejected(wallet: PortableWalletSemanticMaterial.Wallet) {
         val encoded = codec.encode(PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet)))
