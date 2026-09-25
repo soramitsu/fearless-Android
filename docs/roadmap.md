@@ -4,9 +4,13 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android durable receiving-policy binding — 2026-09-25
+
+- `FPWCAI01` v2 binds the exact compiled Substrate identity inventory through staging, restart, original-source commitments and storage projection. Existing v1 bytes and tokens retain their original interpretation; unknown policy digests preserve the quarantined record. P0: independently review the frozen inventory, qualify mixed cross-platform cohorts on supported devices, finish the transactional installer and installed signing/export proof, and retain a migration-safe policy strategy for future inventory revisions before enabling recovery.
+
 ## Android incoming Substrate watch-chain policy candidate — 2026-09-25
 
-- The receiving plan now checks raw lowercase 64-hex chain-watch IDs against exact `SUBSTRATE` entries in the existing reviewed `ApprovedGenesis` policy, with no aliases or new hard-coded chain list. The bundled chain registry uses raw IDs, but the signed V2 policy uses `0x`-prefixed IDs; the single-prefix comparison is explicit. Empty default policy keeps after-image staging and journal replay closed for chain watches. P0: bind a reviewed compiled Substrate inventory to every receiving, staging and replay call, preserve that policy across interrupted upgrades, and verify on replacement devices before removing watch and installer blockers. Recovery remains disabled.
+- The receiving plan checks raw lowercase 64-hex chain-watch IDs against exact `SUBSTRATE` entries in the existing `ApprovedGenesis` policy without aliases. The bundled chain registry uses raw IDs, but the signed V2 policy uses `0x`-prefixed IDs; the single-prefix comparison is explicit. Direct callers still default to an empty policy; v2 after-images bind the compiled inventory above. P0: qualify the candidate inventory and installed identities on replacement devices before removing watch and installer blockers. Recovery remains disabled.
 
 ## Android iOS TON watch-address compatibility candidate — 2026-09-25
 

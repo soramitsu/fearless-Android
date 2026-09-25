@@ -168,11 +168,92 @@ class PortableWalletCohortFreshInstallStagerTest {
     }
 
     @Test
-    fun `approved chain watch cannot bypass unbound staging or journal replay policy`() = runBlocking {
+    fun `compiled chain policy survives staging and restart while unbound historical journals remain rejected`() =
+        runBlocking {
         val preferences = HashMapEncryptedPreferences()
         val database = Inventory()
         val journal = PortableWalletCohortJournalStore(preferences)
         val genesis = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"
+        val semantic = chainWatchSemantic(genesis)
+        try {
+            val approved = listOf(ApprovedGenesis("0x$genesis", IdentityKind.SUBSTRATE))
+            PortableWalletReceiveInstallPlan.decode(semantic, approved).clearSecrets()
+            val receiver = stager(database, journal, preferences, Ids(listOf(41L)))
+            val token = receiver.stage(semantic)
+            val restartedJournal = PortableWalletCohortJournalStore(preferences)
+            val restarted = stager(database, restartedJournal, preferences, Ids(emptyList()))
+            assertEquals(token.afterImageSha256, restarted.reconcile()?.afterImageSha256)
+            val readback = requireNotNull(restartedJournal.load())
+            try {
+                assertEquals(2, readback.afterImage.wireVersion)
+                assertEquals(PortableWalletReceivingChainPolicy.SHA256, readback.afterImage.policySha256)
+                val exact = readback.afterImage.semanticCopy()
+                try {
+                    assertArrayEquals(semantic, exact)
+                } finally {
+                    exact.fill(0)
+                }
+            } finally {
+                readback.clearSecrets()
+            }
+            assertEquals(listOf(41L), database.reserved.map { it.metaId })
+            restarted.abandon(token)
+
+            // A historical v1 after-image did not bind a reviewed watch-chain policy. New builds
+            // must not retroactively authorize its chain watches or rewrite its stored bytes.
+            val historicalPreferences = HashMapEncryptedPreferences()
+            val historicalJournal = PortableWalletCohortJournalStore(historicalPreferences)
+            val afterImage = ByteBuffer.allocate(8 + 1 + 2 + Long.SIZE_BYTES + Int.SIZE_BYTES + semantic.size)
+                .put("FPWCAI01".toByteArray()).put(1).putShort(1).putLong(41L)
+                .putInt(semantic.size).put(semantic).array()
+            val prefix = ByteBuffer.allocate(8 + 1 + 36 + Int.SIZE_BYTES + afterImage.size)
+                .put("FPWCJ001".toByteArray()).put(2)
+                .put("123e4567-e89b-42d3-a456-426614174000".toByteArray())
+                .putInt(afterImage.size).put(afterImage).array()
+            val wire = prefix + MessageDigest.getInstance("SHA-256").digest(prefix)
+            try {
+                historicalPreferences.putEncryptedString(
+                    PortableWalletCohortJournalStore.JOURNAL_KEY,
+                    Base64.getEncoder().encodeToString(wire),
+                )
+                val failure = assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
+                    historicalJournal.load()
+                }
+                assertEquals(PortableWalletCohortJournalStore.FailureReason.MALFORMED_STORED_JOURNAL, failure.reason)
+                assertEquals("Watch chain is not an approved canonical Substrate genesis", failure.cause?.message)
+                assertTrue(historicalPreferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+                assertEquals(listOf(PortableWalletReservationLocal.ABANDONED), database.reserved.map { it.state })
+            } finally {
+                afterImage.fill(0)
+                prefix.fill(0)
+                wire.fill(0)
+            }
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
+    fun `unapproved chain identity cannot reserve a destination or stage plaintext`() = runBlocking {
+        listOf("02".repeat(32), "0x" + "02".repeat(32), "AB".repeat(32)).forEach { genesis ->
+            val preferences = HashMapEncryptedPreferences()
+            val database = Inventory()
+            val journal = PortableWalletCohortJournalStore(preferences)
+            val semantic = chainWatchSemantic(genesis)
+            try {
+                assertThrows(IllegalArgumentException::class.java) {
+                    runBlocking { stager(database, journal, preferences, Ids(listOf(41L))).stage(semantic) }
+                }
+                assertTrue(database.reserved.isEmpty())
+                assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+                assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
+            } finally {
+                semantic.fill(0)
+            }
+        }
+    }
+
+    private fun chainWatchSemantic(genesis: String): ByteArray {
         val publicKey = ByteArray(32) { 8 }
         val snapshot = PortableWalletSemanticMaterial.Snapshot(
             0,
@@ -184,59 +265,18 @@ class PortableWalletCohortFreshInstallStagerTest {
                             role.WATCH_IDENTITY, "0000",
                             bytes(field.PUBLIC_KEY, publicKey),
                             bytes(field.ACCOUNT_ID_OR_ADDRESS, publicKey),
-                            one(field.CRYPTO_TYPE, 1),
-                            one(field.WATCH_ECOSYSTEM, 4),
+                            one(field.CRYPTO_TYPE, 1), one(field.WATCH_ECOSYSTEM, 4),
                             bytes(field.WATCH_CHAIN_ID, genesis.toByteArray()),
                         )
                     ),
                 )
             ),
         )
-        val semantic = try {
+        return try {
             codec.encode(snapshot)
         } finally {
             snapshot.clearSecrets()
             publicKey.fill(0)
-        }
-        try {
-            val approved = listOf(ApprovedGenesis("0x$genesis", IdentityKind.SUBSTRATE))
-            PortableWalletReceiveInstallPlan.decode(semantic, approved).clearSecrets()
-            val stageFailure = assertThrows(IllegalArgumentException::class.java) {
-                runBlocking { stager(database, journal, preferences, Ids(listOf(41L))).stage(semantic) }
-            }
-            assertEquals("Watch chain is not an approved canonical Substrate genesis", stageFailure.message)
-            assertTrue(database.reserved.isEmpty())
-            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
-
-            // Simulate an encrypted journal from a future qualified writer. Replay rechecks the
-            // after-image against this build's unbound receive policy before any Room mutation.
-            val afterImage = ByteBuffer.allocate(8 + 1 + 2 + Long.SIZE_BYTES + Int.SIZE_BYTES + semantic.size)
-                .put("FPWCAI01".toByteArray()).put(1).putShort(1).putLong(41L)
-                .putInt(semantic.size).put(semantic).array()
-            val prefix = ByteBuffer.allocate(8 + 1 + 36 + Int.SIZE_BYTES + afterImage.size)
-                .put("FPWCJ001".toByteArray()).put(2)
-                .put("123e4567-e89b-42d3-a456-426614174000".toByteArray())
-                .putInt(afterImage.size).put(afterImage).array()
-            val wire = prefix + MessageDigest.getInstance("SHA-256").digest(prefix)
-            try {
-                preferences.putEncryptedString(
-                    PortableWalletCohortJournalStore.JOURNAL_KEY,
-                    Base64.getEncoder().encodeToString(wire),
-                )
-                val failure = assertThrows(PortableWalletCohortJournalStore.JournalException::class.java) {
-                    journal.load()
-                }
-                assertEquals(PortableWalletCohortJournalStore.FailureReason.MALFORMED_STORED_JOURNAL, failure.reason)
-                assertEquals("Watch chain is not an approved canonical Substrate genesis", failure.cause?.message)
-                assertTrue(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
-                assertTrue(database.reserved.isEmpty())
-            } finally {
-                afterImage.fill(0)
-                prefix.fill(0)
-                wire.fill(0)
-            }
-        } finally {
-            semantic.fill(0)
         }
     }
 

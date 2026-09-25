@@ -26,6 +26,47 @@ class PortableWalletCohortAfterImageTest {
     private val field = PortableWalletSemanticMaterial.FieldId
 
     @Test
+    fun `versioned receiving policy rejects substitution and preserves historical bytes`() {
+        val source = snapshot()
+        val semantic = codec.encode(source)
+        val current = cohort.create(semantic, listOf(41L, 42L))
+        val encoded = cohort.encode(current)
+        val substituted = encoded.copyOf().also { it[9] = '0'.code.toByte() }
+        val legacyBytes = (encoded.copyOfRange(0, 9) + encoded.copyOfRange(73, encoded.size))
+            .also { it[8] = 1 }
+        val legacy = cohort.decode(legacyBytes)
+        try {
+            assertEquals(2, current.wireVersion)
+            assertEquals(PortableWalletReceivingChainPolicy.SHA256, current.policySha256)
+            assertThrows(IllegalArgumentException::class.java) { cohort.decode(substituted) }
+            assertEquals(1, legacy.wireVersion)
+            assertNull(legacy.policySha256)
+            val replay = cohort.encode(legacy)
+            try {
+                assertArrayEquals(legacyBytes, replay)
+            } finally {
+                replay.fill(0)
+            }
+            val checked = cohort.revalidate(legacy)
+            try {
+                assertEquals(1, checked.wireVersion)
+                assertSemantic(checked, semantic)
+            } finally {
+                checked.clearSecrets()
+            }
+            PortableWalletCohortStorageProjection.project(legacy).clearSecrets()
+        } finally {
+            source.clearSecrets()
+            semantic.fill(0)
+            current.clearSecrets()
+            encoded.fill(0)
+            substituted.fill(0)
+            legacyBytes.fill(0)
+            legacy.clearSecrets()
+        }
+    }
+
+    @Test
     fun `canonical cohort pins IDs destinations and every exact source byte`() {
         val source = snapshot()
         val semantic = codec.encode(source)
@@ -480,9 +521,9 @@ class PortableWalletCohortAfterImageTest {
 
     private fun assertMalformedWire(record: PortableWalletCohortAfterImage.Record) {
         val encoded = cohort.encode(record)
-        val badVersion = encoded.copyOf().also { it[8] = 2 }
+        val badVersion = encoded.copyOf().also { it[8] = 3 }
         val duplicateIds = encoded.copyOf().also { candidate ->
-            encoded.copyInto(candidate, destinationOffset = 19, startIndex = 11, endIndex = 19)
+            encoded.copyInto(candidate, destinationOffset = 83, startIndex = 75, endIndex = 83)
         }
         val trailing = encoded + 0.toByte()
         try {

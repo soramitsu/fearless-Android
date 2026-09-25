@@ -12,7 +12,8 @@ import java.util.Collections
  * payload, including original source bytes. This codec does not stage secrets or write Room rows.
  * Every result remains blocked by [PortableWalletReceiveInstallPlan].
  *
- * Wire: ASCII FPWCAI01, u8 version, u16 wallet count, ordered u64 local IDs, u32 semantic length,
+ * Wire: ASCII FPWCAI01, u8 version, v2 ASCII SHA-256 receiving-policy digest, u16 wallet count,
+ * ordered u64 local IDs, u32 semantic length,
  * then the exact canonical FPWMSM01 bytes. All integers are unsigned big endian except that IDs
  * must fit a positive signed Long. No trailing bytes or duplicate destination keys are accepted.
  */
@@ -20,11 +21,13 @@ internal object PortableWalletCohortAfterImage {
     private val magic = "FPWCAI01".toByteArray(Charsets.US_ASCII)
     private val codec = PortableWalletSemanticMaterial
     private val field = PortableWalletSemanticMaterial.FieldId
-    private const val version = 1
+    private const val legacyVersion = 1
+    private const val version = 2
+    private const val policyDigestBytes = 64
     private const val maxWallets = 128
     private const val maxSemanticBytes = 256 * 1024
     private const val headerBytes = 8 + 1 + 2 + 4
-    private const val maxEncodedBytes = headerBytes + maxWallets * Long.SIZE_BYTES + maxSemanticBytes
+    internal const val MAX_ENCODED_BYTES = headerBytes + policyDigestBytes + maxWallets * Long.SIZE_BYTES + maxSemanticBytes
     private const val v1Prefix = "security_source_"
     private const val accessSuffix = "ACCESS_SECRETS"
     private const val unsignedShortMask = 0xffff
@@ -68,6 +71,8 @@ internal object PortableWalletCohortAfterImage {
         val selectedIndex: Int,
         destinations: List<Destination>,
         blockers: List<PortableWalletReceiveInstallPlan.Blocker>,
+        val wireVersion: Int = version,
+        val policySha256: String? = PortableWalletReceivingChainPolicy.SHA256,
     ) {
         private val ids = localIds.copyOf()
         private val semanticBytes = semantic.copyOf()
@@ -95,9 +100,30 @@ internal object PortableWalletCohortAfterImage {
         override fun toString(): String = "PortableWalletCohortAfterImage.Record(redacted)"
     }
 
-    fun create(semantic: ByteArray, localMetaIds: List<Long>): Record {
+    fun create(semantic: ByteArray, localMetaIds: List<Long>): Record =
+        createVersioned(semantic, localMetaIds, version, PortableWalletReceivingChainPolicy.SHA256)
+
+    private fun createVersioned(
+        semantic: ByteArray,
+        localMetaIds: List<Long>,
+        wireVersion: Int,
+        policySha256: String?,
+    ): Record {
         require(semantic.size in 1..maxSemanticBytes) { "Cohort semantic material size is invalid" }
-        val plan = PortableWalletReceiveInstallPlan.decode(semantic)
+        val approvedGenesis = when (wireVersion) {
+            legacyVersion -> {
+                require(policySha256 == null) { "Legacy cohort cannot assert a receiving policy" }
+                emptyList()
+            }
+            version -> {
+                require(policySha256 == PortableWalletReceivingChainPolicy.SHA256) {
+                    "Cohort receiving policy is not supported by this build"
+                }
+                PortableWalletReceivingChainPolicy.approvedGenesis
+            }
+            else -> throw IllegalArgumentException("Cohort after-image version is unsupported")
+        }
+        val plan = PortableWalletReceiveInstallPlan.decode(semantic, approvedGenesis)
         try {
             require(localMetaIds.size == plan.wallets.size && localMetaIds.size in 1..maxWallets) {
                 "Cohort wallet ID count is invalid"
@@ -120,6 +146,8 @@ internal object PortableWalletCohortAfterImage {
                     plan.selectedIndex,
                     destinations,
                     plan.blockers,
+                    wireVersion,
+                    policySha256,
                 )
             } finally {
                 canonical.fill(0)
@@ -131,42 +159,67 @@ internal object PortableWalletCohortAfterImage {
 
     fun encode(record: Record): ByteArray {
         val semantic = record.semanticCopy()
+        val ids = record.localMetaIdsCopy()
         try {
-            val ids = record.localMetaIdsCopy()
-            val verified = create(semantic, ids.asList())
-            try {
-                require(
-                    verified.selectedIndex == record.selectedIndex &&
-                        verified.destinations == record.destinations &&
-                        verified.blockers == record.blockers
-                ) { "Cohort after-image was not constructed from its canonical material" }
-            } finally {
-                verified.clearSecrets()
-            }
-            val size = headerBytes + ids.size * Long.SIZE_BYTES + semantic.size
-            require(size <= maxEncodedBytes) { "Cohort after-image is oversized" }
-            return ByteBuffer.allocate(size).apply {
-                put(magic)
-                put(version.toByte())
-                putShort(ids.size.toShort())
-                ids.forEach(::putLong)
-                putInt(semantic.size)
-                put(semantic)
-            }.array()
+            val verified = revalidate(record)
+            verified.clearSecrets()
+            val policySize = if (record.wireVersion == version) policyDigestBytes else 0
+            val size = headerBytes + policySize + ids.size * Long.SIZE_BYTES + semantic.size
+            require(size <= MAX_ENCODED_BYTES) { "Cohort after-image is oversized" }
+            val writer = ByteBuffer.allocate(size)
+            writer.put(magic)
+            writer.put(record.wireVersion.toByte())
+            record.policySha256?.let { writer.put(it.toByteArray(Charsets.US_ASCII)) }
+            writer.putShort(ids.size.toShort())
+            ids.forEach(writer::putLong)
+            writer.putInt(semantic.size)
+            writer.put(semantic)
+            return writer.array()
         } finally {
             semantic.fill(0)
+            ids.fill(0)
+        }
+    }
+
+    /** Preserves historical wire bytes and policy when validating an in-memory record. */
+    fun revalidate(record: Record): Record {
+        val semantic = record.semanticCopy()
+        val ids = record.localMetaIdsCopy()
+        var verified: Record? = null
+        try {
+            verified = createVersioned(semantic, ids.asList(), record.wireVersion, record.policySha256)
+            require(
+                verified.selectedIndex == record.selectedIndex &&
+                    verified.destinations == record.destinations && verified.blockers == record.blockers
+            ) { "Cohort after-image was not constructed from its canonical material" }
+            return verified
+        } catch (failure: Exception) {
+            verified?.clearSecrets()
+            throw failure
+        } finally {
+            semantic.fill(0)
+            ids.fill(0)
         }
     }
 
     fun decode(encoded: ByteArray): Record {
-        require(encoded.size in headerBytes + Long.SIZE_BYTES + 1..maxEncodedBytes) {
+        require(encoded.size in headerBytes + Long.SIZE_BYTES + 1..MAX_ENCODED_BYTES) {
             "Cohort after-image size is invalid"
         }
         val reader = ByteBuffer.wrap(encoded)
         val foundMagic = ByteArray(magic.size)
         reader.get(foundMagic)
-        require(foundMagic.contentEquals(magic) && reader.get().toInt() == version) {
+        val wireVersion = reader.get().toInt()
+        require(foundMagic.contentEquals(magic) && wireVersion in legacyVersion..version) {
             "Cohort after-image version is unsupported"
+        }
+        val policySha256 = if (wireVersion == version) {
+            require(reader.remaining() >= policyDigestBytes + 2 + Long.SIZE_BYTES + Int.SIZE_BYTES + 1) {
+                "Cohort receiving policy is truncated"
+            }
+            ByteArray(policyDigestBytes).also(reader::get).toString(Charsets.US_ASCII)
+        } else {
+            null
         }
         val count = reader.short.toInt() and unsignedShortMask
         require(count in 1..maxWallets && reader.remaining() >= count * Long.SIZE_BYTES + Int.SIZE_BYTES) {
@@ -180,7 +233,7 @@ internal object PortableWalletCohortAfterImage {
         val semantic = ByteArray(semanticSize)
         reader.get(semantic)
         try {
-            return create(semantic, ids.asList())
+            return createVersioned(semantic, ids.asList(), wireVersion, policySha256)
         } finally {
             semantic.fill(0)
             ids.fill(0)

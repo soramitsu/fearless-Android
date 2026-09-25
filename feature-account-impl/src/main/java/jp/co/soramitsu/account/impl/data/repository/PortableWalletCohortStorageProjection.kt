@@ -179,11 +179,7 @@ internal object PortableWalletCohortStorageProjection {
         val ids = afterImage.localMetaIdsCopy()
         var checked: PortableWalletCohortAfterImage.Record? = null
         try {
-            checked = PortableWalletCohortAfterImage.create(semantic, ids.asList())
-            require(
-                afterImage.selectedIndex == checked.selectedIndex &&
-                    afterImage.destinations == checked.destinations && afterImage.blockers == checked.blockers
-            ) { "Receiving after-image differs from its canonical cohort" }
+            checked = PortableWalletCohortAfterImage.revalidate(afterImage)
             val source = codec.decode(semantic)
             try {
                 return projectValidated(source, ids, checked)

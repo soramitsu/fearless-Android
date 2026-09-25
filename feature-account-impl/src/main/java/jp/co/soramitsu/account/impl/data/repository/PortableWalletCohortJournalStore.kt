@@ -157,7 +157,8 @@ internal class PortableWalletCohortJournalStore(
                 durabilityBoundary {
                     val readback = requireNotNull(loadValidated())
                     try {
-                        check(readback.journalVersion == VERSION &&
+                        check(
+                            readback.journalVersion == VERSION &&
                             readback.token.operationId == expected.operationId &&
                             readback.token.afterImageSha256 == expected.afterImageSha256
                         ) { "Portable cohort source upgrade differs from its intent" }
@@ -204,8 +205,10 @@ internal class PortableWalletCohortJournalStore(
             }
             if (!removed) fail(FailureReason.CONFLICT, "Portable cohort journal changed")
             durabilityBoundary {
-                check(!preferences.hasKey(JOURNAL_KEY) && sourceNamespaceKeys().isEmpty() &&
-                    reservationSnapshots.keys.none(preferences::hasKey)) {
+                check(
+                    !preferences.hasKey(JOURNAL_KEY) && sourceNamespaceKeys().isEmpty() &&
+                    reservationSnapshots.keys.none(preferences::hasKey)
+                ) {
                     "Portable cohort reservation remains after abandon"
                 }
             }
@@ -322,7 +325,11 @@ internal class PortableWalletCohortJournalStore(
         return snapshot
     }
 
-    private fun encode(operationId: String, afterImage: ByteArray, version: Int): String {
+    private fun encode(
+        operationId: String,
+        afterImage: ByteArray,
+        version: Int
+    ): String {
         val prefix = ByteBuffer.allocate(HEADER_BYTES + afterImage.size).apply {
             put(MAGIC)
             put(version.toByte())
@@ -465,7 +472,7 @@ internal class PortableWalletCohortJournalStore(
         private const val UUID_V4 = 4
         private const val RFC_UUID_VARIANT = 2
         private const val SHA256_BYTES = 32
-        private const val MAX_AFTER_IMAGE_BYTES = 8 + 1 + 2 + 128 * Long.SIZE_BYTES + 4 + 256 * 1024
+        private const val MAX_AFTER_IMAGE_BYTES = PortableWalletCohortAfterImage.MAX_ENCODED_BYTES
         private const val HEADER_BYTES = 8 + 1 + UUID_CHARS + Int.SIZE_BYTES
         private const val MAX_WIRE_BYTES = HEADER_BYTES + MAX_AFTER_IMAGE_BYTES + SHA256_BYTES
         private const val MAX_BASE64_CHARS = (MAX_WIRE_BYTES + 2) / 3 * 4

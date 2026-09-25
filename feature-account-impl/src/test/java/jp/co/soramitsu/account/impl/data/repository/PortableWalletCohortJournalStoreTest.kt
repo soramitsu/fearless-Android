@@ -199,7 +199,7 @@ class PortableWalletCohortJournalStoreTest {
 
     @Test
     fun `legacy v1 journal upgrades exact opaque source sidecar before receiving replay`() {
-        val candidate = cohort()
+        val candidate = legacyCohort()
         val preferences = RecordingPreferences()
         val store = PortableWalletCohortJournalStore(preferences)
         val expectedSemantic = candidate.semanticCopy()
@@ -212,8 +212,14 @@ class PortableWalletCohortJournalStoreTest {
             val before = requireNotNull(store.load())
             try {
                 assertEquals(1, before.journalVersion)
+                assertEquals(1, before.afterImage.wireVersion)
+                assertEquals(token.afterImageSha256, before.token.afterImageSha256)
                 val actual = before.afterImage.semanticCopy()
-                try { assertArrayEquals(expectedSemantic, actual) } finally { actual.fill(0) }
+                try {
+                    assertArrayEquals(expectedSemantic, actual)
+                } finally {
+                    actual.fill(0)
+                }
             } finally {
                 before.clearSecrets()
             }
@@ -227,14 +233,24 @@ class PortableWalletCohortJournalStoreTest {
             val unchanged = Base64.getDecoder().decode(
                 requireNotNull(preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY])
             )
-            try { assertEquals(1, unchanged[8].toInt()) } finally { unchanged.fill(0) }
+            try {
+                assertEquals(1, unchanged[8].toInt())
+            } finally {
+                unchanged.fill(0)
+            }
             preferences.values.remove(sourceKey)
             store.ensureOriginalSourceSidecar(token)
             val after = requireNotNull(store.load())
             try {
                 assertEquals(2, after.journalVersion)
+                assertEquals(1, after.afterImage.wireVersion)
+                assertEquals(token.afterImageSha256, after.token.afterImageSha256)
                 val actual = after.afterImage.semanticCopy()
-                try { assertArrayEquals(expectedSemantic, actual) } finally { actual.fill(0) }
+                try {
+                    assertArrayEquals(expectedSemantic, actual)
+                } finally {
+                    actual.fill(0)
+                }
                 val sidecar = requireNotNull(preferences.values[sourceKey])
                 assertTrue(sidecar.length < requireNotNull(preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY]).length)
                 assertTrue(sidecar != preferences.values[PortableWalletCohortJournalStore.JOURNAL_KEY])
@@ -246,6 +262,19 @@ class PortableWalletCohortJournalStoreTest {
         } finally {
             expectedSemantic.fill(0)
             candidate.clearSecrets()
+        }
+    }
+
+    private fun legacyCohort(): PortableWalletCohortAfterImage.Record {
+        val current = cohort()
+        val encoded = PortableWalletCohortAfterImage.encode(current)
+        val legacy = (encoded.copyOfRange(0, 9) + encoded.copyOfRange(73, encoded.size)).also { it[8] = 1 }
+        return try {
+            PortableWalletCohortAfterImage.decode(legacy)
+        } finally {
+            current.clearSecrets()
+            encoded.fill(0)
+            legacy.fill(0)
         }
     }
 

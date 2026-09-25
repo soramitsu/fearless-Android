@@ -142,7 +142,7 @@ internal object PortableWalletReceiveInstallPlan {
         override fun toString(): String = "PortableWalletReceiveInstallPlan.FieldIntent(redacted)"
     }
 
-    /** Empty policy denies chain watches until a reviewed compiled inventory is wired. */
+    /** Direct callers must supply policy; persisted after-images bind the compiled inventory. */
     fun decode(
         encoded: ByteArray,
         approvedGenesis: List<PortableWalletChainSigningProof.ApprovedGenesis> = emptyList(),
