@@ -80,7 +80,8 @@ internal object PortableWalletAndroidSourceCohortProof {
             require(
                 wallet.metadata.all {
                     it.id == metadata.ANDROID_SELECTED_CHAIN_ID ||
-                        it.id == metadata.ANDROID_CHAIN_SELECT_FILTER
+                        it.id == metadata.ANDROID_CHAIN_SELECT_FILTER ||
+                        it.id == metadata.ANDROID_ASSET_ROW_PRESENTATION
                 }
             ) { "Android wallet metadata has no source proof" }
             val rootSlots = wallet.slots.count { it.role in role.SUBSTRATE_ROOT..role.TON_ROOT }

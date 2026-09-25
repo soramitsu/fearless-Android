@@ -157,7 +157,7 @@ class PortableWalletSemanticMaterialTest {
             assertArrayEquals("All / 日本語".toByteArray(Charsets.UTF_8), decoded.wallets.single().metadata[1].value)
             assertArrayEquals(encoded, codec.encode(decoded))
             assertEquals(emptyList<Int>(), evmWallet().metadata.map { it.id })
-            val unknown = encoded.copyOf().also { it[38] = 12 }
+            val unknown = encoded.copyOf().also { it[38] = 13 }
             try {
                 assertThrows(IllegalArgumentException::class.java) { codec.decode(unknown).clearSecrets() }
             } finally {
@@ -202,12 +202,52 @@ class PortableWalletSemanticMaterialTest {
     }
 
     @Test
+    fun `Android asset presentation matches cross-platform watch wallet vector`() {
+        val rows = listOf(
+            PortableWalletAssetRowPresentation.Row("sora", "dot", emptyList(), 1, -2, true, ""),
+            PortableWalletAssetRowPresentation.Row(
+                "sora", "dot", listOf(1, 0x80.toByte()), 0, Int.MAX_VALUE, false, "Main"
+            )
+        )
+        val watch = PortableWalletSemanticMaterial.Wallet(
+            portableId = ByteArray(16) { 0x33 },
+            sourcePosition = 0,
+            initialized = true,
+            name = "watch",
+            metadata = listOf(
+                PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_SELECTED_CHAIN_ID, "sora".toByteArray()),
+                PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_CHAIN_SELECT_FILTER, byteArrayOf()),
+                PortableWalletSemanticMaterial.Metadata(
+                    metadata.ANDROID_ASSET_ROW_PRESENTATION,
+                    PortableWalletAssetRowPresentation.encode(rows)
+                )
+            ),
+            slots = listOf(
+                slot(role.WATCH_IDENTITY, "0000", bytes(field.ACCOUNT_ID_OR_ADDRESS, 9), bytes(field.WATCH_ECOSYSTEM, 2))
+            )
+        )
+        val source = PortableWalletSemanticMaterial.Snapshot(0, listOf(watch))
+        val encoded = codec.encode(source)
+        val decoded = codec.decode(encoded)
+        try {
+            assertEquals(ASSET_WATCH_VECTOR, encoded.hex())
+            assertEquals(ASSET_WATCH_SHA256, encoded.sha256())
+            assertEquals(rows, PortableWalletAssetRowPresentation.decode(decoded.wallets.single().metadata[2].value))
+            assertArrayEquals(encoded, codec.encode(decoded))
+        } finally {
+            source.clearSecrets()
+            decoded.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
     fun `Android display metadata rejects malformed text and noncanonical tags`() {
         assertThrows(IllegalArgumentException::class.java) { codec.encodeMetadataText("\uD800") }
         assertThrows(IllegalArgumentException::class.java) { codec.encodeMetadataText("x".repeat(2_049)) }
         val malformed = listOf(
             listOf(PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_SELECTED_CHAIN_ID, byteArrayOf(0xff.toByte()))),
-            listOf(PortableWalletSemanticMaterial.Metadata(12, byteArrayOf())),
+            listOf(PortableWalletSemanticMaterial.Metadata(13, byteArrayOf())),
             listOf(
                 PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_CHAIN_SELECT_FILTER, byteArrayOf()),
                 PortableWalletSemanticMaterial.Metadata(metadata.ANDROID_SELECTED_CHAIN_ID, byteArrayOf())
@@ -542,5 +582,11 @@ class PortableWalletSemanticMaterialTest {
         const val FULL_METADATA_SHA256 = "181f843dcbafbd0ba151a7476b1f63c3a6060df9c9fd45055869ff8383608b16"
         const val DISPLAY_WATCH_VECTOR = "4650574d534d3031010001000033333333333333333333333333333333000000000100057761746368020a0004736f72610b0000000108000430303030020700010916000102"
         const val DISPLAY_WATCH_SHA256 = "e8959e6aa11fd339fd92ddd65798beda0b6443fe1d1be60f6ad219e2d26c3477"
+        const val ASSET_WATCH_VECTOR =
+            "4650574d534d303101000100003333333333333333333333333333333300000000010005776174636803" +
+                "0a0004736f72610b00000c00350100020004736f72610003646f74000002fffffffe010100000004" +
+                "736f72610003646f7400020180017fffffff000100044d61696e0001080004303030300207000109" +
+                "16000102"
+        const val ASSET_WATCH_SHA256 = "842124d8aa738dc490b5f1366470f9e3183158514236b3c6ba4758bb927a66ab"
     }
 }

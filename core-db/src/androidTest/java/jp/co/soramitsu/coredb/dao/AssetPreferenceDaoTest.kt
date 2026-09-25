@@ -6,12 +6,48 @@ import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AssetPreferenceDaoTest : DaoTest<AssetDao>({ it.assetDao() }) {
+    @Test
+    fun explicitPresentationQueryKeepsGenericAndAccountScopedRows() = runBlocking {
+        db.chainDao().addChain(createTestChain("sora"))
+        dao.insertAssets(
+            listOf(
+                AssetLocal.createEmpty(byteArrayOf(), "dot", "sora", 7, null).copy(
+                    enabled = true, sortIndex = -2, markedNotNeed = true,
+                    chainAccountName = ""
+                ),
+                AssetLocal.createEmpty(byteArrayOf(1, 0x80.toByte()), "dot", "sora", 7, null).copy(
+                    enabled = false, chainAccountName = "Main"
+                ),
+                AssetLocal.createEmpty(byteArrayOf(), "auto", "sora", 7, null),
+                AssetLocal.createEmpty(byteArrayOf(), "dot", "sora", 8, null).copy(enabled = true)
+            )
+        )
+
+        val rows = dao.getExplicitAssetPresentation(7)
+
+        assertEquals(2, rows.size)
+        assertEquals(listOf("dot", "dot"), rows.map { it.assetId })
+        assertArrayEquals(byteArrayOf(), rows[0].accountId)
+        assertArrayEquals(byteArrayOf(1, 0x80.toByte()), rows[1].accountId)
+        assertEquals(1L, rows[0].enabled)
+        assertEquals(0L, rows[1].enabled)
+        assertEquals(-2L, rows[0].sortIndex)
+        assertEquals(1L, rows[0].markedNotNeed)
+        assertEquals("", rows[0].chainAccountName)
+        assertEquals("Main", rows[1].chainAccountName)
+        assertEquals("blob", rows[0].accountIdStorageClass)
+        assertEquals("integer", rows[0].enabledStorageClass)
+        assertArrayEquals("sora".toByteArray(), rows[0].chainIdRaw)
+        assertArrayEquals(byteArrayOf(), rows[0].chainAccountNameRaw)
+    }
+
     @Test
     fun exactAssetIdLookupDoesNotIncludeSameSymbolContract() = runBlocking {
         val chainId = "ethereum"

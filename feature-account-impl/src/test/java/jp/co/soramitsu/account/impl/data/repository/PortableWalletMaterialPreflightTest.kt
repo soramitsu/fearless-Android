@@ -64,7 +64,7 @@ class PortableWalletMaterialPreflightTest {
     @Before
     fun setUp() {
         runBlocking { whenever(accountRepository.isWalletRecoveryRequired(any())).thenReturn(false) }
-        runBlocking { whenever(assetDao.hasUnmappedWalletAssetPreferences(any())).thenReturn(false) }
+        runBlocking { whenever(assetDao.getExplicitAssetPresentation(any())).thenReturn(emptyList()) }
         whenever(encryptedPreferences.keysWithPrefixes(any(), any(), any(), any(), any()))
             .thenReturn(emptySet())
     }

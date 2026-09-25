@@ -9,6 +9,7 @@ import androidx.room.Update
 import androidx.room.Upsert
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.coredb.model.AssetPresentationLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -63,13 +64,31 @@ interface AssetReadOnlyCache {
 @Dao
 abstract class AssetDao : AssetReadOnlyCache {
 
-    /** Presence-only backup guard for wallet preferences not yet mapped into FPWMSM01. */
+    /**
+     * Read only explicit presentation state. The 32 KiB portable metadata bound cannot hold
+     * more than 2,184 minimum-size rows; the extra row makes overflow observable without
+     * loading an unbounded balance table. Generic rows may have an empty accountId blob.
+     */
     @Query(
-        """SELECT EXISTS(SELECT 1 FROM assets WHERE metaId = :metaId
+        """SELECT chainId, id AS assetId, accountId, enabled, sortIndex,
+            markedNotNeed, chainAccountName,
+            CAST(chainId AS BLOB) AS chainIdRaw,
+            CAST(id AS BLOB) AS assetIdRaw,
+            CAST(chainAccountName AS BLOB) AS chainAccountNameRaw,
+            typeof(chainId) AS chainIdStorageClass,
+            typeof(id) AS assetIdStorageClass,
+            typeof(accountId) AS accountIdStorageClass,
+            typeof(enabled) AS enabledStorageClass,
+            typeof(sortIndex) AS sortIndexStorageClass,
+            typeof(markedNotNeed) AS markedNotNeedStorageClass,
+            typeof(chainAccountName) AS chainAccountNameStorageClass
+            FROM assets WHERE metaId = :metaId
             AND (enabled IS NOT NULL OR sortIndex != 2147483647
-                OR markedNotNeed = 1 OR chainAccountName IS NOT NULL))"""
+                OR markedNotNeed != 0 OR chainAccountName IS NOT NULL)
+            ORDER BY chainId COLLATE BINARY, id COLLATE BINARY, accountId
+            LIMIT 2185"""
     )
-    abstract suspend fun hasUnmappedWalletAssetPreferences(metaId: Long): Boolean
+    abstract suspend fun getExplicitAssetPresentation(metaId: Long): List<AssetPresentationLocal>
 
     @Query("SELECT * FROM assets where metaId = :metaId")
     abstract fun observeBalances(metaId: Long): Flow<List<AssetLocal>>

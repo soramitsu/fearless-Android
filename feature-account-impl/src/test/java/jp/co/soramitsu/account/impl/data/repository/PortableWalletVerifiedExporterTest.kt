@@ -17,6 +17,7 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.WalletCustodyDao
 import jp.co.soramitsu.coredb.model.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.AssetPresentationLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
@@ -132,6 +133,85 @@ class PortableWalletVerifiedExporterTest {
         verify(metaDao, never()).updateBackedUp(any<Long>(), any<Int>())
         verify(metaDao, never()).updateMetaAccount(any())
         verify(custodyDao, never()).insert(any())
+    }
+
+    @Test
+    fun `exports exact explicit asset rows for signed and watch wallets`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        val signed = assetRow("sora", "dot", byteArrayOf(), 1, -2, 1, "")
+        val watch = assetRow("sora", "dot", byteArrayOf(1, 0x80.toByte()), null, Int.MAX_VALUE, 1, null)
+        whenever(assetDao.getExplicitAssetPresentation(3)).thenReturn(listOf(signed))
+        whenever(assetDao.getExplicitAssetPresentation(2)).thenReturn(listOf(watch))
+        val encoded = exporter.captureVerifiedSemanticPlaintext(policy)
+        val decoded = PortableWalletSemanticMaterial.decode(encoded)
+        try {
+            val tag = PortableWalletSemanticMaterial.MetadataId.ANDROID_ASSET_ROW_PRESENTATION
+            assertEquals(listOf(tag), decoded.wallets[1].metadata.map { it.id })
+            assertEquals(listOf(tag), decoded.wallets[2].metadata.map { it.id })
+            assertEquals(
+                listOf(
+                    PortableWalletAssetRowPresentation.Row("sora", "dot", listOf(1, 0x80.toByte()), null, Int.MAX_VALUE, true, null)
+                ),
+                PortableWalletAssetRowPresentation.decode(decoded.wallets[1].metadata.single().value)
+            )
+            assertEquals(
+                listOf(
+                    PortableWalletAssetRowPresentation.Row("sora", "dot", emptyList(), 1, -2, true, "")
+                ),
+                PortableWalletAssetRowPresentation.decode(decoded.wallets[2].metadata.single().value)
+            )
+        } finally {
+            decoded.clearSecrets()
+            encoded.fill(0)
+            fixture.clear()
+        }
+        verify(metaDao, never()).updateBackedUp(any<Long>(), any<Int>())
+        verify(custodyDao, never()).insert(any())
+    }
+
+    @Test
+    fun `rejects asset row changed after original source proof`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        whenever(assetDao.getExplicitAssetPresentation(3)).thenReturn(
+            listOf(assetRow("sora", "dot", byteArrayOf(), 1, 7, 0, null)),
+            listOf(assetRow("sora", "dot", byteArrayOf(), 0, 7, 0, null))
+        )
+        try {
+            assertThrows(IllegalStateException::class.java) {
+                runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
+            }
+            verify(assetDao, org.mockito.kotlin.times(2)).getExplicitAssetPresentation(3)
+            verify(metaDao, never()).updateBackedUp(any<Long>(), any<Int>())
+        } finally {
+            fixture.clear()
+        }
+    }
+
+    @Test
+    fun `rejects coerced or out of range asset row columns`() = runBlocking {
+        val fixture = fixture()
+        install(fixture)
+        val valid = assetRow("sora", "dot", byteArrayOf(), 1, 7, 0, null)
+        try {
+            listOf(
+                valid.copy(enabledStorageClass = "text"),
+                valid.copy(accountIdStorageClass = "text"),
+                valid.copy(chainIdRaw = byteArrayOf(0xff.toByte())),
+                valid.copy(chainAccountNameRaw = byteArrayOf()),
+                valid.copy(sortIndex = Long.MAX_VALUE),
+                valid.copy(markedNotNeed = 2)
+            ).forEach { invalid ->
+                whenever(assetDao.getExplicitAssetPresentation(3)).thenReturn(listOf(invalid))
+                assertThrows(IllegalStateException::class.java) {
+                    runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
+                }
+            }
+            verify(custodyDao, never()).insert(any())
+        } finally {
+            fixture.clear()
+        }
     }
 
     @Test
@@ -281,15 +361,17 @@ class PortableWalletVerifiedExporterTest {
     }
 
     @Test
-    fun `rejects unmapped asset presentation and historical private-key aliases`() = runBlocking {
+    fun `rejects malformed asset presentation and historical private-key aliases`() = runBlocking {
         val fixture = fixture()
         install(fixture)
         try {
-            whenever(assetDao.hasUnmappedWalletAssetPreferences(3)).thenReturn(true)
+            whenever(assetDao.getExplicitAssetPresentation(3)).thenReturn(
+                listOf(assetRow("sora", "dot", byteArrayOf(), 2, 7, 0, null))
+            )
             assertThrows(IllegalStateException::class.java) {
                 runBlocking { exporter.captureVerifiedSemanticPlaintext(policy) }
             }
-            whenever(assetDao.hasUnmappedWalletAssetPreferences(3)).thenReturn(false)
+            whenever(assetDao.getExplicitAssetPresentation(3)).thenReturn(emptyList())
             whenever(preferences.keysWithPrefixes(any(), any(), any(), any(), any())).thenAnswer { invocation ->
                 val prefixes = invocation.getArgument<Set<String>>(0)
                 when {
@@ -311,7 +393,7 @@ class PortableWalletVerifiedExporterTest {
     private fun install(fixture: Fixture) {
         whenever(metaDao.getJoinedMetaAccountsInfo()).thenReturn(fixture.rows)
         runBlocking { whenever(accounts.isWalletRecoveryRequired(any())).thenReturn(false) }
-        runBlocking { whenever(assetDao.hasUnmappedWalletAssetPreferences(any())).thenReturn(false) }
+        runBlocking { whenever(assetDao.getExplicitAssetPresentation(any())).thenReturn(emptyList()) }
         runBlocking { whenever(accounts.getSecuritySource(fixture.v1Address)).thenReturn(fixture.v1Source) }
         runBlocking { whenever(accounts.getEthereumSecrets(3)).thenReturn(fixture.evmSecret) }
         runBlocking { whenever(accounts.getChainAccountSecrets(3, genesis)).thenReturn(fixture.chainSecret) }
@@ -327,6 +409,23 @@ class PortableWalletVerifiedExporterTest {
                 .filterTo(linkedSetOf()) { key -> prefixes.any(key::startsWith) }
         }
     }
+
+    private fun assetRow(
+        chainId: String,
+        assetId: String,
+        accountId: ByteArray,
+        enabled: Int?,
+        sortIndex: Int,
+        markedNotNeed: Int,
+        chainAccountName: String?
+    ) = AssetPresentationLocal(
+        chainId, assetId, accountId, enabled?.toLong(), sortIndex.toLong(),
+        markedNotNeed.toLong(), chainAccountName,
+        chainId.toByteArray(Charsets.UTF_8), assetId.toByteArray(Charsets.UTF_8),
+        chainAccountName?.toByteArray(Charsets.UTF_8),
+        "text", "text", "blob", if (enabled == null) "null" else "integer",
+        "integer", "integer", if (chainAccountName == null) "null" else "text"
+    )
 
     private fun fixture(): Fixture {
         val legacyPair = SubstrateKeypairFactory.generate(

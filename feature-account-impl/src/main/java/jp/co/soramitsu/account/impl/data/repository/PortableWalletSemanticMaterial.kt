@@ -90,6 +90,9 @@ internal object PortableWalletSemanticMaterial {
 
         /** Exact stored Android chain-selector filter; absent differs from present-empty. */
         const val ANDROID_CHAIN_SELECT_FILTER = 11
+
+        /** Canonical explicit Android asset-row presentation, versioned independently. */
+        const val ANDROID_ASSET_ROW_PRESENTATION = 12
     }
 
     internal class Snapshot(val selectedIndex: Int, val wallets: List<Wallet>) {
@@ -191,7 +194,7 @@ internal object PortableWalletSemanticMaterial {
                 val initialized = reader.readCanonicalBoolean()
                 val name = reader.readText(allowEmpty = true, allocated = allocated)
                 val metadataCount = reader.readUnsignedByte()
-                require(metadataCount <= MetadataId.ANDROID_CHAIN_SELECT_FILTER) {
+                require(metadataCount <= MetadataId.ANDROID_ASSET_ROW_PRESENTATION) {
                     "Semantic wallet metadata count is invalid"
                 }
                 val metadata = ArrayList<Metadata>(metadataCount)
@@ -245,7 +248,7 @@ internal object PortableWalletSemanticMaterial {
                 "Semantic wallet identity is duplicated"
             }
             requireText(wallet.name, allowEmpty = true)
-            require(wallet.metadata.size <= MetadataId.ANDROID_CHAIN_SELECT_FILTER) {
+            require(wallet.metadata.size <= MetadataId.ANDROID_ASSET_ROW_PRESENTATION) {
                 "Semantic wallet metadata count is invalid"
             }
             requireStrictAscending(wallet.metadata.map(Metadata::id))
@@ -304,7 +307,7 @@ internal object PortableWalletSemanticMaterial {
 
     private fun requireMetadata(metadata: Metadata) {
         require(
-            metadata.id in MetadataId.ASSET_KEYS_ORDER..MetadataId.ANDROID_CHAIN_SELECT_FILTER &&
+            metadata.id in MetadataId.ASSET_KEYS_ORDER..MetadataId.ANDROID_ASSET_ROW_PRESENTATION &&
             metadata.value.size <= MAX_SECRET
         ) { "Semantic wallet metadata is invalid" }
         when (metadata.id) {
@@ -315,6 +318,8 @@ internal object PortableWalletSemanticMaterial {
             MetadataId.ANDROID_SELECTED_CHAIN_ID, MetadataId.ANDROID_CHAIN_SELECT_FILTER ->
                 requireTextBytes(metadata.value, allowEmpty = true)
             MetadataId.ASSET_VISIBILITY -> requireVisibilityMap(metadata.value)
+            MetadataId.ANDROID_ASSET_ROW_PRESENTATION ->
+                PortableWalletAssetRowPresentation.decode(metadata.value)
             MetadataId.ZERO_BALANCE_ASSETS_HIDDEN,
             MetadataId.CAN_EXPORT_ETHEREUM_MNEMONIC -> requireBooleanValue(metadata.value)
         }

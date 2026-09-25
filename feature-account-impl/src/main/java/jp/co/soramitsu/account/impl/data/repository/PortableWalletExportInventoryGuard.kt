@@ -17,10 +17,11 @@ internal class PortableWalletExportInventoryGuard(
 ) {
     internal data class DisplayPreferences(
         val selectedChainId: String?,
-        val chainSelectFilter: String?
+        val chainSelectFilter: String?,
+        val assetRows: List<PortableWalletAssetRowPresentation.Row>
     ) {
         fun toSemanticMetadata(): List<PortableWalletSemanticMaterial.Metadata> {
-            val metadata = ArrayList<PortableWalletSemanticMaterial.Metadata>(2)
+            val metadata = ArrayList<PortableWalletSemanticMaterial.Metadata>()
             try {
                 selectedChainId?.let { value ->
                     metadata += PortableWalletSemanticMaterial.Metadata(
@@ -34,6 +35,12 @@ internal class PortableWalletExportInventoryGuard(
                         PortableWalletSemanticMaterial.encodeMetadataText(value)
                     )
                 }
+                if (assetRows.isNotEmpty()) {
+                    metadata += PortableWalletSemanticMaterial.Metadata(
+                        PortableWalletSemanticMaterial.MetadataId.ANDROID_ASSET_ROW_PRESENTATION,
+                        PortableWalletAssetRowPresentation.encode(assetRows)
+                    )
+                }
                 return metadata
             } catch (failure: Exception) {
                 metadata.forEach { it.value.fill(0) }
@@ -42,17 +49,64 @@ internal class PortableWalletExportInventoryGuard(
         }
     }
 
-    /** Capture only the two mapped wallet preferences; asset-row presentation remains blocked. */
+    /** Capture all mapped Android presentation state under the caller's cross-store lock. */
     suspend fun captureDisplayPreferences(wallets: List<ExportWalletIdentity>): Map<Long, DisplayPreferences> =
         wallets.associate { wallet ->
-            check(!assetDao.hasUnmappedWalletAssetPreferences(wallet.id)) {
-                "A wallet has asset presentation metadata without a portable source mapping"
+            val assetRows = assetDao.getExplicitAssetPresentation(wallet.id).map { row ->
+                check(
+                    row.chainIdStorageClass == "text" && row.assetIdStorageClass == "text" &&
+                        row.accountIdStorageClass == "blob" &&
+                        row.enabledStorageClass == (if (row.enabled == null) "null" else "integer") &&
+                        row.sortIndexStorageClass == "integer" &&
+                        row.markedNotNeedStorageClass == "integer" &&
+                        row.chainAccountNameStorageClass ==
+                        (if (row.chainAccountName == null) "null" else "text") &&
+                        row.enabled in setOf(null, 0L, 1L) &&
+                        row.sortIndex in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() &&
+                        row.markedNotNeed in 0L..1L
+                ) {
+                    "A wallet asset has a malformed presentation column"
+                }
+                checkExactTextBytes(row.chainId, row.chainIdRaw)
+                checkExactTextBytes(row.assetId, row.assetIdRaw)
+                val namePresent = row.chainAccountName != null
+                val rawNamePresent = row.chainAccountNameRaw != null
+                check(namePresent == rawNamePresent) {
+                    "A wallet asset has a mismatched account-name presence"
+                }
+                row.chainAccountName?.let { name ->
+                    checkExactTextBytes(name, checkNotNull(row.chainAccountNameRaw))
+                }
+                PortableWalletAssetRowPresentation.Row(
+                    chainId = row.chainId,
+                    assetId = row.assetId,
+                    accountId = row.accountId.toList(),
+                    enabled = row.enabled?.toInt(),
+                    sortIndex = row.sortIndex.toInt(),
+                    markedNotNeed = row.markedNotNeed == 1L,
+                    chainAccountName = row.chainAccountName
+                )
+            }
+            if (assetRows.isNotEmpty()) {
+                PortableWalletAssetRowPresentation.encode(assetRows).fill(0)
             }
             wallet.id to DisplayPreferences(
                 exactOptionalString("wallet_selected_chain_id${wallet.id}"),
-                exactOptionalString("chain_select_filter_applied_${wallet.id}")
+                exactOptionalString("chain_select_filter_applied_${wallet.id}"),
+                assetRows
             )
         }
+
+    private fun checkExactTextBytes(value: String, raw: ByteArray) {
+        val encoded = PortableWalletSemanticMaterial.encodeMetadataText(value)
+        try {
+            check(encoded.contentEquals(raw)) {
+                "A wallet asset has noncanonical UTF-8 source bytes"
+            }
+        } finally {
+            encoded.fill(0)
+        }
+    }
 
     fun withDisplayMetadata(
         wallet: PortableWalletSemanticMaterial.Wallet,

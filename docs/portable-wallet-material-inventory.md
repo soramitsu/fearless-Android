@@ -89,11 +89,35 @@ UTF-8 bytes, with no replacement of malformed text. The exporter captures
 these under the wallet cross-store lock and compares the current values again
 after original-key signing proof. Both signed and watch wallets retain them;
 the values do not confer signing authority. The codec continues to reject
-unknown, duplicate and unordered metadata IDs. Explicit asset-row display
-settings remain outside this mapping and block verified capture.
+unknown, duplicate and unordered metadata IDs.
+
+ID `12` now carries only explicit `assets` presentation columns, selected by
+`enabled IS NOT NULL`, nondefault `sortIndex`, `markedNotNeed`, or a present
+`chainAccountName`. Each row binds the exact chain ID, asset ID and raw account
+ID (including the generic empty account ID) to nullable enabled, signed sort
+index, marked-not-needed and nullable account name. It omits balances, prices,
+sync status and token-provider state. Rows are ordered by unsigned UTF-8 chain
+ID, unsigned UTF-8 asset ID and unsigned raw account ID; duplicate or unordered
+keys, malformed text/flags, default-only rows and values over 32 KiB fail
+closed. The Room projection checks SQLite storage classes and compares raw
+TEXT bytes with strict UTF-8 re-encoding, so a replacement-decoded database
+string cannot change the backup record. A present empty account name differs
+from no account name. The Room
+query is bounded by the maximum number of minimum-size rows that can fit the
+format. The exporter re-reads the exact normalized rows after source/signing
+proof, still under the cross-store lock, before releasing plaintext. This is a
+read-only source mapping; neither platform has an accepted transactional
+installer for these preferences, and backup/recovery remains disabled.
 
 The cross-platform watch-wallet fixture for this extension is 70 bytes: one
 wallet with ID `0x33` repeated 16 times, position zero, name `watch`, metadata
 `10 = sora` and `11 =` present-empty, and one EVM watch identity. Canonical
 SHA-256 is `e8959e6aa11fd339fd92ddd65798beda0b6443fe1d1be60f6ad219e2d26c3477`.
 It is a shared codec fixture, not an installed-wallet or Drive recovery proof.
+
+The ID `12` extension has a second 126-byte cross-platform watch fixture. It
+adds two `sora/dot` rows: a generic empty-account row with enabled=true,
+sortIndex=-2, markedNotNeed=true and present-empty account name; then a row
+for account ID `0180` with enabled=false, default sortIndex, markedNotNeed=false
+and account name `Main`. Its full `FPWMSM01` SHA-256 is
+`842124d8aa738dc490b5f1366470f9e3183158514236b3c6ba4758bb927a66ab`.
