@@ -142,11 +142,15 @@ internal object PortableWalletReceiveInstallPlan {
         override fun toString(): String = "PortableWalletReceiveInstallPlan.FieldIntent(redacted)"
     }
 
-    fun decode(encoded: ByteArray): Plan {
+    /** Empty policy denies chain watches until a reviewed compiled inventory is wired. */
+    fun decode(
+        encoded: ByteArray,
+        approvedGenesis: List<PortableWalletChainSigningProof.ApprovedGenesis> = emptyList(),
+    ): Plan {
         val proof = PortableWalletRootSigningProof.verify(encoded)
         val source = codec.decode(encoded)
         try {
-            source.wallets.forEach { PortableWalletWatchIdentityProof.verifyReceivingWallet(it) }
+            source.wallets.forEach { PortableWalletWatchIdentityProof.verifyReceivingWallet(it, approvedGenesis) }
             val wallets = source.wallets.map(::WalletIntent)
             val blockers = buildBlockers(source, proof)
             return Plan(source.selectedIndex, wallets, blockers)

@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android incoming Substrate watch-chain policy candidate — 2026-09-25
+
+- Chain-specific watch slots in the read-only receiving plan now require an exact raw, 64-character lowercase genesis ID and a matching `SUBSTRATE` entry in the caller's reviewed `ApprovedGenesis` policy. Android's bundled `local_chains.json` uses raw IDs while the existing V2 signed-chain policy uses one `0x` prefix; the receive proof adds that prefix only for comparison and rejects prefixed, uppercase, unknown and wrong-kind watch IDs. Local watch export is unchanged. The current receiving/staging/journal path supplies no compiled inventory, so chain-watch material still fails closed before a durable write or replay; an explicit policy can only produce a blocked read-only plan. Binding the reviewed compiled inventory and qualifying transactional installation remain release gates. Portable recovery remains disabled.
+- The full account JVM suite passes 347/347 with no failures, errors or skips, including default-policy stage rejection and a forged encrypted journal replay check. Default and forced four-file scoped Detekt pass. Hosted Android CI and IAS must qualify this exact successor separately from preceding `da0331fcb` checks. Independent review and enabled recovery acceptance remain open.
+
 ## Android iOS TON watch-address compatibility candidate — 2026-09-25
 
 - Signed TON roots and incoming watch slots now share the same strict Wallet V4R2 address verifier. The receiving plan accepts the existing iOS TonSwift JSON `{workchain, hash}` shape only when a present 32-byte public key derives its workchain-zero hash, and it retains the original JSON bytes in the cohort after-image. Duplicate/unknown JSON fields, noncanonical Base64, wrong hash or workchain, missing public key and unqualified named chains still fail before staging. This public check does not prove address ownership or install a wallet.

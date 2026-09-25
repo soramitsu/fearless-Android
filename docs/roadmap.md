@@ -4,9 +4,13 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android incoming Substrate watch-chain policy candidate — 2026-09-25
+
+- The receiving plan now checks raw lowercase 64-hex chain-watch IDs against exact `SUBSTRATE` entries in the existing reviewed `ApprovedGenesis` policy, with no aliases or new hard-coded chain list. The bundled chain registry uses raw IDs, but the signed V2 policy uses `0x`-prefixed IDs; the single-prefix comparison is explicit. Empty default policy keeps after-image staging and journal replay closed for chain watches. P0: bind a reviewed compiled Substrate inventory to every receiving, staging and replay call, preserve that policy across interrupted upgrades, and verify on replacement devices before removing watch and installer blockers. Recovery remains disabled.
+
 ## Android iOS TON watch-address compatibility candidate — 2026-09-25
 
-- The receiving watch proof now reuses the signed-root verifier for the canonical iOS TonSwift JSON Wallet V4R2 address, requiring a present public key and an exact workchain-zero account hash while retaining the original bytes. P0: prove the released iOS watch serializer emits this qualified shape, reject any remaining address-only or alternative JSON variants until separately reviewed, and verify original wallet identity after transactional installation on replacement devices. Named universal chains and nonapproved Substrate genesis identities still need a frozen receiving policy. Recovery stays disabled.
+- The receiving watch proof now reuses the signed-root verifier for the canonical iOS TonSwift JSON Wallet V4R2 address, requiring a present public key and an exact workchain-zero account hash while retaining the original bytes. P0: prove the released iOS watch serializer emits this qualified shape, reject any remaining address-only or alternative JSON variants until separately reviewed, and verify original wallet identity after transactional installation on replacement devices. Named universal chains remain unsupported; the Substrate genesis policy still needs to be bound to the reviewed compiled inventory. Recovery stays disabled.
 
 ## Android incoming watch-identity guard candidate — 2026-09-25
 

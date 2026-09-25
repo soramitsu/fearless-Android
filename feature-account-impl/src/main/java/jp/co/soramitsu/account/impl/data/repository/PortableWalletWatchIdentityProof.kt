@@ -21,19 +21,45 @@ internal object PortableWalletWatchIdentityProof {
     private const val SUBSTRATE_KEY_BYTES = 32
     private const val COMPRESSED_KEY_BYTES = 33
     private const val EVM_ADDRESS_BYTES = 20
+    private const val MAX_APPROVED_GENESIS = 128
     private const val BYTE_MASK = 0xff
+    private val canonicalRawGenesis = Regex("[0-9a-f]{64}")
 
     fun verifyWallet(wallet: PortableWalletSemanticMaterial.Wallet): Int {
         require(wallet.slots.all { it.role == role.WATCH_IDENTITY || it.role == role.FAVORITE_CHAIN }) {
             "A watch wallet contains signing or original-source material"
         }
-        return verifyReceivingWallet(wallet).also {
+        return verifyPublicIdentities(wallet).also {
             require(it > 0) { "A watch wallet has no public identity" }
         }
     }
 
-    /** Checks every incoming watch slot before a receiving plan can become a durable journal. */
-    fun verifyReceivingWallet(wallet: PortableWalletSemanticMaterial.Wallet): Int {
+    /** A reviewed caller must derive this policy from the compiled Substrate inventory. */
+    fun verifyReceivingWallet(
+        wallet: PortableWalletSemanticMaterial.Wallet,
+        approvedGenesis: List<PortableWalletChainSigningProof.ApprovedGenesis>,
+    ): Int {
+        require(
+            approvedGenesis.size <= MAX_APPROVED_GENESIS &&
+                approvedGenesis.map { it.id }.toSet().size == approvedGenesis.size
+        ) { "Watch genesis policy is duplicated or oversized" }
+        val approvedSubstrate = approvedGenesis.filter {
+            it.identityKind == PortableWalletChainSigningProof.IdentityKind.SUBSTRATE
+        }.map { it.id }.toSet()
+        val count = verifyPublicIdentities(wallet)
+        wallet.slots.filter { it.role == role.WATCH_IDENTITY && it.number(field.WATCH_ECOSYSTEM) == CHAIN_ECOSYSTEM }
+            .forEach { slot ->
+                val chainId = slot.text(field.WATCH_CHAIN_ID)
+                // FPWMSM01/Android and the bundled chain registry use raw lowercase genesis IDs.
+                // ApprovedGenesis uses a single 0x prefix; no incoming alias is normalized.
+                require(canonicalRawGenesis.matches(chainId) && "0x$chainId" in approvedSubstrate) {
+                    "Watch chain is not an approved canonical Substrate genesis"
+                }
+            }
+        return count
+    }
+
+    private fun verifyPublicIdentities(wallet: PortableWalletSemanticMaterial.Wallet): Int {
         val watches = wallet.slots.filter { it.role == role.WATCH_IDENTITY }
         val seen = HashSet<String>()
         watches.forEach { slot ->

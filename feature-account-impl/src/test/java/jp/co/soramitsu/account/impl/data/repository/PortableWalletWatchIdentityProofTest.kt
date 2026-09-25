@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.data.repository
 
+import jp.co.soramitsu.account.impl.data.repository.PortableWalletChainSigningProof.ApprovedGenesis
+import jp.co.soramitsu.account.impl.data.repository.PortableWalletChainSigningProof.IdentityKind
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.tonAccountId
@@ -17,6 +19,10 @@ class PortableWalletWatchIdentityProofTest {
     private val role = PortableWalletSemanticMaterial.Role
     private val field = PortableWalletSemanticMaterial.FieldId
 
+    // The raw Polkadot genesis ID is from the bundled local_chains.json inventory.
+    private val substrateGenesis = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"
+    private val approvedGenesis = listOf(ApprovedGenesis("0x$substrateGenesis", IdentityKind.SUBSTRATE))
+
     @Test
     fun `proves substrate evm ton and chain watch identities from canonical plaintext`() {
         val wallet = completeWatchWallet()
@@ -26,7 +32,7 @@ class PortableWalletWatchIdentityProofTest {
             val counts = PortableWalletAndroidSourceCohortProof.verify(encoded, emptyList())
             assertEquals(1, counts.watchWallets)
             assertEquals(0, counts.signedWallets)
-            val received = PortableWalletReceiveInstallPlan.decode(encoded)
+            val received = PortableWalletReceiveInstallPlan.decode(encoded, approvedGenesis)
             try {
                 assertEquals(4, received.wallets.single().materials.size)
                 assertEquals(
@@ -133,6 +139,50 @@ class PortableWalletWatchIdentityProofTest {
         } finally {
             encoded.fill(0)
             wallet.clearSecrets()
+        }
+    }
+
+    @Test
+    fun `receiving requires an exact raw chain genesis in the approved Substrate policy`() {
+        val canonical = chainWatchWallet(substrateGenesis)
+        val encoded = codec.encode(PortableWalletSemanticMaterial.Snapshot(0, listOf(canonical)))
+        try {
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletReceiveInstallPlan.decode(encoded)
+            }
+            val plan = PortableWalletReceiveInstallPlan.decode(encoded, approvedGenesis)
+            try {
+                assertEquals(
+                    listOf(
+                        PortableWalletReceiveInstallPlan.BlockerReason.TRANSACTIONAL_INSTALLER_UNAVAILABLE,
+                        PortableWalletReceiveInstallPlan.BlockerReason.WATCH_IDENTITY_UNPROVEN,
+                    ),
+                    plan.blockers.map { it.reason },
+                )
+            } finally {
+                plan.clearSecrets()
+            }
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletReceiveInstallPlan.decode(
+                    encoded,
+                    listOf(ApprovedGenesis("0x$substrateGenesis", IdentityKind.ETHEREUM)),
+                )
+            }
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletReceiveInstallPlan.decode(encoded, approvedGenesis + approvedGenesis)
+            }
+        } finally {
+            canonical.clearSecrets()
+            encoded.fill(0)
+        }
+        listOf(
+            "0x$substrateGenesis",
+            substrateGenesis.uppercase(),
+            "02".repeat(32),
+            substrateGenesis.dropLast(1),
+            " $substrateGenesis",
+        ).forEach { chainId ->
+            assertReceiveRejected(chainWatchWallet(chainId), approvedGenesis)
         }
     }
 
@@ -270,16 +320,35 @@ class PortableWalletWatchIdentityProofTest {
         )
     )
 
-    private fun assertReceiveRejected(wallet: PortableWalletSemanticMaterial.Wallet) {
+    private fun assertReceiveRejected(
+        wallet: PortableWalletSemanticMaterial.Wallet,
+        policy: List<ApprovedGenesis> = emptyList(),
+    ) {
         val encoded = codec.encode(PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet)))
         try {
             assertThrows(IllegalArgumentException::class.java) {
-                PortableWalletReceiveInstallPlan.decode(encoded)
+                PortableWalletReceiveInstallPlan.decode(encoded, policy)
             }
         } finally {
             encoded.fill(0)
             wallet.clearSecrets()
         }
+    }
+
+    private fun chainWatchWallet(chainId: String): PortableWalletSemanticMaterial.Wallet {
+        val key = ByteArray(32) { 8 }
+        return watchWallet(
+            listOf(
+                watch(
+                    0,
+                    bytes(field.PUBLIC_KEY, key),
+                    bytes(field.ACCOUNT_ID_OR_ADDRESS, key),
+                    one(field.CRYPTO_TYPE, 1),
+                    one(field.WATCH_ECOSYSTEM, 4),
+                    bytes(field.WATCH_CHAIN_ID, chainId.toByteArray()),
+                )
+            )
+        )
     }
 
     private fun completeWatchWallet(): PortableWalletSemanticMaterial.Wallet {
@@ -318,7 +387,7 @@ class PortableWalletWatchIdentityProofTest {
                     bytes(field.ACCOUNT_ID_OR_ADDRESS, substrate),
                     one(field.CRYPTO_TYPE, 1),
                     one(field.WATCH_ECOSYSTEM, 4),
-                    bytes(field.WATCH_CHAIN_ID, "0x${"01".repeat(32)}".toByteArray())
+                    bytes(field.WATCH_CHAIN_ID, substrateGenesis.toByteArray())
                 ),
             )
         )
