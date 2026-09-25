@@ -112,6 +112,57 @@ class PortableWalletCohortFreshInstallStagerTest {
     }
 
     @Test
+    fun `unqualified incoming watch identity cannot create a journal or reservation`() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        val database = Inventory()
+        val snapshot = PortableWalletSemanticMaterial.Snapshot(
+            0,
+            listOf(
+                PortableWalletSemanticMaterial.Wallet(
+                    ByteArray(16) { (it + 1).toByte() },
+                    0,
+                    true,
+                    "Incoming watch",
+                    emptyList(),
+                    listOf(
+                        slot(
+                            role.WATCH_IDENTITY,
+                            "0000",
+                            bytes(field.PUBLIC_KEY, ByteArray(32) { 7 }),
+                            bytes(field.ACCOUNT_ID_OR_ADDRESS, "{}".toByteArray()),
+                            one(field.TON_CONTRACT_VERSION, 2),
+                            one(field.TON_ADDRESS_ENCODING, 2),
+                            one(field.WATCH_ECOSYSTEM, 3),
+                        )
+                    ),
+                )
+            ),
+        )
+        val semantic = try {
+            codec.encode(snapshot)
+        } finally {
+            snapshot.clearSecrets()
+        }
+        try {
+            assertThrows(IllegalArgumentException::class.java) {
+                runBlocking {
+                    stager(
+                        database,
+                        PortableWalletCohortJournalStore(preferences),
+                        preferences,
+                        Ids(listOf(41L)),
+                    ).stage(semantic)
+                }
+            }
+            assertTrue(database.reserved.isEmpty())
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY))
+            assertFalse(preferences.hasKey(PortableWalletCohortJournalStore.reservationKey(41L)))
+        } finally {
+            semantic.fill(0)
+        }
+    }
+
+    @Test
     fun `v79 pending rows acquire exact wallet origins from their encrypted cohort on replay`() = runBlocking {
         val preferences = HashMapEncryptedPreferences()
         val database = Inventory()

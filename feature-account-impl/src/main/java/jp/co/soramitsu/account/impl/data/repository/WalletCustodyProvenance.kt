@@ -118,11 +118,16 @@ internal object WalletCustodyProvenance {
             require(chain.metaId == meta.id && chain.chainId.isNotBlank()) {
                 "Watch chain is bound to the wrong wallet"
             }
-            // Named universal chains need their own public-identity proof, not Substrate derivation.
-            require(chain.chainId !in unsupportedNamedChains) {
-                "Named universal watch chain identity is unsupported"
-            }
+            requireSupportedWatchChainId(chain.chainId)
             requireSubstrateIdentity(chain.publicKey, chain.cryptoType, chain.accountId)
+        }
+    }
+
+    /** Shared by local watch enrollment and portable receiving for identical chain semantics. */
+    fun requireSupportedWatchChainId(chainId: String) {
+        // Named universal chains need their own public-identity proof, not Substrate derivation.
+        require(chainId !in unsupportedNamedChains) {
+            "Named universal watch chain identity is unsupported"
         }
     }
 

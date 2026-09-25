@@ -146,6 +146,7 @@ internal object PortableWalletReceiveInstallPlan {
         val proof = PortableWalletRootSigningProof.verify(encoded)
         val source = codec.decode(encoded)
         try {
+            source.wallets.forEach { PortableWalletWatchIdentityProof.verifyReceivingWallet(it) }
             val wallets = source.wallets.map(::WalletIntent)
             val blockers = buildBlockers(source, proof)
             return Plan(source.selectedIndex, wallets, blockers)

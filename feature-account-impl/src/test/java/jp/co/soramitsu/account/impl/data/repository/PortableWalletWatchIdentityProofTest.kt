@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.data.repository
 
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
@@ -23,6 +24,18 @@ class PortableWalletWatchIdentityProofTest {
             val counts = PortableWalletAndroidSourceCohortProof.verify(encoded, emptyList())
             assertEquals(1, counts.watchWallets)
             assertEquals(0, counts.signedWallets)
+            val received = PortableWalletReceiveInstallPlan.decode(encoded)
+            try {
+                assertEquals(4, received.wallets.single().materials.size)
+                assertEquals(
+                    4,
+                    received.blockers.count {
+                        it.reason == PortableWalletReceiveInstallPlan.BlockerReason.WATCH_IDENTITY_UNPROVEN
+                    },
+                )
+            } finally {
+                received.clearSecrets()
+            }
         } finally {
             wallet.clearSecrets()
             encoded.fill(0)
@@ -44,6 +57,9 @@ class PortableWalletWatchIdentityProofTest {
             try {
                 assertThrows(IllegalArgumentException::class.java) {
                     PortableWalletAndroidSourceCohortProof.verify(encoded, emptyList())
+                }
+                assertThrows(IllegalArgumentException::class.java) {
+                    PortableWalletReceiveInstallPlan.decode(encoded)
                 }
             } finally {
                 encoded.fill(0)
@@ -67,6 +83,7 @@ class PortableWalletWatchIdentityProofTest {
         try {
             assertEquals(1, PortableWalletWatchIdentityProof.verifyWallet(addressOnly))
             assertEquals(1, PortableWalletAndroidSourceCohortProof.verify(addressOnlyBytes, emptyList()).watchWallets)
+            PortableWalletReceiveInstallPlan.decode(addressOnlyBytes).clearSecrets()
         } finally {
             addressOnlyBytes.fill(0)
             addressOnly.clearSecrets()
@@ -79,6 +96,9 @@ class PortableWalletWatchIdentityProofTest {
         try {
             assertThrows(IllegalArgumentException::class.java) {
                 PortableWalletAndroidSourceCohortProof.verify(absentKeyBytes, emptyList())
+            }
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletReceiveInstallPlan.decode(absentKeyBytes)
             }
         } finally {
             absentKeyBytes.fill(0)
@@ -104,6 +124,58 @@ class PortableWalletWatchIdentityProofTest {
         try {
             assertThrows(IllegalArgumentException::class.java) {
                 PortableWalletAndroidSourceCohortProof.verify(encoded, emptyList())
+            }
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletReceiveInstallPlan.decode(encoded)
+            }
+        } finally {
+            encoded.fill(0)
+            wallet.clearSecrets()
+        }
+    }
+
+    @Test
+    fun `receiving rejects unqualified iOS TON JSON and named universal watch chains`() {
+        val foreignTon = watchWallet(
+            listOf(
+                watch(
+                    0,
+                    bytes(field.PUBLIC_KEY, ByteArray(32) { 7 }),
+                    bytes(field.ACCOUNT_ID_OR_ADDRESS, "{}".toByteArray()),
+                    one(field.TON_CONTRACT_VERSION, 2),
+                    one(field.TON_ADDRESS_ENCODING, 2),
+                    one(field.WATCH_ECOSYSTEM, 3),
+                )
+            )
+        )
+        assertReceiveRejected(foreignTon)
+
+        listOf(
+            UniversalWalletRegistry.tonMainnetRegistryEntry.id,
+            UniversalWalletRegistry.tonMainnetRegistryEntry.chainId,
+        ).forEach { chainId ->
+            assertReceiveRejected(
+                watchWallet(
+                    listOf(
+                        watch(
+                            0,
+                            bytes(field.PUBLIC_KEY, ByteArray(32) { 8 }),
+                            bytes(field.ACCOUNT_ID_OR_ADDRESS, ByteArray(32) { 8 }),
+                            one(field.CRYPTO_TYPE, 1),
+                            one(field.WATCH_ECOSYSTEM, 4),
+                            bytes(field.WATCH_CHAIN_ID, chainId.toByteArray()),
+                        )
+                    )
+                )
+            )
+        }
+    }
+
+    private fun assertReceiveRejected(wallet: PortableWalletSemanticMaterial.Wallet) {
+        val encoded = codec.encode(PortableWalletSemanticMaterial.Snapshot(0, listOf(wallet)))
+        try {
+            assertThrows(IllegalArgumentException::class.java) {
+                PortableWalletReceiveInstallPlan.decode(encoded)
             }
         } finally {
             encoded.fill(0)

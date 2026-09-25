@@ -1,5 +1,10 @@
 # Status Summary
 
+## Android incoming watch-identity guard candidate — 2026-09-25
+
+- The read-only receiving plan now independently verifies every incoming watch slot before it can become a cohort after-image or fresh-install journal. Valid Substrate and supported chain public keys must derive their recorded account IDs; compressed EVM keys must derive 20-byte addresses, while address-only EVM watches remain valid. Raw workchain-zero TON V4R2 watches require a matching public key. Duplicate watch ecosystems/chain IDs, iOS TonSwift JSON addresses and named universal chain identities fail closed until their receiving interpretation is qualified. This check also covers watch slots attached to signed source material without treating them as signing ownership.
+- The full account JVM suite passes 343/343 with no failures, errors or skips; focused staging coverage confirms an unqualified incoming watch identity writes no journal or reservation. Default `detektAll` and forced scoped Detekt over all five touched Kotlin files pass against pristine pinned Utils `1c80a2bf` and WebSocket `9714b30b`. The installer, public-identity digest, original-key readback, iOS TON/chain interpretation and replacement-device acceptance remain open. Compiled portable recovery is still disabled.
+
 ## Android watch-wallet identity proof candidate — 2026-09-25
 
 - The read-only Android semantic export proof now independently checks watch-wallet public identities after canonical decoding. Present Substrate and chain public keys must derive their recorded account IDs; a present compressed EVM public key must derive its recorded address; a native TON public key must derive the exact raw workchain-zero Wallet V4R2 address. Address-only EVM watch wallets remain supported. Duplicate watch ecosystems or chain IDs within one wallet fail closed. This proof does not establish ownership of a watch address, interpret foreign TON JSON or named universal chains, install a wallet, or enable recovery.

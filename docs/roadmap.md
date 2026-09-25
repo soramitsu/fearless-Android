@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Android incoming watch-identity guard candidate — 2026-09-25
+
+- The disabled receiving path now rejects unverified watch public identities before cohort staging, including mismatched native TON, Substrate, EVM and supported chain fields; it retains valid address-only EVM watches. TonSwift JSON TON addresses and named universal chains remain unqualified and are rejected before any journal write. P0: define and independently verify those iOS-origin identity interpretations, then bind the complete public-identity digest and prove transactional installation/readback with original signing/export and cross-platform replacement-device tests. This guard is not a recovery-enablement or installer proof.
+
 ## Android watch-wallet identity proof candidate — 2026-09-25
 
 - The disabled read-only Android export proof now rejects public key/address mismatches for watch Substrate, EVM, native TON V4R2 and chain accounts, while retaining valid address-only EVM watches. P0: independently qualify foreign TON JSON and named-chain identities, bind the complete cohort public-identity digest, and prove transactionally installed watch rows and preferences on replacement devices. This local public check is not watch-address ownership, restored-wallet readback or production recovery authorization.

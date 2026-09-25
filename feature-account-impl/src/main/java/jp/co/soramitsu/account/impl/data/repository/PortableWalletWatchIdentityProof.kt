@@ -7,10 +7,9 @@ import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 
 /**
- * Independent public-identity proof for watch wallets emitted by the Android exporter. This
- * checks the address represented by every present public key, but never claims key ownership or
- * that a restored row has been installed. Foreign TON JSON and named-chain interpretations need
- * their own reviewed receiving proof before cross-platform recovery can be enabled.
+ * Independent public-identity proof for watch wallets. This checks the address represented by
+ * every present public key, but never claims key ownership or that a restored row has been
+ * installed. Foreign TON JSON and named universal chains fail closed until separately qualified.
  */
 internal object PortableWalletWatchIdentityProof {
     private val role = PortableWalletSemanticMaterial.Role
@@ -32,8 +31,14 @@ internal object PortableWalletWatchIdentityProof {
         require(wallet.slots.all { it.role == role.WATCH_IDENTITY || it.role == role.FAVORITE_CHAIN }) {
             "A watch wallet contains signing or original-source material"
         }
+        return verifyReceivingWallet(wallet).also {
+            require(it > 0) { "A watch wallet has no public identity" }
+        }
+    }
+
+    /** Checks every incoming watch slot before a receiving plan can become a durable journal. */
+    fun verifyReceivingWallet(wallet: PortableWalletSemanticMaterial.Wallet): Int {
         val watches = wallet.slots.filter { it.role == role.WATCH_IDENTITY }
-        require(watches.isNotEmpty()) { "A watch wallet has no public identity" }
         val seen = HashSet<String>()
         watches.forEach { slot ->
             val ecosystem = slot.number(field.WATCH_ECOSYSTEM)
@@ -54,6 +59,9 @@ internal object PortableWalletWatchIdentityProof {
     }
 
     private fun verifySubstrate(slot: PortableWalletSemanticMaterial.Slot) {
+        if (slot.number(field.WATCH_ECOSYSTEM) == CHAIN_ECOSYSTEM) {
+            WalletCustodyProvenance.requireSupportedWatchChainId(slot.text(field.WATCH_CHAIN_ID))
+        }
         val publicKey = slot.value(field.PUBLIC_KEY)
         val accountId = slot.value(field.ACCOUNT_ID_OR_ADDRESS)
         val ecdsa = slot.number(field.CRYPTO_TYPE) == ECDSA_CRYPTO
@@ -88,10 +96,10 @@ internal object PortableWalletWatchIdentityProof {
 
     private fun verifyTon(slot: PortableWalletSemanticMaterial.Slot) {
         val publicKey = requireNotNull(slot.optional(field.PUBLIC_KEY)) {
-            "Android watch TON identity has no public key"
+            "Watch TON identity has no public key"
         }
         require(publicKey.size == TON_KEY_BYTES && slot.number(field.TON_ADDRESS_ENCODING) == RAW_TON_ADDRESS) {
-            "Android watch TON identity is not a raw V4R2 identity"
+            "Watch TON identity is not a qualified raw V4R2 identity"
         }
         val address = slot.value(field.ACCOUNT_ID_OR_ADDRESS)
         require(address.size == RAW_TON_ADDRESS_BYTES && address[0] == 0.toByte()) {
