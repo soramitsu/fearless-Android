@@ -1,5 +1,11 @@
 # Status Summary
 
+## Recovery coroutine cancellation cleanup — 2026-09-28
+
+- Removed redundant cancellation checks before the inherited-job `withContext(Dispatchers.IO)` boundaries in generation creation, reconciliation and promotion. The context switch already checks cancellation before the journal block. Explicit checks around synchronous work and injected suspend callbacks remain where those operations do not guarantee cooperative cancellation. Journal admission, account/owner checks and recovery enablement are unchanged.
+- The draft and semantic plaintext exporters now retain cleanup ownership across the IO context switch. If cancellation discards the completed result before delivery, the retained buffer is erased; a successful return transfers the original buffer to the caller. No `NonCancellable` context or replacement job is introduced.
+- The final account suite passes 352/352, including deterministic cancelled-return and successful-delivery regressions; the backup suite passes 292/292. Both have zero failures/errors/skips. Default Detekt passes; forced analysis of the five changed Kotlin files reports the same 32 existing findings as the prior-head comparison, with none introduced.
+
 ## Android receiving inventory bound to staged cohorts — 2026-09-25
 
 - New `FPWCAI01` v2 records bind the frozen Substrate receiving inventory by SHA-256. The candidate inventory contains the exact 87 raw genesis IDs from the bundled registry, including 17 disabled historical chains for public-identity preservation; it grants no network or signing permission. Staging, encrypted journal readback, restart and storage projection now use that same policy, so approved chain watches can be retained without a caller-supplied allowlist. A substituted or unsupported policy digest is rejected while the stored journal remains intact. Historical v1 after-images preserve their exact bytes, commitments and prior no-chain-watch interpretation, including during original-source-sidecar upgrade.

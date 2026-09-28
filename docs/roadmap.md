@@ -4,6 +4,10 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Recovery coroutine cancellation cleanup — 2026-09-28
+
+- Removed three redundant pre-`withContext(Dispatchers.IO)` cancellation checks. Future recovery integration must use the inherited job and retain explicit cancellation checkpoints only where synchronous work or a noncooperative callback requires them; these checks are not atomic write authorization. Exported plaintext remains producer-owned until successful return delivery; preserve that cancellation cleanup when wiring the exporter into backup creation.
+
 ## Android durable receiving-policy binding — 2026-09-25
 
 - `FPWCAI01` v2 binds the exact compiled Substrate identity inventory through staging, restart, original-source commitments and storage projection. Existing v1 bytes and tokens retain their original interpretation; unknown policy digests preserve the quarantined record. P0: independently review the frozen inventory, qualify mixed cross-platform cohorts on supported devices, finish the transactional installer and installed signing/export proof, and retain a migration-safe policy strategy for future inventory revisions before enabling recovery.

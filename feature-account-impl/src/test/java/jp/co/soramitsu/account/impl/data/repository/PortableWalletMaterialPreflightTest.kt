@@ -34,10 +34,15 @@ import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactor
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.toByteArray
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -47,6 +52,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 class PortableWalletMaterialPreflightTest {
     private val metaAccountDao = mock<MetaAccountDao>()
@@ -67,6 +75,59 @@ class PortableWalletMaterialPreflightTest {
         runBlocking { whenever(assetDao.getExplicitAssetPresentation(any())).thenReturn(emptyList()) }
         whenever(encryptedPreferences.keysWithPrefixes(any(), any(), any(), any(), any()))
             .thenReturn(emptySet())
+    }
+
+    @Test
+    fun `erases completed plaintext when cancellation discards its delivery`(): Unit = runBlocking {
+        val resumes = LinkedBlockingQueue<Runnable>()
+        val caller = object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                resumes.add(block)
+            }
+        }
+        val plaintext = byteArrayOf(1, 2, 3)
+        var delivered = false
+        val request = async(caller, start = CoroutineStart.UNDISPATCHED) {
+            withPortablePlaintextOnIo { plaintext }.also { delivered = true }
+        }
+        try {
+            // The IO block has returned. Hold the return dispatch until after cancellation.
+            val resume = checkNotNull(resumes.poll(10, TimeUnit.SECONDS))
+            val beforeDelivery = plaintext.copyOf()
+            request.cancel()
+            resume.run()
+            assertTrue(runCatching { request.await() }.exceptionOrNull() is CancellationException)
+            assertArrayEquals(byteArrayOf(1, 2, 3), beforeDelivery)
+            assertFalse(delivered)
+            assertArrayEquals(ByteArray(plaintext.size), plaintext)
+        } finally {
+            request.cancel()
+            while (true) (resumes.poll() ?: break).run()
+            plaintext.fill(0)
+        }
+    }
+
+    @Test
+    fun `successful plaintext delivery transfers the intact buffer to its caller`(): Unit = runBlocking {
+        val resumes = LinkedBlockingQueue<Runnable>()
+        val caller = object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                resumes.add(block)
+            }
+        }
+        val plaintext = byteArrayOf(1, 2, 3)
+        val request = async(caller, start = CoroutineStart.UNDISPATCHED) {
+            withPortablePlaintextOnIo { plaintext }
+        }
+        try {
+            checkNotNull(resumes.poll(10, TimeUnit.SECONDS)).run()
+            assertSame(plaintext, request.await())
+            assertArrayEquals(byteArrayOf(1, 2, 3), plaintext)
+        } finally {
+            request.cancel()
+            while (true) (resumes.poll() ?: break).run()
+            plaintext.fill(0)
+        }
     }
 
     @Test

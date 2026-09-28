@@ -50,7 +50,6 @@ class GoogleDrivePasskeyBackupGenerationStorage(
         journal: PasskeyBackupGenerationJournal,
         expectedScope: PasskeyBackupJournalEntry.Scope
     ): CreateOutcome {
-        currentCoroutineContext().ensureActive()
         require(expectedScope.storageAccountBinding == accountBinding) { "Generation storage account mismatch" }
         val prepared = withContext(Dispatchers.IO) {
             requireNotNull(journal.read(operationId, expectedScope)) { "Missing prepared backup journal entry" }

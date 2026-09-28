@@ -66,7 +66,6 @@ class PasskeyBackupGenerationReconciler(
         expectedScope: PasskeyBackupJournalEntry.Scope,
         expectedWallet: PasskeyBackupExpectedWalletIdentity
     ): PasskeyBackupGenerationReconciliation {
-        currentCoroutineContext().ensureActive()
         val admitted = withContext(Dispatchers.IO) {
             requireNotNull(journal.readForReconciliation(operationId, expectedScope)) { "Missing prepared backup journal entry" }
         }

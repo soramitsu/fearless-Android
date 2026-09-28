@@ -95,7 +95,6 @@ class PasskeyBackupVerifiedGenerationPromotion(
         latestHead = ownerHead.readHead(session)
         requireSameHead(initialHead, latestHead)
         storage.requireSelectedAccount()
-        currentCoroutineContext().ensureActive()
         requireFreshSession(session)
         withContext(Dispatchers.IO) { journal.markCommitAttempt(operationId, scope) }
         try {

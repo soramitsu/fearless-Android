@@ -127,7 +127,7 @@ class PortableWalletMaterialPreflight @Inject constructor(
      * lock. Callers must encrypt immediately and erase the returned bytes. This draft is not wired
      * to Drive or backup completion and cannot be installed on a replacement device.
      */
-    internal suspend fun captureDraftPlaintext(): ByteArray = withContext(Dispatchers.IO) {
+    internal suspend fun captureDraftPlaintext(): ByteArray = withPortablePlaintextOnIo {
         WalletCrossStoreMutationMutex.instance.withLock {
             val before = snapshot(metaAccountDao.getJoinedMetaAccountsInfo())
             check(before.isNotEmpty()) { "No wallets are available for portable backup" }
@@ -176,7 +176,7 @@ class PortableWalletMaterialPreflight @Inject constructor(
 
     private suspend fun captureSemanticPlaintextInternal(
         approvedGenesis: List<PortableWalletChainSigningProof.ApprovedGenesis>?
-    ): ByteArray = withContext(Dispatchers.IO) {
+    ): ByteArray = withPortablePlaintextOnIo {
         WalletCrossStoreMutationMutex.instance.withLock {
             val rows = metaAccountDao.getJoinedMetaAccountsInfo()
             val before = snapshot(rows, allowAddressOnlyEvm = true)
@@ -475,5 +475,19 @@ class PortableWalletMaterialPreflight @Inject constructor(
         const val MAX_SS58_ADDRESS_CHARS = 64
         const val SUBSTRATE_ACCOUNT_ID_BYTES = 32
         val BASE58_ADDRESS = Regex("^[1-9A-HJ-NP-Za-km-z]+$")
+    }
+}
+
+/** Retain cleanup ownership until dispatch back to the caller successfully delivers the plaintext. */
+internal suspend fun withPortablePlaintextOnIo(capture: suspend () -> ByteArray): ByteArray {
+    var plaintext: ByteArray? = null
+    return try {
+        withContext(Dispatchers.IO) {
+            capture().also { plaintext = it }
+        }
+    } catch (failure: Throwable) {
+        // The IO block may have finished even though withContext discards its result on cancellation.
+        plaintext?.fill(0)
+        throw failure
     }
 }
