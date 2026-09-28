@@ -52,8 +52,16 @@ object IrohaToriiRoutes {
         return appendQuery("${accountUrl(accountId, baseUrl)}/assets", query)
     }
 
-    fun assetDefinitionsUrl(baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira)): String {
-        return "${normalizeBaseUrl(baseUrl)}/v1/assets/definitions"
+    fun assetDefinitionsUrl(
+        baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
+        limit: Int? = null,
+        offset: Long? = null,
+        countMode: CountMode? = null
+    ): String {
+        return appendQuery(
+            "${normalizeBaseUrl(baseUrl)}/v1/assets/definitions",
+            pageQuery(limit, offset, countMode)
+        )
     }
 
     fun submitTransactionUrl(baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira)): String {

@@ -64,17 +64,37 @@ assert.equal(template.schemaVersion, 1);
 assert.equal(template.scope, 'android-xcm-production-evidence-template');
 assert.equal(template.sourceRequiredRouteFile, routesFile);
 assert.equal(template.requiredRouteCount, 2);
+assert.ok(template.instructions.includes(
+  'Set lastReviewed in scripts/xcm-production-evidence.json to a valid UTC YYYY-MM-DD date on or after the UTC calendar date of every timestamp and verifiedAt value; same-day values through 23:59:59Z are valid.'
+));
+assert.ok(template.instructions.some((instruction) => instruction.includes(
+  'audit-xcm-effective-registry.sh --discovery-url https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json --require-all-approved --write-report build/reports/xcm-effective-registry-report.json && bash ./scripts/audit-xcm-production-evidence.sh --effective-registry-report build/reports/xcm-effective-registry-report.json --require-ready'
+)));
 assert.deepEqual(template.requiredEvidenceFields, [
   'originChainId',
   'destinationChainId',
   'assetSymbol',
   'extrinsicHash',
+  'originBlockHash',
+  'originBlockNumber',
+  'originFinalized',
+  'originExtrinsicSucceeded',
   'sender',
   'recipient',
   'amount',
   'timestamp',
+  'destinationBlockHash',
+  'destinationBlockNumber',
+  'destinationEventSucceeded',
+  'destinationBalanceDelta',
+  'originVerificationUrl',
+  'destinationVerificationUrl',
+  'verificationMethod',
+  'verifiedAt',
+  'independentVerifier',
   'environment',
-  'operator'
+  'operator',
+  'androidCommit'
 ]);
 assert.equal(template.evidence.length, 2);
 assert.deepEqual(template.evidence[0], {
@@ -82,14 +102,29 @@ assert.deepEqual(template.evidence[0], {
   destinationChainId: 'destination',
   assetSymbol: 'DOT',
   extrinsicHash: 'TODO_0x_prefixed_32_byte_hash',
+  originBlockHash: 'TODO_origin_0x_prefixed_32_byte_block_hash',
+  originBlockNumber: 'TODO_origin_positive_block_number',
+  originFinalized: false,
+  originExtrinsicSucceeded: false,
   sender: 'TODO_sender_public_address',
   recipient: 'TODO_recipient_public_address',
   amount: 'TODO_positive_decimal_amount',
   timestamp: 'TODO_YYYY-MM-DDTHH:MM:SSZ',
+  destinationBlockHash: 'TODO_destination_0x_prefixed_32_byte_block_hash',
+  destinationBlockNumber: 'TODO_destination_positive_block_number',
+  destinationEventSucceeded: false,
+  destinationBalanceDelta: 'TODO_positive_destination_balance_delta',
+  originVerificationUrl: 'TODO_public_https_origin_proof_url',
+  destinationVerificationUrl: 'TODO_public_https_destination_proof_url',
+  verificationMethod: 'canonical-rpc-and-explorer',
+  verifiedAt: 'TODO_YYYY-MM-DDTHH:MM:SSZ',
+  independentVerifier: 'TODO_independent_verifier_or_runbook_id',
   environment: 'mainnet',
-  operator: 'TODO_operator_or_runbook_id'
+  operator: 'TODO_operator_or_runbook_id',
+  androidCommit: 'TODO_android_release_commit'
 });
 assert.equal(template.evidence[1].assetSymbol, 'KSM');
+assert.equal(template.evidence[1].androidCommit, 'TODO_android_release_commit');
 
 function assertNoSecretLikeKeys(value, path = '$') {
   if (!value || typeof value !== 'object') {

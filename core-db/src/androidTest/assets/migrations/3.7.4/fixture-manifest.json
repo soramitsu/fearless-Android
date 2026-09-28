@@ -1,0 +1,66 @@
+{
+  "fixture_format": 1,
+  "purpose": "Immutable synthetic Room version-71 migration input built from DDL extracted from the official Fearless Wallet 3.7.4 Android binary",
+  "release": {
+    "repository": "https://github.com/soramitsu/fearless-Android",
+    "release_url": "https://github.com/soramitsu/fearless-Android/releases/tag/3.7.4",
+    "asset_url": "https://github.com/soramitsu/fearless-Android/releases/download/3.7.4/fearless-wallet-3.7.4_209.apk",
+    "asset_name": "fearless-wallet-3.7.4_209.apk",
+    "asset_size_bytes": 42766168,
+    "published_at": "2025-01-14T12:36:28Z",
+    "tag": "3.7.4",
+    "tag_commit": "2da66a2cdc5a892270a294a12bcfacbc4b585feb",
+    "apk_sha256": "4a1cb6377c5779b697610aa5806965615e79ab1bae92e207f9ee6eeb1bb56ba2",
+    "apk_signer_certificate_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+    "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d"
+  },
+  "schema_extraction": {
+    "apk_entry": "classes3.dex",
+    "apk_entry_sha256": "e8c76e3b597ebb68c5afce5fc4fee80da536dfabe89db108876b5f4e8a4c9497",
+    "class": "jp.co.soramitsu.coredb.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 71,
+    "room_identity_hash": "64c235aeb5a511d5cb4df675040540b4",
+    "explicit_table_count_including_room_master": 23,
+    "sqlite_table_count_including_sqlite_sequence": 24,
+    "explicit_index_count": 13
+  },
+  "database_construction": {
+    "source": "app-database-v71.sql",
+    "source_is_official_user_database": false,
+    "contains_released_user_rows": false,
+    "command": "sqlite3 app-database-v71.db < app-database-v71.sql",
+    "sqlite_version": "3.51.0 2025-06-12 13:14:41 f0ca7bba1c5e232e5d279fad6338121ab55af0c8c68c84cdfb18ba5114dcaapl",
+    "host": "Darwin 25.5.0 arm64",
+    "database_header_sqlite_version_number": 3051000,
+    "reproducible_with_pinned_tool": true
+  },
+  "tag_sources": {
+    "core_db_app_database_sha256": "973ca000ea40241afc435605b5ff4f36691a9489d1d2ce4ff579ee03abd1881d",
+    "legacy_meta_account_secrets_sha256": "321bbd1b88f72b1921d25d2a80673b918ac16ad9ea6f1976dbca93f44e8412d5"
+  },
+  "secret_fixture_extraction": {
+    "source_path_at_tag": "common/src/main/java/jp/co/soramitsu/common/data/secrets/v2/MetaAccountSecrets.kt",
+    "schema": "jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets",
+    "schema_field_count": 6,
+    "encoding": "SCALE",
+    "release_tag": "3.7.4",
+    "tag_commit": "2da66a2cdc5a892270a294a12bcfacbc4b585feb",
+    "source_sha256": "321bbd1b88f72b1921d25d2a80673b918ac16ad9ea6f1976dbca93f44e8412d5",
+    "vector_source": "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/TonMigrationSafetyTest.kt",
+    "vector_function": "encodedVersion69Secrets(default arguments)",
+    "synthetic_only": true,
+    "contains_user_material": false,
+    "current_ton_field_schema_used": false,
+    "decoded_byte_count": 257
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v71.sql",
+    "schema_sql_sha256": "edc3771e5a61981e18674a206d2b38f1be38595de0f77af455a2f899630beef4",
+    "database": "app-database-v71.db",
+    "database_sha256": "ca0c5efa69b56e46bba3cd218194e443133c83dd03ff044b972af65657d075a9",
+    "legacy_secret_v69": "meta-account-secrets-v69-default.hex",
+    "legacy_secret_v69_sha256": "fb30cf2e9c4918c22f0a269afc715802555c5b3ef97c794c82c375725773e51c",
+    "legacy_secret_v69_scale_sha256": "291eb865d03d31f20ee6fbb5cfac9722784ad5ea20dc7a6add8b3ded402c7d19"
+  }
+}

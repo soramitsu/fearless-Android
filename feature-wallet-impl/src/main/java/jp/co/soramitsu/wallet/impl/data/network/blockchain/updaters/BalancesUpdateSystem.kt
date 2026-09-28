@@ -80,19 +80,10 @@ class BalancesUpdateSystem(
 
                                         is BalanceLoader.BalanceLoaderAction.UpdateOrInsertBalance -> {
                                             val (balance, chainAsset) = balanceLoaderAction
-                                            val assetLocal = AssetLocal(
-                                                id = balance.id,
-                                                chainId = balance.chainId,
-                                                accountId = balance.accountId,
-                                                metaId = balance.metaId,
-                                                tokenPriceId = chainAsset.priceId,
-                                                freeInPlanks = balance.freeInPlanks,
-                                                reservedInPlanks = balance.reservedInPlanks,
-                                                miscFrozenInPlanks = balance.miscFrozenInPlanks,
-                                                feeFrozenInPlanks = balance.feeFrozenInPlanks,
-                                                enabled = true
+                                            assetDao.updateBalanceOrInsertPreservingPreference(
+                                                balance = balance,
+                                                tokenPriceId = chainAsset.priceId
                                             )
-                                            assetDao.updateOrInsertAsset(assetLocal)
                                         }
                                     }
                                 }

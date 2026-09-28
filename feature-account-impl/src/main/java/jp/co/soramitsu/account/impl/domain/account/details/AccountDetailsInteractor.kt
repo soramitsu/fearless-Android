@@ -13,7 +13,7 @@ import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.models.Ecosystem
@@ -66,7 +66,7 @@ class AccountDetailsInteractor(
             chains.flatMap { chain ->
                 chain.assets.map { chainAsset ->
                     val markedNotNeed = assetsMarkedNotNeed.contains(
-                        AssetKey(metaId, chain.id, emptyAccountIdValue, chainAsset.id)
+                        WalletAssetKey(metaId, chain.id, emptyAccountIdValue, chainAsset.id)
                     )
                     createAccountInChain(metaAccount, chain, markedNotNeed)
                 }
@@ -143,7 +143,7 @@ class AccountDetailsInteractor(
                 chains.any { chain ->
                     chain.assets.any { chainAsset ->
                         val markedNotNeed = assetsMarkedNotNeed.contains(
-                            AssetKey(metaAccount.id, chain.id, emptyAccountIdValue, chainAsset.id)
+                            WalletAssetKey(metaAccount.id, chain.id, emptyAccountIdValue, chainAsset.id)
                         )
                         val hasAccount = !chain.isEthereumBased || metaAccount.ethereumPublicKey != null || metaAccount.hasChainAccount(chain.id)
                         hasAccount.not() && markedNotNeed.not()

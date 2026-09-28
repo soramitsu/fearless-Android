@@ -55,7 +55,7 @@ class AndroidUniversalWalletMigrationSnapshotBuilderTest {
         )
 
         assertFalse(snapshot.hasUniversalWallet)
-        assertEquals(UniversalWalletMigrationRequiredAction.MigrateBeforeAccess, snapshot.requiredAction())
+        assertEquals(UniversalWalletMigrationRequiredAction.NormalAccess, snapshot.requiredAction())
         assertEquals(
             listOf(
                 UniversalWalletEcosystem.Substrate.id,
@@ -100,7 +100,7 @@ class AndroidUniversalWalletMigrationSnapshotBuilderTest {
     }
 
     @Test
-    fun `partial universal wallet material does not unlock normal access`() {
+    fun `partial universal wallet material preserves existing account access`() {
         val solana = SolanaKeyDerivation.deriveAccount(MNEMONIC)
         val snapshot = builder.build(
             listOf(
@@ -114,7 +114,8 @@ class AndroidUniversalWalletMigrationSnapshotBuilderTest {
 
         assertFalse(snapshot.hasUniversalWallet)
         assertTrue(snapshot.legacyVaults.isEmpty())
-        assertEquals(UniversalWalletMigrationRequiredAction.CreateUniversalWallet, snapshot.requiredAction())
+        assertTrue(snapshot.hasLegacyAccounts)
+        assertEquals(UniversalWalletMigrationRequiredAction.NormalAccess, snapshot.requiredAction())
         assertTrue(snapshot.validationErrors().isEmpty())
     }
 
@@ -133,7 +134,7 @@ class AndroidUniversalWalletMigrationSnapshotBuilderTest {
         )
 
         assertFalse(snapshot.hasUniversalWallet)
-        assertEquals(UniversalWalletMigrationRequiredAction.MigrateBeforeAccess, snapshot.requiredAction())
+        assertEquals(UniversalWalletMigrationRequiredAction.NormalAccess, snapshot.requiredAction())
         assertEquals(listOf(UniversalWalletEcosystem.Substrate.id), snapshot.legacyVaults.map { it.ecosystem })
         assertTrue(snapshot.validationErrors().isEmpty())
     }
@@ -150,7 +151,7 @@ class AndroidUniversalWalletMigrationSnapshotBuilderTest {
         )
         val descriptor = snapshot.legacyVaults.single()
 
-        assertEquals(UniversalWalletMigrationRequiredAction.MigrateBeforeAccess, snapshot.requiredAction())
+        assertEquals(UniversalWalletMigrationRequiredAction.NormalAccess, snapshot.requiredAction())
         assertEquals("unavailable:android:1:substrate", descriptor.address)
         assertFalse(descriptor.displayName.orEmpty().contains('\u0000'))
         assertTrue(descriptor.displayName.orEmpty().length <= 64)

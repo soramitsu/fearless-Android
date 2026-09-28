@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.subquery
 
+import com.google.gson.JsonObject
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.subquery.GiantsquidResponse
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
@@ -12,7 +13,6 @@ import jp.co.soramitsu.wallet.impl.data.network.model.response.AtletaHistoryResp
 import jp.co.soramitsu.wallet.impl.data.network.model.response.EtherscanHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.FireHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.GiantsquidHistoryResponse
-import jp.co.soramitsu.wallet.impl.data.network.model.response.KlaytnHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.OkLinkHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.ReefHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
@@ -22,6 +22,7 @@ import jp.co.soramitsu.wallet.impl.data.network.model.response.ZchainHistoryResp
 import jp.co.soramitsu.wallet.impl.data.network.model.response.ZetaHistoryResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Query
@@ -50,9 +51,10 @@ interface OperationsHistoryApi {
     @GET
     suspend fun getEtherscanOperationsHistory(
         @Url url: String,
+        @Query("chainid") chainId: String? = null,
         @Query("module") module: String = "account",
         @Query("action") action: String = "txlist",
-        @Query("contractAddress") contractAddress: String? = null,
+        @Query("contractaddress") contractAddress: String? = null,
         @Query("address") address: String,
         @Query("page") page: Int = 1,
         @Query("offset") offset: Int = 1000,
@@ -79,10 +81,21 @@ interface OperationsHistoryApi {
     ): AtletaHistoryResponse
 
     @GET
-    suspend fun getKlaytnOperationsHistory(
+    suspend fun getKaiaScanNativeHistory(
         @Url url: String,
-        @Query("page") page: Int
-    ): KlaytnHistoryResponse
+        @Header("Authorization") authorization: String,
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): JsonObject
+
+    @GET
+    suspend fun getKaiaScanTokenHistory(
+        @Url url: String,
+        @Header("Authorization") authorization: String,
+        @Query("contractAddress") contractAddress: String,
+        @Query("page") page: Int,
+        @Query("size") size: Int
+    ): JsonObject
 
     @GET
     suspend fun getFireOperationsHistory(

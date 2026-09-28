@@ -1,7 +1,5 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,8 +19,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import jp.co.soramitsu.common.compose.component.GrayButton
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +43,6 @@ import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
-import jp.co.soramitsu.common.compose.component.BannerDemeter
-import jp.co.soramitsu.common.compose.component.BannerLiquidityPools
-import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
@@ -65,7 +66,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
-import kotlinx.coroutines.delay
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
@@ -233,10 +233,11 @@ fun SwapTokensContent(
                                 .clip(CircleShape)
                                 .background(grayButtonBackground)
                                 .border(width = 1.dp, color = white08, shape = CircleShape)
-                                .clickable { runCallback(::onChangeTokensClick) }
+                                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                                .clickable(role = Role.Button) { runCallback(::onChangeTokensClick) }
                                 .padding(8.dp),
                             painter = painterResource(R.drawable.ic_exchange),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.ux_swap_direction),
                             tint = colorAccentDark
                         )
                     }
@@ -244,19 +245,12 @@ fun SwapTokensContent(
                     if (state.swapDetailsViewState != null) {
                         TransactionDescription(
                             swapDetailsViewState = state.swapDetailsViewState,
+                            market = state.selectedMarket,
                             networkFeeViewState = state.networkFeeViewState,
                             callbacks = callbacks
                         )
                     }
-                    if (state.showLiquidityBanner && state.isSoftKeyboardOpen.not()) {
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Banners(
-                            showLiquidity = state.showLiquidityBanner,
-                            showDemeter = false,
-                            callback = callbacks
-                        )
-                    }                }
+                }
                 if (state.hasReadDisclaimer.not()) {
                     Box(modifier = modifier.padding(horizontal = 16.dp)) {
                         Notification(
@@ -301,10 +295,12 @@ fun SwapTokensContent(
 @Composable
 private fun TransactionDescription(
     swapDetailsViewState: SwapDetailsViewState,
+    market: Market,
     networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
     modifier: Modifier = Modifier,
     callbacks: SwapTokensCallbacks
 ) {
+    var showDetails by rememberSaveable { mutableStateOf(false) }
     Column(
         modifier = modifier
     ) {
@@ -317,30 +313,6 @@ private fun TransactionDescription(
                 tooltip = true
             ),
             tooltipClick = callbacks::minMaxToolTopClick
-        )
-
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = stringResource(R.string.common_route),
-                feeAmount = swapDetailsViewState.route,
-                feeAmountFiat = null
-            )
-        )
-
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = "${swapDetailsViewState.fromTokenName} / ${swapDetailsViewState.toTokenName}",
-                feeAmount = swapDetailsViewState.fromTokenOnToToken,
-                feeAmountFiat = null
-            )
-        )
-
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = "${swapDetailsViewState.toTokenName} / ${swapDetailsViewState.fromTokenName}",
-                feeAmount = swapDetailsViewState.toTokenOnFromToken,
-                feeAmountFiat = null
-            )
         )
 
         when {
@@ -363,6 +335,37 @@ private fun TransactionDescription(
                 tooltipClick = callbacks::networkFeeTooltipClick
             )
         }
+        GrayButton(
+            text = stringResource(if (showDetails) R.string.ux_hide_details else R.string.ux_show_details),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            onClick = { showDetails = !showDetails }
+        )
+        if (showDetails) {
+            FeeInfo(state = FeeInfoViewState(caption = stringResource(R.string.polkaswap_market), feeAmount = market.marketName, feeAmountFiat = null))
+            FeeInfo(
+                state = FeeInfoViewState(
+                    caption = stringResource(R.string.common_route),
+                    feeAmount = swapDetailsViewState.route,
+                    feeAmountFiat = null
+                )
+            )
+
+            FeeInfo(
+                state = FeeInfoViewState(
+                    caption = "${swapDetailsViewState.fromTokenName} / ${swapDetailsViewState.toTokenName}",
+                    feeAmount = swapDetailsViewState.fromTokenOnToToken,
+                    feeAmountFiat = null
+                )
+            )
+
+            FeeInfo(
+                state = FeeInfoViewState(
+                    caption = "${swapDetailsViewState.toTokenName} / ${swapDetailsViewState.fromTokenName}",
+                    feeAmount = swapDetailsViewState.toTokenOnFromToken,
+                    feeAmountFiat = null
+                )
+            )
+        }
     }
 }
 
@@ -372,108 +375,18 @@ private fun MarketLabel(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
-    Row(
+    Icon(
         modifier = modifier
-            .clip(RoundedCornerShape(percent = 50))
-            .background(black05)
-            .clickable { onClick.invoke() },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            modifier = Modifier.padding(
-                start = 8.dp,
-                top = 4.dp,
-                bottom = 4.dp,
-                end = 4.dp
-            ),
-            text = stringResource(R.string.polkaswap_market),
-            style = MaterialTheme.customTypography.body1
-        )
-
-        Text(
-            text = market.marketName,
-            style = MaterialTheme.customTypography.header5
-        )
-
-        Icon(
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.customColors.white08)
-                .size(32.dp)
-                .padding(4.dp),
-            painter = painterResource(R.drawable.ic_settings_swap),
-            contentDescription = null,
-            tint = MaterialTheme.customColors.white
-        )
-    }
-}
-
-@Composable
-private fun Banners(
-    showLiquidity: Boolean,
-    showDemeter: Boolean,
-    callback: SwapTokensCallbacks,
-    autoPlay: Boolean = true
-) {
-    val bannerLiquidityPools: @Composable (() -> Unit)? = if (showLiquidity) {
-        {
-            BannerLiquidityPools(
-                onShowMoreClick = callback::onPoolsClick,
-                onCloseClick = callback::onLiquidityBannerClose
-            )
-        }
-    } else null
-
-    val bannerDemeter: @Composable (() -> Unit)? = if (showDemeter) {
-        {
-            BannerDemeter(
-                onShowMoreClick = {},
-                onCloseClick = {}
-            )
-        }
-    } else null
-
-    val banners = listOfNotNull(bannerLiquidityPools, bannerDemeter)
-    val bannersCount = banners.size
-    val pagerState = rememberPagerState { bannersCount }
-
-    if (bannersCount > 1) {
-        // Auto play
-        LaunchedEffect(key1 = autoPlay) {
-            if (autoPlay) {
-                while (true) {
-                    delay(5000L)
-                    with(pagerState) {
-                        animateScrollToPage(
-                            page = (currentPage + 1) % bannersCount,
-                            animationSpec = tween(
-                                durationMillis = 500,
-                                easing = FastOutSlowInEasing
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-    HorizontalPager(
-        modifier = Modifier.fillMaxWidth(),
-        state = pagerState,
-        pageSpacing = 8.dp,
-        pageContent = { page ->
-            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                banners[page].invoke()
-            }
-        }
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.customColors.white08)
+            .semantics { stateDescription = market.marketName }
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(12.dp),
+        painter = painterResource(R.drawable.ic_settings_swap),
+        contentDescription = stringResource(R.string.ux_swap_settings),
+        tint = MaterialTheme.customColors.white
     )
-    MarginVertical(margin = 8.dp)
-
-    if (bannersCount > 1) {
-        BannerPageIndicator(bannersCount, pagerState)
-        MarginVertical(margin = 8.dp)
-    }
-    MarginVertical(margin = 8.dp)
 }
 
 @Preview

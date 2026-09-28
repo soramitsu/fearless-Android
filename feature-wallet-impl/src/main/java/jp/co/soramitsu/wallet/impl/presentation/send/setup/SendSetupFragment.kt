@@ -18,11 +18,13 @@ import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.TransferValidationDialogContract
+import jp.co.soramitsu.wallet.impl.presentation.TransferValidationDialogCoordinator
+import jp.co.soramitsu.wallet.impl.presentation.bindTransferValidationDialog
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -34,7 +36,6 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
         const val KEY_INITIAL_AMOUNT = "KEY_INITIAL_AMOUNT"
         const val KEY_LOCK_AMOUNT = "KEY_LOCK_AMOUNT"
         const val KEY_TOKEN_ID = "KEY_TOKEN_ID"
-
         fun getBundle(payload: AssetPayload?, initSendToAddress: String?, currencyId: String?, amount: BigDecimal?, lockInput: Boolean) = bundleOf(
             KEY_PAYLOAD to payload,
             KEY_INITIAL_ADDRESS to initSendToAddress,
@@ -45,6 +46,8 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
     }
 
     override val viewModel: SendSetupViewModel by viewModels()
+    private val validationDialogCoordinator:
+        TransferValidationDialogCoordinator by viewModels()
 
     private val barcodeLauncher: ActivityResultLauncher<ScanOptions> = registerForActivityResult(ScanTextContract()) { result ->
         result?.let {
@@ -77,18 +80,20 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
         viewModel.openScannerEvent.observeEvent {
             requestCameraPermission()
         }
+        childFragmentManager.bindTransferValidationDialog(
+            TransferValidationDialogContract.SEND_SETUP,
+            validationDialogCoordinator,
+            viewLifecycleOwner,
+            onPositive = viewModel::warningConfirmed,
+            onSecondPositive = viewModel::warningConfirmedSecond,
+            onNegative = viewModel::warningCancelled
+        )
         viewModel.openValidationWarningEvent.observeEvent { (result, warning) ->
-            ErrorDialog(
-                title = warning.message,
-                message = warning.explanation,
-                positiveButtonText = warning.positiveButtonText,
-                secondPositiveButtonText = warning.secondPositiveButtonText,
-                negativeButtonText = warning.negativeButtonText,
-                positiveClick = { viewModel.warningConfirmed(result) },
-                secondPositiveClick = { viewModel.warningConfirmedSecond(result) },
-                negativeClick = { viewModel.warningCancelled(result) },
-                isHideable = false
-            ).show(childFragmentManager)
+            validationDialogCoordinator.enqueue(
+                TransferValidationDialogContract.SEND_SETUP,
+                result,
+                warning
+            )
         }
     }
 

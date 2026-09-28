@@ -173,7 +173,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun updateAssetsHidden(state: List<AssetUpdateItem>) {
-        assetDao.updateAssets(state)
+        assetDao.updateOrInsertAssetPreferences(state)
     }
 
     override suspend fun observeTransferFee(
@@ -333,6 +333,9 @@ class WalletRepositoryImpl(
 
     override suspend fun getAccountFreeBalance(chainAsset: CoreAsset, accountId: AccountId) =
         substrateSource.getAccountFreeBalance(chainAsset, accountId)
+
+    override suspend fun getAccountSpendableBalance(chainAsset: CoreAsset, accountId: AccountId) =
+        substrateSource.getAccountSpendableBalance(chainAsset, accountId)
 
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset) =
         substrateSource.getEquilibriumAssetRates(chainAsset)

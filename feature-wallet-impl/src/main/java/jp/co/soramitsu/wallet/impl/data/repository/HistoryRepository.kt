@@ -113,9 +113,9 @@ class HistoryRepository(
         var hasNextPage = true
 
         while (elements.size <= pageSize.div(2) && hasNextPage) {
-            page = kotlin.runCatching {
-                getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset, resolvedAccountAddress)
-            }.getOrDefault(CursorPage(null, emptyList()))
+            // A provider failure is not an empty history. Let the caller show its retry state,
+            // leaving the cached operations and cursor untouched.
+            page = getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset, resolvedAccountAddress)
             nextCursor = page.nextCursor
             hasNextPage = nextCursor != null && page.items.isNotEmpty()
             elements.addAll(page.map {

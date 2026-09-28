@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.di
 
+import jp.co.soramitsu.common.data.network.config.MutationAuthorizationStore
+import jp.co.soramitsu.common.data.network.config.MutationCapability
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import android.content.ContentResolver
 import com.google.gson.Gson
 import dagger.Module
@@ -15,12 +18,16 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinBalanceSync
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinReceiveDiscovery
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinTransactionHistorySync
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
+import jp.co.soramitsu.common.model.AssetMetadataDescriptorStore
 import jp.co.soramitsu.common.data.network.solana.SolanaRpcClient
 import jp.co.soramitsu.common.data.network.solana.SolanaTransactionHistorySync
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -28,11 +35,12 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
@@ -47,6 +55,7 @@ import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
@@ -70,6 +79,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.BalanceLoaderProvider
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.NetworkScanStateStore
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
@@ -87,6 +97,8 @@ import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.QuickInputsUseCaseImpl
+import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeInteractor
+import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeRuntimeAuthority
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
@@ -107,8 +119,26 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xcm.ExtrinsicServiceXcmSubmitter
+import jp.co.soramitsu.xcm.ChainRegistryReviewedBridgeRuntimeResolver
+import jp.co.soramitsu.xcm.MutationGuardedXcmTransferEngine
+import jp.co.soramitsu.xcm.ReviewedBridgeRuntimeResolver
+import jp.co.soramitsu.xcm.ReviewedBridgeBalanceReader
+import jp.co.soramitsu.xcm.ReviewedBridgeBalanceSnapshot
+import jp.co.soramitsu.xcm.ReviewedPolkaswapBridgeExecutor
+import jp.co.soramitsu.xcm.ReviewedPolkaswapBridgeCatalog
+import jp.co.soramitsu.xcm.ReviewedPolkaswapBridgeProviderIds
+import jp.co.soramitsu.xcm.ReviewedPolkaswapBridgeRouteProvider
 import jp.co.soramitsu.xcm.SubstrateXcmTransferEngine
 import jp.co.soramitsu.xcm.XcmService
+import jp.co.soramitsu.xcm.XcmExtrinsicSubmitter
+import jp.co.soramitsu.xcm.XcmTransferEngine
+import jp.co.soramitsu.xcm.domain.ApprovedXcmRouteRegistry
+import jp.co.soramitsu.xcm.domain.ApprovedXcmRouteRegistryLoader
+import jp.co.soramitsu.xcm.domain.CrossChainProtocol
+import jp.co.soramitsu.xcm.domain.CrossChainAssetIdentity
+import jp.co.soramitsu.xcm.domain.CrossChainRouteDescriptor
+import jp.co.soramitsu.xcm.domain.CrossChainRouteProviderRegistry
+import jp.co.soramitsu.xcm.domain.ReviewedWalletXcmRouteProvider
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.lib.datasources.chainsconfig.api.ConfigDAO
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.TxHistoryRepository
@@ -117,10 +147,40 @@ import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.impl.domain.adapter
 import jp.co.soramitsu.xnetworking.lib.engines.rest.api.RestClient
 import javax.inject.Named
 import javax.inject.Singleton
+import java.math.BigInteger
 
 private const val TIMEOUT_SECONDS = 60L
 private const val HTTP_CACHE = "http_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
+
+private fun jp.co.soramitsu.xcm.ReviewedBridgeRoute.toDescriptor() = CrossChainRouteDescriptor(
+    originNetworkId = originChainId,
+    destinationNetworkId = destinationChainId,
+    asset = CrossChainAssetIdentity(originChainId, originAssetId, symbol),
+    minimumAmount = minimumAmount,
+    estimatedTime = estimatedTime
+)
+
+internal val reviewedSoraSubstrateBridgeDescriptors = ReviewedPolkaswapBridgeCatalog
+    .executableForProvider(ReviewedPolkaswapBridgeProviderIds.SORA_SUBSTRATE)
+    .map { it.toDescriptor() }
+
+internal val reviewedLiberlandBridgeDescriptors = ReviewedPolkaswapBridgeCatalog
+    .executableForProvider(ReviewedPolkaswapBridgeProviderIds.LIBERLAND)
+    .map { it.toDescriptor() }
+
+internal fun selectApprovedXcmRouteRegistry(
+    enabled: Boolean,
+    loader: () -> ApprovedXcmRouteRegistry
+): ApprovedXcmRouteRegistry {
+    if (!enabled) return ApprovedXcmRouteRegistry.unavailable()
+
+    return try {
+        loader()
+    } catch (error: Exception) {
+        ApprovedXcmRouteRegistry.unavailable()
+    }
+}
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -350,7 +410,10 @@ class WalletFeatureModule {
         xcmEntitiesFetcher: XcmEntitiesFetcher,
         accountInteractor: AccountInteractor,
         runtimeFilesCache: RuntimeFilesCache,
-        xcmService: XcmService
+        xcmService: XcmService,
+        productFeatureToggleStore: ProductFeatureToggleStore,
+        routeProviderRegistry: CrossChainRouteProviderRegistry,
+        signingKeypairProvider: KeypairProvider
     ): XcmInteractor {
         return XcmInteractor(
             walletInteractor,
@@ -359,26 +422,120 @@ class WalletFeatureModule {
             xcmEntitiesFetcher,
             accountInteractor,
             runtimeFilesCache,
-            xcmService
+            xcmService,
+            productFeatureToggleStore,
+            routeProviderRegistry,
+            signingKeypairProvider
         )
     }
 
     @Provides
     @Singleton
-    fun provideXcmService(
-        chainRegistry: ChainRegistry,
-        rpcCalls: RpcCalls,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory
-    ): XcmService {
-        return XcmService(
-            chainRegistry,
-            SubstrateXcmTransferEngine(
-                ExtrinsicServiceXcmSubmitter(
-                    rpcCalls = rpcCalls,
-                    extrinsicBuilderFactory = extrinsicBuilderFactory
-                )
-            )
+    fun provideXcmTransferEngine(
+        xcmExtrinsicSubmitter: XcmExtrinsicSubmitter,
+        productFeatureToggleStore: ProductFeatureToggleStore
+    ): XcmTransferEngine {
+        return MutationGuardedXcmTransferEngine(
+            delegate = SubstrateXcmTransferEngine(xcmExtrinsicSubmitter),
+            transfersEnabled = BuildConfig.ENABLE_PRODUCTION_XCM_TRANSFERS,
+            mutationsEnabled = { productFeatureToggleStore.xcmMutationsEnabled }
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideXcmExtrinsicSubmitter(
+        rpcCalls: RpcCalls,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+        mortalityConstructor: MortalityConstructor,
+        authorization: MutationAuthorizationStore
+    ): XcmExtrinsicSubmitter = ExtrinsicServiceXcmSubmitter(
+        rpcCalls = rpcCalls,
+        extrinsicBuilderFactory = extrinsicBuilderFactory,
+        mortalityConstructor = mortalityConstructor,
+        authorize = { intent ->
+            check(BuildConfig.ENABLE_PRODUCTION_XCM_TRANSFERS) { "Cross-chain transfers are disabled in this release" }
+            authorization.acquire(MutationCapability.XCM, intent)
+        }
+    )
+
+    @Provides
+    @Singleton
+    fun provideReviewedBridgeBalanceReader(
+        balanceLoaderProvider: BalanceLoader.Provider,
+        walletInteractor: WalletInteractor
+    ): ReviewedBridgeBalanceReader = ReviewedBridgeBalanceReader { origin, transferAsset, feeAsset, accountId ->
+        val selected = walletInteractor.getSelectedMetaAccount()
+        val updates = balanceLoaderProvider.invoke(origin).loadBalance(setOf(selected))
+
+        fun transferable(assetId: String): BigInteger {
+            val matches = updates.filter {
+                it.chainId == origin.id && it.id == assetId && it.accountId.contentEquals(accountId)
+            }
+            require(matches.size == 1) { "cross_chain_fresh_balance_unavailable" }
+            val balance = matches.single()
+            if (balance.status != null && !balance.status.equals("Liquid", ignoreCase = true)) {
+                return BigInteger.ZERO
+            }
+            val free = balance.freeInPlanks ?: BigInteger.ZERO
+            val locked = maxOf(
+                balance.miscFrozenInPlanks ?: BigInteger.ZERO,
+                balance.feeFrozenInPlanks ?: BigInteger.ZERO
+            )
+            return maxOf(BigInteger.ZERO, free - locked)
+        }
+
+        ReviewedBridgeBalanceSnapshot(
+            originChainId = origin.id,
+            accountId = accountId,
+            transferAssetId = transferAsset.id,
+            transferAssetBalance = transferable(transferAsset.id),
+            feeAssetId = feeAsset.id,
+            feeAssetBalance = transferable(feeAsset.id),
+            observedAtMillis = System.currentTimeMillis()
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideReviewedPolkaswapBridgeExecutor(
+        reviewedBridgeRuntimeResolver: ReviewedBridgeRuntimeResolver,
+        reviewedBridgeBalanceReader: ReviewedBridgeBalanceReader,
+        rpcCalls: RpcCalls,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+        mortalityConstructor: MortalityConstructor,
+        authorization: MutationAuthorizationStore,
+        productFeatureToggleStore: ProductFeatureToggleStore
+    ): ReviewedPolkaswapBridgeExecutor = ReviewedPolkaswapBridgeExecutor(
+        runtimeResolver = reviewedBridgeRuntimeResolver,
+        balanceReader = reviewedBridgeBalanceReader,
+        submitter = ExtrinsicServiceXcmSubmitter(rpcCalls, extrinsicBuilderFactory, mortalityConstructor) { intent ->
+            authorization.acquire(MutationCapability.POLKASWAP_BRIDGE, intent)
+        },
+        mutationsEnabled = { productFeatureToggleStore.polkaswapBridgeMutationsEnabled }
+    )
+
+    @Provides
+    @Singleton
+    fun provideReviewedPolkaswapBridgeInteractor(
+        executor: ReviewedPolkaswapBridgeExecutor,
+        chainRegistry: ChainRegistry,
+        accountInteractor: AccountInteractor,
+        signingKeypairProvider: KeypairProvider
+    ): ReviewedPolkaswapBridgeInteractor = ReviewedPolkaswapBridgeInteractor(
+        executor,
+        chainRegistry,
+        accountInteractor,
+        signingKeypairProvider
+    )
+
+    @Provides
+    @Singleton
+    fun provideXcmService(
+        xcmEntitiesFetcher: XcmEntitiesFetcher,
+        xcmTransferEngine: XcmTransferEngine
+    ): XcmService {
+        return XcmService(xcmEntitiesFetcher, xcmTransferEngine)
     }
 
     @Provides
@@ -410,13 +567,117 @@ class WalletFeatureModule {
     @Provides
     fun provideChainInteractor(
         chainDao: ChainDao,
-        xcmEntitiesFetcher: XcmEntitiesFetcher
-    ): ChainInteractor = ChainInteractor(chainDao, xcmEntitiesFetcher)
+        xcmEntitiesFetcher: XcmEntitiesFetcher,
+        routeProviderRegistry: CrossChainRouteProviderRegistry
+    ): ChainInteractor = ChainInteractor(chainDao, xcmEntitiesFetcher, routeProviderRegistry)
 
     @Provides
-    fun provideXcmEntitiesFetcher(chainRegistry: ChainRegistry): XcmEntitiesFetcher {
-        return XcmEntitiesFetcher(chainRegistry)
+    @Singleton
+    fun provideApprovedXcmRouteRegistry(
+        contextManager: ContextManager
+    ): ApprovedXcmRouteRegistry {
+        // This immutable registry also supplies read-only route discovery and fee quotes.
+        // Submission permission is enforced separately by the guarded transfer engine.
+        return selectApprovedXcmRouteRegistry(enabled = true) {
+            val context = contextManager.getContext()
+            val bundledChains = context.assets.open("local_chains.json")
+                .bufferedReader()
+                .use { it.readText() }
+            val approvedRoutes = context.assets.open("approved_xcm_routes.tsv")
+                .bufferedReader()
+                .use { it.readText() }
+            ApprovedXcmRouteRegistryLoader.load(bundledChains, approvedRoutes)
+        }
     }
+
+    @Provides
+    @Singleton
+    fun provideXcmEntitiesFetcher(
+        chainSyncService: ChainSyncService,
+        approvedRoutes: ApprovedXcmRouteRegistry
+    ): XcmEntitiesFetcher {
+        return XcmEntitiesFetcher(chainSyncService, approvedRoutes)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCrossChainRouteProviderRegistry(
+        xcmEntitiesFetcher: XcmEntitiesFetcher,
+        reviewedBridgeRuntimeResolver: ReviewedBridgeRuntimeResolver,
+        productFeatureToggleStore: ProductFeatureToggleStore
+    ): CrossChainRouteProviderRegistry {
+        return CrossChainRouteProviderRegistry(
+            listOf(
+                ReviewedWalletXcmRouteProvider(
+                    entitiesFetcher = xcmEntitiesFetcher,
+                    actionsEnabled = {
+                        BuildConfig.ENABLE_PRODUCTION_XCM_TRANSFERS &&
+                            productFeatureToggleStore.xcmMutationsEnabled
+                    },
+                    actionsDisabledReason = {
+                        when {
+                            !BuildConfig.ENABLE_PRODUCTION_XCM_TRANSFERS ->
+                                "Reviewed XCM actions are unavailable in this build."
+                            !productFeatureToggleStore.xcmMutationsEnabled ->
+                                "Reviewed XCM actions are temporarily disabled."
+                            else -> "No reviewed XCM route matches this selection."
+                        }
+                    }
+                ),
+                ReviewedPolkaswapBridgeRouteProvider(
+                    providerId = ReviewedPolkaswapBridgeProviderIds.SORA_EVM,
+                    protocol = CrossChainProtocol.PolkaswapSoraEvm,
+                    runtimeResolver = reviewedBridgeRuntimeResolver,
+                    actionsEnabled = { false },
+                    actionsDisabledReason = {
+                        "SORA/EVM bridge actions require a reviewed multi-step recovery flow."
+                    }
+                ),
+                ReviewedPolkaswapBridgeRouteProvider(
+                    providerId = ReviewedPolkaswapBridgeProviderIds.SORA_SUBSTRATE,
+                    protocol = CrossChainProtocol.PolkaswapSoraSubstrate,
+                    runtimeResolver = reviewedBridgeRuntimeResolver,
+                    actionsEnabled = { productFeatureToggleStore.polkaswapBridgeMutationsEnabled },
+                    actionsDisabledReason = {
+                        "Polkaswap bridge actions are temporarily disabled."
+                    }
+                ),
+                ReviewedPolkaswapBridgeRouteProvider(
+                    providerId = ReviewedPolkaswapBridgeProviderIds.LIBERLAND,
+                    protocol = CrossChainProtocol.Liberland,
+                    runtimeResolver = reviewedBridgeRuntimeResolver,
+                    actionsEnabled = { productFeatureToggleStore.polkaswapBridgeMutationsEnabled },
+                    actionsDisabledReason = {
+                        "Polkaswap bridge actions are temporarily disabled."
+                    }
+                )
+            )
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideReviewedPolkaswapBridgeRuntimeAuthority(
+        chainRegistry: ChainRegistry,
+        rpcCalls: RpcCalls,
+        @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource
+    ): ReviewedPolkaswapBridgeRuntimeAuthority = ReviewedPolkaswapBridgeRuntimeAuthority(
+        chainRegistry = chainRegistry,
+        remoteStorage = remoteStorageSource,
+        rpcCalls = rpcCalls
+    )
+
+    @Provides
+    @Singleton
+    fun provideReviewedBridgeRuntimeResolver(
+        chainRegistry: ChainRegistry,
+        authority: ReviewedPolkaswapBridgeRuntimeAuthority
+    ): ReviewedBridgeRuntimeResolver = ChainRegistryReviewedBridgeRuntimeResolver(
+        chainRegistry = chainRegistry,
+        runtimeIdentityResolver = authority,
+        registrationAuthority = authority,
+        runtimeMinimumResolver = authority::destinationMinimum
+    )
 
     @Provides
     fun provideBuyTokenIntegration(): BuyTokenRegistry {
@@ -425,8 +686,7 @@ class WalletFeatureModule {
                 RampProvider(host = BuildConfig.RAMP_HOST, apiToken = BuildConfig.RAMP_TOKEN),
                 MoonPayProvider(
                     host = BuildConfig.MOONPAY_HOST,
-                    publicKey = BuildConfig.MOONPAY_PUBLIC_KEY,
-                    privateKey = BuildConfig.MOONPAY_PRIVATE_KEY
+                    publicKey = BuildConfig.MOONPAY_PUBLIC_KEY
                 ),
                 CoinbaseProvider(
                     host = BuildConfig.COINBASE_HOST,
@@ -474,7 +734,11 @@ class WalletFeatureModule {
         tonSyncDataRepository: TonSyncDataRepository,
         bitcoinIndexerClient: BitcoinIndexerClient,
         solanaBalanceSync: SolanaBalanceSync,
-        irohaToriiClient: IrohaToriiClient
+        irohaToriiClient: IrohaToriiClient,
+        chainDao: ChainDao,
+        networkScanStateStore: NetworkScanStateStore,
+        accountRepository: AccountRepository,
+        metadataDescriptorStore: AssetMetadataDescriptorStore
     ): BalanceLoader.Provider {
         return BalanceLoaderProvider(
             chainRegistry,
@@ -487,7 +751,12 @@ class WalletFeatureModule {
             tonSyncDataRepository,
             bitcoinIndexerClient,
             solanaBalanceSync,
-            irohaToriiClient
+            irohaToriiClient,
+            chainDao,
+            networkScanStateStore,
+            BitcoinBalanceSync(BitcoinReceiveDiscovery(bitcoinIndexerClient)),
+            accountRepository,
+            metadataDescriptorStore
         )
     }
 

@@ -88,7 +88,7 @@ class SolanaBalanceSyncTest {
     }
 
     @Test
-    fun `skips malformed token balances without hiding native SOL`() = runBlocking {
+    fun `rejects the whole balance response when any token row is malformed`() {
         val client = FakeSolanaIndexerClient(
             response = balancesResponse(
                 lamports = "1",
@@ -100,10 +100,11 @@ class SolanaBalanceSyncTest {
             )
         )
 
-        val result = SolanaBalanceSync(client).balances(WALLET)
+        val error = assertThrows(SolanaBalanceSyncException::class.java) {
+            runBlocking { SolanaBalanceSync(client).balances(WALLET) }
+        }
 
-        assertEquals("1", result.nativeBalance.amount)
-        assertEquals(listOf(TOKEN_2022_MINT), result.tokenBalances.map { it.assetId })
+        assertEquals(SolanaBalanceSyncException.Code.INVALID_TOKEN_BALANCE, error.code)
     }
 
     @Test

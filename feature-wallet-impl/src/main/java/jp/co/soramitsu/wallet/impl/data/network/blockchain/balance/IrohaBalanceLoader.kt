@@ -8,9 +8,12 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListItem
+import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
+import jp.co.soramitsu.common.model.AssetDiscoveryCoverage
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.runtime.ext.irohaAddressFromPublicKey
 import jp.co.soramitsu.runtime.ext.normalizedIrohaAddress
@@ -27,11 +30,14 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.CancellationException
 
 @SuppressLint("LogNotTimber")
 class IrohaBalanceLoader(
     chain: Chain,
-    private val toriiClient: IrohaToriiClient
+    private val toriiClient: IrohaToriiClient,
+    private val persistDiscoveredAssets: suspend (List<Asset>) -> Unit = {},
+    private val scanStateStore: NetworkScanStateStore? = null
 ) : BalanceLoader(chain) {
 
     private val trigger = BalanceUpdateTrigger.observe()
@@ -75,37 +81,143 @@ class IrohaBalanceLoader(
             ?.takeIf { it.type == Chain.ExternalApi.Section.Type.IROHA }
             ?.url
 
-        val response = runCatching {
-            toriiClient.accountAssets(
+        scanStateStore?.scanStarted(metaAccount.id, chain.id, AssetDiscoveryCoverage.Complete)
+        return try {
+            val accountAssets = loadAllAccountAssets(address, baseUrl, network)
+            accountAssets.forEach { balance ->
+                require(balance.quantity.decimalScaleOrNull() != null) {
+                    "Malformed Iroha quantity for ${balance.definitionId() ?: "unknown asset"}"
+                }
+            }
+
+            val knownAssetIds = chain.assets.flatMap { listOfNotNull(it.id, it.currencyId) }.toSet()
+            val definitionsById = loadAllAssetDefinitions(baseUrl).flatMap { definition ->
+                listOfNotNull(definition.id, definition.name, definition.alias)
+                    .map { id -> id to definition }
+            }.toMap()
+            val discoveredAssets = accountAssets
+                .filter { it.matchesAccount(address) }
+                .groupBy { it.definitionId() }
+                .filterKeys { it != null && it !in knownAssetIds }
+                .mapNotNull { (assetId, balances) ->
+                    assetId ?: return@mapNotNull null
+                    val definition = definitionsById[assetId]
+                    val precision = definition?.precisionOrNull()
+                        ?: balances.maxOfOrNull { requireNotNull(it.quantity.decimalScaleOrNull()) }
+                        ?: 0
+                    val total = balances.map { balance ->
+                        requireNotNull(balance.quantity.toPlanksOrNull(precision)) {
+                            "Iroha quantity precision mismatch for $assetId"
+                        }
+                    }.fold(BigInteger.ZERO, BigInteger::add)
+                    if (total.signum() <= 0) return@mapNotNull null
+                    balances.first().toUnverifiedIrohaAsset(assetId, precision, definition)
+                }
+
+            val availableAssets = (chain.assets + discoveredAssets).distinctBy(Asset::id)
+            val updates = availableAssets.map { asset ->
+                val matchingBalances = accountAssets.filter {
+                    it.matchesAccount(address) && it.matchesAsset(asset)
+                }
+                val freeInPlanks = if (matchingBalances.isEmpty()) {
+                    // Only a fully parsed, paginated response may establish authoritative
+                    // omission and reconcile a previously held definition to zero.
+                    BigInteger.ZERO
+                } else {
+                    matchingBalances.map { balance ->
+                        requireNotNull(balance.quantity.toPlanksOrNull(asset.precision)) {
+                            "Iroha quantity precision mismatch for ${asset.id}"
+                        }
+                    }.fold(BigInteger.ZERO, BigInteger::add)
+                }
+
+                IrohaAssetBalanceUpdate(
+                    balance = AssetBalanceUpdateItem(
+                        metaId = metaAccount.id,
+                        chainId = chain.id,
+                        accountId = accountId,
+                        id = asset.id,
+                        freeInPlanks = freeInPlanks
+                    ),
+                    asset = asset
+                )
+            }
+
+            // Validate every quantity and build every update before any persistence side effect.
+            persistDiscoveredAssets(discoveredAssets)
+            scanStateStore?.scanSucceeded(metaAccount.id, chain.id, AssetDiscoveryCoverage.Complete)
+            updates
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            runCatching { Log.d(tag, "balance load failed: $error") }
+            scanStateStore?.scanFailed(
+                metaAccount.id,
+                chain.id,
+                AssetDiscoveryCoverage.Complete,
+                error.message ?: error::class.simpleName
+            )
+            // No database updates means the last-known balances remain intact. In particular,
+            // a mixed valid/malformed response is never accepted as a partial fresh balance.
+            emptyList()
+        }
+    }
+
+    private suspend fun loadAllAccountAssets(
+        address: String,
+        baseUrl: String?,
+        network: jp.co.soramitsu.common.model.UniversalWalletRegistry.IrohaNetwork
+    ): List<IrohaAccountAssetListItem> {
+        val result = mutableListOf<IrohaAccountAssetListItem>()
+        var offset = 0L
+        var pages = 0
+
+        do {
+            val response = toriiClient.accountAssets(
                 accountId = address,
                 baseUrl = baseUrl,
                 limit = IrohaToriiRoutes.MAX_LIMIT,
+                offset = offset,
                 countMode = IrohaToriiRoutes.CountMode.Bounded,
                 network = network
             )
-        }.onFailure {
-            Log.d(tag, "balance load failed: $it")
-        }.getOrNull() ?: return emptyList()
+            result += response.items
+            if (!response.hasMore) break
+            check(response.items.isNotEmpty()) { "Iroha pagination returned an empty continuation page" }
+            offset += response.items.size
+            pages += 1
+            check(pages < MAX_PAGES) { "Iroha pagination exceeded the safety limit" }
+        } while (true)
 
-        return chain.assets.mapNotNull { asset ->
-            val freeInPlanks = response.items
-                .filter { it.matchesAccount(address) && it.matchesAsset(asset) }
-                .mapNotNull { it.quantity.toPlanksOrNull(asset.precision) }
-                .takeIf { it.isNotEmpty() }
-                ?.fold(BigInteger.ZERO, BigInteger::add)
-                ?: return@mapNotNull null
+        return result
+    }
 
-            IrohaAssetBalanceUpdate(
-                balance = AssetBalanceUpdateItem(
-                    metaId = metaAccount.id,
-                    chainId = chain.id,
-                    accountId = accountId,
-                    id = asset.id,
-                    freeInPlanks = freeInPlanks
-                ),
-                asset = asset
+    private suspend fun loadAllAssetDefinitions(
+        baseUrl: String?
+    ): List<IrohaAssetDefinitionListItem> {
+        val result = mutableListOf<IrohaAssetDefinitionListItem>()
+        val seenPageSignatures = mutableSetOf<List<String>>()
+        var offset = 0L
+        var pages = 0
+
+        do {
+            val response = toriiClient.assetDefinitionsPage(
+                baseUrl = baseUrl,
+                limit = IrohaToriiRoutes.MAX_LIMIT,
+                offset = offset,
+                countMode = IrohaToriiRoutes.CountMode.Bounded
             )
-        }
+            val signature = response.items.map(IrohaAssetDefinitionListItem::id)
+            check(seenPageSignatures.add(signature)) { "Iroha definition pagination repeated a page" }
+            result += response.items
+            if (!response.hasMore) break
+            check(response.items.isNotEmpty()) { "Iroha definition pagination returned an empty continuation page" }
+            offset += response.items.size
+            pages += 1
+            check(pages < MAX_PAGES) { "Iroha definition pagination exceeded the safety limit" }
+        } while (true)
+
+        return result
     }
 
     private fun IrohaAccountAssetListItem.matchesAccount(address: String): Boolean {
@@ -118,6 +230,71 @@ class IrohaBalanceLoader(
         val itemIds = setOfNotNull(asset, assetId, assetName, assetAlias)
 
         return itemIds.any { it in assetIds }
+    }
+
+    private fun IrohaAccountAssetListItem.definitionId(): String? {
+        return listOf(assetId, asset, assetName)
+            .firstOrNull { it?.isNotBlank() == true }
+    }
+
+    private fun IrohaAccountAssetListItem.toUnverifiedIrohaAsset(
+        definitionId: String,
+        precision: Int,
+        definition: IrohaAssetDefinitionListItem?
+    ): Asset {
+        val safeName = definition?.name?.takeIf(String::isNotBlank)
+            ?: assetName?.takeIf(String::isNotBlank)
+        val safeSymbol = definition?.alias?.takeIf(String::isNotBlank)
+            ?: assetAlias?.takeIf(String::isNotBlank)
+            ?: definitionId.substringBefore('#').takeIf(String::isNotBlank)
+            ?: definitionId
+
+        return Asset(
+            id = definitionId,
+            name = safeName,
+            symbol = safeSymbol,
+            iconUrl = "",
+            chainId = chain.id,
+            chainName = chain.name,
+            chainIcon = chain.icon,
+            isTestNet = chain.isTestNet,
+            priceId = null,
+            precision = precision,
+            staking = Asset.StakingType.UNSUPPORTED,
+            purchaseProviders = null,
+            supportStakingPool = false,
+            isUtility = false,
+            type = ChainAssetType.Unknown,
+            currencyId = definitionId,
+            existentialDeposit = null,
+            color = null,
+            isNative = false
+        )
+    }
+
+    private fun IrohaAssetDefinitionListItem.precisionOrNull(): Int? {
+        val raw = metadata?.entries?.firstOrNull { (key, _) ->
+            key.equals("precision", ignoreCase = true) ||
+                key.equals("scale", ignoreCase = true) ||
+                key.equals("decimals", ignoreCase = true)
+        }?.value ?: return null
+
+        val precision = when (raw) {
+            is Byte -> raw.toInt()
+            is Short -> raw.toInt()
+            is Int -> raw
+            is Long -> raw.takeIf { it in Int.MIN_VALUE..Int.MAX_VALUE }?.toInt()
+            is Float -> raw.takeIf { it % 1f == 0f }?.toInt()
+            is Double -> raw.takeIf { it % 1.0 == 0.0 }?.toInt()
+            is String -> raw.toIntOrNull()
+            else -> null
+        }
+        return precision?.takeIf { it in 0..255 }
+    }
+
+    private fun String.decimalScaleOrNull(): Int? {
+        if (!DECIMAL_QUANTITY.matches(trim())) return null
+        return runCatching { BigDecimal(trim()).scale().coerceAtLeast(0) }.getOrNull()
     }
 
     private fun String.toPlanksOrNull(precision: Int): BigInteger? {
@@ -136,5 +313,6 @@ class IrohaBalanceLoader(
 
     private companion object {
         val DECIMAL_QUANTITY = Regex("^(0|[1-9][0-9]*)(\\.[0-9]+)?$")
+        const val MAX_PAGES = 1_000
     }
 }

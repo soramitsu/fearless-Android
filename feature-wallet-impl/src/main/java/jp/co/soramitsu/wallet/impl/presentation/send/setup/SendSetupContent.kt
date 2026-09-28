@@ -30,6 +30,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -37,6 +39,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,6 +58,7 @@ import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.ColoredButton
 import jp.co.soramitsu.common.compose.component.FeeInfo
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -94,6 +102,7 @@ data class SendSetupViewState(
 )
 
 interface SendSetupScreenInterface {
+    val onCrossChainClick: () -> Unit
     fun onNavigationClick()
     fun onAddressInput(input: String)
     fun onAddressInputClear()
@@ -116,6 +125,8 @@ fun SendSetupContent(
     state: SendSetupViewState,
     callback: SendSetupScreenInterface
 ) {
+    var footerHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val showQuickInput = state.amountInputState.isFocused && state.isSoftKeyboardOpen && state.isInputLocked.not()
 
@@ -147,11 +158,11 @@ fun SendSetupContent(
                 .nestedScroll(rememberNestedScrollInteropConnection())
                 .fillMaxSize()
         ) {
-            val bottomPadding = 50 + if (state.isInputLocked.not()) 80 else 0 + if (state.sendAllAllowed) 40 else 0
+            val bottomPadding = with(density) { footerHeight.toDp() }
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = bottomPadding.dp)
+                    .padding(bottom = bottomPadding)
                     .verticalScroll(rememberScrollState())
                     .imePadding()
                     .fillMaxWidth()
@@ -190,14 +201,26 @@ fun SendSetupContent(
                     MarginVertical(margin = 8.dp)
                     WarningInfo(state = it, onClick = callback::onWarningInfoClick)
                 }
+                if (!state.isInputLocked) {
+                    MarginVertical(12.dp)
+                    GrayButton(
+                        text = stringResource(R.string.ux_network_transfer),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = callback.onCrossChainClick
+                    )
+                }
                 MarginVertical(margin = 8.dp)
                 FeeInfo(state = state.feeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
+                if (state.sendAllAllowed) {
+                    B1(text = stringResource(R.string.ux_send_maximum_description))
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
             }
 
             Column(
                 modifier = Modifier
+                    .onSizeChanged { footerHeight = it.height }
                     .background(backgroundBlack.copy(alpha = 0.75f))
                     .align(Alignment.BottomCenter)
             ) {
@@ -205,10 +228,12 @@ fun SendSetupContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 16.dp)
+                            .defaultMinSize(minHeight = 48.dp)
+                            .toggleable(value = state.sendAllChecked, role = Role.Switch, onValueChange = callback::onSendAllChecked),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        B1(text = stringResource(id = R.string.send_all_and_reap_account))
+                        B1(text = stringResource(id = R.string.ux_send_maximum), modifier = Modifier.weight(1f))
                         MarginHorizontal(margin = 8.dp)
                         val trackColor = when {
                             state.sendAllChecked -> colorAccentDark
@@ -217,7 +242,7 @@ fun SendSetupContent(
                         Switch(
                             colors = switchColors,
                             checked = state.sendAllChecked,
-                            onCheckedChange = callback::onSendAllChecked,
+                            onCheckedChange = null,
                             modifier = Modifier
                                 .background(color = trackColor, shape = RoundedCornerShape(20.dp))
                                 .padding(3.dp)
@@ -332,6 +357,7 @@ private fun SendSetupPreview() {
     )
 
     val emptyCallback = object : SendSetupScreenInterface {
+        override val onCrossChainClick: () -> Unit = {}
         override fun onNavigationClick() {}
         override fun onAddressInput(input: String) {}
         override fun onAddressInputClear() {}

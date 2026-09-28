@@ -216,6 +216,7 @@ fun EmptyResultContent() {
 }
 
 data class ManageAssetItemState(
+    val canonicalAssetKey: String,
     val id: String,
     val imageUrl: String?,
     val chainName: String,
@@ -391,6 +392,7 @@ private fun GroupItem(
 private fun ManageAssetsScreenPreview() {
     val items = listOf(
         ManageAssetItemState(
+            canonicalAssetKey = "substrate:kusama:1",
             id = "1",
             imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
             chainName = "Kusama",
@@ -404,6 +406,7 @@ private fun ManageAssetsScreenPreview() {
             showEdit = false
         ),
         ManageAssetItemState(
+            canonicalAssetKey = "ethereum:moonriver:2",
             id = "2",
             imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
             chainName = "Moonriver",
@@ -417,6 +420,7 @@ private fun ManageAssetsScreenPreview() {
             showEdit = true
         ),
         ManageAssetItemState(
+            canonicalAssetKey = "substrate:westend:3",
             id = "3",
             imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
             chainName = "Westend",
@@ -430,6 +434,7 @@ private fun ManageAssetsScreenPreview() {
             showEdit = true
         ),
         ManageAssetItemState(
+            canonicalAssetKey = "substrate:two-tee:4",
             id = "4",
             imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
             chainName = "TWO-TEE",

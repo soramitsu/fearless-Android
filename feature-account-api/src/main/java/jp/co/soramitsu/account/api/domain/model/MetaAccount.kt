@@ -193,6 +193,7 @@ fun LightMetaAccount.address(chain: Chain): String? {
             chain.isUniversalWalletBitcoin() -> universalWalletChainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::bitcoinAddressFromPublicKey)
             chain.isUniversalWalletSolana() -> universalWalletChainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::solanaAddressFromPublicKey)
             chain.isUniversalWalletIroha() -> universalWalletChainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::irohaAddressFromPublicKey)
+            chain.id in universalWalletChainAccounts -> chain.addressOf(universalWalletChainAccounts.getValue(chain.id).accountId)
             chain.ecosystem == Ecosystem.Substrate -> substrateAccountId?.toAddress(chain.addressPrefix.toShort())
             chain.ecosystem == Ecosystem.EthereumBased || chain.ecosystem == Ecosystem.Ethereum -> ethereumAddress?.ethereumAddressToHex()
             chain.ecosystem == Ecosystem.Ton -> {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -36,6 +37,12 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
 
     override fun initViews() {
         with(binding) {
+            exportMnemonicToolbar.findViewById<ImageView>(jp.co.soramitsu.common.R.id.backImg).apply {
+                val actionSize = (48 * resources.displayMetrics.density).toInt()
+                contentDescription = getString(R.string.ux_back)
+                layoutParams = layoutParams.apply { width = actionSize; height = actionSize }
+                scaleType = ImageView.ScaleType.CENTER
+            }
             exportMnemonicToolbar.setHomeButtonListener { viewModel.back() }
 
             exportMnemonicToolbar.setTitle(

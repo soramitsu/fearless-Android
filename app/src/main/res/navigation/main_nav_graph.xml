@@ -119,6 +119,12 @@
         android:label="fragment_main"
         tools:layout="@layout/fragment_main">
 
+        <argument
+            android:name="marketId"
+            app:argType="string"
+            app:nullable="true" />
+        <deepLink app:uri="fearless://defi/polkamarkt/{marketId}" />
+
         <action
             android:id="@+id/action_profileFragment_to_aboutFragment"
             app:destination="@id/aboutFragment"
@@ -214,21 +220,6 @@
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
-        <action
-            android:id="@+id/action_mainFragment_to_crowdloanContributeFragment"
-            app:destination="@id/crowdloanContributeFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-        <action
-            android:id="@+id/action_mainFragment_to_customContributeFragment"
-            app:destination="@id/customContributeFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
     </fragment>
 
     <fragment
@@ -431,7 +422,7 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
         android:label="confirmSendFragment" />
 
-    <dialog
+    <fragment
         android:id="@+id/confirmCrossChainSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment"
         android:label="confirmCrossChainSendFragment" />
@@ -686,7 +677,7 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
         android:label="cbdcSendSetupFragment" />
 
-    <dialog
+    <fragment
         android:id="@+id/crossChainFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
         android:label="crossChainFragment" />
@@ -746,23 +737,23 @@
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment"
         android:label="sessionRequestFragment"/>
 
-    <dialog
+    <fragment
         android:id="@+id/swapTokensFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment"
         android:label="swapTokensFragment" />
 
-    <dialog
+    <fragment
         android:id="@+id/polkaswapDisclaimerFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.disclaimer.PolkaswapDisclaimerFragment"
         android:label="polkaswapDisclaimerFragment" />
 
-    <dialog
+    <fragment
         android:id="@+id/transactionSettingsFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment"
         android:label="transactionSettingsFragment" />
 
 
-    <dialog
+    <fragment
         android:id="@+id/swapPreviewFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment"
         android:label="swapPreviewFragment" />
@@ -777,7 +768,7 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment"
         android:label="claimRewardsFragment" />
 
-    <dialog
+    <fragment
         android:id="@+id/selectMarketFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment"
         android:label="selectMarketFragment" />
@@ -932,6 +923,21 @@
         android:id="@+id/poolsFlowFragment"
         android:name="jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowFragment"
         android:label="poolsFlowFragment" />
+
+    <fragment
+        android:id="@+id/demeterFarmingFragment"
+        android:name="jp.co.soramitsu.liquiditypools.impl.presentation.demeter.DemeterFarmingFragment"
+        android:label="Demeter farming" />
+
+    <fragment
+        android:id="@+id/polkamarktFragment"
+        android:name="jp.co.soramitsu.polkamarkt.impl.presentation.PolkamarktFragment"
+        android:label="Polkamarkt">
+        <argument
+            android:name="marketId"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
 
     <fragment
         android:id="@+id/settingsCustomValidatorsFragment"
@@ -1285,51 +1291,6 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"
         android:label="ConfirmRewardDestinationFragment" />
 
-    <fragment
-        android:id="@+id/crowdloanContributeFragment"
-        android:name="jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment"
-        android:label="CrowdloanContributeFragment"
-        tools:layout="@layout/fragment_contribute">
-
-        <action
-            android:id="@+id/action_crowdloanContributeFragment_to_confirmContributeFragment"
-            app:destination="@id/confirmContributeFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-        <action
-            android:id="@+id/action_crowdloanContributeFragment_to_customContributeFragment"
-            app:destination="@id/customContributeFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/confirmContributeFragment"
-        android:name="jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.ConfirmContributeFragment"
-        android:label="ConfirmContributeFragment"
-        tools:layout="@layout/fragment_contribute_confirm" />
-
-    <fragment
-        android:id="@+id/customContributeFragment"
-        android:name="jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContributeFragment"
-        android:label="CustomContributeFragment"
-        tools:layout="@layout/fragment_custom_contribute">
-
-        <action
-            android:id="@+id/action_customContributeFragment_to_confirmContributeFragment"
-            app:destination="@id/confirmContributeFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    </fragment>
-
     <action
         android:id="@+id/actionOpenBeaconFragment"
         app:destination="@id/beaconFragment"
@@ -1380,11 +1341,5 @@
         android:id="@+id/scoreDetailsFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
         android:label="ScoreDetailsFragment" />
-
-    <fragment
-        android:id="@+id/crowdloanFragment"
-        tools:layout="@layout/fragment_crowdloans"
-        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
-        android:label="CrowdloanFragment" />
 
 </navigation>

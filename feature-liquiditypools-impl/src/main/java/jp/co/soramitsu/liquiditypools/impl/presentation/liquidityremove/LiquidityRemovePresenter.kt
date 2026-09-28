@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_liquiditypools_impl.R
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.domain.interfaces.DemeterFarmingInteractor
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.domain.model.CommonUserPoolData
@@ -430,10 +431,16 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     private fun updateButtonState() {
-        val isButtonEnabled = amountTarget.moreThanZero() && amountTarget.moreThanZero() && stateFlow.value.feeInfo.feeAmount != null
-        stateFlow.value = stateFlow.value.copy(
-            buttonEnabled = isButtonEnabled
-        )
+        coroutinesStore.uiScope.launch {
+            val capabilityReason = poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Remove)
+            val isButtonEnabled = capabilityReason == null &&
+                amountBase.moreThanZero() && amountTarget.moreThanZero() &&
+                stateFlow.value.feeInfo.feeAmount != null
+            stateFlow.value = stateFlow.value.copy(
+                buttonEnabled = isButtonEnabled,
+                capabilityReason = capabilityReason
+            )
+        }
     }
 
     private suspend fun getRemoveLiquidityNetworkFee(tokenBase: Asset, tokenTarget: Asset): BigDecimal {
@@ -454,6 +461,14 @@ class LiquidityRemovePresenter @Inject constructor(
         setButtonLoading(true)
 
         coroutinesStore.uiScope.launch {
+            poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Remove)?.let { reason ->
+                stateFlow.value = stateFlow.value.copy(
+                    buttonEnabled = false,
+                    buttonLoading = false,
+                    capabilityReason = reason
+                )
+                return@launch
+            }
             val utilityAmount = utilityAssetFlow.firstOrNull()?.transferable ?: return@launch
             val feeAmount = networkFeeFlow.firstOrNull().orZero()
 

@@ -50,6 +50,7 @@ echo "$ALIGN_OUT" | grep -q "SHARED_FEATURES_VERSION_OVERRIDE:" || { echo "SHARE
 echo "[post-merge] Verifying fearless-utils source checkout..."
 export FORCE_LOCAL_UTILS="${FORCE_LOCAL_UTILS:-true}"
 export FEARLESS_UTILS_LIBRARY_ONLY="${FEARLESS_UTILS_LIBRARY_ONLY:-true}"
+run bash ./scripts/test-fearless-utils-derived-tree.sh
 run ./scripts/ensure-fearless-utils.sh
 
 # 5) Verify release overlay boundary guard behavior

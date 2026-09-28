@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_liquiditypools_impl.R
+import jp.co.soramitsu.liquiditypools.domain.LiquidityMutationAction
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
@@ -122,9 +123,11 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         }.launchIn(coroutineScope)
 
         feeInfoViewStateFlow.onEach {
+            val capabilityReason = poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Remove)
             stateFlow.value = stateFlow.value.copy(
                 feeInfo = it,
-                buttonEnabled = it.feeAmount.isNullOrEmpty().not()
+                buttonEnabled = capabilityReason == null && it.feeAmount.isNullOrEmpty().not(),
+                capabilityReason = capabilityReason
             )
         }.launchIn(coroutineScope)
     }
@@ -140,6 +143,14 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
     override fun onRemoveConfirmClick() {
         setButtonLoading(true)
         coroutinesStore.ioScope.launch {
+            poolsInteractor.mutationCapabilityReason(LiquidityMutationAction.Remove)?.let { reason ->
+                stateFlow.value = stateFlow.value.copy(
+                    buttonEnabled = false,
+                    buttonLoading = false,
+                    capabilityReason = reason
+                )
+                return@launch
+            }
             val firstAmountMin = screenArgsFlow.replayCache.firstOrNull()?.firstAmountMin ?: return@launch
             val secondAmountMin = screenArgsFlow.replayCache.firstOrNull()?.secondAmountMin ?: return@launch
             val desired = screenArgsFlow.replayCache.firstOrNull()?.desired ?: return@launch

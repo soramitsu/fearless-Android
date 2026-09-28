@@ -11,8 +11,12 @@ import com.reown.walletkit.client.WalletKit
 import dagger.hilt.android.HiltAndroidApp
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
+import jp.co.soramitsu.common.data.network.config.MutationAuthorizationRefresher
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.utils.initializeTonAddressCode
+import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
+import javax.inject.Inject
 
 /**
  * Application entry point.
@@ -24,6 +28,8 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
  */
 @HiltAndroidApp
 open class App : Application() {
+
+    @Inject lateinit var mutationAuthorizationRefresher: MutationAuthorizationRefresher
 
     private val languagesHolder: LanguagesHolder = LanguagesHolder()
     @Suppress("unused")
@@ -43,10 +49,14 @@ open class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        initializeTonAddressCode()
+
         OptionsProvider.APPLICATION_ID = BuildConfig.LIBRARY_PACKAGE_NAME
         OptionsProvider.CURRENT_VERSION_CODE = BuildConfig.VERSION_CODE
         OptionsProvider.CURRENT_VERSION_NAME = BuildConfig.VERSION_NAME
         OptionsProvider.CURRENT_BUILD_TYPE = BuildConfig.BUILD_TYPE
+
+        mutationAuthorizationRefresher.start()
 
         // WalletConnect v2 setup (requires BuildConfig.WALLET_CONNECT_PROJECT_ID)
         setupWalletConnect()
@@ -60,34 +70,46 @@ open class App : Application() {
      * fields (name, description, icons), ensure they match Brand/App Store guidelines.
      */
     private fun setupWalletConnect() {
-        val connectionType = ConnectionType.AUTOMATIC // ConnectionType.AUTOMATIC or ConnectionType.MANUAL
-        val projectId = BuildConfig.WALLET_CONNECT_PROJECT_ID // Project ID at https://cloud.walletconnect.com/
-        val relayUrl = "relay.walletconnect.com"
-        val serverUrl = "wss://$relayUrl?projectId=${projectId}"
+        initializeWalletConnectSafely(
+            initialize = {
+                val connectionType = ConnectionType.AUTOMATIC
+                val projectId = BuildConfig.WALLET_CONNECT_PROJECT_ID
+                val relayUrl = "relay.walletconnect.com"
+                val serverUrl = "wss://$relayUrl?projectId=${projectId}"
 
-        val appMetaData = Core.Model.AppMetaData(
-            name = "Fearless wallet",
-            description = "Defi wallet",
-            url = "https://fearlesswallet.io",
-            icons = listOf("https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/FW%20icon%20128.png"),
-            redirect = "fearless-wallet-wc://request"
+                val appMetaData = Core.Model.AppMetaData(
+                    name = "Fearless wallet",
+                    description = "Defi wallet",
+                    url = "https://fearlesswallet.io",
+                    icons = listOf("https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/FW%20icon%20128.png"),
+                    redirect = "fearless-wallet-wc://request"
+                )
+
+                CoreClient.initialize(
+                    relayServerUrl = serverUrl,
+                    connectionType = connectionType,
+                    application = this,
+                    metaData = appMetaData,
+                    onError = {
+                        it.throwable.printStackTrace()
+                    }
+                )
+
+                val initParams = Wallet.Params.Init(core = CoreClient)
+
+                WalletKit.initialize(
+                    params = initParams,
+                    onSuccess = {
+                        WCDelegate.registerDelegatesIfReady()
+                            .onSuccess { WCDelegate.refreshConnections() }
+                    },
+                    onError = { error ->
+                        // Will log exceptions if initialization fails (e.g., invalid project ID, network issues)
+                        error.throwable.printStackTrace()
+                    }
+                )
+            },
+            onFailure = RuntimeException::printStackTrace
         )
-
-        CoreClient.initialize(
-            relayServerUrl = serverUrl,
-            connectionType = connectionType,
-            application = this,
-            metaData = appMetaData,
-            onError = {
-                it.throwable.printStackTrace()
-            }
-        )
-
-        val initParams = Wallet.Params.Init(core = CoreClient)
-
-        WalletKit.initialize(initParams) { error ->
-            // Will log exceptions if initialization fails (e.g., invalid project ID, network issues)
-            error.throwable.printStackTrace()
-        }
     }
 }

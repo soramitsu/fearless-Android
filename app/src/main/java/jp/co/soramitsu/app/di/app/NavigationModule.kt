@@ -7,11 +7,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.app.root.navigation.Navigator
-import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkamarkt.api.PolkamarktRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.success.api.presentation.SuccessRouter
@@ -49,15 +49,15 @@ class NavigationModule {
 
     @Singleton
     @Provides
+    fun providePolkamarktRouter(navigator: Navigator): PolkamarktRouter = navigator
+
+    @Singleton
+    @Provides
     fun provideSuccessRouter(navigator: Navigator): SuccessRouter = navigator
 
     @Singleton
     @Provides
     fun provideStakingRouter(navigator: Navigator): StakingRouter = navigator
-
-    @Singleton
-    @Provides
-    fun provideCrowdloanRouter(navigator: Navigator): CrowdloanRouter = navigator
 
     @Singleton
     @Provides

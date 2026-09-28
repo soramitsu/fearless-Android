@@ -5,11 +5,11 @@ import android.util.Log
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.impl.domain.StorageKeyWithMetadata
-import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.EmptyBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.toAssetBalance
+import jp.co.soramitsu.common.model.AssetDiscoveryCoverage
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
@@ -40,6 +40,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtr
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.SubscribeBalanceRequest
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
@@ -49,7 +50,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.math.BigInteger
 
 class SubstrateBalanceLoader(
     chain: Chain,
@@ -57,6 +57,7 @@ class SubstrateBalanceLoader(
     private val remoteStorageSource: RemoteStorageSource,
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
+    private val scanStateStore: NetworkScanStateStore? = null,
 ) : BalanceLoader(chain) {
 
     companion object {
@@ -71,14 +72,44 @@ class SubstrateBalanceLoader(
             if(metaAccountsWithSubstrate.isEmpty()) {
                 return@supervisorScope emptyList()
             }
-            val emptyAssets: MutableList<AssetBalanceUpdateItem> = mutableListOf()
-            val runtime = withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
-                if (chainRegistry.checkChainSyncedUp(chain).not()) {
-                    chainRegistry.setupChain(chain)
-                }
+            metaAccountsWithSubstrate.forEach {
+                scanStateStore?.scanStarted(it.id, chain.id, AssetDiscoveryCoverage.CatalogOnly)
+            }
+            val runtime = try {
+                withTimeoutOrNull(CHAIN_SYNC_TIMEOUT_MILLIS) {
+                    if (chainRegistry.checkChainSyncedUp(chain).not()) {
+                        chainRegistry.setupChain(chain)
+                    }
 
-                // awaiting runtime snapshot
-                chainRegistry.awaitRuntimeProvider(chain.id).get()
+                    // awaiting runtime snapshot
+                    chainRegistry.awaitRuntimeProvider(chain.id).get()
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                metaAccountsWithSubstrate.forEach {
+                    scanStateStore?.scanFailed(
+                        it.id,
+                        chain.id,
+                        AssetDiscoveryCoverage.CatalogOnly,
+                        error.message ?: error::class.simpleName
+                    )
+                }
+                // Endpoint/setup failures emit no balance update so the cache retains
+                // the last known values rather than replacing them with zero.
+                return@supervisorScope emptyList()
+            }
+            if (runtime == null) {
+                metaAccountsWithSubstrate.forEach {
+                    scanStateStore?.scanFailed(
+                        it.id,
+                        chain.id,
+                        AssetDiscoveryCoverage.CatalogOnly,
+                        "Runtime unavailable"
+                    )
+                }
+                // A runtime/endpoint failure must not overwrite last-known balances with zero.
+                return@supervisorScope emptyList()
             }
 
             val allAccountsStorageKeys =
@@ -93,44 +124,41 @@ class SubstrateBalanceLoader(
                     )
                 }.flatten()
 
-            val keysToQuery =
-                allAccountsStorageKeys.mapNotNull { metadata ->
-                    // if storage key build is failed - we put the empty assets
-                    if (metadata.key == null) {
-                        emptyAssets.add(
-                            AssetBalanceUpdateItem(
-                                accountId = metadata.accountId,
-                                id = metadata.asset.id,
-                                chainId = metadata.asset.chainId,
-                                metaId = metadata.metaAccountId,
-                                freeInPlanks = BigInteger.valueOf(-1)
-                            )
-                        )
-                    }
-                    metadata.key
-                }.toList()
+            val invalidStorageKey = allAccountsStorageKeys.firstOrNull { it.key == null }
+            val keysToQuery = allAccountsStorageKeys.mapNotNull(StorageKeyWithMetadata::key)
 
-            val storageKeyToResult = remoteStorageSource.queryKeys(
-                keysToQuery,
-                chain.id,
-                null
-            )
+            val storageKeyToResult = try {
+                remoteStorageSource.queryKeys(keysToQuery, chain.id, null)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                metaAccountsWithSubstrate.forEach {
+                    scanStateStore?.scanFailed(
+                        it.id,
+                        chain.id,
+                        AssetDiscoveryCoverage.CatalogOnly,
+                        error.message ?: error::class.simpleName
+                    )
+                }
+                return@supervisorScope emptyList()
+            }
 
-            allAccountsStorageKeys.map { metadata ->
+            var parseFailure: Throwable? = invalidStorageKey?.let {
+                IllegalStateException("Unable to construct storage key for ${it.asset.id}")
+            }
+            val updates = allAccountsStorageKeys.mapNotNull { metadata ->
+                if (metadata.key == null) return@mapNotNull null
                 val hexRaw =
                     storageKeyToResult.getOrDefault(
                         metadata.key,
                         null
                     )
 
-                val assetBalance =
-                    runtime?.let {
-                        handleBalanceResponse(
-                            it,
-                            metadata.asset,
-                            hexRaw
-                        ).getOrNull().toAssetBalance()
-                    } ?: AssetBalance()
+                val assetBalance = handleBalanceResponse(runtime, metadata.asset, hexRaw)
+                    .onFailure { parseFailure = it }
+                    .getOrNull()
+                    ?.toAssetBalance()
+                    ?: return@mapNotNull null
 
                 AssetBalanceUpdateItem(
                     id = metadata.asset.id,
@@ -140,9 +168,25 @@ class SubstrateBalanceLoader(
                     freeInPlanks = assetBalance.freeInPlanks,
                     reservedInPlanks = assetBalance.reservedInPlanks,
                     miscFrozenInPlanks = assetBalance.miscFrozenInPlanks,
-                    feeFrozenInPlanks = assetBalance.feeFrozenInPlanks
+                    feeFrozenInPlanks = assetBalance.feeFrozenInPlanks,
+                    status = assetBalance.status
                 )
-            } + emptyAssets
+            }
+
+            metaAccountsWithSubstrate.forEach { account ->
+                val failure = parseFailure
+                if (failure == null) {
+                    scanStateStore?.scanSucceeded(account.id, chain.id, AssetDiscoveryCoverage.CatalogOnly)
+                } else {
+                    scanStateStore?.scanFailed(
+                        account.id,
+                        chain.id,
+                        AssetDiscoveryCoverage.CatalogOnly,
+                        failure.message ?: failure::class.simpleName
+                    )
+                }
+            }
+            updates
 
         }
     }
@@ -153,6 +197,7 @@ class SubstrateBalanceLoader(
             runtime to socketService
         }.flatMapLatest { (runtime, socketService) ->
             channelFlow {
+                scanStateStore?.scanStarted(metaAccount.id, chain.id, AssetDiscoveryCoverage.CatalogOnly)
                 val storageKeys = buildStorageKeys(chain, metaAccount, runtime).onFailure {
                     logError("Error build storage keys for chain ${chain.name}: $it")
                 }
@@ -164,6 +209,7 @@ class SubstrateBalanceLoader(
                 socketService.subscriptionFlow(request).collect { subscriptionChange ->
                     val storageChange = subscriptionChange.storageChange()
                     val storageKeyToHex = storageChange.changes.map { it[0]!! to it[1] }
+                    var parseFailure: Throwable? = null
 
                     storageKeyToHex.onEach { (key, hexRaw) ->
                         val metadata = storageKeys.firstOrNull { it.key == key }
@@ -171,6 +217,7 @@ class SubstrateBalanceLoader(
 
                         val balanceData = handleBalanceResponse(runtime, metadata.asset, hexRaw)
                             .onFailure {
+                                parseFailure = it
                                 logError("Failed to handle balance response chain ${chain.name}, asset: ${metadata.asset.name}: $it")
                             }.getOrNull()?.toAssetBalance() ?: return@onEach
 
@@ -184,14 +231,34 @@ class SubstrateBalanceLoader(
                                     freeInPlanks = balanceData.freeInPlanks,
                                     reservedInPlanks = balanceData.reservedInPlanks,
                                     miscFrozenInPlanks = balanceData.miscFrozenInPlanks,
-                                    feeFrozenInPlanks = balanceData.feeFrozenInPlanks
+                                    feeFrozenInPlanks = balanceData.feeFrozenInPlanks,
+                                    status = balanceData.status
                                 )
                             )
                         )
                     }
+                    val failure = parseFailure
+                    if (failure == null) {
+                        scanStateStore?.scanSucceeded(metaAccount.id, chain.id, AssetDiscoveryCoverage.CatalogOnly)
+                    } else {
+                        scanStateStore?.scanFailed(
+                            metaAccount.id,
+                            chain.id,
+                            AssetDiscoveryCoverage.CatalogOnly,
+                            failure.message ?: failure::class.simpleName
+                        )
+                    }
                 }
             }
-        }.catch { logError("error: $it") }
+        }.catch {
+            scanStateStore?.scanFailed(
+                metaAccount.id,
+                chain.id,
+                AssetDiscoveryCoverage.CatalogOnly,
+                it.message ?: it::class.simpleName
+            )
+            logError("error: $it")
+        }
     }
 
     private fun buildStorageKeys(
@@ -313,7 +380,7 @@ class SubstrateBalanceLoader(
 
     @SuppressLint("LogNotTimber")
     private fun logError(text: String) {
-        Log.d(tag, text)
+        runCatching { Log.d(tag, text) }
     }
 
     private suspend fun fetchTransfers(blockHash: String, chain: Chain, accountId: AccountId) {

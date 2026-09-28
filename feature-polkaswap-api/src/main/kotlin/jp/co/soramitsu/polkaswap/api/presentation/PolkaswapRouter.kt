@@ -40,4 +40,6 @@ interface PolkaswapRouter {
     fun openWebViewer(title: String, url: String)
 
     fun openPools()
+
+    fun openDemeterFarming()
 }

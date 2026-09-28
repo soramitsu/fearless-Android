@@ -34,6 +34,18 @@ interface IrohaToriiClient {
 
     suspend fun assetDefinitions(baseUrl: String? = null): IrohaAssetDefinitionListResponse
 
+    /**
+     * Paged asset-definition catalog. The default preserves source compatibility for custom
+     * clients, while production clients override it so discovery can exhaust catalogs larger
+     * than Torii's 500-item page limit.
+     */
+    suspend fun assetDefinitionsPage(
+        baseUrl: String? = null,
+        limit: Int? = null,
+        offset: Long? = null,
+        countMode: IrohaToriiRoutes.CountMode? = null
+    ): IrohaAssetDefinitionListResponse = assetDefinitions(baseUrl)
+
     suspend fun submitTransaction(
         noritoBytes: ByteArray,
         baseUrl: String? = null
@@ -120,6 +132,22 @@ class RetrofitIrohaToriiClient(
 
     override suspend fun assetDefinitions(baseUrl: String?): IrohaAssetDefinitionListResponse {
         return api.assetDefinitions(IrohaToriiRoutes.assetDefinitionsUrl(resolveBaseUrl(baseUrl)))
+    }
+
+    override suspend fun assetDefinitionsPage(
+        baseUrl: String?,
+        limit: Int?,
+        offset: Long?,
+        countMode: IrohaToriiRoutes.CountMode?
+    ): IrohaAssetDefinitionListResponse {
+        return api.assetDefinitions(
+            IrohaToriiRoutes.assetDefinitionsUrl(
+                baseUrl = resolveBaseUrl(baseUrl),
+                limit = limit,
+                offset = offset,
+                countMode = countMode
+            )
+        )
     }
 
     override suspend fun submitTransaction(

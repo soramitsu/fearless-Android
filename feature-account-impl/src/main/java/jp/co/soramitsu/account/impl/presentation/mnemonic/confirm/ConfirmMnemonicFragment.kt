@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,6 +37,17 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     override fun initViews() {
         with(binding) {
+            val actionSize = (48 * resources.displayMetrics.density).toInt()
+            toolbar.findViewById<ImageView>(jp.co.soramitsu.common.R.id.backImg).apply {
+                contentDescription = getString(R.string.ux_back)
+                layoutParams = layoutParams.apply { width = actionSize; height = actionSize }
+                scaleType = ImageView.ScaleType.CENTER
+            }
+            toolbar.findViewById<ImageView>(jp.co.soramitsu.common.R.id.rightImg).apply {
+                contentDescription = getString(R.string.common_reset)
+                layoutParams = layoutParams.apply { width = actionSize; height = actionSize }
+                scaleType = ImageView.ScaleType.CENTER
+            }
             toolbar.setHomeButtonListener {
                 viewModel.homeButtonClicked()
             }
@@ -105,7 +117,6 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
             val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()
             wordsMnemonicView.minimumHeight = containerHeight
-            confirmationMnemonicView.minimumHeight = containerHeight
         }
     }
 

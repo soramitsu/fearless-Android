@@ -4,6 +4,7 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -11,6 +12,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.Phase
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
@@ -71,6 +73,9 @@ class WssSubstrateSource(
             else -> BigInteger.ZERO
         }
     }
+
+    override suspend fun getAccountSpendableBalance(chainAsset: Asset, accountId: AccountId): BigInteger =
+        getAccountInfo(chainAsset, accountId).spendableBalance(chainAsset.currency)
 
     override suspend fun getTotalBalance(chainAsset: Asset, accountId: AccountId): BigInteger {
         return when (val info = getAccountInfo(chainAsset, accountId)) {
@@ -490,3 +495,18 @@ class WssSubstrateSource(
         )
     }
 }
+
+internal fun AssetBalanceData?.spendableBalance(currency: Any?): BigInteger {
+    val amount = when (this) {
+        is OrmlTokensAccountData -> free - frozen
+        is AccountInfo -> data.free - data.miscFrozen.max(data.feeFrozen)
+        is EqAccountInfo -> (currency as? BigInteger)?.let(data.balances::get).orZero() - data.lock
+        is AssetsAccountInfo -> if (status == FROZEN_ASSET_STATUS) BigInteger.ZERO else balance
+        is SimpleBalanceData -> balance
+        else -> BigInteger.ZERO
+    }
+
+    return amount.max(BigInteger.ZERO)
+}
+
+private const val FROZEN_ASSET_STATUS = "Frozen"

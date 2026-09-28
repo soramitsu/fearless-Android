@@ -49,6 +49,8 @@ make_fixture_root "$pass_root"
 printf '%s\n' 'class ExistingDebt { // TODO existing baseline marker' '}' > "$pass_root/app/src/main/java/ExistingDebt.kt"
 mkdir -p "$pass_root/fearless-utils-Android/fearless-utils/src/main/java"
 printf '%s\n' 'class ExternalCheckoutDebt { // TODO external dependency marker ignored' '    fun crash(): Nothing = TODO("external")' '}' > "$pass_root/fearless-utils-Android/fearless-utils/src/main/java/ExternalCheckoutDebt.kt"
+mkdir -p "$pass_root/fearless-nv-websocket-client/src/main/java"
+printf '%s\n' '// FIXME independent pinned dependency marker' 'fun crash(): Nothing = TODO("external")' > "$pass_root/fearless-nv-websocket-client/src/main/java/External.java"
 printf '%s\t%s\n' 'app/src/main/java/ExistingDebt.kt' 'class ExistingDebt { // TODO existing baseline marker' > "$pass_root/config/todo-debt-baseline.tsv"
 run_audit "$pass_root" >/dev/null
 PATH="/usr/bin:/bin:/usr/sbin:/sbin" run_audit "$pass_root" >/dev/null
@@ -80,5 +82,19 @@ make_fixture_root "$executable_root"
 printf '%s\n' 'class Crashy {' '    fun crash(): Nothing = TODO("boom")' '}' > "$executable_root/app/src/main/java/Crashy.kt"
 printf '%s\t%s\n' 'app/src/main/java/Crashy.kt' 'fun crash(): Nothing = TODO("boom")' > "$executable_root/config/todo-debt-baseline.tsv"
 expect_failure "executable TODO fixture" "$executable_root" "Executable TODO calls are forbidden"
+
+# Only the exact top-level dependency checkout is excluded. App-owned nested
+# and similarly named modules must still fail in both rg and grep scanners.
+for source_dir in app/src/main/java/fearless-nv-websocket-client fearless-nv-websocket-client-app/src/main/java; do
+  scope_root="$tmp_dir/scope-$(basename "$source_dir")"
+  mkdir -p "$scope_root/$source_dir" "$scope_root/config"
+  : > "$scope_root/config/todo-debt-baseline.tsv"
+  printf '%s\n' '// FIXME first-party marker must remain visible' > "$scope_root/$source_dir/Source.java"
+  expect_failure "first-party marker $source_dir" "$scope_root" "New TODO/FIXME/STOPSHIP markers"
+  PATH="/usr/bin:/bin:/usr/sbin:/sbin" expect_failure "grep first-party marker $source_dir" "$scope_root" "New TODO/FIXME/STOPSHIP markers"
+  printf '%s\n' 'fun crash(): Nothing = TODO("first-party")' > "$scope_root/$source_dir/Source.java"
+  expect_failure "first-party executable marker $source_dir" "$scope_root" "Executable TODO calls are forbidden"
+  PATH="/usr/bin:/bin:/usr/sbin:/sbin" expect_failure "grep first-party executable marker $source_dir" "$scope_root" "Executable TODO calls are forbidden"
+done
 
 echo "[todo-audit-test] all tests passed"

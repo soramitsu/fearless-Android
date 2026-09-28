@@ -23,8 +23,26 @@ RELEASE_DIR=""
 VERSION=""
 DOWNLOAD=0
 SELF_TEST=0
-REPO="${IROHA_MOBILE_SDK_RELEASE_REPO:-hyperledger/iroha}"
+REPO="${IROHA_MOBILE_SDK_RELEASE_REPO:-hyperledger-iroha/iroha}"
 TAG="${IROHA_MOBILE_SDK_RELEASE_TAG:-}"
+SELF_TEST_TMP=""
+VALIDATION_TMP_DIR=""
+DOWNLOAD_TMP_DIR=""
+
+cleanup_runtime() {
+  local directory
+  for directory in \
+    "$SELF_TEST_TMP" \
+    "$VALIDATION_TMP_DIR" \
+    "$DOWNLOAD_TMP_DIR"; do
+    if [[ -n "$directory" && -d "$directory" ]]; then
+      rm -rf -- "$directory"
+    fi
+  done
+}
+
+trap cleanup_runtime EXIT
+trap 'cleanup_runtime; exit 130' HUP INT TERM
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -145,6 +163,7 @@ download_release_assets() {
   [[ -n "$TAG" ]] || fail "--download requires --tag or IROHA_MOBILE_SDK_RELEASE_TAG"
   require_tool gh
   RELEASE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/iroha-android-sdk-assets.XXXXXX")"
+  DOWNLOAD_TMP_DIR="$RELEASE_DIR"
   VERSION="$TAG"
   gh release download "$TAG" \
     --repo "$REPO" \
@@ -197,8 +216,10 @@ validate_release_dir() {
   require_zip_entry "$android_zip" "^iroha-mobile-sdk-android-${VERSION}/maven/org/hyperledger/iroha/sdk/offline-wallet-android/[^/]+/offline-wallet-android-.+\\.aar$" "Android Maven offline-wallet AAR"
 
   tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/iroha-android-aar.XXXXXX")"
+  VALIDATION_TMP_DIR="$tmp_dir"
   validate_client_aar "$android_zip" "$tmp_dir" "$client_aar_entry"
-  rm -rf "$tmp_dir"
+  rm -rf -- "$tmp_dir"
+  VALIDATION_TMP_DIR=""
 
   echo "[iroha-sdk-assets] Android Iroha SDK assets validated for version $VERSION"
 }
@@ -265,7 +286,7 @@ run_self_test() {
   require_tool unzip
   local tmp valid missing_maven bad_aar missing_checksums
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/iroha-android-assets-test.XXXXXX")"
-  trap "rm -rf '$tmp'" EXIT
+  SELF_TEST_TMP="$tmp"
 
   valid="$tmp/valid"
   mkdir -p "$valid"

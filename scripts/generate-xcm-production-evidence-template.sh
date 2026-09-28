@@ -12,6 +12,8 @@ Usage: scripts/generate-xcm-production-evidence-template.sh [--required-route-fi
 Generates a JSON template for XCM production E2E evidence from the required-route
 manifest. The generated evidence records intentionally contain TODO placeholders
 and must be completed before copying them into scripts/xcm-production-evidence.json.
+The target manifest lastReviewed date must cover every evidence timestamp and
+verifiedAt UTC calendar date.
 USAGE
 }
 
@@ -58,12 +60,26 @@ const REQUIRED_EVIDENCE_FIELDS = [
   'destinationChainId',
   'assetSymbol',
   'extrinsicHash',
+  'originBlockHash',
+  'originBlockNumber',
+  'originFinalized',
+  'originExtrinsicSucceeded',
   'sender',
   'recipient',
   'amount',
   'timestamp',
+  'destinationBlockHash',
+  'destinationBlockNumber',
+  'destinationEventSucceeded',
+  'destinationBalanceDelta',
+  'originVerificationUrl',
+  'destinationVerificationUrl',
+  'verificationMethod',
+  'verifiedAt',
+  'independentVerifier',
   'environment',
-  'operator'
+  'operator',
+  'androidCommit'
 ];
 
 function fail(message) {
@@ -131,7 +147,11 @@ if (!fs.existsSync(requiredRouteFile)) {
       instructions: [
         'Copy the evidence array into scripts/xcm-production-evidence.json only after replacing every TODO value.',
         'Do not include private keys, mnemonics, seeds, passwords, credentials, or authorization headers in public evidence.',
-        'After every route has evidence and no discovery-only gaps remain, set status to ready, releaseEnabled to true, clear blockers, and run bash ./scripts/audit-xcm-production-evidence.sh --require-ready.'
+        'Independently verify finalized origin inclusion/success and destination execution/balance delta against canonical RPCs plus public proof links; the offline audit checks the attestation shape, not chain truth.',
+        'Set every success/finality boolean to true only after verification, and use an independentVerifier that differs from operator.',
+        'Set lastReviewed in scripts/xcm-production-evidence.json to a valid UTC YYYY-MM-DD date on or after the UTC calendar date of every timestamp and verifiedAt value; same-day values through 23:59:59Z are valid.',
+        'Set androidCommit to the Android release commit under validation; for tagged release validation you may set XCM_PRODUCTION_EXPECTED_COMMIT when running the audit.',
+        'After every route has evidence and no discovery-only gaps remain, set status to ready, releaseEnabled to true, clear blockers, then regenerate the canonical live report and validate it with the evidence in one command: bash ./scripts/audit-xcm-effective-registry.sh --discovery-url https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json --require-all-approved --write-report build/reports/xcm-effective-registry-report.json && bash ./scripts/audit-xcm-production-evidence.sh --effective-registry-report build/reports/xcm-effective-registry-report.json --require-ready.'
       ],
       requiredEvidenceFields: REQUIRED_EVIDENCE_FIELDS,
       evidence: routes.map((route) => ({
@@ -139,12 +159,26 @@ if (!fs.existsSync(requiredRouteFile)) {
         destinationChainId: route.destinationChainId,
         assetSymbol: route.assetSymbol,
         extrinsicHash: 'TODO_0x_prefixed_32_byte_hash',
+        originBlockHash: 'TODO_origin_0x_prefixed_32_byte_block_hash',
+        originBlockNumber: 'TODO_origin_positive_block_number',
+        originFinalized: false,
+        originExtrinsicSucceeded: false,
         sender: 'TODO_sender_public_address',
         recipient: 'TODO_recipient_public_address',
         amount: 'TODO_positive_decimal_amount',
         timestamp: 'TODO_YYYY-MM-DDTHH:MM:SSZ',
+        destinationBlockHash: 'TODO_destination_0x_prefixed_32_byte_block_hash',
+        destinationBlockNumber: 'TODO_destination_positive_block_number',
+        destinationEventSucceeded: false,
+        destinationBalanceDelta: 'TODO_positive_destination_balance_delta',
+        originVerificationUrl: 'TODO_public_https_origin_proof_url',
+        destinationVerificationUrl: 'TODO_public_https_destination_proof_url',
+        verificationMethod: 'canonical-rpc-and-explorer',
+        verifiedAt: 'TODO_YYYY-MM-DDTHH:MM:SSZ',
+        independentVerifier: 'TODO_independent_verifier_or_runbook_id',
         environment: 'mainnet',
-        operator: 'TODO_operator_or_runbook_id'
+        operator: 'TODO_operator_or_runbook_id',
+        androidCommit: 'TODO_android_release_commit'
       }))
     };
 

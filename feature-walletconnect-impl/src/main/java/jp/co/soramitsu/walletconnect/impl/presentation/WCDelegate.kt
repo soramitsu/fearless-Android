@@ -17,21 +17,30 @@ import kotlinx.coroutines.launch
 
 object WCDelegate : WalletKit.WalletDelegate, CoreClient.CoreDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val delegateRegistration = WalletConnectDelegateRegistration(
+        registerCoreDelegate = { CoreClient.setDelegate(this) },
+        registerWalletDelegate = { WalletKit.setWalletDelegate(this) }
+    )
 
     private val _walletEvents: MutableSharedFlow<Wallet.Model> = MutableSharedFlow()
     val walletEvents: SharedFlow<Wallet.Model> = _walletEvents.asSharedFlow()
     var sessionProposalEvent: Pair<Wallet.Model.SessionProposal, Wallet.Model.VerifyContext>? = null
     var sessionRequestEvent: Pair<Wallet.Model.SessionRequest, Wallet.Model.VerifyContext>? = null
 
-    init {
-        CoreClient.setDelegate(this)
-        WalletKit.setWalletDelegate(this)
-    }
-
     private val updateSessions = MutableStateFlow(Event(Unit))
     val activeSessionFlow = updateSessions.map {
-        WalletKit.getListOfActiveSessions()
+        walletConnectRuntimeBoundary {
+            WalletKit.getListOfActiveSessions()
+        }.getOrElse { error ->
+            error.printStackTrace()
+            emptyList()
+        }
     }
+
+    /**
+     * Registers delegates only after Reown initialization and safely allows a later retry.
+     */
+    fun registerDelegatesIfReady(): Result<Unit> = delegateRegistration.registerIfReady()
 
     fun refreshConnections() {
         updateSessions.value = Event(Unit)

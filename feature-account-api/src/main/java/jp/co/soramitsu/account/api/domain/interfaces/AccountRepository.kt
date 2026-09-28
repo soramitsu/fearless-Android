@@ -57,6 +57,12 @@ interface AccountRepository {
 
     suspend fun createAccount(payload: AddAccountPayload): Long
 
+    /** Preserve a backed-up independent EVM key with the Substrate mnemonic atomically. */
+    suspend fun createAccountFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Long
+
     suspend fun deleteAccount(metaId: Long)
 
     suspend fun importFromSeed(
@@ -140,4 +146,6 @@ interface AccountRepository {
     suspend fun getSubstrateSecrets(metaId: Long) : EncodableStruct<SubstrateSecrets>?
     suspend fun getEthereumSecrets(metaId: Long) : EncodableStruct<EthereumSecrets>?
     suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>?
+    suspend fun isWalletRecoveryRequired(metaId: Long): Boolean
+    fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean>
 }

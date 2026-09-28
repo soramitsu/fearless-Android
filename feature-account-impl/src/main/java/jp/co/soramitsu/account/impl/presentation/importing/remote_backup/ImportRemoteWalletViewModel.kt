@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.BackupOrigin
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
@@ -17,7 +16,6 @@ import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.exceptions.AuthConsentException
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
-import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
@@ -260,63 +258,19 @@ class ImportRemoteWalletViewModel @Inject constructor(
                     interactor.validateJsonBackup(json, passwordText.value)
                 }
 
-                importFromBackup(decryptedBackupAccount)
+                importLegacyGoogleBackupAccount(interactor, decryptedBackupAccount, passwordText.value)
                 nextStep()
                 isLoading.value = false
             }
                 .onFailure {
                     isLoading.value = false
-                    handleDecryptException(it)
+                    handleDecryptException()
                 }
         }
     }
 
-    private fun handleDecryptException(throwable: Throwable) {
-        throwable.printStackTrace()
+    private fun handleDecryptException() {
         showError(resourceManager.getString(R.string.import_json_invalid_password))
-    }
-
-    private suspend fun importFromBackup(
-        decryptedBackupAccount: DecryptedBackupAccount
-    ) {
-        decryptedBackupAccount.mnemonicPhrase?.let { mnemonicPhrase ->
-            val payload = AddAccountPayload.SubstrateOrEvm(
-                accountName = decryptedBackupAccount.name,
-                mnemonic = mnemonicPhrase,
-                encryptionType = decryptedBackupAccount.cryptoType,
-                substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
-                ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(),
-                googleBackupAddress = decryptedBackupAccount.address,
-                isBackedUp = true
-            )
-            interactor.createAccount(payload)
-            return
-        }
-
-        decryptedBackupAccount.seed?.let { seed ->
-            interactor.importFromSeed(
-                walletId = null,
-                substrateSeed = seed.substrateSeed.orEmpty(),
-                username = decryptedBackupAccount.name,
-                derivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
-                selectedEncryptionType = decryptedBackupAccount.cryptoType,
-                ethSeed = seed.ethSeed,
-                googleBackupAddress = decryptedBackupAccount.address
-            )
-            return
-        }
-
-        decryptedBackupAccount.json?.let { json ->
-            interactor.importFromJson(
-                walletId = null,
-                json = json.substrateJson.orEmpty(),
-                password = passwordText.value,
-                name = decryptedBackupAccount.name,
-                ethJson = json.ethJson,
-                googleBackupAddress = decryptedBackupAccount.address
-            )
-            return
-        }
     }
 
     private fun openMainScreen() {

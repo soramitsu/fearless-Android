@@ -40,17 +40,29 @@ internal sealed interface ScreenModel {
         screenLayout: ScreenLayout,
         onItemClick: (NFTCollection.Loaded.Result.Collection) -> Unit
     ) : ScreenModel, LoadableListPage.ReadyToRender<NFTCollectionsScreenView> {
-        override val views: Collection<NFTCollectionsScreenView> =
-            result.asSequence().filterIsInstance<NFTCollection.Loaded.Result.Collection>()
-                .sortedBy { it.collectionName }
-                .map { collection ->
-                    ItemModel(
-                        collection = collection,
-                        screenLayout = screenLayout,
-                        onItemClick = { onItemClick.invoke(collection) },
-                    )
-                }.ifEmpty { sequenceOf(NFTCollectionsScreenView.EmptyPlaceholder) }.toList()
+        override val views: Collection<NFTCollectionsScreenView> = result.asSequence()
+            .filterIsInstance<NFTCollection.Loaded.Result.Collection>()
+            .groupBy { it.chainId to it.chainName }
+            .toSortedMap(compareBy<Pair<String, String>> { it.second }.thenBy { it.first })
+            .flatMap { (network, collections) ->
+                listOf<NFTCollectionsScreenView>(NetworkHeaderModel(network.first, network.second)) +
+                    collections.sortedBy { it.collectionName }.map { collection ->
+                        ItemModel(
+                            collection = collection,
+                            screenLayout = screenLayout,
+                            onItemClick = { onItemClick.invoke(collection) },
+                        )
+                    }
+            }
+            .ifEmpty { listOf(NFTCollectionsScreenView.EmptyPlaceholder) }
     }
+}
+
+private class NetworkHeaderModel(
+    networkId: String,
+    override val networkName: String
+) : NFTCollectionsScreenView.NetworkHeader {
+    override val key: Any = "nft-network:$networkId"
 }
 
 private class ItemModel(
@@ -59,7 +71,9 @@ private class ItemModel(
     override val onItemClick: () -> Unit
 ) : NFTCollectionsScreenView.ItemModel.WithQuantityDecorator {
 
-    override val key: Any = collection.contractAddress
+    // Contracts can repeat across networks; the network-scoped key prevents Compose from merging
+    // unrelated collections during all-network rendering.
+    override val key: Any = "nft:${collection.chainId}:${collection.contractAddress}"
 
     override val thumbnail: Loadable<ImageModel> =
         Loadable.ReadyToRender(
