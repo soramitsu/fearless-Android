@@ -47,17 +47,21 @@ object IrohaToriiRoutes {
     ): String {
         val query = pageQuery(limit, offset, countMode).toMutableList()
         asset?.let { query += "asset=${encodeQueryValue(normalizeAssetSelector(it))}" }
-        scope?.let { query += "scope=${encodeQueryValue(normalizeScope(it))}" }
+        scope?.let { query += "scope=${encodeQueryValue(normalizeAccountAssetScope(it))}" }
 
         return appendQuery("${accountUrl(accountId, baseUrl)}/assets", query)
     }
 
-    fun assetDefinitionsUrl(baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira)): String {
-        return "${normalizeBaseUrl(baseUrl)}/v1/assets/definitions"
-    }
-
-    fun submitTransactionUrl(baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira)): String {
-        return "${normalizeBaseUrl(baseUrl)}/v1/pipeline/transactions"
+    fun assetDefinitionsUrl(
+        baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
+        limit: Int? = null,
+        offset: Long? = null,
+        countMode: CountMode? = null
+    ): String {
+        return appendQuery(
+            "${normalizeBaseUrl(baseUrl)}/v1/assets/definitions",
+            pageQuery(limit, offset, countMode)
+        )
     }
 
     fun transactionStatusUrl(
@@ -89,7 +93,13 @@ object IrohaToriiRoutes {
         }
         val isLocal = parsed.host == "localhost" || parsed.host == "127.0.0.1"
 
-        if (parsed.protocol != "https" && !isLocal) {
+        if (
+            parsed.host.isNullOrEmpty() ||
+            (parsed.protocol != "https" && !(parsed.protocol == "http" && isLocal)) ||
+            parsed.userInfo != null ||
+            parsed.query != null ||
+            parsed.ref != null
+        ) {
             throw IrohaToriiRouteException(ErrorCode.INVALID_BASE_URL)
         }
 
@@ -101,9 +111,26 @@ object IrohaToriiRoutes {
     }
 
     fun normalizeAssetSelector(asset: String): String {
-        val normalized = asset.trim()
-        if (normalized.isEmpty() || normalized.length > 256 || normalized.any { it <= ' ' } || ASSET_FORBIDDEN.containsMatchIn(normalized)) {
+        return normalizeAssetDefinitionId(asset)
+    }
+
+    fun normalizeAssetDefinitionId(assetDefinitionId: String): String {
+        val normalized = assetDefinitionId.trim()
+        if (!CANONICAL_ASSET_DEFINITION_ID.matches(normalized)) {
             throw IrohaToriiRouteException(ErrorCode.INVALID_ASSET)
+        }
+
+        return normalized
+    }
+
+    fun normalizeAccountAssetScope(scope: String): String {
+        val normalized = scope.trim()
+        if (normalized == "global") return normalized
+
+        val value = DATASPACE_SCOPE.matchEntire(normalized)?.groupValues?.get(1)
+            ?: throw IrohaToriiRouteException(ErrorCode.INVALID_SCOPE)
+        if (value.length > MAX_U64.length || (value.length == MAX_U64.length && value > MAX_U64)) {
+            throw IrohaToriiRouteException(ErrorCode.INVALID_SCOPE)
         }
 
         return normalized
@@ -111,15 +138,6 @@ object IrohaToriiRoutes {
 
     fun requireToriiBaseUrl(network: UniversalWalletRegistry.IrohaNetwork): String {
         return network.toriiBaseUrl ?: throw IrohaToriiRouteException(ErrorCode.MISSING_TORII_BASE_URL)
-    }
-
-    private fun normalizeScope(scope: String): String {
-        val normalized = scope.trim()
-        if (normalized != "global" && !DATASPACE_SCOPE.matches(normalized)) {
-            throw IrohaToriiRouteException(ErrorCode.INVALID_SCOPE)
-        }
-
-        return normalized
     }
 
     private fun normalizePath(path: String): String {
@@ -141,12 +159,11 @@ object IrohaToriiRoutes {
     }
 
     private fun normalizeHash(hash: String): String {
-        val normalized = hash.trim().removePrefix("0x").lowercase()
-        if (!HASH_256.matches(normalized)) {
+        if (!HASH_256.matches(hash)) {
             throw IrohaToriiRouteException(ErrorCode.INVALID_HASH)
         }
 
-        return normalized
+        return hash
     }
 
     private fun normalizeJsonRpcId(id: String): String {
@@ -229,9 +246,10 @@ object IrohaToriiRoutes {
     }
 
     private val PATH_FORBIDDEN = Regex("[/?#]")
-    private val ASSET_FORBIDDEN = Regex("[/?]")
-    private val DATASPACE_SCOPE = Regex("^dataspace:[A-Za-z0-9._:-]{1,128}$")
-    private val HASH_256 = Regex("^[0-9a-f]{64}$")
+    private val CANONICAL_ASSET_DEFINITION_ID = Regex("^[1-9A-HJ-NP-Za-km-z]{20,64}$")
+    private const val MAX_U64 = "18446744073709551615"
+    private val DATASPACE_SCOPE = Regex("^dataspace:(0|[1-9][0-9]*)$")
+    private val HASH_256 = Regex("^[0-9a-f]{63}[13579bdf]$")
     private val JSON_RPC_ID = Regex("^[A-Za-z0-9._:-]{1,64}$")
     private val MCP_METHOD = Regex("^[A-Za-z][A-Za-z0-9_/.-]{0,127}$")
 }

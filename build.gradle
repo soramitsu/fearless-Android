@@ -29,7 +29,12 @@ boolean isReleaseBuildRequested = normalizedTasks.any { task ->
 }
 
 boolean skipAutoBump = (System.getenv("SKIP_AUTO_VERSION_BUMP") ?: (project.hasProperty("skipAutoVersionBump") ? project.property("skipAutoVersionBump") : null))?.toString()?.toBoolean() ?: false
-boolean autoBumpAllowed = !skipAutoBump && System.getenv("CI_BUILD_ID") == null
+def ciEnvironmentMarkers = ['CI', 'GITHUB_ACTIONS', 'JENKINS_URL', 'BUILD_ID', 'CI_BUILD_ID']
+boolean isCiEnvironment = ciEnvironmentMarkers.any { marker ->
+    def value = System.getenv(marker)
+    value != null && !value.trim().isEmpty() && !value.equalsIgnoreCase('false') && value != '0'
+}
+boolean autoBumpAllowed = !skipAutoBump && !isCiEnvironment
 
 if (autoBumpAllowed && isReleaseBuildRequested) {
     def currentCode = versionProps["versionCode"]?.toInteger()
@@ -112,7 +117,11 @@ allprojects {
 
     configurations {
         cleanedAnnotations
-        implementation.exclude group: 'com.intellij' , module:'annotations'
+    }
+    configurations.configureEach { configuration ->
+        if (configuration.name == 'implementation') {
+            configuration.exclude group: 'com.intellij', module: 'annotations'
+        }
     }
 
     configurations.configureEach {
@@ -128,6 +137,13 @@ allprojects {
 
             // add dependency substitution rules
             eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'com.madgag.spongycastle' && details.requested.name in ['bcpkix-jdk15on', 'bcpg-jdk15on']) {
+                    // fearless-utils only imports provider/core primitives. Keep the
+                    // required provider while excluding unused PKIX/PGP jars; the
+                    // legacy PKIX artifact bundles a trust-all TLS helper that must
+                    // never be packaged in the wallet.
+                    details.useTarget('com.madgag.spongycastle:prov:1.58.0.0')
+                }
                 if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk15on') {
                     details.useTarget("org.bouncycastle:bcprov-jdk18on:1.78")
                 }
@@ -169,15 +185,27 @@ tasks.register('clean', Delete) {
 def unitTestTaskPaths = [
         ':app:testDebugUnitTest',
         ':common:testDebugUnitTest',
+        ':core-api:testDebugUnitTest',
         ':core-db:testDebugUnitTest',
         ':feature-account-impl:testDebugUnitTest',
         ':feature-crowdloan-impl:testDebugUnitTest',
         ':feature-onboarding-impl:testDebugUnitTest',
         ':feature-staking-impl:testDebugUnitTest',
         ':feature-tonconnect-api:testDebugUnitTest',
+        ':feature-tonconnect-impl:testDebugUnitTest',
         ':feature-wallet-impl:testDebugUnitTest',
         ':feature-walletconnect-impl:testDebugUnitTest',
+        ':public-shared-features-backup:testDebugUnitTest',
+        ':public-shared-features-xcm:testDebugUnitTest',
         ':runtime:testDebugUnitTest'
+]
+// These pure-JVM tests require an explicitly materialized, checksum-pinned
+// upstream archive. They are intentionally outside runTest because runTest's
+// clean prerequisite deletes build/iroha-mobile-sdk and ordinary builds must
+// never download release assets implicitly.
+def stagedIrohaTestTaskPaths = [
+        ':iroha-sdk-bridge:test',
+        ':iroha-sdk-bridge-kotlin-smoke:test'
 ]
 def jacocoReportTaskPaths = [
         ':feature-account-impl:jacocoTestReport',
@@ -195,6 +223,12 @@ tasks.register('runTest') {
     dependsOn jacocoReportTaskPaths
 }
 
+tasks.register('runStagedIrohaBridgeTests') {
+    group = 'verification'
+    description = 'Runs staged Iroha bridge tests after explicit SDK materialization.'
+    dependsOn stagedIrohaTestTaskPaths
+}
+
 // Helper: print effective Polkadot SDK alignment overrides and defaults
 tasks.register('printPolkadotSdkAlignment') {
     group = 'help'
@@ -207,8 +241,8 @@ tasks.register('printPolkadotSdkAlignment') {
 
         def typesUrl = readOptionalSecret('TYPES_URL_OVERRIDE') ?: typesUrlDefault
         def defaultV13TypesUrl = readOptionalSecret('DEFAULT_V13_TYPES_URL_OVERRIDE') ?: defaultV13TypesUrlDefault
-        def chainsUrlDebug = readOptionalSecret('CHAINS_URL_DEBUG_OVERRIDE') ?: (readOptionalSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlDebugDefault)
-        def chainsUrlRelease = readOptionalSecret('CHAINS_URL_RELEASE_OVERRIDE') ?: (readOptionalSecret('CHAINS_URL_OVERRIDE') ?: chainsUrlReleaseDefault)
+        def chainsUrlDebug = readOptionalSecret('CHAINS_URL_DEBUG_OVERRIDE') ?: chainsUrlDebugDefault
+        def chainsUrlRelease = chainsUrlReleaseDefault
         def sharedFeaturesVer = readOptionalSecret('SHARED_FEATURES_VERSION_OVERRIDE') ?: '(not pinned)'
 
         println("Polkadot SDK alignment (effective):")

@@ -162,10 +162,15 @@ endpoints, never a public indexer endpoint.
 - `si.soramitsu.io` is read-only. Transaction simulation and broadcast use the
   configured Solana RPC endpoint directly.
 - Taira testnet is enabled with I105 chain discriminant `369`, Torii root
-  `https://taira.sora.org`, and chain id `iroha3-taira`.
+  `https://taira.sora.org`, and chain id
+  `fc56984b-2be7-431d-840e-21514d1883f0`.
 - Nexus mainnet uses I105 chain discriminant `753` and chain id
   `sora:nexus:global`, but remains registry-gated until the
   production Torii/TLS endpoint is confirmed.
+- Iroha `features = ["transfer"]` is capability metadata, not a production-send
+  enablement claim. Android send remains fail closed under
+  `config/iroha-production-send-readiness.json`; see
+  `docs/iroha-production-send-readiness.md` for the pinned upstream blocker.
 
 ## Normalized Indexer Contract
 

@@ -203,12 +203,10 @@ class AndroidUniversalWalletMigrationSnapshotBuilder(
         )
 
         private val TAIRA_CHAIN_IDS = setOf(
-            UniversalWalletRegistry.taira.id,
             UniversalWalletRegistry.taira.chainId
         )
 
         private val NEXUS_CHAIN_IDS = setOf(
-            UniversalWalletRegistry.nexus.id,
             UniversalWalletRegistry.nexus.chainId
         )
     }

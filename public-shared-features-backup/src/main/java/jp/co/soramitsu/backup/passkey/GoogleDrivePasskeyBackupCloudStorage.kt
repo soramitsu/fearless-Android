@@ -3,12 +3,23 @@ package jp.co.soramitsu.backup.passkey
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okio.BufferedSink
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicBoolean
 
 object GoogleDrivePasskeyBackup {
     const val APP_DATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata"
@@ -22,8 +33,10 @@ object GoogleDrivePasskeyBackup {
     internal const val DRIVE_BASE_URL = "https://www.googleapis.com/drive/v3"
     internal const val UPLOAD_BASE_URL = "https://www.googleapis.com/upload/drive/v3"
     internal const val FILE_NAME_PREFIX = "fearless-passkey-backup-"
+    internal const val MAX_HTTP_RESPONSE_BYTES = 256 * 1024
 
     private const val MAX_ACCOUNT_NAME_LENGTH = 320
+    private val accountNamePattern = Regex("^[^\\s@]+@[^\\s@]+$")
 
     fun requireAccountName(accountName: String): String {
         val normalized = accountName.trim()
@@ -36,7 +49,7 @@ object GoogleDrivePasskeyBackup {
         require(normalized.none { it.isISOControl() || it.isWhitespace() }) {
             "Google account for passkey backup must not contain whitespace or control characters"
         }
-        require(normalized.contains("@")) {
+        require(accountNamePattern.matches(normalized)) {
             "Google account for passkey backup must be an email address"
         }
         return normalized
@@ -64,8 +77,16 @@ data class GoogleDriveHttpRequest(
     val method: String,
     val url: String,
     val headers: Map<String, String> = emptyMap(),
-    val body: ByteArray? = null
-)
+    val body: ByteArray? = null,
+    val isOneShot: Boolean = false,
+    val maxResponseBytes: Int = GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES
+) {
+    init {
+        require(maxResponseBytes > 0 && maxResponseBytes <= GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES) {
+            "Google Drive HTTP response limit must be 1-${GoogleDrivePasskeyBackup.MAX_HTTP_RESPONSE_BYTES} bytes"
+        }
+    }
+}
 
 data class GoogleDriveHttpResponse(
     val code: Int,
@@ -80,7 +101,14 @@ class OkHttpGoogleDriveHttpTransport(
     private val okHttpClient: OkHttpClient
 ) : GoogleDriveHttpTransport {
     override suspend fun execute(request: GoogleDriveHttpRequest): GoogleDriveHttpResponse {
-        val requestBody = request.body?.toRequestBody(request.contentType()?.toMediaType())
+        val mediaType = request.contentType()?.toMediaType()
+        val requestBody = request.body?.let { body ->
+            if (request.isOneShot) {
+                OneShotByteArrayRequestBody(body, mediaType)
+            } else {
+                body.toRequestBody(mediaType)
+            }
+        }
         val builder = Request.Builder().url(request.url)
 
         request.headers.forEach { (name, value) ->
@@ -95,16 +123,100 @@ class OkHttpGoogleDriveHttpTransport(
             else -> error("Unsupported Google Drive HTTP method: ${request.method}")
         }
 
-        return okHttpClient.newCall(builder.build()).execute().use { response ->
-            GoogleDriveHttpResponse(
-                code = response.code,
-                body = response.body?.bytes() ?: ByteArray(0)
-            )
-        }
+        return okHttpClient.newCall(builder.build()).awaitResponse(request.maxResponseBytes)
     }
 
     private fun GoogleDriveHttpRequest.contentType(): String? {
         return headers.entries.firstOrNull { it.key.equals("Content-Type", ignoreCase = true) }?.value
+    }
+
+    private suspend fun Call.awaitResponse(maxResponseBytes: Int): GoogleDriveHttpResponse {
+        return suspendCancellableCoroutine { continuation ->
+            val callbackCompleted = AtomicBoolean(false)
+            continuation.invokeOnCancellation {
+                callbackCompleted.set(true)
+                cancel()
+            }
+
+            if (continuation.isActive) {
+                enqueue(
+                    object : Callback {
+                        override fun onFailure(call: Call, exception: IOException) {
+                            if (callbackCompleted.compareAndSet(false, true)) {
+                                continuation.resumeWith(Result.failure(exception))
+                            }
+                        }
+
+                        override fun onResponse(call: Call, response: Response) {
+                            val result = runCatching {
+                                response.use {
+                                    GoogleDriveHttpResponse(
+                                        code = it.code,
+                                        body = it.readBoundedBody(maxResponseBytes)
+                                    )
+                                }
+                            }
+                            if (callbackCompleted.compareAndSet(false, true)) {
+                                continuation.resumeWith(result)
+                            }
+                        }
+                    }
+                )
+            } else {
+                cancel()
+            }
+        }
+    }
+
+    private fun Response.readBoundedBody(maxResponseBytes: Int): ByteArray {
+        val responseBody = body ?: return ByteArray(0)
+        val declaredLength = responseBody.contentLength()
+        if (declaredLength > maxResponseBytes) {
+            throw IOException("HTTP response exceeds the $maxResponseBytes byte limit")
+        }
+        val initialCapacity = if (declaredLength > 0) {
+            declaredLength.toInt()
+        } else {
+            minOf(RESPONSE_READ_BUFFER_BYTES, maxResponseBytes)
+        }
+        return responseBody.byteStream().readBoundedBytes(maxResponseBytes, initialCapacity)
+    }
+
+    private fun InputStream.readBoundedBytes(maxResponseBytes: Int, initialCapacity: Int): ByteArray {
+        val output = ByteArrayOutputStream(initialCapacity)
+        val readBuffer = ByteArray(RESPONSE_READ_BUFFER_BYTES)
+        var totalBytes = 0
+        while (true) {
+            val readBytes = read(readBuffer)
+            if (readBytes == -1) break
+            totalBytes += readBytes
+            if (totalBytes > maxResponseBytes) {
+                throw IOException("HTTP response exceeds the $maxResponseBytes byte limit")
+            }
+            output.write(readBuffer, 0, readBytes)
+        }
+        return output.toByteArray()
+    }
+
+    private class OneShotByteArrayRequestBody(
+        body: ByteArray,
+        private val mediaType: MediaType?
+    ) : RequestBody() {
+        private val body = body.copyOf()
+
+        override fun contentType(): MediaType? = mediaType
+
+        override fun contentLength(): Long = body.size.toLong()
+
+        override fun isOneShot(): Boolean = true
+
+        override fun writeTo(sink: BufferedSink) {
+            sink.write(body)
+        }
+    }
+
+    private companion object {
+        const val RESPONSE_READ_BUFFER_BYTES = 8 * 1024
     }
 }
 

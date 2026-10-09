@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.hasNonCanonicalUniversalWalletIrohaIdentity
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -41,6 +42,9 @@ class BalanceLoaderProvider(
             chain.isUniversalWalletBitcoin() -> BitcoinBalanceLoader(chain, bitcoinIndexerClient)
             chain.isUniversalWalletSolana() -> SolanaBalanceLoader(chain, solanaBalanceSync)
             chain.isUniversalWalletIroha() -> IrohaBalanceLoader(chain, irohaToriiClient)
+            chain.hasNonCanonicalUniversalWalletIrohaIdentity() -> throw IllegalArgumentException(
+                "Iroha profile ${chain.name} has a non-canonical chain identity: ${chain.id}"
+            )
             chain.ecosystem == Ecosystem.Ton -> TonBalanceLoader(chain, tonSyncDataRepository, chainsRepository)
             chain.ecosystem == Ecosystem.Ethereum -> EthereumBalanceLoader(chain, ethereumRemoteSource)
 

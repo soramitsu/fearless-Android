@@ -213,7 +213,7 @@ class RootViewModel @Inject constructor(
                             }
                     }
                     BridgeMethod.DISCONNECT -> {
-                        tonConnectInteractor.disconnect(event.connection.clientId)
+                        tonConnectInteractor.disconnect(event.connection.identity())
                     }
                     BridgeMethod.UNKNOWN -> {}
                 }

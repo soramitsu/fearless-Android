@@ -3,6 +3,37 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/*
+ * Historical 18 -> 19 added the now-obsolete nodes.isActive column while
+ * moving the selected node from preferences. Preserve the schema change even
+ * though 27 -> 28 replaces the entire legacy node cache.
+ */
+val AddLegacyActiveNodeColumn_18_19 = object : Migration(18, 19) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0"
+        )
+    }
+}
+
+/*
+ * Versions 19 -> 21 and 24 -> 27 only refreshed historical bundled node/cache
+ * content. Those cache implementations and their preference migrators no
+ * longer exist, and 27 -> 28 replaces them with the chain registry. Explicit
+ * adjacent edges keep legacy wallet/account tables intact while allowing the
+ * later authoritative registry migration to rebuild disposable node data.
+ */
+private fun legacyNodeCacheCompatibilityMigration(startVersion: Int) =
+    object : Migration(startVersion, startVersion + 1) {
+        override fun migrate(db: SupportSQLiteDatabase) = Unit
+    }
+
+val LegacyNodeCacheCompatibility_19_20 = legacyNodeCacheCompatibilityMigration(19)
+val LegacyNodeCacheCompatibility_20_21 = legacyNodeCacheCompatibilityMigration(20)
+val LegacyNodeCacheCompatibility_24_25 = legacyNodeCacheCompatibilityMigration(24)
+val LegacyNodeCacheCompatibility_25_26 = legacyNodeCacheCompatibilityMigration(25)
+val LegacyNodeCacheCompatibility_26_27 = legacyNodeCacheCompatibilityMigration(26)
+
 val Migration_75_76 = object : Migration(75, 76) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE chains ADD COLUMN `xcm` TEXT NULL DEFAULT NULL")

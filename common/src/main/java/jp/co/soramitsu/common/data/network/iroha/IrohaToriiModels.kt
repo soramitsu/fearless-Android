@@ -1,6 +1,12 @@
 package jp.co.soramitsu.common.data.network.iroha
 
+import com.google.gson.JsonParseException
+import com.google.gson.TypeAdapter
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
 
 data class IrohaPageMetadata(
     @SerializedName("has_more")
@@ -47,7 +53,7 @@ data class IrohaAccountAssetListResponse(
     @SerializedName("items")
     val items: List<IrohaAccountAssetListItem> = emptyList(),
     @SerializedName("has_more")
-    val hasMore: Boolean,
+    val hasMore: Boolean?,
     @SerializedName("count_mode")
     val countMode: String,
     @SerializedName("total")
@@ -75,7 +81,7 @@ data class IrohaAssetDefinitionListResponse(
     @SerializedName("items")
     val items: List<IrohaAssetDefinitionListItem> = emptyList(),
     @SerializedName("has_more")
-    val hasMore: Boolean,
+    val hasMore: Boolean?,
     @SerializedName("count_mode")
     val countMode: String,
     @SerializedName("total")
@@ -94,30 +100,83 @@ data class IrohaAssetDefinitionListItem(
     @SerializedName("metadata")
     val metadata: Map<String, Any?>? = null,
     @SerializedName("alias_binding")
-    val aliasBinding: Map<String, Any?>? = null
+    val aliasBinding: Map<String, Any?>? = null,
+    @SerializedName("spec")
+    val spec: IrohaAssetDefinitionSpec? = null
 )
 
-data class IrohaTransactionSubmissionReceipt(
-    @SerializedName("payload")
-    val payload: IrohaTransactionSubmissionPayload,
-    @SerializedName("signature")
-    val signature: Any? = null
+data class IrohaAssetDefinitionSpec(
+    @SerializedName("scale")
+    @field:JsonAdapter(CanonicalIrohaScaleAdapter::class)
+    val scale: Int? = null
 )
 
-data class IrohaTransactionSubmissionPayload(
-    @SerializedName("tx_hash")
-    val txHash: String,
-    @SerializedName("entrypoint_hash")
-    val entrypointHash: String,
-    @SerializedName("signed_transaction_hash")
-    val signedTransactionHash: String? = null,
-    @SerializedName("submitted_at_ms")
-    val submittedAtMs: Long,
-    @SerializedName("submitted_at_height")
-    val submittedAtHeight: Long,
-    @SerializedName("signer")
-    val signer: Any? = null
+class CanonicalIrohaScaleAdapter : TypeAdapter<Int?>() {
+    override fun read(reader: JsonReader): Int? {
+        if (reader.peek() == JsonToken.NULL) {
+            reader.nextNull()
+            return null
+        }
+        if (reader.peek() != JsonToken.NUMBER) {
+            throw JsonParseException("Iroha asset scale must be a canonical JSON integer")
+        }
+        val literal = reader.nextString()
+        return literal.takeIf(CANONICAL_SCALE::matches)?.toIntOrNull()
+            ?: throw JsonParseException("Iroha asset scale is outside the canonical integer domain")
+    }
+
+    override fun write(writer: JsonWriter, value: Int?) {
+        if (value == null) writer.nullValue() else writer.value(value)
+    }
+
+    private companion object {
+        val CANONICAL_SCALE = Regex("^(0|[1-9][0-9]*)$")
+    }
+}
+
+data class IrohaToriiFanoutStatus(
+    val attempted: Int,
+    val succeeded: Int,
+    val failed: Int,
+    val denied: Int,
+    val unavailable: Int,
+    val notFound: Int
+) {
+    val isValid: Boolean
+        get() {
+            if (
+                attempted <= 0 ||
+                succeeded < 0 ||
+                failed < 0 ||
+                denied < 0 ||
+                unavailable < 0 ||
+                notFound < 0 ||
+                succeeded > attempted ||
+                failed != attempted - succeeded ||
+                denied > failed ||
+                unavailable > failed - denied ||
+                notFound > failed - denied - unavailable
+            ) {
+                return false
+            }
+
+            return true
+        }
+
+    val isComplete: Boolean
+        get() = isValid && succeeded == attempted && failed == 0 &&
+            denied == 0 && unavailable == 0 && notFound == 0
+}
+
+class IrohaToriiDegradedException(
+    val fanout: IrohaToriiFanoutStatus
+) : IllegalStateException(
+    "Torii fanout is incomplete: ${fanout.succeeded}/${fanout.attempted} routes succeeded " +
+        "(${fanout.failed} failed, ${fanout.denied} denied, ${fanout.unavailable} unavailable, " +
+        "${fanout.notFound} not found)"
 )
+
+class IrohaToriiResponseException(message: String) : IllegalStateException(message)
 
 data class IrohaPipelineTransactionStatusResponse(
     @SerializedName("hash")
@@ -132,12 +191,58 @@ data class IrohaPipelineTransactionStatusResponse(
 
 data class IrohaPipelineTransactionStatus(
     @SerializedName("kind")
-    val kind: String,
+    val kind: IrohaPipelineTransactionStatusKind,
     @SerializedName("block_height")
     val blockHeight: Long? = null,
     @SerializedName("rejection_reason")
     val rejectionReason: Any? = null
 )
+
+enum class IrohaPipelineTransactionStatusKind {
+    @SerializedName("Queued")
+    Queued,
+
+    @SerializedName("Approved")
+    Approved,
+
+    @SerializedName("Committed")
+    Committed,
+
+    @SerializedName("Applied")
+    Applied,
+
+    @SerializedName("Rejected")
+    Rejected,
+
+    @SerializedName("Expired")
+    Expired
+}
+
+data class IrohaSubmitAndWaitOutcome(
+    val hash: String,
+    val transactionHash: String,
+    val receiptHash: String,
+    val finalHash: String,
+    val terminalKind: IrohaPipelineTransactionStatusKind,
+    val terminalStatuses: List<IrohaPipelineTransactionStatusKind>,
+    val attempts: Long,
+    val elapsedMillis: Long,
+    val rejectionReason: Any? = null
+)
+
+enum class IrohaSubmitAndWaitErrorCode {
+    REJECTED,
+    EXPIRED,
+    TIMEOUT,
+    RPC_ERROR,
+    INVALID_RESPONSE
+}
+
+class IrohaSubmitAndWaitException(
+    val code: IrohaSubmitAndWaitErrorCode,
+    message: String,
+    val details: Any? = null
+) : IllegalStateException(message)
 
 data class IrohaErrorEnvelope(
     @SerializedName("code")
@@ -161,7 +266,7 @@ data class IrohaMcpJsonRpcRequest(
 
 data class IrohaMcpJsonRpcResponse(
     @SerializedName("jsonrpc")
-    val jsonrpc: String = "2.0",
+    val jsonrpc: String? = null,
     @SerializedName("id")
     val id: String? = null,
     @SerializedName("result")

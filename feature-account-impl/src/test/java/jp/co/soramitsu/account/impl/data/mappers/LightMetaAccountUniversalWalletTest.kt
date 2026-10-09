@@ -42,7 +42,7 @@ class LightMetaAccountUniversalWalletTest {
                 chainAccounts = listOf(
                     chainAccount(UniversalWalletRegistry.bitcoinMainnet.id, bitcoin.publicKey),
                     chainAccount(UniversalWalletRegistry.solanaMainnet.id, solana.publicKey),
-                    chainAccount(UniversalWalletRegistry.taira.id, iroha.publicKey)
+                    chainAccount(UniversalWalletRegistry.taira.chainId, iroha.publicKey)
                 ),
                 favoriteChains = emptyList()
             )
@@ -134,7 +134,7 @@ class LightMetaAccountUniversalWalletTest {
             )
         )
         val solanaRegistryChain = universalWalletChain(UniversalWalletRegistry.solanaMainnet.id)
-        val nexusRegistryChain = universalWalletChain(UniversalWalletRegistry.nexus.id)
+        val nexusRegistryChain = universalWalletChain(UniversalWalletRegistry.nexus.chainId)
         val nexusAddress = IrohaKeyDerivation.deriveAddress(
             mnemonic = MNEMONIC,
             chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
@@ -145,6 +145,54 @@ class LightMetaAccountUniversalWalletTest {
         assertEquals(nexusAddress, metaAccount.chainAddress(nexusRegistryChain))
         assertArrayEquals(iroha.publicKey, metaAccount.accountId(nexusRegistryChain))
         assertEquals(CryptoType.ED25519, metaAccount.cryptoType(nexusRegistryChain))
+    }
+
+    @Test
+    fun `iroha registry aliases never match stored universal wallet accounts`() {
+        val iroha = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+        val canonicalAccount = metaAccount(
+            chainAccounts = mapOf(
+                UniversalWalletRegistry.taira.chainId to MetaAccount.ChainAccount(
+                    metaId = 1,
+                    chain = null,
+                    publicKey = iroha.publicKey,
+                    accountId = iroha.publicKey,
+                    cryptoType = CryptoType.ED25519,
+                    accountName = "Taira"
+                )
+            )
+        )
+        val aliasAccount = metaAccount(
+            chainAccounts = mapOf(
+                UniversalWalletRegistry.taira.id to MetaAccount.ChainAccount(
+                    metaId = 1,
+                    chain = null,
+                    publicKey = iroha.publicKey,
+                    accountId = iroha.publicKey,
+                    cryptoType = CryptoType.ED25519,
+                    accountName = "Taira alias"
+                )
+            )
+        )
+
+        listOf(
+            UniversalWalletRegistry.taira.id,
+            UniversalWalletRegistry.taira.chainId.uppercase(),
+            UniversalWalletRegistry.nexus.id,
+            "unknown-iroha-chain"
+        ).forEach { nonCanonicalId ->
+            val chain = universalWalletChain(nonCanonicalId)
+            assertNull(canonicalAccount.address(chain))
+            assertNull(canonicalAccount.accountId(chain))
+        }
+        val canonicalChain = universalWalletChain(UniversalWalletRegistry.taira.chainId)
+        assertNull(aliasAccount.address(canonicalChain))
+        assertNull(aliasAccount.accountId(canonicalChain))
+        val aliasChain = universalWalletChain(UniversalWalletRegistry.taira.id)
+        assertNull(aliasAccount.address(aliasChain))
+        assertNull(aliasAccount.chainAddress(aliasChain))
+        assertNull(aliasAccount.accountId(aliasChain))
+        assertNull(aliasAccount.cryptoType(aliasChain))
     }
 
     @Test

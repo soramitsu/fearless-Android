@@ -14,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.bitcoinAddressFromPublicKey
 import jp.co.soramitsu.runtime.ext.irohaAddressFromPublicKey
+import jp.co.soramitsu.runtime.ext.hasNonCanonicalUniversalWalletIrohaIdentity
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
@@ -163,6 +164,7 @@ fun MetaAccount.hasChainAccount(chainId: ChainId) = chainId in chainAccounts
 
 fun MetaAccount.cryptoType(chain: IChain): CryptoType? {
     return when {
+        chain is Chain && chain.hasNonCanonicalUniversalWalletIrohaIdentity() -> null
         chain is Chain && chain.isUniversalWalletChain() -> chainAccounts.universalWalletChainAccount(chain)?.cryptoType
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).cryptoType
         chain.isEthereumBased -> CryptoType.ECDSA
@@ -173,6 +175,7 @@ fun MetaAccount.cryptoType(chain: IChain): CryptoType? {
 fun MetaAccount.address(chain: Chain): String? {
     return kotlin.runCatching {
         when {
+            chain.hasNonCanonicalUniversalWalletIrohaIdentity() -> null
             chain.isUniversalWalletBitcoin() -> chainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::bitcoinAddressFromPublicKey)
             chain.isUniversalWalletSolana() -> chainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::solanaAddressFromPublicKey)
             chain.isUniversalWalletIroha() -> chainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::irohaAddressFromPublicKey)
@@ -190,6 +193,7 @@ fun MetaAccount.address(chain: Chain): String? {
 fun LightMetaAccount.address(chain: Chain): String? {
     return kotlin.runCatching {
         when {
+            chain.hasNonCanonicalUniversalWalletIrohaIdentity() -> null
             chain.isUniversalWalletBitcoin() -> universalWalletChainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::bitcoinAddressFromPublicKey)
             chain.isUniversalWalletSolana() -> universalWalletChainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::solanaAddressFromPublicKey)
             chain.isUniversalWalletIroha() -> universalWalletChainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::irohaAddressFromPublicKey)
@@ -298,12 +302,10 @@ private val SOLANA_DEVNET_CHAIN_IDS = setOf(
 )
 
 private val TAIRA_CHAIN_IDS = setOf(
-    UniversalWalletRegistry.taira.id,
     UniversalWalletRegistry.taira.chainId
 )
 
 private val NEXUS_CHAIN_IDS = setOf(
-    UniversalWalletRegistry.nexus.id,
     UniversalWalletRegistry.nexus.chainId
 )
 
@@ -313,6 +315,7 @@ private val IROHA_CHAIN_IDS = TAIRA_CHAIN_IDS + NEXUS_CHAIN_IDS
 
 fun MetaAccount.chainAddress(chain: Chain): String? {
     return when {
+        chain.hasNonCanonicalUniversalWalletIrohaIdentity() -> null
         chain.isUniversalWalletBitcoin() -> chainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::bitcoinAddressFromPublicKey)
         chain.isUniversalWalletSolana() -> chainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::solanaAddressFromPublicKey)
         chain.isUniversalWalletIroha() -> chainAccounts.universalWalletChainAccount(chain)?.publicKey?.let(chain::irohaAddressFromPublicKey)
@@ -323,6 +326,7 @@ fun MetaAccount.chainAddress(chain: Chain): String? {
 
 fun MetaAccount.accountId(chain: IChain): ByteArray? {
     return when {
+        chain is Chain && chain.hasNonCanonicalUniversalWalletIrohaIdentity() -> null
         chain is Chain && chain.isUniversalWalletChain() -> chainAccounts.universalWalletChainAccount(chain)?.accountId
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
         chain.ecosystem == Ecosystem.Substrate -> substrateAccountId
@@ -357,7 +361,6 @@ private fun Chain.universalWalletChainIds(): Set<ChainId> {
         isUniversalWalletSolana() -> SOLANA_MAINNET_CHAIN_IDS
         isUniversalWalletIroha() && id in TAIRA_CHAIN_IDS -> TAIRA_CHAIN_IDS
         isUniversalWalletIroha() && id in NEXUS_CHAIN_IDS -> NEXUS_CHAIN_IDS
-        isUniversalWalletIroha() && isTestNet -> TAIRA_CHAIN_IDS
         else -> emptySet()
     }
 }

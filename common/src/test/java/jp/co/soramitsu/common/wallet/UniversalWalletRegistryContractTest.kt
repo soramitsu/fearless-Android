@@ -80,7 +80,11 @@ class UniversalWalletRegistryContractTest {
         })
 
         val taira = registry.chains.first { it.id == "taira-testnet" }
+        assertTrue(taira.chainId == UniversalWalletRegistry.TAIRA_CHAIN_ID)
         assertTrue(taira.features == listOf("transfer"))
+        assertTrue(taira.nativeAsset?.id == UniversalWalletRegistry.TAIRA_XOR_ASSET_DEFINITION_ID)
+        assertTrue(taira.nativeAsset?.symbol == "XOR")
+        assertTrue(taira.nativeAsset?.decimals == 9)
         assertTrue(taira.endpoints.any {
             it.kind == UniversalWalletRegistryEndpointKind.ToriiMcp &&
                 it.url == "https://taira.sora.org/v1/mcp" &&
@@ -190,7 +194,7 @@ class UniversalWalletRegistryContractTest {
     private fun taira() = UniversalWalletChainRegistryEntry(
         id = "taira-testnet",
         ecosystem = UniversalWalletEcosystem.Iroha,
-        chainId = "iroha3-taira",
+        chainId = "fc56984b-2be7-431d-840e-21514d1883f0",
         displayName = "Taira Testnet",
         enabledByDefault = true,
         features = listOf("transfer"),

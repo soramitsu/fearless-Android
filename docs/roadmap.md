@@ -5,6 +5,38 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
 ## Recent Updates
+- 2026-07-13: Added the production-satisfiable Android Iroha wallet-smoke
+  metadata seam without enabling send. A closed immutable wallet model and the
+  Nexus-only request factory enforce the exact four-key/all-string schema,
+  canonical route hash and wallet commit, Android platform/role binding, and
+  defensive snapshots. The operator seam also requires the exact Nexus global
+  chain and canonical Minamoto endpoint. The staged Java codec remains
+  Taira-only and rejects every non-empty metadata map before signing. Focused
+  adversarial tests cover malformed keys, types, case, controls, confusables,
+  sentinels, mutable aliasing, wrong network/chain, and endpoint substitution;
+  ordinary transfers still use empty metadata and production DI still injects
+  `UnavailableIrohaTransferSigner`.
+- 2026-07-11: Added a fail-closed, non-production Iroha staging lane. The
+  bounded materializer extracts only the pinned `core-jvm` coordinate; a
+  Java-only Taira bridge and Kotlin 2.1 smoke module run behind an explicit
+  CI/local gate; app debug/release graphs are proven free of the SDK. A custom
+  compact-length transaction hasher works around the pinned SDK's confirmed
+  fixed-`u64` defect and matches the inspected Rust/current-native diagnostic
+  vector. Production DI, live Torii/funded evidence, exact binary provenance,
+  device/R8 proof, authoritative live registry/precision/fee mapping,
+  deployed-node compatibility, and private-key residue acceptance remain
+  blockers. The tag fixture and current live Taira expose different canonical
+  XOR definition IDs, so neither is a valid hard-coded production mapping.
+- 2026-07-10: Hardened Android production release provenance: strict tag/master
+  and exact prior-CI binding, immutable committed versioning, AAB signer
+  verification, pinned build attestation/actions, and destructive release-gate
+  tests. `runTest` now dynamically covers all 14 source-backed test modules,
+  including the previously omitted `core-api`, backup, and XCM modules.
+- 2026-07-10: Removed MoonPay server-secret/HMAC signing from the APK and kept
+  the hosted checkout in publishable-key/manual-wallet mode with an exact host
+  allowlist and adversarial query/control/size tests. Credential Manager
+  transport and trust-all TLS lint checks are now fatal, and unused legacy
+  Spongy Castle PKIX/PGP artifacts no longer ship at runtime.
 - 2026-03-12: `scripts/build-libsodium.sh` now detects the correct host-specific NDK toolchain directory (darwin/linux/windows) instead of hardcoding macOS paths, so rebuilding libsodium works on Linux and CI hosts.
 - 2026-03-12: Local validation script now installs Android platform/build-tools 36 so fresh environments match the Gradle compileSdk configuration before running tasks.
 - 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) so the pinned `fearless-utils-Android` composite checkout remains buildable on the current Gradle stack until the upstream repository upgrades.
@@ -38,7 +70,7 @@ Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
   1) Registry overrides: In `local.properties`, set
      - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
      - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
-     - `CHAINS_URL_OVERRIDE=https://<your>/chains.json` (points to chain list validated against stable2503)
+     - `CHAINS_URL_DEBUG_OVERRIDE=https://<your>/chains.json` (debug-only chain list validated against stable2503; release remains pinned)
   2) Utils alignment (pinned source checkout): The build includes `soramitsu/fearless-utils-Android` as a composite source dependency.
      - Ensure NDK r28 (android-ndk-r28 / 28.0.x) and Rust toolchain with Android targets are installed (see README and CI config).
      - CI checks out `7500809f33243ee47ecb2ec8563fc284ac4de0d6`; local builds should clone that repo next to this checkout or set `FEARLESS_UTILS_PATH`.

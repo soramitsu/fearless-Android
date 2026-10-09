@@ -52,6 +52,55 @@ interface MetaAccountDao {
     @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
     suspend fun getMetaAccount(metaId: Long): MetaAccountLocal?
 
+    /** Returns whether a different meta account owns any supplied non-null identity. */
+    @Query(
+        """
+        SELECT EXISTS(
+            SELECT 1
+            FROM meta_accounts
+            WHERE id != :metaId
+              AND (
+                  (:substrateAccountId IS NOT NULL AND substrateAccountId = :substrateAccountId)
+                  OR (:ethereumAddress IS NOT NULL AND ethereumAddress = :ethereumAddress)
+                  OR (:tonPublicKey IS NOT NULL AND tonPublicKey = :tonPublicKey)
+              )
+        )
+        """
+    )
+    suspend fun hasIdentityConflict(
+        metaId: Long,
+        substrateAccountId: ByteArray?,
+        ethereumAddress: ByteArray?,
+        tonPublicKey: ByteArray?
+    ): Boolean
+
+    /** Returns whether the exact primary key is currently present. */
+    @Query("SELECT EXISTS(SELECT 1 FROM meta_accounts WHERE id = :metaId)")
+    suspend fun metaAccountExists(metaId: Long): Boolean
+
+    /** Finds the first remaining account ordered by position, then primary key. */
+    @Query(
+        """
+        SELECT id
+        FROM meta_accounts
+        WHERE id != :excludedMetaId
+        ORDER BY position ASC, id ASC
+        LIMIT 1
+        """
+    )
+    suspend fun getDeterministicSuccessorId(excludedMetaId: Long): Long?
+
+    /** Lists a meta account's chain-specific account ids in stable chain order. */
+    @Query(
+        """
+        SELECT accountId
+        FROM chain_accounts
+        WHERE metaId = :metaId
+        ORDER BY chainId ASC
+        """
+    )
+    suspend fun getChainAccountIds(metaId: Long): List<ByteArray>
+
     @Query("SELECT * FROM meta_accounts")
     @Transaction
     fun getJoinedMetaAccountsInfo(): List<RelationJoinedMetaAccountInfo>
@@ -71,8 +120,29 @@ interface MetaAccountDao {
     @Query("SELECT * FROM meta_accounts ORDER BY position")
     fun metaAccountsFlow(): Flow<List<MetaAccountLocal>>
 
-    @Query("UPDATE meta_accounts SET isSelected = (id = :metaId)")
-    suspend fun selectMetaAccount(metaId: Long)
+    @Query(
+        """
+        UPDATE meta_accounts
+        SET isSelected = (id = :metaId)
+        WHERE EXISTS(
+            SELECT 1
+            FROM meta_accounts
+            WHERE id = :metaId
+        )
+        """
+    )
+    suspend fun selectExistingMetaAccount(metaId: Long): Int
+
+    /**
+     * Selects an existing wallet without ever clearing the current selection
+     * when a stale or attacker-controlled id is supplied.
+     */
+    @Transaction
+    suspend fun selectMetaAccount(metaId: Long) {
+        check(selectExistingMetaAccount(metaId) > 0) {
+            "Cannot select a missing meta account"
+        }
+    }
 
     @Update(entity = MetaAccountLocal::class)
     suspend fun updatePositions(updates: List<MetaAccountPositionUpdate>)
@@ -127,8 +197,44 @@ interface MetaAccountDao {
     @Query("DELETE FROM meta_accounts WHERE id = :metaId")
     suspend fun delete(metaId: Long)
 
+    /** Deletes balance rows that are not linked to meta accounts by a foreign key. */
+    @Query("DELETE FROM assets WHERE metaId = :metaId")
+    suspend fun deleteMetaAccountAssets(metaId: Long)
+
+    /** Returns whether any non-foreign-keyed balance row still belongs to this wallet. */
+    @Query("SELECT EXISTS(SELECT 1 FROM assets WHERE metaId = :metaId)")
+    suspend fun hasMetaAccountAssets(metaId: Long): Boolean
+
     @Query("DELETE FROM chain_accounts WHERE metaId = :metaId")
     suspend fun deleteChainAccounts(metaId: Long)
+
+    /**
+     * Deletes a meta account and its non-foreign-keyed assets as one Room transaction.
+     *
+     * If the target is selected, the remaining account with the lowest position
+     * (then lowest id) becomes selected. Replaying an already-completed deletion is
+     * a no-op and never changes the current selection.
+     *
+     * @return `true` only when an existing meta account was deleted.
+     */
+    @Transaction
+    suspend fun deleteMetaAccountAndSelectSuccessor(metaId: Long): Boolean {
+        val account = getMetaAccount(metaId) ?: return false
+        val successorId = if (account.isSelected) {
+            getDeterministicSuccessorId(excludedMetaId = metaId)
+        } else {
+            null
+        }
+
+        deleteMetaAccountAssets(metaId)
+        delete(metaId)
+
+        if (successorId != null) {
+            selectMetaAccount(successorId)
+        }
+
+        return true
+    }
 
     @Query("SELECT COALESCE(MAX(position), 0) + 1 from meta_accounts")
     suspend fun getNextPosition(): Int

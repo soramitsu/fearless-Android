@@ -56,11 +56,12 @@
 ## Security & Configuration
 - Secrets are read via `scripts/secrets.gradle`; set in env vars or `local.properties` (see `README.md`).
 - Do not commit keys, keystores, provisioning files, or `local.properties`.
-- Polkadot runtime sources: to align with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
-  - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE`
+- Polkadot runtime sources: to align debug builds with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
+  - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_DEBUG_OVERRIDE`
+  - Release chain discovery is intentionally pinned to the canonical production URL and does not accept a chain-registry override.
   - Example in `local.properties`:
     - `TYPES_URL_OVERRIDE=https://.../all_chains_types_android.json`
-    - `CHAINS_URL_OVERRIDE=https://.../chains.json`
+    - `CHAINS_URL_DEBUG_OVERRIDE=https://.../chains.json`
   - After updating, run `./gradlew detektAll runTest :app:lint`.
 - Library version pinning: to use a specific `shared_features` version compatible with a Polkadot SDK release, set
   - `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y`
@@ -69,12 +70,12 @@
 ## Local Properties (private)
 - Create a root-level `local.properties` with the required secrets and service credentials. Do NOT commit this file.
 - See `docs/samples/local.properties.example` and create a private `local.properties` at the repo root; replace placeholders with your real values.
-- Typical keys include: MoonPay, X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
+- Typical keys include: MoonPay publishable keys, X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API. Never put a MoonPay server secret in Android configuration.
 - Formats: use `key=value` per line; avoid trailing spaces. Strings may be unquoted; if values contain special characters or spaces, wrap in double quotes. Set `sdk.dir=/absolute/path/to/Android/sdk` to avoid SDK lookup errors.
 - Runtime overrides (mirrors recommended for first run):
   - `TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/all_chains_types_android.json`
   - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/default_v13_types.json`
-  - `CHAINS_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/v13/chains.json`
+  - `CHAINS_URL_DEBUG_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/v13/chains.json`
 - Verify config: `./gradlew printPolkadotSdkAlignment` prints effective URLs and any shared_features pin before you run the app/tests.
 
 ## Utils Integration

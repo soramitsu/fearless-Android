@@ -3,21 +3,37 @@ name: Android Release
 on:
   workflow_dispatch:
     inputs:
-      build_task:
-        description: Gradle task to run after release overlays are restored.
+      release_tag:
+        description: Existing SemVer tag on master to build (for example, v4.2.0).
         required: true
-        default: :app:bundleRelease
-      strict_provenance:
-        description: Fail if any tracked binary still lacks source/reproducible provenance.
+        type: string
+      play_testing_track:
+        description: Optional Google Play testing track. Beta is only Open Testing after Play Console setup/review.
         required: true
-        type: boolean
-        default: true
+        type: choice
+        default: none
+        options:
+          - none
+          - internal
+          - alpha
+          - beta
+      play_release_status:
+        description: Keep draft unless an installable testing release is explicitly intended.
+        required: true
+        type: choice
+        default: draft
+        options:
+          - draft
+          - completed
 
 permissions:
   contents: read
+  actions: read
+  id-token: write
+  attestations: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ inputs.release_tag }}
   cancel-in-progress: false
 
 jobs:
@@ -26,6 +42,7 @@ jobs:
     timeout-minutes: 60
     env:
       CI: true
+      SKIP_AUTO_VERSION_BUMP: "true"
       FEARLESS_UTILS_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
       FEARLESS_UTILS_PATH: ${{ github.workspace }}/fearless-utils-Android
       FORCE_LOCAL_UTILS: "true"
@@ -33,16 +50,12 @@ jobs:
       USE_REMOTE_UTILS: "false"
       SHARED_FEATURES_VERSION_OVERRIDE: ""
 
-      GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}
-      ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
-      PLAY_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
       CI_KEYSTORE_PASS: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
       CI_KEYSTORE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
       CI_KEYSTORE_KEY_PASS: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
 
       RAMP_TOKEN_RELEASE: ${{ secrets.RAMP_TOKEN_RELEASE }}
       COINBASE_APP_ID: ${{ secrets.COINBASE_APP_ID }}
-      MOONPAY_PRODUCTION_SECRET: ${{ secrets.MOONPAY_PRODUCTION_SECRET }}
       MOONPAY_PRODUCTION_PUBLIC_KEY: ${{ secrets.MOONPAY_PRODUCTION_PUBLIC_KEY }}
       X1_ENDPOINT_URL_RELEASE: ${{ secrets.X1_ENDPOINT_URL_RELEASE }}
       X1_WIDGET_ID_RELEASE: ${{ secrets.X1_WIDGET_ID_RELEASE }}
@@ -62,15 +75,128 @@ jobs:
       FL_DWELLIR_API_KEY: ${{ secrets.FL_DWELLIR_API_KEY }}
       FL_ANDROID_TON_API_KEY: ${{ secrets.FL_ANDROID_TON_API_KEY }}
       FL_ANDROID_TON_INDEXER_URL: ${{ secrets.FL_ANDROID_TON_INDEXER_URL }}
+      FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY: ${{ secrets.FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Require a master dispatch
+        env:
+          DISPATCH_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$DISPATCH_REF" != "refs/heads/master" ]]; then
+            echo "Release builds must be dispatched from master; got $DISPATCH_REF" >&2
+            exit 1
+          fi
+
+      - name: Checkout tagged release source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          ref: ${{ inputs.release_tag }}
           fetch-depth: 0
 
+      - name: Validate release tag and master ancestry
+        env:
+          RELEASE_TAG_INPUT: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          SEMVER_PATTERN='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+          if [[ ! "$RELEASE_TAG_INPUT" =~ $SEMVER_PATTERN ]]; then
+            echo "release_tag must be a SemVer tag prefixed with v; got $RELEASE_TAG_INPUT" >&2
+            exit 1
+          fi
+
+          git fetch --no-tags origin master:refs/remotes/origin/master
+          git fetch --force origin "refs/tags/$RELEASE_TAG_INPUT:refs/tags/$RELEASE_TAG_INPUT"
+          git show-ref --verify --quiet "refs/tags/$RELEASE_TAG_INPUT" || {
+            echo "Release tag does not exist: $RELEASE_TAG_INPUT" >&2
+            exit 1
+          }
+
+          release_commit="$(git rev-list -n 1 "refs/tags/$RELEASE_TAG_INPUT")"
+          if [[ "$(git rev-parse HEAD)" != "$release_commit" ]]; then
+            echo "Checkout does not resolve to release tag $RELEASE_TAG_INPUT" >&2
+            exit 1
+          fi
+          git merge-base --is-ancestor "$release_commit" "origin/master" || {
+            echo "Release tag $RELEASE_TAG_INPUT is not on master" >&2
+            exit 1
+          }
+
+          echo "RELEASE_TAG=$RELEASE_TAG_INPUT" >> "$GITHUB_ENV"
+          echo "RELEASE_COMMIT=$release_commit" >> "$GITHUB_ENV"
+
+      - name: Require prior green Android CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          latest_run="$(
+            gh api \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "/repos/$GITHUB_REPOSITORY/actions/workflows/android-ci.yml/runs?branch=master&head_sha=$RELEASE_COMMIT&event=push&status=completed&per_page=100" |
+              jq -c --arg commit "$RELEASE_COMMIT" '
+                [.workflow_runs[] |
+                  select(
+                    .head_sha == $commit and
+                    .head_branch == "master" and
+                    .event == "push" and
+                    .status == "completed"
+                  )
+                ] |
+                sort_by([.run_number // 0, .run_attempt // 0, .updated_at // ""]) |
+                last // {}
+              '
+          )"
+          latest_conclusion="$(jq -r '.conclusion // "missing"' <<< "$latest_run")"
+          latest_run_url="$(jq -r '.html_url // "unavailable"' <<< "$latest_run")"
+          if [[ "$latest_conclusion" != "success" ]]; then
+            echo "The tagged commit requires a completed successful Android CI push run on master; got $latest_conclusion ($latest_run_url)" >&2
+            exit 1
+          fi
+
+      - name: Verify clean tagged source and capture version
+        run: |
+          set -euo pipefail
+          git diff --quiet
+          git diff --cached --quiet
+          test -z "$(git status --porcelain --untracked-files=no)"
+          git ls-files --error-unmatch versioning/version.properties >/dev/null
+
+          version_name="$(awk -F= '$1 == "versionName" { print $2 }' versioning/version.properties)"
+          version_code="$(awk -F= '$1 == "versionCode" { print $2 }' versioning/version.properties)"
+          tag_version_name="${RELEASE_TAG#v}"
+          if [[ "$version_name" != "$tag_version_name" ]]; then
+            echo "Release tag $RELEASE_TAG does not match versionName=$version_name" >&2
+            exit 1
+          fi
+          if [[ ! "$version_code" =~ ^[1-9][0-9]*$ ]]; then
+            echo "versionCode must be a positive integer; got $version_code" >&2
+            exit 1
+          fi
+
+          version_properties_sha="$(sha256sum versioning/version.properties | awk '{print $1}')"
+          echo "VERSION_PROPERTIES_SHA=$version_properties_sha" >> "$GITHUB_ENV"
+          echo "RELEASE_VERSION_NAME=$version_name" >> "$GITHUB_ENV"
+          echo "RELEASE_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+
+      - name: Verify release controls in tagged source
+        run: |
+          bash ./scripts/test-google-play-internal-app-sharing-publication-audit.sh
+          bash ./scripts/audit-google-play-internal-app-sharing-publication.sh --manifest-only
+          bash ./scripts/test-release-workflow-audit.sh
+          bash ./scripts/audit-release-workflow.sh
+          bash ./scripts/test-android-distribution-preflight.sh
+          bash ./scripts/test-android-aab-native-page-alignment.sh
+          bash ./scripts/test-restore-release-overlays.sh
+          bash ./scripts/test-cleanup-release-overlays.sh
+          bash ./scripts/test-public-artifact-provenance-audit.sh
+          ./scripts/audit-public-artifacts.sh --strict-provenance
+          bash ./scripts/test-iroha-production-send-readiness-audit.sh
+          bash ./scripts/audit-iroha-production-send-readiness.sh
+
       - name: Checkout fearless-utils-Android
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: soramitsu/fearless-utils-Android
           ref: ${{ env.FEARLESS_UTILS_COMMIT }}
@@ -78,10 +204,12 @@ jobs:
           fetch-depth: 0
 
       - name: Verify fearless-utils source
-        run: ./scripts/ensure-fearless-utils.sh
+        run: |
+          bash ./scripts/test-fearless-utils-derived-tree.sh
+          ./scripts/ensure-fearless-utils.sh
 
       - name: Setup Java 21 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with:
           distribution: temurin
           java-version: '21'
@@ -121,9 +249,9 @@ jobs:
 
       - name: Export NDK environment
         run: |
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> "$GITHUB_ENV"
+          echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087" >> "$GITHUB_ENV"
 
       - name: Setup Rust toolchain
         run: |
@@ -135,16 +263,143 @@ jobs:
             i686-linux-android \
             x86_64-linux-android
 
+      - name: Exercise Android distribution task-graph guards
+        run: ./scripts/test-android-gradle-distribution-guards.sh
+
       - name: Restore release overlays
+        env:
+          GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}
+          ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
         run: ./scripts/restore-release-overlays.sh
 
-      - name: Release artifact audit
-        run: |
-          flags=(--release)
-          if [ "${{ inputs.strict_provenance }}" = "true" ]; then
-            flags+=(--strict-provenance)
-          fi
-          ./scripts/audit-public-artifacts.sh "${flags[@]}"
+      - name: Verify non-debug release signing inputs
+        run: ./scripts/verify-android-distribution-preflight.sh --release-signing
 
-      - name: Build release artifact
-        run: ./gradlew "${{ inputs.build_task }}" --no-daemon --console=plain --stacktrace
+      - name: Release artifact audit
+        run: ./scripts/audit-public-artifacts.sh --release --strict-provenance
+
+      - name: Build release bundle
+        run: ./gradlew :app:bundleRelease --no-daemon --console=plain --stacktrace
+
+      - name: Verify release AAB 16 KB native compatibility
+        run: |
+          set -euo pipefail
+          mapfile -d '' bundles < <(find app/build/outputs/bundle/release -type f -name '*.aab' -print0)
+          if [[ "${#bundles[@]}" -ne 1 ]]; then
+            echo "Expected exactly one release AAB for native alignment verification; found ${#bundles[@]}" >&2
+            exit 1
+          fi
+          python3 ./scripts/verify-android-aab-native-page-alignment.py "${bundles[0]}"
+
+      - name: Verify immutable version and stage release artifact
+        run: |
+          set -euo pipefail
+          current_version_sha="$(sha256sum versioning/version.properties | awk '{print $1}')"
+          if [[ "$current_version_sha" != "$VERSION_PROPERTIES_SHA" ]]; then
+            echo "versioning/version.properties changed during the release build" >&2
+            exit 1
+          fi
+          git diff --quiet -- versioning/version.properties
+          git diff --cached --quiet
+
+          unexpected_tracked_changes="$(
+            git diff --name-only |
+              grep -Fvx 'app/src/release/google-services.json' || true
+          )"
+          if [[ -n "$unexpected_tracked_changes" ]]; then
+            echo "Unexpected tracked release-build changes:" >&2
+            printf '%s\n' "$unexpected_tracked_changes" >&2
+            exit 1
+          fi
+
+          mapfile -d '' bundles < <(find app/build/outputs/bundle/release -type f -name '*.aab' -print0)
+          if [[ "${#bundles[@]}" -ne 1 ]]; then
+            echo "Expected exactly one release AAB, found ${#bundles[@]}" >&2
+            exit 1
+          fi
+          test -s "${bundles[0]}"
+          unzip -t "${bundles[0]}" >/dev/null
+          signature_entries="$(unzip -Z1 "${bundles[0]}" | grep -Ei '^META-INF/[^/]+\.(RSA|DSA|EC)$' || true)"
+          if [[ -z "$signature_entries" ]]; then
+            echo "Release AAB has no JAR signature block" >&2
+            exit 1
+          fi
+          jarsigner_output="build/release-jarsigner-verification.txt"
+          jarsigner -verify -verbose "${bundles[0]}" > "$jarsigner_output" 2>&1
+          grep -Fq 'jar verified.' "$jarsigner_output" || {
+            cat "$jarsigner_output" >&2
+            echo "Release AAB signature verification did not report success" >&2
+            exit 1
+          }
+          expected_cert_sha256="$(
+            keytool -list -v \
+              -keystore "$CI_KEYSTORE_PATH" \
+              -storepass:env CI_KEYSTORE_PASS \
+              -alias "$CI_KEYSTORE_KEY_ALIAS" |
+              awk -F'SHA256:' '/SHA256:/ { value=$2; gsub(/[[:space:]]/, "", value); print value; exit }'
+          )"
+          artifact_cert_sha256="$(
+            keytool -printcert -jarfile "${bundles[0]}" |
+              awk -F'SHA256:' '/SHA256:/ { value=$2; gsub(/[[:space:]]/, "", value); print value; exit }'
+          )"
+          if [[ -z "$expected_cert_sha256" || "$artifact_cert_sha256" != "$expected_cert_sha256" ]]; then
+            echo "Release AAB signer does not match the configured release keystore" >&2
+            exit 1
+          fi
+
+          artifact_dir="build/release-artifact"
+          mkdir -p "$artifact_dir"
+          artifact_path="$artifact_dir/Fearless-$RELEASE_TAG.aab"
+          cp "${bundles[0]}" "$artifact_path"
+          sha256sum "$artifact_path" > "$artifact_path.sha256"
+          jq -n \
+            --arg releaseTag "$RELEASE_TAG" \
+            --arg releaseCommit "$RELEASE_COMMIT" \
+            --arg versionName "$RELEASE_VERSION_NAME" \
+            --arg versionCode "$RELEASE_VERSION_CODE" \
+            --arg versionPropertiesSha256 "$VERSION_PROPERTIES_SHA" \
+            --arg artifactSha256 "$(sha256sum "$artifact_path" | awk '{print $1}')" \
+            --arg signingCertificateSha256 "$artifact_cert_sha256" \
+            '{releaseTag: $releaseTag, releaseCommit: $releaseCommit, versionName: $versionName, versionCode: $versionCode, versionPropertiesSha256: $versionPropertiesSha256, artifactSha256: $artifactSha256, signingCertificateSha256: $signingCertificateSha256}' \
+            > "$artifact_dir/provenance.json"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fearless-android-${{ inputs.release_tag }}
+          path: build/release-artifact
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attest release bundle provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: build/release-artifact/Fearless-${{ inputs.release_tag }}.aab
+
+      - name: Restore least-privilege Play publishing credential
+        if: ${{ inputs.play_testing_track != 'none' }}
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
+        run: RELEASE_OVERLAY_MODE=play ./scripts/restore-release-overlays.sh
+
+      - name: Publish verified bundle to a Google Play testing track
+        if: ${{ inputs.play_testing_track != 'none' }}
+        env:
+          PLAY_TRACK: ${{ inputs.play_testing_track }}
+          PLAY_RELEASE_STATUS: ${{ inputs.play_release_status }}
+          PLAY_ARTIFACT_DIR: ${{ github.workspace }}/build/release-artifact
+        run: |
+          set -euo pipefail
+          case "$PLAY_TRACK" in
+            internal|alpha|beta) ;;
+            *)
+              echo "Only internal, alpha, or beta testing tracks are permitted here." >&2
+              exit 1
+              ;;
+          esac
+          ./scripts/verify-android-distribution-preflight.sh --play-testing
+          ./gradlew :app:publishReleaseBundle --no-daemon --console=plain --stacktrace
+
+      - name: Remove ephemeral release credentials
+        if: ${{ always() }}
+        run: ./scripts/cleanup-release-overlays.sh

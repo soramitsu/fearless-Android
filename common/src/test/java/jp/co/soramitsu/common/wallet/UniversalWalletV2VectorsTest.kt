@@ -134,7 +134,7 @@ class UniversalWalletV2VectorsTest {
         assertFalse(UniversalWalletRegistry.solanaDevnet.enabledByDefault)
 
         assertEquals("taira-testnet", UniversalWalletRegistry.taira.id)
-        assertEquals("iroha3-taira", UniversalWalletRegistry.taira.chainId)
+        assertEquals("fc56984b-2be7-431d-840e-21514d1883f0", UniversalWalletRegistry.taira.chainId)
         assertEquals(369, UniversalWalletRegistry.taira.chainDiscriminant)
         assertEquals("https://taira.sora.org", UniversalWalletRegistry.taira.toriiBaseUrl)
         assertEquals("/v1/mcp", UniversalWalletRegistry.taira.mcpPath)

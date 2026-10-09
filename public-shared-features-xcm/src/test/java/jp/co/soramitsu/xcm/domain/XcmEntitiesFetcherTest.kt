@@ -5,10 +5,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class XcmEntitiesFetcherTest {
 
@@ -20,8 +20,12 @@ class XcmEntitiesFetcherTest {
                 xcm = xcm(
                     availableAssets = listOf(xcmAsset("DOT")),
                     destinations = listOf(
-                        destination("destination-a", xcmAsset("DOT")),
-                        destination("destination-b", xcmAsset("KSM"))
+                        destination("destination-a", xcmAsset("DOT"), execution = executableRouteSpec()),
+                        destination(
+                            "destination-b",
+                            xcmAsset("KSM"),
+                            execution = executableRouteSpec(assetSymbol = "KSM")
+                        )
                     )
                 )
             ),
@@ -29,7 +33,13 @@ class XcmEntitiesFetcherTest {
                 id = "origin-b",
                 xcm = xcm(
                     availableAssets = listOf(xcmAsset("KSM")),
-                    destinations = listOf(destination("destination-a", xcmAsset("KSM")))
+                    destinations = listOf(
+                        destination(
+                            "destination-a",
+                            xcmAsset("KSM"),
+                            execution = executableRouteSpec(assetSymbol = "KSM")
+                        )
+                    )
                 )
             ),
             chain(id = "not-xcm")
@@ -46,7 +56,7 @@ class XcmEntitiesFetcherTest {
     }
 
     @Test
-    fun `returns destination filtered assets with parsed min amount`() = runBlocking {
+    fun `returns approved destination asset with parsed min amount`() = runBlocking {
         val fetcher = fetcher(
             chain(
                 id = "origin",
@@ -55,7 +65,7 @@ class XcmEntitiesFetcherTest {
                         destination(
                             "destination",
                             xcmAsset(symbol = "xcKSM", id = "ksm-route", minAmount = "12000000000"),
-                            xcmAsset(symbol = "DOT", id = "dot-route", minAmount = "0")
+                            execution = executableRouteSpec(assetSymbol = "KSM")
                         ),
                         destination("other", xcmAsset("HDX"))
                     )
@@ -65,14 +75,13 @@ class XcmEntitiesFetcherTest {
 
         val assets = fetcher.getAvailableAssets(originChainId = "origin", destinationChainId = "destination")
 
-        assertEquals(listOf("KSM", "DOT"), assets.map { it.symbol })
+        assertEquals(listOf("KSM"), assets.map { it.symbol })
         assertEquals("ksm-route", assets[0].id)
         assertEquals(BigInteger("12000000000"), assets[0].minAmount)
-        assertEquals(BigInteger.ZERO, assets[1].minAmount)
     }
 
     @Test
-    fun `falls back to origin available assets when no route assets exist`() = runBlocking {
+    fun `does not expose available assets without an approved executable route`() = runBlocking {
         val fetcher = fetcher(
             chain(
                 id = "origin",
@@ -83,7 +92,7 @@ class XcmEntitiesFetcherTest {
         )
 
         assertEquals(
-            listOf("DOT", "KSM"),
+            emptyList<String>(),
             fetcher.getAvailableAssets(originChainId = "origin", destinationChainId = null).map { it.symbol }
         )
     }
@@ -95,8 +104,16 @@ class XcmEntitiesFetcherTest {
                 id = "origin",
                 xcm = xcm(
                     destinations = listOf(
-                        destination("dot-destination", xcmAsset("DOT")),
-                        destination("ksm-destination", xcmAsset("xcKSM")),
+                        destination(
+                            "dot-destination",
+                            xcmAsset("DOT"),
+                            execution = executableRouteSpec()
+                        ),
+                        destination(
+                            "ksm-destination",
+                            xcmAsset("xcKSM"),
+                            execution = executableRouteSpec(assetSymbol = "KSM")
+                        ),
                         destination("all-destination", xcmAsset("DOT"), xcmAsset("KSM"))
                     )
                 )
@@ -104,7 +121,7 @@ class XcmEntitiesFetcherTest {
         )
 
         assertEquals(
-            listOf("ksm-destination", "all-destination"),
+            listOf("ksm-destination"),
             fetcher.getAvailableDestinationChains(originChainId = "origin", assetSymbol = "ksm")
         )
     }
@@ -133,14 +150,12 @@ class XcmEntitiesFetcherTest {
         )
 
         assertEquals(
-            listOf("destination"),
+            emptyList<String>(),
             fetcher.getAvailableDestinationChains(originChainId = "origin", assetSymbol = null)
         )
 
         val assets = fetcher.getAvailableAssets(originChainId = "origin", destinationChainId = "destination")
-        assertEquals(listOf("KSM", "DOT"), assets.map { it.symbol })
-        assertEquals(null, assets[0].minAmount)
-        assertEquals(null, assets[1].minAmount)
+        assertTrue(assets.isEmpty())
     }
 
     @Test
@@ -196,7 +211,8 @@ class XcmEntitiesFetcherTest {
                         )
                     )
                 )
-            )
+            ),
+            chain(id = "evm-destination", ecosystem = Ecosystem.EthereumBased)
         )
 
         val route = requireNotNull(
@@ -221,15 +237,7 @@ class XcmEntitiesFetcherTest {
             )
         )
 
-        assertThrows(IllegalStateException::class.java) {
-            runBlocking {
-                fetcher.getExecutableRoute(
-                    originChainId = "origin",
-                    destinationChainId = "destination",
-                    assetSymbol = "DOT"
-                )
-            }
-        }
+        assertEquals(null, fetcher.getExecutableRoute("origin", "destination", "DOT"))
         assertFalse(fetcher.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
     }
 
@@ -252,15 +260,7 @@ class XcmEntitiesFetcherTest {
             )
         )
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                fetcher.getExecutableRoute(
-                    originChainId = "origin",
-                    destinationChainId = "destination",
-                    assetSymbol = "DOT"
-                )
-            }
-        }
+        assertEquals(null, fetcher.getExecutableRoute("origin", "destination", "DOT"))
         assertFalse(fetcher.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
     }
 
@@ -324,21 +324,9 @@ class XcmEntitiesFetcherTest {
             )
         )
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                malformedBeneficiary.getExecutableRoute("origin", "destination", "DOT")
-            }
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                wrongJunctionCount.getExecutableRoute("origin", "destination", "DOT")
-            }
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                unsupportedJunction.getExecutableRoute("origin", "destination", "DOT")
-            }
-        }
+        assertEquals(null, malformedBeneficiary.getExecutableRoute("origin", "destination", "DOT"))
+        assertEquals(null, wrongJunctionCount.getExecutableRoute("origin", "destination", "DOT"))
+        assertEquals(null, unsupportedJunction.getExecutableRoute("origin", "destination", "DOT"))
 
         assertFalse(malformedBeneficiary.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
         assertFalse(wrongJunctionCount.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
@@ -369,15 +357,7 @@ class XcmEntitiesFetcherTest {
             )
         )
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                fetcher.getExecutableRoute(
-                    originChainId = "origin",
-                    destinationChainId = "destination",
-                    assetSymbol = "DOT"
-                )
-            }
-        }
+        assertEquals(null, fetcher.getExecutableRoute("origin", "destination", "DOT"))
         assertFalse(fetcher.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
     }
 
@@ -417,21 +397,53 @@ class XcmEntitiesFetcherTest {
             )
         )
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                unsupportedShape.getExecutableRoute("origin", "destination", "DOT")
-            }
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                mismatchedXTokensShape.getExecutableRoute("origin", "destination", "DOT")
-            }
-        }
+        assertEquals(null, unsupportedShape.getExecutableRoute("origin", "destination", "DOT"))
+        assertEquals(null, mismatchedXTokensShape.getExecutableRoute("origin", "destination", "DOT"))
         assertFalse(unsupportedShape.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
         assertFalse(mismatchedXTokensShape.hasExecutableRouteAsset(originChainId = "origin", assetSymbol = "DOT"))
     }
 
-    private fun fetcher(vararg chains: Chain) = XcmEntitiesFetcher { chains.toList() }
+    private fun fetcher(vararg chains: Chain): XcmEntitiesFetcher {
+        val discoveredChains = chains.toList().map { origin ->
+            val approvedCoreAssets = origin.xcm?.availableDestinations.orEmpty()
+                .flatMap { it.assets.orEmpty() }
+                .filter { it.execution != null }
+                .mapNotNull { it.symbol?.normalizedTestSymbol() }
+                .distinct()
+                .map { symbol -> coreAsset(origin.id, symbol) }
+            origin.copy(assets = approvedCoreAssets)
+        }.withDestinationStubs()
+        val routeKeys = discoveredChains.flatMap { origin ->
+            origin.xcm?.availableDestinations.orEmpty().flatMap { destination ->
+                destination.assets.orEmpty().mapNotNull { asset ->
+                    if (asset.execution == null) return@mapNotNull null
+                    ApprovedXcmRouteKey(
+                        originChainId = origin.id,
+                        destinationChainId = destination.chainId.orEmpty(),
+                        assetSymbol = asset.symbol.orEmpty()
+                    )
+                }
+            }
+        }
+        val approvedRoutes = runCatching {
+            ApprovedXcmRouteRegistry.fromReviewedChains(discoveredChains, routeKeys)
+        }.getOrElse {
+            ApprovedXcmRouteRegistry.unavailable()
+        }
+        return XcmEntitiesFetcher({ discoveredChains }, approvedRoutes)
+    }
+
+    private fun String.normalizedTestSymbol(): String = trim()
+        .replace(Regex("^xc", RegexOption.IGNORE_CASE), "")
+        .uppercase()
+
+    private fun List<Chain>.withDestinationStubs(): List<Chain> {
+        val knownIds = mapTo(mutableSetOf(), Chain::id)
+        val destinationIds = flatMap { chain ->
+            chain.xcm?.availableDestinations.orEmpty().mapNotNull { it.chainId }
+        }
+        return this + destinationIds.filter { knownIds.add(it) }.map { chain(it) }
+    }
 
     private fun xcm(
         availableAssets: List<Chain.Xcm.Asset> = emptyList(),
@@ -448,12 +460,19 @@ class XcmEntitiesFetcherTest {
         vararg assets: Chain.Xcm.Asset,
         bridgeParachainId: String? = null,
         execution: Chain.Xcm.Execution? = null
-    ) = Chain.Xcm.Destination(
-        chainId = chainId,
-        assets = assets.toList(),
-        bridgeParachainId = bridgeParachainId,
-        execution = execution
-    )
+    ): Chain.Xcm.Destination {
+        require(execution == null || assets.size == 1) {
+            "Tests must bind execution to an exact route asset"
+        }
+        return Chain.Xcm.Destination(
+            chainId = chainId,
+            assets = assets.map { asset ->
+                if (execution == null) asset else asset.copy(execution = execution)
+            },
+            bridgeParachainId = bridgeParachainId,
+            execution = null
+        )
+    }
 
     private fun executableRouteSpec(
         palletName: String? = "PolkadotXcm",
@@ -481,7 +500,8 @@ class XcmEntitiesFetcherTest {
             refTime = "6000000000",
             proofSize = "65536"
         ),
-        bridge: Chain.Xcm.Bridge? = null
+        bridge: Chain.Xcm.Bridge? = null,
+        assetSymbol: String = "DOT"
     ) = Chain.Xcm.Execution(
         palletName = palletName,
         callName = callName,
@@ -494,8 +514,8 @@ class XcmEntitiesFetcherTest {
         feeAssetItem = 0,
         weightLimit = weightLimit,
         destinationFee = Chain.Xcm.DestinationFee(
-            mode = "Estimated",
-            assetSymbol = "DOT",
+            mode = "Included",
+            assetSymbol = assetSymbol,
             amount = null
         ),
         bridge = bridge
@@ -503,15 +523,21 @@ class XcmEntitiesFetcherTest {
 
     private fun xcmAsset(
         symbol: String,
-        id: String? = null,
-        minAmount: String? = null
+        id: String? = "route-asset",
+        minAmount: String? = null,
+        execution: Chain.Xcm.Execution? = null
     ) = Chain.Xcm.Asset(
         id = id,
         symbol = symbol,
-        minAmount = minAmount
+        minAmount = minAmount,
+        execution = execution
     )
 
-    private fun chain(id: String, xcm: Chain.Xcm? = null) = Chain(
+    private fun chain(
+        id: String,
+        xcm: Chain.Xcm? = null,
+        ecosystem: Ecosystem = Ecosystem.Substrate
+    ) = Chain(
         id = id,
         paraId = null,
         rank = null,
@@ -523,7 +549,7 @@ class XcmEntitiesFetcherTest {
         externalApi = null,
         icon = "",
         addressPrefix = 0,
-        isEthereumBased = false,
+        isEthereumBased = ecosystem == Ecosystem.EthereumBased,
         isTestNet = false,
         hasCrowdloans = false,
         parentId = null,
@@ -533,10 +559,34 @@ class XcmEntitiesFetcherTest {
         supportNft = false,
         isUsesAppId = false,
         identityChain = null,
-        ecosystem = Ecosystem.Substrate,
+        ecosystem = ecosystem,
         androidMinAppVersion = null,
         remoteAssetsSource = null,
         tonBridgeUrl = null,
         xcm = xcm
+    )
+
+    private fun coreAsset(chainId: String, symbol: String) = CoreAsset(
+        id = "core-$chainId-${symbol.lowercase()}",
+        name = symbol,
+        symbol = symbol,
+        iconUrl = "",
+        chainId = chainId,
+        chainName = chainId,
+        chainIcon = null,
+        isTestNet = false,
+        priceId = null,
+        precision = 12,
+        staking = CoreAsset.StakingType.UNSUPPORTED,
+        purchaseProviders = null,
+        supportStakingPool = false,
+        isUtility = true,
+        type = null,
+        currencyId = null,
+        existentialDeposit = null,
+        color = null,
+        isNative = true,
+        priceProvider = null,
+        coinbaseUrl = null
     )
 }

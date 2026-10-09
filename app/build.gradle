@@ -1,6 +1,121 @@
 //file:noinspection GroovyImplicitNullArgumentCall
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+import groovy.json.JsonSlurper
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.PosixFilePermission
+import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
 import java.util.Properties
+
+def internalAppSharingRequested = gradle.startParameter.taskNames.any { requestedTask ->
+    requestedTask.toLowerCase(Locale.ROOT).contains("internalappsharing")
+}
+def releaseGoogleServicesFile = file("src/release/google-services.json")
+def generatedIasGoogleServicesFile = file("src/internalAppSharing/google-services.json")
+
+if (internalAppSharingRequested) {
+    if (!releaseGoogleServicesFile.isFile() || Files.isSymbolicLink(releaseGoogleServicesFile.toPath())) {
+        throw new GradleException(
+            "Internal App Sharing requires a regular, non-symlink src/release/google-services.json."
+        )
+    }
+    if (releaseGoogleServicesFile.length() <= 0 || releaseGoogleServicesFile.length() > 65536) {
+        throw new GradleException("Release Firebase configuration must be between 1 and 65536 bytes.")
+    }
+    def releaseFirebaseConfig
+    try {
+        releaseFirebaseConfig = new JsonSlurper().parse(releaseGoogleServicesFile)
+    } catch (Exception failure) {
+        throw new GradleException("Release Firebase configuration is not valid JSON.", failure)
+    }
+    def releaseFirebaseClients = releaseFirebaseConfig?.client
+    def matchingReleaseClients = releaseFirebaseClients instanceof List
+        ? releaseFirebaseClients.findAll { client ->
+            client?.client_info?.android_client_info?.package_name == "jp.co.soramitsu.fearless"
+        }
+        : []
+    if (!(releaseFirebaseConfig?.project_info instanceof Map) || matchingReleaseClients.size() != 1) {
+        throw new GradleException(
+            "Release Firebase configuration must contain exactly one jp.co.soramitsu.fearless client."
+        )
+    }
+
+    def expectedIasDirectory = file("src/internalAppSharing").absoluteFile
+    def expectedIasParent = file("src").canonicalFile
+    if (expectedIasDirectory.parentFile.canonicalFile != expectedIasParent) {
+        throw new GradleException("Internal App Sharing generated-source parent must stay inside app/src.")
+    }
+    if (Files.exists(expectedIasDirectory.toPath(), LinkOption.NOFOLLOW_LINKS) &&
+        (!Files.isDirectory(expectedIasDirectory.toPath(), LinkOption.NOFOLLOW_LINKS) ||
+            Files.isSymbolicLink(expectedIasDirectory.toPath()))) {
+        throw new GradleException("Internal App Sharing generated-source path must be a real directory.")
+    }
+    Files.createDirectories(expectedIasDirectory.toPath())
+    if (expectedIasDirectory.canonicalFile != expectedIasDirectory.absoluteFile) {
+        throw new GradleException("Internal App Sharing generated-source directory must not traverse a symlink.")
+    }
+
+    def generatedIasPath = generatedIasGoogleServicesFile.toPath()
+    def generatedIasAlreadyExists = Files.exists(generatedIasPath, LinkOption.NOFOLLOW_LINKS)
+    if (generatedIasAlreadyExists) {
+        if (Files.isSymbolicLink(generatedIasPath) ||
+            !Files.isRegularFile(generatedIasPath, LinkOption.NOFOLLOW_LINKS)) {
+            throw new GradleException("Pre-existing IAS Firebase configuration must be a regular, non-symlink file.")
+        }
+        if (!Arrays.equals(releaseGoogleServicesFile.bytes, generatedIasGoogleServicesFile.bytes)) {
+            throw new GradleException(
+                "Refusing to overwrite a divergent pre-existing IAS Firebase configuration."
+            )
+        }
+    }
+
+    // Register cleanup before creation/configuration so plugin or configuration failures cannot
+    // strand a generated credential file. An exact stale file is also treated as generated state.
+    gradle.buildFinished {
+        Files.deleteIfExists(generatedIasPath)
+    }
+    try {
+        if (!generatedIasAlreadyExists) {
+            Files.copy(
+                releaseGoogleServicesFile.toPath(),
+                generatedIasPath,
+                StandardCopyOption.REPLACE_EXISTING
+            )
+        }
+        try {
+            def ownerOnlyPermissions = EnumSet.of(
+                PosixFilePermission.OWNER_READ,
+                PosixFilePermission.OWNER_WRITE
+            )
+            Files.setPosixFilePermissions(generatedIasPath, ownerOnlyPermissions)
+            if (Files.getPosixFilePermissions(generatedIasPath) != ownerOnlyPermissions) {
+                throw new GradleException("Generated IAS Firebase configuration must have mode 0600.")
+            }
+        } catch (UnsupportedOperationException ignored) {
+            generatedIasGoogleServicesFile.setReadable(false, false)
+            generatedIasGoogleServicesFile.setWritable(false, false)
+            generatedIasGoogleServicesFile.setExecutable(false, false)
+            if (!generatedIasGoogleServicesFile.setReadable(true, true) ||
+                !generatedIasGoogleServicesFile.setWritable(true, true) ||
+                !generatedIasGoogleServicesFile.canRead() || !generatedIasGoogleServicesFile.canWrite() ||
+                generatedIasGoogleServicesFile.canExecute()) {
+                throw new GradleException(
+                    "Could not restrict generated Internal App Sharing Firebase configuration permissions."
+                )
+            }
+        }
+        if (!Files.isRegularFile(generatedIasPath, LinkOption.NOFOLLOW_LINKS) ||
+            !Arrays.equals(releaseGoogleServicesFile.bytes, generatedIasGoogleServicesFile.bytes)) {
+            throw new GradleException("Generated Internal App Sharing Firebase configuration differs from release.")
+        }
+    } catch (Exception failure) {
+        Files.deleteIfExists(generatedIasPath)
+        throw failure
+    }
+}
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
@@ -27,6 +142,44 @@ def envOrLocalProp = { envKey, propKey ->
     return localKeystoreProperties.getProperty(propKey)
 }
 
+def presentConfigValue = { envKey, propKey ->
+    def value = envOrLocalProp(envKey, propKey)
+    return value != null && !value.toString().trim().isEmpty() ? value.toString() : null
+}
+
+def releaseSigningInputs = [
+    CI_KEYSTORE_PATH     : presentConfigValue("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH"),
+    CI_KEYSTORE_PASS     : presentConfigValue("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD"),
+    CI_KEYSTORE_KEY_ALIAS: presentConfigValue("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS"),
+    CI_KEYSTORE_KEY_PASS : presentConfigValue("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD")
+]
+def configuredReleaseKeystore = releaseSigningInputs.CI_KEYSTORE_PATH == null
+    ? null
+    : (new File(releaseSigningInputs.CI_KEYSTORE_PATH).isAbsolute()
+        ? new File(releaseSigningInputs.CI_KEYSTORE_PATH)
+        : rootProject.file(releaseSigningInputs.CI_KEYSTORE_PATH))
+
+def requestedPlayTrack = System.getenv("PLAY_TRACK")?.trim()
+def requestedPlayReleaseStatus = System.getenv("PLAY_RELEASE_STATUS")?.trim()
+def requestedPlayArtifactDir = System.getenv("PLAY_ARTIFACT_DIR")?.trim()
+def configuredPlayArtifactDirectory = requestedPlayArtifactDir == null || requestedPlayArtifactDir.isEmpty()
+    ? null
+    : (new File(requestedPlayArtifactDir).isAbsolute()
+        ? new File(requestedPlayArtifactDir)
+        : rootProject.file(requestedPlayArtifactDir))
+def expectedPlayArtifactDirectory = rootProject.file("build/release-artifact")
+def effectivePlayTrack = requestedPlayTrack ?: "internal"
+def effectivePlayReleaseStatus = requestedPlayReleaseStatus ?: "draft"
+def supportedPlayTracks = ["internal", "alpha", "beta", "production"] as Set
+def supportedPlayReleaseStatuses = ["draft", "completed"] as Set
+
+if (!supportedPlayTracks.contains(effectivePlayTrack)) {
+    throw new GradleException("PLAY_TRACK must be one of: internal, alpha, beta, production.")
+}
+if (!supportedPlayReleaseStatuses.contains(effectivePlayReleaseStatus)) {
+    throw new GradleException("PLAY_RELEASE_STATUS must be either draft or completed.")
+}
+
 android {
     compileSdk rootProject.compileSdkVersion
     defaultConfig {
@@ -41,32 +194,19 @@ android {
         }
     }
     signingConfigs {
-        ci {
-            def keystorePath = envOrLocalProp("CI_KEYSTORE_PATH", "ANDROID_RELEASE_KEYSTORE_PATH")
-            def releaseKeystore = rootProject.file("fearless-upload.jks")
-            def debugSigningConfig = signingConfigs.getByName("debug")
-
-            def resolvedStoreFile = null
-            if (keystorePath) {
-                def candidate = file(keystorePath)
-                if (candidate.exists()) {
-                    resolvedStoreFile = candidate
-                } else {
-                    throw new GradleException("Provided CI keystore path does not exist: ${candidate.absolutePath}")
-                }
+        playRelease {
+            if (configuredReleaseKeystore != null) {
+                storeFile configuredReleaseKeystore
             }
-            if (resolvedStoreFile == null && releaseKeystore.exists()) {
-                resolvedStoreFile = releaseKeystore
+            if (releaseSigningInputs.CI_KEYSTORE_PASS != null) {
+                storePassword releaseSigningInputs.CI_KEYSTORE_PASS
             }
-            if (resolvedStoreFile == null) {
-                resolvedStoreFile = debugSigningConfig.storeFile
+            if (releaseSigningInputs.CI_KEYSTORE_KEY_ALIAS != null) {
+                keyAlias releaseSigningInputs.CI_KEYSTORE_KEY_ALIAS
             }
-
-            storeFile resolvedStoreFile
-
-            storePassword envOrLocalProp("CI_KEYSTORE_PASS", "ANDROID_RELEASE_KEYSTORE_PASSWORD") ?: debugSigningConfig.storePassword
-            keyAlias envOrLocalProp("CI_KEYSTORE_KEY_ALIAS", "ANDROID_RELEASE_KEYSTORE_ALIAS") ?: debugSigningConfig.keyAlias
-            keyPassword envOrLocalProp("CI_KEYSTORE_KEY_PASS", "ANDROID_RELEASE_KEYSTORE_KEY_PASSWORD") ?: debugSigningConfig.keyPassword
+            if (releaseSigningInputs.CI_KEYSTORE_KEY_PASS != null) {
+                keyPassword releaseSigningInputs.CI_KEYSTORE_KEY_PASS
+            }
         }
     }
 
@@ -98,7 +238,15 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.ci
+            signingConfig signingConfigs.playRelease
+        }
+        // Deliberately distinct from release: this keeps release code, resources, R8/R8D8,
+        // and package identity while making the debug signer an explicit IAS-only choice.
+        internalAppSharing {
+            initWith release
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
+            versionNameSuffix '-ias'
         }
         staging {
             initWith debug
@@ -172,6 +320,7 @@ android {
     }
     lint {
         disable 'Instantiatable'
+        fatal 'CredentialDependency', 'TrustAllX509TrustManager'
         checkReleaseBuilds true
         abortOnError true
     }
@@ -194,8 +343,214 @@ android {
 
 play {
     serviceAccountCredentials = file(System.env.CI_PLAY_KEY ?: "../key/fake.json")
-    track = "production"
-    releaseStatus = ReleaseStatus.DRAFT
+    // Configuration-only Gradle invocations stay harmless. Publishing requires explicit
+    // PLAY_TRACK/PLAY_RELEASE_STATUS values in the task-graph guard below.
+    track = effectivePlayTrack
+    releaseStatus = effectivePlayReleaseStatus == "completed" ? ReleaseStatus.COMPLETED : ReleaseStatus.DRAFT
+    if (configuredPlayArtifactDirectory != null) {
+        artifactDir = configuredPlayArtifactDirectory
+    }
+}
+
+def requireNoSymlinkComponents = { File candidate, String label ->
+    def currentPath = candidate.toPath().toAbsolutePath().normalize()
+    while (currentPath != null) {
+        if (Files.exists(currentPath, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(currentPath)) {
+            throw new GradleException("${label} must not traverse a symlink component.")
+        }
+        currentPath = currentPath.parent
+    }
+}
+
+def loadSigningKeyStore = { File storeFile, String password ->
+    Exception lastFailure = null
+    for (String type : ["JKS", "PKCS12"]) {
+        try {
+            def keyStore = KeyStore.getInstance(type)
+            storeFile.withInputStream { input ->
+                keyStore.load(input, password.toCharArray())
+            }
+            return keyStore
+        } catch (Exception failure) {
+            lastFailure = failure
+        }
+    }
+    throw new GradleException("Configured release keystore could not be opened as JKS or PKCS12.", lastFailure)
+}
+
+def validatePlayReleaseSigning = {
+    def missingInputs = releaseSigningInputs.findAll { ignored, value -> value == null }.keySet().sort()
+    if (!missingInputs.isEmpty()) {
+        throw new GradleException(
+            "Play release signing is incomplete; missing explicit inputs: ${missingInputs.join(', ')}. " +
+                "Use :app:bundleInternalAppSharing for the intentionally debug-signed IAS bundle."
+        )
+    }
+    if (!configuredReleaseKeystore.isFile() || Files.isSymbolicLink(configuredReleaseKeystore.toPath())) {
+        throw new GradleException("CI_KEYSTORE_PATH must identify a regular, non-symlink release keystore file.")
+    }
+    requireNoSymlinkComponents(configuredReleaseKeystore, "CI_KEYSTORE_PATH")
+
+    def debugSigning = android.signingConfigs.getByName("debug")
+    if (debugSigning.storeFile != null &&
+        configuredReleaseKeystore.canonicalFile == debugSigning.storeFile.canonicalFile) {
+        throw new GradleException("The Android debug keystore cannot sign a Play release artifact.")
+    }
+
+    def releaseKeyStore = loadSigningKeyStore(configuredReleaseKeystore, releaseSigningInputs.CI_KEYSTORE_PASS)
+    def releaseAlias = releaseSigningInputs.CI_KEYSTORE_KEY_ALIAS
+    if (!releaseKeyStore.containsAlias(releaseAlias)) {
+        throw new GradleException("Configured release keystore does not contain CI_KEYSTORE_KEY_ALIAS.")
+    }
+
+    def releaseKey
+    try {
+        releaseKey = releaseKeyStore.getKey(
+            releaseAlias,
+            releaseSigningInputs.CI_KEYSTORE_KEY_PASS.toCharArray()
+        )
+    } catch (Exception failure) {
+        throw new GradleException("CI_KEYSTORE_KEY_PASS could not unlock the configured release key.", failure)
+    }
+    if (!(releaseKey instanceof PrivateKey)) {
+        throw new GradleException("CI_KEYSTORE_KEY_ALIAS must identify a private signing key.")
+    }
+
+    def releaseCertificate = releaseKeyStore.getCertificate(releaseAlias)
+    if (!(releaseCertificate instanceof X509Certificate)) {
+        throw new GradleException("CI_KEYSTORE_KEY_ALIAS must have an X.509 signing certificate.")
+    }
+    def releaseSubject = releaseCertificate.subjectX500Principal.getName("RFC2253")
+    if (releaseSubject.toUpperCase(Locale.ROOT).contains("CN=ANDROID DEBUG")) {
+        throw new GradleException("An Android Debug certificate cannot sign a Play release artifact.")
+    }
+
+    if (debugSigning.storeFile?.isFile()) {
+        try {
+            def debugKeyStore = loadSigningKeyStore(debugSigning.storeFile, debugSigning.storePassword)
+            def debugCertificate = debugKeyStore.getCertificate(debugSigning.keyAlias)
+            if (debugCertificate != null &&
+                Arrays.equals(releaseCertificate.encoded, debugCertificate.encoded)) {
+                throw new GradleException("The configured Play release certificate is the Android debug certificate.")
+            }
+        } catch (GradleException failure) {
+            throw failure
+        } catch (Exception ignored) {
+            // Subject and canonical-path checks remain authoritative if no local debug store exists yet.
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def appTasks = taskGraph.allTasks.findAll { task -> task.project == project }
+    def releaseArtifactTasks = appTasks.findAll { task ->
+        def taskName = task.name.toLowerCase(Locale.ROOT)
+        def internalSharingTask = taskName.contains("internalappsharing") || taskName.contains("internalsharing")
+        !internalSharingTask && (
+            taskName in ["assemblerelease", "bundlerelease", "packagerelease", "signreleasebundle"] ||
+                (taskName.contains("release") &&
+                    (taskName.contains("bundle") || taskName.contains("package") ||
+                        taskName.contains("sign") || taskName.startsWith("publish")))
+        )
+    }
+    if (!releaseArtifactTasks.isEmpty()) {
+        validatePlayReleaseSigning()
+    }
+
+    def forbiddenIasPublisherTasks = appTasks.findAll { task ->
+        def taskName = task.name.toLowerCase(Locale.ROOT)
+        def playPublisherTask = task.class.name.contains(".gradle.play.")
+        playPublisherTask && taskName.contains("internalappsharing") &&
+            (taskName.startsWith("publish") || taskName.startsWith("promote") ||
+                taskName.startsWith("upload") || taskName.startsWith("install"))
+    }
+    if (!forbiddenIasPublisherTasks.isEmpty()) {
+        throw new GradleException(
+            "The debug-signed internalAppSharing variant is IAS-file-only and must never run a Play publisher task."
+        )
+    }
+
+    def normalPlayPublishingTasks = appTasks.findAll { task ->
+        def taskName = task.name.toLowerCase(Locale.ROOT)
+        def playPublisherTask = task.class.name.contains(".gradle.play.")
+        def internalSharingTask = taskName.contains("internalsharing")
+        playPublisherTask && !internalSharingTask &&
+            (taskName.startsWith("publish") || taskName.startsWith("promote"))
+    }
+    if (!normalPlayPublishingTasks.isEmpty()) {
+        validatePlayReleaseSigning()
+        if (requestedPlayTrack == null || requestedPlayReleaseStatus == null) {
+            throw new GradleException("Play publishing requires explicit PLAY_TRACK and PLAY_RELEASE_STATUS values.")
+        }
+        def serviceAccountPath = System.getenv("CI_PLAY_KEY")?.trim()
+        def serviceAccountFile = serviceAccountPath == null ? null : new File(serviceAccountPath)
+        if (serviceAccountFile == null || !serviceAccountFile.isFile() ||
+            Files.isSymbolicLink(serviceAccountFile.toPath())) {
+            throw new GradleException("CI_PLAY_KEY must identify a regular, non-symlink Play service-account JSON file.")
+        }
+        requireNoSymlinkComponents(serviceAccountFile, "CI_PLAY_KEY")
+        if (requestedPlayArtifactDir == null || requestedPlayArtifactDir.isEmpty()) {
+            throw new GradleException("Play publishing requires an explicit PLAY_ARTIFACT_DIR.")
+        }
+        def playArtifactDirectory = configuredPlayArtifactDirectory
+        requireNoSymlinkComponents(playArtifactDirectory, "PLAY_ARTIFACT_DIR")
+        if (!playArtifactDirectory.isDirectory()) {
+            throw new GradleException("PLAY_ARTIFACT_DIR must identify the verified staged bundle directory.")
+        }
+        if (playArtifactDirectory.canonicalFile != expectedPlayArtifactDirectory.canonicalFile) {
+            throw new GradleException("PLAY_ARTIFACT_DIR must be the root build/release-artifact directory.")
+        }
+        def serviceAccount
+        try {
+            serviceAccount = new JsonSlurper().parse(serviceAccountFile)
+        } catch (Exception failure) {
+            throw new GradleException("CI_PLAY_KEY is not valid JSON.", failure)
+        }
+        if (serviceAccount?.type != "service_account" ||
+            !(serviceAccount?.client_email instanceof String) || serviceAccount.client_email.trim().isEmpty() ||
+            !(serviceAccount?.private_key instanceof String) || serviceAccount.private_key.trim().isEmpty()) {
+            throw new GradleException("CI_PLAY_KEY must contain a service_account client_email and private_key.")
+        }
+        if (requestedPlayTrack == "production" &&
+            !"true".equalsIgnoreCase(System.getenv("ALLOW_PLAY_PRODUCTION_UPLOAD")?.trim())) {
+            throw new GradleException("Production publishing requires ALLOW_PLAY_PRODUCTION_UPLOAD=true.")
+        }
+    }
+
+    if (appTasks.any { task -> task.name.toLowerCase(Locale.ROOT).contains("internalappsharing") }) {
+        logger.lifecycle(
+            "Building explicit IAS-only variant: production package identity with release semantics and Android debug signing."
+        )
+    }
+}
+
+tasks.register("verifyInternalAppSharingConfiguration") {
+    group = "verification"
+    description = "Verifies the ephemeral Release-to-IAS Firebase bridge and cleanup preconditions."
+
+    doLast {
+        if (!Files.isRegularFile(generatedIasGoogleServicesFile.toPath(), LinkOption.NOFOLLOW_LINKS) ||
+            !Arrays.equals(releaseGoogleServicesFile.bytes, generatedIasGoogleServicesFile.bytes)) {
+            throw new GradleException("IAS verification did not observe the exact Release Firebase configuration.")
+        }
+        try {
+            def expectedPermissions = EnumSet.of(
+                PosixFilePermission.OWNER_READ,
+                PosixFilePermission.OWNER_WRITE
+            )
+            if (Files.getPosixFilePermissions(generatedIasGoogleServicesFile.toPath()) != expectedPermissions) {
+                throw new GradleException("IAS verification requires generated Firebase configuration mode 0600.")
+            }
+        } catch (UnsupportedOperationException ignored) {
+            if (!generatedIasGoogleServicesFile.canRead() || !generatedIasGoogleServicesFile.canWrite() ||
+                generatedIasGoogleServicesFile.canExecute()) {
+                throw new GradleException("IAS verification observed unsafe generated Firebase permissions.")
+            }
+        }
+        if (providers.gradleProperty("iasVerificationForceFailure").orNull == "true") {
+            throw new GradleException("Forced IAS verification failure after generated-file validation.")
+        }
+    }
 }
 
 dependencies {

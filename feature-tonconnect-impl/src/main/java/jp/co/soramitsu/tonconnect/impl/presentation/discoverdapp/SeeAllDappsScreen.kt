@@ -25,7 +25,7 @@ data class DappsListState(val title: String, val dapps: List<DappModel>)
 @Composable
 fun SeeAllDappsBottomSheet(
     state: DappsListState,
-    onDappSelected: (String) -> Unit,
+    onDappSelected: (DappModel) -> Unit,
     onCloseClick: () -> Unit
 ) {
     val searchQueryState = remember { mutableStateOf("") }

@@ -30,7 +30,7 @@ These features vary in maturity; consult TODOs below and module code for specifi
 
 ## Runtime Types & Chains
 - Default types and chain metadata are embedded under `runtime/src/main/assets`.
-- You can override types/chains with `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_OVERRIDE` properties (see AGENTS.md/README).
+- You can override types and debug chain discovery with `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and `CHAINS_URL_DEBUG_OVERRIDE` (see AGENTS.md/README). Release chain discovery is pinned and has no override.
 
 ## Known TODO/FIXME Hotspots
 Ripgrep shows TODO/FIXME markers in these areas (non-exhaustive):

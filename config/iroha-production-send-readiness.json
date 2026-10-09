@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 2,
+  "platform": "android",
+  "assessedAt": "2026-08-23",
+  "status": "blocked",
+  "releaseEnabled": false,
+  "nexusEnabledByDefault": false,
+  "upstream": {
+    "repository": "hyperledger/iroha",
+    "tag": "v2.0.0-rc.2.1-fearless-mobile-sdk.3",
+    "releaseUrl": "https://github.com/hyperledger/iroha/releases/tag/v2.0.0-rc.2.1-fearless-mobile-sdk.3"
+  },
+  "artifact": {
+    "name": "iroha-mobile-sdk-android-v2.0.0-rc.2.1-fearless-mobile-sdk.3.zip",
+    "sha256": "50e37369e3b08e4435f15ae31d1baca28dd55eae82686000df8f39b85feee7e6",
+    "bytes": 116231129,
+    "reviewThresholdBytes": 100000000,
+    "delivery": "release-zip-with-local-maven-repository"
+  },
+  "stagedIntegration": {
+    "archiveReview": "passed",
+    "materializedCoordinate": "org.hyperledger.iroha.sdk:core-jvm:2.0.0-rc.2.1-fearless-mobile-sdk.3",
+    "coreJarSha256": "33f449700948641c73eeaa4e4a8ab9e39d3d6a642a50b6b7d8c30a9f6aff19ce",
+    "materializationOutput": "ignored-build-directory",
+    "ordinaryBuildFetch": false,
+    "applicationRuntimeDependency": false,
+    "nativeArtifactsAllowed": false,
+    "bridge": "java-only-test-stage",
+    "supportedNetwork": "taira",
+    "protocolChainId": "fc56984b-2be7-431d-840e-21514d1883f0",
+    "canonicalAssetDefinitionRequired": true,
+    "canonicalTairaNativeXorDefinitionId": "6TEAJqbb8oEPmLncoNiMRbLEK6tw",
+    "canonicalTairaNativeXorScale": 9,
+    "canonicalTairaNativeXorSymbol": "XOR",
+    "canonicalTairaNativeXorDecimals": 9,
+    "liveTairaObservedNativeXorScale": null,
+    "productionAssetMappingStatus": "exact-base58-with-torii-definition-validation",
+    "fanoutReadPolicy": "require-six-complete-fanout-headers-reject-partial-or-malformed",
+    "submissionHashPolicy": "require-local-top-level-transaction-receipt-final-hash-equality-and-applied-finality-via-mcp-submit-and-wait",
+    "canonicalHashFormat": "[0-9a-f]{63}[13579bdf]",
+    "allSubmissionHashesEqualityRequired": true,
+    "appliedTerminalRequired": true,
+    "liveTairaObservation": {
+      "observedAt": "2026-08-23",
+      "buildCommit": "7efcc118eb50e3369d004d092f9b9d0b4d31ac52",
+      "blocks": 6,
+      "peers": 2,
+      "chainProgressStalenessApproxMinutes": 41,
+      "chainIdReported": null,
+      "statusExposesAbsoluteManifestPath": true,
+      "canonicalXorFanoutAttempted": 5,
+      "canonicalXorFanoutSucceeded": 1,
+      "canonicalXorScale": null,
+      "alternateScaleNineDefinitionPrefixObserved": "61Ct",
+      "committedValidatorDnsTotal": 4,
+      "committedValidatorDnsResolved": 0,
+      "deploymentAuthority": "workspace-root-live-gate"
+    },
+    "sdkReleaseTagCommit": "4f8cfbdd17aa6a3b049e619f23ec02501e5297b6",
+    "sdkDeployedNodeCompatibility": "not-proven",
+    "feePolicy": "not-recorded",
+    "feeEstimateBehavior": "fail-closed-typed-error-authoritative-policy-unavailable",
+    "hashParity": {
+      "canonicalCompactHash": "2332d0004eb24d97fd965fe68f6f31b0e51339764b4dd80f3ea50a3b6f7e5003",
+      "releaseTagRustFramingInspection": "passed",
+      "currentLocalNativeHostDiagnostic": "passed-unproven-build-provenance",
+      "pinnedSdkHasherStatus": "known-defective-fixed-u64-length",
+      "pinnedSdkDefectiveHash": "2b5e69a0a3d333756f4ac2a54bf7eaff88a2c87484d89e6e7da98abea659662d",
+      "liveTairaReceiptParity": "not-recorded"
+    }
+  },
+  "blocker": {
+    "code": "android_staged_bridge_production_gates_required",
+    "defaultSigner": "UnavailableIrohaTransferSigner",
+    "reason": "The reviewed core-only bridge is staged outside the app; production DI and Android release proof, an authoritative fee policy, Bouncy Castle private-key copy risk acceptance, upstream source and binary provenance including the known SDK hasher defect and local native-host build provenance, SDK-to-deployed-node compatibility, live Taira XOR scale 9 and receipt hash parity, and funded Taira/Nexus evidence remain incomplete."
+  },
+  "exitCriteria": [
+    "publish-and-review-upstream-core-sources-licenses-sbom-and-provenance",
+    "record-and-test-the-authoritative-taira-fee-policy",
+    "accept-or-remove-bouncy-castle-non-destroyable-private-key-copy-risk",
+    "wire-reviewed-bridge-through-production-di-and-pass-android-device-and-r8-release-tests",
+    "record-live-taira-native-xor-scale-9-after-rollout",
+    "publish-fixed-reviewed-sdk-and-prove-sdk-deployed-node-and-live-receipt-hash-compatibility",
+    "record-funded-taira-and-nexus-live-broadcast-evidence-before-enablement"
+  ]
+}

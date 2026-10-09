@@ -173,6 +173,33 @@ class SolanaRpcClientTest {
         }
     }
 
+    @Test
+    fun `accepts only signed int range rpc error codes`() {
+        val cases = listOf(
+            Int.MIN_VALUE.toString() to Int.MIN_VALUE,
+            Int.MAX_VALUE.toString() to Int.MAX_VALUE,
+            "-2147483649" to -1,
+            "2147483648" to -1,
+            "99999999999999999999999999999999999999999999999999" to -1
+        )
+
+        cases.forEach { (code, expected) ->
+            val error = assertRpcError(SolanaRpcException.Code.RPC_ERROR) {
+                runBlocking {
+                    RetrofitSolanaRpcClient(
+                        FakeSolanaRpcApi(
+                            JsonParser.parseString(
+                                """{"jsonrpc":"2.0","id":1,"error":{"code":$code,"message":"failed"}}"""
+                            ).asJsonObject
+                        )
+                    ).latestBlockhash()
+                }
+            }
+
+            assertEquals(expected, error.rpcError?.code)
+        }
+    }
+
     private class FakeSolanaRpcApi(
         private val fixedResponse: JsonObject? = null
     ) : SolanaRpcApi {

@@ -171,7 +171,7 @@ class UniversalWalletIdentityTest {
             accountId = "iroha-taira",
             ecosystem = UniversalWalletEcosystem.Iroha,
             address = "testuﾛ1Pcﾅ2ﾗtﾉaﾘLﾕｽ2MヱﾐﾎｳﾓヱﾇﾆｲMﾒSﾏﾑヱﾇJヱFmJﾇMs6YN687Y",
-            chainId = "iroha3-taira",
+            chainId = "fc56984b-2be7-431d-840e-21514d1883f0",
             derivationPath = UniversalWalletDerivationPaths.IROHA_DEFAULT,
             publicKeyHex = HEX_32
         )

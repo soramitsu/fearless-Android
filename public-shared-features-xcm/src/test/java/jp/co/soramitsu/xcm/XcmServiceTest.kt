@@ -3,7 +3,11 @@ package jp.co.soramitsu.xcm
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
 import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.fearless_utils.encrypt.Base58
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.xcm.domain.ApprovedXcmRouteKey
+import jp.co.soramitsu.xcm.domain.ApprovedXcmRouteRegistry
 import jp.co.soramitsu.xcm.domain.XcmArgumentShape
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xcm.domain.XcmJunctionType
@@ -21,6 +25,9 @@ import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class XcmServiceTest {
+
+    private val validSubstrateRecipient = ByteArray(32) { 1 }.toAddress(0.toShort())
+    private val validSubstrateSender = ByteArray(32) { 2 }
 
     @Test
     fun `public service does not advertise transfer support even when route metadata exists`() = runBlocking {
@@ -47,7 +54,7 @@ class XcmServiceTest {
             service.getAmountMinLimit(
                 originChainId = "origin",
                 destinationChainId = "destination",
-                asset = coreAsset("xcdot")
+                asset = coreAsset(symbol = "xcdot", id = "asset-DOT")
             )
         )
     }
@@ -71,14 +78,14 @@ class XcmServiceTest {
     fun `public service delegates transfer after validating route and amount`() = runBlocking {
         val engine = RecordingXcmTransferEngine()
         val service = serviceWithRoute(engine)
-        val senderAccountId = byteArrayOf(1, 2, 3)
+        val senderAccountId = validSubstrateSender
 
         val extrinsicHash = service.transfer(
             originChain = chain("origin"),
             destinationChain = chain("destination"),
             asset = coreAsset("DOT"),
             senderAccountId = senderAccountId,
-            address = "5Destination",
+            address = validSubstrateRecipient,
             amount = BigInteger.TEN
         )
 
@@ -88,7 +95,7 @@ class XcmServiceTest {
         assertEquals("destination", request.destinationChain.id)
         assertEquals("DOT", request.asset.symbol)
         assertArrayEquals(senderAccountId, request.senderAccountId)
-        assertEquals("5Destination", request.recipientAddress)
+        assertEquals(validSubstrateRecipient, request.recipientAddress)
         assertEquals(BigInteger.TEN, request.amount)
         assertEquals("PolkadotXcm", request.executionSpec.palletName)
         assertEquals("limitedReserveTransferAssets", request.executionSpec.callName)
@@ -113,8 +120,8 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChain = chain("destination"),
                     asset = coreAsset("DOT"),
-                    senderAccountId = byteArrayOf(1),
-                    address = "5Destination",
+                    senderAccountId = validSubstrateSender,
+                    address = validSubstrateRecipient,
                     amount = BigInteger("9")
                 )
             }
@@ -127,14 +134,14 @@ class XcmServiceTest {
         val engine = RecordingXcmTransferEngine()
         val service = serviceWithRoute(engine = engine, execution = null)
 
-        assertThrows(IllegalStateException::class.java) {
+        assertThrows(IllegalArgumentException::class.java) {
             runBlocking {
                 service.transfer(
                     originChain = chain("origin"),
                     destinationChain = chain("destination"),
                     asset = coreAsset("DOT"),
-                    senderAccountId = byteArrayOf(1),
-                    address = "5Destination",
+                    senderAccountId = validSubstrateSender,
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
@@ -156,8 +163,8 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChain = chain("destination"),
                     asset = coreAsset("DOT"),
-                    senderAccountId = byteArrayOf(1),
-                    address = "5Destination",
+                    senderAccountId = validSubstrateSender,
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
@@ -183,8 +190,8 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChain = chain("destination"),
                     asset = coreAsset("DOT"),
-                    senderAccountId = byteArrayOf(1),
-                    address = "5Destination",
+                    senderAccountId = validSubstrateSender,
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
@@ -231,13 +238,74 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChain = chain("destination"),
                     asset = coreAsset("KSM"),
-                    senderAccountId = byteArrayOf(1),
-                    address = "5Destination",
+                    senderAccountId = validSubstrateSender,
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
         }
         assertEquals(null, engine.transferRequest)
+    }
+
+    @Test
+    fun `public service rejects same-symbol core asset identity drift before engine call`() {
+        val invalidAssets = listOf(
+            coreAsset(symbol = "DOT", id = "attacker-id"),
+            coreAsset(symbol = "DOT", chainId = "other"),
+            coreAsset(symbol = "DOT", precision = 11)
+        )
+
+        invalidAssets.forEach { invalidAsset ->
+            val engine = RecordingXcmTransferEngine()
+            val service = serviceWithRoute(engine)
+
+            assertThrows(IllegalArgumentException::class.java) {
+                runBlocking {
+                    service.transfer(
+                        originChain = chain("origin"),
+                        destinationChain = chain("destination"),
+                        asset = invalidAsset,
+                        senderAccountId = validSubstrateSender,
+                        address = validSubstrateRecipient,
+                        amount = BigInteger.TEN
+                    )
+                }
+            }
+            assertEquals(null, engine.transferRequest)
+        }
+    }
+
+    @Test
+    fun `public service rejects caller chain identity drift before engine call`() {
+        val chainPairs = listOf(
+            chain("origin").copy(addressPrefix = 42) to chain("destination"),
+            chain("origin").copy(parentId = "unexpected-parent") to chain("destination"),
+            chain("origin").copy(paraId = "9999") to chain("destination"),
+            chain("origin").copy(ecosystem = Ecosystem.Ethereum) to chain("destination"),
+            chain("origin") to chain("destination").copy(addressPrefix = 42),
+            chain("origin") to chain("destination").copy(parentId = "unexpected-parent"),
+            chain("origin") to chain("destination").copy(paraId = "9999"),
+            chain("origin") to chain("destination").copy(isTestNet = true)
+        )
+
+        chainPairs.forEach { (originChain, destinationChain) ->
+            val engine = RecordingXcmTransferEngine()
+            val service = serviceWithRoute(engine)
+
+            assertThrows(IllegalArgumentException::class.java) {
+                runBlocking {
+                    service.transfer(
+                        originChain = originChain,
+                        destinationChain = destinationChain,
+                        asset = coreAsset("DOT"),
+                        senderAccountId = validSubstrateSender,
+                        address = validSubstrateRecipient,
+                        amount = BigInteger.TEN
+                    )
+                }
+            }
+            assertEquals(null, engine.transferRequest)
+        }
     }
 
     @Test
@@ -251,7 +319,7 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChain = chain("destination"),
                     asset = coreAsset("DOT"),
-                    senderAccountId = byteArrayOf(1),
+                    senderAccountId = validSubstrateSender,
                     address = " ",
                     amount = BigInteger.TEN
                 )
@@ -275,9 +343,13 @@ class XcmServiceTest {
 
         service.transfer(
             originChain = chain("origin"),
-            destinationChain = chain("destination"),
+            destinationChain = chain(
+                id = "destination",
+                isEthereumBased = true,
+                ecosystem = Ecosystem.EthereumBased
+            ),
             asset = coreAsset("DOT"),
-            senderAccountId = byteArrayOf(1),
+            senderAccountId = validSubstrateSender,
             address = VALID_EVM_RECIPIENT,
             amount = BigInteger.TEN
         )
@@ -294,7 +366,9 @@ class XcmServiceTest {
             "1111111111111111111111111111111111111111",
             "0x111111111111111111111111111111111111111",
             "0x11111111111111111111111111111111111111111",
-            "0x11111111111111111111111111111111111111zz"
+            "0x11111111111111111111111111111111111111zz",
+            " $VALID_EVM_RECIPIENT",
+            "$VALID_EVM_RECIPIENT "
         )
 
         invalidRecipients.forEach { recipient ->
@@ -313,9 +387,13 @@ class XcmServiceTest {
                 runBlocking {
                     service.transfer(
                         originChain = chain("origin"),
-                        destinationChain = chain("destination"),
+                        destinationChain = chain(
+                            id = "destination",
+                            isEthereumBased = true,
+                            ecosystem = Ecosystem.EthereumBased
+                        ),
                         asset = coreAsset("DOT"),
-                        senderAccountId = byteArrayOf(1),
+                        senderAccountId = validSubstrateSender,
                         address = recipient,
                         amount = BigInteger.TEN
                     )
@@ -353,6 +431,77 @@ class XcmServiceTest {
     }
 
     @Test
+    fun `public service rejects malformed AccountId32 recipients before engine calls`() {
+        val base58 = Base58()
+        val nonCanonicalOverlongRecipient = base58.encode(
+            base58.decode(validSubstrateRecipient) + byteArrayOf(0)
+        )
+        val invalidRecipients = listOf(
+            "5Destination",
+            "0x1111111111111111111111111111111111111111",
+            validSubstrateRecipient.dropLast(1) + if (validSubstrateRecipient.last() == '1') '2' else '1',
+            nonCanonicalOverlongRecipient,
+            " $validSubstrateRecipient",
+            "$validSubstrateRecipient "
+        )
+
+        invalidRecipients.forEach { recipient ->
+            val transferEngine = RecordingXcmTransferEngine()
+            val transferService = serviceWithRoute(transferEngine)
+            assertThrows("recipient $recipient should be rejected", IllegalArgumentException::class.java) {
+                runBlocking {
+                    transferService.transfer(
+                        originChain = chain("origin"),
+                        destinationChain = chain("destination"),
+                        asset = coreAsset("DOT"),
+                        senderAccountId = validSubstrateSender,
+                        address = recipient,
+                        amount = BigInteger.TEN
+                    )
+                }
+            }
+            assertEquals(null, transferEngine.transferRequest)
+
+            val feeEngine = RecordingXcmTransferEngine()
+            val feeService = serviceWithRoute(feeEngine)
+            assertThrows("fee recipient $recipient should be rejected", IllegalArgumentException::class.java) {
+                runBlocking {
+                    feeService.getXcmOriginFee(
+                        originChain = chain("origin"),
+                        destinationChainId = "destination",
+                        asset = coreAsset("DOT"),
+                        address = recipient,
+                        amount = BigInteger.TEN
+                    )
+                }
+            }
+            assertEquals(null, feeEngine.originFeeRequest)
+        }
+    }
+
+    @Test
+    fun `public service rejects wrong-width sender account ids before engine call`() {
+        listOf(0, 1, 20, 31, 33, 64).forEach { size ->
+            val engine = RecordingXcmTransferEngine()
+            val service = serviceWithRoute(engine)
+
+            assertThrows("sender width $size should be rejected", IllegalArgumentException::class.java) {
+                runBlocking {
+                    service.transfer(
+                        originChain = chain("origin"),
+                        destinationChain = chain("destination"),
+                        asset = coreAsset("DOT"),
+                        senderAccountId = ByteArray(size),
+                        address = validSubstrateRecipient,
+                        amount = BigInteger.TEN
+                    )
+                }
+            }
+            assertEquals(null, engine.transferRequest)
+        }
+    }
+
+    @Test
     fun `public service rejects empty sender before engine call`() {
         val engine = RecordingXcmTransferEngine()
         val service = serviceWithRoute(engine)
@@ -364,7 +513,7 @@ class XcmServiceTest {
                     destinationChain = chain("destination"),
                     asset = coreAsset("DOT"),
                     senderAccountId = byteArrayOf(),
-                    address = "5Destination",
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
@@ -383,8 +532,8 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChain = chain("origin"),
                     asset = coreAsset("DOT"),
-                    senderAccountId = byteArrayOf(1),
-                    address = "5Destination",
+                    senderAccountId = validSubstrateSender,
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
@@ -417,7 +566,7 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChainId = "destination",
                     asset = coreAsset("DOT"),
-                    address = "address",
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
@@ -444,7 +593,7 @@ class XcmServiceTest {
                 destinationChainId = "destination",
                 asset = coreAsset("DOT"),
                 originFeeAsset = coreAsset("KSM"),
-                address = "5Destination",
+                address = validSubstrateRecipient,
                 amount = BigInteger.TEN
             )
         )
@@ -453,7 +602,7 @@ class XcmServiceTest {
             engine.destinationFeeRequest
         )
         assertEquals(
-            OriginFeeRequest("origin", "destination", "DOT", "KSM", "5Destination", BigInteger.TEN),
+            OriginFeeRequest("origin", "destination", "DOT", "KSM", validSubstrateRecipient, BigInteger.TEN),
             engine.originFeeRequest
         )
         assertEquals(XcmTransferType.LIMITED_RESERVE_TRANSFER_ASSETS, engine.originFeeExecutionSpec?.transferType)
@@ -469,8 +618,8 @@ class XcmServiceTest {
                     originChain = chain("origin"),
                     destinationChain = chain("destination"),
                     asset = coreAsset("DOT"),
-                    senderAccountId = byteArrayOf(1),
-                    address = "address",
+                    senderAccountId = validSubstrateSender,
+                    address = validSubstrateRecipient,
                     amount = BigInteger.TEN
                 )
             }
@@ -483,6 +632,7 @@ class XcmServiceTest {
     ): XcmService {
         val origin = chain(
             id = "origin",
+            assets = listOf(coreAsset("DOT")),
             xcm = Chain.Xcm(
                 chainId = null,
                 xcmVersion = "v3",
@@ -490,15 +640,40 @@ class XcmServiceTest {
                 availableDestinations = listOf(
                     Chain.Xcm.Destination(
                         chainId = "destination",
-                        assets = listOf(Chain.Xcm.Asset(id = "dot-route", symbol = "DOT", minAmount = "10")),
+                        assets = listOf(
+                            Chain.Xcm.Asset(
+                                id = "dot-route",
+                                symbol = "DOT",
+                                minAmount = "10",
+                                execution = execution
+                            )
+                        ),
                         bridgeParachainId = null,
-                        execution = execution
+                        execution = null
                     )
                 )
             )
         )
+        val accountKey20Destination = execution?.beneficiaryLocation?.interior?.contains("AccountKey20") == true
+        val destination = chain(
+            id = "destination",
+            isEthereumBased = accountKey20Destination,
+            ecosystem = if (accountKey20Destination) Ecosystem.EthereumBased else Ecosystem.Substrate
+        )
+        val registry = runCatching {
+            ApprovedXcmRouteRegistry.fromReviewedChains(
+                reviewedChains = listOf(origin, destination),
+                routeKeys = listOf(
+                    ApprovedXcmRouteKey(
+                        originChainId = "origin",
+                        destinationChainId = "destination",
+                        assetSymbol = "DOT"
+                    )
+                )
+            )
+        }.getOrElse { ApprovedXcmRouteRegistry.unavailable() }
 
-        return XcmService(XcmEntitiesFetcher { listOf(origin) }, engine)
+        return XcmService(XcmEntitiesFetcher({ listOf(origin, destination) }, registry), engine)
     }
 
     private fun executableRouteSpec(
@@ -529,7 +704,7 @@ class XcmServiceTest {
             proofSize = "65536"
         ),
         destinationFee: Chain.Xcm.DestinationFee? = Chain.Xcm.DestinationFee(
-            mode = "Estimated",
+            mode = "Included",
             assetSymbol = "DOT",
             amount = null
         ),
@@ -549,17 +724,22 @@ class XcmServiceTest {
         bridge = bridge
     )
 
-    private fun coreAsset(symbol: String) = CoreAsset(
-        id = "asset-$symbol",
+    private fun coreAsset(
+        symbol: String,
+        id: String = "asset-$symbol",
+        precision: Int = 12,
+        chainId: String = "origin"
+    ) = CoreAsset(
+        id = id,
         name = symbol,
         symbol = symbol,
         iconUrl = "",
-        chainId = "origin",
-        chainName = "origin",
+        chainId = chainId,
+        chainName = chainId,
         chainIcon = null,
         isTestNet = false,
         priceId = null,
-        precision = 12,
+        precision = precision,
         staking = CoreAsset.StakingType.UNSUPPORTED,
         purchaseProviders = null,
         supportStakingPool = false,
@@ -573,19 +753,25 @@ class XcmServiceTest {
         coinbaseUrl = null
     )
 
-    private fun chain(id: String, xcm: Chain.Xcm? = null) = Chain(
+    private fun chain(
+        id: String,
+        assets: List<CoreAsset> = emptyList(),
+        xcm: Chain.Xcm? = null,
+        isEthereumBased: Boolean = false,
+        ecosystem: Ecosystem = Ecosystem.Substrate
+    ) = Chain(
         id = id,
         paraId = null,
         rank = null,
         name = id,
         minSupportedVersion = null,
-        assets = emptyList(),
+        assets = assets,
         nodes = emptyList(),
         explorers = emptyList(),
         externalApi = null,
         icon = "",
         addressPrefix = 0,
-        isEthereumBased = false,
+        isEthereumBased = isEthereumBased,
         isTestNet = false,
         hasCrowdloans = false,
         parentId = null,
@@ -595,7 +781,7 @@ class XcmServiceTest {
         supportNft = false,
         isUsesAppId = false,
         identityChain = null,
-        ecosystem = Ecosystem.Substrate,
+        ecosystem = ecosystem,
         androidMinAppVersion = null,
         remoteAssetsSource = null,
         tonBridgeUrl = null,

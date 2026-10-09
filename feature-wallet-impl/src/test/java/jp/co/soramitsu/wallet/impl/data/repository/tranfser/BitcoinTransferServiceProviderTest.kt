@@ -15,11 +15,14 @@ import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
 import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatus
+import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusKind
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaSubmitAndWaitErrorCode
+import jp.co.soramitsu.common.data.network.iroha.IrohaSubmitAndWaitException
+import jp.co.soramitsu.common.data.network.iroha.IrohaSubmitAndWaitOutcome
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
-import jp.co.soramitsu.common.data.network.iroha.IrohaTransactionSubmissionPayload
-import jp.co.soramitsu.common.data.network.iroha.IrohaTransactionSubmissionReceipt
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
 import jp.co.soramitsu.common.data.network.solana.SolanaBroadcastOptions
 import jp.co.soramitsu.common.data.network.solana.SolanaFeeForMessageResponse
@@ -383,14 +386,33 @@ class BitcoinTransferServiceProviderTest {
         ).provide(chain)
 
         assertTrue(service is IrohaTransferService)
-        val fee = runBlocking {
-            service.getTransferFee(Transfer(sourceAddress, recipientAddress, BigDecimal.ONE, chain.assets.single()))
+        assertThrows(IrohaTransferFeeException::class.java) {
+            runBlocking {
+                service.getTransferFee(
+                    Transfer(sourceAddress, recipientAddress, BigDecimal.ONE, chain.assets.single())
+                )
+            }
         }
-        assertEquals(BigDecimal.ZERO, fee)
         assertThrows(IllegalStateException::class.java) {
             runBlocking {
                 service.transfer(Transfer(sourceAddress, recipientAddress, BigDecimal.ONE, chain.assets.single()))
             }
+        }
+    }
+
+    @Test
+    fun `provider rejects noncanonical iroha profile identities`() {
+        listOf(
+            UniversalWalletRegistry.taira.id,
+            UniversalWalletRegistry.taira.chainId.uppercase(),
+            UniversalWalletRegistry.nexus.id,
+            "unknown-iroha-chain"
+        ).forEach { chainId ->
+            val chain = irohaChain().copy(id = chainId)
+            val error = assertThrows(IllegalArgumentException::class.java) {
+                provider().provide(chain)
+            }
+            assertTrue(error.message!!.contains("non-canonical chain identity"))
         }
     }
 
@@ -417,19 +439,15 @@ class BitcoinTransferServiceProviderTest {
         ).provide(chain)
         val transfer = Transfer(sourceAddress, recipientAddress, BigDecimal("1.25"), chain.assets.single())
 
-        val fee = runBlocking {
-            service.getTransferFee(transfer)
-        }
         val hash = runBlocking {
             service.transfer(transfer)
         }
 
-        assertEquals(BigDecimal.ZERO, fee)
         assertEquals(SIGNED_TRANSACTION_HASH, hash)
         assertEquals(SIGNED_TRANSACTION_BYTES.toList(), toriiClient.lastSubmittedNorito?.toList())
         assertEquals(UniversalWalletRegistry.taira.toriiBaseUrl, toriiClient.lastSubmitBaseUrl)
         assertEquals("1.25", signer.lastRequest?.amount)
-        assertEquals("xor#sora", signer.lastRequest?.assetDefinitionId)
+        assertEquals(IROHA_ASSET_DEFINITION_ID, signer.lastRequest?.assetDefinitionId)
         assertEquals(sourceAddress, signer.lastRequest?.authority)
         assertEquals(UniversalWalletRegistry.taira.chainId, signer.lastRequest?.chainId)
         assertEquals("m/44'/617'/0'/0'", signer.lastRequest?.derivationPath)
@@ -438,7 +456,166 @@ class BitcoinTransferServiceProviderTest {
         assertEquals("taira", signer.lastRequest?.network)
         assertEquals(IrohaAddressCodec.parse(sourceAddress, UniversalWalletRegistry.taira.chainDiscriminant).publicKeyHex, signer.lastRequest?.signingPublicKeyHex)
         assertEquals(sourceAddress, signer.lastRequest?.sourceAccountId)
-        assertEquals("xor#sora#$sourceAddress", signer.lastRequest?.sourceAssetId)
+        assertEquals("$IROHA_ASSET_DEFINITION_ID#$sourceAddress", signer.lastRequest?.sourceAssetId)
+        assertTrue(signer.lastRequest?.transactionMetadata?.isEmpty() == true)
+    }
+
+    @Test
+    fun `iroha fee estimation fails closed without authoritative policy`() {
+        val chain = irohaChain()
+        val accountRepository = mock(AccountRepository::class.java)
+        val service = IrohaTransferService(
+            chain = chain,
+            accountRepository = accountRepository,
+            toriiClient = FakeIrohaToriiClient(),
+            signer = FakeIrohaTransferSigner()
+        )
+
+        val error = assertThrows(IrohaTransferFeeException::class.java) {
+            runBlocking { service.getTransferFee(irohaTransfer(chain)) }
+        }
+
+        assertEquals(IrohaTransferFeeErrorCode.AUTHORITATIVE_POLICY_UNAVAILABLE, error.code)
+        verifyNoInteractions(accountRepository)
+    }
+
+    @Test
+    fun `iroha transfer rejects a torii receipt hash that differs from the local hash`() {
+        val chain = irohaChain()
+        val toriiClient = FakeIrohaToriiClient(receiptHash = "c".repeat(63) + "3")
+        val service = IrohaTransferService(
+            chain = chain,
+            accountRepository = accountRepository(irohaMetaAccount(chain), MNEMONIC),
+            toriiClient = toriiClient,
+            signer = FakeIrohaTransferSigner(),
+            finalityPolicy = IrohaTransactionFinalityPolicy(timeoutMillis = 1, pollIntervalMillis = 100)
+        )
+
+        val error = assertThrows(IrohaTransferFinalityException::class.java) {
+            runBlocking { service.transfer(irohaTransfer(chain)) }
+        }
+
+        assertEquals(IrohaTransferFinalityErrorCode.HASH_MISMATCH, error.code)
+        assertEquals(1, toriiClient.submitAndWaitCalls)
+    }
+
+    @Test
+    fun `iroha transfer rejects terminal failure expiry and submit-and-wait timeout`() {
+        val chain = irohaChain()
+        val accountRepository = accountRepository(irohaMetaAccount(chain), MNEMONIC)
+        val rejectedClient = FakeIrohaToriiClient(
+            submitError = IrohaSubmitAndWaitException(
+                IrohaSubmitAndWaitErrorCode.REJECTED,
+                "last_status=Rejected"
+            )
+        )
+        val rejectedService = IrohaTransferService(
+            chain,
+            accountRepository,
+            rejectedClient,
+            FakeIrohaTransferSigner(),
+            IrohaTransactionFinalityPolicy(timeoutMillis = 1, pollIntervalMillis = 100)
+        )
+        val rejected = assertThrows(IrohaTransferFinalityException::class.java) {
+            runBlocking { rejectedService.transfer(irohaTransfer(chain)) }
+        }
+        assertEquals(IrohaTransferFinalityErrorCode.REJECTED, rejected.code)
+
+        val expiredClient = FakeIrohaToriiClient(
+            submitError = IrohaSubmitAndWaitException(
+                IrohaSubmitAndWaitErrorCode.EXPIRED,
+                "last_status=Expired"
+            )
+        )
+        val expiredService = IrohaTransferService(
+            chain,
+            accountRepository,
+            expiredClient,
+            FakeIrohaTransferSigner(),
+            IrohaTransactionFinalityPolicy(timeoutMillis = 1, pollIntervalMillis = 100)
+        )
+        val expired = assertThrows(IrohaTransferFinalityException::class.java) {
+            runBlocking { expiredService.transfer(irohaTransfer(chain)) }
+        }
+        assertEquals(IrohaTransferFinalityErrorCode.EXPIRED, expired.code)
+
+        val timeoutClient = FakeIrohaToriiClient(
+            submitError = IrohaSubmitAndWaitException(
+                IrohaSubmitAndWaitErrorCode.TIMEOUT,
+                "timed out waiting for terminal transaction status"
+            )
+        )
+        val timeoutService = IrohaTransferService(
+            chain,
+            accountRepository,
+            timeoutClient,
+            FakeIrohaTransferSigner(),
+            IrohaTransactionFinalityPolicy(timeoutMillis = 1, pollIntervalMillis = 100)
+        )
+        val timeout = assertThrows(IrohaTransferFinalityException::class.java) {
+            runBlocking { timeoutService.transfer(irohaTransfer(chain)) }
+        }
+        assertEquals(IrohaTransferFinalityErrorCode.TIMEOUT, timeout.code)
+        assertEquals(1, timeoutClient.submitAndWaitCalls)
+    }
+
+    @Test
+    fun `iroha transfer rejects an even-marker local hash before submission`() {
+        val chain = irohaChain()
+        val toriiClient = FakeIrohaToriiClient()
+        val service = IrohaTransferService(
+            chain = chain,
+            accountRepository = accountRepository(irohaMetaAccount(chain), MNEMONIC),
+            toriiClient = toriiClient,
+            signer = FakeIrohaTransferSigner(transactionHash = "a".repeat(64))
+        )
+
+        val error = assertThrows(IrohaTransferFinalityException::class.java) {
+            runBlocking { service.transfer(irohaTransfer(chain)) }
+        }
+
+        assertEquals(IrohaTransferFinalityErrorCode.MISSING_LOCAL_HASH, error.code)
+        assertEquals(0, toriiClient.submitAndWaitCalls)
+    }
+
+    @Test
+    fun `iroha transfer rejects noncanonical hash spellings without normalization`() {
+        val chain = irohaChain()
+        val nonCanonicalHashes = listOf(
+            "0x$SIGNED_TRANSACTION_HASH",
+            SIGNED_TRANSACTION_HASH.uppercase(),
+            " $SIGNED_TRANSACTION_HASH"
+        )
+
+        nonCanonicalHashes.forEach { nonCanonicalHash ->
+            val toriiClient = FakeIrohaToriiClient()
+            val service = IrohaTransferService(
+                chain = chain,
+                accountRepository = accountRepository(irohaMetaAccount(chain), MNEMONIC),
+                toriiClient = toriiClient,
+                signer = FakeIrohaTransferSigner(transactionHash = nonCanonicalHash)
+            )
+            val error = assertThrows(IrohaTransferFinalityException::class.java) {
+                runBlocking { service.transfer(irohaTransfer(chain)) }
+            }
+            assertEquals(IrohaTransferFinalityErrorCode.MISSING_LOCAL_HASH, error.code)
+            assertEquals(0, toriiClient.submitAndWaitCalls)
+        }
+
+        nonCanonicalHashes.forEach { nonCanonicalHash ->
+            val toriiClient = FakeIrohaToriiClient(receiptHash = nonCanonicalHash)
+            val service = IrohaTransferService(
+                chain = chain,
+                accountRepository = accountRepository(irohaMetaAccount(chain), MNEMONIC),
+                toriiClient = toriiClient,
+                signer = FakeIrohaTransferSigner()
+            )
+            val error = assertThrows(IrohaTransferFinalityException::class.java) {
+                runBlocking { service.transfer(irohaTransfer(chain)) }
+            }
+            assertEquals(IrohaTransferFinalityErrorCode.HASH_MISMATCH, error.code)
+            assertEquals(1, toriiClient.submitAndWaitCalls)
+        }
     }
 
     @Test
@@ -464,19 +641,15 @@ class BitcoinTransferServiceProviderTest {
         ).provide(chain)
         val transfer = Transfer(sourceAddress, recipientAddress, BigDecimal("1.25"), chain.assets.single())
 
-        val fee = runBlocking {
-            service.getTransferFee(transfer)
-        }
         val hash = runBlocking {
             service.transfer(transfer)
         }
 
-        assertEquals(BigDecimal.ZERO, fee)
         assertEquals(SIGNED_TRANSACTION_HASH, hash)
         assertEquals(SIGNED_TRANSACTION_BYTES.toList(), toriiClient.lastSubmittedNorito?.toList())
         assertEquals(UniversalWalletRegistry.nexus.toriiBaseUrl, toriiClient.lastSubmitBaseUrl)
         assertEquals("1.25", signer.lastRequest?.amount)
-        assertEquals("xor#sora", signer.lastRequest?.assetDefinitionId)
+        assertEquals(IROHA_ASSET_DEFINITION_ID, signer.lastRequest?.assetDefinitionId)
         assertEquals(sourceAddress, signer.lastRequest?.authority)
         assertEquals(UniversalWalletRegistry.nexus.chainId, signer.lastRequest?.chainId)
         assertEquals("m/44'/617'/0'/0'", signer.lastRequest?.derivationPath)
@@ -485,7 +658,181 @@ class BitcoinTransferServiceProviderTest {
         assertEquals("nexus", signer.lastRequest?.network)
         assertEquals(IrohaAddressCodec.parse(sourceAddress, UniversalWalletRegistry.nexus.chainDiscriminant).publicKeyHex, signer.lastRequest?.signingPublicKeyHex)
         assertEquals(sourceAddress, signer.lastRequest?.sourceAccountId)
-        assertEquals("xor#sora#$sourceAddress", signer.lastRequest?.sourceAssetId)
+        assertEquals("$IROHA_ASSET_DEFINITION_ID#$sourceAddress", signer.lastRequest?.sourceAssetId)
+        assertTrue(signer.lastRequest?.transactionMetadata?.isEmpty() == true)
+    }
+
+    @Test
+    fun `nexus wallet smoke evidence uses exact immutable metadata and canonical minamoto`() {
+        val chain = irohaChain(UniversalWalletRegistry.nexus)
+        val signer = FakeIrohaTransferSigner()
+        val toriiClient = FakeIrohaToriiClient()
+        val sourceAddress = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        ).i105
+        val recipientAddress = IrohaAddressCodec.encode(
+            publicKeyHex = "22".repeat(32),
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        )
+        val service = provider(
+            accountRepository = accountRepository(
+                metaAccount = irohaMetaAccount(chain),
+                mnemonic = MNEMONIC
+            ),
+            irohaToriiClient = toriiClient,
+            irohaTransferSigner = signer
+        ).provide(chain) as IrohaTransferService
+        val transfer = Transfer(sourceAddress, recipientAddress, BigDecimal("1.25"), chain.assets.single())
+        val supplied = walletSmokeMetadata()
+
+        val hash = runBlocking {
+            service.transferWalletSmokeEvidence(transfer, supplied)
+        }
+        supplied.clear()
+        supplied["attacker"] = "injected"
+
+        assertEquals(SIGNED_TRANSACTION_HASH, hash)
+        assertEquals(
+            linkedMapOf(
+                "evidence_role" to "wallet-smoke",
+                "route_governance_action_hash" to WALLET_SMOKE_ROUTE_HASH,
+                "wallet_platform" to "android",
+                "wallet_commit" to WALLET_SMOKE_COMMIT
+            ),
+            signer.lastRequest?.transactionMetadata?.asStringMap()
+        )
+        assertEquals("nexus", signer.lastRequest?.network)
+        assertEquals("sora:nexus:global", signer.lastRequest?.chainId)
+        assertEquals(UniversalWalletRegistry.nexus.toriiBaseUrl, toriiClient.lastSubmitBaseUrl)
+        assertEquals(SIGNED_TRANSACTION_BYTES.toList(), toriiClient.lastSubmittedNorito?.toList())
+    }
+
+    @Test
+    fun `wallet smoke evidence rejects taira and noncanonical minamoto before signer or torii`() {
+        val taira = irohaChain()
+        val tairaSigner = FakeIrohaTransferSigner()
+        val tairaTorii = FakeIrohaToriiClient()
+        val tairaAccountRepository = accountRepository(irohaMetaAccount(taira), MNEMONIC)
+        val tairaSource = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val tairaRecipient = IrohaAddressCodec.encode(
+            publicKeyHex = "11".repeat(32),
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        )
+        val tairaService = provider(
+            accountRepository = tairaAccountRepository,
+            irohaToriiClient = tairaTorii,
+            irohaTransferSigner = tairaSigner
+        ).provide(taira) as IrohaTransferService
+
+        val tairaError = assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                tairaService.transferWalletSmokeEvidence(
+                    Transfer(tairaSource, tairaRecipient, BigDecimal.ONE, taira.assets.single()),
+                    walletSmokeMetadata()
+                )
+            }
+        }
+        assertTrue(tairaError.message.orEmpty().contains("requires SORA Nexus"))
+        verifyNoInteractions(tairaAccountRepository)
+        assertEquals(null, tairaSigner.lastRequest)
+        assertEquals(null, tairaTorii.lastSubmittedNorito)
+
+        val nexus = irohaChain(UniversalWalletRegistry.nexus)
+        val noncanonicalNexus = nexus.copy(
+            externalApi = nexus.externalApi!!.copy(
+                history = Chain.ExternalApi.Section(
+                    Chain.ExternalApi.Section.Type.IROHA,
+                    "https://attacker.invalid"
+                )
+            )
+        )
+        val nexusSigner = FakeIrohaTransferSigner()
+        val nexusTorii = FakeIrohaToriiClient()
+        val nexusAccountRepository = accountRepository(irohaMetaAccount(noncanonicalNexus), MNEMONIC)
+        val nexusSource = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        ).i105
+        val nexusRecipient = IrohaAddressCodec.encode(
+            publicKeyHex = "22".repeat(32),
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        )
+        val nexusService = provider(
+            accountRepository = nexusAccountRepository,
+            irohaToriiClient = nexusTorii,
+            irohaTransferSigner = nexusSigner
+        ).provide(noncanonicalNexus) as IrohaTransferService
+
+        val endpointError = assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                nexusService.transferWalletSmokeEvidence(
+                    Transfer(
+                        nexusSource,
+                        nexusRecipient,
+                        BigDecimal.ONE,
+                        noncanonicalNexus.assets.single()
+                    ),
+                    walletSmokeMetadata()
+                )
+            }
+        }
+        assertTrue(endpointError.message.orEmpty().contains("canonical SORA Nexus Minamoto"))
+        verifyNoInteractions(nexusAccountRepository)
+        assertEquals(null, nexusSigner.lastRequest)
+        assertEquals(null, nexusTorii.lastSubmittedNorito)
+    }
+
+    @Test
+    fun `wallet smoke evidence rejects malformed and aliasing metadata before signer or torii`() {
+        val chain = irohaChain(UniversalWalletRegistry.nexus)
+        val accountRepository = mock(AccountRepository::class.java)
+        val signer = FakeIrohaTransferSigner()
+        val toriiClient = FakeIrohaToriiClient()
+        val service = provider(
+            accountRepository = accountRepository,
+            irohaToriiClient = toriiClient,
+            irohaTransferSigner = signer
+        ).provide(chain) as IrohaTransferService
+        val transfer = Transfer("invalid sender", "invalid recipient", BigDecimal.ONE, chain.assets.single())
+        val invalid = listOf<Map<*, *>>(
+            walletSmokeMetadata().apply { remove("evidence_role") },
+            walletSmokeMetadata().apply { put("unexpected", "value") },
+            walletSmokeMetadata().apply {
+                remove("evidence_role")
+                put("Evidence_role", "wallet-smoke")
+            },
+            walletSmokeMetadata().apply { put("evidence_role", "Wallet-Smoke") },
+            walletSmokeMetadata().apply { put("route_governance_action_hash", "SHA256:${"a".repeat(64)}") },
+            walletSmokeMetadata().apply { put("route_governance_action_hash", "sha256:${"0".repeat(64)}") },
+            walletSmokeMetadata().apply { put("wallet_platform", "Android") },
+            walletSmokeMetadata().apply { put("wallet_commit", "A".repeat(40)) },
+            LinkedHashMap<Any?, Any?>().apply {
+                putAll(walletSmokeMetadata())
+                put("wallet_commit", 7)
+            },
+            LinkedHashMap<Any?, Any?>().apply {
+                putAll(walletSmokeMetadata())
+                put("wallet_commit", null)
+            },
+            LinkedHashMap<Any?, Any?>().apply {
+                putAll(walletSmokeMetadata())
+                put(null, "value")
+            }
+        )
+
+        invalid.forEach { metadata ->
+            assertThrows(IllegalArgumentException::class.java) {
+                runBlocking { service.transferWalletSmokeEvidence(transfer, metadata) }
+            }
+        }
+
+        verifyNoInteractions(accountRepository)
+        assertEquals(null, signer.lastRequest)
+        assertEquals(null, toriiClient.lastSubmittedNorito)
     }
 
     @Test
@@ -906,7 +1253,9 @@ class BitcoinTransferServiceProviderTest {
         }
     }
 
-    private class FakeIrohaTransferSigner : IrohaTransferSigner {
+    private class FakeIrohaTransferSigner(
+        private val transactionHash: String? = SIGNED_TRANSACTION_HASH
+    ) : IrohaTransferSigner {
         var lastRequest: IrohaTransferSigningRequest? = null
             private set
 
@@ -915,15 +1264,26 @@ class BitcoinTransferServiceProviderTest {
 
             return IrohaSignedTransfer(
                 signedTransaction = SIGNED_TRANSACTION_BYTES,
-                transactionHashHex = SIGNED_TRANSACTION_HASH
+                transactionHashHex = transactionHash
             )
         }
     }
 
-    private class FakeIrohaToriiClient : IrohaToriiClient {
+    private class FakeIrohaToriiClient(
+        private val receiptHash: String? = RECEIPT_SIGNED_TRANSACTION_HASH,
+        private val submitError: IrohaSubmitAndWaitException? = null
+    ) : IrohaToriiClient {
         var lastSubmittedNorito: ByteArray? = null
             private set
         var lastSubmitBaseUrl: String? = null
+            private set
+        var submitAndWaitCalls: Int = 0
+            private set
+        var lastExpectedHash: String? = null
+            private set
+        var lastTerminalTimeoutMillis: Long? = null
+            private set
+        var lastTerminalPollMillis: Long? = null
             private set
 
         override suspend fun health(baseUrl: String?): String = "ok"
@@ -952,25 +1312,41 @@ class BitcoinTransferServiceProviderTest {
             network: UniversalWalletRegistry.IrohaNetwork
         ): IrohaAccountAssetListResponse = error("Unexpected Iroha account-assets call")
 
-        override suspend fun assetDefinitions(baseUrl: String?): IrohaAssetDefinitionListResponse {
+        override suspend fun assetDefinitions(
+            baseUrl: String?,
+            limit: Int?,
+            offset: Long?,
+            countMode: IrohaToriiRoutes.CountMode?,
+            network: UniversalWalletRegistry.IrohaNetwork
+        ): IrohaAssetDefinitionListResponse {
             error("Unexpected Iroha asset-definitions call")
         }
 
-        override suspend fun submitTransaction(
+        override suspend fun submitTransactionAndWait(
             noritoBytes: ByteArray,
+            expectedHash: String,
+            timeoutMillis: Long,
+            pollIntervalMillis: Long,
+            network: UniversalWalletRegistry.IrohaNetwork,
             baseUrl: String?
-        ): IrohaTransactionSubmissionReceipt {
+        ): IrohaSubmitAndWaitOutcome {
+            submitAndWaitCalls += 1
             lastSubmittedNorito = noritoBytes
             lastSubmitBaseUrl = baseUrl
+            lastExpectedHash = expectedHash
+            lastTerminalTimeoutMillis = timeoutMillis
+            lastTerminalPollMillis = pollIntervalMillis
+            submitError?.let { throw it }
 
-            return IrohaTransactionSubmissionReceipt(
-                payload = IrohaTransactionSubmissionPayload(
-                    txHash = RECEIPT_TX_HASH,
-                    entrypointHash = RECEIPT_ENTRYPOINT_HASH,
-                    signedTransactionHash = RECEIPT_SIGNED_TRANSACTION_HASH,
-                    submittedAtMs = 1L,
-                    submittedAtHeight = 2L
-                )
+            return IrohaSubmitAndWaitOutcome(
+                hash = SIGNED_TRANSACTION_HASH,
+                transactionHash = SIGNED_TRANSACTION_HASH,
+                receiptHash = receiptHash ?: "",
+                finalHash = SIGNED_TRANSACTION_HASH,
+                terminalKind = IrohaPipelineTransactionStatusKind.Applied,
+                terminalStatuses = listOf(IrohaPipelineTransactionStatusKind.Applied),
+                attempts = 1,
+                elapsedMillis = 0
             )
         }
 
@@ -978,7 +1354,9 @@ class BitcoinTransferServiceProviderTest {
             hash: String,
             baseUrl: String?,
             scope: IrohaToriiRoutes.TransactionStatusScope
-        ): IrohaPipelineTransactionStatusResponse = error("Unexpected Iroha transaction-status call")
+        ): IrohaPipelineTransactionStatusResponse {
+            error("Unexpected direct Iroha transaction-status call")
+        }
 
         override suspend fun mcpCapabilities(
             network: UniversalWalletRegistry.IrohaNetwork,
@@ -1009,10 +1387,13 @@ class BitcoinTransferServiceProviderTest {
         const val IROHA_ADDRESS = "test-i105-address"
         val TXID = "11".repeat(32)
         val SIGNED_TRANSACTION_BYTES = byteArrayOf(1, 2, 3, 4)
-        const val SIGNED_TRANSACTION_HASH = "signed-transaction-hash"
-        const val RECEIPT_TX_HASH = "receipt-tx-hash"
-        const val RECEIPT_ENTRYPOINT_HASH = "receipt-entrypoint-hash"
-        const val RECEIPT_SIGNED_TRANSACTION_HASH = "receipt-signed-transaction-hash"
+        val SIGNED_TRANSACTION_HASH = "a".repeat(63) + "1"
+        val RECEIPT_ENTRYPOINT_HASH = SIGNED_TRANSACTION_HASH
+        val RECEIPT_SIGNED_TRANSACTION_HASH = SIGNED_TRANSACTION_HASH
+        const val IROHA_ASSET_DEFINITION_ID = "6TEAJqbb8oEPmLncoNiMRbLEK6tw"
+        const val WALLET_SMOKE_ROUTE_HASH =
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        const val WALLET_SMOKE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
         const val EXPECTED_TXID = "94c9b9d5070f24e06725b1000d9b1a0d46473d07b59088aca35e3d3da345023d"
         const val EXPECTED_TX_HEX = "0200000000010111111111111111111111111111111111111111111111111111111111111111110100000000ffffffff0250c300000000000016001487ed12b988403af67cf36ea58b7454ab5d165ab436c2000000000000160014c0cebcd6c3d3ca8c75dc5ec62ebe55330ef910e202473044022009ec0c24a20c4346c6516065723e2e83e6a7e4dd278fb66e27f36d9108d7ef4c022077f115bfbd68a2bc7a4c100766d9cceaf5300bcfcdc775be0248e7fb5a58216801210330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c00000000"
         private val BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray()
@@ -1183,7 +1564,7 @@ class BitcoinTransferServiceProviderTest {
             val network = UniversalWalletRegistry.bitcoinMainnet
 
             return Chain(
-                id = network.id,
+                id = network.chainId,
                 paraId = null,
                 rank = null,
                 name = network.name,
@@ -1245,7 +1626,7 @@ class BitcoinTransferServiceProviderTest {
             assets: List<Asset> = listOf(solanaAsset(network.id))
         ): Chain {
             return Chain(
-                id = network.id,
+                id = network.chainId,
                 paraId = null,
                 rank = null,
                 name = network.name,
@@ -1407,12 +1788,12 @@ class BitcoinTransferServiceProviderTest {
             val displayName = if (network == UniversalWalletRegistry.nexus) "SORA Nexus" else "Taira Testnet"
 
             return Chain(
-                id = network.id,
+                id = network.chainId,
                 paraId = null,
                 rank = null,
                 name = displayName,
                 minSupportedVersion = null,
-                assets = listOf(irohaAsset(network.id)),
+                assets = listOf(irohaAsset(network.chainId)),
                 nodes = emptyList(),
                 explorers = emptyList(),
                 externalApi = Chain.ExternalApi(
@@ -1440,18 +1821,39 @@ class BitcoinTransferServiceProviderTest {
             )
         }
 
+        fun walletSmokeMetadata(): LinkedHashMap<String, String> {
+            return linkedMapOf(
+                "evidence_role" to "wallet-smoke",
+                "route_governance_action_hash" to WALLET_SMOKE_ROUTE_HASH,
+                "wallet_platform" to "android",
+                "wallet_commit" to WALLET_SMOKE_COMMIT
+            )
+        }
+
+        fun irohaTransfer(chain: Chain): Transfer {
+            val sourceAddress = IrohaKeyDerivation.deriveAddress(
+                mnemonic = MNEMONIC,
+                chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+            ).i105
+            val recipientAddress = IrohaAddressCodec.encode(
+                publicKeyHex = "11".repeat(32),
+                chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+            )
+            return Transfer(sourceAddress, recipientAddress, BigDecimal.ONE, chain.assets.single())
+        }
+
         fun irohaAsset(chainId: String): Asset {
             return Asset(
-                id = "xor#sora",
+                id = IROHA_ASSET_DEFINITION_ID,
                 name = "XOR",
                 symbol = "XOR",
                 iconUrl = "",
                 chainId = chainId,
-                chainName = if (chainId == UniversalWalletRegistry.nexus.id) "SORA Nexus" else "Taira Testnet",
+                chainName = if (chainId == UniversalWalletRegistry.nexus.chainId) "SORA Nexus" else "Taira Testnet",
                 chainIcon = null,
-                isTestNet = chainId != UniversalWalletRegistry.nexus.id,
+                isTestNet = chainId != UniversalWalletRegistry.nexus.chainId,
                 priceId = null,
-                precision = 18,
+                precision = 9,
                 staking = Asset.StakingType.UNSUPPORTED,
                 purchaseProviders = null,
                 supportStakingPool = false,

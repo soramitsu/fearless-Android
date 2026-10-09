@@ -100,6 +100,42 @@ class AndroidUniversalWalletMigrationSnapshotBuilderTest {
     }
 
     @Test
+    fun `noncanonical iroha identities never complete migration`() {
+        val bitcoin = BitcoinKeyDerivation.deriveAccount(
+            mnemonic = MNEMONIC,
+            network = BitcoinKeyDerivation.Network.Mainnet
+        )
+        val solana = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val iroha = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+
+        listOf(
+            UniversalWalletRegistry.taira.id,
+            UniversalWalletRegistry.taira.chainId.uppercase(),
+            UniversalWalletRegistry.nexus.id,
+            "unknown-iroha-chain"
+        ).forEach { nonCanonicalId ->
+            val snapshot = builder.build(
+                listOf(
+                    lightAccount(
+                        substrateAccountId = ByteArray(32) { 1 },
+                        ethereumAddress = ByteArray(20) { 2 },
+                        tonPublicKey = ByteArray(32) { 3 },
+                        universalWalletChainAccounts = mapOf(
+                            UniversalWalletRegistry.bitcoinMainnet.chainId to
+                                universalWalletAccount(bitcoin.publicKey),
+                            UniversalWalletRegistry.solanaMainnet.chainId to
+                                universalWalletAccount(solana.publicKey),
+                            nonCanonicalId to universalWalletAccount(iroha.publicKey)
+                        )
+                    )
+                )
+            )
+
+            assertFalse("Unexpected migration completion for $nonCanonicalId", snapshot.hasUniversalWallet)
+        }
+    }
+
+    @Test
     fun `partial universal wallet material does not unlock normal access`() {
         val solana = SolanaKeyDerivation.deriveAccount(MNEMONIC)
         val snapshot = builder.build(

@@ -10,6 +10,8 @@ import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.ext.normalizedIrohaAddress
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.universalWalletIrohaNetwork
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -74,6 +76,21 @@ class UniversalWalletIrohaRoutingTest {
         assertTrue(Chain.ExternalApi.Section.Type.IROHA.isHistory())
     }
 
+    @Test
+    fun `iroha routing rejects registry aliases case mutations and unknown identities`() {
+        listOf(
+            UniversalWalletRegistry.taira.id,
+            UniversalWalletRegistry.taira.chainId.uppercase(),
+            UniversalWalletRegistry.nexus.id,
+            "unknown-iroha-chain"
+        ).forEach { chainId ->
+            val chain = irohaChain(UniversalWalletRegistry.taira, chainId)
+            assertTrue(chain.externalApi?.history?.type == Chain.ExternalApi.Section.Type.IROHA)
+            assertTrue(!chain.isUniversalWalletIroha())
+            assertNull(chain.universalWalletIrohaNetwork())
+        }
+    }
+
     private companion object {
         const val MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 
@@ -118,14 +135,17 @@ class UniversalWalletIrohaRoutingTest {
             )
         }
 
-        fun irohaChain(network: UniversalWalletRegistry.IrohaNetwork): Chain {
+        fun irohaChain(
+            network: UniversalWalletRegistry.IrohaNetwork,
+            chainId: String = network.chainId
+        ): Chain {
             return Chain(
-                id = network.id,
+                id = chainId,
                 paraId = null,
                 rank = null,
                 name = network.id,
                 minSupportedVersion = null,
-                assets = listOf(irohaAsset(network.id)),
+                assets = listOf(irohaAsset(chainId)),
                 nodes = emptyList(),
                 explorers = emptyList(),
                 externalApi = Chain.ExternalApi(
@@ -155,7 +175,7 @@ class UniversalWalletIrohaRoutingTest {
 
         fun irohaAsset(chainId: String): Asset {
             return Asset(
-                id = "xor#sora",
+                id = "6TEAJqbb8oEPmLncoNiMRbLEK6tw",
                 name = "XOR",
                 symbol = "XOR",
                 iconUrl = "",
@@ -164,7 +184,7 @@ class UniversalWalletIrohaRoutingTest {
                 chainIcon = null,
                 isTestNet = false,
                 priceId = null,
-                precision = 18,
+                precision = 9,
                 staking = Asset.StakingType.UNSUPPORTED,
                 purchaseProviders = null,
                 supportStakingPool = false,

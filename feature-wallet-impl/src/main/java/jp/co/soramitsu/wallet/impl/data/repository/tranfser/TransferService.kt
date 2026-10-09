@@ -10,6 +10,10 @@ import jp.co.soramitsu.common.data.network.bitcoin.BitcoinSendRequest
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinSendService
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinUtxoSource
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
+import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusKind
+import jp.co.soramitsu.common.data.network.iroha.IrohaSubmitAndWaitErrorCode
+import jp.co.soramitsu.common.data.network.iroha.IrohaSubmitAndWaitException
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSyncSendBalanceProvider
 import jp.co.soramitsu.common.data.network.solana.SolanaRpcClient
@@ -40,6 +44,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.hasNonCanonicalUniversalWalletIrohaIdentity
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.ext.normalizedBitcoinAddress
 import jp.co.soramitsu.runtime.ext.normalizedIrohaAddress
@@ -95,6 +100,10 @@ class TransferServiceProvider(
                 accountRepository = accountRepository,
                 toriiClient = irohaToriiClient,
                 signer = irohaTransferSigner
+            )
+        } else if (chain.hasNonCanonicalUniversalWalletIrohaIdentity()) {
+            throw IllegalArgumentException(
+                "Iroha profile ${chain.name} has a non-canonical chain identity: ${chain.id}"
             )
         } else when (chain.ecosystem) {
             Ecosystem.EthereumBased, Ecosystem.Substrate -> SubstrateTransferService(
@@ -575,7 +584,8 @@ data class IrohaTransferSigningRequest(
     val network: String,
     val signingPublicKeyHex: String,
     val sourceAccountId: String,
-    val sourceAssetId: String
+    val sourceAssetId: String,
+    val transactionMetadata: IrohaTransferMetadata = IrohaTransferMetadata.empty()
 )
 
 class IrohaSignedTransfer(
@@ -587,12 +597,14 @@ class IrohaTransferService(
     private val chain: Chain,
     private val accountRepository: AccountRepository,
     private val toriiClient: IrohaToriiClient,
-    private val signer: IrohaTransferSigner
+    private val signer: IrohaTransferSigner,
+    private val finalityPolicy: IrohaTransactionFinalityPolicy = IrohaTransactionFinalityPolicy()
 ) : TransferService {
     override suspend fun getTransferFee(transfer: Transfer): BigDecimal {
-        resolveContext(transfer)
-
-        return BigDecimal.ZERO
+        throw IrohaTransferFeeException(
+            code = IrohaTransferFeeErrorCode.AUTHORITATIVE_POLICY_UNAVAILABLE,
+            message = "Authoritative Iroha fee policy is unavailable for ${chain.name}"
+        )
     }
 
     override fun observeTransferFee(transfer: Transfer): Flow<BigDecimal> {
@@ -601,19 +613,121 @@ class IrohaTransferService(
 
     override suspend fun transfer(transfer: Transfer): String {
         val context = resolveContext(transfer)
+        return signAndSubmit(context)
+    }
+
+    /**
+     * Operator-only funded-smoke seam. Production DI remains fail closed because it supplies
+     * [UnavailableIrohaTransferSigner]; this method does not alter any release enablement flag.
+     */
+    suspend fun transferWalletSmokeEvidence(
+        transfer: Transfer,
+        untrustedMetadata: Map<*, *>
+    ): String {
+        // Snapshot and validate operator input before account, key, signer, or Torii work.
+        val validatedMetadata = IrohaTransferMetadata.walletSmoke(untrustedMetadata)
+        val evidenceNetwork = chain.universalWalletIrohaNetwork()
+        if (evidenceNetwork != UniversalWalletRegistry.nexus) {
+            throw unsupported("Iroha wallet-smoke evidence requires SORA Nexus")
+        }
+        val evidenceToriiBaseUrl = chain.externalApi?.history
+            ?.takeIf { it.type == Chain.ExternalApi.Section.Type.IROHA }
+            ?.url
+            ?.takeIf(String::isNotBlank)
+            ?: evidenceNetwork.toriiBaseUrl
+            ?: throw unsupported("Canonical SORA Nexus Minamoto endpoint is unavailable")
+        val canonicalMinamoto = UniversalWalletRegistry.nexus.toriiBaseUrl
+            ?: throw unsupported("Canonical SORA Nexus Minamoto endpoint is unavailable")
+        if (evidenceToriiBaseUrl != canonicalMinamoto) {
+            throw unsupported("Iroha wallet-smoke evidence requires canonical SORA Nexus Minamoto")
+        }
+
+        val context = resolveContext(transfer)
+        if (
+            context.signingRequest.network != IrohaTransferMetadata.NEXUS_NETWORK ||
+            context.signingRequest.chainId != IrohaTransferMetadata.NEXUS_CHAIN_ID
+        ) {
+            throw unsupported("Iroha wallet-smoke evidence requires SORA Nexus")
+        }
+        if (context.toriiBaseUrl != canonicalMinamoto) {
+            throw unsupported("Iroha wallet-smoke evidence requires canonical SORA Nexus Minamoto")
+        }
+
+        val evidenceContext = context.copy(
+            signingRequest = context.signingRequest.withValidatedWalletSmokeMetadata(
+                validatedMetadata
+            )
+        )
+        return signAndSubmit(evidenceContext)
+    }
+
+    private suspend fun signAndSubmit(context: IrohaTransferContext): String {
         val signedTransfer = signer.buildAndSignTransfer(context.signingRequest)
         if (signedTransfer.signedTransaction.isEmpty()) {
             throw unsupported("Iroha transfer signer returned an empty transaction for ${chain.name}")
         }
+        val localHash = signedTransfer.transactionHashHex.canonicalIrohaTransactionHash()
+            ?: throw IrohaTransferFinalityException(
+                IrohaTransferFinalityErrorCode.MISSING_LOCAL_HASH,
+                "Iroha signer did not return a canonical signed transaction hash"
+            )
 
-        val receipt = toriiClient.submitTransaction(
-            noritoBytes = signedTransfer.signedTransaction,
-            baseUrl = context.toriiBaseUrl
-        )
+        val outcome = try {
+            toriiClient.submitTransactionAndWait(
+                noritoBytes = signedTransfer.signedTransaction,
+                expectedHash = localHash,
+                timeoutMillis = finalityPolicy.timeoutMillis,
+                pollIntervalMillis = finalityPolicy.pollIntervalMillis,
+                network = context.network,
+                baseUrl = context.toriiBaseUrl
+            )
+        } catch (error: IrohaSubmitAndWaitException) {
+            throw when (error.code) {
+                IrohaSubmitAndWaitErrorCode.REJECTED -> IrohaTransferFinalityException(
+                    IrohaTransferFinalityErrorCode.REJECTED,
+                    "Iroha transaction was rejected: ${error.message}"
+                )
+                IrohaSubmitAndWaitErrorCode.EXPIRED -> IrohaTransferFinalityException(
+                    IrohaTransferFinalityErrorCode.EXPIRED,
+                    "Iroha transaction expired before application"
+                )
+                IrohaSubmitAndWaitErrorCode.TIMEOUT -> IrohaTransferFinalityException(
+                    IrohaTransferFinalityErrorCode.TIMEOUT,
+                    "Iroha transaction did not reach Applied finality in time"
+                )
+                IrohaSubmitAndWaitErrorCode.INVALID_RESPONSE,
+                IrohaSubmitAndWaitErrorCode.RPC_ERROR -> error
+            }
+        }
 
-        return signedTransfer.transactionHashHex
-            ?: receipt.payload.signedTransactionHash
-            ?: receipt.payload.txHash
+        if (
+            outcome.hash != localHash ||
+            outcome.transactionHash != localHash ||
+            outcome.receiptHash != localHash ||
+            outcome.finalHash != localHash
+        ) {
+            throw IrohaTransferFinalityException(
+                IrohaTransferFinalityErrorCode.HASH_MISMATCH,
+                "Torii submit-and-wait hashes do not match the locally signed transaction"
+            )
+        }
+        if (outcome.terminalKind != IrohaPipelineTransactionStatusKind.Applied) {
+            throw when (outcome.terminalKind) {
+                IrohaPipelineTransactionStatusKind.Rejected -> IrohaTransferFinalityException(
+                    IrohaTransferFinalityErrorCode.REJECTED,
+                    "Iroha transaction was rejected: ${outcome.rejectionReason}"
+                )
+                IrohaPipelineTransactionStatusKind.Expired -> IrohaTransferFinalityException(
+                    IrohaTransferFinalityErrorCode.EXPIRED,
+                    "Iroha transaction expired before application"
+                )
+                else -> IrohaTransferFinalityException(
+                    IrohaTransferFinalityErrorCode.INVALID_FINAL_STATUS,
+                    "Iroha submit-and-wait did not return Applied finality"
+                )
+            }
+        }
+        return localHash
     }
 
     private suspend fun resolveContext(transfer: Transfer): IrohaTransferContext {
@@ -640,6 +754,7 @@ class IrohaTransferService(
             ?: throw unsupported("Iroha recipient address is invalid for ${chain.name}")
         val amount = transfer.amount.toPlainString().normalizeIrohaTransferAmount()
         val assetDefinitionId = transfer.chainAsset.id.normalizeIrohaAssetDefinitionId()
+        network.requireCanonicalNativeProfile(transfer.chainAsset, assetDefinitionId)
         val mnemonic = resolveRootMnemonic(metaAccount.id)
         val derivedAddress = runCatching {
             IrohaKeyDerivation.deriveAddress(
@@ -656,6 +771,7 @@ class IrohaTransferService(
 
         return IrohaTransferContext(
             toriiBaseUrl = toriiBaseUrl,
+            network = network,
             signingRequest = IrohaTransferSigningRequest(
                 amount = amount,
                 assetDefinitionId = assetDefinitionId,
@@ -711,11 +827,28 @@ class IrohaTransferService(
     }
 
     private fun String.normalizeIrohaAssetDefinitionId(): String {
-        if (!IROHA_ASSET_DEFINITION_ID_PATTERN.matches(this)) {
+        return try {
+            IrohaToriiRoutes.normalizeAssetDefinitionId(this)
+        } catch (_: IllegalArgumentException) {
             throw unsupported("Iroha asset definition id is invalid for ${chain.name}")
         }
+    }
 
-        return this
+    private fun UniversalWalletRegistry.IrohaNetwork.requireCanonicalNativeProfile(
+        asset: Asset,
+        canonicalAssetId: String
+    ) {
+        val profileAsset = nativeAsset?.takeIf { it.id == canonicalAssetId } ?: return
+        if (asset.symbol != profileAsset.symbol || asset.precision != profileAsset.decimals) {
+            throw unsupported(
+                "Iroha native asset profile is invalid for ${chain.name}: expected " +
+                    "${profileAsset.symbol}/${profileAsset.decimals}"
+            )
+        }
+    }
+
+    private fun String?.canonicalIrohaTransactionHash(): String? {
+        return this?.takeIf(IROHA_TRANSACTION_HASH_PATTERN::matches)
     }
 
     private fun UniversalWalletRegistry.IrohaNetwork.irohaTransferNetworkKey(): String {
@@ -732,14 +865,52 @@ class IrohaTransferService(
 
     private data class IrohaTransferContext(
         val toriiBaseUrl: String,
+        val network: UniversalWalletRegistry.IrohaNetwork,
         val signingRequest: IrohaTransferSigningRequest
     )
 
     private companion object {
         val IROHA_AMOUNT_PATTERN = Regex("(?:0|[1-9]\\d*)(?:\\.\\d{1,28})?")
-        val IROHA_ASSET_DEFINITION_ID_PATTERN = Regex("[^\\s%/?:#]+#[^\\s%/?:#]+")
+        val IROHA_TRANSACTION_HASH_PATTERN = Regex("^[0-9a-f]{63}[13579bdf]$")
     }
 }
+
+data class IrohaTransactionFinalityPolicy(
+    val timeoutMillis: Long = 120_000L,
+    val pollIntervalMillis: Long = 500L
+) {
+    init {
+        require(timeoutMillis in 1..300_000L) { "timeoutMillis must be between 1 and 300000" }
+        require(pollIntervalMillis in 100..60_000L) {
+            "pollIntervalMillis must be between 100 and 60000"
+        }
+    }
+}
+
+enum class IrohaTransferFinalityErrorCode {
+    MISSING_LOCAL_HASH,
+    MISSING_RECEIPT_HASH,
+    INVALID_STATUS_HASH,
+    INVALID_FINAL_STATUS,
+    HASH_MISMATCH,
+    REJECTED,
+    EXPIRED,
+    TIMEOUT
+}
+
+class IrohaTransferFinalityException(
+    val code: IrohaTransferFinalityErrorCode,
+    message: String
+) : IllegalStateException(message)
+
+enum class IrohaTransferFeeErrorCode {
+    AUTHORITATIVE_POLICY_UNAVAILABLE
+}
+
+class IrohaTransferFeeException(
+    val code: IrohaTransferFeeErrorCode,
+    message: String
+) : IllegalStateException(message)
 
 class SubstrateTransferService(
     private val chain: Chain,

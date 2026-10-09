@@ -6,9 +6,12 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.xcm.domain.XcmArgumentShape
+import jp.co.soramitsu.xcm.domain.XcmBridgeExecutionSpec
 import jp.co.soramitsu.xcm.domain.XcmDestinationFeeMode
 import jp.co.soramitsu.xcm.domain.XcmDestinationFeeSpec
 import jp.co.soramitsu.xcm.domain.XcmExecutionSpec
+import jp.co.soramitsu.xcm.domain.XcmJunctionSpec
+import jp.co.soramitsu.xcm.domain.XcmJunctionType
 import jp.co.soramitsu.xcm.domain.XcmMultiLocationParser
 import jp.co.soramitsu.xcm.domain.XcmMultiLocationSpec
 import jp.co.soramitsu.xcm.domain.XcmTransferType
@@ -39,7 +42,7 @@ class SubstrateXcmTransferEngineTest {
                 originChain = chain("origin"),
                 destinationChain = chain("destination"),
                 asset = coreAsset("DOT"),
-                senderAccountId = byteArrayOf(1, 2, 3),
+                senderAccountId = ByteArray(32) { 1 },
                 recipientAddress = "5Destination",
                 amount = BigInteger.TEN,
                 executionSpec = executionSpec()
@@ -48,7 +51,7 @@ class SubstrateXcmTransferEngineTest {
 
         assertEquals("0xhash", hash)
         assertEquals("origin", submitter.submitChain!!.id)
-        assertEquals(listOf(1.toByte(), 2.toByte(), 3.toByte()), submitter.submitAccountId!!.toList())
+        assertEquals(32, submitter.submitAccountId!!.size)
         assertSame(provider, submitter.submitKeypairProvider)
 
         val call = requireNotNull(submitter.submitCall)
@@ -170,6 +173,7 @@ class SubstrateXcmTransferEngineTest {
 
         assertEquals(BigDecimal("0.000000012345"), fee)
         assertEquals("origin", submitter.estimateChain!!.id)
+        assertEquals(32, submitter.estimateAccountId!!.size)
         assertSame(provider, submitter.estimateKeypairProvider)
         assertTrue(requireNotNull(submitter.estimateCall).arguments["beneficiary"].toString().contains("5Destination"))
     }
@@ -188,7 +192,7 @@ class SubstrateXcmTransferEngineTest {
             originFeeAsset = coreAsset("DOT", precision = 12),
             address = "5Destination",
             amount = BigInteger.TEN,
-            executionSpec = executionSpec()
+            executionSpec = executionSpec(assetSymbol = "USDT")
         )
 
         assertEquals(BigDecimal("0.000000012345"), fee)
@@ -210,7 +214,7 @@ class SubstrateXcmTransferEngineTest {
                         originChain = chain("origin"),
                         destinationChain = chain("destination"),
                         asset = coreAsset("DOT"),
-                        senderAccountId = byteArrayOf(1),
+                        senderAccountId = ByteArray(32) { 1 },
                         recipientAddress = "5Destination",
                         amount = BigInteger.TEN,
                         executionSpec = executionSpec()
@@ -219,6 +223,68 @@ class SubstrateXcmTransferEngineTest {
             }
         }
         assertEquals(0, submitter.submitCount)
+    }
+
+    @Test
+    fun `rejects wrong-width sender accounts before provider or submitter access`() {
+        listOf(0, 1, 20, 31, 33, 64).forEach { size ->
+            val submitter = RecordingSubmitter()
+            val engine = SubstrateXcmTransferEngine(submitter)
+
+            assertThrows("sender width $size should be rejected", IllegalArgumentException::class.java) {
+                runBlocking {
+                    engine.transfer(
+                        XcmTransferRequest(
+                            originChain = chain("origin"),
+                            destinationChain = chain("destination"),
+                            asset = coreAsset("DOT"),
+                            senderAccountId = ByteArray(size),
+                            recipientAddress = "5Destination",
+                            amount = BigInteger.TEN,
+                            executionSpec = executionSpec()
+                        )
+                    )
+                }
+            }
+            assertEquals(0, submitter.submitCount)
+        }
+    }
+
+    @Test
+    fun `uses origin ecosystem account width for anonymous fee estimation`() = runBlocking {
+        val substrateSubmitter = RecordingSubmitter()
+        val substrateEngine = SubstrateXcmTransferEngine(substrateSubmitter)
+        substrateEngine.updateKeypairProvider("substrate", FakeKeypairProvider())
+        substrateEngine.getOriginFee(
+            originChain = chain("substrate"),
+            originChainId = "substrate",
+            destinationChainId = "destination",
+            asset = coreAsset("DOT", chainId = "substrate"),
+            originFeeAsset = coreAsset("DOT", chainId = "substrate"),
+            address = "5Destination",
+            amount = BigInteger.TEN,
+            executionSpec = executionSpec()
+        )
+        assertEquals(32, substrateSubmitter.estimateAccountId!!.size)
+
+        val ethereumSubmitter = RecordingSubmitter()
+        val ethereumEngine = SubstrateXcmTransferEngine(ethereumSubmitter)
+        ethereumEngine.updateKeypairProvider("ethereum-based", FakeKeypairProvider())
+        ethereumEngine.getOriginFee(
+            originChain = chain(
+                id = "ethereum-based",
+                isEthereumBased = true,
+                ecosystem = Ecosystem.EthereumBased
+            ),
+            originChainId = "ethereum-based",
+            destinationChainId = "destination",
+            asset = coreAsset("DOT", chainId = "ethereum-based"),
+            originFeeAsset = coreAsset("DOT", chainId = "ethereum-based"),
+            address = "5Destination",
+            amount = BigInteger.TEN,
+            executionSpec = executionSpec()
+        )
+        assertEquals(20, ethereumSubmitter.estimateAccountId!!.size)
     }
 
     @Test
@@ -243,6 +309,72 @@ class SubstrateXcmTransferEngineTest {
             )
         }
         assertEquals(0, submitter.submitCount)
+    }
+
+    @Test
+    fun `rejects nonzero fee index and mismatched fee asset location before submitter call`() {
+        val submitter = RecordingSubmitter()
+        val engine = SubstrateXcmTransferEngine(submitter)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.buildTransferCall(
+                executionSpec = executionSpec(feeAssetItem = 1),
+                recipientAddress = "5Destination",
+                amount = BigInteger.TEN
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            engine.buildTransferCall(
+                executionSpec = executionSpec(feeAssetLocation = multiLocation(0, "Here")),
+                recipientAddress = "5Destination",
+                amount = BigInteger.TEN
+            )
+        }
+        assertEquals(0, submitter.submitCount)
+    }
+
+    @Test
+    fun `rejects recipient-controlled route locations and malformed beneficiary authority`() {
+        val engine = SubstrateXcmTransferEngine(RecordingSubmitter())
+        val accountJunction = XcmJunctionSpec(
+            type = XcmJunctionType.ACCOUNT_ID32,
+            value = "{network: Any, id: <account>}"
+        )
+        val recipientControlledDestination = executionSpec().copy(
+            destinationLocation = XcmMultiLocationSpec(
+                parents = 0,
+                interior = "X1(AccountId32({network: Any, id: <account>}))",
+                junctions = listOf(accountJunction)
+            )
+        )
+        val missingBeneficiary = executionSpec().copy(
+            beneficiaryLocation = multiLocation(0, "Here")
+        )
+        val prefixedBeneficiary = executionSpec().copy(
+            beneficiaryLocation = XcmMultiLocationSpec(
+                parents = 0,
+                interior = "X1(AccountId32({network: Any, id: prefix<account>}))",
+                junctions = listOf(accountJunction.copy(value = "{network: Any, id: prefix<account>}"))
+            )
+        )
+        val suffixedBeneficiary = executionSpec().copy(
+            beneficiaryLocation = XcmMultiLocationSpec(
+                parents = 0,
+                interior = "X1(AccountId32({network: Any, id: <account>suffix}))",
+                junctions = listOf(accountJunction.copy(value = "{network: Any, id: <account>suffix}"))
+            )
+        )
+
+        listOf(
+            recipientControlledDestination,
+            missingBeneficiary,
+            prefixedBeneficiary,
+            suffixedBeneficiary
+        ).forEach { malformed ->
+            assertThrows(IllegalArgumentException::class.java) {
+                engine.buildTransferCall(malformed, "5Destination", BigInteger.TEN)
+            }
+        }
     }
 
     @Test
@@ -309,6 +441,35 @@ class SubstrateXcmTransferEngineTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun `rejects bridge execution before building calls or calculating fees`() {
+        val engine = SubstrateXcmTransferEngine(RecordingSubmitter())
+        val bridgeSpec = XcmBridgeExecutionSpec(
+            parachainId = "3000",
+            feeAssetLocation = multiLocation(1, "Here"),
+            feeAssetItem = 0
+        )
+        val executionSpec = executionSpec(bridge = bridgeSpec)
+
+        val callError = assertThrows(IllegalArgumentException::class.java) {
+            engine.buildTransferCall(executionSpec, "5Destination", BigInteger.TEN)
+        }
+        val feeError = assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                engine.getDestinationFee(
+                    originChainId = "origin",
+                    destinationChainId = "destination",
+                    asset = coreAsset("DOT"),
+                    executionSpec = executionSpec
+                )
+            }
+        }
+
+        val marker = "XCM bridge execution is unsupported until the production transfer engine consumes bridge fee semantics"
+        assertEquals(marker, callError.message)
+        assertEquals(marker, feeError.message)
     }
 
     @Test
@@ -388,7 +549,11 @@ class SubstrateXcmTransferEngineTest {
         xcmVersion: String = "v3",
         destinationFeeMode: XcmDestinationFeeMode = XcmDestinationFeeMode.ESTIMATED,
         destinationFeeAmount: BigInteger? = null,
-        beneficiaryLocation: XcmMultiLocationSpec = multiLocation(0, "X1(AccountId32({network: Any, id: <account>}))")
+        assetSymbol: String = "DOT",
+        beneficiaryLocation: XcmMultiLocationSpec = multiLocation(0, "X1(AccountId32({network: Any, id: <account>}))"),
+        feeAssetLocation: XcmMultiLocationSpec = multiLocation(1, "X2(Parachain(1000), GeneralKey(dot))"),
+        feeAssetItem: Int = 0,
+        bridge: XcmBridgeExecutionSpec? = null
     ) = XcmExecutionSpec(
         palletName = palletName,
         callName = callName,
@@ -398,8 +563,8 @@ class SubstrateXcmTransferEngineTest {
         destinationLocation = multiLocation(1, "X1(Parachain(2000))"),
         assetLocation = multiLocation(1, "X2(Parachain(1000), GeneralKey(dot))"),
         beneficiaryLocation = beneficiaryLocation,
-        feeAssetLocation = multiLocation(1, "Here"),
-        feeAssetItem = 0,
+        feeAssetLocation = feeAssetLocation,
+        feeAssetItem = feeAssetItem,
         weightLimit = XcmWeightLimitSpec(
             type = XcmWeightLimitType.LIMITED,
             refTime = BigInteger("6000000000"),
@@ -407,10 +572,10 @@ class SubstrateXcmTransferEngineTest {
         ),
         destinationFee = XcmDestinationFeeSpec(
             mode = destinationFeeMode,
-            assetSymbol = "DOT",
+            assetSymbol = assetSymbol,
             amount = destinationFeeAmount
         ),
-        bridge = null
+        bridge = bridge
     )
 
     private fun multiLocation(parents: Int, interior: String) = XcmMultiLocationSpec(
@@ -447,7 +612,11 @@ class SubstrateXcmTransferEngineTest {
         coinbaseUrl = null
     )
 
-    private fun chain(id: String) = Chain(
+    private fun chain(
+        id: String,
+        isEthereumBased: Boolean = false,
+        ecosystem: Ecosystem = Ecosystem.Substrate
+    ) = Chain(
         id = id,
         paraId = null,
         rank = null,
@@ -459,7 +628,7 @@ class SubstrateXcmTransferEngineTest {
         externalApi = null,
         icon = "",
         addressPrefix = 0,
-        isEthereumBased = false,
+        isEthereumBased = isEthereumBased,
         isTestNet = false,
         hasCrowdloans = false,
         parentId = null,
@@ -469,7 +638,7 @@ class SubstrateXcmTransferEngineTest {
         supportNft = false,
         isUsesAppId = false,
         identityChain = null,
-        ecosystem = Ecosystem.Substrate,
+        ecosystem = ecosystem,
         androidMinAppVersion = null,
         remoteAssetsSource = null,
         tonBridgeUrl = null,
@@ -484,6 +653,7 @@ class SubstrateXcmTransferEngineTest {
         var submitChain: Chain? = null
         var estimateChain: Chain? = null
         var submitAccountId: ByteArray? = null
+        var estimateAccountId: ByteArray? = null
         var submitKeypairProvider: KeypairProvider? = null
         var estimateKeypairProvider: KeypairProvider? = null
         var submitCall: XcmExtrinsicCall? = null
@@ -511,6 +681,7 @@ class SubstrateXcmTransferEngineTest {
         ): BigInteger {
             estimateCount += 1
             estimateChain = chain
+            estimateAccountId = accountId
             estimateKeypairProvider = keypairProvider
             estimateCall = call
             return estimatedFee

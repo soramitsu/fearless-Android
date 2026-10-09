@@ -26,7 +26,7 @@
         <activity android:name="jp.co.soramitsu.common.qrScanner.QrScannerActivity" />
 
         <activity
-            android:name=".root.presentation.RootActivity"
+            android:name=".root.presentation.WalletStartupActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Soramitsu.Fearless"
             android:launchMode="singleTop"
@@ -65,6 +65,22 @@
                 <data android:pathPrefix="/ton-connect/" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".root.presentation.RootActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Soramitsu.Fearless"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+
+        <activity
+            android:name=".root.presentation.WalletRootActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Soramitsu.Fearless"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
 
         <activity
             android:name="jp.co.soramitsu.common.scan.ScannerActivity"

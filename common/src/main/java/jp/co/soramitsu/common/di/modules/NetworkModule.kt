@@ -81,6 +81,13 @@ internal fun isTonApiHost(host: String): Boolean {
     return normalizedHost == TON_API_HOST || normalizedHost.endsWith(".$TON_API_HOST")
 }
 
+internal fun irohaNoRedirectHttpClient(baseClient: OkHttpClient): OkHttpClient {
+    return baseClient.newBuilder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .build()
+}
+
 @InstallIn(SingletonComponent::class)
 @Module
 class NetworkModule {
@@ -300,8 +307,11 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideIrohaToriiApi(apiCreator: NetworkApiCreator): IrohaToriiApi {
-        return apiCreator.create(IrohaToriiApi::class.java)
+    fun provideIrohaToriiApi(okHttpClient: OkHttpClient): IrohaToriiApi {
+        return NetworkApiCreator(
+            irohaNoRedirectHttpClient(okHttpClient),
+            "https://placeholder.com"
+        ).create(IrohaToriiApi::class.java)
     }
 
     @Provides

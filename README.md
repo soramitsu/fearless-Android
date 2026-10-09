@@ -28,13 +28,16 @@ To build Fearless Wallet Android project, you need to provide several keys eithe
 
 ### Moonpay properties
 ``` 
-MOONPAY_TEST_SECRET=stub
-MOONPAY_PRODUCTION_SECRET=stub
 MOONPAY_TEST_PUBLIC_KEY=stub
 MOONPAY_PRODUCTION_PUBLIC_KEY=stub
 ```
 
 Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
+The Android artifact accepts only MoonPay publishable keys. It intentionally
+does not prefill `walletAddress`, because MoonPay requires that parameter to be
+signed by a backend-held API secret. Never add a MoonPay secret or client-side
+URL signing to the app. See MoonPay's
+[widget signing guidance](https://dev.moonpay.com/docs/off-ramp-web-sdk#signing).
 
 ### Buy provider partner properties
 ```
@@ -52,6 +55,29 @@ The checked-in `app/src/*/google-services.json` files are public placeholders
 with real package names but no live Firebase project IDs, API keys, OAuth
 clients, or certificate hashes. Release and distribution builds must replace
 them from the private CI overlay before publishing.
+
+### Android testing distributions
+
+For a fast manual Google Play Internal App Sharing build:
+
+```
+./gradlew :app:bundleInternalAppSharing
+```
+
+Upload
+`app/build/outputs/bundle/internalAppSharing/app-internalAppSharing.aab` in Play
+Console and share the generated IAS link. This explicit variant uses release
+optimization/resources with the Android debug signer and a `-ias` version-name
+suffix. It cannot be published by a normal Gradle Play Publisher task and is
+not evidence for production signing, Play Integrity, certificate-bound app
+links/passkeys, or production upgrade behavior.
+
+Production-equivalent Google Play testing is handled by the tagged `Android
+Release` workflow. It accepts only `internal`, `alpha`, or `beta`, defaults to
+no Play publication and `draft`, and publishes the exact staged and attested
+production-signed AAB. An Open Testing link additionally depends on Play Console
+beta-track configuration and Google review. See
+`docs/releases/PROCESS.md` for the required secrets, gates, and operator steps.
 
 ### X1 plugin
 
@@ -108,14 +134,25 @@ Public builds use a checked-out copy of `fearless-utils-Android` as a composite 
 ```
 git clone https://github.com/soramitsu/fearless-utils-Android.git ../fearless-utils-Android
 git -C ../fearless-utils-Android checkout 7500809f33243ee47ecb2ec8563fc284ac4de0d6
-export FEARLESS_UTILS_PATH=/absolute/path/to/fearless-utils-Android
+export FEARLESS_UTILS_PATH=../fearless-utils-Android
+export FEARLESS_UTILS_COMMIT=7500809f33243ee47ecb2ec8563fc284ac4de0d6
+export FEARLESS_UTILS_REPOSITORY=soramitsu/fearless-utils-Android
 export FEARLESS_UTILS_LIBRARY_ONLY=true
+bash ./scripts/test-fearless-utils-derived-tree.sh
 ./scripts/ensure-fearless-utils.sh
 ./gradlew :app:assembleDebug
 ```
 
 Gradle includes the local project via a composite build through Gradle 9 and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils` automatically.
-Run `./scripts/ensure-fearless-utils.sh` to verify the checkout, pinned commit, and library-only overlay before building. The Gradle `USE_REMOTE_UTILS=true` source-control fallback remains experimental and is not the public CI contract.
+Run the self-test and guard shown above before building. The guard verifies the
+exact GitHub origin and pinned commit, requires an unstaged index, and compares
+the active checkout with a temporary-index model of either pristine `HEAD` or
+`HEAD` plus the committed library-only patch. Extra tracked or untracked source,
+partial overlays, modified patch-touched files, and dirty submodules fail closed;
+Git-ignored build output is outside the source-tree comparison. A pristine tree
+is overlaid and reverified, while a dirty tree is never rewritten. The Gradle
+`USE_REMOTE_UTILS=true` source-control fallback remains experimental and is not
+the public CI contract.
 Prereqs for building the utils from source: NDK r28 (android-ndk-r28 / 28.0.x) and a Rust toolchain on `PATH` (`rustup`, `cargo`).
 
 ### Rebuild libsodium with 16 KB alignment
@@ -134,6 +171,14 @@ Tracked native/vendor binary provenance is documented in
 `docs/binary-provenance.md`.
 Public dependency provenance and current Soramitsu artifact blockers are tracked
 in `docs/public-dependency-audit.md`.
+Validate both governance documents before release with:
+
+```
+bash ./scripts/test-public-dependency-upstream-delta-export.sh
+bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
+bash ./scripts/test-public-artifact-provenance-audit.sh
+./scripts/audit-public-artifacts.sh --strict-provenance
+```
 
 ## Contributing
 

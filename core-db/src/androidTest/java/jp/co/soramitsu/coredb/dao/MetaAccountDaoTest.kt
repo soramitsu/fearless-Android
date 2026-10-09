@@ -1,23 +1,37 @@
 package jp.co.soramitsu.coredb.dao
 
+import android.database.sqlite.SQLiteException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.AppDatabase
+import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 private const val CHAIN_ID = "1"
+private const val SECOND_CHAIN_ID = "2"
+private const val THIRD_CHAIN_ID = "3"
 
 @RunWith(AndroidJUnit4::class)
 class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) {
 
     private val chainDao by lazy {
         db.chainDao()
+    }
+
+    private val assetDao by lazy {
+        db.assetDao()
     }
 
     @Before
@@ -43,16 +57,349 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
         }
     }
 
-    private fun testMetaAccount() = MetaAccountLocal(
-        tonPublicKey = null,
-        substratePublicKey = byteArrayOf(),
-        substrateCryptoType = CryptoType.SR25519,
-        ethereumPublicKey = null,
-        name = "Test",
-        isSelected = false,
-        substrateAccountId = byteArrayOf(),
-        ethereumAddress = null,
-        position = 0,
+    @Test
+    fun shouldFetchOnlyExactMetaAccountAndReturnNullForUnknownId() = runBlocking {
+        insertMetaAccount(id = 41, name = "forty-one")
+        insertMetaAccount(id = 42, name = "forty-two")
+
+        assertEquals("forty-two", dao.getMetaAccount(42)?.name)
+        assertNull(dao.getMetaAccount(43))
+    }
+
+    @Test
+    fun shouldNotReportIdentityConflictWhenEveryCandidateIsNull() = runBlocking {
+        insertMetaAccount(id = 1)
+        insertMetaAccount(id = 2)
+
+        val conflict = dao.hasIdentityConflict(
+            metaId = 3,
+            substrateAccountId = null,
+            ethereumAddress = null,
+            tonPublicKey = null
+        )
+
+        assertFalse(conflict)
+    }
+
+    @Test
+    fun shouldIgnoreIdentityValuesOwnedByTheSameMetaAccount() = runBlocking {
+        val substrateAccountId = byteArrayOf(1)
+        val ethereumAddress = byteArrayOf(2)
+        val tonPublicKey = byteArrayOf(3)
+        insertMetaAccount(
+            id = 1,
+            substrateAccountId = substrateAccountId,
+            ethereumAddress = ethereumAddress,
+            tonPublicKey = tonPublicKey
+        )
+
+        val conflict = dao.hasIdentityConflict(
+            metaId = 1,
+            substrateAccountId = substrateAccountId,
+            ethereumAddress = ethereumAddress,
+            tonPublicKey = tonPublicKey
+        )
+
+        assertFalse(conflict)
+    }
+
+    @Test
+    fun shouldReportEachIdentityValueOwnedByAnotherMetaAccount() = runBlocking {
+        val substrateAccountId = byteArrayOf(1)
+        val ethereumAddress = byteArrayOf(2)
+        val tonPublicKey = byteArrayOf(3)
+        insertMetaAccount(
+            id = 1,
+            substrateAccountId = substrateAccountId,
+            ethereumAddress = ethereumAddress,
+            tonPublicKey = tonPublicKey
+        )
+
+        assertTrue(
+            dao.hasIdentityConflict(
+                metaId = 2,
+                substrateAccountId = substrateAccountId,
+                ethereumAddress = null,
+                tonPublicKey = null
+            )
+        )
+        assertTrue(
+            dao.hasIdentityConflict(
+                metaId = 2,
+                substrateAccountId = null,
+                ethereumAddress = ethereumAddress,
+                tonPublicKey = null
+            )
+        )
+        assertTrue(
+            dao.hasIdentityConflict(
+                metaId = 2,
+                substrateAccountId = null,
+                ethereumAddress = null,
+                tonPublicKey = tonPublicKey
+            )
+        )
+        assertFalse(
+            dao.hasIdentityConflict(
+                metaId = 2,
+                substrateAccountId = byteArrayOf(9),
+                ethereumAddress = byteArrayOf(8),
+                tonPublicKey = byteArrayOf(7)
+            )
+        )
+    }
+
+    @Test
+    fun shouldReportWhetherExactMetaAccountIdExists() = runBlocking {
+        insertMetaAccount(id = 42)
+
+        assertTrue(dao.metaAccountExists(42))
+        assertFalse(dao.metaAccountExists(41))
+    }
+
+    @Test
+    fun shouldChooseSuccessorByPositionThenId() = runBlocking {
+        insertMetaAccount(id = 100, position = 0)
+        insertMetaAccount(id = 30, position = 2)
+        insertMetaAccount(id = 20, position = 1)
+        insertMetaAccount(id = 10, position = 1)
+
+        assertEquals(10L, dao.getDeterministicSuccessorId(excludedMetaId = 100))
+    }
+
+    @Test
+    fun shouldReturnNullWhenNoDeletionSuccessorExists() = runBlocking {
+        insertMetaAccount(id = 100)
+
+        assertNull(dao.getDeterministicSuccessorId(excludedMetaId = 100))
+    }
+
+    @Test
+    fun shouldListOnlyRequestedMetaChainAccountIdsInChainOrder() = runBlocking {
+        chainDao.addChain(createTestChain(id = SECOND_CHAIN_ID))
+        chainDao.addChain(createTestChain(id = THIRD_CHAIN_ID))
+        insertMetaAccount(id = 1)
+        insertMetaAccount(id = 2)
+        val firstId = byteArrayOf(1)
+        val secondId = byteArrayOf(2)
+        val otherMetaId = byteArrayOf(9)
+        insertChainAccount(metaId = 1, chainId = THIRD_CHAIN_ID, accountId = secondId)
+        insertChainAccount(metaId = 1, chainId = CHAIN_ID, accountId = firstId)
+        insertChainAccount(metaId = 2, chainId = SECOND_CHAIN_ID, accountId = otherMetaId)
+
+        val result = dao.getChainAccountIds(metaId = 1)
+
+        assertEquals(2, result.size)
+        assertArrayEquals(firstId, result[0])
+        assertArrayEquals(secondId, result[1])
+    }
+
+    @Test
+    fun shouldReturnEmptyChainAccountIdsForUnknownMeta() = runBlocking {
+        assertTrue(dao.getChainAccountIds(metaId = 404).isEmpty())
+    }
+
+    @Test
+    fun shouldReportOnlyExactMetaAccountAssetExistence() = runBlocking {
+        insertAsset(metaId = 10, accountId = byteArrayOf(1))
+
+        assertTrue(dao.hasMetaAccountAssets(metaId = 10))
+        assertFalse(dao.hasMetaAccountAssets(metaId = 1))
+        assertFalse(dao.hasMetaAccountAssets(metaId = 100))
+
+        dao.deleteMetaAccountAssets(metaId = 10)
+
+        assertFalse(dao.hasMetaAccountAssets(metaId = 10))
+    }
+
+    @Test
+    fun shouldDeleteSelectedMetaAssetsAndPromoteDeterministicSuccessor() = runBlocking {
+        insertMetaAccount(id = 100, isSelected = true, position = 0)
+        insertMetaAccount(id = 20, position = 1)
+        insertMetaAccount(id = 10, position = 1)
+        insertAsset(metaId = 100, accountId = byteArrayOf(1))
+        insertAsset(metaId = 10, accountId = byteArrayOf(2))
+        insertChainAccount(metaId = 100, chainId = CHAIN_ID, accountId = byteArrayOf(3))
+
+        val deleted = dao.deleteMetaAccountAndSelectSuccessor(metaId = 100)
+
+        assertTrue(deleted)
+        assertFalse(dao.metaAccountExists(metaId = 100))
+        assertTrue(assetDao.observeBalances(metaId = 100).first().isEmpty())
+        assertTrue(dao.getChainAccountIds(metaId = 100).isEmpty())
+        assertEquals(listOf(10L), selectedMetaAccountIds())
+        assertEquals(1, assetDao.observeBalances(metaId = 10).first().size)
+    }
+
+    @Test
+    fun shouldPreserveSelectionWhenDeletingNonSelectedMetaAccount() = runBlocking {
+        insertMetaAccount(id = 1, isSelected = true, position = 9)
+        insertMetaAccount(id = 2, position = 0)
+        insertMetaAccount(id = 3, position = 1)
+        insertAsset(metaId = 2, accountId = byteArrayOf(2))
+
+        val deleted = dao.deleteMetaAccountAndSelectSuccessor(metaId = 2)
+
+        assertTrue(deleted)
+        assertEquals(listOf(1L), selectedMetaAccountIds())
+        assertTrue(assetDao.observeBalances(metaId = 2).first().isEmpty())
+    }
+
+    @Test
+    fun shouldNotChangeSelectionWhenDeletionIsReplayed() = runBlocking {
+        insertMetaAccount(id = 1, isSelected = true, position = 0)
+        insertMetaAccount(id = 2, position = 1)
+        insertMetaAccount(id = 3, position = 2)
+        assertTrue(dao.deleteMetaAccountAndSelectSuccessor(metaId = 1))
+        assertEquals(listOf(2L), selectedMetaAccountIds())
+        dao.selectMetaAccount(metaId = 3)
+
+        val replayDeleted = dao.deleteMetaAccountAndSelectSuccessor(metaId = 1)
+
+        assertFalse(replayDeleted)
+        assertEquals(listOf(3L), selectedMetaAccountIds())
+    }
+
+    @Test
+    fun shouldPreserveSelectionWhenSelectingMissingMetaAccount() = runBlocking {
+        insertMetaAccount(id = 1, isSelected = true, position = 0)
+        insertMetaAccount(id = 2, position = 1)
+
+        try {
+            dao.selectMetaAccount(metaId = Long.MAX_VALUE)
+            fail("Selecting a missing wallet must fail")
+        } catch (_: IllegalStateException) {
+            // Expected: the transaction must be a no-op for a missing id.
+        }
+
+        assertEquals(listOf(1L), selectedMetaAccountIds())
+    }
+
+    @Test
+    fun shouldLeaveNoSelectionWhenDeletingOnlyMetaAccount() = runBlocking {
+        insertMetaAccount(id = 1, isSelected = true)
+
+        assertTrue(dao.deleteMetaAccountAndSelectSuccessor(metaId = 1))
+        assertTrue(selectedMetaAccountIds().isEmpty())
+    }
+
+    @Test
+    fun shouldRollBackAssetDeletionWhenMetaDeletionFails() = runBlocking {
+        insertMetaAccount(id = 1, isSelected = true)
+        insertMetaAccount(id = 2, position = 1)
+        insertAsset(metaId = 1, accountId = byteArrayOf(1))
+        db.openHelper.writableDatabase.execSQL(
+            """
+            CREATE TRIGGER abort_test_meta_deletion
+            BEFORE DELETE ON meta_accounts
+            WHEN OLD.id = 1
+            BEGIN
+                SELECT RAISE(ABORT, 'injected deletion failure');
+            END
+            """.trimIndent()
+        )
+
+        assertThrows(SQLiteException::class.java) {
+            runBlocking {
+                dao.deleteMetaAccountAndSelectSuccessor(metaId = 1)
+            }
+        }
+
+        assertTrue(dao.metaAccountExists(metaId = 1))
+        assertEquals(1, assetDao.observeBalances(metaId = 1).first().size)
+        assertEquals(listOf(1L), selectedMetaAccountIds())
+    }
+
+    private suspend fun insertMetaAccount(
+        id: Long = 0,
+        name: String = "Test-$id",
+        isSelected: Boolean = false,
+        position: Int = 0,
+        substrateAccountId: ByteArray? = null,
+        ethereumAddress: ByteArray? = null,
+        tonPublicKey: ByteArray? = null
+    ): MetaAccountLocal {
+        val account = testMetaAccount(
+            name = name,
+            isSelected = isSelected,
+            position = position,
+            substrateAccountId = substrateAccountId,
+            ethereumAddress = ethereumAddress,
+            tonPublicKey = tonPublicKey
+        ).apply {
+            this.id = id
+        }
+        val insertedId = dao.insertMetaAccount(account)
+        if (id == 0L) {
+            account.id = insertedId
+        }
+        return account
+    }
+
+    private suspend fun insertChainAccount(
+        metaId: Long,
+        chainId: String,
+        accountId: ByteArray
+    ) {
+        db.openHelper.writableDatabase.execSQL(
+            """
+            INSERT INTO chain_accounts(
+                metaId,
+                chainId,
+                publicKey,
+                accountId,
+                cryptoType,
+                name,
+                initialized
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent(),
+            arrayOf(
+                metaId,
+                chainId,
+                byteArrayOf(4),
+                accountId,
+                CryptoType.SR25519.name,
+                "Chain account",
+                1
+            )
+        )
+    }
+
+    private suspend fun insertAsset(metaId: Long, accountId: ByteArray) {
+        assetDao.insertAsset(
+            AssetLocal.createEmpty(
+                accountId = accountId,
+                id = "0",
+                chainId = CHAIN_ID,
+                metaId = metaId,
+                tokenPriceId = null
+            )
+        )
+    }
+
+    private fun selectedMetaAccountIds(): List<Long> {
+        return dao.getMetaAccounts()
+            .filter(MetaAccountLocal::isSelected)
+            .map(MetaAccountLocal::id)
+    }
+
+    private fun testMetaAccount(
+        name: String = "Test",
+        isSelected: Boolean = false,
+        position: Int = 0,
+        substrateAccountId: ByteArray? = null,
+        ethereumAddress: ByteArray? = null,
+        tonPublicKey: ByteArray? = null
+    ) = MetaAccountLocal(
+        tonPublicKey = tonPublicKey,
+        substratePublicKey = substrateAccountId?.let { byteArrayOf(11) },
+        substrateCryptoType = substrateAccountId?.let { CryptoType.SR25519 },
+        ethereumPublicKey = ethereumAddress?.let { byteArrayOf(12) },
+        name = name,
+        isSelected = isSelected,
+        substrateAccountId = substrateAccountId,
+        ethereumAddress = ethereumAddress,
+        position = position,
         googleBackupAddress = null,
         isBackedUp = false,
         initialized = false

@@ -1,10 +1,35 @@
 package jp.co.soramitsu.backup.passkey
 
+import android.os.Build
 import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PublicKeyCredential
+import com.google.gson.JsonParser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.util.Base64
+
+private const val DEFAULT_REGISTRATION_COMPENSATION_TIMEOUT_MILLIS = 5_000L
+private const val MIN_REGISTRATION_COMPENSATION_TIMEOUT_MILLIS = 1L
+private const val MAX_REGISTRATION_COMPENSATION_TIMEOUT_MILLIS = 30_000L
+
+internal fun Exception.addPasskeyRegistrationCompensationFailure(revokeError: Exception) {
+    val reportedRevokeError = if (revokeError === this) {
+        IllegalStateException(
+            "Passkey registration compensation failed with the same exception instance as the primary operation"
+        )
+    } else {
+        revokeError
+    }
+    addSuppressed(reportedRevokeError)
+}
 
 object PasskeyBackupContract {
     const val PASSKEY_RP_ID = "fearlesswallet.io"
@@ -14,14 +39,17 @@ object PasskeyBackupContract {
     private const val MAX_ENCRYPTED_PAYLOAD_BYTES = 256 * 1024
     private const val MIN_CHALLENGE_BYTES = 16
     private const val MAX_CHALLENGE_BYTES = 1024
-    private const val MIN_USER_ID_BYTES = 16
-    private const val MAX_USER_ID_BYTES = 64
+    private const val USER_ID_BYTES = 32
+    private const val MAX_DISPLAY_NAME_LENGTH = 128
     private const val MAX_CREATED_AT_MILLIS = 4_102_444_800_000L
     private const val MIN_JSON_CONTROL_CHAR_CODE = 0x20
     private const val JSON_UNICODE_ESCAPE_RADIX = 16
     private const val JSON_UNICODE_ESCAPE_WIDTH = 4
     private const val JSON_UNICODE_ESCAPE_PAD_CHAR = '0'
+    private const val BASE64_QUANTUM = 4
+    private const val INVALID_BASE64URL_REMAINDER = 1
     private val storageKeyPattern = Regex("^[A-Za-z0-9._:-]{8,128}$")
+    private val base64UrlPattern = Regex("^[A-Za-z0-9_-]+$")
 
     fun registrationOptionsJson(
         challenge: ByteArray,
@@ -34,7 +62,7 @@ object PasskeyBackupContract {
         requireChallenge(challenge)
         requireUserId(userId)
         val normalizedUserName = GoogleDrivePasskeyBackup.requireAccountName(userName)
-        require(displayName.isNotBlank()) { "Passkey display name is required" }
+        val normalizedDisplayName = requireDisplayName(displayName)
 
         return buildString {
             append("{")
@@ -43,7 +71,7 @@ object PasskeyBackupContract {
             append("\"user\":{")
             append("\"id\":").append(jsonString(base64Url(userId))).append(",")
             append("\"name\":").append(jsonString(normalizedUserName)).append(",")
-            append("\"displayName\":").append(jsonString(displayName.trim()))
+            append("\"displayName\":").append(jsonString(normalizedDisplayName))
             append("},")
             append("\"pubKeyCredParams\":[")
             append("{\"type\":\"public-key\",\"alg\":-7},")
@@ -116,21 +144,38 @@ object PasskeyBackupContract {
     }
 
     fun requireUserId(userId: ByteArray): ByteArray {
-        require(userId.size in MIN_USER_ID_BYTES..MAX_USER_ID_BYTES) {
-            "Passkey user id must be $MIN_USER_ID_BYTES-$MAX_USER_ID_BYTES bytes"
+        require(userId.size == USER_ID_BYTES) {
+            "Passkey user id must be $USER_ID_BYTES bytes"
         }
         return userId
     }
 
-    fun decodeBase64Url(value: String, label: String): ByteArray {
-        val normalized = value.trim()
-        require(normalized.isNotEmpty()) { "Passkey $label is required" }
+    fun requireDisplayName(displayName: String): String {
+        val normalized = displayName.trim()
+        require(normalized.isNotEmpty() && normalized.length <= MAX_DISPLAY_NAME_LENGTH) {
+            "Passkey display name must be 1-$MAX_DISPLAY_NAME_LENGTH characters"
+        }
+        return normalized
+    }
 
-        return try {
-            Base64.getUrlDecoder().decode(normalized)
+    fun decodeBase64Url(value: String, label: String): ByteArray {
+        require(value.isNotEmpty()) { "Passkey $label is required" }
+        require(
+            base64UrlPattern.matches(value) &&
+                value.length % BASE64_QUANTUM != INVALID_BASE64URL_REMAINDER
+        ) {
+            "Passkey $label must be canonical unpadded base64url"
+        }
+
+        val decoded = try {
+            Base64.getUrlDecoder().decode(value)
         } catch (e: IllegalArgumentException) {
             throw IllegalArgumentException("Passkey $label must be base64url encoded", e)
         }
+        require(base64Url(decoded) == value) {
+            "Passkey $label must be canonical unpadded base64url"
+        }
+        return decoded
     }
 
     private fun base64Url(value: ByteArray): String {
@@ -181,23 +226,36 @@ object PasskeyBackupReleaseConfig {
     }
 }
 
-data class PasskeyBackupEncryptedPayload(
+class PasskeyBackupEncryptedPayload(
     val storageKey: String,
     val walletId: String,
     val accountName: String,
     val createdAtMillis: Long,
-    val encryptedPayload: ByteArray,
+    encryptedPayload: ByteArray,
     val schemaVersion: Int = PasskeyBackupContract.SCHEMA_VERSION
 ) {
+    private val encryptedPayloadBytes = encryptedPayload.copyOf()
+
+    val encryptedPayload: ByteArray
+        get() = encryptedPayloadBytes.copyOf()
+
     init {
         PasskeyBackupContract.requireStorageKey(storageKey)
         PasskeyBackupContract.requireWalletId(walletId)
         GoogleDrivePasskeyBackup.requireAccountName(accountName)
         PasskeyBackupContract.requireCreatedAtMillis(createdAtMillis)
-        PasskeyBackupContract.requireEncryptedPayload(encryptedPayload)
+        PasskeyBackupContract.requireEncryptedPayload(encryptedPayloadBytes)
+        PasskeyBackupEnvelopeV1Format.requireCanonical(encryptedPayloadBytes)
         require(schemaVersion == PasskeyBackupContract.SCHEMA_VERSION) {
             "Unsupported passkey backup schemaVersion: $schemaVersion"
         }
+        PasskeyBackupEnvelopeMetadata(
+            storageKey = storageKey,
+            walletId = walletId,
+            accountName = accountName,
+            createdAtMillis = createdAtMillis,
+            schemaVersion = schemaVersion
+        )
     }
 }
 
@@ -227,9 +285,18 @@ class UnavailablePasskeyBackupCloudStorage : PasskeyBackupCloudStorage {
     }
 }
 
+class PasskeyBackupEncryptedRecordMetadataRequiredException : UnsupportedOperationException(
+    "Opaque encrypted passkey payload registration is unsupported; provide the complete authenticated record metadata"
+)
+
 class PasskeyBackupCoordinator(
     @Suppress("unused") private val credentialManager: CredentialManager,
     private val cloudBackup: PasskeyBackupCloudStorage = UnavailablePasskeyBackupCloudStorage(),
+    private val challengeService: PasskeyBackupChallengeService? = null,
+    private val backupKeyProvider: RecoverablePasskeyBackupKeyProvider =
+        UnavailableRecoverablePasskeyBackupKeyProvider(),
+    private val envelopeCryptography: PasskeyBackupEnvelopeCryptography =
+        AesGcmPasskeyBackupEnvelopeCryptography(),
     private val relyingPartyId: String = PasskeyBackupContract.PASSKEY_RP_ID,
     private val isReleaseEnabled: Boolean = PasskeyBackupReleaseConfig.PASSKEY_BACKUP_ENABLED
 ) {
@@ -244,6 +311,9 @@ class PasskeyBackupCoordinator(
         displayName: String
     ): CreatePublicKeyCredentialRequest {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            throw UnsupportedOperationException("Passkey registration requires Android 9 or newer")
+        }
         return CreatePublicKeyCredentialRequest(
             requestJson = PasskeyBackupContract.registrationOptionsJson(
                 challenge = challenge,
@@ -257,6 +327,9 @@ class PasskeyBackupCoordinator(
 
     fun createRestoreOption(challenge: ByteArray): GetPublicKeyCredentialOption {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            throw UnsupportedOperationException("Passkey authentication requires Android 9 or newer")
+        }
         return GetPublicKeyCredentialOption(
             requestJson = PasskeyBackupContract.assertionOptionsJson(
                 challenge = challenge,
@@ -272,29 +345,69 @@ class PasskeyBackupCoordinator(
 
     suspend fun saveEncryptedCloudBackup(payload: PasskeyBackupEncryptedPayload) {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        requireAuthenticatedEnvelope(payload)
         cloudBackup.savePasskeyBackup(payload)
     }
 
     suspend fun loadEncryptedCloudBackup(storageKey: String): PasskeyBackupEncryptedPayload? {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
-        return cloudBackup.loadPasskeyBackup(PasskeyBackupContract.requireStorageKey(storageKey))
+        val payload = cloudBackup.loadPasskeyBackup(
+            PasskeyBackupContract.requireStorageKey(storageKey)
+        ) ?: return null
+        requireAuthenticatedEnvelope(payload)
+        return payload
     }
 
     suspend fun deleteEncryptedCloudBackup(storageKey: String) {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
-        cloudBackup.deletePasskeyBackup(PasskeyBackupContract.requireStorageKey(storageKey))
+        val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
+        val lifecycleService = checkNotNull(challengeService) {
+            "Passkey credential lifecycle service is required before deleting cloud backup"
+        }
+        val revoked = lifecycleService.revokeAllCredentials(normalizedStorageKey)
+        check(
+            revoked.storageKey == normalizedStorageKey &&
+                revoked.credentialId == null &&
+                revoked.remainingCredentials == 0
+        ) {
+            "Passkey credential revoke-all returned an invalid result"
+        }
+        cloudBackup.deletePasskeyBackup(normalizedStorageKey)
+    }
+
+    private suspend fun requireAuthenticatedEnvelope(payload: PasskeyBackupEncryptedPayload) {
+        val metadata = payload.envelopeMetadata()
+        val key = backupKeyProvider.backupKey(metadata)
+        try {
+            val plaintext = envelopeCryptography.decrypt(payload.encryptedPayload, metadata, key)
+            plaintext.fill(0)
+        } finally {
+            key.fill(0)
+        }
     }
 }
 
 class PasskeyBackupWorkflow(
     private val challengeService: PasskeyBackupChallengeService,
     private val cloudBackup: PasskeyBackupCloudStorage,
+    private val backupKeyProvider: RecoverablePasskeyBackupKeyProvider =
+        UnavailableRecoverablePasskeyBackupKeyProvider(),
+    private val envelopeCryptography: PasskeyBackupEnvelopeCryptography =
+        AesGcmPasskeyBackupEnvelopeCryptography(),
     private val relyingPartyId: String = PasskeyBackupContract.PASSKEY_RP_ID,
     private val isReleaseEnabled: Boolean = PasskeyBackupReleaseConfig.PASSKEY_BACKUP_ENABLED,
+    private val registrationCompensationTimeoutMillis: Long =
+        DEFAULT_REGISTRATION_COMPENSATION_TIMEOUT_MILLIS,
     private val createdAtMillisProvider: () -> Long = { System.currentTimeMillis() }
 ) {
     init {
         PasskeyBackupContract.requireValidRpId(relyingPartyId)
+        val hasValidCompensationTimeout =
+            registrationCompensationTimeoutMillis >= MIN_REGISTRATION_COMPENSATION_TIMEOUT_MILLIS &&
+                registrationCompensationTimeoutMillis <= MAX_REGISTRATION_COMPENSATION_TIMEOUT_MILLIS
+        require(hasValidCompensationTimeout) {
+            "Passkey registration compensation timeout must be 1-30000 milliseconds"
+        }
     }
 
     suspend fun beginRegistration(
@@ -305,8 +418,7 @@ class PasskeyBackupWorkflow(
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
         val normalizedWalletId = PasskeyBackupContract.requireWalletId(walletId)
         val selectedAccountName = GoogleDrivePasskeyBackup.requireAccountName(accountName)
-        val selectedDisplayName = displayName.trim()
-        require(selectedDisplayName.isNotEmpty()) { "Passkey registration displayName is required" }
+        val selectedDisplayName = PasskeyBackupContract.requireDisplayName(displayName)
         val challenge = challengeService.registrationChallenge(
             walletId = normalizedWalletId,
             accountName = selectedAccountName,
@@ -333,31 +445,120 @@ class PasskeyBackupWorkflow(
         )
     }
 
+    suspend fun finishRegistrationWithEncryptedRecord(
+        pending: PendingPasskeyBackupRegistration,
+        credentialResponseJson: String,
+        record: PasskeyBackupEncryptedPayload
+    ): PasskeyBackupEncryptedPayload {
+        PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        val expectedStorageKey = PasskeyBackupContract.requireStorageKey(pending.storageKey)
+        val expectedWalletId = PasskeyBackupContract.requireWalletId(pending.walletId)
+        val expectedAccountName = GoogleDrivePasskeyBackup.requireAccountName(pending.accountName)
+        require(record.storageKey == expectedStorageKey) {
+            "Encrypted passkey backup record returned a mismatched storageKey"
+        }
+        require(record.walletId == expectedWalletId) {
+            "Encrypted passkey backup record returned a mismatched walletId"
+        }
+        require(record.accountName == expectedAccountName) {
+            "Encrypted passkey backup record returned a mismatched Google account"
+        }
+        requireAuthenticatedEnvelope(record)
+        val credentialId = registrationCredentialId(credentialResponseJson)
+
+        var completionConfirmed = false
+        return withRegistrationCompensation(
+            expectedStorageKey,
+            credentialId,
+            shouldCompensate = { error ->
+                completionConfirmed ||
+                    error is PasskeyBackupRegistrationCompletionUncertain
+            }
+        ) {
+            val result = challengeService.completeRegistration(
+                registrationId = pending.registrationId,
+                credentialResponseJson = credentialResponseJson
+            )
+            completionConfirmed = true
+            requireMatchingStorageKey(
+                expected = expectedStorageKey,
+                actual = result.storageKey,
+                ceremony = "registration"
+            )
+            cloudBackup.savePasskeyBackup(record)
+            record
+        }
+    }
+
+    @Deprecated(
+        message = "Opaque ciphertext cannot be authenticated without its original AAD metadata; use finishRegistrationWithPlaintext or finishRegistrationWithEncryptedRecord"
+    )
+    @Suppress("UnusedParameter")
     suspend fun finishRegistration(
         pending: PendingPasskeyBackupRegistration,
         credentialResponseJson: String,
         encryptedPayload: ByteArray
     ): PasskeyBackupEncryptedPayload {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
-        val result = challengeService.completeRegistration(
-            registrationId = pending.registrationId,
-            credentialResponseJson = credentialResponseJson
-        )
-        val storageKey = requireMatchingStorageKey(
-            expected = pending.storageKey,
-            actual = result.storageKey,
-            ceremony = "registration"
-        )
-        val payload = PasskeyBackupEncryptedPayload(
-            storageKey = storageKey,
+        throw PasskeyBackupEncryptedRecordMetadataRequiredException()
+    }
+
+    suspend fun finishRegistrationWithPlaintext(
+        pending: PendingPasskeyBackupRegistration,
+        credentialResponseJson: String,
+        plaintextBackup: ByteArray
+    ): PasskeyBackupEncryptedPayload {
+        PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        val expectedStorageKey = PasskeyBackupContract.requireStorageKey(pending.storageKey)
+        val metadata = PasskeyBackupEnvelopeMetadata(
+            storageKey = expectedStorageKey,
             walletId = pending.walletId,
             accountName = pending.accountName,
-            createdAtMillis = PasskeyBackupContract.requireCreatedAtMillis(createdAtMillisProvider()),
-            encryptedPayload = PasskeyBackupContract.requireEncryptedPayload(encryptedPayload)
+            createdAtMillis = PasskeyBackupContract.requireCreatedAtMillis(createdAtMillisProvider())
         )
+        val plaintextCopy = plaintextBackup.copyOf()
+        val encryptedPayload = try {
+            val key = backupKeyProvider.backupKey(metadata)
+            try {
+                envelopeCryptography.encrypt(plaintextCopy, metadata, key)
+            } finally {
+                key.fill(0)
+            }
+        } finally {
+            plaintextCopy.fill(0)
+        }
+        val payload = PasskeyBackupEncryptedPayload(
+            storageKey = metadata.storageKey,
+            walletId = metadata.walletId,
+            accountName = metadata.accountName,
+            createdAtMillis = metadata.createdAtMillis,
+            encryptedPayload = encryptedPayload,
+            schemaVersion = metadata.schemaVersion
+        )
+        val credentialId = registrationCredentialId(credentialResponseJson)
 
-        cloudBackup.savePasskeyBackup(payload)
-        return payload
+        var completionConfirmed = false
+        return withRegistrationCompensation(
+            expectedStorageKey,
+            credentialId,
+            shouldCompensate = { error ->
+                completionConfirmed ||
+                    error is PasskeyBackupRegistrationCompletionUncertain
+            }
+        ) {
+            val result = challengeService.completeRegistration(
+                registrationId = pending.registrationId,
+                credentialResponseJson = credentialResponseJson
+            )
+            completionConfirmed = true
+            requireMatchingStorageKey(
+                expected = expectedStorageKey,
+                actual = result.storageKey,
+                ceremony = "registration"
+            )
+            cloudBackup.savePasskeyBackup(payload)
+            payload
+        }
     }
 
     suspend fun beginRestore(storageKey: String): PendingPasskeyBackupAssertion {
@@ -400,9 +601,63 @@ class PasskeyBackupWorkflow(
         }
     }
 
+    suspend fun finishRestoreWithDecryption(
+        pending: PendingPasskeyBackupAssertion,
+        credentialResponseJson: String
+    ): ByteArray {
+        val record = finishRestore(pending, credentialResponseJson)
+        val metadata = record.envelopeMetadata()
+        val key = backupKeyProvider.backupKey(metadata)
+        return try {
+            envelopeCryptography.decrypt(record.encryptedPayload, metadata, key)
+        } finally {
+            key.fill(0)
+        }
+    }
+
+    suspend fun listCredentials(storageKey: String): PasskeyBackupCredentialListResult {
+        PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
+        val result = challengeService.listCredentials(normalizedStorageKey)
+        requireMatchingStorageKey(
+            expected = normalizedStorageKey,
+            actual = result.storageKey,
+            ceremony = "credential list"
+        )
+        return result
+    }
+
+    suspend fun revokeCredential(storageKey: String, credentialId: String): PasskeyBackupCredentialRevokeResult {
+        PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+        val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
+        val normalizedCredentialId = requireCredentialId(credentialId)
+        val result = challengeService.revokeCredential(
+            normalizedStorageKey,
+            normalizedCredentialId
+        )
+        requireMatchingStorageKey(
+            expected = normalizedStorageKey,
+            actual = result.storageKey,
+            ceremony = "credential revoke"
+        )
+        require(result.credentialId == normalizedCredentialId) {
+            "Passkey credential revoke returned a mismatched credentialId"
+        }
+        return result
+    }
+
     suspend fun deleteBackup(storageKey: String) {
         PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
-        cloudBackup.deletePasskeyBackup(PasskeyBackupContract.requireStorageKey(storageKey))
+        val normalizedStorageKey = PasskeyBackupContract.requireStorageKey(storageKey)
+        val revoked = challengeService.revokeAllCredentials(normalizedStorageKey)
+        require(
+            revoked.storageKey == normalizedStorageKey &&
+                revoked.credentialId == null &&
+                revoked.remainingCredentials == 0
+        ) {
+            "Passkey credential revoke-all returned an invalid result"
+        }
+        cloudBackup.deletePasskeyBackup(normalizedStorageKey)
     }
 
     private fun requireMatchingStorageKey(
@@ -416,5 +671,75 @@ class PasskeyBackupWorkflow(
             "Passkey $ceremony returned a mismatched storageKey"
         }
         return normalizedActual
+    }
+
+    private fun registrationCredentialId(credentialResponseJson: String): String {
+        val root = runCatching { JsonParser.parseString(credentialResponseJson) }.getOrNull()
+        require(root != null && root.isJsonObject) {
+            "Passkey registration credential response must be a JSON object"
+        }
+        val id = root.asJsonObject.get("id")
+        require(id != null && id.isJsonPrimitive && id.asJsonPrimitive.isString) {
+            "Passkey registration credential response id is required"
+        }
+        return requireCredentialId(id.asString)
+    }
+
+    private suspend fun requireAuthenticatedEnvelope(payload: PasskeyBackupEncryptedPayload) {
+        val metadata = payload.envelopeMetadata()
+        val key = backupKeyProvider.backupKey(metadata)
+        try {
+            val plaintext = envelopeCryptography.decrypt(payload.encryptedPayload, metadata, key)
+            plaintext.fill(0)
+        } finally {
+            key.fill(0)
+        }
+    }
+
+    private suspend fun <T> withRegistrationCompensation(
+        storageKey: String,
+        credentialId: String,
+        shouldCompensate: (Exception) -> Boolean,
+        operation: suspend () -> T
+    ): T {
+        try {
+            return operation()
+        } catch (operationError: Exception) {
+            if (shouldCompensate(operationError)) {
+                compensateRegistration(storageKey, credentialId, operationError)
+            }
+            throw operationError
+        }
+    }
+
+    private suspend fun compensateRegistration(
+        storageKey: String,
+        credentialId: String,
+        operationError: Exception
+    ) {
+        val compensationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val compensation = compensationScope.async {
+            val result = challengeService.revokeCredential(storageKey, credentialId)
+            requireMatchingStorageKey(
+                expected = storageKey,
+                actual = result.storageKey,
+                ceremony = "registration compensation revoke"
+            )
+            require(result.credentialId == credentialId) {
+                "Passkey registration compensation revoke returned a mismatched credentialId"
+            }
+        }
+        try {
+            withContext(NonCancellable) {
+                withTimeout(registrationCompensationTimeoutMillis) {
+                    compensation.await()
+                }
+            }
+        } catch (revokeError: Exception) {
+            operationError.addPasskeyRegistrationCompensationFailure(revokeError)
+        } finally {
+            compensation.cancel()
+            compensationScope.cancel()
+        }
     }
 }

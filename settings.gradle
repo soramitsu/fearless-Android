@@ -123,6 +123,11 @@ include ':public-shared-features-core'
 include ':public-shared-features-xcm'
 include ':public-shared-features-backup'
 
+// Staged, fail-closed Iroha integration. The Java bridge deliberately stays
+// outside production app dependencies until funded live evidence is approved.
+include ':iroha-sdk-bridge'
+include ':iroha-sdk-bridge-kotlin-smoke'
+
 // Prefer a local fearless-utils-Android checkout when available.
 def localUtilsPath = System.getenv("FEARLESS_UTILS_PATH")
 if (localUtilsPath == null || localUtilsPath.trim().isEmpty()) {

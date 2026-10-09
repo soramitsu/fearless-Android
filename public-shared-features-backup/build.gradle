@@ -24,7 +24,7 @@ dependencies {
     api libs.kotlin.stdlib.jdk7
     api libs.activity
     api libs.credentials
-    implementation libs.credentials.play.services.auth
+    api libs.credentials.play.services.auth
     implementation libs.coroutines.core
     implementation libs.gson
     implementation libs.okhttp

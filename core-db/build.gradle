@@ -32,6 +32,25 @@ android {
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
+
+    packaging {
+        resources {
+            // JVM-only license/notice and multi-release metadata is duplicated
+            // across transitive JUnit/BouncyCastle/jspecify artifacts. None of
+            // it is consumed at Android runtime, but duplicates otherwise make
+            // the migration instrumentation APK impossible to assemble.
+            excludes += [
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE-notice.md",
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                    "META-INF/AL2.0",
+                    "META-INF/LGPL2.1",
+                    "META-INF/versions/**"
+            ]
+        }
+    }
+
     namespace = 'jp.co.soramitsu.core_db'
 }
 
@@ -53,6 +72,8 @@ dependencies {
 
     implementation libs.room.runtime
     implementation libs.room.ktx
+    implementation libs.ton.crypto
+    implementation libs.ton.tonapi
     ksp libs.room.compiler
 
     androidTestImplementation libs.runner

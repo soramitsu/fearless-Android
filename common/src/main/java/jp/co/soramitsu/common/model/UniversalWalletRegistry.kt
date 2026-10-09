@@ -1,6 +1,8 @@
 package jp.co.soramitsu.common.model
 
 object UniversalWalletRegistry {
+    const val TAIRA_CHAIN_ID = "fc56984b-2be7-431d-840e-21514d1883f0"
+    const val TAIRA_XOR_ASSET_DEFINITION_ID = "6TEAJqbb8oEPmLncoNiMRbLEK6tw"
     const val BITCOIN_MAINNET_INDEXER_BASE_URL = "https://blockstream.info/api"
     const val BITCOIN_TESTNET_INDEXER_BASE_URL = "https://blockstream.info/testnet/api"
     const val TON_INDEXER_BASE_URL = "https://ti.soramitsu.io"
@@ -74,12 +76,17 @@ object UniversalWalletRegistry {
 
     val taira = IrohaNetwork(
         id = "taira-testnet",
-        chainId = "iroha3-taira",
+        chainId = TAIRA_CHAIN_ID,
         chainDiscriminant = 369,
         toriiBaseUrl = "https://taira.sora.org",
         mcpPath = "/v1/mcp",
         enabledByDefault = true,
-        features = listOf("transfer")
+        features = listOf("transfer"),
+        nativeAsset = IrohaNativeAsset(
+            id = TAIRA_XOR_ASSET_DEFINITION_ID,
+            symbol = "XOR",
+            decimals = 9
+        )
     )
 
     val nexus = IrohaNetwork(
@@ -146,7 +153,14 @@ object UniversalWalletRegistry {
         val toriiBaseUrl: String?,
         val mcpPath: String,
         val enabledByDefault: Boolean,
-        val features: List<String>
+        val features: List<String>,
+        val nativeAsset: IrohaNativeAsset? = null
+    )
+
+    data class IrohaNativeAsset(
+        val id: String,
+        val symbol: String,
+        val decimals: Int
     )
 
     data class BitcoinNetwork(
@@ -249,6 +263,14 @@ object UniversalWalletRegistry {
         chainId = chainId,
         displayName = displayName,
         enabledByDefault = enabledByDefault,
+        nativeAsset = nativeAsset?.let { asset ->
+            UniversalWalletRegistryAsset(
+                id = asset.id,
+                symbol = asset.symbol,
+                decimals = asset.decimals,
+                name = asset.symbol
+            )
+        },
         derivationPath = UniversalWalletDerivationPaths.IROHA_DEFAULT,
         slip44CoinType = 617,
         features = features,
