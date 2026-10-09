@@ -1,11 +1,13 @@
 package jp.co.soramitsu.wallet.impl.data.network.model.response
 
+import com.google.gson.JsonElement
 import java.math.BigInteger
 
 data class EtherscanHistoryResponse(
-    val status: Int,
-    val message: String,
-    val result: List<EtherscanHistoryElement>
+    val status: String?,
+    val message: String?,
+    // Etherscan returns an array on success, but a string for provider errors.
+    val result: JsonElement?
 )
 
 data class EtherscanHistoryElement(

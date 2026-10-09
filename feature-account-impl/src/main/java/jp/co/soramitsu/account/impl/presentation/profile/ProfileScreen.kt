@@ -14,13 +14,16 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.SettingsDivider
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.H1
+import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.SettingsItem
 import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.common.model.WalletEcosystem
 
 data class ProfileScreenState(
     val walletState: WalletItemViewState,
@@ -36,8 +39,8 @@ interface ProfileScreenInterface {
 
     fun onWalletConnectClick()
     fun onTonConnectClick()
+    fun onManageAssetsClick()
     fun currencyClicked()
-    fun crowdloansClicked()
     fun languagesClicked()
 
     fun onNomisMultichainScoreContainerClick()
@@ -70,6 +73,11 @@ fun ProfileScreen(
 
         Column(modifier = Modifier.verticalScroll(scrollState)) {
             MarginVertical(margin = 16.dp)
+            H4(
+                text = stringResource(R.string.settings_section_wallets_accounts),
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
             SettingsItem(
                 icon = painterResource(R.drawable.ic_settings_wallets),
                 text = stringResource(R.string.profile_wallets_title),
@@ -77,24 +85,15 @@ fun ProfileScreen(
                 onClick = callback::walletsClicked
             )
             SettingsDivider()
-            if (state.walletState.onlyTonSupported) {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_wallet_connect),
-                    text = stringResource(R.string.profile_tonconnect_title),
-                    onClick = callback::onTonConnectClick
-                )
-            } else {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_wallet_connect),
-                    text = stringResource(R.string.profile_walletconnect_title),
-                    onClick = callback::onWalletConnectClick
-                )
-            }
-            SettingsDivider()
+            H4(
+                text = stringResource(R.string.settings_section_networks_assets),
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
             SettingsItem(
-                icon = painterResource(R.drawable.ic_nav_crowdloans),
-                text = stringResource(R.string.crowdloan_crowdloan),
-                onClick = callback::crowdloansClicked
+                icon = painterResource(R.drawable.ic_nav_wallet),
+                text = stringResource(R.string.settings_manage_assets),
+                onClick = callback::onManageAssetsClick
             )
             SettingsDivider()
             SettingsItem(
@@ -104,6 +103,52 @@ fun ProfileScreen(
                 onClick = callback::currencyClicked
             )
             SettingsDivider()
+            H4(
+                text = stringResource(R.string.settings_section_connections),
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_wallet_connect),
+                text = stringResource(R.string.profile_tonconnect_title),
+                action = if (state.walletState.supportsTon) {
+                    SettingsItemAction.Transition
+                } else {
+                    SettingsItemAction.Selector(stringResource(R.string.connection_add_ton_account))
+                },
+                onClick = callback::onTonConnectClick
+            )
+            SettingsDivider()
+            val supportsWalletConnect = state.walletState.supportedEcosystems.any {
+                it == WalletEcosystem.Substrate || it == WalletEcosystem.Ethereum
+            }
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_wallet_connect),
+                text = stringResource(R.string.profile_walletconnect_title),
+                action = if (supportsWalletConnect) {
+                    SettingsItemAction.Transition
+                } else {
+                    SettingsItemAction.Selector(stringResource(R.string.connection_add_signing_account))
+                },
+                onClick = callback::onWalletConnectClick
+            )
+            SettingsDivider()
+            H4(
+                text = stringResource(R.string.settings_section_security),
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            SettingsItem(
+                icon = painterResource(R.drawable.ic_pin_24),
+                text = stringResource(R.string.profile_pincode_change_title),
+                onClick = callback::changePinCodeClicked
+            )
+            SettingsDivider()
+            H4(
+                text = stringResource(R.string.settings_section_preferences),
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
             SettingsItem(
                 icon = painterResource(R.drawable.ic_language),
                 text = stringResource(R.string.profile_language_title),
@@ -126,12 +171,11 @@ fun ProfileScreen(
                 )
                 SettingsDivider()
             }
-            SettingsItem(
-                icon = painterResource(R.drawable.ic_pin_24),
-                text = stringResource(R.string.profile_pincode_change_title),
-                onClick = callback::changePinCodeClicked
+            H4(
+                text = stringResource(R.string.about_title),
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
-            SettingsDivider()
             SettingsItem(
                 icon = painterResource(R.drawable.ic_info_primary_24),
                 text = stringResource(R.string.about_title),
@@ -173,8 +217,8 @@ fun ProfileScreenPreview() {
                 override fun walletsClicked() = Unit
                 override fun onWalletConnectClick() = Unit
                 override fun onTonConnectClick() = Unit
+                override fun onManageAssetsClick() = Unit
                 override fun currencyClicked() = Unit
-                override fun crowdloansClicked() {}
                 override fun languagesClicked() = Unit
                 override fun onNomisMultichainScoreContainerClick() = Unit
                 override fun polkaswapDisclaimerClicked() = Unit

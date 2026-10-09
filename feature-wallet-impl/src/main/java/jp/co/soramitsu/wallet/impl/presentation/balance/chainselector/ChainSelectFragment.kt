@@ -32,6 +32,7 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         // XCM
         const val KEY_XCM_CHAIN_TYPE = "KEY_XCM_CHAIN_TYPE"
         const val KEY_XCM_SELECTED_ORIGIN_CHAIN_ID = "KEY_XCM_SELECTED_ORIGIN_CHAIN"
+        const val KEY_XCM_ORIGIN_ASSET_ID = "KEY_XCM_ORIGIN_ASSET_ID"
         const val KEY_XCM_ASSET_SYMBOL = "KEY_XCM_ASSET_SYMBOL"
 
         fun getBundle(
@@ -73,12 +74,14 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             selectedChainId: ChainId?,
             xcmChainType: XcmChainType,
             xcmSelectedOriginChainId: String? = null,
+            xcmOriginAssetId: String? = null,
             xcmAssetSymbol: String? = null,
             isFilteringEnabled: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_CHAIN_ID to selectedChainId,
             KEY_XCM_CHAIN_TYPE to xcmChainType,
             KEY_XCM_SELECTED_ORIGIN_CHAIN_ID to xcmSelectedOriginChainId,
+            KEY_XCM_ORIGIN_ASSET_ID to xcmOriginAssetId,
             KEY_XCM_ASSET_SYMBOL to xcmAssetSymbol,
             KEY_SELECT_ASSET to false,
             KEY_SHOW_ALL_CHAINS to false,

@@ -49,4 +49,6 @@ dependencies {
     implementation(libs.sora.ui)
     implementation(libs.soramitsu.android.foundation)
     implementation(libs.room.ktx)
+
+    testImplementation(projects.testShared)
 }

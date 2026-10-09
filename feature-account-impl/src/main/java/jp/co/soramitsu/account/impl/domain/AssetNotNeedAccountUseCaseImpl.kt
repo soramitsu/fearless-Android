@@ -2,7 +2,7 @@ package jp.co.soramitsu.account.impl.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.common.domain.SelectedFiat
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -47,10 +47,10 @@ class AssetNotNeedAccountUseCaseImpl(
         }
     }
 
-    override fun getAssetsMarkedNotNeedFlow(metaId: Long): Flow<List<AssetKey>> {
+    override fun getAssetsMarkedNotNeedFlow(metaId: Long): Flow<List<WalletAssetKey>> {
         return assetDao.observeAssets(metaId).map {
             it.filter { it.asset.markedNotNeed }.map {
-                AssetKey(
+                WalletAssetKey(
                     metaId = metaId,
                     chainId = it.asset.chainId,
                     accountId = it.asset.accountId,

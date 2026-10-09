@@ -1,10 +1,12 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -58,37 +60,27 @@ fun OptionsWalletContent(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
         ) {
-            Box(
-                modifier = Modifier
-                    .height(32.dp)
-                    .fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    H4(
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        text = stringResource(id = R.string.common_title_wallet_option)
-                    )
-                }
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterEnd
-                ) {
-                    NavigationIconButton(
-                        navigationIconResId = R.drawable.ic_cross_32,
-                        onNavigationClick = callback::onCloseClick
-                    )
-                }
+                H4(
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                    text = stringResource(id = R.string.common_title_wallet_option)
+                )
+                NavigationIconButton(
+                    navigationIconResId = R.drawable.ic_cross_32,
+                    onNavigationClick = callback::onCloseClick
+                )
             }
             MarginVertical(margin = 28.dp)
             GrayButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .heightIn(min = 48.dp),
                 text = stringResource(id = R.string.export_wallet),
                 onClick = callback::onBackupWalletClick
             )
@@ -98,7 +90,7 @@ fun OptionsWalletContent(
                     text = stringResource(id = R.string.common_details_wallet),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .heightIn(min = 48.dp),
                     onClick = callback::onWalletDetailsClick
                 )
             }
@@ -106,7 +98,7 @@ fun OptionsWalletContent(
             GrayButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .heightIn(min = 48.dp),
                 text = stringResource(id = R.string.change_wallet_name),
                 onClick = callback::onChangeWalletNameClick
             )
@@ -115,7 +107,7 @@ fun OptionsWalletContent(
                 GrayButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .heightIn(min = 48.dp),
                     text = stringResource(id = R.string.account_stats_wallet_option_title),
                     onClick = callback::onShowWalletScoreClick
                 )
@@ -125,7 +117,7 @@ fun OptionsWalletContent(
                 TextButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .heightIn(min = 48.dp),
                     textStyle = MaterialTheme.customTypography.header4,
                     text = stringResource(id = R.string.common_delete_wallet),
                     colors = customButtonColors(grayButtonBackground, colorAccentDark),

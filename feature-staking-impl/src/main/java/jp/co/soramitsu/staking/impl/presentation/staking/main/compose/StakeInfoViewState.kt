@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -45,6 +47,14 @@ sealed class StakeInfoViewState {
     }
 }
 
+@Suppress("ArrayInDataClass")
+data class CollatorStakeInfoViewState(
+    val collatorId: AccountId,
+    val collatorAddress: String,
+    val stakeInfo: StakeInfoViewState.ParachainStakeInfoViewState,
+    val collator: CandidateInfo?
+)
+
 fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager: ResourceManager): StakeInfoViewState.PoolStakeInfoViewState {
     return StakeInfoViewState.PoolStakeInfoViewState(
         title = "Your pool staking",
@@ -53,6 +63,29 @@ fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager:
         redeemable = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_redeemable)),
         unstaking = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_unbonding_v1_9_0)),
         status = StakeStatus.PoolActive(0L, true)
+    )
+}
+
+fun StakeInfoViewState.RelayChainStakeInfoViewState.Companion.default(
+    resourceManager: ResourceManager
+): StakeInfoViewState.RelayChainStakeInfoViewState {
+    return StakeInfoViewState.RelayChainStakeInfoViewState(
+        title = resourceManager.getString(R.string.staking_your_stake),
+        staked = TitleValueViewState(resourceManager.getString(R.string.staking_main_stake_balance_staked)),
+        rewarded = TitleValueViewState(resourceManager.getString(R.string.staking_total_rewards_v1_9_0)),
+        status = StakeStatus.Inactive("")
+    )
+}
+
+fun StakeInfoViewState.ParachainStakeInfoViewState.Companion.default(
+    resourceManager: ResourceManager,
+    title: String
+): StakeInfoViewState.ParachainStakeInfoViewState {
+    return StakeInfoViewState.ParachainStakeInfoViewState(
+        title = title,
+        staked = TitleValueViewState(resourceManager.getString(R.string.staking_main_stake_balance_staked)),
+        rewards = TitleValueViewState(resourceManager.getString(R.string.staking_rewards_apr)),
+        status = StakeStatus.IdleCollator()
     )
 }
 

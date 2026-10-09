@@ -3,18 +3,18 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Arrangement
+import jp.co.soramitsu.common.compose.component.B1
+import jp.co.soramitsu.common.compose.component.BackgroundCornered
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
@@ -23,16 +23,16 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
-import jp.co.soramitsu.common.compose.component.BannerBackup
 import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
 import jp.co.soramitsu.common.compose.component.BannerJoinTon
-import jp.co.soramitsu.common.compose.component.BannerPageIndicator
+import jp.co.soramitsu.common.compose.component.BannerWalletRecovery
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -49,7 +49,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NFTScreen
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 import jp.co.soramitsu.wallet.impl.presentation.common.NetworkIssue
-import kotlinx.coroutines.delay
 
 @Stable
 interface WalletScreenInterface : AssetsListInterface {
@@ -103,37 +102,64 @@ fun WalletScreen(
     }
 
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        MarginVertical(margin = 16.dp)
-        AssetBalance(
-            state = data.balance,
-            onAddressClick = callback::onAddressClick,
-            onBalanceClick = callback::onBalanceClicked
-        )
-
-        MarginVertical(margin = 16.dp)
-        AnimatedVisibility(
-            visible = data.showCurrenciesOrNftSelector,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-
-            MultiToggleButton(
-                state = data.multiToggleButtonState,
-                onToggleChange = callback::assetTypeChanged
+    val largeText = LocalDensity.current.fontScale > 1.3f
+    val scrollHeaderWithAssets = largeText && data.assetsState is WalletAssetsState.Assets
+    val walletHeader: @Composable () -> Unit = {
+        Column {
+            MarginVertical(margin = 16.dp)
+            AssetBalance(
+                state = data.balance,
+                onAddressClick = callback::onAddressClick,
+                onBalanceClick = callback::onBalanceClicked
             )
+
+            MarginVertical(margin = 16.dp)
+            when {
+                data.isRecoveryRequired -> BannerWalletRecovery()
+                !data.isBackedUp -> BackgroundCornered(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp)) {
+                        B1(text = stringResource(R.string.ux_backup_description))
+                        MarginVertical(8.dp)
+                        GrayButton(
+                            text = stringResource(R.string.ux_backup_status),
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = callback::onBackupClicked
+                        )
+                    }
+                }
+            }
+            MarginVertical(8.dp)
+            AnimatedVisibility(
+                visible = data.showCurrenciesOrNftSelector,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+
+                MultiToggleButton(
+                    state = data.multiToggleButtonState,
+                    onToggleChange = callback::assetTypeChanged,
+                    stacked = largeText
+                )
+            }
+
         }
+    }
 
-
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        if (!scrollHeaderWithAssets && !(largeText && data.assetsState is WalletAssetsState.NetworkIssue)) walletHeader()
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
             }
 
             is WalletAssetsState.Assets -> {
-                val header: @Composable () -> Unit = { Banners(data, callback) }
+                val header: @Composable () -> Unit = { if (scrollHeaderWithAssets) walletHeader() }
                 val footer: @Composable () -> Unit =
-                    { WalletScreenFooter(scale.value, callback::onManageAssetClick) }
+                    {
+                        WalletScreenFooter(scale.value, callback::onManageAssetClick)
+                        MarginVertical(16.dp)
+                        Banners(data, callback)
+                    }
                 AssetsList(
                     data = data.assetsState,
                     callback = callback,
@@ -144,7 +170,14 @@ fun WalletScreen(
             }
 
             is WalletAssetsState.NetworkIssue -> {
-                NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
+                if (largeText) {
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        walletHeader()
+                        NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
+                    }
+                } else {
+                    NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
+                }
             }
         }
     }
@@ -153,85 +186,23 @@ fun WalletScreen(
 @Composable
 private fun Banners(
     data: WalletState,
-    callback: WalletScreenInterface,
-    autoPlay: Boolean = true
+    callback: WalletScreenInterface
 ) {
-    val backupBanner: @Composable (() -> Unit)? = if (!data.isBackedUp) {
-        {
-            BannerBackup(
-                onBackupClick = callback::onBackupClicked,
-                onCloseClick = callback::onBackupCloseClick,
-            )
-        }
-    } else {
-        null
+    // Optional network discovery stays below assets, separate from wallet protection.
+    if (!data.hasSubOrEvmAccounts) {
+        BannerJoinSubstrateEvm(
+            onClick = callback::onJoinSubOrEvmClicked,
+            onCloseClick = callback::onJoinSubOrEvmCloseClick
+        )
+        MarginVertical(8.dp)
     }
-
-    val joinSubOrEvmBanner: @Composable (() -> Unit)? = if (!data.hasSubOrEvmAccounts) {
-        {
-            BannerJoinSubstrateEvm(
-                onClick = callback::onJoinSubOrEvmClicked,
-                onCloseClick = callback::onJoinSubOrEvmCloseClick,
-            )
-        }
-    } else {
-        null
+    if (!data.hasTonAccounts) {
+        BannerJoinTon(
+            onClick = callback::onJoinTonClicked,
+            onCloseClick = callback::onJoinTonCloseClick
+        )
+        MarginVertical(8.dp)
     }
-
-    val joinTonBanner: @Composable (() -> Unit)? = if (!data.hasTonAccounts) {
-        {
-            BannerJoinTon(
-                onClick = callback::onJoinTonClicked,
-                onCloseClick = callback::onJoinTonCloseClick,
-            )
-        }
-    } else {
-        null
-    }
-
-    val banners = listOfNotNull(backupBanner, joinSubOrEvmBanner, joinTonBanner)
-    val bannersCount = banners.size
-    val pagerState = rememberPagerState { bannersCount }
-
-    if (bannersCount > 1) {
-        // Auto play
-        LaunchedEffect(key1 = autoPlay) {
-            if (autoPlay) {
-                while (true) {
-                    delay(5000L)
-                    with(pagerState) {
-                        animateScrollToPage(
-                            page = (currentPage + 1) % bannersCount,
-                            animationSpec = tween(
-                                durationMillis = 500,
-                                easing = FastOutSlowInEasing
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    val bannersCarousel: @Composable (() -> Unit)? =
-        banners.takeIf { it.isNotEmpty() }?.let {
-            {
-                HorizontalPager(
-                    modifier = Modifier.fillMaxWidth(),
-                    state = pagerState,
-                    pageSpacing = 8.dp,
-                    pageContent = { page ->
-                        banners[page].invoke()
-                    }
-                )
-
-                if (bannersCount > 1) {
-                    MarginVertical(margin = 8.dp)
-                    BannerPageIndicator(bannersCount, pagerState)
-                }
-            }
-        }
-    bannersCarousel?.invoke()
 }
 
 @Composable
@@ -335,6 +306,7 @@ private fun PreviewWalletScreen() {
                     ),
                     hasNetworkIssues = true,
                     isBackedUp = false,
+                    isRecoveryRequired = false,
                     hasTonAccounts = false,
                     hasSubOrEvmAccounts = false,
                     showCurrenciesOrNftSelector = false,

@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
 import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusResponse
@@ -17,6 +18,7 @@ import jp.co.soramitsu.common.data.network.iroha.IrohaTransactionSubmissionRecei
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
 import jp.co.soramitsu.common.data.network.solana.SolanaIndexerClient
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.model.NetworkScanKey
 import jp.co.soramitsu.common.utils.IrohaKeyDerivation
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
@@ -79,6 +81,191 @@ class IrohaBalanceLoaderTest {
     }
 
     @Test
+    fun `paginates and discovers every held iroha asset definition`() = runBlocking {
+        val chain = irohaChain()
+        val account = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+        val address = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val items = (0..IrohaToriiRoutes.MAX_LIMIT).map { index ->
+            IrohaAccountAssetListItem(
+                accountId = address,
+                asset = "asset$index#portfolio",
+                assetAlias = "DUP",
+                quantity = "1"
+            )
+        }
+        val client = FakeIrohaToriiClient(items)
+        val discovered = mutableListOf<Asset>()
+
+        val updates = IrohaBalanceLoader(
+            chain,
+            client,
+            persistDiscoveredAssets = { discovered += it }
+        ).loadBalance(setOf(metaAccount(chain, account.publicKey)))
+
+        assertEquals(listOf(0L, IrohaToriiRoutes.MAX_LIMIT.toLong()), client.offsets)
+        assertEquals(items.size, discovered.size)
+        assertEquals(items.size, discovered.map { it.id }.distinct().size)
+        assertTrue(discovered.all { it.symbol == "DUP" && it.type == ChainAssetType.Unknown && it.priceId == null })
+        assertEquals(items.size, updates.count { it.freeInPlanks?.signum() == 1 })
+        assertEquals(BigInteger.ZERO, updates.single { it.id == "xor#sora" }.freeInPlanks)
+    }
+
+    @Test
+    fun `uses asset definition precision instead of observed quantity scale`() = runBlocking {
+        val chain = irohaChain()
+        val account = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+        val address = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val client = FakeIrohaToriiClient(
+            items = listOf(IrohaAccountAssetListItem(address, "usd#bank", quantity = "1")),
+            definitions = listOf(
+                IrohaAssetDefinitionListItem(
+                    id = "usd#bank",
+                    name = "Bank USD",
+                    alias = "USD",
+                    metadata = mapOf("precision" to 2.0)
+                )
+            )
+        )
+        val discovered = mutableListOf<Asset>()
+
+        val update = IrohaBalanceLoader(chain, client, persistDiscoveredAssets = { discovered += it })
+            .loadBalance(setOf(metaAccount(chain, account.publicKey)))
+            .single { it.id == "usd#bank" }
+
+        assertEquals(2, discovered.single().precision)
+        assertEquals(BigInteger.valueOf(100), update.freeInPlanks)
+    }
+
+    @Test
+    fun `paginates definitions beyond torii limit before converting held amount`() = runBlocking {
+        val chain = irohaChain()
+        val account = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+        val address = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val heldDefinitionId = "late500#catalog"
+        val definitions = (0 until IrohaToriiRoutes.MAX_LIMIT).map { index ->
+            IrohaAssetDefinitionListItem(id = "early$index#catalog")
+        } + IrohaAssetDefinitionListItem(
+            id = heldDefinitionId,
+            alias = "LATE",
+            metadata = mapOf("precision" to 4)
+        )
+        val client = FakeIrohaToriiClient(
+            items = listOf(IrohaAccountAssetListItem(address, heldDefinitionId, quantity = "1")),
+            definitions = definitions
+        )
+
+        val update = IrohaBalanceLoader(chain, client)
+            .loadBalance(setOf(metaAccount(chain, account.publicKey)))
+            .single { it.id == heldDefinitionId }
+
+        assertEquals(listOf(0L, IrohaToriiRoutes.MAX_LIMIT.toLong()), client.definitionOffsets)
+        assertEquals(BigInteger("10000"), update.freeInPlanks)
+    }
+
+    @Test
+    fun `successful complete scan zeros a previously held asset omitted by torii`() = runBlocking {
+        val baseChain = irohaChain()
+        val previousHolding = irohaAsset(baseChain.id).copy(
+            id = "usd#bank",
+            name = "Bank USD",
+            symbol = "USD",
+            precision = 2,
+            isUtility = false,
+            isNative = false,
+            type = ChainAssetType.Unknown,
+            currencyId = "usd#bank"
+        )
+        val chain = baseChain.copy(assets = baseChain.assets + previousHolding)
+        val account = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+        val address = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val client = FakeIrohaToriiClient(
+            items = listOf(IrohaAccountAssetListItem(address, "usd#bank", quantity = "1.25"))
+        )
+        val loader = IrohaBalanceLoader(chain, client)
+        val metaAccount = metaAccount(chain, account.publicKey)
+
+        assertEquals(
+            BigInteger.valueOf(125),
+            loader.loadBalance(setOf(metaAccount)).single { it.id == "usd#bank" }.freeInPlanks
+        )
+
+        client.accountAssetItems = emptyList()
+
+        assertEquals(
+            BigInteger.ZERO,
+            loader.loadBalance(setOf(metaAccount)).single { it.id == "usd#bank" }.freeInPlanks
+        )
+    }
+
+    @Test
+    fun `mixed valid and malformed iroha quantities fail scan without partial balance`() = runBlocking {
+        val chain = irohaChain()
+        val account = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+        val address = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val client = FakeIrohaToriiClient(
+            items = listOf(IrohaAccountAssetListItem(address, "xor#sora", quantity = "2"))
+        )
+        val metaAccount = metaAccount(chain, account.publicKey)
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = IrohaBalanceLoader(chain, client, scanStateStore = scanState)
+
+        var storedAmount = loader.loadBalance(setOf(metaAccount)).single().freeInPlanks
+        val successfulState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        client.accountAssetItems = listOf(
+            IrohaAccountAssetListItem(address, "xor#sora", quantity = "3"),
+            IrohaAccountAssetListItem(address, "xor#sora", quantity = "not-a-quantity")
+        )
+        loader.loadBalance(setOf(metaAccount)).singleOrNull()?.let { storedAmount = it.freeInPlanks }
+
+        assertEquals(BigInteger("2000000000000000000"), storedAmount)
+        val failedState = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(failedState.isStale)
+        assertEquals(successfulState.lastSuccessMillis, failedState.lastSuccessMillis)
+        assertEquals("Malformed Iroha quantity for xor#sora", failedState.errorMessage)
+    }
+
+    @Test
+    fun `endpoint failure after success preserves last iroha amount and marks scan stale`() = runBlocking {
+        val chain = irohaChain()
+        val account = IrohaKeyDerivation.deriveAccount(MNEMONIC)
+        val address = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val client = FakeIrohaToriiClient(
+            items = listOf(IrohaAccountAssetListItem(address, "xor#sora", quantity = "2"))
+        )
+        val metaAccount = metaAccount(chain, account.publicKey)
+        val scanState = NetworkScanStateStore(InMemoryPreferences())
+        val loader = IrohaBalanceLoader(chain, client, scanStateStore = scanState)
+
+        var storedAmount = loader.loadBalance(setOf(metaAccount)).single().freeInPlanks
+        client.accountAssetsFailure = IllegalStateException("iroha endpoint down")
+        loader.loadBalance(setOf(metaAccount)).singleOrNull()?.let { storedAmount = it.freeInPlanks }
+
+        assertEquals(BigInteger("2000000000000000000"), storedAmount)
+        val state = scanState.states.value.getValue(NetworkScanKey(metaAccount.id, chain.id))
+        assertTrue(state.isStale)
+        assertTrue(state.lastSuccessMillis != null)
+        assertEquals("iroha endpoint down", state.errorMessage)
+    }
+
+    @Test
     fun `provider routes universal wallet iroha chains to torii iroha loader`() = runBlocking {
         val loader = provider().invoke(irohaChain())
 
@@ -104,8 +291,11 @@ class IrohaBalanceLoaderTest {
     }
 
     private class FakeIrohaToriiClient(
-        private val items: List<IrohaAccountAssetListItem> = emptyList()
+        items: List<IrohaAccountAssetListItem> = emptyList(),
+        private val definitions: List<IrohaAssetDefinitionListItem> = emptyList()
     ) : IrohaToriiClient {
+        var accountAssetItems: List<IrohaAccountAssetListItem> = items
+        var accountAssetsFailure: Throwable? = null
         var lastAccountId: String? = null
             private set
         var lastBaseUrl: String? = null
@@ -114,6 +304,8 @@ class IrohaBalanceLoaderTest {
             private set
         var lastCountMode: IrohaToriiRoutes.CountMode? = null
             private set
+        val offsets = mutableListOf<Long>()
+        val definitionOffsets = mutableListOf<Long>()
 
         override suspend fun health(baseUrl: String?): String = "ok"
 
@@ -140,20 +332,49 @@ class IrohaBalanceLoaderTest {
             scope: String?,
             network: UniversalWalletRegistry.IrohaNetwork
         ): IrohaAccountAssetListResponse {
+            accountAssetsFailure?.let { throw it }
             lastAccountId = accountId
             lastBaseUrl = baseUrl
             lastLimit = limit
             lastCountMode = countMode
+            val resolvedOffset = offset ?: 0L
+            offsets += resolvedOffset
+            val resolvedLimit = limit ?: accountAssetItems.size
+            val pageItems = accountAssetItems.drop(resolvedOffset.toInt()).take(resolvedLimit)
 
             return IrohaAccountAssetListResponse(
-                items = items,
-                hasMore = false,
+                items = pageItems,
+                hasMore = resolvedOffset + pageItems.size < accountAssetItems.size,
                 countMode = countMode?.apiValue ?: "bounded",
-                total = items.size.toLong()
+                total = accountAssetItems.size.toLong()
             )
         }
 
-        override suspend fun assetDefinitions(baseUrl: String?): IrohaAssetDefinitionListResponse = throw NotImplementedError()
+        override suspend fun assetDefinitions(baseUrl: String?): IrohaAssetDefinitionListResponse =
+            IrohaAssetDefinitionListResponse(
+                items = definitions,
+                hasMore = false,
+                countMode = "exact",
+                total = definitions.size.toLong()
+            )
+
+        override suspend fun assetDefinitionsPage(
+            baseUrl: String?,
+            limit: Int?,
+            offset: Long?,
+            countMode: IrohaToriiRoutes.CountMode?
+        ): IrohaAssetDefinitionListResponse {
+            val resolvedOffset = offset ?: 0L
+            val resolvedLimit = limit ?: definitions.size
+            definitionOffsets += resolvedOffset
+            val pageItems = definitions.drop(resolvedOffset.toInt()).take(resolvedLimit)
+            return IrohaAssetDefinitionListResponse(
+                items = pageItems,
+                hasMore = resolvedOffset + pageItems.size < definitions.size,
+                countMode = countMode?.apiValue ?: "bounded",
+                total = definitions.size.toLong()
+            )
+        }
 
         override suspend fun submitTransaction(
             noritoBytes: ByteArray,
@@ -193,6 +414,14 @@ class IrohaBalanceLoaderTest {
         override suspend fun getOperation(hash: String): OperationLocal? = null
 
         override suspend fun getOperations(): List<OperationLocal> = emptyList()
+
+        override suspend fun getCompletedModuleOperations(
+            address: String,
+            chainId: String,
+            chainAssetId: String,
+            module: String,
+            status: OperationLocal.Status
+        ): List<OperationLocal> = emptyList()
 
         override fun observeOperations(): Flow<List<OperationLocal>> = flowOf(emptyList())
 

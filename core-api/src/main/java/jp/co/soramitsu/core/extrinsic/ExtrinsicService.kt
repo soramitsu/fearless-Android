@@ -2,6 +2,7 @@ package jp.co.soramitsu.core.extrinsic
 
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
+import jp.co.soramitsu.core.extrinsic.keypair_provider.GuardedKeypairProvider
 import jp.co.soramitsu.core.extrinsic.mortality.Mortality
 import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.models.IChain
@@ -22,6 +23,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withTimeoutOrNull
 import java.math.BigInteger
+import java.security.MessageDigest
+import java.io.ByteArrayOutputStream
+import java.io.DataOutputStream
 
 private val DEFAULT_TIP = BigInteger.ZERO
 private val DEFAULT_FEE_ACCOUNT_ID = ByteArray(32)
@@ -52,6 +56,17 @@ class ExtrinsicBuilderFactory(
             mortality = mortalityConstructor.construct(chain),
             tip = tip,
             appId = appId
+        )
+    }
+
+    /** Resolve public runtime data without reading a key or signing a fee placeholder. */
+    suspend fun createForAuthorizedSubmit(
+        chain: IChain, accountId: ByteArray, keypairProvider: KeypairProvider, tip: BigInteger?, appId: BigInteger?
+    ): ExtrinsicBuilder {
+        val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
+        return create(
+            chain, accountId, DEFAULT_FEE_KEYPAIR, mapCryptoTypeToEncryption(cryptoType),
+            rpcCalls.getAccountNonce(chain, accountId), mortalityConstructor.construct(chain), tip, appId
         )
     }
 
@@ -151,6 +166,40 @@ class ExtrinsicService(
         rpcCalls.submitExtrinsic(chain.id, extrinsic)
     }
 
+    /** Does not decrypt key material; used only to present local Substrate action availability. */
+    suspend fun hasLocalSubstrateKey(chain: IChain, accountId: ByteArray): Boolean =
+        (keypairProvider as? GuardedKeypairProvider)?.hasLocalSubstrateKey(chain, accountId) == true
+
+    /** New feature path: freeze intent, acquire lease, then authorize key read, sign and true send. */
+    suspend fun submitAuthorizedExtrinsic(
+        chain: IChain,
+        accountId: ByteArray,
+        authorize: (String) -> MutationExecutionGuard,
+        useBatchAll: Boolean = false,
+        tip: BigInteger? = null,
+        appId: BigInteger? = null,
+        formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
+    ): Result<String> = runCatching {
+        val account = accountId.copyOf()
+        val chainId = chain.id
+        val provider = keypairProvider as? GuardedKeypairProvider
+            ?: error("This signing provider does not support authorized mutations")
+        val builder = extrinsicBuilderFactory.createForAuthorizedSubmit(chain, account, provider, tip, appId)
+        builder.formExtrinsic()
+        val prepared = builder.prepareSigning(useBatchAll)
+        val intent = mutationIntentSha256(chainId, account, prepared.intentBytes())
+        val lease = authorize(intent)
+        lease.check(intent)
+        val key = provider.getAuthorizedKeypairFor(chain, account, lease, intent)
+        lease.check(intent)
+        val signed = prepared.sign(key) { encryption, message, signingKey ->
+            // Freeze/hash payload and initialize providers before the final sample.
+            val primitive = Signer.prepareSigning(encryption, message, signingKey)
+            primitive.sign { sign -> lease.runIfAuthorized(intent, sign) }
+        }
+        rpcCalls.submitAuthorizedExtrinsic(chainId, signed, lease, intent)
+    }
+
     suspend fun estimateFee(
         chain: IChain,
         useBatchAll: Boolean = false,
@@ -241,4 +290,19 @@ class ExtrinsicService(
 
         return builder.build(useBatchAll)
     }
+}
+
+/** Length-framed context binds the frozen SCALE bytes to the exact network and sender. */
+internal fun mutationIntentSha256(chainId: String, accountId: ByteArray, prepared: ByteArray): String {
+    val bytes = ByteArrayOutputStream().also { buffer ->
+        DataOutputStream(buffer).use { output ->
+            output.writeUTF("FearlessWallet-MutationIntent-v1")
+            output.writeUTF(chainId)
+            output.writeInt(accountId.size)
+            output.write(accountId)
+            output.writeInt(prepared.size)
+            output.write(prepared)
+        }
+    }.toByteArray()
+    return MessageDigest.getInstance("SHA-256").digest(bytes).toHexString(withPrefix = false)
 }

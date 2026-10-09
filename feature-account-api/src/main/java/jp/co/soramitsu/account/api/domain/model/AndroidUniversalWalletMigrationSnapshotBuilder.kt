@@ -23,6 +23,9 @@ class AndroidUniversalWalletMigrationSnapshotBuilder(
         return UniversalWalletMigrationSnapshot(
             platform = UniversalWalletMigrationPlatform.Android,
             hasUniversalWallet = accounts.any { it.hasCompleteUniversalWallet() },
+            // Includes chain-only, watch-only and partially expanded wallets;
+            // secret ownership and recovery remain enforced by the real stores.
+            hasLegacyAccounts = accounts.isNotEmpty(),
             legacyVaults = accounts.flatMap { account ->
                 if (account.hasCompleteUniversalWallet()) {
                     emptyList()

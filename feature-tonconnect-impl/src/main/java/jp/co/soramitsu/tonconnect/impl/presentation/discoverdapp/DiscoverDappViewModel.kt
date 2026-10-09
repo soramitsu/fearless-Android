@@ -22,12 +22,12 @@ import jp.co.soramitsu.feature_tonconnect_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.DappConfig
+import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -205,29 +205,18 @@ class DiscoverDappViewModel @Inject constructor(
         }
     }
 
-    override fun onDappLongClick(dappId: String) {
+    override fun onDappLongClick(dapp: DappModel) {
         viewModelScope.launch {
-            tonConnectInteractor.disconnect(dappId)
+            val identity = dapp.connectionIdentityOrNull() ?: return@launch
+            tonConnectInteractor.disconnect(identity)
             showMessage("dApp disconnected")
         }
     }
 
-    override fun onDappClick(dappId: String) {
+    override fun onDappClick(dapp: DappModel) {
         viewModelScope.launch {
-            val remoteDappGroupsDeferred = async { dappsFlow.firstOrNull() }
-            val connectedDappsDeferred = async { connectedDapps.firstOrNull() }
-
-            val remoteDApps = remoteDappGroupsDeferred.await()?.flatMap { it.apps }
-            val connectedDapps = connectedDappsDeferred.await()?.apps
-
-            val selectedDapp = connectedDapps?.firstOrNull {
-                it.identifier == dappId
-            } ?: remoteDApps?.firstOrNull {
-                it.identifier == dappId
-            }
-
-            if (selectedDapp?.name != null && selectedDapp.url != null) {
-                router.openDappScreen(selectedDapp)
+            if (dapp.name != null && dapp.url != null) {
+                router.openDappScreen(dapp)
             }
         }
     }
@@ -266,9 +255,9 @@ class DiscoverDappViewModel @Inject constructor(
         }
     }
 
-    override fun bottomSheetDappSelected(dappId: String) {
+    override fun bottomSheetDappSelected(dapp: DappModel) {
         _seeAllBottomSheetState.update { null }
-        onDappClick(dappId)
+        onDappClick(dapp)
     }
 
     override fun onBottomSheetDappClose() {

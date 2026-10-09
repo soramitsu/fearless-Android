@@ -21,6 +21,10 @@ class XcmTransferRequest(
 interface XcmTransferEngine {
     val isAvailable: Boolean
 
+    /** UI hint only. [transfer] must repeat the authorization immediately before submission. */
+    val canSubmitNow: Boolean
+        get() = isAvailable
+
     fun updateKeypairProvider(chainId: ChainId, keypairProvider: Any)
 
     fun addPreloadedMetadata(vararg chainMetadatas: ChainIdWithMetadata)
@@ -47,8 +51,79 @@ interface XcmTransferEngine {
     ): BigDecimal
 }
 
+/**
+ * Keeps reviewed routes and fee quotes available while enforcing both the compiled submission
+ * permission and the runtime mutation switch before entering the signing/submission delegate.
+ *
+ * The switch is evaluated for every transfer rather than captured during dependency injection, so
+ * a remote kill-switch update takes effect without recreating the authenticated graph or process.
+ */
+class MutationGuardedXcmTransferEngine(
+    private val delegate: XcmTransferEngine,
+    private val transfersEnabled: Boolean,
+    private val mutationsEnabled: () -> Boolean,
+    private val mutationsDisabledReason: () -> String = {
+        "Reviewed XCM actions are temporarily disabled."
+    }
+) : XcmTransferEngine {
+
+    override val isAvailable: Boolean
+        get() = delegate.isAvailable
+
+    override val canSubmitNow: Boolean
+        get() = delegate.canSubmitNow && transfersEnabled &&
+            runCatching { mutationsEnabled() }.getOrDefault(false)
+
+    override fun updateKeypairProvider(chainId: ChainId, keypairProvider: Any) {
+        delegate.updateKeypairProvider(chainId, keypairProvider)
+    }
+
+    override fun addPreloadedMetadata(vararg chainMetadatas: ChainIdWithMetadata) {
+        delegate.addPreloadedMetadata(*chainMetadatas)
+    }
+
+    override suspend fun transfer(request: XcmTransferRequest): String {
+        check(transfersEnabled) { "Reviewed XCM actions are unavailable in this build." }
+        check(mutationsEnabled()) { mutationsDisabledReason() }
+        return delegate.transfer(request)
+    }
+
+    override suspend fun getDestinationFee(
+        originChainId: ChainId,
+        destinationChainId: ChainId,
+        asset: Asset,
+        executionSpec: XcmExecutionSpec
+    ): BigDecimal = delegate.getDestinationFee(
+        originChainId = originChainId,
+        destinationChainId = destinationChainId,
+        asset = asset,
+        executionSpec = executionSpec
+    )
+
+    override suspend fun getOriginFee(
+        originChain: Chain,
+        originChainId: ChainId,
+        destinationChainId: ChainId,
+        asset: Asset,
+        originFeeAsset: Asset,
+        address: String,
+        amount: BigInteger,
+        executionSpec: XcmExecutionSpec
+    ): BigDecimal = delegate.getOriginFee(
+        originChain = originChain,
+        originChainId = originChainId,
+        destinationChainId = destinationChainId,
+        asset = asset,
+        originFeeAsset = originFeeAsset,
+        address = address,
+        amount = amount,
+        executionSpec = executionSpec
+    )
+}
+
 object UnavailableXcmTransferEngine : XcmTransferEngine {
     override val isAvailable: Boolean = false
+    override val canSubmitNow: Boolean = false
 
     override fun updateKeypairProvider(chainId: ChainId, keypairProvider: Any) = Unit
 

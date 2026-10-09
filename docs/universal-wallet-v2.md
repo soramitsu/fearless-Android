@@ -10,8 +10,8 @@ workstreams.
 - Import remains compatible with 12-word BIP39 phrases.
 - One phrase deterministically restores every supported account on Android, iOS,
   and the browser extension.
-- Legacy accounts remain available only for export and fund-safety recovery after
-  the migration cutoff.
+- Legacy accounts retain their addresses, signing keys, export, balances, and
+  supported wallet operations across upgrades. New network accounts are additive.
 - Wallet core, chain registry defaults, derivation rules, and indexer clients
   stay open source.
 
@@ -81,32 +81,40 @@ Clients must reject malformed request ids, account ids, ecosystems, chain ids,
 origins, timestamps, invalid base64/hex payloads, oversized transaction batches,
 and result payloads that do not match their status and method.
 
-## Hard-Cutoff Migration
+## Additive Legacy Upgrade
 
-After the migration cutoff, normal wallet access is allowed only when a valid
-Universal Wallet V2 identity exists. A wallet with legacy accounts and no
-universal wallet must enter `migrate-before-access`: normal balance, transfer,
-staking, dApp, and signing flows stay blocked until the user creates or imports a
-universal wallet. A fresh install with no legacy material enters
-`create-universal-wallet`.
+Existing wallets retain normal access when Universal Wallet V2 is incomplete.
+The presence of any legacy account, including a chain-only or watch-only account,
+never forces wallet replacement or a new mnemonic. Only an empty install enters
+`create-universal-wallet`. The historical `migrate-before-access` wire value is
+retained for compatibility and is no longer produced for existing accounts.
 
-Legacy vault descriptors are export-only. They may expose backup/export and
-fund-safety recovery metadata, but they must set `canExportSecrets = true`,
-`canSignTransactions = false`, and `mode = export-only`. Legacy vaults must not
-be used for new signatures, broadcasts, staking actions, dApp approvals, or
-normal account selection after the cutoff.
+Android's `hasLegacyAccounts` snapshot field covers accounts that do not have a
+root export descriptor. The exported legacy descriptors remain read-only recovery
+metadata; their `export-only`/`canSignTransactions = false` fields apply to the
+**descriptor**, not to the underlying wallet. Normal signing continues through
+its existing identity-bound key store, including custom chain accounts. A valid
+full Universal Wallet V2 identity is not an authorization prerequisite.
 
-Migration snapshots contain `schemaVersion`, `platform`, `hasUniversalWallet`,
-`legacyVaults`, `cutoffAtMillis`, and `evaluatedAtMillis`. Clients must reject
-duplicate legacy vault ids, malformed account ids, unknown ecosystems, unsafe
-addresses or display names, missing export-only reasons, disabled export, legacy
-signing flags, and invalid timestamps.
+Android adds missing enabled canonical Bitcoin mainnet, Solana mainnet, and Taira
+public accounts from the same validated existing mnemonic source used by the
+transfer services. It inserts public rows only, preserves existing aliases and
+independent keys, and never replaces root secrets, wallet ids, ordering, selected
+state, or backup state. Accounts without recoverable mnemonic material remain
+unchanged. Expansion runs outside the awaited startup path and retries missing
+accounts on later startups; a failed network, wallet read, or insertion does not
+block other additions or legacy access. Cancellation still propagates.
+
+Database and secure-storage integrity validation remain mandatory. Corrupt or
+unreadable source material is preserved for recovery; no destructive reset or
+invented replacement keys are permitted. These checks are independent from
+whether optional new network accounts have been generated.
 
 ## Secure-Storage Migration Requirements
 
 Android migration must read old account material only through the existing
 encrypted stores, write Universal Wallet V2 material through Android Keystore
-backed encryption where available, preserve export-only legacy descriptors, and
+backed encryption where available, preserve legacy accounts and recovery descriptors, and
 never copy mnemonic, seed, or private-key material into public logs, analytics,
 plain preferences, or repo fixtures.
 
@@ -118,7 +126,7 @@ logs, or public fixtures.
 
 Web extension migration must read old account material through the extension
 keyring, write Universal Wallet V2 material only through the encrypted keyring or
-WebCrypto-protected browser storage, preserve export-only legacy descriptors, and
+WebCrypto-protected browser storage, preserve legacy accounts and recovery descriptors, and
 avoid storing secret material in unencrypted local storage, background messages,
 Redux/Pinia state, logs, or test fixtures.
 
@@ -166,6 +174,10 @@ endpoints, never a public indexer endpoint.
 - Nexus mainnet uses I105 chain discriminant `753` and chain id
   `sora:nexus:global`, but remains registry-gated until the
   production Torii/TLS endpoint is confirmed.
+- Iroha `features = ["transfer"]` is capability metadata, not a production-send
+  enablement claim. Android send remains fail closed under
+  `config/iroha-production-send-readiness.json`; see
+  `docs/iroha-production-send-readiness.md` for the pinned upstream blocker.
 
 ## Normalized Indexer Contract
 

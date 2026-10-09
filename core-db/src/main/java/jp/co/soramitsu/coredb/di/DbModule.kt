@@ -25,6 +25,7 @@ import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.dao.TonConnectDao
+import jp.co.soramitsu.coredb.dao.WalletCustodyDao
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -95,6 +96,12 @@ class DbModule {
     @Singleton
     fun provideMetaAccountDao(appDatabase: AppDatabase): MetaAccountDao {
         return appDatabase.metaAccountDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWalletCustodyDao(appDatabase: AppDatabase): WalletCustodyDao {
+        return appDatabase.walletCustodyDao()
     }
 
     @Provides

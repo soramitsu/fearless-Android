@@ -26,6 +26,7 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -201,10 +202,6 @@ class ProfileViewModel @Inject constructor(
         router.openBeacon(qrContent)
     }
 
-    override fun crowdloansClicked() {
-        router.openCrowdloansScreen()
-    }
-
     override fun currencyClicked() {
         viewModelScope.launch {
             val currencies = getAvailableFiatCurrencies()
@@ -231,11 +228,25 @@ class ProfileViewModel @Inject constructor(
     }
 
     override fun onWalletConnectClick() {
-        router.openConnectionsScreen()
+        val wallet = state.value.walletState
+        if (wallet.supportedEcosystems.any { it == WalletEcosystem.Substrate || it == WalletEcosystem.Ethereum }) {
+            router.openConnectionsScreen()
+        } else {
+            router.openOptionsAddAccount(wallet.id, WalletEcosystem.Substrate)
+        }
     }
 
     override fun onTonConnectClick() {
-        router.openTonConnectionsScreen()
+        val wallet = state.value.walletState
+        if (wallet.supportsTon) {
+            router.openTonConnectionsScreen()
+        } else {
+            router.openOptionsAddAccount(wallet.id, WalletEcosystem.Ton)
+        }
+    }
+
+    override fun onManageAssetsClick() {
+        router.openManageAssets()
     }
 
     override fun onNomisMultichainScoreContainerClick() {

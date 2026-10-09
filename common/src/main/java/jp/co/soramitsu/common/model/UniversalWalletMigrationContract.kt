@@ -16,12 +16,16 @@ data class UniversalWalletMigrationSnapshot(
     @SerializedName("cutoffAtMillis")
     val cutoffAtMillis: Long,
     @SerializedName("evaluatedAtMillis")
-    val evaluatedAtMillis: Long
+    val evaluatedAtMillis: Long,
+    @SerializedName("hasLegacyAccounts")
+    val hasLegacyAccounts: Boolean = false
 ) {
     fun requiredAction(): UniversalWalletMigrationRequiredAction {
         return when {
-            hasUniversalWallet -> UniversalWalletMigrationRequiredAction.NormalAccess
-            legacyVaults.isNotEmpty() -> UniversalWalletMigrationRequiredAction.MigrateBeforeAccess
+            // Account expansion is additive. The absence of one of the new
+            // ecosystems must never revoke access to an existing wallet.
+            hasUniversalWallet || hasLegacyAccounts || legacyVaults.isNotEmpty() ->
+                UniversalWalletMigrationRequiredAction.NormalAccess
             else -> UniversalWalletMigrationRequiredAction.CreateUniversalWallet
         }
     }

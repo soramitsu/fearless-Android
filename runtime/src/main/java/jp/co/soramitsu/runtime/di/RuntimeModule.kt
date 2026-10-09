@@ -19,6 +19,7 @@ import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsSyncServiceProvider
+import jp.co.soramitsu.common.model.AssetMetadataDescriptorStore
 import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.DbStorageCache
@@ -109,8 +110,14 @@ class RuntimeModule {
         //okxApiService: OkxApiService,
         tonSyncDataRepository: TonSyncDataRepository,
         metaAccountDao: MetaAccountDao,
-        chainDao: ChainDao
+        chainDao: ChainDao,
+        metadataDescriptorStore: AssetMetadataDescriptorStore
     ): RemoteAssetsSyncServiceProvider {
-        return RemoteAssetsSyncServiceProvider(/* okxApiService, */tonSyncDataRepository, metaAccountDao, chainDao)
+        return RemoteAssetsSyncServiceProvider(
+            /* okxApiService, */ tonSyncDataRepository,
+            metaAccountDao,
+            chainDao,
+            metadataDescriptorStore
+        )
     }
 }

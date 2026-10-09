@@ -5,8 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface AssetBalanceUseCase {
 
-    suspend operator fun invoke(accountMetaId: Long, assetId: String): AssetBalance
+    suspend operator fun invoke(accountMetaId: Long, chainId: String, assetId: String): AssetBalance
 
-    fun observe(accountMetaId: Long, assetId: String): Flow<AssetBalance>
+    fun observe(accountMetaId: Long, chainId: String, assetId: String): Flow<AssetBalance>
 
 }

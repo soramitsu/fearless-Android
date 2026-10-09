@@ -39,7 +39,8 @@ fun AssetBalanceData?.toAssetBalance(): AssetBalance? {
         }
         is AssetsAccountInfo -> {
             AssetBalance(
-                freeInPlanks = balance
+                freeInPlanks = balance,
+                status = status
             )
         }
         is OrmlTokensAccountData -> {

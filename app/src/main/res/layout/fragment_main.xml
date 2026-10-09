@@ -19,40 +19,28 @@
         app:defaultNavHost="true"
         app:navGraph="@navigation/bottom_nav_graph" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        app:backgroundTint="@color/bottom_bar_grey"
-        app:cradle_vertical_offset="-16dp"
-        app:elevation="0dp"
-        app:fab_cradle_margin="@dimen/x1"
-        app:fab_size="50dp"
-        app:itemIconTint="@drawable/bottom_navigation_tint_color_selector"
-        app:labelVisibilityMode="unlabeled"
-        app:menu="@menu/bottom_navigations"
-        tools:translationY="-50dp"
-        tools:translationZ="100dp" />
-
     <jp.co.soramitsu.common.view.BottomNavigationViewWithFAB
         android:id="@+id/bottom_navigation_view_with_fab"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:backgroundTint="@color/bottom_bar_grey"
+        android:backgroundTint="#FF1F1D1E"
         android:fitsSystemWindows="true"
         app:cradle_vertical_offset="-16dp"
         app:elevation="0dp"
         app:fab_cradle_margin="@dimen/x1"
         app:fab_size="50dp"
         app:itemIconTint="@drawable/bottom_navigation_tint_color_selector"
-        app:labelVisibilityMode="unlabeled"
+        app:itemTextColor="@drawable/bottom_navigation_tint_color_selector"
+        app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_navigations_fab" />
 
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabMain"
+        android:contentDescription="@string/tabbar_polkaswap_title"
+        android:accessibilityTraversalAfter="@id/defiGraph"
+        android:accessibilityTraversalBefore="@id/crossChainGraph"
         android:layout_width="@dimen/floating_action_button_size"
         android:layout_height="@dimen/floating_action_button_size"
         android:translationY="16dp"

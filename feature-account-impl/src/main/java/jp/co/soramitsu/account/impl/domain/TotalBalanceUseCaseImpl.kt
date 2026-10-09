@@ -6,14 +6,13 @@ import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.fractionToPercentage
-import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
-import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,50 +57,68 @@ class TotalBalanceUseCaseImpl(
             .onStart { emit(TotalBalance.Empty) }
     }
 
-    private suspend fun getTotalBalance(assets: List<AssetWithToken>): TotalBalance = withContext(Dispatchers.IO){
+    private suspend fun getTotalBalance(assets: List<AssetWithToken>): TotalBalance = withContext(Dispatchers.IO) {
         val chainsById = chainsRepository.getChainsById()
+        calculateTrustedTotalBalance(assets, chainsById)
+    }
+}
 
-        val polkadotCurrency = assets.find { it.asset.chainId == polkadotChainId }?.token?.fiatSymbol
-
-        val filtered = assets
-            .asSequence()
-            .filter { it.asset.enabled == true }
-            .filter { it.asset.freeInPlanks != null && it.asset.freeInPlanks.positiveOrNull().isNotZero() && it.token?.fiatSymbol != null }
-            .toList()
-
-        // todo I did this workaround because sometimes there is a wrong symbol in asset list. Need research
-        val fiatSymbolsInAssets = filtered.map { it.token?.fiatSymbol }.toSet()
-        val fiatCurrency =
-            runCatching { fiatSymbolsInAssets.maxBy { s -> filtered.count { it.token?.fiatSymbol == s } } }.getOrNull() ?: polkadotCurrency
-
-        return@withContext filtered.fold(TotalBalance.Empty) { acc, current ->
-
-            val chainAsset = chainsById.getOrDefault(current.asset.chainId, null)?.assets
-                ?.firstOrNull { it.id == current.asset.id }
-                ?: return@fold TotalBalance.Empty
-
-            val total =
-                current.asset.freeInPlanks.positiveOrNull().orZero() + current.asset.reservedInPlanks.orZero()
-            val totalDecimal = total.toBigDecimal(scale = chainAsset.precision)
-            val fiatAmount = totalDecimal.applyFiatRate(current.token?.fiatRate)
-
-            val totalBalanceToAdd = fiatAmount ?: BigDecimal.ZERO
-            val balanceChangeToAdd = fiatAmount?.multiply(current.token?.recentRateChange.orZero())
-                ?.percentageToFraction().orZero()
-
-            val balance = acc.balance + totalBalanceToAdd
-            val balanceChange = acc.balanceChange + balanceChangeToAdd
-            val rate = when {
-                balance.isZero() -> BigDecimal.ZERO
-                else -> balanceChange.divide(balance, RoundingMode.HALF_UP).fractionToPercentage()
-            }
-
-            TotalBalance(
-                balance = balance,
-                fiatSymbol = fiatCurrency ?: DOLLAR_SIGN,
-                balanceChange = balanceChange,
-                rateChange = rate
-            )
+/**
+ * Calculates net worth only from a canonical chain/asset registry match and a registry-bound
+ * price identifier. Symbols and visibility preferences are deliberately irrelevant.
+ */
+internal fun calculateTrustedTotalBalance(
+    assets: List<AssetWithToken>,
+    chainsById: Map<String, Chain>
+): TotalBalance {
+    val trusted = assets.mapNotNull { current ->
+        val chainAsset = chainsById[current.asset.chainId]
+            ?.assetsById
+            ?.get(current.asset.id)
+            ?: return@mapNotNull null
+        val trustedPriceIds = setOfNotNull(chainAsset.priceId, chainAsset.priceProvider?.id)
+        val storedPriceId = current.asset.tokenPriceId
+        val token = current.token
+        if (storedPriceId == null || storedPriceId !in trustedPriceIds || token?.priceId != storedPriceId) {
+            return@mapNotNull null
         }
+        if (current.asset.freeInPlanks == null || current.asset.totalInPlanks.signum() <= 0 || token.fiatSymbol.isBlank()) {
+            return@mapNotNull null
+        }
+
+        Triple(current, chainAsset, token)
+    }
+
+    val polkadotCurrency = trusted
+        .firstOrNull { (current, _, _) -> current.asset.chainId == polkadotChainId }
+        ?.third
+        ?.fiatSymbol
+    val fiatCurrency = trusted
+        .groupingBy { it.third.fiatSymbol }
+        .eachCount()
+        .maxByOrNull { it.value }
+        ?.key
+        ?: polkadotCurrency
+        ?: DOLLAR_SIGN
+
+    return trusted.fold(TotalBalance.Empty) { acc, (current, chainAsset, token) ->
+        val totalDecimal = current.asset.totalInPlanks.toBigDecimal(scale = chainAsset.precision)
+        val fiatAmount = totalDecimal.applyFiatRate(token.fiatRate) ?: BigDecimal.ZERO
+        val balanceChangeToAdd = fiatAmount.multiply(token.recentRateChange.orZero())
+            .percentageToFraction()
+
+        val balance = acc.balance + fiatAmount
+        val balanceChange = acc.balanceChange + balanceChangeToAdd
+        val rate = when {
+            balance.isZero() -> BigDecimal.ZERO
+            else -> balanceChange.divide(balance, RoundingMode.HALF_UP).fractionToPercentage()
+        }
+
+        TotalBalance(
+            balance = balance,
+            fiatSymbol = fiatCurrency,
+            balanceChange = balanceChange,
+            rateChange = rate
+        )
     }
 }

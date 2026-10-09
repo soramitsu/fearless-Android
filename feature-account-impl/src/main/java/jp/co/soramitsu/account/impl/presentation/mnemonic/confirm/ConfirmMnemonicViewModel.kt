@@ -15,11 +15,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,6 +46,8 @@ class ConfirmMnemonicViewModel @Inject constructor(
     val removeLastWordFromConfirmationEvent: LiveData<Event<Unit>> = _removeLastWordFromConfirmationEvent
 
     private val proceedInProgress = MutableLiveData(false)
+    private var createdAccountId: Long? = null
+    private var createdAccountBackedUp = false
 
     val nextButtonEnableLiveData: LiveData<Boolean> = combine(confirmationMnemonicWords, proceedInProgress) { (words: List<String>, progress: Boolean) ->
         originMnemonic.size == words.size && !progress
@@ -111,31 +112,40 @@ class ConfirmMnemonicViewModel @Inject constructor(
         if (proceedInProgress.value == true) return
         proceedInProgress.value = true
 
-        if (payload.createExtras != null) {
-            createAccount(payload, isBackedUp)
-        } else {
-            markWalletBackedUp(payload.metaId)
-        }
-    }
-
-    private fun markWalletBackedUp(metaId: Long?) {
-        metaId?.let {
-            launch {
-                interactor.updateWalletBackedUp(metaId)
-                router.finishExportFlow()
-                showMessage("Success")
+        launch {
+            var completed = false
+            try {
+                if (payload.createExtras != null) {
+                    createAccount(payload, isBackedUp)
+                } else {
+                    markWalletBackedUp(payload.metaId)
+                }
+                completed = true
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                showError(failure)
+            } finally {
+                // Successful navigation retains the guard against queued duplicate taps.
+                if (!completed) proceedInProgress.value = false
             }
         }
     }
 
-    private fun createAccount(payload: ConfirmMnemonicPayload, isBackedUp: Boolean) {
-        val payloadExtras = payload.createExtras ?: return
+    private suspend fun markWalletBackedUp(metaId: Long?) {
+        interactor.updateWalletBackedUp(requireNotNull(metaId) { "Wallet not specified" })
+        router.finishExportFlow()
+        showMessage("Success")
+    }
+
+    private suspend fun createAccount(payload: ConfirmMnemonicPayload, isBackedUp: Boolean) {
+        val payloadExtras = requireNotNull(payload.createExtras)
         val mnemonicString = originMnemonic.joinToString(" ")
 
         val isSubstrateOrEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Substrate) || payload.accountTypes.contains(WalletEcosystem.Ethereum)
         val isTonAccount = payload.accountTypes.contains(WalletEcosystem.Ton)
 
-        launch {
+        val accountId = createdAccountId ?: run {
             val addAccountPayload = when  {
                 payload.metaId != null -> {
                     AddAccountPayload.AdditionalEvm(
@@ -165,19 +175,20 @@ class ConfirmMnemonicViewModel @Inject constructor(
                     isBackedUp
                 )
 
-                else -> {
-                    showError(IllegalStateException("AccountType not specified"))
-                    return@launch
-                }
+                else -> error("AccountType not specified")
             }
-            val result = interactor.createAccount(addAccountPayload)
-            if (result.isSuccess) {
-                interactor.saveChainSelectFilter(result.requireValue(), "Popular")
-                continueBasedOnCodeStatus()
-            } else {
-                showError(result.requireException())
+            // A later completion failure must retry the saved wallet, not create it again.
+            interactor.createAccount(addAccountPayload).getOrThrow().also {
+                createdAccountId = it
+                createdAccountBackedUp = isBackedUp
             }
         }
+        if (isBackedUp && !createdAccountBackedUp) {
+            interactor.updateWalletBackedUp(accountId)
+            createdAccountBackedUp = true
+        }
+        interactor.saveChainSelectFilter(accountId, "Popular")
+        continueBasedOnCodeStatus()
     }
 
     fun matchingErrorAnimationCompleted() {

@@ -1,20 +1,21 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings
 
-import android.widget.FrameLayout
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 
 @AndroidEntryPoint
-class TransactionSettingsFragment : BaseComposeBottomSheetDialogFragment<TransactionSettingsViewModel>() {
+class TransactionSettingsFragment : BaseComposeFragment<TransactionSettingsViewModel>() {
     companion object {
         const val SETTINGS_MODEL_KEY = "settingsModel"
         fun getBundle(initialSettings: TransactionSettingsModel) = bundleOf(SETTINGS_MODEL_KEY to initialSettings)
@@ -22,8 +23,13 @@ class TransactionSettingsFragment : BaseComposeBottomSheetDialogFragment<Transac
 
     override val viewModel: TransactionSettingsViewModel by viewModels()
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    override fun Content(padding: PaddingValues) {
+    override fun Content(
+        padding: PaddingValues,
+        scrollState: ScrollState,
+        modalBottomSheetState: ModalBottomSheetState
+    ) {
         BottomSheetScreen {
             val state by viewModel.state.collectAsState()
             TransactionSettingsContent(
@@ -33,9 +39,4 @@ class TransactionSettingsFragment : BaseComposeBottomSheetDialogFragment<Transac
         }
     }
 
-    override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.isHideable = true
-        behavior.skipCollapsed = true
-    }
 }

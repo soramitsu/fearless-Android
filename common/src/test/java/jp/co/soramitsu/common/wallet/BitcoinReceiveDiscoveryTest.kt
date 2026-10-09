@@ -120,6 +120,28 @@ class BitcoinReceiveDiscoveryTest {
         assertEquals(BitcoinReceiveDiscoveryException.Code.INVALID_TRANSACTION_COUNT, error.code)
     }
 
+    @Test
+    fun `rejects malformed negative address balance payload before gap discovery succeeds`() {
+        val client = FakeBitcoinIndexerClient { address ->
+            addressStats(address).copy(
+                chainStats = BitcoinEsploraStats(
+                    fundedTxoCount = 1,
+                    fundedTxoSum = -1,
+                    spentTxoCount = 0,
+                    spentTxoSum = 0,
+                    txCount = 1
+                )
+            )
+        }
+        val discovery = BitcoinReceiveDiscovery(client)
+
+        val error = assertThrows(BitcoinReceiveDiscoveryException::class.java) {
+            runBlocking { discovery.discover(mnemonic = MNEMONIC, gapLimit = 1) }
+        }
+
+        assertEquals(BitcoinReceiveDiscoveryException.Code.INVALID_ADDRESS_PAYLOAD, error.code)
+    }
+
     private class FakeBitcoinIndexerClient(
         private val usedAddresses: Set<String> = emptySet(),
         private val response: (String) -> BitcoinEsploraAddress = { address ->

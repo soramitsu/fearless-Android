@@ -21,7 +21,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -106,12 +105,18 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                         is WelcomeEvent.Onboarding ->
                             when (event) {
                                 is WelcomeEvent.Onboarding.WelcomeScreen -> {
-                                    navController.navigate(route = event.route.replace("{accountType}", event.accountType.name))
+                                    navController.navigate(route = event.route.replace("{accountType}", event.accountType?.name.orEmpty()))
                                 }
                                 else -> navController.navigate(event.route)
                             }
 
-                        WelcomeEvent.Back -> navController.popBackStack()
+                        WelcomeEvent.Back -> {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.popBackStack()
+                            } else {
+                                viewModel.exitOnboarding()
+                            }
+                        }
                     }
                 }.launchIn(this)
         }

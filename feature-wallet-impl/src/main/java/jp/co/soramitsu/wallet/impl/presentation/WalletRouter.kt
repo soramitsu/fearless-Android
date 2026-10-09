@@ -38,7 +38,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openAssetDetailsAndPopUpToBalancesList(assetPayload: AssetPayload)
 
-    fun openAssetIntermediateDetails(assetId: String)
+    fun openAssetIntermediateDetails(assetPayload: AssetPayload)
 
     fun openAssetIntermediateDetailsSort()
 
@@ -72,6 +72,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
         selectedChainId: ChainId?,
         xcmChainType: XcmChainType,
         selectedOriginChainId: String? = null,
+        xcmOriginAssetId: String? = null,
         xcmAssetSymbol: String? = null
     )
 
@@ -161,6 +162,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
+
+    fun openLegacyCrowdloan(assetPayload: AssetPayload)
 
     fun openAddressHistory(chainId: ChainId)
 

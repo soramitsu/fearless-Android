@@ -33,7 +33,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetailsFragment.Companion.KEY_ASSET_ID
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetailsFragment.Companion.KEY_ASSET_PAYLOAD
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,29 +72,26 @@ class AssetDetailsViewModel @Inject constructor(
 
     private val tabSelectionFlow = MutableStateFlow(AssetDetailsState.Tab.AvailableChains)
 
-    private val assetIdFlow = with(savedStateHandle) {
-        MutableStateFlow(
-            value = get<String>(KEY_ASSET_ID) ?: error("No asset specified")
-        )
-    }
+    private val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)
+        ?: error("No network-scoped asset specified")
 
     private val cachedSelectedMetaAccount = interactor.selectedMetaAccountFlow()
         .flowOn(Dispatchers.IO).share()
 
     private val cachedPerChainBalanceWithAssetFlow: SharedFlow<Map<Chain, AssetWithStatus?>> =
-        combine(cachedSelectedMetaAccount, assetIdFlow) { selectedMetaAccount, assetId ->
-            selectedMetaAccount.id to assetId
-        }.flatMapLatest { (selectedMetaAccountId, assetId) ->
-            interactor.observeChainsPerAsset(selectedMetaAccountId, assetId)
+        cachedSelectedMetaAccount.flatMapLatest { selectedMetaAccount ->
+            interactor.observeChainsPerAsset(selectedMetaAccount.id, assetPayload.chainAssetId)
+                .map { chains ->
+                    // Registry ids are only unique within a chain. The retained intermediate
+                    // screen must never rebuild a cross-network ticker/id group.
+                    chains.filterKeys { it.id == assetPayload.chainId }
+                }
                 .also { chainsPerAssetFlow ->
-                    val chainSelection =
-                        interactor.getSavedChainId(walletId = selectedMetaAccountId)
                     val chainsWithAsset = chainsPerAssetFlow.first().toList()
 
                     openBalanceDetailsForSelectedOrSingleChain(
-                        chainSelection,
                         chainsWithAsset,
-                        assetId
+                        assetPayload
                     )
                 }.combine(interactor.assetsFlow()) { resultMap, assetsWithStatus ->
                     val resultWithStatuses = resultMap.mapValues { resultEntry ->
@@ -110,23 +107,12 @@ class AssetDetailsViewModel @Inject constructor(
         }.flowOn(Dispatchers.IO).share()
 
     private fun openBalanceDetailsForSelectedOrSingleChain(
-        selectedChainId: ChainId?,
         chainsWithAsset: List<Pair<Chain, Asset?>>,
-        assetId: String
+        exactAsset: AssetPayload
     ) {
         launch {
-            val singleChainId = when {
-                selectedChainId != null && selectedChainId in chainsWithAsset.map { it.first.id } -> selectedChainId
-                chainsWithAsset.size == 1 -> chainsWithAsset.first().first.id
-                else -> null
-            }
-
-            singleChainId?.let {
-                val payload = AssetPayload(
-                    chainId = singleChainId,
-                    chainAssetId = assetId
-                )
-                walletRouter.openAssetDetailsAndPopUpToBalancesList(payload)
+            if (chainsWithAsset.singleOrNull()?.first?.id == exactAsset.chainId) {
+                walletRouter.openAssetDetailsAndPopUpToBalancesList(exactAsset)
             }
         }
     }
@@ -152,10 +138,12 @@ class AssetDetailsViewModel @Inject constructor(
     val contentState = MutableStateFlow(AssetDetailsState.empty)
 
     private fun subscribeBalance() {
-        combine(cachedSelectedMetaAccount, assetIdFlow) { selectedMetaAccount, assetId ->
-            selectedMetaAccount.id to assetId
-        }.flatMapLatest { (selectedAccountMetaId, assetId) ->
-            getAssetBalance.observe(selectedAccountMetaId, assetId)
+        cachedSelectedMetaAccount.flatMapLatest { selectedMetaAccount ->
+            getAssetBalance.observe(
+                accountMetaId = selectedMetaAccount.id,
+                chainId = assetPayload.chainId,
+                assetId = assetPayload.chainAssetId
+            )
         }.onEach { assetBalance ->
             val assetBalanceState =
                 AssetBalanceViewState(
@@ -285,8 +273,9 @@ class AssetDetailsViewModel @Inject constructor(
 
     override fun onSelectChainClick() {
         walletRouter.openSelectChain(
-            assetId = assetIdFlow.value,
-            showAllChains = true,
+            assetId = assetPayload.chainAssetId,
+            chainId = assetPayload.chainId,
+            showAllChains = false,
         )
     }
 

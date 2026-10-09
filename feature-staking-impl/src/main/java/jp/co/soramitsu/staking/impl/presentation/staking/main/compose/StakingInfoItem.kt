@@ -36,6 +36,28 @@ import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
 
+internal sealed interface StakeStatusTrailingContent {
+    data class Countdown(
+        val timeLeft: Long,
+        val extraMessage: String?,
+        val hideZeroTimer: Boolean
+    ) : StakeStatusTrailingContent
+
+    data class Message(val value: String) : StakeStatusTrailingContent
+
+    object None : StakeStatusTrailingContent
+}
+
+internal fun StakeStatus.trailingContent(): StakeStatusTrailingContent = when {
+    this is StakeStatus.WithTimer -> StakeStatusTrailingContent.Countdown(
+        timeLeft = sanitizeStakingTimerMillis(timeLeft),
+        extraMessage = extraMessage,
+        hideZeroTimer = hideZeroTimer
+    )
+    extraMessage != null -> StakeStatusTrailingContent.Message(extraMessage)
+    else -> StakeStatusTrailingContent.None
+}
+
 @Composable
 private fun StakingInfoItem(
     title: String,
@@ -107,12 +129,69 @@ fun StakingPoolInfo(state: StakeInfoViewState, onClick: () -> Unit) {
 }
 
 @Composable
-fun StakeStatus(state: StakeStatus) {
-    Row {
+fun StakingRelayChainInfo(
+    state: StakeInfoViewState.RelayChainStakeInfoViewState,
+    onClick: () -> Unit,
+    onStatusClick: () -> Unit
+) {
+    StakingInfoItem(
+        title = state.title,
+        MainInfo = {
+            Row {
+                TitleToValue(state = state.staked, testTag = "relayStaked", modifier = Modifier.weight(1f))
+                TitleToValue(state = state.rewarded, testTag = "relayRewarded", modifier = Modifier.weight(1f))
+            }
+        },
+        Status = {
+            val modifier = if (state.status.statusClickable) {
+                Modifier.clickableWithNoIndication(onClick = onStatusClick)
+            } else {
+                Modifier
+            }
+            StakeStatus(state.status, modifier)
+        },
+        onClick = onClick
+    )
+}
+
+@Composable
+fun StakingParachainInfo(
+    state: StakeInfoViewState.ParachainStakeInfoViewState,
+    onClick: () -> Unit
+) {
+    StakingInfoItem(
+        title = state.title,
+        MainInfo = {
+            Row {
+                TitleToValue(state = state.staked, testTag = "parachainStaked", modifier = Modifier.weight(1f))
+                TitleToValue(state = state.rewards, testTag = "parachainRewards", modifier = Modifier.weight(1f))
+            }
+        },
+        Status = {
+            StakeStatus(state.status)
+        },
+        onClick = onClick
+    )
+}
+
+@Composable
+fun StakeStatus(state: StakeStatus, modifier: Modifier = Modifier) {
+    Row(modifier = modifier) {
         StatusText(state.textRes, state.tintRes, modifier = Modifier.weight(1f))
-        when {
-            state.extraMessage != null -> Text(text = state.extraMessage, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-            state is StakeStatus.WithTimer -> Timer(state.timeLeft, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+        when (val trailingContent = state.trailingContent()) {
+            is StakeStatusTrailingContent.Countdown -> Timer(
+                millis = trailingContent.timeLeft,
+                extraMessage = trailingContent.extraMessage,
+                hideZeroTimer = trailingContent.hideZeroTimer,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.End
+            )
+            is StakeStatusTrailingContent.Message -> Text(
+                text = trailingContent.value,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.End
+            )
+            StakeStatusTrailingContent.None -> Unit
         }
     }
 }

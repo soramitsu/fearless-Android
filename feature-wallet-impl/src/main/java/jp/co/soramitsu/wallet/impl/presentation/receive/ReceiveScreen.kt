@@ -1,11 +1,14 @@
 package jp.co.soramitsu.wallet.impl.presentation.receive
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -39,18 +42,19 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.utils.formatting.shortenAddress
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.receive.model.ReceiveToggleType
 
 data class ReceiveScreenViewState(
-    val qrCode: Bitmap,
+    val qrCode: Bitmap?,
     val assetSymbol: String,
     val account: WalletAccount,
     val multiToggleButtonState: MultiToggleButtonState<ReceiveToggleType>,
     val amountInputViewState: AmountInputViewState,
-    val requestAllowed: Boolean
+    val requestAllowed: Boolean,
+    val networkName: String
 )
 
 interface ReceiveScreenInterface {
@@ -67,23 +71,25 @@ fun ReceiveScreen(
     state: LoadingState<ReceiveScreenViewState>,
     callback: ReceiveScreenInterface
 ) {
-    BottomSheetScreen(
-        modifier = Modifier
-            .nestedScroll(rememberNestedScrollInteropConnection())
-            .fillMaxWidth()
-    ) {
-        when (state) {
-            is LoadingState.Loading -> {}
-            is LoadingState.Loaded -> {
-                ReceiveContent(
-                    state = state.data,
-                    copyClicked = callback::copyClicked,
-                    shareClicked = callback::shareClicked,
-                    backClicked = callback::backClicked,
-                    receiveToggleChanged = callback::receiveChanged,
-                    onAmountInput = callback::onAmountInput,
-                    onTokenSelectClicked = callback::tokenClicked
-                )
+    FearlessAppTheme {
+        BottomSheetScreen(
+            modifier = Modifier
+                .nestedScroll(rememberNestedScrollInteropConnection())
+                .fillMaxWidth()
+        ) {
+            when (state) {
+                is LoadingState.Loading -> CircularProgressIndicator()
+                is LoadingState.Loaded -> {
+                    ReceiveContent(
+                        state = state.data,
+                        copyClicked = callback::copyClicked,
+                        shareClicked = callback::shareClicked,
+                        backClicked = callback::backClicked,
+                        receiveToggleChanged = callback::receiveChanged,
+                        onAmountInput = callback::onAmountInput,
+                        onTokenSelectClicked = callback::tokenClicked
+                    )
+                }
             }
         }
     }
@@ -140,6 +146,10 @@ private fun ReceiveContent(
             MarginVertical(margin = 16.dp)
         }
 
+        H2(text = "${state.assetSymbol} · ${state.networkName}")
+        MarginVertical(12.dp)
+        B0(text = stringResource(R.string.ux_receive_instruction, state.assetSymbol, state.networkName))
+        MarginVertical(16.dp)
         Surface(
             color = Color.Unspecified,
             modifier = Modifier
@@ -148,34 +158,38 @@ private fun ReceiveContent(
                 .padding(20.dp)
                 .wrapContentSize()
         ) {
-            Image(
-                bitmap = state.qrCode.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.size(200.dp)
-            )
+            Box(Modifier.size(200.dp), contentAlignment = Alignment.Center) {
+                state.qrCode?.let { qrCode ->
+                    Image(
+                        bitmap = qrCode.asImageBitmap(),
+                        contentDescription = stringResource(R.string.ux_receive_qr, state.assetSymbol, state.networkName),
+                        modifier = Modifier.size(200.dp)
+                    )
+                } ?: CircularProgressIndicator()
+            }
         }
         MarginVertical(margin = 24.dp)
         H2(text = state.account.name.orEmpty())
         MarginVertical(margin = 8.dp)
-        B0(
-            text = state.account.address.shortenAddress(),
-            maxLines = 1,
-            color = Color.White.copy(alpha = 0.5f)
-        )
+        SelectionContainer {
+            B0(text = state.account.address, color = Color.White)
+        }
         MarginVertical(margin = 24.dp)
         AccentButton(
-            text = stringResource(id = R.string.common_copy),
+            text = stringResource(id = R.string.common_copy_address),
+            enabled = state.qrCode != null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .heightIn(min = 48.dp),
             onClick = copyClicked
         )
         MarginVertical(margin = 12.dp)
         GrayButton(
-            text = stringResource(id = R.string.common_share),
+            text = stringResource(id = R.string.ux_share_address),
+            enabled = state.qrCode != null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .heightIn(min = 48.dp),
             onClick = shareClicked
         )
         MarginVertical(margin = 12.dp)
@@ -200,7 +214,8 @@ private fun ReceiveScreenPreview() {
                     fiatAmount = null,
                     tokenAmount = BigDecimal.ONE
                 ),
-                requestAllowed = true
+                requestAllowed = true,
+                networkName = "Polkadot"
             )
         ),
         callback = object : ReceiveScreenInterface {

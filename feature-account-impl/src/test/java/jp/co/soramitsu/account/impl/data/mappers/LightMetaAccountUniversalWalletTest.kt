@@ -28,6 +28,22 @@ import org.junit.Test
 class LightMetaAccountUniversalWalletTest {
 
     @Test
+    fun `light wallet address preserves a legacy chain specific account over its root`() {
+        val chain = universalWalletChain("legacy-substrate")
+        val customKey = ByteArray(32) { 9 }
+        val full = metaAccount(
+            chainAccounts = mapOf(chain.id to MetaAccount.ChainAccount(1, chain, customKey, customKey, CryptoType.ED25519, "Legacy account")),
+            substratePublicKey = ByteArray(32) { 1 },
+            substrateAccountId = ByteArray(32) { 1 },
+            substrateCryptoType = CryptoType.SR25519
+        )
+        val light: LightMetaAccount = full
+
+        assertEquals(full.chainAddress(chain), light.address(chain))
+        assertEquals(full.address(chain), light.address(chain))
+    }
+
+    @Test
     fun `joined light account keeps universal wallet chain account ecosystems and icon addresses`() {
         val bitcoin = BitcoinKeyDerivation.deriveAccount(
             mnemonic = MNEMONIC,

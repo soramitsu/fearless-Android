@@ -19,7 +19,17 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // Some activities guard sensitive startup work before their saved
+        // FragmentManager state may be restored. Compute this using only
+        // process-local state; Android APIs that require super.onCreate must
+        // stay in onContentInitializationBlocked().
+        val initializeContent = canInitializeContent()
+        super.onCreate(savedInstanceState.takeIf { initializeContent })
+
+        if (!initializeContent) {
+            onContentInitializationBlocked()
+            return
+        }
 
         val decorView = window.decorView
         decorView.systemUiVisibility = (
@@ -33,6 +43,10 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
         initViews()
         subscribe(viewModel)
     }
+
+    protected open fun canInitializeContent(): Boolean = true
+
+    protected open fun onContentInitializationBlocked() = Unit
 
     abstract fun layoutResource(): Int
 
