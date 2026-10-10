@@ -349,6 +349,9 @@
   <string name="connected_accounts_ethereum_title">Tài khoản chuỗi EVM</string>
   <string name="connected_accounts_substrate_title">Tài khoản chuỗi Substrate</string>
   <string name="connected_accounts_ton_title">Tài khoản chuỗi TON</string>
+  <string name="connected_accounts_bitcoin_title">Tài khoản chuỗi Bitcoin</string>
+  <string name="connected_accounts_solana_title">Tài khoản chuỗi Solana</string>
+  <string name="connected_accounts_iroha_title">Tài khoản chuỗi Iroha</string>
   <string name="connection_account_not_supported_warning">Không thể tiếp tục: Ví của bạn không có tài khoản cần thiết. Vui lòng đảm bảo bạn đã thiết lập các tài khoản cần thiết trước khi tiếp tục</string>
   <string name="connection_add_already_exists_error">Node này đã được thêm rồi. Vui lòng thử một node khác.</string>
   <string name="connection_add_invalid_error">Không thể thiết lập kết nối với node. Vui lòng thử một cái khác.</string>
@@ -371,6 +374,15 @@
   <string name="connection_methods_not_supported_warning">Chức năng không được hỗ trợ: Hành động được yêu cầu không được hỗ trợ</string>
   <string name="connection_optional_networks">Mạng tùy chọn</string>
   <string name="connection_problems_alert_message">Không tải được dữ liệu cần thiết để khởi chạy ứng dụng. Vui lòng kiểm tra kết nối internet của bạn và thử lại.</string>
+  <string name="wallet_secure_storage_unavailable_title">Dữ liệu ví được bảo vệ</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless không thể truy cập bộ nhớ bảo mật của Android. Dữ liệu ví đã mã hóa của bạn vẫn được giữ nguyên và không bị đặt lại. Hãy mở khóa thiết bị rồi thử lại. Nếu tình trạng này tiếp diễn, hãy liên hệ với bộ phận hỗ trợ Fearless.</string>
+  <string name="wallet_database_unavailable_title">Không thể mở dữ liệu ví</string>
+  <string name="wallet_database_unavailable_message">Fearless không xóa hoặc đặt lại bất kỳ dữ liệu ví nào. Hãy thử mở lại ví. Nếu tình trạng này tiếp diễn, hãy liên hệ với bộ phận hỗ trợ Fearless.</string>
+  <string name="wallet_recovery_required_title">Cần khôi phục ví</string>
+  <string name="wallet_recovery_required_message">Tính năng ký và sao lưu bị vô hiệu hóa đối với ví này vì không thể xác minh bí mật đã mã hóa của ví. Dữ liệu đã mã hóa ban đầu của bạn vẫn được giữ nguyên. Hãy liên hệ với bộ phận hỗ trợ Fearless trước khi thực hiện thay đổi.</string>
+  <string name="wallet_startup_recovery_required_message">Fearless đã dừng trước khi thay đổi hoặc xóa dữ liệu ví vì dữ liệu đã lưu cần được khôi phục. Hãy liên hệ với bộ phận hỗ trợ Fearless và cung cấp mã chẩn đoán: %1$s. Không xóa dữ liệu ứng dụng hoặc cài đặt lại trước khi bộ phận hỗ trợ giúp bạn bảo toàn hoặc xuất ví.</string>
+  <string name="wallet_startup_restart_required_title">Đóng rồi mở lại Fearless</string>
+  <string name="wallet_startup_restart_required_message">Fearless đã dừng vì Android không thể xác nhận thao tác ghi dữ liệu ví. Tiến trình này sẽ không thử thực hiện thêm thay đổi nào đối với ví. Hãy đóng ứng dụng ngay, sau đó mở lại để xác minh an toàn trạng thái đã lưu. Không xóa dữ liệu ứng dụng hoặc cài đặt lại.</string>
   <string name="connection_reject">Từ chối</string>
   <string name="connection_required_networks">Mạng bắt buộc</string>
   <string name="connection_review_optional_permissions">Xem lại các quyền tùy chọn</string>
@@ -406,7 +418,7 @@
   <string name="cross_chain_tx_status_destination_fail_title">Giao dịch hoàn tiền</string>
   <string name="cross_chain_tx_status_done_description">Giao dịch đã được hoàn tất thành công.</string>
   <string name="cross_chain_tx_status_done_title">Xong rồi</string>
-  <string name="cross_chain_tx_status_pending_description">Giao dịch đang được tiến hành. Vui lòng đợi trong khi %s tài sản qua cầu từ %s đến %s mạng lưới.</string>
+  <string name="cross_chain_tx_status_pending_description">Giao dịch đang được tiến hành. Vui lòng đợi trong khi %1$s tài sản qua cầu từ %2$s đến %3$s mạng lưới.</string>
   <string name="cross_chain_tx_status_pending_title">Giao dịch đang chờ xử lý</string>
   <string name="cross_chain_tx_status_source_fail_description">Giao dịch không thành công trên mạng %s. Vui lòng thử lại.</string>
   <string name="cross_chain_tx_status_source_fail_title">Giao dịch không thành công</string>

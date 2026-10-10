@@ -22,6 +22,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import jp.co.soramitsu.walletconnect.impl.presentation.message
+import jp.co.soramitsu.walletconnect.impl.presentation.newestWalletConnectValueOrBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,26 +48,30 @@ class RequestPreviewViewModel @Inject constructor(
 
     private val topic: String = savedStateHandle[RequestPreviewFragment.PAYLOAD_TOPIC_KEY] ?: error("No topic provided for request preview screen")
 
-    private val sessions: List<Wallet.Model.SessionRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
-        if (it.isEmpty()) {
-            walletConnectRouter.back()
-        }
-    }
-
-    private val recentSession = sessions.sortedByDescending { it.request.id }[0]
+    private val recentSession: Wallet.Model.SessionRequest? = newestWalletConnectValueOrBack(
+        values = walletConnectInteractor.getPendingListOfSessionRequests(topic),
+        onUnavailable = walletConnectRouter::back,
+        order = { it.request.id }
+    )
 
     private val isLoading = MutableStateFlow(false)
     private val requestChainFlow = MutableSharedFlow<Chain?>()
         .onStart {
+            val currentSession = recentSession
+            if (currentSession == null) {
+                emit(null)
+                return@onStart
+            }
             val value: Chain? = walletConnectInteractor.getChains().firstOrNull { chain ->
-                chain.caip2id == recentSession.chainId
+                chain.caip2id == currentSession.chainId
             }
             emit(value)
         }
         .stateIn(this, SharingStarted.Eagerly, null)
 
     private val requestWalletItemFlow: SharedFlow<WalletNameItemViewState?> = requestChainFlow.filterNotNull().map { requestChain ->
-        val requestAddress = recentSession.request.address
+        val currentSession = recentSession ?: return@map null
+        val requestAddress = currentSession.request.address
 
         val requestedWallet = accountRepository.allMetaAccounts().firstOrNull { wallet ->
             wallet.address(requestChain).equals(requestAddress, true)
@@ -100,16 +105,17 @@ class RequestPreviewViewModel @Inject constructor(
         .share()
 
     val state = combine(requestWalletItemFlow, requestChainFlow.filterNotNull(), isLoading) { requestWallet, requestChain, isLoading ->
+        val currentSession = recentSession ?: return@combine RequestPreviewViewState.default
         val icon = GradientIconState.Remote(requestChain.icon, "EE0077")
 
         val tableItems = listOf(
             TitleValueViewState(
                 resourceManager.getString(R.string.common_dapp),
-                recentSession.peerMetaData?.name
+                currentSession.peerMetaData?.name
             ),
             TitleValueViewState(
                 resourceManager.getString(R.string.common_host),
-                recentSession.peerMetaData?.dappUrl
+                currentSession.peerMetaData?.dappUrl
             ),
             TitleValueViewState(
                 resourceManager.getString(R.string.common_network),
@@ -125,7 +131,7 @@ class RequestPreviewViewModel @Inject constructor(
         requestWallet?.let {
             RequestPreviewViewState(
                 chainIcon = icon,
-                method = recentSession.request.method,
+                method = currentSession.request.method,
                 tableItems = tableItems,
                 wallet = it,
                 loading = isLoading
@@ -143,13 +149,14 @@ class RequestPreviewViewModel @Inject constructor(
     override fun onSignClick() {
         if (isLoading.value) return
         val chain = requestChainFlow.value ?: return
+        val currentSession = recentSession ?: return
 
         isLoading.value = true
         viewModelScope.launch {
             walletConnectInteractor.handleSignAction(
                 chain = chain,
                 topic = topic,
-                recentSession = recentSession,
+                recentSession = currentSession,
                 onSignError = ::onSignError,
                 onRequestSuccess = ::onRespondSessionRequestSuccess,
                 onRequestError = ::onRespondRequestSessionError
@@ -192,13 +199,13 @@ class RequestPreviewViewModel @Inject constructor(
 
     override fun onTableItemClick(id: Int) {
         if (id == TRANSACTION_RAW_DATA_CLICK_ID) {
-            walletConnectRouter.openRawData(recentSession.request.message)
+            recentSession?.request?.message?.let(walletConnectRouter::openRawData)
         }
     }
 
     override fun onTableRowClick(id: Int) {
         if (id == TRANSACTION_RAW_DATA_CLICK_ID) {
-            walletConnectRouter.openRawData(recentSession.request.message)
+            recentSession?.request?.message?.let(walletConnectRouter::openRawData)
         }
     }
 

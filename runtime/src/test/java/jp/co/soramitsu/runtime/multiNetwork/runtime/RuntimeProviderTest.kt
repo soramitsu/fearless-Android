@@ -194,10 +194,18 @@ class RuntimeProviderTest {
 
     @Test
     fun `should report missing cache for chain types or metadata`() {
-        runBlocking {
-            withRuntimeFactoryFailing(ChainInfoNotInCacheException) {
-                verify(runtimeSyncService, times(1)).cacheNotFound(eq(chain.id))
-            }
+        val testScheduler = TestCoroutineScheduler()
+        whenever(runtimeFactory.constructRuntime(any(), any(), anyInt()))
+            .thenThrowUnsafe(ChainInfoNotInCacheException)
+
+        initProvider(StandardTestDispatcher(testScheduler))
+
+        try {
+            testScheduler.advanceUntilIdle()
+
+            verify(runtimeSyncService, times(1)).cacheNotFound(eq(chain.id))
+        } finally {
+            runtimeProvider.finish()
         }
     }
 

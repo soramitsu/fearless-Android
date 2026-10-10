@@ -1,11 +1,6 @@
 # Copy this file to local.properties (root) and replace placeholders with your real values.
 # Do NOT commit local.properties to VCS.
 
-MOONPAY_TEST_SECRET="<your_moonpay_test_secret>"
-MOONPAY_PRODUCTION_SECRET="<your_moonpay_production_secret>"
-MOONPAY_TEST_PUBLIC_KEY=<your_moonpay_test_public_key>
-MOONPAY_PRODUCTION_PUBLIC_KEY=<your_moonpay_production_public_key>
-
 # Buy provider partner config
 RAMP_TOKEN_DEBUG=<your_ramp_debug_token>
 RAMP_TOKEN_RELEASE=<your_ramp_release_token>

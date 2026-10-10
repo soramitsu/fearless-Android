@@ -13,7 +13,7 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -29,6 +29,32 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
+    }
+
+    sourceSets {
+        androidTest.assets.srcDirs += files(
+                "$rootDir/core-db/schemas",
+                "$rootDir/common/src/test/resources"
+        )
+        // Exercise the same SR25519 implementation shipped by the production
+        // app when validating signing-key routing from this library module.
+        androidTest.jniLibs.srcDirs += files("$rootDir/app/src/main/jniLibs")
+    }
+
+    packaging {
+        resources {
+            // JVM-only metadata is duplicated across the transitive
+            // instrumentation-test dependencies and is not used on Android.
+            excludes += [
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE-notice.md",
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                    "META-INF/AL2.0",
+                    "META-INF/LGPL2.1",
+                    "META-INF/versions/**"
+            ]
+        }
     }
 
     namespace = 'jp.co.soramitsu.feature_account_impl'
@@ -84,6 +110,13 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
+
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.room.testing
+    androidTestImplementation project(':test-shared')
 
     implementation libs.gson
 

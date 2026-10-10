@@ -383,6 +383,15 @@
   <string name="connection_methods_not_supported_warning">Certain methods requested by Wallet Connect are not currently supported by the App. Although the connection can be established, certain functionalities of the dApp may not be available.</string>
   <string name="connection_optional_networks">Optional networks</string>
   <string name="connection_problems_alert_message">Failed to load necessary data to launch the application. Please check your internet connection and try again.</string>
+  <string name="wallet_secure_storage_unavailable_title">Wallet data is protected</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless could not access Android secure storage. Your encrypted wallet data was preserved and was not reset. Unlock your device and retry. If this continues, contact Fearless support.</string>
+  <string name="wallet_database_unavailable_title">Wallet data could not be opened</string>
+  <string name="wallet_database_unavailable_message">Fearless did not delete or reset any wallet data. Retry opening the wallet. If this continues, contact Fearless support.</string>
+  <string name="wallet_recovery_required_title">Wallet recovery required</string>
+  <string name="wallet_recovery_required_message">Signing and backup are disabled for this wallet because its encrypted secret could not be verified. Your original encrypted data was preserved. Contact Fearless support before making changes.</string>
+  <string name="wallet_startup_recovery_required_message">Fearless stopped before changing or deleting wallet data because stored data needs recovery. Contact Fearless support and include diagnostic code: %1$s. Do not clear app data or reinstall before support helps you preserve or export the wallet.</string>
+  <string name="wallet_startup_restart_required_title">Close and reopen Fearless</string>
+  <string name="wallet_startup_restart_required_message">Fearless stopped because Android could not confirm a wallet storage write. No additional wallet change will be attempted in this process. Close the app now, then reopen it to safely verify the stored state. Do not clear app data or reinstall.</string>
   <string name="connection_reject">Reject</string>
   <string name="connection_required_networks">Required networks</string>
   <string name="connection_review_optional_permissions">Review optional permissions</string>
@@ -418,7 +427,7 @@
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
   <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>
   <string name="cross_chain_tx_status_done_title">All done</string>
-  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %s asset cross the bridge from the %s to the %s network.</string>
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
   <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
   <string name="cross_chain_tx_status_source_fail_description">Transaction failed on the %s network. Please, try again.</string>
   <string name="cross_chain_tx_status_source_fail_title">Transaction failed</string>

@@ -3,6 +3,7 @@ package jp.co.soramitsu.core.rpc
 import com.google.gson.Gson
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.IChainRegistry
+import jp.co.soramitsu.core.utils.toLongExact
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
@@ -52,7 +53,7 @@ class RpcCalls(
 
     suspend fun getBlockHash(chainId: String, blockNumber: BigInteger): String {
         return chainRegistry.getConnection(chainId).socketService.executeAsync(
-            ChainGetBlockHashRequest(blockNumber.longValueExact()),
+            ChainGetBlockHashRequest(blockNumber.toLongExact()),
             mapper = BlockHashMapper
         )
     }

@@ -285,6 +285,16 @@ class AccountInteractorImplTest {
             data.remove(field)
         }
 
+        override fun replaceStringsDurably(
+            valuesToPut: Map<String, String>,
+            keysToRemove: Set<String>
+        ): Boolean {
+            require(valuesToPut.keys.intersect(keysToRemove).isEmpty())
+            data.putAll(valuesToPut)
+            keysToRemove.forEach { key -> data.remove(key) }
+            return true
+        }
+
         override fun stringFlow(
             field: String,
             initialValueProducer: InitialValueProducer<String>?

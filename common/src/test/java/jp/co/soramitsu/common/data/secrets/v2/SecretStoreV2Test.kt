@@ -4,6 +4,8 @@ import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema.PrivateKey
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateDerivationPath
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateKeypair
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
 import kotlinx.coroutines.runBlocking
@@ -15,7 +17,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 private const val META_ID = 1L
-private val ACCOUNT_ID = byteArrayOf(1)
+private val CHAIN_PRIVATE_KEY =
+    ByteArray(32).also { it[it.lastIndex] = 1 }
+private val CHAIN_KEYPAIR =
+    EthereumKeypairFactory.createWithPrivateKey(CHAIN_PRIVATE_KEY)
+private val ACCOUNT_ID =
+    CHAIN_KEYPAIR.publicKey.ethereumAddressFromPublicKey()
 
 @RunWith(JUnit4::class)
 class SecretStoreV2Test {
@@ -99,10 +106,7 @@ class SecretStoreV2Test {
     ): EncodableStruct<ChainAccountSecrets> {
         return ChainAccountSecrets(
             derivationPath = derivationPath,
-            keyPair = Keypair(
-                privateKey = byteArrayOf(),
-                publicKey = byteArrayOf()
-            )
+            keyPair = CHAIN_KEYPAIR
         )
     }
 }

@@ -16,21 +16,24 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import java.lang.Integer.max
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
+import jp.co.soramitsu.wallet.impl.presentation.TransferValidationDialogContract
+import jp.co.soramitsu.wallet.impl.presentation.TransferValidationDialogCoordinator
+import jp.co.soramitsu.wallet.impl.presentation.bindTransferValidationDialog
 
 @AndroidEntryPoint
 class CBDCSendSetupFragment : BaseComposeBottomSheetDialogFragment<CBDCSendSetupViewModel>() {
 
     companion object {
         const val KEY_CBDC_INFO = "KEY_CBDC_INFO"
-
         fun getBundle(cbdcQrInfo: QrContentCBDC) = bundleOf(
             KEY_CBDC_INFO to cbdcQrInfo,
         )
     }
 
     override val viewModel: CBDCSendSetupViewModel by viewModels()
+    private val validationDialogCoordinator:
+        TransferValidationDialogCoordinator by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {
@@ -54,15 +57,18 @@ class CBDCSendSetupFragment : BaseComposeBottomSheetDialogFragment<CBDCSendSetup
             viewModel.setSoftKeyboardOpen(heightDiff > 500)
         }
 
+        childFragmentManager.bindTransferValidationDialog(
+            TransferValidationDialogContract.CBDC_SEND_SETUP,
+            validationDialogCoordinator,
+            viewLifecycleOwner,
+            onPositive = viewModel::warningConfirmed
+        )
         viewModel.openValidationWarningEvent.observeEvent { (result, warning) ->
-            ErrorDialog(
-                title = warning.message,
-                message = warning.explanation,
-                positiveButtonText = warning.positiveButtonText,
-                negativeButtonText = warning.negativeButtonText,
-                positiveClick = { viewModel.warningConfirmed(result) },
-                isHideable = false
-            ).show(childFragmentManager)
+            validationDialogCoordinator.enqueue(
+                TransferValidationDialogContract.CBDC_SEND_SETUP,
+                result,
+                warning
+            )
         }
     }
 

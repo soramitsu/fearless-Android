@@ -7,7 +7,7 @@ index 20a5d27..b66ede9 100644
      }
      dependencies {
 -        classpath 'com.android.tools.build:gradle:8.0.0'
-+        classpath 'com.android.tools.build:gradle:8.9.1'
++        classpath 'com.android.tools.build:gradle:8.10.1'
          classpath 'org.mozilla.rust-android-gradle:plugin:0.9.0'
 -        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20"
 -        classpath "org.jetbrains.kotlin:kotlin-serialization:1.8.20"
@@ -75,7 +75,7 @@ index 299edac..d7adf31 100644
      }
  }
  
-@@ -78,14 +97,12 @@ task createJar(type: Copy) {
+@@ -78,16 +97,13 @@ task createJar(type: Copy) {
  createJar.dependsOn(deleteJar, build)
  
  dependencies {
@@ -91,7 +91,9 @@ index 299edac..d7adf31 100644
      implementation "com.neovisionaries:nv-websocket-client:2.14"
      implementation "com.google.code.gson:gson:2.10.1"
      implementation "org.web3j:crypto:4.6.0-android"
-@@ -96,6 +111,8 @@ dependencies {
+-    implementation "org.eclipse.birt.runtime.3_7_1:org.apache.xerces:2.9.0"
+     implementation "org.lz4:lz4-java:1.7.1"
+@@ -96,6 +110,8 @@ dependencies {
      implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0"
  
      testImplementation "junit:junit:4.13.2"

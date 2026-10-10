@@ -3,11 +3,8 @@ package jp.co.soramitsu.account.impl.data.repository
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.common.data.Keypair
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
-import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
@@ -22,6 +19,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFa
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.scale.toHexString
 import org.ton.api.pk.PrivateKeyEd25519
 
 class AccountRepositoryDelegate(
@@ -39,8 +37,7 @@ class AccountRepositoryDelegate(
 
 class SubstrateOrEvmAccountRepository(
     private val metaAccountDao: MetaAccountDao,
-    private val substrateSecretStore: SubstrateSecretStore,
-    private val ethereumSecretStore: EthereumSecretStore
+    private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator
 ) {
     suspend fun createAdditional(payload: AddAccountPayload.AdditionalEvm): Long {
         val decodedEthereumDerivationPath =
@@ -61,18 +58,16 @@ class SubstrateOrEvmAccountRepository(
             substrateCryptoType = localMetaAccount.substrateCryptoType,
             ethereumPublicKey = ethereumKeypair.publicKey,
             ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
-            tonPublicKey = null,
+            tonPublicKey = localMetaAccount.tonPublicKey,
             name = localMetaAccount.name,
             isSelected = localMetaAccount.isSelected,
             position = localMetaAccount.position,
             isBackedUp = payload.isBackedUp,
             googleBackupAddress = localMetaAccount.googleBackupAddress,
-            initialized = false,
+            initialized = localMetaAccount.initialized,
         )
 
         metaAccount.id = payload.walletId
-
-        metaAccountDao.updateMetaAccount(metaAccount)
 
         val ethereumSecrets = EthereumSecrets(
             entropy = ethereumSeedResult.mnemonic.entropy,
@@ -81,9 +76,18 @@ class SubstrateOrEvmAccountRepository(
             ethereumDerivationPath = payload.ethereumDerivationPath
         )
 
-        ethereumSecretStore.put(payload.walletId, ethereumSecrets)
-
-        return payload.walletId
+        return try {
+            walletSecretMutationCoordinator.addEvm(
+                existing = localMetaAccount,
+                after = metaAccount,
+                ethereumSecretPlaintext = ethereumSecrets.toHexString()
+            )
+        } catch (failure: WalletSecretMutationCoordinatorException) {
+            if (failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
+                throw AccountAlreadyExistsException()
+            }
+            throw failure
+        }
     }
 
     suspend fun create(payload: AddAccountPayload.SubstrateOrEvm): Long {
@@ -114,8 +118,6 @@ class SubstrateOrEvmAccountRepository(
             junctions = decodedEthereumDerivationPath.junctions
         )
 
-        val position = metaAccountDao.getNextPosition()
-
         val metaAccount = MetaAccountLocal(
             substratePublicKey = keys.publicKey,
             substrateAccountId = keys.publicKey.substrateAccountId(),
@@ -125,17 +127,11 @@ class SubstrateOrEvmAccountRepository(
             tonPublicKey = null,
             name = payload.accountName,
             isSelected = true,
-            position = position,
+            position = 0,
             isBackedUp = payload.isBackedUp,
             googleBackupAddress = payload.googleBackupAddress,
             initialized = false,
         )
-
-        val metaAccountId = try {
-            metaAccountDao.insertMetaAccount(metaAccount)
-        } catch (e: Throwable) {
-            throw AccountAlreadyExistsException()
-        }
 
         val substrateSecrets = SubstrateSecrets(
             substrateKeyPair = keys,
@@ -143,7 +139,6 @@ class SubstrateOrEvmAccountRepository(
             seed = derivationResult.seed,
             entropy = derivationResult.mnemonic.entropy
         )
-        substrateSecretStore.put(metaAccountId, substrateSecrets)
 
         val ethereumSecrets = EthereumSecrets(
             entropy = derivationResult.mnemonic.entropy,
@@ -152,22 +147,29 @@ class SubstrateOrEvmAccountRepository(
             ethereumDerivationPath = payload.ethereumDerivationPath
         )
 
-        ethereumSecretStore.put(metaAccountId, ethereumSecrets)
-
-        return metaAccountId
+        return try {
+            walletSecretMutationCoordinator.create(
+                prototype = metaAccount,
+                substrateSecretPlaintext = substrateSecrets.toHexString(),
+                ethereumSecretPlaintext = ethereumSecrets.toHexString(),
+                tonSecretPlaintext = null
+            )
+        } catch (failure: WalletSecretMutationCoordinatorException) {
+            if (failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
+                throw AccountAlreadyExistsException()
+            }
+            throw failure
+        }
     }
 }
 
 class TonAccountRepository(
-    private val metaAccountDao: MetaAccountDao,
-    private val tonSecretStore: TonSecretStore
+    private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator
 ) {
     suspend fun create(payload: AddAccountPayload.Ton): Long {
         val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(payload.mnemonic.split(" "))
         val tonPrivateKey = PrivateKeyEd25519(tonSeed)
         val tonPublicKey = tonPrivateKey.publicKey()
-
-        val position = metaAccountDao.getNextPosition()
 
         val metaAccount = MetaAccountLocal(
             substratePublicKey = null,
@@ -178,29 +180,32 @@ class TonAccountRepository(
             tonPublicKey = tonPublicKey.key.toByteArray(),
             name = payload.accountName,
             isSelected = true,
-            position = position,
+            position = 0,
             isBackedUp = payload.isBackedUp,
             googleBackupAddress = null,
             initialized = false,
         )
 
-        val metaAccountId = try {
-            metaAccountDao.insertMetaAccount(metaAccount)
-        } catch (e: Throwable) {
-            throw AccountAlreadyExistsException()
-        }
-
-        tonSecretStore.put(
-            metaAccountId,
-            TonSecrets(
-                seed = payload.mnemonic.encodeToByteArray(),
-                tonKeypair = Keypair(
-                    tonPublicKey.key.toByteArray(),
-                    tonPrivateKey.key.toByteArray()
-                )
+        val tonSecrets = TonSecrets(
+            seed = payload.mnemonic.encodeToByteArray(),
+            tonKeypair = Keypair(
+                tonPublicKey.key.toByteArray(),
+                tonPrivateKey.key.toByteArray()
             )
         )
 
-        return metaAccountId
+        return try {
+            walletSecretMutationCoordinator.create(
+                prototype = metaAccount,
+                substrateSecretPlaintext = null,
+                ethereumSecretPlaintext = null,
+                tonSecretPlaintext = tonSecrets.toHexString()
+            )
+        } catch (failure: WalletSecretMutationCoordinatorException) {
+            if (failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
+                throw AccountAlreadyExistsException()
+            }
+            throw failure
+        }
     }
 }

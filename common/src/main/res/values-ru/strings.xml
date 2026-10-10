@@ -374,6 +374,15 @@
   <string name="connection_methods_not_supported_warning">Некоторые методы, запрашиваемые Wallet Connect, в настоящее время не поддерживаются приложением. Хотя соединение может быть установлено, некоторые функции dApp могут быть недоступны.</string>
   <string name="connection_optional_networks">Дополнительные сети</string>
   <string name="connection_problems_alert_message">Не удалось загрузить необходимые данные для запуска приложения. Проверьте подключение к Интернету и повторите попытку.</string>
+  <string name="wallet_secure_storage_unavailable_title">Данные кошелька защищены</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless не удалось получить доступ к защищенному хранилищу Android. Зашифрованные данные кошелька сохранены и не были сброшены. Разблокируйте устройство и повторите попытку. Если проблема не исчезнет, обратитесь в службу поддержки Fearless.</string>
+  <string name="wallet_database_unavailable_title">Не удалось открыть данные кошелька</string>
+  <string name="wallet_database_unavailable_message">Fearless не удалял и не сбрасывал данные кошелька. Повторите попытку открыть кошелек. Если проблема не исчезнет, обратитесь в службу поддержки Fearless.</string>
+  <string name="wallet_recovery_required_title">Требуется восстановление кошелька</string>
+  <string name="wallet_recovery_required_message">Подписание и резервное копирование отключены для этого кошелька, поскольку не удалось проверить его зашифрованный секрет. Исходные зашифрованные данные сохранены. Прежде чем вносить изменения, обратитесь в службу поддержки Fearless.</string>
+  <string name="wallet_startup_recovery_required_message">Fearless остановил операцию до изменения или удаления данных кошелька, поскольку сохранённые данные требуют восстановления. Обратитесь в службу поддержки Fearless и укажите диагностический код: %1$s. Не очищайте данные приложения и не переустанавливайте его, пока служба поддержки не поможет сохранить или экспортировать кошелёк.</string>
+  <string name="wallet_startup_restart_required_title">Закройте и снова откройте Fearless</string>
+  <string name="wallet_startup_restart_required_message">Fearless остановился, поскольку Android не смог подтвердить запись данных кошелька. В этом процессе больше не будут предприниматься попытки изменить кошелёк. Закройте приложение, а затем снова откройте его, чтобы безопасно проверить сохранённое состояние. Не очищайте данные приложения и не переустанавливайте его.</string>
   <string name="connection_reject">Отклонить</string>
   <string name="connection_required_networks">Необходимые сети</string>
   <string name="connection_review_optional_permissions">Просмотр необязательных разрешений</string>
@@ -1234,6 +1243,12 @@
 
   <string name="connected_accounts_ton_title">TON chain accounts</string>
 
+  <string name="connected_accounts_bitcoin_title">Аккаунты сети Bitcoin</string>
+
+  <string name="connected_accounts_solana_title">Аккаунты сети Solana</string>
+
+  <string name="connected_accounts_iroha_title">Аккаунты сети Iroha</string>
+
   <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
 
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
@@ -1242,7 +1257,7 @@
 
   <string name="cross_chain_tx_status_done_title">All done</string>
 
-  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %s asset cross the bridge from the %s to the %s network.</string>
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
 
   <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
 

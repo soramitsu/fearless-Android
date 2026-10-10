@@ -22,12 +22,18 @@ import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v1.LegacyV1SecretCorruptionException
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretCorruptionException
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
+import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
+import jp.co.soramitsu.common.data.storage.encrypt.WalletRecoveryRequiredException
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
@@ -39,7 +45,6 @@ import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
@@ -61,21 +66,20 @@ import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
@@ -92,7 +96,8 @@ class AccountRepositoryImpl(
     private val ethereumSecretStore: EthereumSecretStore,
     private val tonSecretStore: TonSecretStore,
     private val accountRepositoryDelegate: AccountRepositoryDelegate,
-    private val assetDao: AssetDao,
+    private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+    private val walletSecretAccessGuard: WalletSecretAccessGuard,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AccountRepository {
 
@@ -179,16 +184,11 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun createAccount(payload: AddAccountPayload): Long {
-        val metaAccountId = accountRepositoryDelegate.create(payload)
-        if (payload !is AddAccountPayload.AdditionalEvm) {
-            selectAccount(metaAccountId)
-        }
-        return metaAccountId
+        return accountRepositoryDelegate.create(payload)
     }
 
     override suspend fun deleteAccount(metaId: Long) {
-        accountDataSource.deleteMetaAccount(metaId)
-        assetDao.deleteAccountAssets(metaId)
+        walletSecretMutationCoordinator.delete(metaId)
     }
 
     override suspend fun importFromSeed(
@@ -220,30 +220,27 @@ class AccountRepositoryImpl(
                 substrateAccountId = localMetaAccount.substrateAccountId,
                 substrateCryptoType = localMetaAccount.substrateCryptoType,
                 name = localMetaAccount.name,
-                isSelected = true,
+                isSelected = localMetaAccount.isSelected,
                 position = localMetaAccount.position,
                 ethereumPublicKey = ethereumKeypair.publicKey,
                 ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
-                tonPublicKey = null,
+                tonPublicKey = localMetaAccount.tonPublicKey,
                 isBackedUp = true,
                 googleBackupAddress = localMetaAccount.googleBackupAddress,
-                initialized = false
+                initialized = localMetaAccount.initialized
             )
             metaAccount.id = walletId
 
-            metaAccountDao.updateMetaAccount(metaAccount)
-
-            coroutineScope {
-                launch {
-                    val ethereumSecrets = EthereumSecrets(
-                        ethereumKeypair = ethereumKeypair,
-                        seed = ethSeedBytes,
-                        ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-                    )
-
-                    ethereumSecretStore.put(walletId, ethereumSecrets)
-                }
-            }.join()
+            val ethereumSecrets = EthereumSecrets(
+                ethereumKeypair = ethereumKeypair,
+                seed = ethSeedBytes,
+                ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+            )
+            addEvm(
+                existing = localMetaAccount,
+                after = metaAccount,
+                ethereumSecretPlaintext = ethereumSecrets.toHexString()
+            )
         }
     }
 
@@ -266,42 +263,39 @@ class AccountRepositoryImpl(
             val ethereumKeypair =
                 ethSeedBytes?.let { EthereumKeypairFactory.createWithPrivateKey(it) }
 
-            val position = metaAccountDao.getNextPosition()
-
             val metaAccount = MetaAccountLocal(
                 substratePublicKey = keys.publicKey,
                 substrateAccountId = keys.publicKey.substrateAccountId(),
                 substrateCryptoType = selectedEncryptionType,
                 name = username,
                 isSelected = true,
-                position = position,
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 tonPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = googleBackupAddress,
-                initialized = false
+                initialized = false,
+                position = 0
             )
-
-            val metaAccountId = async { insertAccount(metaAccount) }
 
             val substrateSecrets = SubstrateSecrets(
                 substrateKeyPair = keys,
                 substrateDerivationPath = derivationPath,
                 seed = substrateSeedBytes
             )
-            substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
-            if (ethereumKeypair != null) {
-
-                val ethereumSecrets = EthereumSecrets(
+            val ethereumSecrets = ethereumKeypair?.let {
+                EthereumSecrets(
                     ethereumKeypair = ethereumKeypair,
                     seed = ethSeedBytes,
                     ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
                 )
-
-                ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
             }
-            selectAccount(metaAccountId.await())
+            createWallet(
+                prototype = metaAccount,
+                substrateSecretPlaintext = substrateSecrets.toHexString(),
+                ethereumSecretPlaintext = ethereumSecrets?.toHexString(),
+                tonSecretPlaintext = null
+            )
         }
     }
 
@@ -323,8 +317,6 @@ class AccountRepositoryImpl(
             val substrateKeys = substrateImportData.keypair
             val ethKeys = ethImportData?.keypair
 
-            val position = metaAccountDao.getNextPosition()
-
             val ethereumKeypair =
                 ethKeys?.let { EthereumKeypairFactory.createWithPrivateKey(it.privateKey) }
 
@@ -334,31 +326,30 @@ class AccountRepositoryImpl(
                 substrateCryptoType = mapEncryptionToCryptoType(substrateImportData.multiChainEncryption.encryptionType),
                 name = name,
                 isSelected = true,
-                position = position,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 tonPublicKey = null,
                 isBackedUp = true,
                 googleBackupAddress = googleBackupAddress,
-                initialized = false
+                initialized = false,
+                position = 0
             )
-
-            val metaAccountId = async { insertAccount(metaAccount) }
 
             val substrateSecrets = SubstrateSecrets(
                 substrateKeyPair = substrateKeys,
                 seed = substrateImportData.seed
             )
-            substrateSecretStore.put(metaAccountId.await(), substrateSecrets)
-            if (ethereumKeypair != null) {
-                val ethereumSecrets = EthereumSecrets(
+            val ethereumSecrets = ethereumKeypair?.let {
+                EthereumSecrets(
                     ethereumKeypair = ethereumKeypair
                 )
-
-                ethereumSecretStore.put(metaAccountId.await(), ethereumSecrets)
-
             }
-            selectAccount(metaAccountId.await())
+            createWallet(
+                prototype = metaAccount,
+                substrateSecretPlaintext = substrateSecrets.toHexString(),
+                ethereumSecretPlaintext = ethereumSecrets?.toHexString(),
+                tonSecretPlaintext = null
+            )
         }
     }
 
@@ -384,24 +375,61 @@ class AccountRepositoryImpl(
                 position = localMetaAccount.position,
                 ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
                 ethereumPublicKey = ethereumKeypair.publicKey,
-                tonPublicKey = null,
+                tonPublicKey = localMetaAccount.tonPublicKey,
                 isBackedUp = true,
                 googleBackupAddress = localMetaAccount.googleBackupAddress,
-                initialized = false
+                initialized = localMetaAccount.initialized
             )
             metaAccount.id = walletId
 
-            metaAccountDao.updateMetaAccount(metaAccount)
+            val ethereumSecrets = EthereumSecrets(
+                ethereumKeypair = ethereumKeypair
+            )
+            addEvm(
+                existing = localMetaAccount,
+                after = metaAccount,
+                ethereumSecretPlaintext = ethereumSecrets.toHexString()
+            )
+        }
+    }
 
-            coroutineScope {
-                    launch {
-                        val ethereumSecrets = EthereumSecrets(
-                            ethereumKeypair = ethereumKeypair
-                        )
+    private suspend fun createWallet(
+        prototype: MetaAccountLocal,
+        substrateSecretPlaintext: String?,
+        ethereumSecretPlaintext: String?,
+        tonSecretPlaintext: String?
+    ): Long {
+        return try {
+            walletSecretMutationCoordinator.create(
+                prototype = prototype,
+                substrateSecretPlaintext = substrateSecretPlaintext,
+                ethereumSecretPlaintext = ethereumSecretPlaintext,
+                tonSecretPlaintext = tonSecretPlaintext
+            )
+        } catch (failure: WalletSecretMutationCoordinatorException) {
+            if (failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
+                throw AccountAlreadyExistsException()
+            }
+            throw failure
+        }
+    }
 
-                        ethereumSecretStore.put(walletId, ethereumSecrets)
-                    }
-            }.join()
+    private suspend fun addEvm(
+        existing: MetaAccountLocal,
+        after: MetaAccountLocal,
+        ethereumSecretPlaintext: String
+    ): Long {
+        return try {
+            walletSecretMutationCoordinator.addEvm(
+                existing = existing,
+                after = after,
+                ethereumSecretPlaintext = ethereumSecretPlaintext
+            )
+        } catch (failure: WalletSecretMutationCoordinatorException) {
+            if (failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
+                throw AccountAlreadyExistsException()
+            }
+            throw failure
         }
     }
 
@@ -454,7 +482,66 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
-        return accountDataSource.getSecuritySource(accountAddress)!!
+        val accountId = try {
+            accountAddress.toAccountId()
+        } catch (failure: Exception) {
+            throw IllegalArgumentException("Invalid signing account address", failure)
+        }
+        val metaAccount = findMetaAccount(accountId)
+            ?: error("No wallet found for the signing account")
+        if (isWalletRecoveryRequired(metaAccount)) {
+            throw WalletRecoveryRequiredException()
+        }
+
+        val expectedPublicKey = metaAccount.substratePublicKey
+            ?: throw WalletPublicIdentityIntegrityException(
+                "A legacy signing wallet is missing its durable public key"
+            )
+        val expectedCryptoType = metaAccount.substrateCryptoType
+            ?: throw WalletPublicIdentityIntegrityException(
+                "A legacy signing wallet is missing its durable crypto type"
+            )
+        val expectedAccountId = metaAccount.substrateAccountId
+            ?: throw WalletPublicIdentityIntegrityException(
+                "A legacy signing wallet is missing its durable account id"
+            )
+        if (!expectedAccountId.contentEquals(accountId)) {
+            throw WalletPublicIdentityIntegrityException(
+                "A legacy signing request does not match the durable account id"
+            )
+        }
+
+        val legacyPlaintextSnapshot =
+            walletSecretAccessGuard.legacyV1PlaintextSnapshot(accountAddress)
+                ?: throw WalletRecoveryRequiredException()
+        val source = try {
+            accountDataSource.getSecuritySource(accountAddress)
+                ?: throw WalletRecoveryRequiredException()
+        } catch (failure: LegacyV1SecretCorruptionException) {
+            walletSecretAccessGuard.quarantineLegacyV1AndThrow(
+                metaId = metaAccount.id,
+                accountAddress = accountAddress,
+                expectedPublicKey = expectedPublicKey,
+                expectedSnapshot = legacyPlaintextSnapshot
+            )
+        }
+        try {
+            WalletRootSecretValidator.validateLegacySubstrateSource(
+                source = source,
+                expectedPublicKey = expectedPublicKey,
+                expectedCryptoType = expectedCryptoType,
+                expectedAccountId = expectedAccountId
+            )
+        } catch (failure: WalletRootSecretCorruptionException) {
+            walletSecretAccessGuard.quarantineLegacyV1AndThrow(
+                metaId = metaAccount.id,
+                accountAddress = accountAddress,
+                expectedPublicKey = expectedPublicKey,
+                expectedSnapshot = legacyPlaintextSnapshot
+            )
+        }
+
+        return source
     }
 
     override suspend fun getChainAccountSecrets(
@@ -463,8 +550,18 @@ class AccountRepositoryImpl(
     ): EncodableStruct<ChainAccountSecrets>? {
         return (metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()).let { metaAccount ->
             if (metaAccount.hasChainAccount((chainId))) {
-                metaAccount.chainAccounts[chainId]?.accountId?.let { accountId ->
-                    legacyStoreV2.getChainAccountSecrets(metaAccount.id, accountId)
+                metaAccount.chainAccounts[chainId]?.let { chainAccount ->
+                    walletSecretAccessGuard.requireAccess(
+                        metaId = metaAccount.id,
+                        substratePublicKey = metaAccount.substratePublicKey,
+                        chainAccountId = chainAccount.accountId
+                    )
+                    legacyStoreV2.getChainAccountSecrets(
+                        metaId = metaAccount.id,
+                        accountId = chainAccount.accountId,
+                        expectedPublicKey = chainAccount.publicKey,
+                        expectedCryptoType = chainAccount.cryptoType
+                    )
                 }
             } else {
                 null
@@ -478,6 +575,11 @@ class AccountRepositoryImpl(
             val metaAccount = getMetaAccount(metaId)
             require(metaAccount.hasSubstrate || metaAccount.hasEthereum)
             val hasChainAccount = metaAccount.hasChainAccount(chainId)
+            walletSecretAccessGuard.requireAccess(
+                metaId = metaAccount.id,
+                substratePublicKey = metaAccount.substratePublicKey,
+                chainAccountId = metaAccount.chainAccounts[chainId]?.accountId
+            )
             val (keypairSchema, seed) = if (hasChainAccount) {
                 val secrets = getChainAccountSecrets(metaId, chainId)
 
@@ -486,8 +588,10 @@ class AccountRepositoryImpl(
                 val seed = secrets?.get(ChainAccountSecrets.Seed)
                 keypairSchema to seed
             } else {
-                val substrateSecrets = substrateSecretStore.get(metaId)
-                val ethereumSecrets = ethereumSecretStore.get(metaId)
+                val substrateSecrets =
+                    readValidatedSubstrateSecrets(metaAccount)
+                val ethereumSecrets =
+                    readValidatedEthereumSecrets(metaAccount)
 
 
                 val keypairSchema = if (chain.isEthereumBased) {
@@ -564,14 +668,6 @@ class AccountRepositoryImpl(
         return accountDataSource.changeSelectedLanguage(language)
     }
 
-    private suspend fun insertAccount(
-        metaAccount: MetaAccountLocal
-    ) = try {
-        metaAccountDao.insertMetaAccount(metaAccount)
-    } catch (e: Throwable) {
-        throw AccountAlreadyExistsException()
-    }
-
     override fun polkadotAddressForSelectedAccountFlow(): Flow<String> {
         return selectedMetaAccountFlow().map {
             val chain = chainsRepository.getChain(polkadotChainId)
@@ -580,72 +676,89 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun isGoogleBackupSupported(walletId: Long): Boolean {
-        val substrateSecrets = substrateSecretStore.get(walletId)
-        return substrateSecrets?.get(SubstrateSecrets.Entropy) != null
+        return try {
+            val metaAccount = requireWalletSecretAccess(walletId)
+            val substrateSecrets = readValidatedSubstrateSecrets(metaAccount)
+            substrateSecrets?.get(SubstrateSecrets.Entropy) != null
+        } catch (failure: WalletRecoveryRequiredException) {
+            false
+        }
     }
 
     override suspend fun getBestBackupType(walletId: Long, type: WalletEcosystem): BackupAccountType? {
-        when (type) {
-            WalletEcosystem.Substrate -> {
-                val substrateSecrets = substrateSecretStore.get(walletId)
-                if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null) {
-                    return BackupAccountType.PASSPHRASE
+        return try {
+            val metaAccount = requireWalletSecretAccess(walletId)
+            when (type) {
+                WalletEcosystem.Substrate -> {
+                    val substrateSecrets =
+                        readValidatedSubstrateSecrets(metaAccount)
+                    if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null) {
+                        return BackupAccountType.PASSPHRASE
+                    }
+                    if (substrateSecrets?.get(SubstrateSecrets.Seed) != null) {
+                        return BackupAccountType.SEED
+                    }
                 }
-                if (substrateSecrets?.get(SubstrateSecrets.Seed) != null) {
-                    return BackupAccountType.SEED
-                }
-            }
 
-            WalletEcosystem.Ethereum -> {
-                val ethereumSecrets = ethereumSecretStore.get(walletId)
-                if (ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
-                    return BackupAccountType.PASSPHRASE
+                WalletEcosystem.Ethereum -> {
+                    val ethereumSecrets =
+                        readValidatedEthereumSecrets(metaAccount)
+                    if (ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
+                        return BackupAccountType.PASSPHRASE
+                    }
+                    if (ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
+                        return BackupAccountType.SEED
+                    }
                 }
-                if (ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
-                    return BackupAccountType.SEED
-                }
-            }
 
-            WalletEcosystem.Ton -> {
-                val tonSecrets = tonSecretStore.get(walletId)
-                if (tonSecrets != null) {
-                    return BackupAccountType.PASSPHRASE
+                WalletEcosystem.Ton -> {
+                    val tonSecrets = readValidatedTonSecrets(metaAccount)
+                    if (tonSecrets != null) {
+                        return BackupAccountType.PASSPHRASE
+                    }
                 }
-            }
 
-            WalletEcosystem.Bitcoin,
-            WalletEcosystem.Solana,
-            WalletEcosystem.Iroha -> return null
+                WalletEcosystem.Bitcoin,
+                WalletEcosystem.Solana,
+                WalletEcosystem.Iroha -> return null
+            }
+            null
+        } catch (failure: WalletRecoveryRequiredException) {
+            null
         }
-        return null
     }
 
     override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> {
-        val substrateSecrets = substrateSecretStore.get(walletId)
-        val ethereumSecrets = ethereumSecretStore.get(walletId)
-        val tonSecrets = tonSecretStore.get(walletId)
+        return try {
+            val metaAccount = requireWalletSecretAccess(walletId)
+            val substrateSecrets = readValidatedSubstrateSecrets(metaAccount)
+            val ethereumSecrets = readValidatedEthereumSecrets(metaAccount)
+            val tonSecrets = readValidatedTonSecrets(metaAccount)
 
-        val types = mutableSetOf<BackupAccountType>()
+            val types = mutableSetOf<BackupAccountType>()
 
-        if (substrateSecrets != null || ethereumSecrets != null) {
-            if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null || ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
+            if (substrateSecrets != null || ethereumSecrets != null) {
+                if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null || ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
+                    types.add(BackupAccountType.PASSPHRASE)
+                    types.add(BackupAccountType.SEED)
+                }
+
+                if (substrateSecrets?.get(SubstrateSecrets.Seed) != null || ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
+                    types.add(BackupAccountType.SEED)
+                }
+
+                types.add(BackupAccountType.JSON)
+                return types
+            }
+
+            if (tonSecrets != null) {
                 types.add(BackupAccountType.PASSPHRASE)
-                types.add(BackupAccountType.SEED)
             }
 
-            if (substrateSecrets?.get(SubstrateSecrets.Seed) != null || ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
-                types.add(BackupAccountType.SEED)
-            }
-
-            types.add(BackupAccountType.JSON)
-            return types
+            types
+        } catch (failure: WalletRecoveryRequiredException) {
+            emptySet()
         }
-
-        if (tonSecrets != null) {
-            types.add(BackupAccountType.PASSPHRASE)
-        }
-
-        return types
     }
 
     override suspend fun googleBackupAddressForWallet(walletId: Long): String {
@@ -692,14 +805,89 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
-        return substrateSecretStore.get(metaId)
+        val metaAccount = requireWalletSecretAccess(metaId)
+        return readValidatedSubstrateSecrets(metaAccount)
     }
 
     override suspend fun getEthereumSecrets(metaId: Long): EncodableStruct<EthereumSecrets>? {
-        return ethereumSecretStore.get(metaId)
+        val metaAccount = requireWalletSecretAccess(metaId)
+        return readValidatedEthereumSecrets(metaAccount)
     }
 
     override suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>? {
-        return tonSecretStore.get(metaId)
+        val metaAccount = requireWalletSecretAccess(metaId)
+        return readValidatedTonSecrets(metaAccount)
+    }
+
+    private fun readValidatedSubstrateSecrets(
+        metaAccount: MetaAccount
+    ): EncodableStruct<SubstrateSecrets>? {
+        return substrateSecretStore.get(
+            metaId = metaAccount.id,
+            expectedPublicKey = metaAccount.substratePublicKey,
+            expectedCryptoType = metaAccount.substrateCryptoType,
+            expectedAccountId = metaAccount.substrateAccountId
+        )
+    }
+
+    private fun readValidatedEthereumSecrets(
+        metaAccount: MetaAccount
+    ): EncodableStruct<EthereumSecrets>? {
+        return ethereumSecretStore.get(
+            metaId = metaAccount.id,
+            expectedPublicKey = metaAccount.ethereumPublicKey,
+            expectedAddress = metaAccount.ethereumAddress
+        )
+    }
+
+    private fun readValidatedTonSecrets(
+        metaAccount: MetaAccount
+    ): EncodableStruct<TonSecrets>? {
+        return tonSecretStore.get(
+            metaId = metaAccount.id,
+            expectedPublicKey = metaAccount.tonPublicKey
+        )
+    }
+
+    override suspend fun isWalletRecoveryRequired(metaId: Long): Boolean {
+        val metaAccount = getMetaAccount(metaId)
+        return isWalletRecoveryRequired(metaAccount)
+    }
+
+    override fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean> {
+        return walletSecretAccessGuard.recoveryStateVersion
+            .map { isWalletRecoveryRequired(getMetaAccount(metaId)) }
+            .distinctUntilChanged()
+            .flowOn(dispatcher)
+    }
+
+    private suspend fun requireWalletSecretAccess(metaId: Long): MetaAccount {
+        val metaAccount = getMetaAccount(metaId)
+        if (isWalletRecoveryRequired(metaAccount)) {
+            throw WalletRecoveryRequiredException()
+        }
+        return metaAccount
+    }
+
+    private fun isWalletRecoveryRequired(metaAccount: MetaAccount): Boolean {
+        if (
+            walletSecretAccessGuard.isRecoveryRequired(
+                metaId = metaAccount.id,
+                substratePublicKey = metaAccount.substratePublicKey
+            )
+        ) {
+            return true
+        }
+
+        // A corrupt chain-specific secret makes the wallet recovery-required
+        // as a whole. This keeps the banner and backup/export gates accurate
+        // even before the user attempts to sign on that particular chain.
+        return metaAccount.chainAccounts.values.any { chainAccount ->
+            walletSecretAccessGuard.isRecoveryRequired(
+                metaId = metaAccount.id,
+                substratePublicKey = metaAccount.substratePublicKey,
+                chainAccountId = chainAccount.accountId
+            )
+        }
     }
 }
