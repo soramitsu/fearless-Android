@@ -5,8 +5,15 @@ import android.util.Log
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinAccountBalanceSyncResult
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinBalanceSync
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinEsploraAddress
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinEsploraStats
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
+import jp.co.soramitsu.common.model.AssetDiscoveryCoverage
+import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.runtime.ext.normalizedBitcoinAddress
@@ -23,12 +30,17 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.CancellationException
 import java.math.BigInteger
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 
 @SuppressLint("LogNotTimber")
 class BitcoinBalanceLoader(
     chain: Chain,
-    private val bitcoinIndexerClient: BitcoinIndexerClient
+    private val bitcoinIndexerClient: BitcoinIndexerClient,
+    private val bitcoinBalanceSync: BitcoinBalanceSync? = null,
+    private val accountRepository: AccountRepository? = null,
+    private val scanStateStore: NetworkScanStateStore? = null
 ) : BalanceLoader(chain) {
 
     private val trigger = BalanceUpdateTrigger.observe()
@@ -71,16 +83,51 @@ class BitcoinBalanceLoader(
         val network = chain.universalWalletBitcoinIndexerNetwork() ?: return null
         val baseUrl = chain.externalApi?.history?.url
 
-        val balance = runCatching {
-            val response = bitcoinIndexerClient.address(
-                address = address,
-                network = network,
-                baseUrl = baseUrl
+        val entropy = try {
+            accountRepository?.getChainAccountSecrets(metaAccount.id, chain.id)
+                ?.get(ChainAccountSecrets.Entropy)
+        } catch (error: Exception) {
+            runCatching { Log.d(tag, "bitcoin root secret unavailable: $error") }
+            null
+        }
+        val hasGapDiscovery = entropy != null && bitcoinBalanceSync != null
+        val coverage = if (hasGapDiscovery) AssetDiscoveryCoverage.Complete else AssetDiscoveryCoverage.Limited
+        scanStateStore?.scanStarted(metaAccount.id, chain.id, coverage)
+
+        val balance = try {
+            if (hasGapDiscovery) {
+                val mnemonic = MnemonicCreator.fromEntropy(requireNotNull(entropy)).words
+                val derivationNetwork = if (chain.isTestNet) {
+                    BitcoinKeyDerivation.Network.Testnet
+                } else {
+                    BitcoinKeyDerivation.Network.Mainnet
+                }
+                requireNotNull(bitcoinBalanceSync).accountBalance(
+                    mnemonic = mnemonic,
+                    network = derivationNetwork,
+                    baseUrl = baseUrl
+                ).validatedTotalSats()
+            } else {
+                bitcoinIndexerClient.address(
+                    address = address,
+                    network = network,
+                    baseUrl = baseUrl
+                ).validatedTotalSats(expectedAddress = address)
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            runCatching { Log.d(tag, "bitcoin balance scan failed: $error") }
+            scanStateStore?.scanFailed(
+                metaAccount.id,
+                chain.id,
+                coverage,
+                error.message ?: error::class.simpleName
             )
-            response.totalSatsOrNull()
-        }.onFailure {
-            Log.d(tag, "address balance failed: $it")
-        }.getOrNull() ?: return null
+            null
+        } ?: return null
+
+        scanStateStore?.scanSucceeded(metaAccount.id, chain.id, coverage)
 
         return AssetBalanceUpdateItem(
             metaId = metaAccount.id,
@@ -99,17 +146,37 @@ class BitcoinBalanceLoader(
         }
     }
 
-    private fun BitcoinEsploraAddress.totalSatsOrNull(): BigInteger? {
-        val confirmed = confirmedSats
-        val mempool = mempoolSats
-        if (confirmed < 0 || mempool < 0) {
-            return null
+    private fun BitcoinAccountBalanceSyncResult.validatedTotalSats(): BigInteger {
+        require(confirmedSats >= 0 && mempoolSats >= 0 && totalSats >= 0) {
+            INVALID_BALANCE_PAYLOAD
         }
+        val total = BigInteger.valueOf(confirmedSats).add(BigInteger.valueOf(mempoolSats))
+        require(total == BigInteger.valueOf(totalSats)) { INVALID_BALANCE_PAYLOAD }
+        return total
+    }
 
-        return BigInteger.valueOf(confirmed).add(BigInteger.valueOf(mempool))
+    private fun BitcoinEsploraAddress.validatedTotalSats(expectedAddress: String): BigInteger {
+        require(address == expectedAddress) { INVALID_BALANCE_PAYLOAD }
+        val confirmed = chainStats.validatedNetSats()
+        val mempool = mempoolStats.validatedNetSats()
+        require(confirmed.signum() >= 0 && mempool.signum() >= 0) { INVALID_BALANCE_PAYLOAD }
+
+        return confirmed.add(mempool)
+    }
+
+    private fun BitcoinEsploraStats.validatedNetSats(): BigInteger {
+        require(
+            fundedTxoCount >= 0 &&
+                fundedTxoSum >= 0 &&
+                spentTxoCount >= 0 &&
+                spentTxoSum >= 0 &&
+                txCount >= 0
+        ) { INVALID_BALANCE_PAYLOAD }
+        return BigInteger.valueOf(fundedTxoSum).subtract(BigInteger.valueOf(spentTxoSum))
     }
 
     private companion object {
         const val BITCOIN_SYMBOL = "BTC"
+        const val INVALID_BALANCE_PAYLOAD = "Invalid Bitcoin balance payload"
     }
 }

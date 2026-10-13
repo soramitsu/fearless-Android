@@ -2,6 +2,8 @@ package jp.co.soramitsu.coredb.dao
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import jp.co.soramitsu.coredb.AppDatabase
+import jp.co.soramitsu.coredb.model.AssetLocal
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -125,6 +127,62 @@ class ChainDaoTest : DaoTest<ChainDao>(AppDatabase::chainDao){
         }
     }
 
+    @Test
+    fun shouldNotEmitChainWithMissingAccountAsset() = runBlocking {
+        val chainInfo = createTestChain("0x00")
+        dao.addChain(chainInfo)
+
+        val result = dao.observeChainsWithBalance(
+            accountMetaId = TEST_META_ID,
+            assetId = "0"
+        ).first()
+
+        assertEquals(emptyMap<Any, Any>(), result)
+    }
+
+    @Test
+    fun shouldOnlyEmitChainsWithEnabledAccountAssets() = runBlocking {
+        val chainWithAsset = createTestChain("0x00")
+        val chainWithoutAsset = createTestChain("0x01")
+        dao.update(
+            removed = emptyList(),
+            newOrUpdated = listOf(chainWithAsset, chainWithoutAsset)
+        )
+        db.assetDao().insertAsset(
+            accountAsset(
+                chainId = chainWithAsset.chain.id,
+                enabled = true
+            )
+        )
+
+        val result = dao.observeChainsWithBalance(
+            accountMetaId = TEST_META_ID,
+            assetId = "0"
+        ).first()
+
+        assertEquals(setOf(chainWithAsset.chain.id), result.keys.map { it.chain.id }.toSet())
+        assertEquals(chainWithAsset.chain.id, result.values.single().asset.chainId)
+    }
+
+    @Test
+    fun shouldNotEmitDisabledAccountAsset() = runBlocking {
+        val chainInfo = createTestChain("0x00")
+        dao.addChain(chainInfo)
+        db.assetDao().insertAsset(
+            accountAsset(
+                chainId = chainInfo.chain.id,
+                enabled = false
+            )
+        )
+
+        val result = dao.observeChainsWithBalance(
+            accountMetaId = TEST_META_ID,
+            assetId = "0"
+        ).first()
+
+        assertEquals(emptyMap<Any, Any>(), result)
+    }
+
     private suspend fun checkRuntimeVersions(remote: Int, synced: Int) {
         val runtimeInfo = dao.runtimeInfo("0x00")
 
@@ -132,5 +190,18 @@ class ChainDaoTest : DaoTest<ChainDao>(AppDatabase::chainDao){
 
         assertEquals(runtimeInfo.remoteVersion, remote)
         assertEquals(runtimeInfo.syncedVersion, synced)
+    }
+
+    private fun accountAsset(chainId: String, enabled: Boolean) = AssetLocal.createEmpty(
+        accountId = byteArrayOf(1),
+        id = "0",
+        chainId = chainId,
+        metaId = TEST_META_ID,
+        tokenPriceId = null,
+        enabled = enabled
+    )
+
+    private companion object {
+        const val TEST_META_ID = 7L
     }
 }

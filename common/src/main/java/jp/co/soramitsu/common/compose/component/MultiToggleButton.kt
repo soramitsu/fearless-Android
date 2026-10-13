@@ -2,7 +2,8 @@ package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,16 +26,19 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.utils.toggleableWithNoIndication
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T : MultiToggleItem> MultiToggleButton(
     state: MultiToggleButtonState<T>,
-    onToggleChange: (T) -> Unit
+    onToggleChange: (T) -> Unit,
+    stacked: Boolean = false
 ) {
     val selectedTint = MaterialTheme.customColors.white16
     val unselectedTint = Color.Unspecified
 
     BackgroundCornered(backgroundColor = MaterialTheme.customColors.white04) {
-        Row(
+        FlowRow(
+            maxItemsInEachRow = if (stacked) 1 else Int.MAX_VALUE,
             modifier = Modifier
                 .height(IntrinsicSize.Min)
                 .fillMaxWidth()

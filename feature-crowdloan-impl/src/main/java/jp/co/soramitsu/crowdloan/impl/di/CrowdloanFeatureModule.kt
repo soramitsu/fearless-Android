@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
+import jp.co.soramitsu.crowdloan.api.domain.LegacyCrowdloanRecovery
 import jp.co.soramitsu.crowdloan.impl.data.CrowdloanSharedState
 import jp.co.soramitsu.crowdloan.impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.MoonbeamApi
@@ -18,11 +19,18 @@ import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.ParachainMetada
 import jp.co.soramitsu.crowdloan.impl.data.repository.CrowdloanRepositoryImpl
 import jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.CrowdloanContributeInteractor
+import jp.co.soramitsu.crowdloan.impl.domain.LegacyCrowdloanRecoveryImpl
 import jp.co.soramitsu.crowdloan.impl.domain.main.CrowdloanInteractor
+import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.crowdloan.impl.storage.CrowdloanStorage
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorFactory
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
@@ -35,6 +43,8 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @InstallIn(SingletonComponent::class)
 @Module(
@@ -43,6 +53,26 @@ import javax.inject.Singleton
     ]
 )
 class CrowdloanFeatureModule {
+
+    /**
+     * Legacy view models remain loadable for database recovery compatibility, but the retired
+     * product surface has no route target. This inert binding prevents accidental contribution
+     * navigation while keeping released storage and claim code linkable.
+     */
+    @Provides
+    @Singleton
+    fun provideRetiredCrowdloanRouter(): CrowdloanRouter = object : CrowdloanRouter {
+        override fun openContribute(payload: ContributePayload) = Unit
+        override val customBonusFlow: Flow<BonusPayload?> = flowOf(null)
+        override val latestCustomBonus: BonusPayload? = null
+        override fun openMoonbeamContribute(payload: CustomContributePayload) = Unit
+        override fun openMoonbeamConfirmContribute(payload: ConfirmContributePayload) = Unit
+        override fun openCustomContribute(payload: CustomContributePayload) = Unit
+        override fun setCustomBonus(payload: BonusPayload) = Unit
+        override fun openConfirmContribute(payload: ConfirmContributePayload) = Unit
+        override fun back() = Unit
+        override fun returnToMain() = Unit
+    }
 
     @Provides
     fun provideCrowdloanStorage(preferences: Preferences) = CrowdloanStorage(preferences)
@@ -113,6 +143,20 @@ class CrowdloanFeatureModule {
         crowdloanMetadataApi,
         moonbeamApi,
         crowdloanStorage
+    )
+
+    @Provides
+    @Singleton
+    fun provideLegacyCrowdloanRecovery(
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry,
+        crowdloanRepository: CrowdloanRepository,
+        operationDao: OperationDao
+    ): LegacyCrowdloanRecovery = LegacyCrowdloanRecoveryImpl(
+        accountRepository = accountRepository,
+        chainRegistry = chainRegistry,
+        crowdloanRepository = crowdloanRepository,
+        operationDao = operationDao
     )
 
     @Provides

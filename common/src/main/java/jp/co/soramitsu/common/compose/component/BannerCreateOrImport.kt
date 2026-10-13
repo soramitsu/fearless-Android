@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.ui_core.theme.customTypography
@@ -69,7 +70,7 @@ fun BannerCreateOrImport(
     @DrawableRes backgroundResId:  Int,
     onClick: () -> Unit,
     onCloseClick: () -> Unit
-) {
+) = FearlessAppTheme {
     Box(
         modifier = Modifier
             .fillMaxWidth()

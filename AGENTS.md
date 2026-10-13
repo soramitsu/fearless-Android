@@ -10,7 +10,12 @@
 [![Android CI](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml)
 
 ## Project Structure & Modules
-- `app/`: Android app entry; build types `debug/release/staging/develop/pr`.
+- `app/`: Android app entry; build types
+  `debug/release/internalAppSharing/staging/develop/pr`.
+  `internalAppSharing` is a CI-only smoke variant signed by a run-bound
+  ephemeral Android Debug JKS; it is not a production distribution path. Its
+  Google Services task reads the checksum-pinned release placeholder directly,
+  and `app/src/internalAppSharing` must never be created.
 - `feature-*/`: Split by domain with `-api` and `-impl` modules (e.g., `feature-wallet-api`, `feature-wallet-impl`).
 - `core-api/`, `core-db/`, `runtime/`, `runtime-permission/`, `common/`: Shared foundations.
 - `test-shared/`: Test-only utilities reused across modules.
@@ -18,7 +23,9 @@
 - Per-module sources: `src/main/java|kotlin`, resources `src/main/res`, unit tests `src/test`, instrumentation tests `src/androidTest`.
 
 ## Build, Test, and Dev Commands
-- Build app (APK): `./gradlew :app:assembleDebug` (use `assembleRelease` for release).
+- Build a local debug APK: `./gradlew :app:assembleDebug`. Release artifacts
+  must follow the protected, source-bound procedure in
+  `docs/releases/PROCESS.md`; do not invoke a local release task for distribution.
 - Full build + checks: `./gradlew clean build`.
 - Static analysis: `./gradlew detektAll` (auto-fix formatting: `./gradlew detektFormat`).
 - Unit tests (aggregated): `./gradlew runTest` (runs detekt, unit tests, JaCoCo report).
@@ -56,11 +63,23 @@
 ## Security & Configuration
 - Secrets are read via `scripts/secrets.gradle`; set in env vars or `local.properties` (see `README.md`).
 - Do not commit keys, keystores, provisioning files, or `local.properties`.
-- Polkadot runtime sources: to align with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
-  - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE`
+- Internal App Sharing must run only through the dedicated
+  `android-internal-app-sharing.yml` CI path. Generate a new mode-`0600` JKS and
+  bind its certificate SHA-256 for that run; never commit or reuse the private
+  key. PR runs are non-distributable validation only and must not upload an
+  artifact. Only a manual run of the first-party workflow from the protected,
+  merged, current `develop` head may retain a seven-day verified GitHub Actions
+  handoff. The workflow must never upload to Google/Play or mutate a Play track.
+  Because IAS uses fake/empty public Firebase and OAuth values, do not claim it
+  qualifies live Firebase, Google sign-in, Drive/passkey backup, or restore.
+  When versioning changes, update the workflow/verifier hardcodes for
+  `4.2.0-ias` / `230` in the same reviewed commit.
+- Polkadot runtime sources: to align debug builds with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
+  - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_DEBUG_OVERRIDE`
+  - Release chain discovery is intentionally pinned to the canonical production URL and does not accept a chain-registry override.
   - Example in `local.properties`:
     - `TYPES_URL_OVERRIDE=https://.../all_chains_types_android.json`
-    - `CHAINS_URL_OVERRIDE=https://.../chains.json`
+    - `CHAINS_URL_DEBUG_OVERRIDE=https://.../chains.json`
   - After updating, run `./gradlew detektAll runTest :app:lint`.
 - Library version pinning: to use a specific `shared_features` version compatible with a Polkadot SDK release, set
   - `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y`
@@ -69,12 +88,12 @@
 ## Local Properties (private)
 - Create a root-level `local.properties` with the required secrets and service credentials. Do NOT commit this file.
 - See `docs/samples/local.properties.example` and create a private `local.properties` at the repo root; replace placeholders with your real values.
-- Typical keys include: MoonPay, X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API.
+- Typical keys include: MoonPay publishable keys, X1 plugin, Google Web Client IDs, Ethereum providers (Blast, Etherscan/BscScan/PolygonScan/OKLink), WalletConnect, Alchemy, Dwellir, TON API. Never put a MoonPay server secret in Android configuration.
 - Formats: use `key=value` per line; avoid trailing spaces. Strings may be unquoted; if values contain special characters or spaces, wrap in double quotes. Set `sdk.dir=/absolute/path/to/Android/sdk` to avoid SDK lookup errors.
 - Runtime overrides (mirrors recommended for first run):
   - `TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/all_chains_types_android.json`
   - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/default_v13_types.json`
-  - `CHAINS_URL_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/v13/chains.json`
+  - `CHAINS_URL_DEBUG_OVERRIDE=https://cdn.jsdelivr.net/gh/soramitsu/shared-features-utils@master/chains/v13/chains.json`
 - Verify config: `./gradlew printPolkadotSdkAlignment` prints effective URLs and any shared_features pin before you run the app/tests.
 
 ## Utils Integration

@@ -22,13 +22,14 @@ class AssetBalanceUseCaseImpl(
     private val chainsRepository: ChainsRepository,
 ): AssetBalanceUseCase {
 
-    override suspend fun invoke(accountMetaId: Long, assetId: String): AssetBalance {
-        val assets = assetDao.getAssets(accountMetaId = accountMetaId, id = assetId)
+    override suspend fun invoke(accountMetaId: Long, chainId: String, assetId: String): AssetBalance {
+        val assets = assetDao.getAssets(accountMetaId = accountMetaId, chainId = chainId, id = assetId)
         return sumAssetBalances(assets)
     }
 
-    override fun observe(accountMetaId: Long, assetId: String): Flow<AssetBalance> {
-        return assetDao.observeAssets(accountMetaId = accountMetaId, id = assetId).map(::sumAssetBalances)
+    override fun observe(accountMetaId: Long, chainId: String, assetId: String): Flow<AssetBalance> {
+        return assetDao.observeAssets(accountMetaId = accountMetaId, chainId = chainId, id = assetId)
+            .map(::sumAssetBalances)
     }
 
     private suspend fun sumAssetBalances(assets: List<AssetWithToken>): AssetBalance {

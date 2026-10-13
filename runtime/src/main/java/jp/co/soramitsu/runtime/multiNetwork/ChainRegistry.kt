@@ -60,6 +60,31 @@ data class ChainService(
 )
 
 /**
+ * Selects connection/runtime work from current user needs and supported live features only.
+ * Historical crowdloan flags are deliberately absent and cannot activate a network.
+ */
+internal fun selectChainsForBackgroundSync(
+    chains: List<Chain>,
+    enabledChainIds: Set<ChainId>
+): List<Chain> {
+    val popularChains = chains.filter { it.rank != null }
+    val enabledChains = chains.filter { it.id in enabledChainIds }
+    val chainsWithStaking = chains.filter { chain ->
+        chain.assets.any { asset ->
+            asset.staking == Asset.StakingType.PARACHAIN ||
+                asset.staking == Asset.StakingType.RELAYCHAIN ||
+                asset.supportStakingPool
+        }
+    }
+    val requiredIdentityChainIds = chains.mapNotNull(Chain::identityChain).toSet()
+    val identityHolders = chains.filter { it.id in requiredIdentityChainIds }
+
+    return (popularChains + enabledChains + chainsWithStaking + identityHolders)
+        .distinctBy(Chain::id)
+        .filter { it.nodes.isNotEmpty() }
+}
+
+/**
  * Central registry coordinating chain runtimes, connections, and sync lifecycle.
  *
  * Responsibilities:
@@ -97,23 +122,14 @@ class ChainRegistry @Inject constructor(
         .onStart { emit(emptyList()) }
 
     // Determines chains that should be actively synced based on popularity, user-enabled assets,
-    // and presence of staking/crowdloans/identity requirements.
+    // and presence of staking or identity requirements.
     private val chainsToSync = chainDao.joinChainInfoFlow()
         .mapList(::mapChainLocalToChain)
         .combine(enabledAssetsFlow) { chains, enabledAssets ->
-            val popularChains = chains.filter { it.rank != null }
-            val enabledChains =
-                enabledAssets.mapNotNull { asset -> chains.find { chain -> chain.id == asset.chainId } }
-            val chainsWithCrowdloans = chains.filter { it.hasCrowdloans }
-            val chainsWithStaking = chains.filter {
-                it.assets.any { asset -> asset.staking == Asset.StakingType.PARACHAIN || asset.staking == Asset.StakingType.RELAYCHAIN || asset.supportStakingPool }
-            }
-            val identityHolders =
-                chains.filter { chain -> chain.identityChain != null }.map { it.identityChain }
-                    .mapNotNull { identityChain -> chains.find { it.id == identityChain } }
-
-            (popularChains + enabledChains + chainsWithCrowdloans + chainsWithStaking + identityHolders).toSet()
-                .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
+            selectChainsForBackgroundSync(
+                chains = chains,
+                enabledChainIds = enabledAssets.mapTo(mutableSetOf()) { it.chainId }
+            )
         }
         .diffed()
         .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }

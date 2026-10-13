@@ -12,6 +12,16 @@ import org.junit.Test
 import java.io.InputStreamReader
 
 class TonKeyDerivationTest {
+    @Test
+    fun `universal mnemonic binding requires exact keys for both seed lengths`() {
+        loadVectors().forEach { vector ->
+            val mnemonic = vector["mnemonic"].asString
+            val account = TonKeyDerivation.deriveAccount(mnemonic)
+            assertTrue(TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonic, account.privateKey, account.publicKey))
+            org.junit.Assert.assertFalse(TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonic, ByteArray(32), account.publicKey))
+            org.junit.Assert.assertFalse(TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonic, account.privateKey, ByteArray(32)))
+        }
+    }
 
     @Test
     fun `derives universal wallet v2 ton vectors`() {

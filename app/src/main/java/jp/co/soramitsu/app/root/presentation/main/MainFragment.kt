@@ -3,23 +3,28 @@ package jp.co.soramitsu.app.root.presentation.main
 import android.os.Bundle
 import android.view.View
 import androidx.activity.OnBackPressedCallback
-import androidx.core.view.isVisible
+import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.NavigationUI.onNavDestinationSelected
 import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.databinding.FragmentMainBinding
+import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.updatePadding
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
 
     private var navController: NavController? = null
+    private var restoringViewState = false
+
+    @Inject
+    lateinit var navigator: Navigator
 
     private val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
@@ -32,40 +37,22 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
     override val viewModel: MainViewModel by viewModels()
 
     override fun onDestroyView() {
+        navController?.let(navigator::detachMainTabs)
         super.onDestroyView()
 
         backCallback.isEnabled = false
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        restoringViewState = savedInstanceState != null
         binding = FragmentMainBinding.bind(view)
         super.onViewCreated(view, savedInstanceState)
     }
 
     override fun initViews() {
-        binding.bottomNavigationView.setOnApplyWindowInsetsListener { v, insets ->
-            val systemWindowInsetBottom = insets.systemWindowInsetBottom
-            v.updatePadding(bottom = systemWindowInsetBottom)
-            insets
-        }
         binding.bottomNavigationViewWithFab.setOnApplyWindowInsetsListener { v, insets ->
             val systemWindowInsetBottom = insets.systemWindowInsetBottom
             v.updatePadding(bottom = systemWindowInsetBottom)
-            insets
-        }
-
-        binding.bottomNavHost.setOnApplyWindowInsetsListener { v, insets ->
-            val systemWindowInsetBottom = insets.systemWindowInsetBottom
-
-            // post to prevent bottomNavigationView.height being 0 if callback is called before view has been measured
-            v.post {
-                val bottomNavFabHeight = binding.bottomNavigationViewWithFab.height
-                val bottomNavHeight = binding.bottomNavigationView.height
-                val useHeight = maxOf(bottomNavFabHeight, bottomNavHeight)
-                val padding = (systemWindowInsetBottom - useHeight).coerceAtLeast(0)
-                v.updatePadding(bottom = padding)
-            }
-
             insets
         }
 
@@ -73,36 +60,51 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
             childFragmentManager.findFragmentById(R.id.bottomNavHost) as NavHostFragment
 
         navController = nestedNavHostFragment.navController
+        navigator.attachMainTabs(navController!!)
 
-        binding.bottomNavigationView.setupWithNavController(navController!!)
         binding.bottomNavigationViewWithFab.setupWithNavController(navController!!)
 
-        binding.bottomNavigationView.setOnItemSelectedListener { item ->
-            onNavDestinationSelected(item, navController!!)
-        }
         binding.bottomNavigationViewWithFab.setOnItemSelectedListener { item ->
-            onNavDestinationSelected(item, navController!!)
+            selectMainTab(navController!!, item.itemId)
+        }
+        binding.bottomNavigationViewWithFab.setOnItemReselectedListener { item ->
+            reselectMainTab(navController!!, item.itemId)
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(backCallback)
 
         navController!!.addOnDestinationChangedListener { _, destination, _ ->
             backCallback.isEnabled = !isAtHomeTab(destination)
+            binding.fabMain.isSelected = generateSequence(destination) { it.parent }
+                .any { it.id == R.id.polkaswapGraph }
         }
 
-        binding.fabMain.setOnClickListener {
-            viewModel.navigateToSwapScreen()
+        configurePolkaswapNavigationAction(binding.bottomNavigationViewWithFab, binding.fabMain, binding.bottomNavHost)
+
+        if (!restoringViewState) {
+            arguments?.getString(ARG_POLKAMARKT_MARKET_ID)?.let { marketId ->
+                binding.bottomNavigationViewWithFab.selectedItemId = R.id.defiGraph
+                navController!!.navigate(
+                    R.id.polkamarktFragment,
+                    bundleOf(ARG_POLKAMARKT_MARKET_ID to marketId)
+                )
+            }
         }
     }
 
-    override fun subscribe(viewModel: MainViewModel) {
-        viewModel.isTonAccountSelectedFlow.observe { isTon ->
-            binding.fabMain.isVisible = isTon.not()
-            binding.bottomNavigationViewWithFab.isVisible = isTon.not()
-            binding.bottomNavigationView.isVisible = isTon
-        }
-    }
+    override fun subscribe(viewModel: MainViewModel) = Unit
 
-    private fun isAtHomeTab(destination: NavDestination) =
-        destination.id == navController!!.graph.startDestinationId
+    private fun isAtHomeTab(destination: NavDestination) = destination.id in TAB_ROOT_DESTINATIONS
+
+    private companion object {
+        const val ARG_POLKAMARKT_MARKET_ID = "marketId"
+
+        val TAB_ROOT_DESTINATIONS = setOf(
+            R.id.walletFragment,
+            R.id.defiHubFragment,
+            R.id.polkaswapHubFragment,
+            R.id.crossChainFragment,
+            R.id.profileFragment
+        )
+    }
 }

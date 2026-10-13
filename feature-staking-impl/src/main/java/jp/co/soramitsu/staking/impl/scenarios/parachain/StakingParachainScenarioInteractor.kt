@@ -248,7 +248,8 @@ class StakingParachainScenarioInteractor(
     }
 
     override suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>> {
-        collatorAddress ?: throw IllegalArgumentException("No collator address provided")
+        if (collatorAddress == null) return flowOf(emptyList())
+
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
         val delegationHistoryFlow: Flow<List<Unbonding>> = flowOf(
@@ -369,7 +370,8 @@ class StakingParachainScenarioInteractor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
-        collatorId ?: error("cannot find collatorId")
+        if (collatorId == null) return emptyFlow()
+
         return combine(
             stakingInteractor.selectedChainFlow().distinctUntilChanged(),
             accountRepository.selectedMetaAccountFlow().distinctUntilChanged()
@@ -444,14 +446,16 @@ class StakingParachainScenarioInteractor(
 //        }
     }
 
-    override suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding> = flowOf(
-        stakingInteractor.getSelectedChain()
-    ).flatMapLatest { chain ->
-        collatorAddress ?: error("cannot find collatorAddress")
-        getUnbondingRequestsFlow(chain.id, collatorAddress.fromHex())
+    override suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding> {
+        if (collatorAddress == null) return emptyList()
+
+        return flowOf(stakingInteractor.getSelectedChain())
+            .flatMapLatest { chain ->
+                getUnbondingRequestsFlow(chain.id, collatorAddress.fromHex())
+            }
+            .map { it.filter { it.timeLeft > 0 } }
+            .first()
     }
-        .map { it.filter { it.timeLeft > 0 } }
-        .first()
 
     override fun rebond(extrinsicBuilder: ExtrinsicBuilder, amount: BigInteger, candidate: String?): ExtrinsicBuilder {
         candidate ?: error("cannot find collatorAddress")
@@ -482,7 +486,7 @@ class StakingParachainScenarioInteractor(
     override fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal) = amount
 
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal {
-        collatorId ?: error("cannot find collatorId")
+        if (collatorId == null) return BigDecimal.ZERO
 
         val chainToAccountIdFlow = flowOf {
             val chain = stakingInteractor.getSelectedChain()

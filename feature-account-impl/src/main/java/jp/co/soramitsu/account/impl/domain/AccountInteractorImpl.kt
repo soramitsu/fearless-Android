@@ -90,6 +90,13 @@ class AccountInteractorImpl(
         return runCatching { accountRepository.createAccount(payload) }
     }
 
+    override suspend fun createAccountFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Result<Long> {
+        return runCatching { accountRepository.createAccountFromBackup(payload, ethereumPrivateKeyHex) }
+    }
+
     override suspend fun saveChainSelectFilter(metaId: Long, filterValue: String){
         walletInteractor.saveChainSelectFilter(metaId, filterValue)
     }
@@ -321,6 +328,14 @@ class AccountInteractorImpl(
         return withContext(context) {
             migrationSnapshotBuilder.build(accountRepository.lightMetaAccountsFlow().first())
         }
+    }
+
+    override suspend fun isWalletRecoveryRequired(metaId: Long): Boolean {
+        return accountRepository.isWalletRecoveryRequired(metaId)
+    }
+
+    override fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean> {
+        return accountRepository.walletRecoveryRequiredFlow(metaId)
     }
 
     override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String) {

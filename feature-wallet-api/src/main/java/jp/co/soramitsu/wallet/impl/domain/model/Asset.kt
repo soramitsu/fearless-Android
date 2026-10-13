@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.lessThan
@@ -110,7 +110,7 @@ data class Asset(
 
     val fiatAmount = total?.let { token.fiatRate?.multiply(total) }
 
-    val uniqueKey = AssetKey(metaId, token.configuration.chainId, accountId, token.configuration.id)
+    val uniqueKey = WalletAssetKey(metaId, token.configuration.chainId, accountId, token.configuration.id)
 
     fun getAsFiatWithCurrency(value: BigDecimal?) =
         token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatFiat(token.fiatSymbol) }

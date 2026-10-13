@@ -18,10 +18,13 @@ import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.ext.assetKey
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.repository.isSupported
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -43,8 +46,8 @@ class ManageAssetsViewModel @Inject constructor(
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), ManageAssetsContentInterface {
 
-    private val initialAssetStates = MutableStateFlow<List<AssetBooleanState>>(emptyList())
-    private val currentAssetStates = MutableStateFlow<List<AssetBooleanState>>(emptyList())
+    /** Only user interactions belong here. An absent entry preserves the persisted Auto state. */
+    private val pendingExplicitAssetStates = MutableStateFlow<List<AssetBooleanState>>(emptyList())
 
     private val selectedChainIdFlow = MutableStateFlow<ChainId?>(null)
 
@@ -82,8 +85,8 @@ class ManageAssetsViewModel @Inject constructor(
             walletInteractor.observeSelectedAccountChainSelectFilter(),
             selectedChainIdFlow,
             enteredTokenQueryFlow,
-            currentAssetStates
-        ) {  assets, chains, currentMetaAccount, filter, selectedChainId, searchQuery, currentStates ->
+            pendingExplicitAssetStates
+        ) {  assets, chains, currentMetaAccount, filter, selectedChainId, searchQuery, pendingStates ->
 
             val selectedAccountFavoriteChains = currentMetaAccount.favoriteChains
             val chainsWithFavoriteInfo = chains.map { chain ->
@@ -138,9 +141,22 @@ class ManageAssetsViewModel @Inject constructor(
                 val (chainAsset, assetWithStatus) = it
                 val available = assetWithStatus?.asset?.transferable ?: BigDecimal.ZERO
                 val fiatAmount = assetWithStatus?.asset?.token?.fiatRate?.let { rate -> available.applyFiatRate(rate).orZero().formatFiat(assetWithStatus.asset.token.fiatSymbol) }
-                val isHidden = currentStates.find { assetBooleanState -> assetBooleanState.assetId == chainAsset.id && assetBooleanState.chainId == chainAsset.chainId }?.value == false
+                val chain = filteredChains.firstOrNull { it.id == chainAsset.chainId }
+                    ?: error("Filtered asset ${chainAsset.id} has no owning chain ${chainAsset.chainId}")
+                val pendingPreference = pendingStates.find { state ->
+                    state.assetId == chainAsset.id && state.chainId == chainAsset.chainId
+                }?.value
+                val isChecked = pendingPreference ?: assetWithStatus?.asset?.enabled
+                    ?: AssetListHelper.shouldDisplayInPortfolio(
+                        total = assetWithStatus?.asset?.total.orZero(),
+                        asset = chainAsset,
+                        isPinnedNetwork = selectedAccountFavoriteChains[chainAsset.chainId]?.isFavorite == true,
+                        isDefaultNetwork = chain.rank != null
+                    )
 
+                val canonicalAssetKey = canonicalManageAssetKey(chain, chainAsset)
                 ManageAssetItemState(
+                    canonicalAssetKey = canonicalAssetKey,
                     id = chainAsset.id,
                     imageUrl = chainAsset.iconUrl,
                     chainName = chainAsset.chainName,
@@ -150,13 +166,11 @@ class ManageAssetsViewModel @Inject constructor(
                     fiatAmount = fiatAmount
                         ?: "${assetWithStatus?.asset?.token?.fiatSymbol.orEmpty()}0".takeIf { chainAsset.priceId != null || chainAsset.priceProvider?.isSupported == true},
                     chainId = chainAsset.chainId,
-                    isChecked = !isHidden,
+                    isChecked = isChecked,
                     isZeroAmount = available.orZero().isZero(),
                     showEdit = false
                 )
-            }.groupBy {
-                it.symbol
-            } to searchQuery
+            }.let(::groupManageAssetsByCanonicalIdentity) to searchQuery
         }.onEach { (groupedStates, searchQuery)  ->
             state.value = state.value.copy(assets = groupedStates, searchQuery = searchQuery)
         }.launchIn(this)
@@ -168,21 +182,6 @@ class ManageAssetsViewModel @Inject constructor(
         viewModelScope.launch {
             val metaId = accountInteractor.selectedLightMetaAccount().id
             selectedChainIdFlow.value = walletInteractor.getSavedChainId(metaId)
-        }
-        viewModelScope.launch  {
-            val assets = walletInteractor.assetsFlow().firstOrNull()
-            val chainAssets = chainInteractor.getChainAssets()
-            val assetsStates = chainAssets.map { chainAsset ->
-                val asset = assets?.find {  it.asset.token.configuration.id == chainAsset.id && it.asset.token.configuration.chainId == chainAsset.chainId }
-                val value = asset?.asset?.enabled ?: false
-                AssetBooleanState(
-                    chainId = chainAsset.chainId,
-                    assetId = chainAsset.id,
-                    value = value
-                )
-            }
-            initialAssetStates.value = assetsStates
-            currentAssetStates.value = assetsStates
         }
 
         walletRouter.chainSelectorPayloadFlow.map { chainId ->
@@ -197,14 +196,14 @@ class ManageAssetsViewModel @Inject constructor(
     }
 
     override fun onChecked(assetItemState: ManageAssetItemState, checked: Boolean) {
-        currentAssetStates.update {  prevState ->
-            prevState.map {
-                if (it.assetId == assetItemState.id && it.chainId == assetItemState.chainId) {
-                    it.copy(value = checked)
-                } else {
-                    it
-                }
-            }
+        pendingExplicitAssetStates.update { previous ->
+            previous.filterNot {
+                it.assetId == assetItemState.id && it.chainId == assetItemState.chainId
+            } + AssetBooleanState(
+                chainId = assetItemState.chainId,
+                assetId = assetItemState.id,
+                value = checked
+            )
         }
     }
 
@@ -231,12 +230,18 @@ class ManageAssetsViewModel @Inject constructor(
 
     fun onDialogClose() {
         walletRouter.setChainSelectorPayload(selectedChainIdFlow.value)
-        val initial = initialAssetStates.value
-        val changes = currentAssetStates.value.filter {
-            it !in initial
-        }
-        kotlinx.coroutines.MainScope().launch {
-            walletInteractor.updateAssetsHiddenState(changes)
+        val changes = pendingExplicitAssetStates.value
+        if (changes.isNotEmpty()) {
+            kotlinx.coroutines.MainScope().launch {
+                walletInteractor.updateAssetsHiddenState(changes)
+            }
         }
     }
 }
+
+internal fun canonicalManageAssetKey(chain: Chain, asset: Asset): String =
+    chain.assetKey(asset).serialized
+
+internal fun groupManageAssetsByCanonicalIdentity(
+    assets: List<ManageAssetItemState>
+): Map<String, List<ManageAssetItemState>> = assets.groupBy(ManageAssetItemState::canonicalAssetKey)

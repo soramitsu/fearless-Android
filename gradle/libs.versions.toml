@@ -1,7 +1,7 @@
 [versions]
 accompanistVersion = "0.34.0"
 activityCompose = "1.9.3"
-android_plugin = "8.9.1"
+android_plugin = "8.10.1"
 appcompat = "1.7.0"
 architectureComponentVersion = "2.8.7"
 beaconVersion = "3.2.4"
@@ -26,6 +26,7 @@ firebaseAppdistributionGradle = "4.2.0"
 fragmentKtx = "1.8.5"
 gmsPlayServices = "18.5.0"
 googlePlayServicesAuth = "21.6.0"
+playIntegrity = "1.6.0"
 googleServices = "4.4.1"
 gson = "2.10.1"
 hiltNavComposeVersion = "1.2.0"
@@ -48,7 +49,6 @@ mockk = "1.13.11"
 okhttpVersion = "4.12.0"
 opencsv = "5.7.1"
 orgJacocoCore = "0.8.12"
-playPublisher = "3.12.1"
 progressButtonsVersion = "2.1.0"
 recyclerviewVersion = "1.3.2"
 retrofit = "2.11.0"
@@ -63,7 +63,7 @@ soraUiCore = "0.2.39"
 storiesVersion = "3.0.1"
 reownBom = "1.6.9"
 web3j = "4.8.8-android"
-wsVersion = "2.14"
+wsVersion = "2.14-fearless-guard1"
 xNetworking = "1.0.13"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
@@ -114,10 +114,10 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navControllerVersion" }
 navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navControllerVersion" }
+navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navControllerVersion" }
 nv-websocket-client = { module = "com.neovisionaries:nv-websocket-client", version.ref = "wsVersion" }
 opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
 org-jacoco-core = { module = "org.jacoco:org.jacoco.core", version.ref = "orgJacocoCore" }
-play-publisher = { module = "com.github.triplet.gradle:play-publisher", version.ref = "playPublisher" }
 progressbutton = { module = "com.github.razir.progressbutton:progressbutton", version.ref = "progressButtonsVersion" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerviewVersion" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomVersion" }
@@ -161,6 +161,7 @@ compose-animation = { module = "androidx.compose.animation:animation", version.r
 compose-animationGraphics = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-uiTooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
+compose-uiTestJunit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
 compose-shimmer = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref = "composeShimmer" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "architectureComponentVersion"}
@@ -181,6 +182,7 @@ fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragme
 material = { module = "com.google.android.material:material", version.ref = "material" }
 play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "gmsPlayServices" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "googlePlayServicesAuth" }
+play-integrity = { module = "com.google.android.play:integrity", version.ref = "playIntegrity" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }

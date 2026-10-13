@@ -11,6 +11,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
+import jp.co.soramitsu.xcm.domain.CrossChainRouteProviderRegistry
+import jp.co.soramitsu.xcm.domain.CrossChainRouteQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -19,7 +21,8 @@ import kotlinx.coroutines.withContext
 
 class ChainInteractor(
     private val chainDao: ChainDao,
-    private val xcmEntitiesFetcher: XcmEntitiesFetcher
+    private val xcmEntitiesFetcher: XcmEntitiesFetcher,
+    private val routeProviderRegistry: CrossChainRouteProviderRegistry
 ) {
     fun getChainsFlow() = chainDao.joinChainInfoFlow().mapList { mapChainLocalToChain(it) }.map {
         it.sortedWith(chainDefaultSort())
@@ -59,6 +62,7 @@ class ChainInteractor(
     fun getXcmChainIdsFlow(
         type: XcmChainType,
         originChainId: String? = null,
+        originAssetId: String? = null,
         assetSymbol: String? = null
     ): Flow<List<ChainId>> {
         return flow {
@@ -73,11 +77,23 @@ class ChainInteractor(
                 XcmChainType.Destination -> {
                     xcmEntitiesFetcher.getAvailableDestinationChains(
                         assetSymbol = assetSymbol,
-                        originChainId = originChainId
+                        originChainId = originChainId,
+                        originAssetId = originAssetId
                     )
                 }
             }
-            emit(chainIds)
+            val providerCapabilities = routeProviderRegistry.capabilities(
+                CrossChainRouteQuery(
+                    originNetworkId = originChainId,
+                    originAssetId = originAssetId,
+                    assetSymbol = assetSymbol
+                )
+            ).filter { it.hasRoute }
+            val providerChainIds = when (type) {
+                XcmChainType.Origin -> providerCapabilities.flatMap { it.supportedOriginNetworkIds }
+                XcmChainType.Destination -> providerCapabilities.flatMap { it.supportedDestinationNetworkIds }
+            }
+            emit((chainIds + providerChainIds).distinct())
         }
     }
 

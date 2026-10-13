@@ -149,10 +149,12 @@ class TransactionHistoryProvider(
                     }
                     _sideEffects.emit(
                         TransactionHistoryUi.SideEffect.Error(
-                            throwable.localizedMessage ?: throwable.localizedMessage
+                            throwable.localizedMessage ?: message
                         )
                     )
-                    _state.emit(TransactionHistoryUi.State.Empty(message))
+                    if (currentData.isEmpty()) {
+                        _state.emit(TransactionHistoryUi.State.Empty(message))
+                    }
                 }.onSuccess {
                     nextCursor = it.nextCursor
                 }

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
@@ -14,5 +14,5 @@ interface AssetNotNeedAccountUseCase {
     /**
      * Get assets without account
      */
-    fun getAssetsMarkedNotNeedFlow(metaId: Long): Flow<List<AssetKey>>
+    fun getAssetsMarkedNotNeedFlow(metaId: Long): Flow<List<WalletAssetKey>>
 }

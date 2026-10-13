@@ -79,6 +79,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.Base64
 
 class BitcoinTransferServiceProviderTest {
@@ -161,6 +162,44 @@ class BitcoinTransferServiceProviderTest {
         }
 
         assertTrue(error.message!!.contains("does not match selected wallet"))
+        assertEquals(0, client.feeEstimateCalls)
+        assertEquals(0, client.utxoCalls)
+        assertEquals(null, client.lastBroadcastTxHex)
+    }
+
+    @Test
+    fun `bitcoin transfer rejects raw amounts outside long range before indexer calls`() {
+        val chain = bitcoinChain()
+        val asset = chain.assets.single()
+        val client = FakeBitcoinIndexerClient()
+        val service = provider(
+            accountRepository = accountRepository(
+                metaAccount = bitcoinMetaAccount(chain),
+                mnemonic = MNEMONIC
+            ),
+            bitcoinIndexerClient = client
+        ).provide(chain)
+
+        listOf(
+            BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE),
+            BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.ONE)
+        ).forEach { rawAmount ->
+            val error = assertThrows(IllegalStateException::class.java) {
+                runBlocking {
+                    service.getTransferFee(
+                        Transfer(
+                            MAINNET_ADDRESS,
+                            MAINNET_RECIPIENT,
+                            BigDecimal(rawAmount, asset.precision),
+                            asset
+                        )
+                    )
+                }
+            }
+
+            assertEquals("Bitcoin transfer amount is outside the supported satoshi range", error.message)
+        }
+
         assertEquals(0, client.feeEstimateCalls)
         assertEquals(0, client.utxoCalls)
         assertEquals(null, client.lastBroadcastTxHex)
@@ -365,6 +404,43 @@ class BitcoinTransferServiceProviderTest {
     }
 
     @Test
+    fun `solana transfer rejects raw amounts outside long range before rpc calls`() {
+        val chain = solanaChain()
+        val asset = chain.assets.single()
+        val rpcClient = FakeSolanaRpcClient()
+        val service = provider(
+            accountRepository = accountRepository(
+                metaAccount = solanaMetaAccount(chain),
+                mnemonic = MNEMONIC
+            ),
+            solanaRpcClient = rpcClient
+        ).provide(chain)
+
+        listOf(
+            BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE),
+            BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.ONE)
+        ).forEach { rawAmount ->
+            val error = assertThrows(IllegalStateException::class.java) {
+                runBlocking {
+                    service.getTransferFee(
+                        Transfer(
+                            SOLANA_ADDRESS,
+                            SOLANA_RECIPIENT,
+                            BigDecimal(rawAmount, asset.precision),
+                            asset
+                        )
+                    )
+                }
+            }
+
+            assertEquals("Solana transfer amount is outside the supported lamport range", error.message)
+        }
+
+        assertTrue(rpcClient.urls.isEmpty())
+        assertTrue(rpcClient.accountExistenceChecks.isEmpty())
+    }
+
+    @Test
     fun `provider routes iroha chains to fail closed iroha transfer service`() {
         val chain = irohaChain()
         val sourceAddress = IrohaKeyDerivation.deriveAddress(
@@ -439,6 +515,7 @@ class BitcoinTransferServiceProviderTest {
         assertEquals(IrohaAddressCodec.parse(sourceAddress, UniversalWalletRegistry.taira.chainDiscriminant).publicKeyHex, signer.lastRequest?.signingPublicKeyHex)
         assertEquals(sourceAddress, signer.lastRequest?.sourceAccountId)
         assertEquals("xor#sora#$sourceAddress", signer.lastRequest?.sourceAssetId)
+        assertTrue(signer.lastRequest?.transactionMetadata?.isEmpty() == true)
     }
 
     @Test
@@ -486,6 +563,180 @@ class BitcoinTransferServiceProviderTest {
         assertEquals(IrohaAddressCodec.parse(sourceAddress, UniversalWalletRegistry.nexus.chainDiscriminant).publicKeyHex, signer.lastRequest?.signingPublicKeyHex)
         assertEquals(sourceAddress, signer.lastRequest?.sourceAccountId)
         assertEquals("xor#sora#$sourceAddress", signer.lastRequest?.sourceAssetId)
+        assertTrue(signer.lastRequest?.transactionMetadata?.isEmpty() == true)
+    }
+
+    @Test
+    fun `nexus wallet smoke evidence uses exact immutable metadata and canonical minamoto`() {
+        val chain = irohaChain(UniversalWalletRegistry.nexus)
+        val signer = FakeIrohaTransferSigner()
+        val toriiClient = FakeIrohaToriiClient()
+        val sourceAddress = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        ).i105
+        val recipientAddress = IrohaAddressCodec.encode(
+            publicKeyHex = "22".repeat(32),
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        )
+        val service = provider(
+            accountRepository = accountRepository(
+                metaAccount = irohaMetaAccount(chain),
+                mnemonic = MNEMONIC
+            ),
+            irohaToriiClient = toriiClient,
+            irohaTransferSigner = signer
+        ).provide(chain) as IrohaTransferService
+        val transfer = Transfer(sourceAddress, recipientAddress, BigDecimal("1.25"), chain.assets.single())
+        val supplied = walletSmokeMetadata()
+
+        val hash = runBlocking {
+            service.transferWalletSmokeEvidence(transfer, supplied)
+        }
+        supplied.clear()
+        supplied["attacker"] = "injected"
+
+        assertEquals(SIGNED_TRANSACTION_HASH, hash)
+        assertEquals(
+            linkedMapOf(
+                "evidence_role" to "wallet-smoke",
+                "route_governance_action_hash" to WALLET_SMOKE_ROUTE_HASH,
+                "wallet_platform" to "android",
+                "wallet_commit" to WALLET_SMOKE_COMMIT
+            ),
+            signer.lastRequest?.transactionMetadata?.asStringMap()
+        )
+        assertEquals("nexus", signer.lastRequest?.network)
+        assertEquals("sora:nexus:global", signer.lastRequest?.chainId)
+        assertEquals(UniversalWalletRegistry.nexus.toriiBaseUrl, toriiClient.lastSubmitBaseUrl)
+        assertEquals(SIGNED_TRANSACTION_BYTES.toList(), toriiClient.lastSubmittedNorito?.toList())
+    }
+
+    @Test
+    fun `wallet smoke evidence rejects taira and noncanonical minamoto before signer or torii`() {
+        val taira = irohaChain()
+        val tairaSigner = FakeIrohaTransferSigner()
+        val tairaTorii = FakeIrohaToriiClient()
+        val tairaAccountRepository = accountRepository(irohaMetaAccount(taira), MNEMONIC)
+        val tairaSource = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        ).i105
+        val tairaRecipient = IrohaAddressCodec.encode(
+            publicKeyHex = "11".repeat(32),
+            chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant
+        )
+        val tairaService = provider(
+            accountRepository = tairaAccountRepository,
+            irohaToriiClient = tairaTorii,
+            irohaTransferSigner = tairaSigner
+        ).provide(taira) as IrohaTransferService
+
+        val tairaError = assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                tairaService.transferWalletSmokeEvidence(
+                    Transfer(tairaSource, tairaRecipient, BigDecimal.ONE, taira.assets.single()),
+                    walletSmokeMetadata()
+                )
+            }
+        }
+        assertTrue(tairaError.message.orEmpty().contains("requires SORA Nexus"))
+        verifyNoInteractions(tairaAccountRepository)
+        assertEquals(null, tairaSigner.lastRequest)
+        assertEquals(null, tairaTorii.lastSubmittedNorito)
+
+        val nexus = irohaChain(UniversalWalletRegistry.nexus)
+        val noncanonicalNexus = nexus.copy(
+            externalApi = nexus.externalApi!!.copy(
+                history = Chain.ExternalApi.Section(
+                    Chain.ExternalApi.Section.Type.IROHA,
+                    "https://attacker.invalid"
+                )
+            )
+        )
+        val nexusSigner = FakeIrohaTransferSigner()
+        val nexusTorii = FakeIrohaToriiClient()
+        val nexusAccountRepository = accountRepository(irohaMetaAccount(noncanonicalNexus), MNEMONIC)
+        val nexusSource = IrohaKeyDerivation.deriveAddress(
+            mnemonic = MNEMONIC,
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        ).i105
+        val nexusRecipient = IrohaAddressCodec.encode(
+            publicKeyHex = "22".repeat(32),
+            chainDiscriminant = UniversalWalletRegistry.nexus.chainDiscriminant
+        )
+        val nexusService = provider(
+            accountRepository = nexusAccountRepository,
+            irohaToriiClient = nexusTorii,
+            irohaTransferSigner = nexusSigner
+        ).provide(noncanonicalNexus) as IrohaTransferService
+
+        val endpointError = assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                nexusService.transferWalletSmokeEvidence(
+                    Transfer(
+                        nexusSource,
+                        nexusRecipient,
+                        BigDecimal.ONE,
+                        noncanonicalNexus.assets.single()
+                    ),
+                    walletSmokeMetadata()
+                )
+            }
+        }
+        assertTrue(endpointError.message.orEmpty().contains("canonical SORA Nexus Minamoto"))
+        verifyNoInteractions(nexusAccountRepository)
+        assertEquals(null, nexusSigner.lastRequest)
+        assertEquals(null, nexusTorii.lastSubmittedNorito)
+    }
+
+    @Test
+    fun `wallet smoke evidence rejects malformed and aliasing metadata before signer or torii`() {
+        val chain = irohaChain(UniversalWalletRegistry.nexus)
+        val accountRepository = mock(AccountRepository::class.java)
+        val signer = FakeIrohaTransferSigner()
+        val toriiClient = FakeIrohaToriiClient()
+        val service = provider(
+            accountRepository = accountRepository,
+            irohaToriiClient = toriiClient,
+            irohaTransferSigner = signer
+        ).provide(chain) as IrohaTransferService
+        val transfer = Transfer("invalid sender", "invalid recipient", BigDecimal.ONE, chain.assets.single())
+        val invalid = listOf<Map<*, *>>(
+            walletSmokeMetadata().apply { remove("evidence_role") },
+            walletSmokeMetadata().apply { put("unexpected", "value") },
+            walletSmokeMetadata().apply {
+                remove("evidence_role")
+                put("Evidence_role", "wallet-smoke")
+            },
+            walletSmokeMetadata().apply { put("evidence_role", "Wallet-Smoke") },
+            walletSmokeMetadata().apply { put("route_governance_action_hash", "SHA256:${"a".repeat(64)}") },
+            walletSmokeMetadata().apply { put("route_governance_action_hash", "sha256:${"0".repeat(64)}") },
+            walletSmokeMetadata().apply { put("wallet_platform", "Android") },
+            walletSmokeMetadata().apply { put("wallet_commit", "A".repeat(40)) },
+            LinkedHashMap<Any?, Any?>().apply {
+                putAll(walletSmokeMetadata())
+                put("wallet_commit", 7)
+            },
+            LinkedHashMap<Any?, Any?>().apply {
+                putAll(walletSmokeMetadata())
+                put("wallet_commit", null)
+            },
+            LinkedHashMap<Any?, Any?>().apply {
+                putAll(walletSmokeMetadata())
+                put(null, "value")
+            }
+        )
+
+        invalid.forEach { metadata ->
+            assertThrows(IllegalArgumentException::class.java) {
+                runBlocking { service.transferWalletSmokeEvidence(transfer, metadata) }
+            }
+        }
+
+        verifyNoInteractions(accountRepository)
+        assertEquals(null, signer.lastRequest)
+        assertEquals(null, toriiClient.lastSubmittedNorito)
     }
 
     @Test
@@ -1013,6 +1264,9 @@ class BitcoinTransferServiceProviderTest {
         const val RECEIPT_TX_HASH = "receipt-tx-hash"
         const val RECEIPT_ENTRYPOINT_HASH = "receipt-entrypoint-hash"
         const val RECEIPT_SIGNED_TRANSACTION_HASH = "receipt-signed-transaction-hash"
+        const val WALLET_SMOKE_ROUTE_HASH =
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        const val WALLET_SMOKE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
         const val EXPECTED_TXID = "94c9b9d5070f24e06725b1000d9b1a0d46473d07b59088aca35e3d3da345023d"
         const val EXPECTED_TX_HEX = "0200000000010111111111111111111111111111111111111111111111111111111111111111110100000000ffffffff0250c300000000000016001487ed12b988403af67cf36ea58b7454ab5d165ab436c2000000000000160014c0cebcd6c3d3ca8c75dc5ec62ebe55330ef910e202473044022009ec0c24a20c4346c6516065723e2e83e6a7e4dd278fb66e27f36d9108d7ef4c022077f115bfbd68a2bc7a4c100766d9cceaf5300bcfcdc775be0248e7fb5a58216801210330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c00000000"
         private val BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray()
@@ -1437,6 +1691,15 @@ class BitcoinTransferServiceProviderTest {
                 identityChain = null,
                 ecosystem = Ecosystem.Substrate,
                 remoteAssetsSource = null
+            )
+        }
+
+        fun walletSmokeMetadata(): LinkedHashMap<String, String> {
+            return linkedMapOf(
+                "evidence_role" to "wallet-smoke",
+                "route_governance_action_hash" to WALLET_SMOKE_ROUTE_HASH,
+                "wallet_platform" to "android",
+                "wallet_commit" to WALLET_SMOKE_COMMIT
             )
         }
 

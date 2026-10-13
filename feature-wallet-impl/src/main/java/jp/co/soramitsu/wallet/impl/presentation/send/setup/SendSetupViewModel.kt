@@ -898,6 +898,11 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
+    override val onCrossChainClick: () -> Unit = {
+        val selectedAsset = assetFlow.value?.token?.configuration
+        router.openCrossChainSend(selectedAsset?.let { AssetPayload(it.chainId, it.id) })
+    }
+
     override fun onNavigationClick() {
         router.back()
     }

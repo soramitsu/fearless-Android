@@ -3,37 +3,558 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottom_nav_graph"
-    app:startDestination="@id/walletFragment">
+    app:startDestination="@id/portfolioGraph">
 
-    <fragment
-        android:id="@+id/profileFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.profile.ProfileFragment"
-        android:label="ProfileFragment" />
+    <!-- Every menu item is a NavGraph. NavigationUI therefore saves and restores a distinct
+         back stack for all five destinations instead of replacing MainFragment. -->
+    <navigation
+        android:id="@+id/portfolioGraph"
+        app:startDestination="@id/walletFragment">
+        <fragment
+            android:id="@+id/walletFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListFragment"
+            android:label="Portfolio" />
+        <fragment
+            android:id="@+id/balanceDetailFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment"
+            android:label="Asset" />
+        <fragment
+            android:id="@+id/legacyCrowdloanFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.legacy.LegacyCrowdloanFragment"
+            android:label="Legacy crowdloan" />
+        <fragment
+            android:id="@+id/assetDetailFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetailsFragment"
+            android:label="Asset networks" />
+        <dialog
+            android:id="@+id/assetDetailSortFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.sort.AssetDetailsSortFragment"
+            android:label="Sort assets" />
+        <fragment
+            android:id="@+id/searchAssetsFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment"
+            android:label="Search assets" />
+        <dialog
+            android:id="@+id/manageAssetsFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.manageassets.ManageAssetsFragment"
+            android:label="Manage assets" />
+        <dialog
+            android:id="@+id/nftFlowFragment"
+            android:name="jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment"
+            android:label="NFT collection" />
+        <dialog
+            android:id="@+id/nftFiltersFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.nft.filters.NftFiltersFragment"
+            android:label="NFT filters" />
+        <dialog
+            android:id="@+id/serviceFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.ServiceFragment"
+            android:label="Services" />
+    </navigation>
 
-    <fragment
-        android:id="@+id/discoverDappFragment"
-        android:name="jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp.DiscoverDappFragment"
-        android:label="DiscoverDappFragment" />
+    <navigation
+        android:id="@+id/defiGraph"
+        app:startDestination="@id/defiHubFragment">
+        <fragment
+            android:id="@+id/defiHubFragment"
+            android:name="jp.co.soramitsu.app.root.presentation.main.hub.MainHubFragment"
+            android:label="DeFi">
+            <argument
+                android:name="hub_type"
+                android:defaultValue="defi"
+                app:argType="string" />
+        </fragment>
+        <fragment
+            android:id="@+id/stakingFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.main.StakingFragment"
+            android:label="Staking"
+            tools:layout="@layout/fragment_staking" />
+        <fragment
+            android:id="@+id/setupStakingFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingFragment"
+            android:label="Set up staking" />
+        <fragment
+            android:id="@+id/stakingBalanceFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.balance.StakingBalanceFragment"
+            android:label="Staking position" />
+        <dialog
+            android:id="@+id/startStakingPoolFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.StartStakingPoolFragment"
+            android:label="Nomination pools" />
+        <dialog
+            android:id="@+id/poolsFlowFragment"
+            android:name="jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowFragment"
+            android:label="Liquidity pools" />
+        <fragment
+            android:id="@+id/demeterFarmingFragment"
+            android:name="jp.co.soramitsu.liquiditypools.impl.presentation.demeter.DemeterFarmingFragment"
+            android:label="Demeter farming" />
+        <fragment
+            android:id="@+id/polkamarktFragment"
+            android:name="jp.co.soramitsu.polkamarkt.impl.presentation.PolkamarktFragment"
+            android:label="Polkamarkt">
+            <argument
+                android:name="marketId"
+                app:argType="string"
+                app:nullable="true" />
+        </fragment>
+        <fragment
+            android:id="@+id/startChangeValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.start.StartChangeValidatorsFragment"
+            android:label="Change validators" />
+        <fragment
+            android:id="@+id/startChangeCollatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.start.StartChangeCollatorsFragment"
+            android:label="Change collators" />
+        <fragment
+            android:id="@+id/selectCustomCollatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.collators.change.custom.select.SelectCustomCollatorsFragment"
+            android:label="Select collators" />
+        <dialog
+            android:id="@+id/selectCustomValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose.SelectCustomValidatorsFragment"
+            android:label="Select validators" />
+        <fragment
+            android:id="@+id/settingsCustomValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment"
+            android:label="Validator settings" />
+        <fragment
+            android:id="@+id/searchCustomValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.search.SearchCustomValidatorsFragment"
+            android:label="Search validators" />
+        <fragment
+            android:id="@+id/reviewCustomValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.review.ReviewCustomValidatorsFragment"
+            android:label="Review validators" />
+        <fragment
+            android:id="@+id/recommendedValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.recommended.RecommendedValidatorsFragment"
+            android:label="Recommended validators" />
+        <fragment
+            android:id="@+id/recommendedCollatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.recommended.RecommendedCollatorsFragment"
+            android:label="Recommended collators" />
+        <fragment
+            android:id="@+id/confirmStakingFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmStakingFragment"
+            android:label="Confirm staking" />
+        <fragment
+            android:id="@+id/confirmNominationsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.confirm.nominations.ConfirmNominationsFragment"
+            android:label="Confirm nominations" />
+        <dialog
+            android:id="@+id/validatorDetailsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment"
+            android:label="Validator" />
+        <dialog
+            android:id="@+id/selectedValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectedValidatorsFragment"
+            android:label="Selected validators" />
+        <fragment
+            android:id="@+id/collatorDetailsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment"
+            android:label="Collator" />
+        <fragment
+            android:id="@+id/stakingStoryFragment"
+            android:name="jp.co.soramitsu.app.root.presentation.stories.StoryFragment"
+            android:label="Staking information" />
+        <fragment
+            android:id="@+id/payoutsListFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.payouts.list.PayoutsListFragment"
+            android:label="Payouts" />
+        <fragment
+            android:id="@+id/payoutDetailsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment"
+            android:label="Payout" />
+        <fragment
+            android:id="@+id/confirmPayoutFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.payouts.confirm.ConfirmPayoutFragment"
+            android:label="Confirm payout" />
+        <fragment
+            android:id="@+id/setControllerAccountFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.controller.set.SetControllerFragment"
+            android:label="Controller account" />
+        <fragment
+            android:id="@+id/confirmSetControllerAccount"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment"
+            android:label="Confirm controller" />
+        <fragment
+            android:id="@+id/selectBondMoreFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.select.SelectBondMoreFragment"
+            android:label="Bond more" />
+        <fragment
+            android:id="@+id/confirmBondMoreFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment"
+            android:label="Confirm bond" />
+        <fragment
+            android:id="@+id/selectUnbondFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondFragment"
+            android:label="Unstake" />
+        <fragment
+            android:id="@+id/confirmUnbondFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment"
+            android:label="Confirm unstake" />
+        <fragment
+            android:id="@+id/redeemFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemFragment"
+            android:label="Redeem" />
+        <fragment
+            android:id="@+id/confirmRebondFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.rebond.confirm.ConfirmRebondFragment"
+            android:label="Confirm rebond" />
+        <fragment
+            android:id="@+id/customRebondFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.rebond.custom.CustomRebondFragment"
+            android:label="Rebond" />
+        <fragment
+            android:id="@+id/currentValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.current.CurrentValidatorsFragment"
+            android:label="Current validators" />
+        <fragment
+            android:id="@+id/selectRewardDestinationFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.select.SelectRewardDestinationFragment"
+            android:label="Reward destination" />
+        <fragment
+            android:id="@+id/confirmRewardDestinationFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"
+            android:label="Confirm reward destination" />
+        <dialog
+            android:id="@+id/setupStakingPoolFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.join.SetupStakingPoolFragment"
+            android:label="Join pool" />
+        <dialog
+            android:id="@+id/selectPoolFramgent"
+            android:name="jp.co.soramitsu.staking.impl.presentation.pools.SelectPoolFragment"
+            android:label="Select pool" />
+        <dialog
+            android:id="@+id/confirmJoinPoolFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.join.ConfirmJoinPoolFragment"
+            android:label="Confirm pool" />
+        <dialog
+            android:id="@+id/poolInfoFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoFragment"
+            android:label="Pool" />
+        <dialog
+            android:id="@+id/managePoolStakeFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.balance.ManagePoolStakeFragment"
+            android:label="Pool position" />
+        <dialog
+            android:id="@+id/poolBondMoreFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.select.PoolBondMoreFragment"
+            android:label="Bond more" />
+        <dialog
+            android:id="@+id/poolClaimFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.claim.PoolClaimFragment"
+            android:label="Claim" />
+        <dialog
+            android:id="@+id/poolRedeemFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.redeem.PoolRedeemFragment"
+            android:label="Redeem" />
+        <dialog
+            android:id="@+id/poolUnstakeFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolUnstakeFragment"
+            android:label="Unstake" />
+        <dialog
+            android:id="@+id/poolConfirmBondMoreFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmPoolBondMoreFragment"
+            android:label="Confirm bond" />
+        <dialog
+            android:id="@+id/poolConfirmClaimFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.claim.ConfirmPoolClaimFragment"
+            android:label="Confirm claim" />
+        <dialog
+            android:id="@+id/poolConfirmRedeemFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.redeem.ConfirmPoolRedeemFragment"
+            android:label="Confirm redeem" />
+        <dialog
+            android:id="@+id/poolConfirmUnstakeFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmPoolUnbondFragment"
+            android:label="Confirm unstake" />
+        <dialog
+            android:id="@+id/createPoolSetupFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.create.CreatePoolSetupFragment"
+            android:label="Create pool" />
+        <dialog
+            android:id="@+id/confirmCreatePoolFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.create.ConfirmCreatePoolFragment"
+            android:label="Confirm pool creation" />
+        <dialog
+            android:id="@+id/startSelectValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsFragment"
+            android:label="Select validators" />
+        <dialog
+            android:id="@+id/selectValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectValidatorsFragment"
+            android:label="Select validators" />
+        <dialog
+            android:id="@+id/validatorsSettingsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.common.filters.ValidatorsSettingsFragment"
+            android:label="Validator settings" />
+        <dialog
+            android:id="@+id/confirmSelectValidatorsFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.ConfirmSelectValidatorsFragment"
+            android:label="Confirm validators" />
+        <dialog
+            android:id="@+id/poolOptionsInfoFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoOptionsFragment"
+            android:label="Pool options" />
+        <dialog
+            android:id="@+id/editPoolFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.pools.edit.EditPoolFragment"
+            android:label="Edit pool" />
+        <dialog
+            android:id="@+id/editPoolConfirmFragment"
+            android:name="jp.co.soramitsu.staking.impl.presentation.pools.edit.EditPoolConfirmFragment"
+            android:label="Confirm pool changes" />
+    </navigation>
 
+    <navigation
+        android:id="@+id/polkaswapGraph"
+        app:startDestination="@id/polkaswapHubFragment">
+        <fragment
+            android:id="@+id/polkaswapHubFragment"
+            android:name="jp.co.soramitsu.app.root.presentation.main.hub.MainHubFragment"
+            android:label="Polkaswap">
+            <argument
+                android:name="hub_type"
+                android:defaultValue="polkaswap"
+                app:argType="string" />
+        </fragment>
+        <fragment
+            android:id="@+id/swapTokensFragment"
+            android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment"
+            android:label="Swap" />
+        <fragment
+            android:id="@+id/polkaswapDisclaimerFragment"
+            android:name="jp.co.soramitsu.polkaswap.impl.presentation.disclaimer.PolkaswapDisclaimerFragment"
+            android:label="Polkaswap disclaimer" />
+        <fragment
+            android:id="@+id/transactionSettingsFragment"
+            android:name="jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment"
+            android:label="Transaction settings" />
+        <fragment
+            android:id="@+id/swapPreviewFragment"
+            android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment"
+            android:label="Confirm swap" />
+        <fragment
+            android:id="@+id/selectMarketFragment"
+            android:name="jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment"
+            android:label="Select market" />
+    </navigation>
+
+    <navigation
+        android:id="@+id/crossChainGraph"
+        app:startDestination="@id/crossChainFragment">
+        <fragment
+            android:id="@+id/crossChainFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
+            android:label="Build route" />
+        <fragment
+            android:id="@+id/confirmCrossChainSendFragment"
+            android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment"
+            android:label="Confirm route" />
+    </navigation>
+
+    <navigation
+        android:id="@+id/settingsGraph"
+        app:startDestination="@id/profileFragment">
+        <fragment
+            android:id="@+id/profileFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.profile.ProfileFragment"
+            android:label="Settings" />
+        <fragment
+            android:id="@+id/aboutFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.about.AboutFragment"
+            android:label="About" />
+        <fragment
+            android:id="@+id/nodesFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment"
+            android:label="Networks">
+            <action
+                android:id="@+id/action_nodesFragment_to_nodeDetailsFragment"
+                app:destination="@id/nodeDetailsFragment" />
+            <action
+                android:id="@+id/action_nodesFragment_to_addNodeFragment"
+                app:destination="@id/addNodeFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/nodeDetailsFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment"
+            android:label="Node" />
+        <fragment
+            android:id="@+id/addNodeFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment"
+            android:label="Add node" />
+        <fragment
+            android:id="@+id/languagesFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.language.LanguagesFragment"
+            android:label="Language" />
+        <fragment
+            android:id="@+id/pincodeFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment"
+            android:label="Security" />
+        <dialog
+            android:id="@+id/connectionsFragment"
+            android:name="jp.co.soramitsu.walletconnect.impl.presentation.connections.ConnectionsFragment"
+            android:label="WalletConnect" />
+        <dialog
+            android:id="@+id/tonConnectionsFragment"
+            android:name="jp.co.soramitsu.tonconnect.impl.presentation.connections.TonConnectionsFragment"
+            android:label="TonConnect" />
+        <dialog
+            android:id="@+id/connectionInfoFragment"
+            android:name="jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment"
+            android:label="Connection" />
+        <dialog
+            android:id="@+id/requestPreviewFragment"
+            android:name="jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment"
+            android:label="Request" />
+        <dialog
+            android:id="@+id/rawDataFragment"
+            android:name="jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment"
+            android:label="Raw data" />
+        <dialog
+            android:id="@+id/chainChooseFragment"
+            android:name="jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment"
+            android:label="Networks" />
+        <dialog
+            android:id="@+id/tonConnectionDetails"
+            android:name="jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment"
+            android:label="TonConnect connection" />
+        <dialog
+            android:id="@+id/tonConnectionInfo"
+            android:name="jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment"
+            android:label="TonConnect app" />
+        <fragment
+            android:id="@+id/experimentalFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.experimental.ExperimentalFragment"
+            android:label="Preferences" />
+    </navigation>
+
+    <!-- Reusable selectors remain in the authenticated shell and are pushed on the currently
+         selected graph's saved stack. They never replace MainFragment. -->
     <dialog
-        android:id="@+id/swapTokensFragment"
-        android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment"
-        android:label="SwapTokensFragment" />
-
+        android:id="@+id/chainSelectFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment"
+        android:label="Select network" />
+    <dialog
+        android:id="@+id/assetSelectFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
+        android:label="Select asset" />
+    <dialog
+        android:id="@+id/alertFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.AlertFragment"
+        android:label="Alert" />
+    <dialog
+        android:id="@+id/walletSelectorFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment"
+        android:label="Select wallet" />
+    <dialog
+        android:id="@+id/selectWalletFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.SelectWalletFragment"
+        android:label="Select wallet" />
+    <dialog
+        android:id="@+id/accountDetailsDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsDialog"
+        android:label="Wallet and accounts" />
+    <dialog
+        android:id="@+id/backupWalletDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog"
+        android:label="Security" />
+    <dialog
+        android:id="@+id/renameAccountDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.rename.RenameAccountDialog"
+        android:label="Rename wallet" />
+    <dialog
+        android:id="@+id/optionsWalletFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
+        android:label="Wallet options" />
+    <dialog
+        android:id="@+id/optionsAddAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment"
+        android:label="Add account" />
+    <dialog
+        android:id="@+id/optionsSwitchNodeFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment"
+        android:label="Switch node" />
+    <dialog
+        android:id="@+id/frozenTokensFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment"
+        android:label="Locked balance" />
+    <dialog
+        android:id="@+id/claimRewardsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment"
+        android:label="Claim rewards" />
     <fragment
-        android:id="@+id/stakingFragment"
-        tools:layout="@layout/fragment_staking"
-        android:name="jp.co.soramitsu.staking.impl.presentation.staking.main.StakingFragment"
-        android:label="StakingFragment" />
-
+        android:id="@+id/transactionHistoryFilterFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment"
+        android:label="Transaction filters" />
+    <dialog
+        android:id="@+id/sendSetupFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment"
+        android:label="Send" />
+    <dialog
+        android:id="@+id/receiveFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment"
+        android:label="Receive" />
+    <dialog
+        android:id="@+id/webViewerFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.WebViewerFragment"
+        android:label="Information" />
+    <dialog
+        android:id="@+id/addressHistoryFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment"
+        android:label="Address history" />
+    <dialog
+        android:id="@+id/createContactFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment"
+        android:label="Create contact" />
+    <dialog
+        android:id="@+id/contactsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment"
+        android:label="Contacts" />
+    <dialog
+        android:id="@+id/confirmSendFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
+        android:label="Confirm send" />
+    <dialog
+        android:id="@+id/cbdcSendSetupFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
+        android:label="Send" />
+    <dialog
+        android:id="@+id/successSheetFragment"
+        android:name="jp.co.soramitsu.success.presentation.SuccessFragment"
+        android:label="Success" />
     <fragment
-        android:id="@+id/walletFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListFragment"
-        android:label="WalletFragment" />
-
+        android:id="@+id/transferDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment"
+        android:label="Transfer details" />
     <fragment
-        android:id="@+id/crowdloanFragment"
-        tools:layout="@layout/fragment_crowdloans"
-        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
-        android:label="CrowdloanFragment" />
+        android:id="@+id/rewardDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment"
+        android:label="Reward details" />
+    <fragment
+        android:id="@+id/extrinsicDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment"
+        android:label="Transaction details" />
+    <dialog
+        android:id="@+id/swapDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment"
+        android:label="Swap details" />
+    <dialog
+        android:id="@+id/chainAccountsDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.chainaccounts.ChainAccountsDialog"
+        android:label="Network accounts" />
+    <dialog
+        android:id="@+id/optionsEcosystemAccountsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.options_ecosystem_accounts.OptionsEcosystemAccountsFragment"
+        android:label="Account options" />
+    <dialog
+        android:id="@+id/poolFullUnstakeDepositorAlertFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolFullUnstakeDepositorAlertFragment"
+        android:label="Pool warning" />
+    <dialog
+        android:id="@+id/scoreDetailsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
+        android:label="Wallet score" />
 </navigation>

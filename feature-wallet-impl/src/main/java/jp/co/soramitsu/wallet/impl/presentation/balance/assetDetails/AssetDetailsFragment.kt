@@ -16,14 +16,15 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 
 @AndroidEntryPoint
 class AssetDetailsFragment : BaseComposeFragment<AssetDetailsViewModel>() {
 
     companion object {
-        const val KEY_ASSET_ID = "KEY_ASSET_ID"
+        const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
-        fun getBundle(assetId: String) = bundleOf(KEY_ASSET_ID to assetId)
+        fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     override val viewModel: AssetDetailsViewModel by viewModels()

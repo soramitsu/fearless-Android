@@ -104,6 +104,7 @@ interface AccountRouter : SecureRouter {
 
     fun openConnectionsScreen()
     fun openTonConnectionsScreen()
+    fun openManageAssets()
 
     fun openScoreDetailsScreen(metaId: Long)
 
@@ -116,6 +117,4 @@ interface AccountRouter : SecureRouter {
     fun openImportAddAccountScreen(walletId: Long, walletEcosystem: WalletEcosystem, importMode: ImportMode)
 
     fun openOptionsWallet(walletId: Long, allowDetails: Boolean)
-
-    fun openCrowdloansScreen()
 }

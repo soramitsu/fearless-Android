@@ -13,7 +13,8 @@ import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.models.Ecosystem
@@ -66,7 +67,7 @@ class AccountDetailsInteractor(
             chains.flatMap { chain ->
                 chain.assets.map { chainAsset ->
                     val markedNotNeed = assetsMarkedNotNeed.contains(
-                        AssetKey(metaId, chain.id, emptyAccountIdValue, chainAsset.id)
+                        WalletAssetKey(metaId, chain.id, emptyAccountIdValue, chainAsset.id)
                     )
                     createAccountInChain(metaAccount, chain, markedNotNeed)
                 }
@@ -82,13 +83,16 @@ class AccountDetailsInteractor(
             flowOf { getMetaAccount(metaId) },
             flowOf { chainRegistry.getChains() }//.map { it.sortedWith(chainSort()) },
         ) { metaAccount, chains ->
-            chains.filter { chain ->
-                chain.walletEcosystem() == type
+            val offlineAccount = offlineNexusAccount(metaAccount)?.takeIf { type == WalletEcosystem.Iroha }
+            val chainAccounts = chains.filter { chain ->
+                chain.walletEcosystem() == type &&
+                    chain.id != UniversalWalletRegistry.nexus.id && chain.id != UniversalWalletRegistry.nexus.chainId
             }.map { chain ->
                 createAccountInChain(metaAccount, chain, false)
             }.filter {
                 it.hasAccount
-            }.groupBy(AccountInChain::from)
+            }
+            (chainAccounts + listOfNotNull(offlineAccount)).groupBy(AccountInChain::from)
                 .toSortedMap(compareBy { it.name })
         }
     }
@@ -98,7 +102,9 @@ class AccountDetailsInteractor(
             flowOf { getMetaAccount(metaId) },
             flowOf { chainRegistry.getChains() }
         ) { metaAccount, chains ->
-            metaAccount to chains.filter { chain ->
+            metaAccount to chains.filterNot { chain ->
+                chain.id == UniversalWalletRegistry.nexus.id || chain.id == UniversalWalletRegistry.nexus.chainId
+            }.filter { chain ->
                 when (chain.walletEcosystem()) {
                     WalletEcosystem.Substrate -> metaAccount.hasSubstrate
                     WalletEcosystem.Ethereum -> metaAccount.hasEthereum
@@ -112,8 +118,10 @@ class AccountDetailsInteractor(
             }
         }.mapNotNull { (metaAccount, grouped) ->
             val supported = metaAccount.supportedEcosystems()
+            val needsOfflineNexus = offlineNexusAccount(metaAccount) != null
             val summary = WALLET_ECOSYSTEM_SORT_ORDER.mapNotNull { ecosystem ->
-                val count = grouped[ecosystem].orEmpty().size
+                val count = grouped[ecosystem].orEmpty().size +
+                    if (ecosystem == WalletEcosystem.Iroha && needsOfflineNexus) 1 else 0
                 when {
                     ecosystem in supported -> ecosystem to count
                     count > 0 -> ecosystem to count
@@ -143,7 +151,7 @@ class AccountDetailsInteractor(
                 chains.any { chain ->
                     chain.assets.any { chainAsset ->
                         val markedNotNeed = assetsMarkedNotNeed.contains(
-                            AssetKey(metaAccount.id, chain.id, emptyAccountIdValue, chainAsset.id)
+                            WalletAssetKey(metaAccount.id, chain.id, emptyAccountIdValue, chainAsset.id)
                         )
                         val hasAccount = !chain.isEthereumBased || metaAccount.ethereumPublicKey != null || metaAccount.hasChainAccount(chain.id)
                         hasAccount.not() && markedNotNeed.not()

@@ -14,18 +14,28 @@ import org.junit.Test
 class UniversalWalletMigrationContractTest {
 
     @Test
-    fun `blocks normal access when legacy vaults exist without a universal wallet`() {
+    fun `preserves normal access when legacy vaults exist without a universal wallet`() {
         val snapshot = snapshot(hasUniversalWallet = false, legacyVaults = listOf(legacyVault()))
 
         assertTrue(snapshot.validationErrors().isEmpty())
-        assertTrue(snapshot.requiredAction() == UniversalWalletMigrationRequiredAction.MigrateBeforeAccess)
-        assertFalse(snapshot.allowsNormalWalletAccess())
+        assertTrue(snapshot.requiredAction() == UniversalWalletMigrationRequiredAction.NormalAccess)
+        assertTrue(snapshot.allowsNormalWalletAccess())
         assertTrue(snapshot.allowsLegacySecretExport())
 
         val json = Gson().toJson(snapshot)
         assertTrue(json.contains("\"platform\":\"android\""))
         assertTrue(json.contains("\"mode\":\"export-only\""))
         assertTrue(json.contains("\"canSignTransactions\":false"))
+    }
+
+    @Test
+    fun `preserves chain only wallet access without root export descriptors`() {
+        val snapshot = snapshot(hasUniversalWallet = false, legacyVaults = emptyList())
+            .copy(hasLegacyAccounts = true)
+
+        assertTrue(snapshot.validationErrors().isEmpty())
+        assertTrue(snapshot.allowsNormalWalletAccess())
+        assertFalse(snapshot.allowsLegacySecretExport())
     }
 
     @Test

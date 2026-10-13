@@ -1,25 +1,30 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.runtime.ext.withBitcoinTestnetAccountChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
+import jp.co.soramitsu.testshared.any
+import jp.co.soramitsu.testshared.whenever
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import jp.co.soramitsu.testshared.any
-import jp.co.soramitsu.testshared.whenever
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
@@ -105,7 +110,7 @@ class ChainSyncServiceTest {
 
         val (adds, updates) = updateResult.await()
 
-        assertEquals(listOf(REMOTE_CHAIN.chainId), adds.ids())
+        assertEquals(listOf(REMOTE_CHAIN.chainId, UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertTrue(updates.isEmpty())
     }
 
@@ -119,7 +124,7 @@ class ChainSyncServiceTest {
         chainSyncService.syncUp()
 
         val (adds, updates) = updateResult.await()
-        assertTrue(adds.isEmpty())
+        assertEquals(listOf(UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertTrue(updates.isEmpty())
     }
 
@@ -133,7 +138,7 @@ class ChainSyncServiceTest {
         chainSyncService.syncUp()
 
         val (adds, updates) = updateResult.await()
-        assertTrue(adds.isEmpty())
+        assertEquals(listOf(UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertEquals(listOf(REMOTE_CHAIN.chainId), updates.ids())
     }
 
@@ -152,9 +157,109 @@ class ChainSyncServiceTest {
         val (adds, updates) = updateResult.await()
         val removed = deleteResult.await()
 
-        assertEquals(listOf(secondChain.chainId), adds.ids())
+        assertEquals(listOf(secondChain.chainId, UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertTrue(updates.isEmpty())
         assertEquals(listOf(REMOTE_CHAIN.chainId), removed.ids())
+    }
+
+    @Test
+    fun `catalog refresh retains both Bitcoin testnet aliases and their account foreign keys`() = runBlocking {
+        val aliases = setOf(UniversalWalletRegistry.bitcoinTestnet.id, UniversalWalletRegistry.bitcoinTestnet.chainId)
+        val retained = emptyList<Chain>().withBitcoinTestnetAccountChain(aliases)
+        localReturns(retained.map(::mapChainToChainLocal))
+        remoteReturns(emptyList())
+        val update = expectUpdateChains()
+        val delete = expectDeleteChains()
+        chainSyncService.syncUp()
+        assertTrue(update.await().first.isEmpty())
+        assertTrue(delete.await().isEmpty())
+        assertTrue(chainSyncService.getCurrentProcessXcmDiscoveryChains().isEmpty())
+    }
+
+    @Test
+    fun `persisted chains are never exposed before a current process sync`() = runBlocking {
+        localReturns(listOf(LOCAL_CHAIN))
+
+        assertTrue(chainSyncService.getCurrentProcessXcmDiscoveryChains().isEmpty())
+    }
+
+    @Test
+    fun `successful sync exposes only the current process remote snapshot`() = runBlocking {
+        localReturns(emptyList())
+        val secondChain = REMOTE_CHAIN.copy(chainId = "0x001")
+        remoteReturns(listOf(REMOTE_CHAIN, secondChain))
+        expectUpdateChains()
+
+        chainSyncService.syncUp()
+
+        assertEquals(
+            listOf(REMOTE_CHAIN.chainId, secondChain.chainId),
+            chainSyncService.getCurrentProcessXcmDiscoveryChains().map { it.id }
+        )
+    }
+
+    @Test
+    fun `failed refresh propagates and clears current process XCM discovery snapshot`() = runBlocking {
+        localReturns(emptyList())
+        remoteReturns(listOf(REMOTE_CHAIN))
+        expectUpdateChains()
+        chainSyncService.syncUp()
+        assertEquals(
+            listOf(REMOTE_CHAIN.chainId),
+            chainSyncService.getCurrentProcessXcmDiscoveryChains().map { it.id }
+        )
+
+        `when`(chainFetcher.getChains()).thenThrow(IllegalStateException("registry unavailable"))
+        val failure = runCatching { chainSyncService.syncUp() }
+
+        assertTrue(failure.isFailure)
+        assertTrue(chainSyncService.getCurrentProcessXcmDiscoveryChains().isEmpty())
+    }
+
+    @Test
+    fun `failed database application clears fetched XCM discovery snapshot`() = runBlocking {
+        localReturns(emptyList())
+        remoteReturns(listOf(REMOTE_CHAIN))
+        whenever(dao.updateChains(any(), any())).thenThrow(IllegalStateException("database unavailable"))
+
+        val failure = runCatching { chainSyncService.syncUp() }
+
+        assertTrue(failure.isFailure)
+        assertTrue(chainSyncService.getCurrentProcessXcmDiscoveryChains().isEmpty())
+    }
+
+    @Test
+    fun `in flight refresh exposes empty XCM snapshot without blocking readers`() = runBlocking {
+        localReturns(emptyList())
+        expectUpdateChains()
+        val fetchStarted = CompletableDeferred<Unit>()
+        val fetchResult = CompletableDeferred<List<ChainRemote>>()
+        val blockingFetcher = object : ChainFetcher {
+            override suspend fun getChains(): List<ChainRemote> {
+                fetchStarted.complete(Unit)
+                return fetchResult.await()
+            }
+        }
+        val service = ChainSyncService(
+            dao,
+            blockingFetcher,
+            metaAccountDao,
+            assetsDao,
+            contextManager
+        )
+
+        val sync = async { service.syncUp() }
+        fetchStarted.await()
+
+        withTimeout(500) {
+            assertTrue(service.getCurrentProcessXcmDiscoveryChains().isEmpty())
+        }
+        fetchResult.complete(listOf(REMOTE_CHAIN))
+        sync.await()
+        assertEquals(
+            listOf(REMOTE_CHAIN.chainId),
+            service.getCurrentProcessXcmDiscoveryChains().map { it.id }
+        )
     }
 
     private suspend fun remoteReturns(chains: List<ChainRemote>) {

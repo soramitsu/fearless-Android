@@ -81,6 +81,7 @@ data class BalanceDetailsState(
     val balance: LoadingState<AssetBalanceViewState>,
     val transferableViewState: TitleValueViewState,
     val lockedViewState: TitleValueViewState,
+    val legacyCrowdloanViewState: TitleValueViewState?,
     val transactionHistory: TransactionHistoryUi.State,
     val filtersEnabled: Boolean
 )
@@ -162,6 +163,12 @@ fun BalanceDetailsScreen(
                             state = state.lockedViewState,
                             onClick = callback::tableItemClicked
                         )
+                        state.legacyCrowdloanViewState?.let { legacyCrowdloanState ->
+                            InfoTableItem(
+                                state = legacyCrowdloanState,
+                                onClick = callback::tableItemClicked
+                            )
+                        }
                         Divider(
                             color = white08,
                             modifier = Modifier
@@ -453,6 +460,7 @@ private fun PreviewBalanceDetailScreenContent() {
             title = stringResource(R.string.assetdetails_balance_locked),
             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
         ),
+        legacyCrowdloanViewState = null,
         transactionHistory = TransactionHistoryUi.State.Empty(),
         filtersEnabled = true
     )

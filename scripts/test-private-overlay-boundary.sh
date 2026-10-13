@@ -101,6 +101,13 @@ test_rejects_private_only_product_code() {
 
   grep -q $'A\tfeature-wallet-impl/src/main/java/jp/co/soramitsu/PrivateTransfer.kt' "$output" ||
     fail "expected added product path in audit output"
+
+  if GIT_DIR="$public_repo/.git" GIT_INDEX_FILE="$dir/empty-index" \
+    run_audit "$public_repo" "$private_repo" > "$output" 2>&1; then
+    fail "ambient Git overrides hid private-only product code"
+  fi
+  grep -q $'A\tfeature-wallet-impl/src/main/java/jp/co/soramitsu/PrivateTransfer.kt' "$output" ||
+    fail "ambient Git overrides changed the audited private file list"
 }
 
 test_rejects_tracked_public_product_code() {
@@ -180,6 +187,19 @@ test_writes_full_report_when_output_is_truncated() {
     fail "expected full report to include entries omitted from console output"
 }
 
+test_accepts_public_git_worktree() {
+  local dir="$1/public-worktree"
+  local repos public_repo private_repo
+  repos="$(make_pair "$dir")"
+  public_repo="$(printf '%s\n' "$repos" | sed -n '1p')"
+  private_repo="$(printf '%s\n' "$repos" | sed -n '2p')"
+
+  git -C "$public_repo" -c commit.gpgsign=false commit -qm fixture
+  mv "$public_repo" "$dir/public-history"
+  git -C "$dir/public-history" worktree add --detach "$public_repo" HEAD >/dev/null
+  run_audit "$public_repo" "$private_repo" >/dev/null
+}
+
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
@@ -188,5 +208,6 @@ test_rejects_private_only_product_code "$tmpdir"
 test_rejects_tracked_public_product_code "$tmpdir"
 test_rejects_modified_public_product_code "$tmpdir"
 test_writes_full_report_when_output_is_truncated "$tmpdir"
+test_accepts_public_git_worktree "$tmpdir"
 
 echo "[private-overlay-audit-test] Android overlay audit self-test passed."

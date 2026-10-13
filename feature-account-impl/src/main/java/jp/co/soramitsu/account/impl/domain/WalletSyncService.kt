@@ -8,7 +8,6 @@ import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccoun
 import jp.co.soramitsu.account.impl.data.mappers.toLocal
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
-import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -101,7 +100,6 @@ class WalletSyncService(
                         )
                     }.toSet()
 
-                    val accountHasAssetWithPositiveBalanceMap = mutableMapOf<Long, Boolean>()
                     val syncedChains = mutableSetOf<ChainId>()
                     supervisorScope {
                         val chainsBalancesDeferred = chainsRepository.getChains().map { chain ->
@@ -135,16 +133,6 @@ class WalletSyncService(
                                     }.flatten()
 
                                 }
-                                val balancesByMetaIds = balances.groupBy { it.metaId }
-
-                                metaAccounts.forEach { metaAccount ->
-                                    val accountBalances =
-                                        balancesByMetaIds[metaAccount.id] ?: emptyList()
-                                    if (accountBalances.any { it.freeInPlanks.positiveOrNull() != null }) {
-                                        accountHasAssetWithPositiveBalanceMap[metaAccount.id] = true
-                                    }
-                                }
-
                                 balances
                             }
 
@@ -162,14 +150,6 @@ class WalletSyncService(
                             val chainAsset = chain.assetsById.getOrDefault(balance.id, null)
                                 ?: return@mapNotNull null
 
-                            val isPopularUtilityAsset =
-                                chain.rank != null && chainAsset.isUtility
-
-                            val accountHasAssetWithPositiveBalance =
-                                accountHasAssetWithPositiveBalanceMap[balance.metaId] == true
-
-                            val isTonAsset = chain.ecosystem == Ecosystem.Ton && chainAsset.symbol.equals("TON", ignoreCase = true)
-
                             AssetLocal(
                                 id = balance.id,
                                 chainId = balance.chainId,
@@ -180,7 +160,11 @@ class WalletSyncService(
                                 reservedInPlanks = balance.reservedInPlanks,
                                 miscFrozenInPlanks = balance.miscFrozenInPlanks,
                                 feeFrozenInPlanks = balance.feeFrozenInPlanks,
-                                enabled = balance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset) || isTonAsset
+                                status = balance.status,
+                                // Balance synchronization must not manufacture an explicit user
+                                // preference. Positive/zero/default-native presentation is derived
+                                // by Portfolio; only direct Show/Hide actions persist true/false.
+                                enabled = null
                             )
                         }
                         assetsLocal.groupBy { it.metaId }.forEach { b ->
@@ -196,9 +180,6 @@ class WalletSyncService(
                     }
                     coroutineScope {
                         metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id })
-                        hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(
-                            metaAccounts.toList()
-                        )
                     }
                 }
             }
@@ -379,24 +360,6 @@ class WalletSyncService(
 //            }
 //            .launchIn(scope)
 //    }
-
-    private suspend fun hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaAccounts(
-        metaAccounts: List<MetaAccount>
-    ) {
-        hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaIds(metaAccounts.map { it.id })
-    }
-
-    private suspend fun hideEmptyAssetsIfThereAreAtLeastOnePositiveBalanceByMetaIds(metaAccountsIds: List<Long>) {
-        coroutineScope {
-            metaAccountsIds.forEach {
-                withContext(Dispatchers.IO) {
-                    assetDao.hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(
-                        it
-                    )
-                }
-            }
-        }
-    }
 
     private fun observeNomisScores() {
         var syncJob: Job? = null

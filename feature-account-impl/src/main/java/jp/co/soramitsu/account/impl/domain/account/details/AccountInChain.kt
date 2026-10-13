@@ -9,7 +9,8 @@ class AccountInChain(
     val from: From,
     val name: String?,
     val hasAccount: Boolean,
-    val markedAsNotNeed: Boolean
+    val markedAsNotNeed: Boolean,
+    val isOffline: Boolean = false
 ) {
 
     class Projection(val address: String, val accountId: AccountId)

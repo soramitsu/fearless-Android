@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
+import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,7 +39,10 @@ class ConnectionInfoViewModel @Inject constructor(
     private val accountRepository: AccountRepository
 ) : ConnectionInfoScreenInterface, BaseViewModel() {
     private val topic: String = savedStateHandle[ConnectionInfoFragment.CONNECTION_TOPIC_KEY] ?: error("No connection info provided")
-    private val session: Wallet.Model.Session = walletConnectInteractor.getActiveSessionByTopic(topic) ?: error("No proposal provided")
+    private val session: Wallet.Model.Session? = walletConnectValueOrBack(
+        value = walletConnectInteractor.getActiveSessionByTopic(topic),
+        onUnavailable = walletConnectRouter::back
+    )
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
@@ -57,17 +61,18 @@ class ConnectionInfoViewModel @Inject constructor(
         walletItemsFlow,
         accountRepository.allMetaAccountsFlow()
     ) { walletItems, allMetaAccounts ->
+        val activeSession = session ?: return@combine ConnectInfoViewState.default
         val chains = walletConnectInteractor.getChains()
 
-        val sessionNamespaceChains = session.namespaces.flatMap { it.value.chains.orEmpty() }
+        val sessionNamespaceChains = activeSession.namespaces.flatMap { it.value.chains.orEmpty() }
         val sessionChains = chains.filter {
             it.caip2id in sessionNamespaceChains
         }
 
         val sessionChainNames: String = sessionChains.joinToString { it.name }
 
-        val sessionMethods = session.namespaces.flatMap { it.value.methods }
-        val sessionEvents = session.namespaces.flatMap { it.value.events }
+        val sessionMethods = activeSession.namespaces.flatMap { it.value.methods }
+        val sessionEvents = activeSession.namespaces.flatMap { it.value.events }
 
         val requiredInfoItems = listOf(
             InfoItemViewState(
@@ -85,7 +90,7 @@ class ConnectionInfoViewModel @Inject constructor(
             infoItems = requiredInfoItems
         )
 
-        val sessionAccounts = session.namespaces.flatMap { it.value.accounts }
+        val sessionAccounts = activeSession.namespaces.flatMap { it.value.accounts }
 
         val sessionWalletsIds = allMetaAccounts.filter { wallet ->
             val walletAddresses = sessionChains.mapNotNull { chain ->
@@ -102,12 +107,12 @@ class ConnectionInfoViewModel @Inject constructor(
         val sessionWalletItems = walletItems.filter { it.id in sessionWalletsIds }
 
         @Suppress("MagicNumber")
-        val expireDate = resourceManager.formatDate(session.expiry * 1000)
+        val expireDate = resourceManager.formatDate(activeSession.expiry * 1000)
 
         val sessionState = InfoItemViewState(
-            title = session.metaData?.name,
-            subtitle = session.metaData?.dappUrl,
-            imageUrl = session.metaData?.icons?.firstOrNull(),
+            title = activeSession.metaData?.name,
+            subtitle = activeSession.metaData?.dappUrl,
+            imageUrl = activeSession.metaData?.icons?.firstOrNull(),
             placeholderIcon = R.drawable.ic_dapp_connection
         )
 
@@ -127,11 +132,15 @@ class ConnectionInfoViewModel @Inject constructor(
     }
 
     override fun onDisconnectClick() {
+        val activeSession = session ?: run {
+            walletConnectRouter.back()
+            return
+        }
         walletConnectInteractor.disconnectSession(
             topic = topic,
             onSuccess = {
                 viewModelScope.launch(Dispatchers.Main.immediate) {
-                    val dappName = session.metaData?.name ?: resourceManager.getString(R.string.common_dapp)
+                    val dappName = activeSession.metaData?.name ?: resourceManager.getString(R.string.common_dapp)
                     walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                         null,
                         null,

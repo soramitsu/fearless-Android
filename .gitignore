@@ -10,6 +10,8 @@
 app/src/main/aidl/
 app/*.apk
 /.idea/
+__pycache__/
+*.pyc
 
 # ignore jacoco coverage reports
 /coverage
@@ -26,3 +28,19 @@ debug-keystore.jks
 *.pem
 /.release-overlays/
 /buildSrc/build
+
+# Local temporary files and generated review artifacts
+/tmp/
+/.tmp/
+/tmp-*/
+/.tmp-*/
+*.tmp
+/output/
+/.playwright-cli/
+/playwright-report/
+/test-results/
+/review-output/
+/review-artifacts/
+# Dated local acceptance and review reports
+/docs/validation/20*/
+/docs/legacy-upgrade-audit-20*.md

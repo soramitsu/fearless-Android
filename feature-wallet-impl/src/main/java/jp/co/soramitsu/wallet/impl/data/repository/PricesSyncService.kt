@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.utils.tonAccountId
+import jp.co.soramitsu.common.data.network.ton.JettonBalance
 import jp.co.soramitsu.core.models.Asset.PriceProvider
 import jp.co.soramitsu.core.models.Asset.PriceProviderType
 import jp.co.soramitsu.core.models.Ecosystem
@@ -199,26 +200,7 @@ class TonPricesService(
             val accountsJettonsPricesDeferred = accountIds.map { accountId ->
                 async {
                     val jettons = loadJettons(accountId, tonChains)
-                    jettons.mapNotNull { jetton ->
-                        val uppercasedId = fiatModel.id.uppercase()
-
-                        val price = jetton.price?.prices?.getOrDefault(uppercasedId, null)
-                        val diff24h = runCatching {
-                            val diffStr = jetton.price?.diff24h?.getOrDefault(uppercasedId, null)
-                            BigDecimal(diffStr?.replace("%", "")?.replace("+", "")?.replace("−", "-"))
-                        }.getOrNull()
-
-                        if (price != null && diff24h != null) {
-                            TokenPriceLocal(
-                                jetton.jetton.symbol,
-                                fiatModel.symbol,
-                                price,
-                                diff24h
-                            )
-                        } else {
-                            null
-                        }
-                    }
+                    jettons.mapNotNull { jetton -> jetton.toVerifiedTonTokenPrice(fiatModel) }
                 }
             }
 
@@ -264,4 +246,24 @@ class TonPricesService(
 
         jettonsDeferred.awaitAll().flatten()
     }
+}
+
+internal fun JettonBalance.toVerifiedTonTokenPrice(fiatModel: FiatCurrency): TokenPriceLocal? {
+    val verifiedMetadata = jetton.verification.equals("whitelist", ignoreCase = true) ||
+        jetton.verification.equals("verified", ignoreCase = true)
+    if (!verifiedMetadata) return null
+
+    val uppercasedId = fiatModel.id.uppercase()
+    val price = price?.prices?.get(uppercasedId) ?: return null
+    val diff24h = runCatching {
+        val diffStr = this.price?.diff24h?.get(uppercasedId)
+        BigDecimal(diffStr?.replace("%", "")?.replace("+", "")?.replace("−", "-"))
+    }.getOrNull() ?: return null
+
+    return TokenPriceLocal(
+        priceId = jetton.address,
+        fiatSymbol = fiatModel.symbol,
+        fiatRate = price,
+        recentRateChange = diff24h
+    )
 }

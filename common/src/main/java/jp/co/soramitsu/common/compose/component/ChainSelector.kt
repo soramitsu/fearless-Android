@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -58,6 +60,7 @@ fun ChainSelector(
 ) {
     Row(
         modifier = Modifier
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundBlurColor)
             .applyIf(onChangeChainClick != null) {
@@ -79,7 +82,9 @@ fun ChainSelector(
         Text(
             text = (selectorViewState.selectedChainName ?: stringResource(R.string.chain_selection_all_networks)).withNoFontPadding(),
             style = MaterialTheme.customTypography.body1,
-            maxLines = 1
+            modifier = Modifier.weight(1f, fill = false),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         MarginHorizontal(8.dp)
         if (onChangeChainClick != null) {
@@ -101,6 +106,7 @@ fun ChainSelector(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundBlurColor)
             .applyIf(selectorViewState.allowChainSelection && onChangeChainClick != null) {
@@ -163,7 +169,9 @@ fun ChainSelector(
         Text(
             text = selectedChainTitle,
             style = MaterialTheme.customTypography.body1,
-            maxLines = 1
+            modifier = Modifier.weight(1f, fill = false),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         MarginHorizontal(8.dp)
         if (selectorViewState.allowChainSelection && onChangeChainClick != null) {

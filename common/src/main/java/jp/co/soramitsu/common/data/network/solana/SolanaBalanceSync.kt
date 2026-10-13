@@ -25,9 +25,21 @@ class SolanaBalanceSync(
         if (response.syncedAt <= 0) {
             throw SolanaBalanceSyncException(SolanaBalanceSyncException.Code.INVALID_SYNC_TIMESTAMP)
         }
+        if (response.total != response.tokens.size + 1) {
+            throw SolanaBalanceSyncException(SolanaBalanceSyncException.Code.INCOMPLETE_BALANCE_RESPONSE)
+        }
 
         val native = nativeBalance(response.native, wallet, network, response.syncedAt)
-        val normalizedTokens = response.tokens.mapNotNull { tokenBalanceOrNull(it, wallet, network, response.syncedAt) }
+        // An invalid row makes the response non-authoritative. Silently dropping it would make a
+        // previously held known token indistinguishable from a genuine authoritative omission.
+        val normalizedTokens = response.tokens.map { tokenBalance(it, wallet, network, response.syncedAt) }
+        val hasInconsistentDecimals = normalizedTokens
+            .groupBy { it.source.mint }
+            .values
+            .any { rows -> rows.map { it.source.decimals }.distinct().size != 1 }
+        if (hasInconsistentDecimals) {
+            throw SolanaBalanceSyncException(SolanaBalanceSyncException.Code.INVALID_TOKEN_BALANCE)
+        }
         val metadataByMint = if (includeTokenMetadata) {
             tokenMetadataByMint(normalizedTokens.map { it.source.mint }, resolvedBaseUrl)
         } else {
@@ -61,7 +73,7 @@ class SolanaBalanceSync(
         if (native.type != "native" ||
             native.mint != network.nativeAsset.id ||
             !isUnsignedInteger(native.lamports) ||
-            native.decimals !in DECIMAL_RANGE ||
+            native.decimals != network.nativeAsset.decimals ||
             !isHumanText(native.uiAmountString, 80)
         ) {
             throw SolanaBalanceSyncException(SolanaBalanceSyncException.Code.INVALID_NATIVE_BALANCE)
@@ -82,12 +94,12 @@ class SolanaBalanceSync(
         ).requireValid(SolanaBalanceSyncException.Code.INVALID_NATIVE_BALANCE)
     }
 
-    private fun tokenBalanceOrNull(
+    private fun tokenBalance(
         token: SolanaTokenBalance,
         wallet: String,
         network: UniversalWalletRegistry.SolanaNetwork,
         syncedAtMillis: Long
-    ): NormalizedSolanaTokenBalance? {
+    ): NormalizedSolanaTokenBalance {
         if (token.type != "token" ||
             token.owner != wallet ||
             token.isNative ||
@@ -99,7 +111,7 @@ class SolanaBalanceSync(
             token.decimals !in DECIMAL_RANGE ||
             !isHumanText(token.uiAmountString, 80)
         ) {
-            return null
+            throw SolanaBalanceSyncException(SolanaBalanceSyncException.Code.INVALID_TOKEN_BALANCE)
         }
 
         val balance = UniversalWalletIndexedAssetBalance(
@@ -119,11 +131,11 @@ class SolanaBalanceSync(
             syncedAtMillis = syncedAtMillis
         )
 
-        return if (balance.validationErrors().isEmpty()) {
-            NormalizedSolanaTokenBalance(source = token, balance = balance)
-        } else {
-            null
+        if (balance.validationErrors().isNotEmpty()) {
+            throw SolanaBalanceSyncException(SolanaBalanceSyncException.Code.INVALID_TOKEN_BALANCE)
         }
+
+        return NormalizedSolanaTokenBalance(source = token, balance = balance)
     }
 
     private suspend fun tokenMetadataByMint(
@@ -229,6 +241,8 @@ class SolanaBalanceSyncException(
     enum class Code {
         WALLET_MISMATCH,
         INVALID_SYNC_TIMESTAMP,
-        INVALID_NATIVE_BALANCE
+        INVALID_NATIVE_BALANCE,
+        INVALID_TOKEN_BALANCE,
+        INCOMPLETE_BALANCE_RESPONSE
     }
 }

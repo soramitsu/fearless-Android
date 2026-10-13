@@ -37,6 +37,25 @@ abstract class OperationDao {
     @Query("SELECT * FROM operations")
     abstract suspend fun getOperations(): List<OperationLocal>
 
+    @Query(
+        """
+        SELECT * FROM operations
+        WHERE address = :address
+        AND chainId = :chainId
+        AND :chainAssetId IN (chainAssetId, targetAssetId)
+        AND status = :status
+        AND lower(module) = lower(:module)
+        ORDER BY time DESC
+        """
+    )
+    abstract suspend fun getCompletedModuleOperations(
+        address: String,
+        chainId: String,
+        chainAssetId: String,
+        module: String,
+        status: OperationLocal.Status = OperationLocal.Status.COMPLETED
+    ): List<OperationLocal>
+
     @Query("SELECT * FROM operations ORDER BY time DESC")
     abstract fun observeOperations(): Flow<List<OperationLocal>>
 

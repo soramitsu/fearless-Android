@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">Legacy crowdloan</string>
+    <string name="legacy_crowdloan_review">Review</string>
+    <string name="legacy_crowdloan_description">This account has verified historical crowdloan activity on %1$s. New contributions are retired; retained on-chain state and local claim history remain available here.</string>
+    <string name="legacy_crowdloan_current_contributions">Current contributions</string>
+    <string name="legacy_crowdloan_historical_locks">Historical locks</string>
+    <string name="legacy_crowdloan_historical_claims">Historical claims</string>
+    <string name="legacy_crowdloan_view_locked">View locked balance</string>
+    <string name="legacy_crowdloan_no_evidence">No recoverable crowdloan state was found for this account.</string>
+    <string name="cross_chain_route_inventory_title">Route providers</string>
+    <string name="cross_chain_route_inventory_description">Reviewed and catalog-only production coverage. Unavailable routes stay visible, but cannot submit transactions.</string>
+    <string name="cross_chain_route_inventory_checking">Checking route-provider coverage…</string>
+    <string name="cross_chain_route_inventory_status_available">Available</string>
+    <string name="cross_chain_route_inventory_status_paused">Reviewed route available · actions temporarily paused</string>
+    <string name="cross_chain_route_inventory_status_setup">Setup required</string>
+    <string name="cross_chain_route_inventory_status_unavailable">Unavailable</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">Asset ID: %1$s</string>
+    <string name="cross_chain_route_inventory_summary">%1$d origin networks → %2$d destination networks · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">No exact production route catalog is bundled for this provider.</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">Minimum: select an exact origin, asset, and destination</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">Minimum: not supplied by this catalog</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">Minimum: no reviewed value is available</string>
+</resources>

@@ -11,8 +11,9 @@ Key Components
 - `multiNetwork/configurator/*` — Environment configurators for Substrate/EVM/TON; selects how to set up connections per ecosystem.
 - Assets & types: `src/main/assets/metadata/*`, `src/main/assets/types/*.json`, and `local_chains.json`.
 
-Overrides (align with specific SDK/runtime sources)
-- In `local.properties` or env: `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_OVERRIDE`.
+Overrides (align debug builds with specific SDK/runtime sources)
+- In `local.properties` or env: `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_DEBUG_OVERRIDE`.
+- Release `CHAINS_URL` is immutable and does not accept an override.
 - After changes, run: `./gradlew detektAll runTest :app:lint`.
 
 Common Tasks
@@ -30,4 +31,3 @@ Troubleshooting
 Tests
 - Prefer lightweight tests around `ChainRegistry` using fakes for DAO/repositories.
 - Add migration tests in `core-db` for any schema impacting runtime selection.
-

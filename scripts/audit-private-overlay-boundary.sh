@@ -17,8 +17,23 @@ info() {
   echo "[private-overlay-audit] $*"
 }
 
-[[ -d "$PUBLIC_REPO_DIR/.git" ]] || fail "PUBLIC_REPO_DIR is not a Git checkout: $PUBLIC_REPO_DIR"
-[[ -d "$PRIVATE_REPO_DIR/.git" ]] || fail "PRIVATE_REPO_DIR is not a Git checkout: $PRIVATE_REPO_DIR"
+clean_git() {
+  /usr/bin/env -i PATH=/usr/bin:/bin HOME=/ GIT_CONFIG_NOSYSTEM=1 \
+    GIT_CONFIG_GLOBAL=/dev/null GIT_NO_REPLACE_OBJECTS=1 \
+    /usr/bin/git -c core.fsmonitor=false -c core.hooksPath=/dev/null "$@"
+}
+
+is_git_checkout() {
+  local repo="$1"
+  local expected_root actual_root
+  [[ -d "$repo" && ! -L "$repo" && -e "$repo/.git" && ! -L "$repo/.git" ]] || return 1
+  expected_root="$(cd -P "$repo" && pwd)" || return 1
+  actual_root="$(clean_git -C "$repo" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  [[ "$actual_root" == "$expected_root" ]]
+}
+
+is_git_checkout "$PUBLIC_REPO_DIR" || fail "PUBLIC_REPO_DIR is not a Git checkout: $PUBLIC_REPO_DIR"
+is_git_checkout "$PRIVATE_REPO_DIR" || fail "PRIVATE_REPO_DIR is not a Git checkout: $PRIVATE_REPO_DIR"
 
 is_allowed_overlay_path() {
   case "$1" in
@@ -46,7 +61,7 @@ trap 'rm -rf "$tmpdir"' EXIT
 private_files="$tmpdir/private-files"
 unexpected="$tmpdir/unexpected"
 
-git -C "$PRIVATE_REPO_DIR" ls-files | sort > "$private_files"
+clean_git -C "$PRIVATE_REPO_DIR" ls-files | sort > "$private_files"
 
 : > "$unexpected"
 

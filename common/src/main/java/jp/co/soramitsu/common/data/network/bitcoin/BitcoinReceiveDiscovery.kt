@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.bitcoin
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 
@@ -12,7 +13,8 @@ class BitcoinReceiveDiscovery(
         network: BitcoinKeyDerivation.Network = BitcoinKeyDerivation.Network.Mainnet,
         baseUrl: String? = null,
         gapLimit: Int? = null,
-        maxLookahead: Int = DEFAULT_MAX_LOOKAHEAD
+        maxLookahead: Int = DEFAULT_MAX_LOOKAHEAD,
+        change: Int = RECEIVE_BRANCH
     ): BitcoinReceiveDiscoveryResult {
         val resolvedGapLimit = gapLimit ?: defaultGapLimit(network)
         validateParams(mnemonic, resolvedGapLimit, maxLookahead)
@@ -24,7 +26,11 @@ class BitcoinReceiveDiscovery(
         var lastUsedIndex: Int? = null
 
         while (consecutiveUnused < resolvedGapLimit && index < maxLookahead) {
-            val path = BitcoinKeyDerivation.getReceivePath(network = network, index = index.toLong())
+            val path = BitcoinKeyDerivation.getReceivePath(
+                network = network,
+                index = index.toLong(),
+                change = change.toLong()
+            )
             val address = BitcoinKeyDerivation.deriveKey(
                 mnemonic = mnemonic,
                 passphrase = passphrase,
@@ -32,17 +38,19 @@ class BitcoinReceiveDiscovery(
                 network = network
             ).address
             val stats = client.address(address, indexerNetwork, baseUrl)
+            val validatedBalance = validatedBalance(stats, expectedAddress = address)
             val txCount = transactionCount(stats)
             val used = txCount > 0
             val discovered = BitcoinReceiveDiscoveredAddress(
                 address = address,
                 index = index,
                 path = path,
-                confirmedSats = stats.confirmedSats,
-                mempoolSats = stats.mempoolSats,
-                totalSats = stats.totalSats,
+                confirmedSats = validatedBalance.confirmedSats,
+                mempoolSats = validatedBalance.mempoolSats,
+                totalSats = validatedBalance.totalSats,
                 txCount = txCount,
-                used = used
+                used = used,
+                change = change
             )
 
             addresses += discovered
@@ -62,7 +70,11 @@ class BitcoinReceiveDiscovery(
         }
 
         val nextReceiveIndex = (lastUsedIndex ?: -1) + 1
-        val nextReceivePath = BitcoinKeyDerivation.getReceivePath(network = network, index = nextReceiveIndex.toLong())
+        val nextReceivePath = BitcoinKeyDerivation.getReceivePath(
+            network = network,
+            index = nextReceiveIndex.toLong(),
+            change = change.toLong()
+        )
         val nextReceiveAddress = BitcoinKeyDerivation.deriveKey(
             mnemonic = mnemonic,
             passphrase = passphrase,
@@ -77,6 +89,36 @@ class BitcoinReceiveDiscovery(
             nextReceiveAddress = nextReceiveAddress,
             nextReceiveIndex = nextReceiveIndex,
             usedAddresses = addresses.filter { it.used }
+        )
+    }
+
+    suspend fun discoverAccount(
+        mnemonic: String,
+        passphrase: String = "",
+        network: BitcoinKeyDerivation.Network = BitcoinKeyDerivation.Network.Mainnet,
+        baseUrl: String? = null,
+        gapLimit: Int? = null,
+        maxLookahead: Int = DEFAULT_MAX_LOOKAHEAD
+    ): BitcoinAccountDiscoveryResult {
+        return BitcoinAccountDiscoveryResult(
+            receive = discover(
+                mnemonic,
+                passphrase,
+                network,
+                baseUrl,
+                gapLimit,
+                maxLookahead,
+                change = RECEIVE_BRANCH
+            ),
+            change = discover(
+                mnemonic,
+                passphrase,
+                network,
+                baseUrl,
+                gapLimit,
+                maxLookahead,
+                change = CHANGE_BRANCH
+            )
         )
     }
 
@@ -104,6 +146,51 @@ class BitcoinReceiveDiscovery(
         return total.toInt()
     }
 
+    private fun validatedBalance(
+        payload: BitcoinEsploraAddress,
+        expectedAddress: String
+    ): ValidatedAddressBalance {
+        if (payload.address != expectedAddress ||
+            !payload.chainStats.hasValidNonnegativeFields() ||
+            !payload.mempoolStats.hasValidNonnegativeFields()
+        ) {
+            throw BitcoinReceiveDiscoveryException(BitcoinReceiveDiscoveryException.Code.INVALID_ADDRESS_PAYLOAD)
+        }
+
+        val confirmed = payload.chainStats.netSats()
+        val mempool = payload.mempoolStats.netSats()
+        val total = confirmed.add(mempool)
+        if (confirmed.signum() < 0 || mempool.signum() < 0 || total.signum() < 0 ||
+            total > BigInteger.valueOf(Long.MAX_VALUE)
+        ) {
+            throw BitcoinReceiveDiscoveryException(BitcoinReceiveDiscoveryException.Code.INVALID_ADDRESS_PAYLOAD)
+        }
+
+        return ValidatedAddressBalance(
+            confirmedSats = confirmed.toLong(),
+            mempoolSats = mempool.toLong(),
+            totalSats = total.toLong()
+        )
+    }
+
+    private fun BitcoinEsploraStats.hasValidNonnegativeFields(): Boolean {
+        return fundedTxoCount >= 0 &&
+            fundedTxoSum >= 0 &&
+            spentTxoCount >= 0 &&
+            spentTxoSum >= 0 &&
+            txCount >= 0
+    }
+
+    private fun BitcoinEsploraStats.netSats(): BigInteger {
+        return BigInteger.valueOf(fundedTxoSum).subtract(BigInteger.valueOf(spentTxoSum))
+    }
+
+    private data class ValidatedAddressBalance(
+        val confirmedSats: Long,
+        val mempoolSats: Long,
+        val totalSats: Long
+    )
+
     private fun defaultGapLimit(network: BitcoinKeyDerivation.Network): Int = when (network) {
         BitcoinKeyDerivation.Network.Mainnet -> UniversalWalletRegistry.bitcoinMainnet.defaultGapLimit
         BitcoinKeyDerivation.Network.Testnet -> UniversalWalletRegistry.bitcoinTestnet.defaultGapLimit
@@ -115,6 +202,8 @@ class BitcoinReceiveDiscovery(
     }
 
     companion object {
+        const val RECEIVE_BRANCH = 0
+        const val CHANGE_BRANCH = 1
         const val DEFAULT_MAX_LOOKAHEAD = 1_000
         const val MAX_GAP_LIMIT = 100
         const val MAX_LOOKAHEAD = 10_000
@@ -129,8 +218,17 @@ data class BitcoinReceiveDiscoveredAddress(
     val mempoolSats: Long,
     val totalSats: Long,
     val txCount: Int,
-    val used: Boolean
+    val used: Boolean,
+    val change: Int = BitcoinReceiveDiscovery.RECEIVE_BRANCH
 )
+
+data class BitcoinAccountDiscoveryResult(
+    val receive: BitcoinReceiveDiscoveryResult,
+    val change: BitcoinReceiveDiscoveryResult
+) {
+    val addresses: List<BitcoinReceiveDiscoveredAddress> = receive.addresses + change.addresses
+    val usedAddresses: List<BitcoinReceiveDiscoveredAddress> = receive.usedAddresses + change.usedAddresses
+}
 
 data class BitcoinReceiveDiscoveryResult(
     val addresses: List<BitcoinReceiveDiscoveredAddress>,
@@ -149,6 +247,7 @@ class BitcoinReceiveDiscoveryException(
         INVALID_GAP_LIMIT,
         INVALID_MAX_LOOKAHEAD,
         INVALID_TRANSACTION_COUNT,
+        INVALID_ADDRESS_PAYLOAD,
         LOOKAHEAD_EXHAUSTED
     }
 }

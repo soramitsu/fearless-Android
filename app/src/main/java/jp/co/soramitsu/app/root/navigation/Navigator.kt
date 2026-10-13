@@ -11,6 +11,7 @@ import androidx.lifecycle.asFlow
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
+import androidx.navigation.NavGraph
 import androidx.navigation.NavOptions
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
@@ -57,6 +58,7 @@ import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.WebViewerFragment
 import jp.co.soramitsu.app.root.presentation.emptyResultKey
+import jp.co.soramitsu.app.root.presentation.main.navigateToMainTabDestination
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
@@ -66,14 +68,6 @@ import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.common.view.onResumeObserver
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.ConfirmContributeFragment
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.BonusPayload
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContributeFragment
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
 import jp.co.soramitsu.nft.navigation.NFTRouter
@@ -81,6 +75,8 @@ import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkamarkt.api.PolkamarktRouter
+import jp.co.soramitsu.polkamarkt.impl.presentation.PolkamarktFragment
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
@@ -148,6 +144,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFrag
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.legacy.LegacyCrowdloanFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
@@ -213,8 +210,8 @@ class Navigator :
     WalletRouter,
     RootRouter,
     StakingRouter,
-    CrowdloanRouter,
     PolkaswapRouter,
+    PolkamarktRouter,
     SuccessRouter,
     WalletConnectRouter,
     TonConnectRouter,
@@ -223,6 +220,7 @@ class Navigator :
 {
 
     private var navController: NavController? = null
+    private var mainTabNavController: NavController? = null
     private var activity: AppCompatActivity? = null
 
     fun attach(navController: NavController, activity: AppCompatActivity) {
@@ -232,7 +230,70 @@ class Navigator :
 
     fun detach() {
         navController = null
+        mainTabNavController = null
         activity = null
+    }
+
+    fun attachMainTabs(navController: NavController) {
+        mainTabNavController = navController
+    }
+
+    fun detachMainTabs(navController: NavController) {
+        if (mainTabNavController === navController) {
+            mainTabNavController = null
+        }
+    }
+
+    /** Keeps authenticated product routes inside MainFragment so its tab bar remains mounted. */
+    private fun navigateInMainTabOrRoot(
+        @IdRes destinationId: Int,
+        args: Bundle? = null,
+        navOptions: NavOptions? = null
+    ) {
+        val shellController = mainTabNavController
+        val targetController = checkNotNull(authenticatedDestinationTarget(
+            shellController = mainTabNavController,
+            shellContainsDestination = { it.graph.containsDestination(destinationId) },
+            parentController = { navController }
+        )) {
+            "Destination $destinationId is not owned by the authenticated shell"
+        }
+
+        if (targetController === shellController) {
+            navigateToMainTabDestination(targetController, destinationId, args, navOptions)
+        } else {
+            targetController.navigate(destinationId, args, navOptions)
+        }
+    }
+
+    private fun activeAuthenticatedController(): NavController? {
+        val rootController = navController
+        val rootStillShowsMainShell = rootController?.currentDestination?.id == R.id.mainFragment
+        return if (mainTabNavController != null && rootStillShowsMainShell) {
+            mainTabNavController
+        } else {
+            rootController
+        }
+    }
+
+    private fun controllerFor(@IdRes destinationId: Int): NavController? {
+        return authenticatedDestinationTarget(
+            shellController = mainTabNavController,
+            shellContainsDestination = { it.graph.containsDestination(destinationId) },
+            parentController = { navController }
+        )
+    }
+
+    private fun popAuthenticatedBackStack(@IdRes destinationId: Int, inclusive: Boolean = false) {
+        activeAuthenticatedController()?.popBackStack(destinationId, inclusive)
+    }
+
+    private fun NavGraph.containsDestination(@IdRes destinationId: Int): Boolean {
+        if (id == destinationId) return true
+        return any { destination ->
+            destination.id == destinationId ||
+                (destination is NavGraph && destination.containsDestination(destinationId))
+        }
     }
 
     override fun openOnboarding() {
@@ -267,7 +328,12 @@ class Navigator :
     }
 
     override fun openCreateAccountFromWallet() {
-        openSelectEcosystemScreen()
+        val bundle = WelcomeFragment.getBundle(
+            displayBack = true,
+            chainAccountData = null,
+            route = "WelcomeScreen"
+        )
+        navController?.navigate(R.id.action_to_onboardingNavGraph, bundle)
     }
 
     override fun openImportAccountScreenFromWallet(blockChainType: Int) {
@@ -307,7 +373,7 @@ class Navigator :
     }
 
     override fun popOutOfSend() {
-        navController?.popBackStack(R.id.sendSetupFragment, true)
+        activeAuthenticatedController()?.popBackStack(R.id.sendSetupFragment, true)
     }
 
     override fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean) {
@@ -318,14 +384,6 @@ class Navigator :
         navController?.navigate(R.id.action_to_onboardingNavGraph, bundle)
     }
 
-    private fun openSelectEcosystemScreen() {
-        val bundle = WelcomeFragment.getBundle(
-            displayBack = true,
-            chainAccountData = null,
-            route = "SelectEcosystemScreen"
-        )
-        navController?.navigate(R.id.action_to_onboardingNavGraph, bundle)
-    }
 
     override fun openCreateSubstrateOrEvmAccountScreen() {
         val bundle = WelcomeFragment.getBundle(
@@ -382,7 +440,7 @@ class Navigator :
     }
 
     override fun openAboutScreen() {
-        navController?.navigate(R.id.action_profileFragment_to_aboutFragment)
+        navigateInMainTabOrRoot(R.id.aboutFragment)
     }
 
     override fun openImportAddAccountScreen(
@@ -433,64 +491,67 @@ class Navigator :
     }
 
     override fun openSetupStaking() {
-        navController?.navigate(R.id.action_mainFragment_to_setupStakingFragment)
+        navigateInMainTabOrRoot(R.id.setupStakingFragment)
     }
 
     override fun openStartChangeValidators() {
-        navController?.navigate(R.id.openStartChangeValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.startChangeValidatorsFragment)
     }
 
     override fun openStartChangeCollators() {
-        navController?.navigate(R.id.openStartChangeCollatorsFragment)
+        navigateInMainTabOrRoot(R.id.startChangeCollatorsFragment)
     }
 
     override fun openStory(story: StoryGroupModel) {
-        navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
+        navigateInMainTabOrRoot(R.id.stakingStoryFragment, StoryFragment.getBundle(story))
     }
 
     override fun openPayouts() {
-        navController?.navigate(R.id.action_mainFragment_to_payoutsListFragment)
+        navigateInMainTabOrRoot(R.id.payoutsListFragment)
     }
 
     override fun openPayoutDetails(payout: PendingPayoutParcelable) {
-        navController?.navigate(R.id.action_payoutsListFragment_to_payoutDetailsFragment, PayoutDetailsFragment.getBundle(payout))
+        navigateInMainTabOrRoot(R.id.payoutDetailsFragment, PayoutDetailsFragment.getBundle(payout))
     }
 
     override fun openConfirmPayout(payload: ConfirmPayoutPayload) {
-        navController?.navigate(R.id.action_open_confirm_payout, ConfirmPayoutFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.confirmPayoutFragment, ConfirmPayoutFragment.getBundle(payload))
     }
 
     override fun openStakingBalance(collatorAddress: String?) {
         val bundle = collatorAddress?.let { StakingBalanceFragment.getBundle(it) }
-        navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment, bundle)
+        navigateInMainTabOrRoot(R.id.stakingBalanceFragment, bundle)
     }
 
     override fun openBondMore(payload: SelectBondMorePayload) {
-        navController?.navigate(R.id.action_open_selectBondMoreFragment, SelectBondMoreFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.selectBondMoreFragment, SelectBondMoreFragment.getBundle(payload))
     }
 
     override fun openConfirmBondMore(payload: ConfirmBondMorePayload) {
-        navController?.navigate(R.id.action_selectBondMoreFragment_to_confirmBondMoreFragment, ConfirmBondMoreFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.confirmBondMoreFragment, ConfirmBondMoreFragment.getBundle(payload))
     }
 
     override fun returnToStakingBalance() {
-        navController?.navigate(R.id.action_return_to_staking_balance)
+        popAuthenticatedBackStack(R.id.stakingBalanceFragment)
     }
 
     override fun returnToManagePoolStake() {
-        navController?.navigate(R.id.action_return_to_pool_staking_balance)
+        popAuthenticatedBackStack(R.id.managePoolStakeFragment)
     }
 
     override fun openCreatePoolSetup() {
-        navController?.navigate(R.id.createPoolSetupFragment)
+        navigateInMainTabOrRoot(R.id.createPoolSetupFragment)
     }
 
     override fun openCreatePoolConfirm() {
-        navController?.navigate(R.id.confirmCreatePoolFragment)
+        navigateInMainTabOrRoot(R.id.confirmCreatePoolFragment)
     }
 
     override fun openWalletSelector(tag: String) {
-        navController?.navigate(R.id.walletSelectorFragment, WalletSelectorFragment.buildArguments(tag))
+        navigateInMainTabOrRoot(
+            R.id.walletSelectorFragment,
+            WalletSelectorFragment.buildArguments(tag)
+        )
     }
 
     override fun openWalletSelectorForResult(
@@ -510,56 +571,23 @@ class Navigator :
     }
 
     override fun openSelectUnbond(payload: SelectUnbondPayload) {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment, SelectUnbondFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.selectUnbondFragment, SelectUnbondFragment.getBundle(payload))
     }
 
     override fun openConfirmUnbond(payload: ConfirmUnbondPayload) {
-        navController?.navigate(R.id.action_selectUnbondFragment_to_confirmUnbondFragment, ConfirmUnbondFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.confirmUnbondFragment, ConfirmUnbondFragment.getBundle(payload))
     }
 
     override fun openRedeem(payload: RedeemPayload) {
-        navController?.navigate(R.id.action_open_redeemFragment, RedeemFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.redeemFragment, RedeemFragment.getBundle(payload))
     }
 
     override fun openConfirmRebond(payload: ConfirmRebondPayload) {
-        navController?.navigate(R.id.action_open_confirm_rebond, ConfirmRebondFragment.getBundle(payload))
-    }
-
-    override fun openContribute(payload: ContributePayload) {
-        navController?.navigate(R.id.action_mainFragment_to_crowdloanContributeFragment, CrowdloanContributeFragment.getBundle(payload))
-    }
-
-    override val customBonusFlow: Flow<BonusPayload?>
-        get() = navController!!.currentBackStackEntry!!.savedStateHandle
-            .getLiveData<BonusPayload?>(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
-            .asFlow()
-
-    override val latestCustomBonus: BonusPayload?
-        get() = navController!!.currentBackStackEntry!!.savedStateHandle
-            .get(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
-
-    override fun openMoonbeamContribute(payload: CustomContributePayload) {
-        navController?.navigate(R.id.action_mainFragment_to_customContributeFragment, CustomContributeFragment.getBundle(payload))
-    }
-
-    override fun openMoonbeamConfirmContribute(payload: ConfirmContributePayload) {
-        navController?.navigate(R.id.action_customContributeFragment_to_confirmContributeFragment, ConfirmContributeFragment.getBundle(payload))
-    }
-
-    override fun openCustomContribute(payload: CustomContributePayload) {
-        navController?.navigate(R.id.action_crowdloanContributeFragment_to_customContributeFragment, CustomContributeFragment.getBundle(payload))
-    }
-
-    override fun setCustomBonus(payload: BonusPayload) {
-        navController!!.previousBackStackEntry!!.savedStateHandle.set(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA, payload)
-    }
-
-    override fun openConfirmContribute(payload: ConfirmContributePayload) {
-        navController?.navigate(R.id.action_crowdloanContributeFragment_to_confirmContributeFragment, ConfirmContributeFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.confirmRebondFragment, ConfirmRebondFragment.getBundle(payload))
     }
 
     override fun back() {
-        val popped = navController!!.popBackStack()
+        val popped = requireNotNull(activeAuthenticatedController()).popBackStack()
 
         if (!popped) {
             activity!!.finish()
@@ -567,7 +595,7 @@ class Navigator :
     }
 
     override fun backWithResult(vararg results: Pair<String, Any?>) {
-        val savedStateHandle = navController?.previousBackStackEntry?.savedStateHandle
+        val savedStateHandle = activeAuthenticatedController()?.previousBackStackEntry?.savedStateHandle
 
         if (savedStateHandle != null) {
             results.forEach { (key, value) ->
@@ -579,7 +607,7 @@ class Navigator :
 
     override fun backWithResult(resultDestinationId: Int, vararg results: Pair<String, Any?>) {
         val savedStateHandle =
-            runCatching{ navController?.getBackStackEntry(resultDestinationId)?.savedStateHandle }.getOrNull()
+            runCatching { activeAuthenticatedController()?.getBackStackEntry(resultDestinationId)?.savedStateHandle }.getOrNull()
 
         if (savedStateHandle != null) {
             results.forEach { (key, value) ->
@@ -600,13 +628,13 @@ class Navigator :
 
     override fun openTransactionSettingsDialog(initialSettings: TransactionSettingsModel) {
         val bundle = TransactionSettingsFragment.getBundle(initialSettings)
-        navController?.navigate(R.id.transactionSettingsFragment, bundle)
+        navigateInMainTabOrRoot(R.id.transactionSettingsFragment, bundle)
     }
 
     override fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel) {
         val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState, parcelModel)
 
-        navController?.navigate(R.id.swapPreviewFragment, bundle)
+        navigateInMainTabOrRoot(R.id.swapPreviewFragment, bundle)
     }
 
     override fun openSwapPreviewForResult(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel): Flow<Int> {
@@ -619,174 +647,184 @@ class Navigator :
     }
 
     override fun openSelectMarketDialog() {
-        navController?.navigate(R.id.selectMarketFragment)
+        navigateInMainTabOrRoot(R.id.selectMarketFragment)
     }
 
     override fun openCustomRebond() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_customRebondFragment)
+        navigateInMainTabOrRoot(R.id.customRebondFragment)
     }
 
     override fun openCurrentValidators() {
-        navController?.navigate(R.id.action_mainFragment_to_currentValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.currentValidatorsFragment)
     }
 
     override fun returnToCurrentValidators() {
-        navController?.navigate(R.id.action_confirmStakingFragment_back_to_currentValidatorsFragment)
+        popAuthenticatedBackStack(R.id.currentValidatorsFragment)
     }
 
     override fun openChangeRewardDestination() {
-        navController?.navigate(R.id.action_mainFragment_to_selectRewardDestinationFragment)
+        navigateInMainTabOrRoot(R.id.selectRewardDestinationFragment)
     }
 
     override fun openConfirmRewardDestination(payload: ConfirmRewardDestinationPayload) {
-        navController?.navigate(
-            R.id.action_selectRewardDestinationFragment_to_confirmRewardDestinationFragment,
+        navigateInMainTabOrRoot(
+            R.id.confirmRewardDestinationFragment,
             ConfirmRewardDestinationFragment.getBundle(payload)
         )
     }
 
     override fun openStakingPoolWelcome() {
-        navController?.navigateSafe(R.id.action_global_startStakingPoolFragment, null)
+        navigateInMainTabOrRoot(R.id.startStakingPoolFragment)
     }
 
     override fun openSetupStakingPool() {
-        navController?.navigate(R.id.setupStakingPoolFragment)
+        navigateInMainTabOrRoot(R.id.setupStakingPoolFragment)
     }
 
     override fun openConfirmJoinPool() {
-        navController?.navigate(R.id.confirmJoinPoolFragment)
+        navigateInMainTabOrRoot(R.id.confirmJoinPoolFragment)
     }
 
     override fun openPoolInfo(poolId: Int) {
-        navController?.navigate(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolId))
+        navigateInMainTabOrRoot(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolId))
     }
 
     override fun openManagePoolStake() {
-        navController?.navigate(R.id.managePoolStakeFragment)
+        navigateInMainTabOrRoot(R.id.managePoolStakeFragment)
     }
 
     override fun openPoolBondMore() {
-        navController?.navigate(R.id.poolBondMoreFragment)
+        navigateInMainTabOrRoot(R.id.poolBondMoreFragment)
     }
 
     override fun openPoolClaim() {
-        navController?.navigate(R.id.poolClaimFragment)
+        navigateInMainTabOrRoot(R.id.poolClaimFragment)
     }
 
     override fun openPoolRedeem() {
-        navController?.navigate(R.id.poolRedeemFragment)
+        navigateInMainTabOrRoot(R.id.poolRedeemFragment)
     }
 
     override fun openPoolUnstake() {
-        navController?.navigate(R.id.poolUnstakeFragment)
+        navigateInMainTabOrRoot(R.id.poolUnstakeFragment)
     }
 
     override fun openPoolConfirmBondMore() {
-        navController?.navigate(R.id.poolConfirmBondMoreFragment)
+        navigateInMainTabOrRoot(R.id.poolConfirmBondMoreFragment)
     }
 
     override fun openPoolConfirmClaim() {
-        navController?.navigate(R.id.poolConfirmClaimFragment)
+        navigateInMainTabOrRoot(R.id.poolConfirmClaimFragment)
     }
 
     override fun openPoolConfirmRedeem() {
-        navController?.navigate(R.id.poolConfirmRedeemFragment)
+        navigateInMainTabOrRoot(R.id.poolConfirmRedeemFragment)
     }
 
     override fun openPoolConfirmUnstake() {
-        navController?.navigate(R.id.poolConfirmUnstakeFragment)
+        navigateInMainTabOrRoot(R.id.poolConfirmUnstakeFragment)
     }
 
     override val currentStackEntryLifecycle: Lifecycle
-        get() = navController!!.currentBackStackEntry!!.lifecycle
+        get() = requireNotNull(activeAuthenticatedController()?.currentBackStackEntry).lifecycle
 
     override fun openControllerAccount() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
+        navigateInMainTabOrRoot(R.id.setControllerAccountFragment)
     }
 
     override fun openConfirmSetController(payload: ConfirmSetControllerPayload) {
-        navController?.navigate(
-            R.id.action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment,
+        navigateInMainTabOrRoot(
+            R.id.confirmSetControllerAccount,
             ConfirmSetControllerFragment.getBundle(payload)
         )
     }
 
     override fun openRecommendedCollators() {
-        navController?.navigate(R.id.action_startChangeCollatorsFragment_to_recommendedCollatorsFragment)
+        navigateInMainTabOrRoot(R.id.recommendedCollatorsFragment)
     }
 
     override fun openSelectCustomCollators() {
-        navController?.navigate(R.id.action_startChangeCollatorsFragment_to_selectCustomCollatorsFragment)
+        navigateInMainTabOrRoot(R.id.selectCustomCollatorsFragment)
     }
 
     override fun openSelectPool() {
-        navController?.navigate(R.id.selectPoolFramgent)
+        navigateInMainTabOrRoot(R.id.selectPoolFramgent)
     }
 
     override fun openRecommendedValidators() {
         val args = SelectCustomValidatorsFragment.getBundle(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
-        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment, args)
+        navigateInMainTabOrRoot(R.id.recommendedValidatorsFragment, args)
     }
 
     override fun openSelectCustomValidators() {
         val args = SelectCustomValidatorsFragment.getBundle(SelectValidatorFlowState.ValidatorSelectMode.CUSTOM)
-        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment, args)
+        navigateInMainTabOrRoot(R.id.selectCustomValidatorsFragment, args)
     }
 
     override fun openCustomValidatorsSettingsFromValidator() {
         val bundle = CustomValidatorsSettingsFragment.getBundle(Asset.StakingType.RELAYCHAIN)
-        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_settingsCustomValidatorsFragment, bundle)
+        navigateInMainTabOrRoot(R.id.settingsCustomValidatorsFragment, bundle)
     }
 
     override fun openCustomValidatorsSettingsFromCollator() {
         val bundle = CustomValidatorsSettingsFragment.getBundle(Asset.StakingType.PARACHAIN)
-        navController?.navigate(R.id.action_selectCustomCollatorsFragment_to_settingsCustomValidatorsFragment, bundle)
+        navigateInMainTabOrRoot(R.id.settingsCustomValidatorsFragment, bundle)
     }
 
     override fun openSearchCustomValidators() {
-        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_searchCustomValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.searchCustomValidatorsFragment)
     }
 
     override fun openSearchCustomCollators() {
-        navController?.navigate(R.id.action_selectCustomCollatorsFragment_to_searchCustomValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.searchCustomValidatorsFragment)
     }
 
     override fun openReviewCustomValidators() {
-        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_reviewCustomValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.reviewCustomValidatorsFragment)
     }
 
     override fun openConfirmStaking() {
-        navController?.navigate(R.id.openConfirmStakingFragment)
+        navigateInMainTabOrRoot(R.id.confirmStakingFragment)
     }
 
     override fun openConfirmNominations() {
-        navController?.navigate(R.id.action_confirmStakingFragment_to_confirmNominationsFragment)
+        navigateInMainTabOrRoot(R.id.confirmNominationsFragment)
     }
 
     override fun returnToMain() {
-        navController?.navigate(R.id.back_to_main)
+        popAuthenticatedBackStack(R.id.defiHubFragment)
     }
 
     override fun closeSwap() {
-        navController?.navigate(R.id.close_swap)
+        if (mainTabNavController != null) {
+            popAuthenticatedBackStack(R.id.polkaswapHubFragment)
+        } else {
+            navController?.navigate(R.id.close_swap)
+        }
     }
 
     override fun openValidatorDetails(validatorIdHex: String) {
-        navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorIdHex))
+        navigateInMainTabOrRoot(
+            R.id.validatorDetailsFragment,
+            ValidatorDetailsFragment.getBundle(validatorIdHex)
+        )
     }
 
     override fun openSelectedValidators() {
-        navController?.navigate(R.id.selectedValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.selectedValidatorsFragment)
     }
 
     override fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel) {
-        navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
+        navigateInMainTabOrRoot(
+            R.id.collatorDetailsFragment,
+            CollatorDetailsFragment.getBundle(collatorDetails)
+        )
     }
 
     override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, false)
 
-        navController?.navigate(R.id.sendSetupFragment, bundle)
+        navigateInMainTabOrRoot(R.id.sendSetupFragment, bundle)
     }
 
     override fun openWalletConnectSessionProposal(pairingTopic: String?) {
@@ -808,18 +846,18 @@ class Navigator :
     override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, true)
 
-        navController?.navigate(R.id.sendSetupFragment, bundle)
+        navigateInMainTabOrRoot(R.id.sendSetupFragment, bundle)
     }
 
     override fun openCBDCSend(cbdcQrInfo: QrContentCBDC) {
         val bundle = CBDCSendSetupFragment.getBundle(cbdcQrInfo)
 
-        navController?.navigate(R.id.cbdcSendSetupFragment, bundle)
+        navigateInMainTabOrRoot(R.id.cbdcSendSetupFragment, bundle)
     }
 
     override fun openCrossChainSend(assetPayload: AssetPayload?) {
         val bundle = CrossChainSetupFragment.getBundle(assetPayload)
-        navController?.navigate(R.id.crossChainFragment, bundle)
+        navigateInMainTabOrRoot(R.id.crossChainFragment, bundle)
     }
 
     private fun <T> openWithResult(
@@ -827,12 +865,13 @@ class Navigator :
         resultKey: String,
         bundle: Bundle? = null
     ): Flow<T> {
-        val resultFlow = observeResultInternal<T>(resultKey)
-        val backStackEntryFlow = getCurrentBackStackEntryFlow()
+        val targetController = controllerFor(destinationId)
+        val resultFlow = observeResultInternal<T>(resultKey, targetController)
+        val backStackEntryFlow = targetController?.currentBackStackEntryFlow ?: emptyFlow()
         return combine(resultFlow, backStackEntryFlow) { result, backStackEntry ->
             Pair(result, backStackEntry)
         }
-            .onStart { navController?.navigate(destinationId, bundle) }
+            .onStart { targetController?.navigate(destinationId, bundle) }
             .filter {
                 val (_, backStackEntry) = it
                 backStackEntry.destination.id != destinationId
@@ -843,7 +882,7 @@ class Navigator :
                 result
             }
             .mapNotNull { it }
-            .onEach { removeSavedStateHandle(resultKey) }
+            .onEach { removeSavedStateHandle(resultKey, targetController) }
     }
 
     private suspend fun <T> openAndWaitResult(
@@ -874,7 +913,7 @@ class Navigator :
 
         val bundle = SwapTokensFragment.getBundle(chainId, assetIdFrom, assetIdTo)
 
-        navController?.navigate(R.id.swapTokensFragment, bundle)
+        navigateInMainTabOrRoot(R.id.swapTokensFragment, bundle)
     }
 
     override fun openPolkaswapDisclaimerFromSwapTokensFragment() {
@@ -882,7 +921,7 @@ class Navigator :
             R.id.swapTokensFragment
         )
 
-        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
+        navigateInMainTabOrRoot(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
     override fun openSelectChain(
@@ -899,15 +938,15 @@ class Navigator :
             isSelectAsset = isSelectAsset,
             showAllChains = showAllChains
         )
-        navController?.navigate(R.id.chainSelectFragment, bundle)
+        navigateInMainTabOrRoot(R.id.chainSelectFragment, bundle)
     }
 
     override fun openConnectionsScreen() {
-        navController?.navigate(R.id.connectionsFragment)
+        navigateInMainTabOrRoot(R.id.connectionsFragment)
     }
 
     override fun openTonConnectionsScreen() {
-        navController?.navigate(R.id.tonConnectionsFragment)
+        navigateInMainTabOrRoot(R.id.tonConnectionsFragment)
     }
 
     override fun openSelectMultipleChains(
@@ -918,7 +957,7 @@ class Navigator :
         val bundle = ChainChooseFragment.getBundle(
             state = ChainChooseState(items, selected, isViewMode)
         )
-        navController?.navigate(R.id.chainChooseFragment, bundle)
+        navigateInMainTabOrRoot(R.id.chainChooseFragment, bundle)
     }
 
     override fun openSelectMultipleChainsForResult(
@@ -935,17 +974,17 @@ class Navigator :
 
     override fun openConnectionDetails(topic: String) {
         val bundle = ConnectionInfoFragment.getBundle(topic)
-        navController?.navigate(R.id.connectionInfoFragment, bundle)
+        navigateInMainTabOrRoot(R.id.connectionInfoFragment, bundle)
     }
 
     override fun openRequestPreview(topic: String) {
         val bundle = RequestPreviewFragment.getBundle(topic)
-        navController?.navigate(R.id.requestPreviewFragment, bundle)
+        navigateInMainTabOrRoot(R.id.requestPreviewFragment, bundle)
     }
 
     override fun openRawData(payload: String) {
         val bundle = RawDataFragment.getBundle(payload)
-        navController?.navigate(R.id.rawDataFragment, bundle)
+        navigateInMainTabOrRoot(R.id.rawDataFragment, bundle)
     }
 
     override fun openSelectChain(
@@ -966,37 +1005,39 @@ class Navigator :
             isSelectAsset,
             isFilteringEnabled
         )
-        navController?.navigate(R.id.chainSelectFragment, bundle)
+        navigateInMainTabOrRoot(R.id.chainSelectFragment, bundle)
     }
 
     override fun openSelectChainForXcm(
         selectedChainId: ChainId?,
         xcmChainType: XcmChainType,
         selectedOriginChainId: String?,
+        xcmOriginAssetId: String?,
         xcmAssetSymbol: String?
     ) {
         val bundle = ChainSelectFragment.getBundleForXcmChains(
             selectedChainId = selectedChainId,
             xcmChainType = xcmChainType,
             xcmSelectedOriginChainId = selectedOriginChainId,
+            xcmOriginAssetId = xcmOriginAssetId,
             xcmAssetSymbol = xcmAssetSymbol
         )
-        navController?.navigate(R.id.chainSelectFragment, bundle)
+        navigateInMainTabOrRoot(R.id.chainSelectFragment, bundle)
     }
 
     override fun openSelectAsset(selectedAssetId: String) {
         val bundle = AssetSelectFragment.getBundle(selectedAssetId)
-        navController?.navigate(R.id.assetSelectFragment, bundle)
+        navigateInMainTabOrRoot(R.id.assetSelectFragment, bundle)
     }
 
     override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean) {
         val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId, isFilterXcmAssets)
-        navController?.navigate(R.id.assetSelectFragment, bundle)
+        navigateInMainTabOrRoot(R.id.assetSelectFragment, bundle)
     }
 
     override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, excludeAssetId: String?) {
         val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId, excludeAssetId)
-        navController?.navigate(R.id.assetSelectFragment, bundle)
+        navigateInMainTabOrRoot(R.id.assetSelectFragment, bundle)
     }
 
     override fun <T> observeResult(key: String): Flow<T> {
@@ -1007,40 +1048,46 @@ class Navigator :
             .filter { it != null } as Flow<T>
     }
 
-    private fun <T> observeResultInternal(key: String): StateFlow<T?> {
-        val savedStateHandle = navController?.currentBackStackEntry?.savedStateHandle
+    private fun <T> observeResultInternal(
+        key: String,
+        controller: NavController? = activeAuthenticatedController()
+    ): StateFlow<T?> {
+        val savedStateHandle = controller?.currentBackStackEntry?.savedStateHandle
         return savedStateHandle?.getStateFlow<T?>(key, null) ?: MutableStateFlow(null)
     }
 
-    private fun removeSavedStateHandle(key: String) {
-        val savedStateHandle = navController?.currentBackStackEntry?.savedStateHandle
+    private fun removeSavedStateHandle(
+        key: String,
+        controller: NavController? = activeAuthenticatedController()
+    ) {
+        val savedStateHandle = controller?.currentBackStackEntry?.savedStateHandle
         savedStateHandle?.set(key, null)
     }
 
     override fun getCurrentBackStackEntryFlow(): Flow<NavBackStackEntry> {
-        return navController!!.currentBackStackEntryFlow
+        return requireNotNull(activeAuthenticatedController()).currentBackStackEntryFlow
     }
 
     override fun openSelectChainAsset(chainId: ChainId) {
         val bundle = AssetSelectFragment.getBundleFilterByChain(chainId)
-        navController?.navigate(R.id.assetSelectFragment, bundle)
+        navigateInMainTabOrRoot(R.id.assetSelectFragment, bundle)
     }
 
     override fun openFilter(filtersToShowOrAll: Set<TransactionFilter>) {
         val bundle = TransactionHistoryFilterFragment.getBundle(filtersToShowOrAll)
-        navController?.navigate(R.id.action_mainFragment_to_filterFragment, bundle)
+        navigateInMainTabOrRoot(R.id.transactionHistoryFilterFragment, bundle)
     }
 
     override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?, skipEdValidation: Boolean) {
         val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, transferComment, skipEdValidation)
 
-        navController?.navigate(R.id.confirmSendFragment, bundle)
+        navigateInMainTabOrRoot(R.id.confirmSendFragment, bundle)
     }
 
     override fun openCrossChainSendConfirm(transferDraft: CrossChainTransferDraft, phishingType: PhishingType?) {
         val bundle = CrossChainConfirmFragment.getBundle(transferDraft, phishingType)
 
-        navController?.navigate(R.id.confirmCrossChainSendFragment, bundle)
+        navigateInMainTabOrRoot(R.id.confirmCrossChainSendFragment, bundle)
     }
 
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId?) {
@@ -1052,11 +1099,17 @@ class Navigator :
             R.id.profileFragment
         )
 
-        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
+        navigateInMainTabOrRoot(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
     override fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean> {
-        val currentEntry = runCatching { navController?.getBackStackEntry(R.id.mainFragment) }.getOrNull()
+        val controller = activeAuthenticatedController()
+        val resultDestinationId = if (mainTabNavController != null) {
+            R.id.polkaswapHubFragment
+        } else {
+            R.id.mainFragment
+        }
+        val currentEntry = runCatching { controller?.getBackStackEntry(resultDestinationId) }.getOrNull()
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
@@ -1075,80 +1128,86 @@ class Navigator :
     }
 
     override fun openPolkaswapDisclaimerFromMainScreen() {
-        val bundle = PolkaswapDisclaimerFragment.getBundle(R.id.mainFragment)
+        val resultDestinationId = mainTabNavController?.currentDestination?.id ?: R.id.mainFragment
+        val bundle = PolkaswapDisclaimerFragment.getBundle(resultDestinationId)
 
-        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
+        navigateInMainTabOrRoot(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?, customTitle: String?) {
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage, customTitle)
 
-        navController?.navigate(R.id.successSheetFragment, bundle)
+        navigateInMainTabOrRoot(R.id.successSheetFragment, bundle)
     }
 
     @SuppressLint("RestrictedApi")
     override fun openOperationSuccessAndPopUpToNearestRelatedScreen(operationHash: String?, chainId: ChainId?, customMessage: String?, customTitle: String?) {
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage, customTitle)
+        val targetController = activeAuthenticatedController() ?: return
 
         val latestAvailableWalletConnectRelatedDestinationId =
-            navController?.currentBackStack?.replayCache?.firstOrNull()?.last {
+            targetController.currentBackStack.replayCache.firstOrNull()?.lastOrNull {
                 it.destination.id == R.id.connectionsFragment ||
                 it.destination.id == R.id.mainFragment
-            }?.destination?.id ?: R.id.mainFragment
+            }?.destination?.id
 
-        val navOptions = NavOptions.Builder()
-            .setPopUpTo(latestAvailableWalletConnectRelatedDestinationId, false)
-            .build()
+        val navOptions = latestAvailableWalletConnectRelatedDestinationId?.let { destinationId ->
+            NavOptions.Builder()
+                .setPopUpTo(destinationId, false)
+                .build()
+        }
 
-        navController?.navigate(R.id.successSheetFragment, bundle, navOptions)
+        targetController.navigate(R.id.successSheetFragment, bundle, navOptions)
     }
 
     override fun finishSendFlow() {
-        navController?.popBackStack()
-        navController?.popBackStack()
+        activeAuthenticatedController()?.let { controller ->
+            controller.popBackStack()
+            controller.popBackStack()
+        }
     }
 
     override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainExplorerType: Chain.Explorer.Type?) {
         val bundle = TransferDetailFragment.getBundle(transaction, assetPayload, chainExplorerType)
 
-        navController?.navigate(R.id.open_transfer_detail, bundle)
+        navigateInMainTabOrRoot(R.id.transferDetailFragment, bundle)
     }
 
     override fun openRewardDetail(payload: RewardDetailsPayload) {
         val bundle = RewardDetailFragment.getBundle(payload)
 
-        navController?.navigate(R.id.open_reward_detail, bundle)
+        navigateInMainTabOrRoot(R.id.rewardDetailFragment, bundle)
     }
 
     override fun openExtrinsicDetail(payload: ExtrinsicDetailsPayload) {
         val bundle = ExtrinsicDetailFragment.getBundle(payload)
 
-        navController?.navigate(R.id.open_extrinsic_detail, bundle)
+        navigateInMainTabOrRoot(R.id.extrinsicDetailFragment, bundle)
     }
 
     override fun openSwapDetail(operation: OperationParcelizeModel.Swap) {
         val bundle = SwapDetailFragment.getBundle(operation)
 
-        navController?.navigate(R.id.swapDetailFragment, bundle)
+        navigateInMainTabOrRoot(R.id.swapDetailFragment, bundle)
     }
 
     override fun openNodes(chainId: ChainId) {
-        navController?.navigate(R.id.action_open_nodesFragment, NodesFragment.getBundle(chainId))
+        navigateInMainTabOrRoot(R.id.nodesFragment, NodesFragment.getBundle(chainId))
     }
 
     override fun openClaimRewards(chainId: ChainId) {
         val args = ClaimRewardsFragment.getBundle(chainId)
-        navController?.navigate(R.id.claimRewardsFragment, args)
+        navigateInMainTabOrRoot(R.id.claimRewardsFragment, args)
     }
 
     override fun openLanguages() {
-        navController?.navigate(R.id.action_mainFragment_to_languagesFragment)
+        navigateInMainTabOrRoot(R.id.languagesFragment)
     }
 
     override fun openReceive(assetPayload: AssetPayload) {
         val bundle = ReceiveFragment.getBundle(assetPayload)
 
-        navController?.navigate(R.id.action_open_receive, bundle)
+        navigateInMainTabOrRoot(R.id.receiveFragment, bundle)
     }
 
     override fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel) {
@@ -1174,32 +1233,32 @@ class Navigator :
     override fun openAccountDetails(metaAccountId: Long) {
         val extras = AccountDetailsDialog.getBundle(metaAccountId)
 
-        navController?.navigate(R.id.accountDetailsDialog, extras)
+        navigateInMainTabOrRoot(R.id.accountDetailsDialog, extras)
     }
 
     override fun openEcosystemAccountsFragment(walletId: Long, type: WalletEcosystem) {
         val bundle = ChainAccountsDialog.getBundle(walletId, type)
-        navController?.navigate(R.id.chainAccountsDialog, bundle)
+        navigateInMainTabOrRoot(R.id.chainAccountsDialog, bundle)
     }
 
     override fun openBackupWalletScreen(metaAccountId: Long) {
         val extras = BackupWalletDialog.getBundle(metaAccountId)
 
-        navController?.navigate(R.id.backupWalletDialog, extras)
+        navigateInMainTabOrRoot(R.id.backupWalletDialog, extras)
     }
 
     override fun openRenameWallet(metaAccountId: Long, name: String?) {
         val extras = RenameAccountDialog.getBundle(metaAccountId, name)
 
-        navController?.navigate(R.id.renameAccountDialog, extras)
+        navigateInMainTabOrRoot(R.id.renameAccountDialog, extras)
     }
 
     override fun openNodeDetails(payload: NodeDetailsPayload) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(payload))
+        navigateInMainTabOrRoot(R.id.nodeDetailsFragment, NodeDetailsFragment.getBundle(payload))
     }
 
     override fun trackReturnToAssetDetailsFromChainSelector(): Flow<Unit>? {
-        return navController?.currentBackStackEntryFlow?.filter {
+        return activeAuthenticatedController()?.currentBackStackEntryFlow?.filter {
             it.destination.id == R.id.assetDetailFragment
         }?.distinctUntilChanged()?.map { /* DO NOTHING */ }
     }
@@ -1207,33 +1266,36 @@ class Navigator :
     override fun openAssetDetails(assetPayload: AssetPayload) {
         val bundle = BalanceDetailFragment.getBundle(assetPayload)
 
-        navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
+        navigateInMainTabOrRoot(R.id.balanceDetailFragment, bundle)
     }
 
     override fun openAssetDetailsAndPopUpToBalancesList(assetPayload: AssetPayload) {
         val bundle = BalanceDetailFragment.getBundle(assetPayload)
 
         val navOptions = NavOptions.Builder()
-            .setPopUpTo(R.id.mainFragment, false)
+            .setPopUpTo(
+                if (mainTabNavController != null) R.id.walletFragment else R.id.mainFragment,
+                false
+            )
             .build()
 
-        navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle, navOptions)
+        navigateInMainTabOrRoot(R.id.balanceDetailFragment, bundle, navOptions)
     }
 
-    override fun openAssetIntermediateDetails(assetId: String) {
-        val bundle = AssetDetailsFragment.getBundle(assetId)
+    override fun openAssetIntermediateDetails(assetPayload: AssetPayload) {
+        val bundle = AssetDetailsFragment.getBundle(assetPayload)
 
-        navController?.navigate(R.id.action_mainFragment_to_assetDetailFragment, bundle)
+        navigateInMainTabOrRoot(R.id.assetDetailFragment, bundle)
     }
 
     override fun openAssetIntermediateDetailsSort() {
-        navController?.navigate(R.id.assetDetailSortFragment)
+        navigateInMainTabOrRoot(R.id.assetDetailSortFragment)
     }
 
     override fun openAddressHistory(chainId: ChainId) {
         val bundle = AddressHistoryFragment.getBundle(chainId)
 
-        navController?.navigate(R.id.addressHistoryFragment, bundle)
+        navigateInMainTabOrRoot(R.id.addressHistoryFragment, bundle)
     }
 
     override fun openAddressHistoryWithResult(chainId: ChainId): Flow<String> {
@@ -1248,11 +1310,11 @@ class Navigator :
     override fun openCreateContact(chainId: ChainId?, address: String?) {
         val bundle = CreateContactFragment.getBundle(chainId, address)
 
-        navController?.navigate(R.id.createContactFragment, bundle)
+        navigateInMainTabOrRoot(R.id.createContactFragment, bundle)
     }
 
     override fun openAddNode(chainId: ChainId) {
-        navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment, AddNodeFragment.getBundle(chainId))
+        navigateInMainTabOrRoot(R.id.addNodeFragment, AddNodeFragment.getBundle(chainId))
     }
 
     override fun getExportMnemonicDestination(metaId: Long, chainId: ChainId, isExportWallet: Boolean): DelayedNavigation {
@@ -1310,7 +1372,7 @@ class Navigator :
     override fun openChangePinCode() {
         val action = PinCodeAction.Change
         val bundle = PincodeFragment.getPinCodeBundle(action)
-        navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
+        navigateInMainTabOrRoot(R.id.pincodeFragment, bundle)
     }
 
     override fun openBeacon(qrContent: String?) {
@@ -1348,17 +1410,17 @@ class Navigator :
     }
 
     override fun openSelectWallet() {
-        navController?.navigate(R.id.selectWalletFragment)
+        navigateInMainTabOrRoot(R.id.selectWalletFragment)
     }
 
     override fun openOptionsAddAccount(metaId: Long, type: WalletEcosystem) {
         val bundle = OptionsAddAccountFragment.getBundle(metaId, type)
-        navController?.navigate(R.id.optionsAddAccountFragment, bundle)
+        navigateInMainTabOrRoot(R.id.optionsAddAccountFragment, bundle)
     }
 
     override fun openEcosystemAccountsOptions(walletId: Long, type: WalletEcosystem) {
         val bundle = OptionsEcosystemAccountsFragment.getBundle(walletId, type)
-        navController?.navigate(R.id.optionsEcosystemAccountsFragment, bundle)
+        navigateInMainTabOrRoot(R.id.optionsEcosystemAccountsFragment, bundle)
     }
 
     override fun openOptionsSwitchNode(
@@ -1367,7 +1429,7 @@ class Navigator :
         chainName: String
     ) {
         val bundle = OptionsSwitchNodeFragment.getBundle(metaId, chainId, chainName)
-        navController?.navigate(R.id.optionsSwitchNodeFragment, bundle)
+        navigateInMainTabOrRoot(R.id.optionsSwitchNodeFragment, bundle)
     }
 
     override fun openAlert(payload: AlertViewState) {
@@ -1375,27 +1437,34 @@ class Navigator :
     }
 
     override fun openAlert(payload: AlertViewState, resultKey: String) {
-        val currentDestination = requireNotNull(navController?.currentDestination?.id)
+        val currentDestination = requireNotNull(activeAuthenticatedController()?.currentDestination?.id)
         openAlert(payload, resultKey, currentDestination)
     }
 
     override fun openAlert(payload: AlertViewState, resultKey: String, resultDestinationId: Int) {
         val bundle = AlertFragment.getBundle(payload, resultKey, resultDestinationId)
-        navController?.navigate(R.id.alertFragment, bundle)
+        navigateInMainTabOrRoot(R.id.alertFragment, bundle)
     }
 
     override fun openSearchAssets() {
-        navController?.navigate(R.id.searchAssetsFragment)
+        navigateInMainTabOrRoot(R.id.searchAssetsFragment)
     }
 
     override fun openOptionsWallet(walletId: Long, allowDetails: Boolean) {
         val bundle = OptionsWalletFragment.getBundle(walletId, allowDetails)
-        navController?.navigate(R.id.optionsWalletFragment, bundle)
+        navigateInMainTabOrRoot(R.id.optionsWalletFragment, bundle)
     }
 
     override fun openFrozenTokens(payload: FrozenAssetPayload) {
         val bundle = FrozenTokensFragment.getBundle(payload)
-        navController?.navigate(R.id.frozenTokensFragment, bundle)
+        navigateInMainTabOrRoot(R.id.frozenTokensFragment, bundle)
+    }
+
+    override fun openLegacyCrowdloan(assetPayload: AssetPayload) {
+        navigateInMainTabOrRoot(
+            R.id.legacyCrowdloanFragment,
+            LegacyCrowdloanFragment.getBundle(assetPayload)
+        )
     }
 
     fun educationalStoriesCompleted() {
@@ -1404,7 +1473,7 @@ class Navigator :
     }
 
     override fun openExperimentalFeatures() {
-        navController?.navigate(R.id.experimentalFragment)
+        navigateInMainTabOrRoot(R.id.experimentalFragment)
     }
 
     override fun openSuccessFragment(avatar: Drawable) {
@@ -1418,44 +1487,50 @@ class Navigator :
     }
 
     override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {
-        navController?.previousBackStackEntry?.savedStateHandle?.set(WalletSelectorPayload::class.java.name, payload)
+        activeAuthenticatedController()?.previousBackStackEntry?.savedStateHandle
+            ?.set(WalletSelectorPayload::class.java.name, payload)
     }
 
     override fun openStartSelectValidators() {
-        navController?.navigate(R.id.startSelectValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.startSelectValidatorsFragment)
     }
 
     override fun openSelectValidators() {
-        navController?.navigate(R.id.selectValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.selectValidatorsFragment)
     }
 
     override fun openValidatorsSettings() {
-        navController?.navigate(R.id.validatorsSettingsFragment)
+        navigateInMainTabOrRoot(R.id.validatorsSettingsFragment)
     }
 
     override fun openConfirmSelectValidators() {
-        navController?.navigate(R.id.confirmSelectValidatorsFragment)
+        navigateInMainTabOrRoot(R.id.confirmSelectValidatorsFragment)
     }
 
     override fun openPoolInfoOptions(poolInfo: PoolInfo) {
-        navController?.navigate(R.id.poolOptionsInfoFragment, PoolInfoOptionsFragment.getBundle(poolInfo))
+        navigateInMainTabOrRoot(
+            R.id.poolOptionsInfoFragment,
+            PoolInfoOptionsFragment.getBundle(poolInfo)
+        )
     }
 
     override fun openEditPool() {
-        navController?.navigate(R.id.editPoolFragment)
+        navigateInMainTabOrRoot(R.id.editPoolFragment)
     }
 
     override fun openEditPoolConfirm() {
-        navController?.navigate(R.id.editPoolConfirmFragment)
+        navigateInMainTabOrRoot(R.id.editPoolConfirmFragment)
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
-        get() = navController?.currentBackStackEntry?.savedStateHandle
+        get() = activeAuthenticatedController()?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
             ?.asFlow() ?: emptyFlow()
 
     override fun setAlertResult(key: String, result: Result<*>, resultDestinationId: Int?) {
-        val resultBackStackEntry = resultDestinationId?.let { navController?.getBackStackEntry(it) } ?: navController?.previousBackStackEntry
+        val controller = activeAuthenticatedController()
+        val resultBackStackEntry = resultDestinationId?.let { controller?.getBackStackEntry(it) }
+            ?: controller?.previousBackStackEntry
         resultBackStackEntry?.savedStateHandle?.set(
             key,
             result
@@ -1463,7 +1538,7 @@ class Navigator :
     }
 
     override fun alertResultFlow(key: String): Flow<Result<Unit>> {
-        val currentEntry = navController?.currentBackStackEntry
+        val currentEntry = activeAuthenticatedController()?.currentBackStackEntry
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
@@ -1478,7 +1553,7 @@ class Navigator :
     }
 
     override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
-        val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
+        val currentEntry = activeAuthenticatedController()?.getBackStackEntry(R.id.startSelectValidatorsFragment)
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
@@ -1493,7 +1568,7 @@ class Navigator :
     }
 
     override fun listenAlertResultFlowFromStartChangeValidatorsScreen(key: String): Flow<Result<Unit>> {
-        val currentEntry = navController?.getBackStackEntry(R.id.startChangeValidatorsFragment)
+        val currentEntry = activeAuthenticatedController()?.getBackStackEntry(R.id.startChangeValidatorsFragment)
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
@@ -1508,7 +1583,7 @@ class Navigator :
     }
 
     override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
-        val currentEntry = navController?.currentBackStackEntry
+        val currentEntry = activeAuthenticatedController()?.currentBackStackEntry
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
@@ -1534,7 +1609,7 @@ class Navigator :
     }
 
     override fun openWebViewer(title: String, url: String) {
-        navController?.navigate(R.id.webViewerFragment, WebViewerFragment.getBundle(title, url))
+        navigateInMainTabOrRoot(R.id.webViewerFragment, WebViewerFragment.getBundle(title, url))
     }
 
     override fun openDappScreen(dapp: DappModel) {
@@ -1542,17 +1617,18 @@ class Navigator :
     }
 
     override fun setChainSelectorPayload(chainId: ChainId?) {
-        navController?.previousBackStackEntry?.savedStateHandle?.set(ChainSelectFragment.KEY_SELECTED_CHAIN_ID, chainId)
+        activeAuthenticatedController()?.previousBackStackEntry?.savedStateHandle
+            ?.set(ChainSelectFragment.KEY_SELECTED_CHAIN_ID, chainId)
     }
 
     override val chainSelectorPayloadFlow: Flow<ChainId?>
-        get() = navController?.currentBackStackEntry?.savedStateHandle
+        get() = activeAuthenticatedController()?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<ChainId?>(ChainSelectFragment.KEY_SELECTED_CHAIN_ID)
             ?.asFlow() ?: emptyFlow()
 
     override fun openPoolFullUnstakeDepositorAlertFragment(amount: String) {
         val bundle = PoolFullUnstakeDepositorAlertFragment.getBundle(amount)
-        navController?.navigate(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
+        navigateInMainTabOrRoot(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
     }
 
     override fun openContactsWithResult(chainId: ChainId): Flow<String> {
@@ -1566,37 +1642,45 @@ class Navigator :
 
     override fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String) {
         val bundle = NFTFlowFragment.getCollectionDetailsBundle(selectedAssetId, contractAddress, collectionName)
-        navController?.navigate(R.id.nftFlowFragment, bundle)
+        navigateInMainTabOrRoot(R.id.nftFlowFragment, bundle)
     }
 
     override fun openNFTFilter() {
-        navController?.navigate(R.id.nftFiltersFragment)
+        navigateInMainTabOrRoot(R.id.nftFiltersFragment)
     }
 
     override fun openManageAssets() {
-        navController?.navigate(R.id.manageAssetsFragment)
+        navigateInMainTabOrRoot(R.id.manageAssetsFragment)
     }
 
     override fun openServiceScreen() {
-        navController?.navigate(R.id.serviceFragment)
+        navigateInMainTabOrRoot(R.id.serviceFragment)
     }
 
     override fun openScoreDetailsScreen(metaId: Long) {
-        navController?.navigate(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
-    }
-
-    override fun openCrowdloansScreen() {
-        navController?.navigate(R.id.crowdloanFragment)
+        navigateInMainTabOrRoot(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
     }
 
     override fun openPools() {
-        navController?.navigate(R.id.poolsFlowFragment)
+        navigateInMainTabOrRoot(R.id.poolsFlowFragment)
+    }
+
+    override fun openDemeterFarming() {
+        navigateInMainTabOrRoot(R.id.demeterFarmingFragment)
+    }
+
+    override fun openPolkamarkt(marketId: String?) {
+        navigateInMainTabOrRoot(R.id.polkamarktFragment, PolkamarktFragment.bundle(marketId))
+    }
+
+    override fun openRiskDisclaimer() {
+        openPolkaswapDisclaimerFromMainScreen()
     }
 
     override fun openTonConnectionInfo(dappItem: DappModel) {
         val bundle = TonConnectionInfoFragment.getBundle(dappItem)
 
-        navController?.navigate(R.id.tonConnectionInfo, bundle)
+        navigateInMainTabOrRoot(R.id.tonConnectionInfo, bundle)
     }
 
     override suspend fun openTonSignRequestWithResult(

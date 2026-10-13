@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,9 @@ data class WalletItemViewState(
     val score: Int? = null,
     val supportedEcosystems: Set<WalletEcosystem> = emptySet()
 ) {
+    val supportsTon: Boolean
+        get() = supportedEcosystems.contains(WalletEcosystem.Ton)
+
     val onlyTonSupported: Boolean
         get() {
             return supportedEcosystems.size == 1 && supportedEcosystems.contains(WalletEcosystem.Ton)
@@ -96,7 +100,7 @@ fun WalletItem(
             Box(
                 contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(48.dp)
             ) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
@@ -107,6 +111,7 @@ fun WalletItem(
             }
             MarginHorizontal(margin = 12.dp)
             Column(
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start
             ) {
                 B2(
@@ -128,7 +133,6 @@ fun WalletItem(
                     ShimmerB2(modifier = Modifier.width(100.dp))
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
             state.score?.let { score ->
                 Box(modifier = Modifier
                     .padding(9.dp)
@@ -146,12 +150,12 @@ fun WalletItem(
                         },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(32.dp)
+                            .size(48.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
                             tint = Color.Unspecified,
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.ux_more)
                         )
                     }
                 }
