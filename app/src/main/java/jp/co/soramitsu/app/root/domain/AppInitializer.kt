@@ -68,6 +68,7 @@ class AppInitializer @OptIn(ExperimentalCoroutinesApi::class) constructor(
 
     private val scope = CoroutineScope(coroutineContext)
     private var dailyAssetSweepJob: Job? = null
+    private var networkAccountUpgradeJob: Job? = null
     private var assetSweepTriggersJob: Job? = null
     private val assetSweepWakeups = Channel<Unit>(capacity = Channel.CONFLATED)
 
@@ -136,7 +137,14 @@ class AppInitializer @OptIn(ExperimentalCoroutinesApi::class) constructor(
 
             // Optional account expansion runs outside the awaited startup
             // transaction. Existing wallets remain usable while it retries.
-            scope.launch { legacyNetworkAccountUpgrade?.upgrade() }
+            if (networkAccountUpgradeJob?.isActive != true) {
+                networkAccountUpgradeJob = scope.launch {
+                    legacyNetworkAccountUpgrade?.observeChanges(
+                        accountRepository.allMetaAccountsFlow().map { wallets -> wallets.map { it.id }.toSet() },
+                        chainsRepository.chainsByIdFlow().map { it.keys }
+                    )
+                }
+            }
 
             // Start sync of the wallets - load balances, build assets. Can't control it here - just run
             walletSyncService.start()

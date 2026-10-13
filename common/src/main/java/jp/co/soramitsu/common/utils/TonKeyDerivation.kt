@@ -4,6 +4,21 @@ import jp.co.soramitsu.common.model.UniversalWalletDerivationPaths
 
 object TonKeyDerivation {
 
+    /** Match the universal BIP39 path to an already bound signing identity. */
+    fun matchesUniversalMnemonicKeypair(
+        mnemonic: String,
+        privateKey: ByteArray,
+        publicKey: ByteArray
+    ): Boolean {
+        val derived = deriveAccount(mnemonic)
+        return try {
+            derived.privateKey.contentEquals(privateKey) && derived.publicKey.contentEquals(publicKey)
+        } finally {
+            derived.privateKey.fill(0)
+            derived.chainCode.fill(0)
+        }
+    }
+
     fun deriveAccount(
         mnemonic: String,
         passphrase: String = "",

@@ -1,5 +1,22 @@
 # Status Summary
 
+## Automatic TON and Bitcoin testnet restoration — 2026-10-13
+
+- Missing universal TON roots now derive from validated Substrate/EVM entropy and are written through a durable `ADD_TON` journal. Native TON roots, existing/orphaned TON secret slots, dedicated TON aliases and all existing root keys remain untouched. Admission and replay check dedicated chain accounts inside the database transaction. Root validation and portable signing proof accept the BIP39 derivation only when both private and public keys match the bound identity.
+- Bitcoin testnet uses its existing BIP84 testnet path. Address-only catalog fallback rows contain no endpoints or assets and preserve all stored aliases across refreshes. Enrollment observes wallet/catalog identity changes, including first onboarding and imports into an already running app, without looping on its own metadata writes.
+- Universal wallets retain the account-details action after TON enrollment. Taira remains enabled; Nexus stays offline with its copy-only production address available. Native TON-only account options are unchanged.
+
+- Validation: 444 JVM tests pass (367 account, 61 shared key/storage, 13 runtime/catalog and 3 wallet options), including native-key preservation, interrupted TON writes, concurrent dedicated accounts, orphan-secret protection, catalog alias retention and import-without-restart cases. Both shared seed lengths pass their API 34 restore tests through real Room and the production TON signing-key provider (2/2). App debug Kotlin compilation and default Detekt pass. Forced analysis of the working-tree Kotlin changes introduces no findings compared with the existing source baseline; diff checks pass.
+
+## Shared mnemonic address restore verification — 2026-10-13
+
+- Two new API 34 device regressions import the shared 12-word and 24-word vectors through `SubstrateOrEvmAccountRepository`, native SR25519, the production mutation coordinator, real Room, and validated secret-store reads. Each restores into two independent empty storage stacks with different wallet names, then runs the real network-account upgrade twice. Persisted Substrate, EVM, Bitcoin mainnet, Solana and Taira addresses, plus the copy-only Nexus production projection, match the cross-platform vectors. Android's lowercase EVM display is compared with the same EIP-55 fixture identity after case normalization. Only preference IO and the account repository facade are test doubles; this does not qualify Android Keystore or UI onboarding.
+- Device tests pass 2/2 and existing shared-vector/Bitcoin/Solana/TON/Iroha JVM suites pass 22/22 with no failures, errors or skips. Forced Detekt analysis of the new device test and diff checks pass. At that checkpoint, Bitcoin testnet and TON were helper-only checks; the automatic enrollment update above closes those gaps. Native TON imports and independently imported chain keys are separate restore contracts. Taira remains enabled and Nexus production remains disabled; no network request or production crypto behavior changed.
+
+## Offline Nexus production addresses — 2026-10-13
+
+- Wallet account details expose the future SORA Nexus production address without a deployed production network or a registry entry. The copy-only row uses a valid dedicated Nexus identity first, or the wallet's valid Taira Ed25519 key with the production network discriminant; malformed or conflicting identities never fall back to a generic wallet key. Registry Nexus aliases cannot duplicate the row or add export, node, or explorer actions. This local projection does not add assets or nodes to the runtime registry. Taira remains available and Nexus remains disabled by default.
+
 ## Recovery coroutine cancellation cleanup — 2026-09-28
 
 - Removed redundant cancellation checks before the inherited-job `withContext(Dispatchers.IO)` boundaries in generation creation, reconciliation and promotion. The context switch already checks cancellation before the journal block. Explicit checks around synchronous work and injected suspend callbacks remain where those operations do not guarantee cooperative cancellation. Journal admission, account/owner checks and recovery enablement are unchanged.

@@ -4,6 +4,17 @@ Actionable, prioritized tasks phrased as clear prompts for developers. Each task
 
 Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
 
+## Shared mnemonic address restore verification — 2026-10-13
+
+- Completed: shared 12/24-word golden addresses are checked through fresh Android import, validated stored roots, real Room account provisioning and offline Nexus address projection. Both device regressions and all 22 focused JVM vector/derivation tests pass; Taira remains enabled and Nexus production stays disabled.
+- Completed: automatic missing-only TON and Bitcoin testnet enrollment, durable TON addition and replay guards, catalog alias preservation, and wallet/catalog observers for imports without restart. Shared-vector device cases cover their persisted addresses and the TON signing provider. Preserve native TON and independently imported account derivations.
+- P1: qualify delivered-build onboarding, device Keystore and backup transport separately; local address/signing tests do not qualify those systems. Keep Taira enabled and Nexus offline until a production deployment is independently qualified.
+
+## Offline Nexus account access — 2026-10-13
+
+- Completed: locally derived, copy-only Nexus production addresses in wallet details even when the production registry is absent. Dedicated Nexus identities take priority over Taira keys; invalid identities are rejected. Taira availability and the disabled Nexus production profile are unchanged.
+- P1: once a Nexus production network is deployed, qualify its registry, canonical asset definitions, network-distinct addresses, and transaction receipt handling against that deployment before enabling live production operations. Preserve offline address creation/copy independently of network availability, and retain regressions for absent registries, injected Nexus metadata, and malformed/conflicting keys.
+
 ## Recovery coroutine cancellation cleanup — 2026-09-28
 
 - Removed three redundant pre-`withContext(Dispatchers.IO)` cancellation checks. Future recovery integration must use the inherited job and retain explicit cancellation checkpoints only where synchronous work or a noncooperative callback requires them; these checks are not atomic write authorization. Exported plaintext remains producer-owned until successful return delivery; preserve that cancellation cleanup when wiring the exporter into backup creation.

@@ -19,6 +19,18 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class WalletRootSecretValidatorTest {
+    @Test
+    fun universalTonRecoveryIsBoundToTheExistingPrivateAndPublicKey() {
+        val mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        val derived = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(mnemonic)
+        val encoded = TonSecrets(mnemonic.encodeToByteArray(), Keypair(derived.publicKey, derived.privateKey)).toHexString()
+        org.junit.Assert.assertEquals(encoded, WalletRootSecretValidator.validateTonAndSanitize(encoded, derived.publicKey))
+        val wrongPath = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(mnemonic, derivationPath = "m/44'/607'/1'/0'/0'")
+        val unrelated = TonSecrets(mnemonic.encodeToByteArray(), Keypair(wrongPath.publicKey, wrongPath.privateKey)).toHexString()
+        assertThrows(WalletRootSecretCorruptionException::class.java) {
+            WalletRootSecretValidator.validateTonAndSanitize(unrelated, wrongPath.publicKey)
+        }
+    }
 
     @Test
     fun samePublicKeyWithWrongPrivateKeyIsRejectedForEveryRootEcosystem() {

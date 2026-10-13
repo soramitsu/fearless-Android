@@ -1,15 +1,20 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.runtime.ext.withBitcoinTestnetAccountChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
+import jp.co.soramitsu.testshared.any
+import jp.co.soramitsu.testshared.whenever
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -20,8 +25,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import jp.co.soramitsu.testshared.any
-import jp.co.soramitsu.testshared.whenever
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
@@ -107,7 +110,7 @@ class ChainSyncServiceTest {
 
         val (adds, updates) = updateResult.await()
 
-        assertEquals(listOf(REMOTE_CHAIN.chainId), adds.ids())
+        assertEquals(listOf(REMOTE_CHAIN.chainId, UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertTrue(updates.isEmpty())
     }
 
@@ -121,7 +124,7 @@ class ChainSyncServiceTest {
         chainSyncService.syncUp()
 
         val (adds, updates) = updateResult.await()
-        assertTrue(adds.isEmpty())
+        assertEquals(listOf(UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertTrue(updates.isEmpty())
     }
 
@@ -135,7 +138,7 @@ class ChainSyncServiceTest {
         chainSyncService.syncUp()
 
         val (adds, updates) = updateResult.await()
-        assertTrue(adds.isEmpty())
+        assertEquals(listOf(UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertEquals(listOf(REMOTE_CHAIN.chainId), updates.ids())
     }
 
@@ -154,9 +157,23 @@ class ChainSyncServiceTest {
         val (adds, updates) = updateResult.await()
         val removed = deleteResult.await()
 
-        assertEquals(listOf(secondChain.chainId), adds.ids())
+        assertEquals(listOf(secondChain.chainId, UniversalWalletRegistry.bitcoinTestnet.id), adds.ids())
         assertTrue(updates.isEmpty())
         assertEquals(listOf(REMOTE_CHAIN.chainId), removed.ids())
+    }
+
+    @Test
+    fun `catalog refresh retains both Bitcoin testnet aliases and their account foreign keys`() = runBlocking {
+        val aliases = setOf(UniversalWalletRegistry.bitcoinTestnet.id, UniversalWalletRegistry.bitcoinTestnet.chainId)
+        val retained = emptyList<Chain>().withBitcoinTestnetAccountChain(aliases)
+        localReturns(retained.map(::mapChainToChainLocal))
+        remoteReturns(emptyList())
+        val update = expectUpdateChains()
+        val delete = expectDeleteChains()
+        chainSyncService.syncUp()
+        assertTrue(update.await().first.isEmpty())
+        assertTrue(delete.await().isEmpty())
+        assertTrue(chainSyncService.getCurrentProcessXcmDiscoveryChains().isEmpty())
     }
 
     @Test

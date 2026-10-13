@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.TonConnectStorageKeys
 import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
+import jp.co.soramitsu.common.utils.TonKeyDerivation
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
@@ -190,20 +191,38 @@ class WalletSecretMutationCoordinator private constructor(
         existing: MetaAccountLocal,
         after: MetaAccountLocal,
         ethereumSecretPlaintext: String
+    ): Long = addRoot(existing, after, ethereumSecretPlaintext, Operation.ADD_EVM, ETHEREUM_SECRET_SUFFIX)
+
+    /** Add an absent TON identity without modifying any existing root or metadata. */
+    suspend fun addTon(
+        existing: MetaAccountLocal,
+        after: MetaAccountLocal,
+        tonSecretPlaintext: String
+    ): Long = addRoot(existing, after, tonSecretPlaintext, Operation.ADD_TON, TON_SECRET_SUFFIX)
+
+    private suspend fun addRoot(
+        existing: MetaAccountLocal,
+        after: MetaAccountLocal,
+        secretPlaintext: String,
+        operation: Operation,
+        secretSuffix: String
     ): Long = WalletCrossStoreMutationMutex.instance.withLock {
         reconcilePendingMutationLocked()
         requireArgument(existing.id > 0L && after.id == existing.id) {
-            "An EVM addition requires matching positive wallet ids"
+            "A root addition requires matching positive wallet ids"
         }
 
         val beforeImage = existing.toPublicImage()
         val afterImage = after.toPublicImage()
         val secretPlaintexts = mapOf(
-            secretKey(existing.id, ETHEREUM_SECRET_SUFFIX) to ethereumSecretPlaintext
+            secretKey(existing.id, secretSuffix) to secretPlaintext
         )
+        requireArgument(operation != Operation.ADD_TON || !encryptedPreferences.hasKey(secretKey(existing.id, TON_SECRET_SUFFIX))) {
+            "An existing TON secret must never be replaced by automatic enrollment"
+        }
         val journal = Journal(
             operationId = identifierSource.nextOperationId(),
-            operation = Operation.ADD_EVM,
+            operation = operation,
             metaId = existing.id,
             beforeImage = beforeImage,
             afterImage = afterImage,
@@ -218,9 +237,9 @@ class WalletSecretMutationCoordinator private constructor(
         database.inTransaction {
             val accounts = requireHealthySelection()
             val current = getMetaAccount(existing.id)
-                ?: stateConflict("The wallet changed before its EVM mutation was staged")
+                ?: stateConflict("The wallet changed before its root mutation was staged")
             requireState(current.toPublicImage() == beforeImage) {
-                "The wallet changed before its EVM mutation was staged"
+                "The wallet changed before its root mutation was staged"
             }
             requireNoIdentityConflict(
                 metaId = existing.id,
@@ -228,6 +247,7 @@ class WalletSecretMutationCoordinator private constructor(
                 reason = WalletMutationFailureReason.IDENTITY_CONFLICT
             )
             requireExpectedSelection(accounts, current)
+            requireNoDedicatedTonAccount(journal)
         }
         stage(journal, secretPlaintexts)
         reconcileStagedMutation(
@@ -493,7 +513,7 @@ class WalletSecretMutationCoordinator private constructor(
 
         when (staged.journal.operation) {
             Operation.CREATE -> applyCreate(staged.journal)
-            Operation.ADD_EVM -> applyAddEvm(staged.journal)
+            Operation.ADD_EVM, Operation.ADD_TON -> applyAddRoot(staged.journal)
             Operation.DELETE -> applyDelete(staged.journal)
         }
 
@@ -503,7 +523,7 @@ class WalletSecretMutationCoordinator private constructor(
                     journalStore.completeDelete(staged.journal.operationId)
                 }
                 Operation.CREATE,
-                Operation.ADD_EVM -> {
+                Operation.ADD_EVM, Operation.ADD_TON -> {
                     journalStore.clear(staged)
                 }
             }
@@ -580,33 +600,42 @@ class WalletSecretMutationCoordinator private constructor(
         }
     }
 
-    private suspend fun applyAddEvm(journal: Journal) {
+    private suspend fun WalletMutationDatabase.requireNoDedicatedTonAccount(journal: Journal) {
+        if (journal.operation != Operation.ADD_TON) return
+        requireState(getAccountChainIds(journal.metaId).none { it in TON_CHAIN_ALIASES }) {
+            "A dedicated TON account must not be shadowed by automatic enrollment"
+        }
+    }
+
+    private suspend fun applyAddRoot(journal: Journal) {
         val beforeImage = journal.beforeImage
-            ?: recoveryRequired("A staged EVM addition is missing its before-image")
+            ?: recoveryRequired("A staged root addition is missing its before-image")
         val afterImage = journal.afterImage
-            ?: recoveryRequired("A staged EVM addition is missing its after-image")
+            ?: recoveryRequired("A staged root addition is missing its after-image")
         val afterLocal = afterImage.toMetaAccount(journal.metaId)
 
         database.inTransaction {
             val accountsBefore = requireHealthySelection()
             val selectedIdsBefore = accountsBefore.selectedIds()
             val current = getMetaAccount(journal.metaId)
-                ?: stateConflict("A staged EVM addition targets a missing wallet")
+                ?: stateConflict("A staged root addition targets a missing wallet")
             val currentImage = current.toPublicImage()
             val currentIdentity = currentImage.cryptographicIdentity()
             val expectedIsBackedUp = when {
                 currentImage == beforeImage -> {
+                    requireNoDedicatedTonAccount(journal)
                     requireNoIdentityConflict(journal.metaId, afterImage)
                     requireDurableStorageHealthy()
                     updateMetaAccount(afterLocal)
                     afterImage.isBackedUp
                 }
                 currentIdentity == beforeImage.cryptographicIdentity() -> {
+                    requireNoDedicatedTonAccount(journal)
                     requireNoIdentityConflict(journal.metaId, afterImage)
                     // The journal owns this metadata field only when it records
                     // an explicit transition. Otherwise a newer metadata write
                     // must survive identity reconciliation.
-                    val merged = current.withEthereumIdentity(
+                    val merged = current.withAddedRootIdentity(
                         image = afterImage,
                         resolvedIsBackedUp = if (
                             beforeImage.isBackedUp != afterImage.isBackedUp
@@ -627,21 +656,21 @@ class WalletSecretMutationCoordinator private constructor(
                     current.isBackedUp
                 }
                 else -> {
-                    stateConflict("A staged EVM addition conflicts with current wallet state")
+                    stateConflict("A staged root addition conflicts with current wallet state")
                 }
             }
 
             val accountsAfter = requireHealthySelection()
-            requireAddEvmTarget(
+            requireAddedRootTarget(
                 metaId = journal.metaId,
                 expected = afterImage,
                 expectedIsBackedUp = expectedIsBackedUp
             )
             requireNoIdentityConflict(journal.metaId, afterImage)
             requireState(accountsAfter.selectedIds() == selectedIdsBefore) {
-                "An EVM addition changed the selected wallet"
+                "A root addition changed the selected wallet"
             }
-            // Existing roots might still be watch-only; the one new EVM key cannot prove them.
+            // Existing roots might still be watch-only; the new root key cannot prove them.
             // A later guarded capture can re-establish SIGNED after verifying all sources.
             deleteCustody(journal.metaId)
         }
@@ -726,7 +755,7 @@ class WalletSecretMutationCoordinator private constructor(
         }
     }
 
-    private suspend fun WalletMutationDatabase.requireAddEvmTarget(
+    private suspend fun WalletMutationDatabase.requireAddedRootTarget(
         metaId: Long,
         expected: PublicAfterImage,
         expectedIsBackedUp: Boolean
@@ -841,6 +870,12 @@ class WalletSecretMutationCoordinator private constructor(
                         plaintext = secretPlaintexts[
                             secretKey(journal.metaId, ETHEREUM_SECRET_SUFFIX)
                         ]
+                    )
+                }
+                Operation.ADD_TON -> {
+                    bindOptionalTon(
+                        image = journal.afterImage ?: recoveryRequired("A TON journal has no after-image"),
+                        plaintext = secretPlaintexts[secretKey(journal.metaId, TON_SECRET_SUFFIX)]
                     )
                 }
                 Operation.DELETE -> {
@@ -1083,9 +1118,11 @@ class WalletSecretMutationCoordinator private constructor(
         }
         val mnemonicSeed = org.ton.mnemonic.Mnemonic.toSeed(mnemonicWords)
         val derivedPrivateKey = PrivateKeyEd25519(mnemonicSeed)
+        val matchesNative = derivedPrivateKey.key.toByteArray().contentEquals(privateKey) &&
+            derivedPrivateKey.publicKey().key.toByteArray().contentEquals(publicKey)
         requireSecretBinding(
-            derivedPrivateKey.key.toByteArray().contentEquals(privateKey) &&
-                derivedPrivateKey.publicKey().key.toByteArray().contentEquals(publicKey)
+            matchesNative || validBip39Mnemonic &&
+                TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonicText, privateKey, publicKey)
         ) {
             "A TON mnemonic derives a different keypair"
         }
@@ -1314,7 +1351,7 @@ class WalletSecretMutationCoordinator private constructor(
         }
     }
 
-    private fun MetaAccountLocal.withEthereumIdentity(
+    private fun MetaAccountLocal.withAddedRootIdentity(
         image: PublicAfterImage,
         resolvedIsBackedUp: Boolean
     ): MetaAccountLocal {
@@ -1324,7 +1361,7 @@ class WalletSecretMutationCoordinator private constructor(
             substrateAccountId = substrateAccountId?.clone(),
             ethereumPublicKey = image.ethereumPublicKeyHex?.decodeCanonicalHex(),
             ethereumAddress = image.ethereumAddressHex?.decodeCanonicalHex(),
-            tonPublicKey = tonPublicKey?.clone(),
+            tonPublicKey = image.tonPublicKeyHex?.decodeCanonicalHex(),
             name = name,
             isSelected = isSelected,
             position = position,
@@ -1332,7 +1369,7 @@ class WalletSecretMutationCoordinator private constructor(
             googleBackupAddress = googleBackupAddress,
             initialized = initialized
         ).apply {
-            id = this@withEthereumIdentity.id
+            id = this@withAddedRootIdentity.id
         }
     }
 
@@ -1495,6 +1532,7 @@ class WalletSecretMutationCoordinator private constructor(
 
         private val KEYPAIR_BINDING_MESSAGE =
             "fearless-wallet-secret-binding-v1".encodeToByteArray()
+        private val TON_CHAIN_ALIASES = setOf("ton-mainnet", "ton:mainnet", "-239", "-3")
         private val VALID_MNEMONIC_WORD_COUNTS = setOf(12, 15, 18, 21, 24)
         private val CANONICAL_SCALE_HEX = Regex("^0x(?:[0-9a-f]{2})+$")
         private val LOWERCASE_HEX = Regex("^[0-9a-f]+$")
@@ -1525,6 +1563,8 @@ internal interface WalletMutationDatabase {
     ): Boolean
 
     suspend fun getChainAccountIds(metaId: Long): List<ByteArray>
+
+    suspend fun getAccountChainIds(metaId: Long): List<String>
 
     suspend fun getTonConnectionSecretOwners(
         metaId: Long
@@ -1599,6 +1639,8 @@ private class RoomWalletMutationDatabase(
             tonPublicKey = tonPublicKey
         )
     }
+
+    override suspend fun getAccountChainIds(metaId: Long): List<String> = metaAccountDao.getAccountChainIds(metaId)
 
     override suspend fun getChainAccountIds(metaId: Long): List<ByteArray> {
         return metaAccountDao.getChainAccountIds(metaId)

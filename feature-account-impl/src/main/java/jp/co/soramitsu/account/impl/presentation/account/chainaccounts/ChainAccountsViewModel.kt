@@ -167,6 +167,7 @@ class ChainAccountsViewModel @Inject constructor(
             isSupported = accountInChain.chain.isSupported,
             hasAccount = accountInChain.hasAccount,
             markedAsNotNeed = accountInChain.markedAsNotNeed,
+            isOffline = accountInChain.isOffline,
             enabled = hasAddress
         )
     }
@@ -196,6 +197,10 @@ class ChainAccountsViewModel @Inject constructor(
     }
 
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {
+        item.offlineActionsPayload()?.let { payload ->
+            externalAccountActions.showExternalActions(payload)
+            return
+        }
         launch {
             val chain = chainsRepository.getChain(item.chainId)
             val supportedExplorers =

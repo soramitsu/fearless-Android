@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.SolanaSigner
+import jp.co.soramitsu.common.utils.TonKeyDerivation
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
@@ -274,7 +275,12 @@ internal object PortableWalletRootSigningProof {
             }
             val recovered = Mnemonic.toSeed(words)
             try {
-                require(PrivateKeyEd25519(recovered).key.toByteArray().contentEquals(seed)) {
+                require(
+                    PrivateKeyEd25519(recovered).key.toByteArray().contentEquals(seed) ||
+                        validBip39 && TonKeyDerivation.matchesUniversalMnemonicKeypair(
+                            phrase, seed, SolanaKeyDerivation.publicKeyFromPrivateKey(seed)
+                        )
+                ) {
                     "TON phrase derives a different private key"
                 }
             } finally {

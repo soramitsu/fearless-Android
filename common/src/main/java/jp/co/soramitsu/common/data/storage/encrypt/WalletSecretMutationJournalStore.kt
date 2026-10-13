@@ -26,6 +26,7 @@ class WalletSecretMutationJournalStore(
     enum class Operation {
         CREATE,
         ADD_EVM,
+        ADD_TON,
         DELETE
     }
 
@@ -790,6 +791,21 @@ class WalletSecretMutationJournalStore(
                     expected = emptySet(),
                     failureReason = failureReason
                 )
+            }
+
+            Operation.ADD_TON -> {
+                val beforeImage = journal.beforeImage ?: fail(failureReason, "A TON addition requires a before-image")
+                val afterImage = journal.afterImage ?: fail(failureReason, "A TON addition requires an after-image")
+                validateAfterImage(beforeImage, failureReason)
+                validateAfterImage(afterImage, failureReason)
+                requireCommonNonDeleteFields(journal, failureReason)
+                if (beforeImage.tonPublicKeyHex != null || afterImage.tonPublicKeyHex == null ||
+                    afterImage.copy(tonPublicKeyHex = null) != beforeImage
+                ) {
+                    fail(failureReason, "A TON addition must only fill a previously absent TON identity")
+                }
+                requireExactSecretKeys(journal.secretKeysToPut, setOf(secretKey(journal.metaId, TON_SECRET_SUFFIX)), failureReason)
+                requireExactSecretKeys(journal.secretKeysToRemove, emptySet(), failureReason)
             }
 
             Operation.DELETE -> {

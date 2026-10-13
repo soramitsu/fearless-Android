@@ -1,6 +1,7 @@
 package jp.co.soramitsu.app.root.di
 
 import jp.co.soramitsu.account.impl.domain.LegacyNetworkAccountUpgrade
+import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 
 import dagger.Module
@@ -59,7 +60,8 @@ class RootFeatureModule {
         pricesService: PricesSyncService,
         productionAssetDiscoverySweep: AssetDiscoveryService,
         chainsRepository: ChainsRepository,
-        metaAccountDao: MetaAccountDao
+        metaAccountDao: MetaAccountDao,
+        mutationCoordinator: WalletSecretMutationCoordinator
     ): AppInitializer {
         return AppInitializer(
             chainRegistry,
@@ -76,7 +78,7 @@ class RootFeatureModule {
             pricesService,
             productionAssetDiscoverySweep,
             chainsRepository,
-            legacyNetworkAccountUpgrade = LegacyNetworkAccountUpgrade(accountRepository, metaAccountDao) {
+            legacyNetworkAccountUpgrade = LegacyNetworkAccountUpgrade(accountRepository, metaAccountDao, mutationCoordinator) {
                 chainsRepository.getChains().map { it.id }.toSet()
             }
         )

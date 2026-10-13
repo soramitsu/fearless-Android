@@ -12,6 +12,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
+import jp.co.soramitsu.runtime.ext.withBitcoinTestnetAccountChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.async
@@ -56,12 +57,13 @@ class ChainSyncService(
                 it.toChain()
             }
 
-        val remoteMapping = remoteChains.associateBy(Chain::id)
+        val accountChains = remoteChains.withBitcoinTestnetAccountChain(localChainsJoinedInfoMap.keys)
+        val remoteMapping = accountChains.associateBy(Chain::id)
 
         logger("remote chains fetched: ${remoteChains.size}")
         remoteChains.take(5).forEach { logger("remote chain id: ${it.id}") }
 
-        val mappedRemoteChains = remoteChains.map { mapChainToChainLocal(it) }
+        val mappedRemoteChains = accountChains.map { mapChainToChainLocal(it) }
         val chainsSyncDeferred = async {
             val chainsToUpdate: MutableList<ChainLocal> = mutableListOf()
             val chainsToAdd: MutableList<ChainLocal> = mutableListOf()

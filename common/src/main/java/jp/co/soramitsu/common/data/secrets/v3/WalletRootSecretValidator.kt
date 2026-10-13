@@ -375,9 +375,15 @@ internal class WalletRootSecretValidationEngine(
         val recovered = performCryptography("TON mnemonic recovery") {
             cryptography.recoverTonFromMnemonic(mnemonicWords)
         }
+        val matchesNative = recovered.privateKey.contentEquals(keypair.privateKey) &&
+            recovered.publicKey.contentEquals(keypair.publicKey)
+        val matchesUniversal = !matchesNative && validBip39 && performCryptography("Universal TON mnemonic recovery") {
+            jp.co.soramitsu.common.utils.TonKeyDerivation.matchesUniversalMnemonicKeypair(
+                mnemonicText, keypair.privateKey, keypair.publicKey
+            )
+        }
         ensureLocal(
-            recovered.privateKey.contentEquals(keypair.privateKey) &&
-                recovered.publicKey.contentEquals(keypair.publicKey),
+            matchesNative || matchesUniversal,
             "A TON mnemonic derives a different keypair"
         )
 

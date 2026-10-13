@@ -112,6 +112,9 @@ interface MetaAccountDao {
     )
     suspend fun getChainAccountIds(metaId: Long): List<ByteArray>
 
+    @Query("SELECT chainId FROM chain_accounts WHERE metaId = :metaId")
+    suspend fun getAccountChainIds(metaId: Long): List<String>
+
     @Query("SELECT * FROM meta_accounts")
     @Transaction
     fun getJoinedMetaAccountsInfo(): List<RelationJoinedMetaAccountInfo>

@@ -439,6 +439,7 @@ private class DurabilityWalletMutationDatabase(
     }
 
     override suspend fun getChainAccountIds(metaId: Long): List<ByteArray> = emptyList()
+    override suspend fun getAccountChainIds(metaId: Long): List<String> = emptyList()
 
     override suspend fun getTonConnectionSecretOwners(
         metaId: Long

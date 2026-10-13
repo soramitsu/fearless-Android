@@ -61,6 +61,106 @@ class WalletSecretMutationCoordinatorTest {
     }
 
     @Test
+    fun addTonPreservesAllExistingRootsAndMetadataAndRejectsReplacement() = runBlocking {
+        val existing = fullSecretFixtures().prototype.copyForTest(id = 10, tonPublicKey = null)
+        database.put(existing)
+        val phrase = MnemonicCreator.fromEntropy(ByteArray(16)).words
+        val derived = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(phrase)
+        val encoded = TonSecrets(phrase.encodeToByteArray(), jp.co.soramitsu.common.data.Keypair(derived.publicKey, derived.privateKey)).toHexString()
+        val after = existing.copyForTest(tonPublicKey = derived.publicKey)
+        coordinator.addTon(existing, after, encoded)
+        val stored = requireNotNull(database.account(10))
+        assertArrayEquals(existing.substratePublicKey, stored.substratePublicKey)
+        assertArrayEquals(existing.ethereumPublicKey, stored.ethereumPublicKey)
+        assertArrayEquals(derived.publicKey, stored.tonPublicKey)
+        assertEquals(existing.name, stored.name)
+        assertEquals(existing.position, stored.position)
+        assertEquals(existing.isBackedUp, stored.isBackedUp)
+        assertEquals(encoded, preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        expectCoordinatorFailure { coordinator.addTon(stored, stored, encoded) }
+        assertEquals(encoded, preferences.value("10:TON_SECRETS"))
+    }
+
+    @Test
+    fun addTonRejectsOrphanedSecretsAndUnrelatedMetadataChanges() = runBlocking {
+        val existing = substratePrototype(substrateFixture(1), isSelected = true).copyForTest(id = 10)
+        val ton = tonFixture(2)
+        database.put(existing)
+        val after = existing.copyForTest(tonPublicKey = ton.publicKey)
+        expectCoordinatorFailure {
+            coordinator.addTon(existing, after.copyForTest(isBackedUp = !existing.isBackedUp), ton.encoded)
+        }
+        assertTrue(preferences.keys().isEmpty())
+        preferences.putEncryptedString("10:TON_SECRETS", "preserved orphan")
+        expectCoordinatorFailure { coordinator.addTon(existing, after, ton.encoded) }
+        assertEquals("preserved orphan", preferences.value("10:TON_SECRETS"))
+        assertNull(database.account(10)?.tonPublicKey)
+    }
+
+    @Test
+    fun tonAdditionCannotShadowDedicatedAccountsBeforeStagingOrDuringReplay() = runBlocking {
+        val existing = substratePrototype(substrateFixture(1), isSelected = true).copyForTest(id = 10)
+        val ton = tonFixture(2)
+        database.put(existing)
+        val after = existing.copyForTest(tonPublicKey = ton.publicKey)
+        for (alias in listOf("ton-mainnet", "ton:mainnet", "-239", "-3")) {
+            database.accountChainIds[10] = listOf(alias)
+            expectCoordinatorFailure { coordinator.addTon(existing, after, ton.encoded) }
+            assertTrue(preferences.keys().isEmpty())
+            assertNull(database.account(10)?.tonPublicKey)
+        }
+        database.accountChainIds.clear()
+        database.failBeforeTransactionNumber = 6
+        expectFailure<InjectedDatabaseFailure> { coordinator.addTon(existing, after, ton.encoded) }
+        database.accountChainIds[10] = listOf("-239")
+        expectCoordinatorFailure { coordinator().reconcilePendingMutation() }
+        assertNull(database.account(10)?.tonPublicKey)
+        assertEquals(listOf("-239"), database.accountChainIds[10])
+    }
+
+    @Test
+    fun committedTonAdditionCompletesCleanupWithoutTouchingNewerDedicatedAccounts() = runBlocking {
+        val existing = substratePrototype(substrateFixture(1), isSelected = true).copyForTest(id = 10)
+        val ton = tonFixture(2)
+        database.put(existing)
+        preferences.enqueueDurableFault(DurableFault.NONE, DurableFault.BEFORE)
+        expectCoordinatorFailure {
+            coordinator.addTon(existing, existing.copyForTest(tonPublicKey = ton.publicKey), ton.encoded)
+        }
+        assertArrayEquals(ton.publicKey, database.account(10)?.tonPublicKey)
+        assertTrue(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        database.accountChainIds[10] = listOf("-239")
+        coordinator().reconcilePendingMutation()
+        assertEquals(listOf("-239"), database.accountChainIds[10])
+        assertEquals(1, database.events.count { it.name == "update:10" })
+        assertEquals(ton.encoded, preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+    }
+
+    @Test
+    fun interruptedTonAdditionReplaysWithoutLosingNewerMetadata() = runBlocking {
+        val existing = substratePrototype(substrateFixture(1), isSelected = true).copyForTest(id = 10)
+        val ton = tonFixture(2)
+        database.put(existing)
+        database.failBeforeTransactionNumber = 2
+        expectFailure<InjectedDatabaseFailure> {
+            coordinator.addTon(existing, existing.copyForTest(tonPublicKey = ton.publicKey), ton.encoded)
+        }
+        assertNull(database.account(10)?.tonPublicKey)
+        assertTrue(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        database.put(existing.copyForTest(name = "Renamed", isBackedUp = true))
+        coordinator().reconcilePendingMutation()
+        val restored = requireNotNull(database.account(10))
+        assertEquals("Renamed", restored.name)
+        assertTrue(restored.isBackedUp)
+        assertArrayEquals(ton.publicKey, restored.tonPublicKey)
+        assertArrayEquals(existing.substratePublicKey, restored.substratePublicKey)
+        assertEquals(ton.encoded, preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+    }
+
+    @Test
     fun createStagesAllSecretsBeforePublishingExactAllocatedWallet() = runBlocking {
         database.put(metaAccount(id = 1, position = 4, isSelected = true))
         val fixtures = fullSecretFixtures()
@@ -2390,6 +2490,7 @@ private class FakeWalletMutationDatabase : WalletMutationDatabase {
     private val accountRows = linkedMapOf<Long, MetaAccountLocal>()
     private val custodyRows = linkedMapOf<Long, WalletCustodyLocal>()
     val chainAccountIds = linkedMapOf<Long, MutableList<ByteArray>>()
+    val accountChainIds = linkedMapOf<Long, List<String>>()
     val tonConnectionOwners =
         mutableListOf<Pair<Long, TonConnectionSecretOwner>>()
     val assetMetaIds = mutableSetOf<Long>()
@@ -2476,6 +2577,8 @@ private class FakeWalletMutationDatabase : WalletMutationDatabase {
                 )
         }
     }
+
+    override suspend fun getAccountChainIds(metaId: Long): List<String> = accountChainIds[metaId].orEmpty()
 
     override suspend fun getChainAccountIds(metaId: Long): List<ByteArray> {
         return chainAccountIds[metaId].orEmpty().map(ByteArray::clone)

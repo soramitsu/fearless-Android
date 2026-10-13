@@ -211,6 +211,20 @@ class PortableWalletRootSigningProofTest {
     }
 
     @Test
+    fun `universal BIP39 TON recovery proves its exact signer without using native derivation`() {
+        val phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        val account = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(phrase)
+        val source = snapshot(listOf(tonSlot(account.privateKey, account.publicKey, 1, rawTonAddress(account.publicKey), seedPhrase = phrase)))
+        val encoded = codec.encode(source)
+        try {
+            assertEquals(1, proof.verify(encoded).nativeTonRoots)
+        } finally {
+            source.clearSecrets()
+            encoded.fill(0)
+        }
+    }
+
+    @Test
     fun `iOS native TON seed plus public and serialized address prove V4R2 identity`() {
         val native = tonNative()
         val serialized = iosTonAddress(native.publicKey)
