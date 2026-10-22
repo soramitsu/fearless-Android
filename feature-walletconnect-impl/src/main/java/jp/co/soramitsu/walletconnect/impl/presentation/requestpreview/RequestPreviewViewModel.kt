@@ -8,7 +8,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import com.reown.walletkit.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
@@ -18,11 +17,15 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectRequestRejectedException
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
+import jp.co.soramitsu.walletconnect.impl.presentation.isSameRequestAs
 import jp.co.soramitsu.walletconnect.impl.presentation.message
-import jp.co.soramitsu.walletconnect.impl.presentation.newestWalletConnectValueOrBack
+import jp.co.soramitsu.walletconnect.impl.presentation.pendingRequest
+import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
+import jp.co.soramitsu.walletconnect.impl.presentation.walletFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,11 +50,12 @@ class RequestPreviewViewModel @Inject constructor(
 ) : RequestPreviewScreenInterface, BaseViewModel() {
 
     private val topic: String = savedStateHandle[RequestPreviewFragment.PAYLOAD_TOPIC_KEY] ?: error("No topic provided for request preview screen")
+    private val requestId: Long? = savedStateHandle[RequestPreviewFragment.PAYLOAD_REQUEST_ID_KEY]
 
-    private val recentSession: Wallet.Model.SessionRequest? = newestWalletConnectValueOrBack(
-        values = walletConnectInteractor.getPendingListOfSessionRequests(topic),
-        onUnavailable = walletConnectRouter::back,
-        order = { it.request.id }
+    // Exactly the request the previous screen showed, never whichever request of the session is newest.
+    private val recentSession: Wallet.Model.SessionRequest? = walletConnectValueOrBack(
+        value = requestId?.let { walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(it) },
+        onUnavailable = walletConnectRouter::back
     )
 
     private val isLoading = MutableStateFlow(false)
@@ -73,9 +77,8 @@ class RequestPreviewViewModel @Inject constructor(
         val currentSession = recentSession ?: return@map null
         val requestAddress = currentSession.request.address
 
-        val requestedWallet = accountRepository.allMetaAccounts().firstOrNull { wallet ->
-            wallet.address(requestChain).equals(requestAddress, true)
-        }
+        // Shows the wallet whose key would sign, matched by account id exactly as the signer is.
+        val requestedWallet = accountRepository.allMetaAccounts().walletFor(requestChain, requestAddress)
 
         if (requestedWallet == null) {
             launch(Dispatchers.Main) {
@@ -149,14 +152,20 @@ class RequestPreviewViewModel @Inject constructor(
     override fun onSignClick() {
         if (isLoading.value) return
         val chain = requestChainFlow.value ?: return
-        val currentSession = recentSession ?: return
+        val displayedRequest = recentSession ?: return
+        val currentRequest = walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(displayedRequest.request.id)
+        if (currentRequest?.isSameRequestAs(displayedRequest) != true) {
+            // Answered, expired or changed since it was shown: only what the user saw may be signed.
+            showRequestClosedError()
+            return
+        }
 
         isLoading.value = true
         viewModelScope.launch {
             walletConnectInteractor.handleSignAction(
                 chain = chain,
                 topic = topic,
-                recentSession = currentSession,
+                recentSession = displayedRequest,
                 onSignError = ::onSignError,
                 onRequestSuccess = ::onRespondSessionRequestSuccess,
                 onRequestError = ::onRespondRequestSessionError
@@ -188,6 +197,11 @@ class RequestPreviewViewModel @Inject constructor(
 
     private fun onSignError(e: Exception) {
         isLoading.value = false
+        if (e is WalletConnectRequestRejectedException) {
+            // The dApp has been answered with an error, so this request is over: nothing to retry.
+            viewModelScope.launch(Dispatchers.Main) { showRequestClosedError() }
+            return
+        }
         viewModelScope.launch(Dispatchers.Main) {
             showError(
                 title = resourceManager.getString(R.string.common_error_general_title),
@@ -195,6 +209,16 @@ class RequestPreviewViewModel @Inject constructor(
                 positiveButtonText = resourceManager.getString(R.string.common_ok)
             )
         }
+    }
+
+    private fun showRequestClosedError() {
+        showError(
+            title = resourceManager.getString(R.string.common_error_general_title),
+            message = resourceManager.getString(R.string.common_undefined_error_message),
+            positiveButtonText = resourceManager.getString(R.string.common_close),
+            positiveClick = walletConnectRouter::back,
+            onBackClick = walletConnectRouter::back
+        )
     }
 
     override fun onTableItemClick(id: Int) {

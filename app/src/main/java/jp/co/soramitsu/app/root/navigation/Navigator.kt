@@ -1015,8 +1015,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.connectionInfoFragment, bundle)
     }
 
-    override fun openRequestPreview(topic: String) {
-        val bundle = RequestPreviewFragment.getBundle(topic)
+    override fun openRequestPreview(topic: String, requestId: Long) {
+        val bundle = RequestPreviewFragment.getBundle(topic, requestId)
         navigateInMainTabOrRoot(R.id.requestPreviewFragment, bundle)
     }
 

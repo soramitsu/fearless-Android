@@ -25,6 +25,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import jp.co.soramitsu.walletconnect.impl.presentation.message
+import jp.co.soramitsu.walletconnect.impl.presentation.pendingRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -58,6 +59,21 @@ class WalletConnectSignMessageViewModel @Inject constructor(
     private val recentSession = sessions.takeIf { it.isNotEmpty() }?.sortedByDescending { it.request.id }?.get(0)
 
     private val requestWalletItemFlow: Flow<WalletItemViewState?> = flow<WalletItemViewState?> {
+        if (recentSession != null && recentSession.request.message == null) {
+            // Malformed params: nothing can be shown or signed, closing answers the dApp with an error.
+            launch(Dispatchers.Main.immediate) {
+                showError(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = resourceManager.getString(R.string.common_undefined_error_message),
+                    positiveButtonText = resourceManager.getString(R.string.common_close),
+                    positiveClick = ::onClose,
+                    onBackClick = ::onClose
+                )
+            }
+            emit(null)
+            return@flow
+        }
+
         val allMetaAccounts = withContext(Dispatchers.Default) { accountRepository.allMetaAccounts() }
         val requestChain = withContext(Dispatchers.Default) { walletConnectInteractor.getChains() }.firstOrNull { chain ->
             chain.caip2id == recentSession?.chainId
@@ -154,8 +170,9 @@ class WalletConnectSignMessageViewModel @Inject constructor(
     private var isClosing = false
     override fun onClose() {
         val requestId = recentSession?.request?.id
-        val isRequestNotExist = walletConnectInteractor.getPendingListOfSessionRequests(topic).isEmpty()
-        if (requestId == null || isRequestNotExist) {
+        val isRequestPending = requestId != null &&
+            walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(requestId) != null
+        if (requestId == null || !isRequestPending) {
             walletConnectRouter.back()
             isClosing = false
         } else {
@@ -181,6 +198,12 @@ class WalletConnectSignMessageViewModel @Inject constructor(
     }
 
     override fun onPreviewClick() {
-        walletConnectRouter.openRequestPreview(topic)
+        val displayedRequest = recentSession
+        if (displayedRequest == null) {
+            walletConnectRouter.back()
+            return
+        }
+        // The preview and the signature are bound to the request shown here, not to the newest one.
+        walletConnectRouter.openRequestPreview(topic, displayedRequest.request.id)
     }
 }
