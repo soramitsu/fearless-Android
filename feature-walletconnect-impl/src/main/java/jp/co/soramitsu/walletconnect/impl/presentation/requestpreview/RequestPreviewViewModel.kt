@@ -11,6 +11,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
+import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -24,6 +25,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import jp.co.soramitsu.walletconnect.impl.presentation.isSameRequestAs
 import jp.co.soramitsu.walletconnect.impl.presentation.message
 import jp.co.soramitsu.walletconnect.impl.presentation.pendingRequest
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
 import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import jp.co.soramitsu.walletconnect.impl.presentation.walletFor
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +33,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -46,7 +49,8 @@ class RequestPreviewViewModel @Inject constructor(
     private val walletConnectRouter: WalletConnectRouter,
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
-    private val addressIconGenerator: AddressIconGenerator
+    private val addressIconGenerator: AddressIconGenerator,
+    private val requestSummaries: WalletConnectRequestSummaries
 ) : RequestPreviewScreenInterface, BaseViewModel() {
 
     private val topic: String = savedStateHandle[RequestPreviewFragment.PAYLOAD_TOPIC_KEY] ?: error("No topic provided for request preview screen")
@@ -107,11 +111,23 @@ class RequestPreviewViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val state = combine(requestWalletItemFlow, requestChainFlow.filterNotNull(), isLoading) { requestWallet, requestChain, isLoading ->
+    // What the user signs, decoded from the request shown. Null while it is decoded: nothing can be signed yet.
+    private val summaryFlow: StateFlow<SigningSummaryViewState?> = requestChainFlow.filterNotNull().map { requestChain ->
+        recentSession?.let { requestSummaries.summary(requestChain, it) }
+    }
+        .inBackground()
+        .stateIn(this, SharingStarted.Eagerly, null)
+
+    val state = combine(
+        requestWalletItemFlow,
+        requestChainFlow.filterNotNull(),
+        isLoading,
+        summaryFlow
+    ) { requestWallet, requestChain, isLoading, summary ->
         val currentSession = recentSession ?: return@combine RequestPreviewViewState.default
         val icon = GradientIconState.Remote(requestChain.icon, "EE0077")
 
-        val tableItems = listOf(
+        val requestItems = listOf(
             TitleValueViewState(
                 resourceManager.getString(R.string.common_dapp),
                 currentSession.peerMetaData?.name
@@ -123,21 +139,23 @@ class RequestPreviewViewModel @Inject constructor(
             TitleValueViewState(
                 resourceManager.getString(R.string.common_network),
                 requestChain.name
-            ),
-            TitleValueViewState(
-                resourceManager.getString(R.string.common_transaction_raw_data),
-                value = "",
-                clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, TRANSACTION_RAW_DATA_CLICK_ID)
             )
         )
+        // Raw data is the fallback for what could not be decoded, not the way a request is shown.
+        val rawDataItem = TitleValueViewState(
+            resourceManager.getString(R.string.common_transaction_raw_data),
+            value = "",
+            clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, TRANSACTION_RAW_DATA_CLICK_ID)
+        ).takeIf { summary?.showsRawData == true }
 
         requestWallet?.let {
             RequestPreviewViewState(
                 chainIcon = icon,
                 method = currentSession.request.method,
-                tableItems = tableItems,
+                tableItems = requestItems + listOfNotNull(rawDataItem),
                 wallet = it,
-                loading = isLoading
+                loading = isLoading,
+                summary = summary
             )
         } ?: RequestPreviewViewState.default
     }
@@ -150,7 +168,7 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     override fun onSignClick() {
-        if (isLoading.value) return
+        if (isLoading.value || summaryFlow.value == null) return
         val chain = requestChainFlow.value ?: return
         val displayedRequest = recentSession ?: return
         val currentRequest = walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(displayedRequest.request.id)

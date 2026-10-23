@@ -13,6 +13,7 @@ import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.walletconnect.impl.presentation.TEST_TOPIC
@@ -20,11 +21,18 @@ import jp.co.soramitsu.walletconnect.impl.presentation.awaitErrorDialog
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.ethereumChain
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionRequest
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestDecoder
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectSummaryPresenter
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -104,6 +112,21 @@ class RequestPreviewViewModelTest {
     }
 
     @Test
+    fun `sign waits for the decoded summary to reach the approval screen`() {
+        val pending = CompletableDeferred<SigningSummaryViewState>()
+        val summaries = mockk<WalletConnectRequestSummaries>()
+        coEvery { summaries.summary(any(), any()) } coAnswers { pending.await() }
+        val model = viewModel(shown.request.id, summaries, awaitSummary = false)
+        model.onSignClick()
+        coVerify(exactly = 0) { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) }
+
+        pending.complete(SigningSummaryViewState("hello", emptyList(), emptyList(), false))
+        runBlocking { withTimeout(10_000) { model.state.first { it.summary != null } } }
+        model.onSignClick()
+        coVerify { interactor.handleSignAction(ethereumChain, TEST_TOPIC, shown, any(), any(), any()) }
+    }
+
+    @Test
     fun `preview opened without a request id closes instead of picking one`() {
         val viewModel = viewModel(requestId = null)
 
@@ -120,7 +143,13 @@ class RequestPreviewViewModelTest {
         chainId = ethereumChain.caip2id
     )
 
-    private fun viewModel(requestId: Long?) = RequestPreviewViewModel(
+    private fun viewModel(
+        requestId: Long?,
+        summaries: WalletConnectRequestSummaries = WalletConnectRequestSummaries(
+            WalletConnectRequestDecoder { null }, WalletConnectSummaryPresenter(resourceManager)
+        ),
+        awaitSummary: Boolean = true
+    ) = RequestPreviewViewModel(
         savedStateHandle = SavedStateHandle(
             mapOf(
                 RequestPreviewFragment.PAYLOAD_TOPIC_KEY to TEST_TOPIC,
@@ -131,8 +160,11 @@ class RequestPreviewViewModelTest {
         walletConnectRouter = router,
         resourceManager = resourceManager,
         accountRepository = accountRepository,
-        addressIconGenerator = mockk<AddressIconGenerator>(relaxed = true)
-    )
+        addressIconGenerator = mockk<AddressIconGenerator>(relaxed = true),
+        requestSummaries = summaries
+    ).also { model ->
+        if (requestId != null && awaitSummary) runBlocking { withTimeout(10_000) { model.state.first { it.summary != null } } }
+    }
 
     private companion object {
         const val RAW_DATA_ITEM = 1

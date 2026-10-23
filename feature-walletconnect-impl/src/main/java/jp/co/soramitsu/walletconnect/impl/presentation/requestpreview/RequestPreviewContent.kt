@@ -26,6 +26,8 @@ import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.SigningSummary
+import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.WalletNameItem
@@ -40,7 +42,9 @@ data class RequestPreviewViewState(
     val method: String?,
     val tableItems: List<TitleValueViewState>,
     val wallet: WalletNameItemViewState,
-    val loading: Boolean
+    val loading: Boolean,
+    /** What the request signs; null while it is being decoded, when nothing can be signed yet. */
+    val summary: SigningSummaryViewState? = null
 ) {
     companion object {
         val default = RequestPreviewViewState(
@@ -80,8 +84,10 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
 
             MarginVertical(margin = 8.dp)
 
+            // Weighted so that a long summary scrolls and never pushes the Sign button off screen.
             Column(
                 modifier = Modifier
+                    .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState())
             ) {
                 GradientIcon(
@@ -113,6 +119,11 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                     onItemClick = callback::onTableItemClick,
                     onRowClick = callback::onTableRowClick
                 )
+
+                state.summary?.let { summary ->
+                    MarginVertical(margin = 16.dp)
+                    SigningSummary(state = summary)
+                }
             }
 
             Column(
@@ -128,7 +139,8 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                         .fillMaxWidth()
                         .height(48.dp),
                     text = stringResource(id = R.string.common_sign),
-                    loading = state.loading,
+                    enabled = state.summary != null,
+                    loading = state.loading || state.summary == null,
                     onClick = callback::onSignClick
                 )
 

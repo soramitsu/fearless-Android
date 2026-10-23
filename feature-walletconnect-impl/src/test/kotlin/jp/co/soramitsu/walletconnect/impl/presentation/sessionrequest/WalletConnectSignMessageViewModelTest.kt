@@ -17,6 +17,9 @@ import jp.co.soramitsu.walletconnect.impl.presentation.awaitErrorDialog
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.ethereumChain
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionRequest
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestDecoder
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectSummaryPresenter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -101,6 +104,12 @@ class WalletConnectSignMessageViewModelTest {
         walletConnectRouter = router,
         resourceManager = resourceManager,
         accountRepository = accountRepository,
-        addressIconGenerator = mockk<AddressIconGenerator>(relaxed = true)
+        addressIconGenerator = mockk<AddressIconGenerator>(relaxed = true),
+        requestSummaries = WalletConnectRequestSummaries(
+            WalletConnectRequestDecoder {
+            null
+        },
+            WalletConnectSummaryPresenter(resourceManager)
+        )
     )
 }

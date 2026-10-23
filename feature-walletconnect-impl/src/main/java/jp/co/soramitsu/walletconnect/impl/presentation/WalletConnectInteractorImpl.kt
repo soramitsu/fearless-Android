@@ -8,7 +8,6 @@ import com.reown.walletkit.client.WalletKit
 import com.reown.walletkit.utils.CacaoSigner
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
@@ -18,19 +17,14 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
-import jp.co.soramitsu.fearless_utils.scale.utils.directWrite
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.web3j.crypto.Credentials
@@ -38,7 +32,6 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
-import org.web3j.utils.Numeric
 import java.math.BigInteger
 import java.util.concurrent.CancellationException
 
@@ -388,32 +381,13 @@ class WalletConnectInteractorImpl internal constructor(
         recentSession: Wallet.Model.SessionRequest
     ): String {
         // The payload exactly as the user saw it; every signed byte below is read from this object.
-        val signPayload = runCatching { recentSession.signedMessage.toJsonObject() }.getOrNull()
-            ?: rejectRequest("The transaction payload is malformed")
-        val genesisHash = signPayload.hexBytes("genesisHash")
-        requireGenesisHash(genesisHash, account.chain)
-        val payloadAddress = signPayload["address"]
-        if (payloadAddress != null && payloadAddress !is JsonNull) {
-            requireRequest(account.isAccount(payloadAddress.stringValue())) { "The transaction is for another account" }
+        val signPayload = PolkadotSignPayload.parse(recentSession.signedMessage)
+        requireGenesisHash(signPayload.genesisHash, account.chain)
+        signPayload.address?.let { payloadAddress ->
+            requireRequest(account.isAccount(payloadAddress)) { "The transaction is for another account" }
         }
-        val tip = signPayload.hexBytes("tip").decodeToInt()
-        val method = signPayload.hexBytes("method")
-        val blockHash = signPayload.hexBytes("blockHash")
-        val era = signPayload.hexBytes("era")
-        val nonce = signPayload.hexBytes("nonce").decodeToInt()
-        val specVersion = signPayload.hexBytes("specVersion").decodeToInt()
-        val transactionVersion = signPayload.hexBytes("transactionVersion").decodeToInt()
 
-        val payloadBytes = useScaleWriter {
-            directWrite(method)
-            directWrite(era)
-            writeCompact(nonce)
-            writeCompact(tip)
-            writeUint32(specVersion)
-            writeUint32(transactionVersion)
-            directWrite(genesisHash)
-            directWrite(blockHash)
-        }
+        val payloadBytes = signPayload.signingPayload()
 
         val messageToSign = if (payloadBytes.size > PAYLOAD_HASH_THRESHOLD) {
             payloadBytes.blake2b256()
@@ -458,31 +432,17 @@ class WalletConnectInteractorImpl internal constructor(
         account: SigningAccount,
         recentSession: Wallet.Model.SessionRequest
     ): RawTransaction {
-        val transaction = runCatching { recentSession.signedMessage.toJsonObject() }.getOrNull()
-            ?: rejectRequest("The transaction is malformed")
-        evmChainIdOf(transaction["chainId"])?.let { transactionChainId ->
+        // Read as the preview read it: the recipient, value and data signed are the ones shown.
+        val transaction = WalletConnectEvmTransaction.parse(recentSession.signedMessage)
+        transaction.chainId?.let { transactionChainId ->
             requireRequest(transactionChainId == recentSession.eip155ChainId) { "The transaction is for another chain" }
         }
-        requireRequest(account.isAccount(transaction["from"].stringValue())) {
+        requireRequest(account.isAccount(transaction.from)) {
             "The transaction is from another account"
         }
 
-        return RawTransaction.createTransaction(
-            transaction.quantity("nonce"),
-            transaction.quantity("gasPrice"),
-            transaction.quantity("gasLimit"),
-            transaction["to"].stringValue() ?: rejectRequest("The transaction has no recipient"),
-            transaction.quantity("value"),
-            transaction["data"].stringValue().orEmpty()
-        )
+        return transaction.rawTransaction()
     }
-
-    private fun JsonObject.quantity(key: String): BigInteger? =
-        this[key].stringValue()?.let { runCatching { Numeric.decodeQuantity(it) }.getOrNull() }
-
-    private fun JsonObject.hexBytes(key: String): ByteArray =
-        this[key].stringValue()?.let { runCatching { it.fromHex() }.getOrNull() }
-            ?: rejectRequest("The transaction payload is malformed")
 
     override fun rejectSessionRequest(
         sessionTopic: String,
