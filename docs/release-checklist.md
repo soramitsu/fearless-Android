@@ -591,7 +591,7 @@ manual workflow run.
   one-line OpenSSH Ed25519 public key is base64 encoded in the
   `ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64` repository variable, the exact
   master push CI is green, and the workflow-reported AAB signer SHA-256 matches
-  `40:39:10:92:F5:B9:7E:78:2C:65:28:CC:57:1A:DF:5D:BE:DF:E2:D0:50:23:BA:BC:7C:4E:33:9E:58:4A:4A:9A`.
+  `AD:6C:1D:07:BE:5D:FA:8C:53:9E:8C:9B:8B:D4:3D:C1:C6:CF:79:A8:39:82:8B:10:B6:F9:53:AD:57:C1:BD:E8`.
 - Confirm `android-release-build` and `android-release-signing` both deny admin
   bypass, prevent self-review, require protected branches, and use the exact
   sorted User IDs in `ANDROID_RELEASE_BUILD_REVIEWER_IDS` and

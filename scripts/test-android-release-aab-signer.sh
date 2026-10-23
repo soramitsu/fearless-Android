@@ -5,7 +5,7 @@ umask 077
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PRODUCTION_SIGNER="$ROOT_DIR/scripts/sign-android-release-aab.sh"
 PRODUCTION_VERIFIER="$ROOT_DIR/scripts/verify-android-aab-jar-signature.sh"
-PRODUCTION_FINGERPRINT="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
+PRODUCTION_FINGERPRINT="AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8"
 test_tmp_root="${RUNNER_TEMP:-${TMPDIR:-$ROOT_DIR/build/test-tmp}}"
 mkdir -p "$test_tmp_root"
 test_tmp_root="$(cd "$test_tmp_root" && pwd -P)"

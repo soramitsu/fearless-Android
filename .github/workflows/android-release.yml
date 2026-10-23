@@ -1664,7 +1664,7 @@ jobs:
             --arg androidSdkLockSha256 "$android_sdk_lock_sha256" \
             --slurpfile androidSdkLock \
               scripts/android-release-sdk-linux.lock.json \
-            --arg signingCertificateSha256 "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" \
+            --arg signingCertificateSha256 "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8" \
             --arg aabPermissionsSha256 "$AAB_PERMISSIONS_SHA256" \
             --arg aabIdentityEvidenceSha256 "$AAB_IDENTITY_EVIDENCE_SHA256" \
             --rawfile aabIdentityEvidence "$AAB_IDENTITY_EVIDENCE" \
@@ -1929,7 +1929,7 @@ jobs:
                 "runnerImage"
               ] | sort) and
               .signing.certificateSha256 ==
-                "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" and
+                "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8" and
               .signing.runnerImage == "ubuntu-24.04" and
               .signing.javaDistribution == "temurin-jdkfile" and
               .signing.javaVersion == $signingJavaVersion and
