@@ -280,6 +280,9 @@ The owned Ed25519 verifier additionally incorporates the canonical-signature gua
 and regression tests from reviewed Utils PR154 (`db86fdf14ba0d32a28df70ef97406f7317150b06`).
 Signing bytes and native artifacts are unchanged; the manifest retains original
 import provenance and hashes the current owned files.
+Run `python3 scripts/generate-avatar-brand.py` to reproduce `WingedSunClip.kt`
+from the checksum-pinned approved badge. This app-owned helper is preserved from
+the same reviewed Utils commit; its output path targets `runtime-utils`.
 
 ```
 python3 scripts/test-android-runtime-source-pins.py

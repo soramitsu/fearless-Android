@@ -2,6 +2,14 @@
 
 # Status Summary
 
+## Avatar source regeneration — 25 October 2026
+
+The Android-owned `scripts/generate-avatar-brand.py` preserves the reviewed
+PR154 badge-to-avatar generator with only its output path adapted to
+`runtime-utils`. Regeneration from the pinned approved badge produces a
+byte-identical `WingedSunClip.kt`; runtime code, artwork and source digests stay
+unchanged. Source ownership verification still passes.
+
 ## Canonical Ed25519 verification — 25 October 2026
 
 The app-owned runtime preserves Utils PR154's missing verifier guard and five
