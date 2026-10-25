@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-instrumentation-results.sh"
 EXPECTED_POSITIVE_COUNT=2
-EXPECTED_NEGATIVE_COUNT=40
+EXPECTED_NEGATIVE_COUNT=44
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -58,6 +58,18 @@ contracts = {
                 )
                 for version in (26, 27, 28, 73, 74, 75, 76)
             ],
+            (
+                "jp.co.soramitsu.coredb.migrations.CurrentEndpointOwnershipMigrationTest",
+                "current77Through81KeepExactInputAcrossTwoProductionOpens",
+            ),
+            (
+                "jp.co.soramitsu.coredb.migrations.FiatCurrencyIdentityMigrationInstrumentedTest",
+                "populated83To84RetainsEveryLegacyQuoteByteAndProtectedTableAcrossReopen",
+            ),
+            (
+                "jp.co.soramitsu.coredb.migrations.FiatCurrencyIdentityMigrationInstrumentedTest",
+                "production82To84AddsNullableCurrencyWithoutRelabellingOrChangingOwnedRows",
+            ),
             (
                 "jp.co.soramitsu.coredb.migrations."
                 "ReleasedVersion27FailClosedMigrationTest",
@@ -633,6 +645,48 @@ fi
 grep -Fq "exact compatibility count is 26" "$output" ||
   fail "compatibility extra-test omitted expected diagnostic"
 negative_count=$((negative_count + 1))
+
+# The full profile must carry the new endpoint/fiat migration identities, even
+# when a fabricated report keeps the historical numerical test floor.
+for method in \
+  current77Through81KeepExactInputAcrossTwoProductionOpens \
+  populated83To84RetainsEveryLegacyQuoteByteAndProtectedTableAcrossReopen \
+  production82To84AddsNullableCurrencyWithoutRelabellingOrChangingOwnedRows; do
+  fixture="$(make_fixture "missing-$method")"
+  replace_once "$(result_file "$fixture" core-db)" "$method" "omitted-$method"
+  expect_failure "missing-$method" "omitted required migration/startup tests" "$fixture"
+done
+
+# Copy the checker and its bounded source contracts so schema drift can be
+# rejected without editing the actual checkout or adding a production override.
+checker_root="$tmp_dir/future-schema-checker"
+CHECKER_ROOT="$checker_root" SOURCE_ROOT="$ROOT_DIR" python3 <<'PY_CHECKER'
+import os
+import shutil
+from pathlib import Path
+source = Path(os.environ["SOURCE_ROOT"])
+target = Path(os.environ["CHECKER_ROOT"])
+paths = [
+    "scripts/verify-android-migration-instrumentation-results.sh",
+    "core-db/src/main/java/jp/co/soramitsu/coredb/AppDatabaseMigrationPolicy.kt",
+    "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/ReleasedSchemaUpgradeMatrixTest.kt",
+    "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/PortableWalletOriginReservationMigrationSafetyTest.kt",
+    "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/CurrentEndpointOwnershipMigrationTest.kt",
+    "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/FiatCurrencyIdentityMigrationInstrumentedTest.kt",
+    "feature-account-impl/src/androidTest/java/jp/co/soramitsu/account/impl/data/repository/PortableWalletCohortRealRoomReservationTest.kt",
+]
+for path in paths:
+    dest = target / path
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source / path, dest)
+policy = target / paths[1]
+text = policy.read_text()
+assert text.count("APP_DATABASE_VERSION = 84") == 1
+policy.write_text(text.replace("APP_DATABASE_VERSION = 84", "APP_DATABASE_VERSION = 85"))
+PY_CHECKER
+fixture="$(make_fixture future-schema)"
+VERIFY="$checker_root/scripts/verify-android-migration-instrumentation-results.sh" \
+  expect_failure "unreviewed-future-schema" "released schema version differs" "$fixture"
 
 [[ "$positive_count" == "$EXPECTED_POSITIVE_COUNT" ]] ||
   fail "expected $EXPECTED_POSITIVE_COUNT positive case; got $positive_count"

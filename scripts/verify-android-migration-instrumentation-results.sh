@@ -24,7 +24,7 @@ class VerificationError(RuntimeError):
 root = Path(sys.argv[1]).resolve()
 source_root = Path(sys.argv[2]).resolve()
 profile = os.environ.get("MIGRATION_RESULTS_PROFILE", "full")
-released_schema_version = 81
+released_schema_version = 84
 matrix_class = (
     "jp.co.soramitsu.coredb.migrations.ReleasedSchemaUpgradeMatrixTest"
 )
@@ -87,6 +87,20 @@ origin_reservation_identity = (
     origin_reservation_class,
     "migrationPreservesExistingWalletAndPendingCohortWithoutGuessingOrigin",
 )
+current_migration_identities = {
+    (
+        "jp.co.soramitsu.coredb.migrations.CurrentEndpointOwnershipMigrationTest",
+        "current77Through81KeepExactInputAcrossTwoProductionOpens",
+    ),
+    (
+        "jp.co.soramitsu.coredb.migrations.FiatCurrencyIdentityMigrationInstrumentedTest",
+        "populated83To84RetainsEveryLegacyQuoteByteAndProtectedTableAcrossReopen",
+    ),
+    (
+        "jp.co.soramitsu.coredb.migrations.FiatCurrencyIdentityMigrationInstrumentedTest",
+        "production82To84AddsNullableCurrencyWithoutRelabellingOrChangingOwnedRows",
+    ),
+}
 full_contracts = {
     "common": {
         "minimum": 5,
@@ -104,6 +118,7 @@ full_contracts = {
         "minimum": 291,
         "required": {
             *matrix_identities,
+            *current_migration_identities,
             orphan_identity,
             reservation_identity,
             origin_reservation_identity,
@@ -270,6 +285,15 @@ try:
         )
     ):
         fail("real Room reservation tests differ from reviewed identity contract")
+
+    for class_name, method in current_migration_identities:
+        source = source_root / "core-db/src/androidTest/java" / (class_name.replace(".", "/") + ".kt")
+        try:
+            test_source = source.read_text(encoding="utf-8")
+        except OSError as error:
+            fail(f"current migration source cannot be read: {error}")
+        if f"fun {method}()" not in test_source:
+            fail("current migration test differs from reviewed identity contract")
 
     if profile == "full":
         contracts = full_contracts
