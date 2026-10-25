@@ -17,8 +17,6 @@ feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/domain/contr
 feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/presentation/contribute/custom/CustomContributeViewModel.kt	// todo rework with dagger separate validate systems
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/network/blockhain/calls/ExtrinsicBuilderExt.kt	// TODO rename to createPool when polkadot runtime upgrades to 9390
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingConstantsRepository.kt	// todo need research
-feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingPoolApi.kt	// todo temporary fix until all runtimes will be updated
-feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/domain/rewards/SoraStakingRewardsScenario.kt	// todo make better way to check that we support price provider
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/collators/change/custom/select/SelectCustomCollatorsViewModel.kt	// todo do we need apply selected collators when moving back?
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/common/SetupStakingSharedState.kt	//                        is Payload.Collators -> SelectBlockProducersStep.Payload.Collators //todo
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/confirm/ConfirmStakingViewModel.kt	is StakingState.Parachain.Collator -> 0 // todo add collators support
@@ -39,3 +37,10 @@ feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/balan
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/beacon/main/BeaconViewModel.kt	// todo hardcoded westend
 feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/beacon/main/BeaconViewModel.kt	// todo think about multiple networks
 feature-wallet-impl/src/main/res/layout/item_manage_asset.xml	<!--  TODO complete nine path background  -->
+
+# Existing upstream comment debt imported with the app-owned runtime sources.
+runtime-utils/src/main/java/jp/co/soramitsu/fearless_utils/runtime/definitions/registry/TypePreset.kt	// todo replace with real type
+runtime-utils/src/test/java/jp/co/soramitsu/fearless_utils/encrypt/JsonSeedDecoderTest.kt	// TODO not possible to use sr25519 library in unit tests for now
+runtime-websocket/src/main/java/com/neovisionaries/ws/client/DistinguishedNameParser.java	//FIXME: escaping is allowed only for leading or trailing space char
+runtime-websocket/src/main/java/com/neovisionaries/ws/client/DistinguishedNameParser.java	pos++; //FIXME tmp
+runtime-websocket/src/main/java/com/neovisionaries/ws/client/DistinguishedNameParser.java	return 0x3F; //FIXME failed to decode UTF-8 char - return '?'
