@@ -12,7 +12,11 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.presentation.model.AmountModel
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
@@ -71,9 +75,15 @@ class StakingBalanceUnknownStateTest {
             vm.shouldBlockStakeMore.removeObserver(observer)
             vm.shouldBlockUnstake.removeObserver(observer)
             vm.redeemEnabledLiveData.removeObserver(observer)
-            vm.viewModelScope.cancel()
-            runCurrent()
-            Dispatchers.resetMain()
+            // A scheduler drain does not finish producer cleanup running on Default.
+            // Keep Main installed until every ViewModel child has completed cancellation.
+            try {
+                withContext(NonCancellable + Dispatchers.Default) {
+                    withTimeout(5_000) { vm.viewModelScope.coroutineContext.job.cancelAndJoin() }
+                }
+            } finally {
+                Dispatchers.resetMain()
+            }
         }
     }
 
