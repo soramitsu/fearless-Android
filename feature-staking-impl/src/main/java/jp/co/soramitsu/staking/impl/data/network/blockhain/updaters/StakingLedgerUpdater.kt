@@ -9,17 +9,18 @@ import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
+import jp.co.soramitsu.coredb.model.cache.FreshAssetCacheUpdate
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.insert
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.shared_utils.wsrpc.SocketService
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
-import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
+import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.isRedeemableIn
@@ -72,7 +73,9 @@ class StakingLedgerUpdater(
             scope.invalidationFlow().distinctUntilChangedBy { it.id }
         ) { assetWithChain, account ->
             val (chain, chainAsset) = assetWithChain
-
+            if(chainAsset.staking != Asset.StakingType.RELAYCHAIN) {
+                return@combine null
+            }
             val runtime = chainRegistry.getRuntime(chain.id)
 
             val currentAccountId =
@@ -189,16 +192,14 @@ class StakingLedgerUpdater(
         stakingLedger: StakingLedger,
         era: BigInteger
     ) {
-        assetCache.updateAsset(metaId, accountId, chainAsset) { cached ->
-            val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(era) }
-            val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(era) }
-
-            cached.copy(
-                redeemableInPlanks = redeemable,
-                unbondingInPlanks = unbonding,
-                bondedInPlanks = stakingLedger.active
+        assetCache.updateAsset(
+            metaId, accountId, chainAsset,
+            FreshAssetCacheUpdate.Staking(
+                redeemable = stakingLedger.sumStaking { it.isRedeemableIn(era) },
+                unbonding = stakingLedger.sumStaking { it.isUnbondingIn(era) },
+                bonded = stakingLedger.active
             )
-        }
+        )
     }
 
     private suspend fun updateAssetStakingForEmptyLedger(
@@ -206,12 +207,9 @@ class StakingLedgerUpdater(
         accountId: AccountId,
         chainAsset: Asset
     ) {
-        assetCache.updateAsset(metaId, accountId, chainAsset) { cached ->
-            cached.copy(
-                redeemableInPlanks = BigInteger.ZERO,
-                unbondingInPlanks = BigInteger.ZERO,
-                bondedInPlanks = BigInteger.ZERO
-            )
-        }
+        assetCache.updateAsset(
+            metaId, accountId, chainAsset,
+            FreshAssetCacheUpdate.Staking(BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO)
+        )
     }
 }

@@ -109,5 +109,5 @@ class SubqueryHistoryRequest(
 
     private val TransactionFilter.filterName
         @SuppressLint("DefaultLocale")
-        get() = name.toLowerCase()
+        get() = name.lowercase()
 }

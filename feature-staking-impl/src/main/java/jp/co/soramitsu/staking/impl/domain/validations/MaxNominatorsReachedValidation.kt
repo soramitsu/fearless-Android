@@ -10,11 +10,12 @@ class MaxNominatorsReachedValidation<P, E>(
     private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val isAlreadyNominating: (P) -> Boolean,
     private val sharedState: StakingSharedState,
-    private val errorProducer: () -> E
+    private val errorProducer: () -> E,
+    private val payloadChainId: (P) -> String? = { null }
 ) : Validation<P, E> {
 
     override suspend fun validate(value: P): ValidationStatus<E> {
-        val chainId = sharedState.chainId()
+        val chainId = payloadChainId(value) ?: sharedState.chainId()
         if (isAlreadyNominating(value)) {
             return ValidationStatus.Valid()
         }

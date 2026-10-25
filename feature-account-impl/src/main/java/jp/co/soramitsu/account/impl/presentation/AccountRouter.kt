@@ -18,6 +18,26 @@ interface AccountRouter : SecureRouter {
 
     fun backToWelcomeScreen()
 
+    fun openBackupWalletScreen(metaAccountId: Long)
+
+    /** Opens a locked, offline screen; this call never authorizes reading its records. */
+    fun openSavedEndpoints()
+
+    /** Starts a PIN round-trip for the exact destination owner and process-local request. */
+    fun requestSavedEndpointUnlock(owner: Any, requestId: String): Boolean
+
+    fun openRecoveryCenter()
+
+    fun openArchivedWalletRecovery()
+
+    fun openRebind(target: jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget, mode: ImportMode)
+
+    fun openPreviousSecureStorageRecovery()
+
+    fun openWalletEmergencyExport()
+
+    fun openPinRecoveryImport(target: jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget, mode: ImportMode, challenge: String)
+
     fun openMain()
 
     fun openCreatePincode()
@@ -102,8 +122,11 @@ interface AccountRouter : SecureRouter {
 
     fun openImportRemoteWalletDialog()
 
+    fun openImportAccountScreen(walletEcosystem: WalletEcosystem, importMode: ImportMode)
+
     fun openConnectionsScreen()
     fun openTonConnectionsScreen()
+    fun openManageAssets()
 
     fun openScoreDetailsScreen(metaId: Long)
 
@@ -113,9 +136,10 @@ interface AccountRouter : SecureRouter {
 
     fun openSelectImportModeForResult(): Flow<ImportMode>
 
+    /** The import modes for adding one account to an existing wallet. */
+    fun openSelectAccountImportModeForResult(): Flow<ImportMode>
+
     fun openImportAddAccountScreen(walletId: Long, walletEcosystem: WalletEcosystem, importMode: ImportMode)
 
     fun openOptionsWallet(walletId: Long, allowDetails: Boolean)
-
-    fun openCrowdloansScreen()
 }

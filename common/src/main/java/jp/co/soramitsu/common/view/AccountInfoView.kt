@@ -78,7 +78,7 @@ class AccountInfoView @JvmOverloads constructor(
         binding.accountAddressText.text = address
     }
 
-    fun setAccountIcon(icon: Drawable) {
+    fun setAccountIcon(icon: Drawable?) {
         binding.accountIcon.setImageDrawable(icon)
     }
 

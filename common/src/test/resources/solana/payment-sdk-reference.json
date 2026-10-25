@@ -1,0 +1,64 @@
+{
+  "web3": "1.98.4",
+  "splToken": "0.4.14",
+  "vectors": [
+    {
+      "name": "native",
+      "sender": "AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9",
+      "recipient": "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu",
+      "mint": "GyGKxMyg1p9SsHfm15MkNUu1u9TN2JtTspcdmrtGUdse",
+      "blockhash": "8SFqwqnq4whPhs8icwHA2hQg3hUoN1qrCLK1SBx3WKwe",
+      "microLamports": 1250,
+      "limit": 10000,
+      "amount": "2500000",
+      "messageBase64": "AQACBIqI4910CfGV/VLbLTy6XXLKZwm/HZQSG/N0iAG0D29cgTl3Dqh9F19Wo1Rmw0x+zMuNipG07jeiXfYPW4/Js5QDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbnoc3Smwt4/ROvTFWY/v9O8qlxZuPKby5Pv8zYBQW/EDAgAFAhAnAAACAAkD4gQAAAAAAAADAgABDAIAAACgJSYAAAAAAA==",
+      "transactionBase64": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAIEiojj3XQJ8ZX9UtstPLpdcspnCb8dlBIb83SIAbQPb1yBOXcOqH0XX1ajVGbDTH7My42KkbTuN6Jd9g9bj8mzlAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABuehzdKbC3j9E69MVZj+/07yqXFm48pvLk+/zNgFBb8QMCAAUCECcAAAIACQPiBAAAAAAAAAMCAAEMAgAAAKAlJgAAAAAA"
+    },
+    {
+      "name": "spl-existing-full-u64",
+      "sender": "AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9",
+      "recipient": "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu",
+      "mint": "GyGKxMyg1p9SsHfm15MkNUu1u9TN2JtTspcdmrtGUdse",
+      "blockhash": "8SFqwqnq4whPhs8icwHA2hQg3hUoN1qrCLK1SBx3WKwe",
+      "microLamports": 1250,
+      "limit": 200000,
+      "decimals": 6,
+      "create": false,
+      "debits": [
+        {
+          "account": "JAYwnTWS9z44Bv3N3otEHihbKfMLzTwwskqhWc9n5qii",
+          "amount": "9223372036854775808"
+        },
+        {
+          "account": "EdmxWPmx2WH6WgFfTdu9xfkYf3k1g5wD1zccTVySEEh1",
+          "amount": "9223372036854775807"
+        }
+      ],
+      "messageBase64": "AQADB4qI4910CfGV/VLbLTy6XXLKZwm/HZQSG/N0iAG0D29c/wkGXDQuoyW2lMp+Xhd0uIm1mpocAQ9IQl2MG3GAkOMAmGqfhC/xsAPHr5xhB+cV8iwdEHAmR0lgmMwL1q3dysqTrBcFGHBx1nuDx/8O/oEI6OxFMFdddyaHkzPb2r58AwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8Aqe1JKMYo0cLG6ukDOJBZlWEpWSc6XGP5NjbBRhSshzfRbnoc3Smwt4/ROvTFWY/v9O8qlxZuPKby5Pv8zYBQW/EEBAAFAkANAwAEAAkD4gQAAAAAAAAFBAEGAgAKDAAAAAAAAACABgUEAwYCAAoM/////////38G",
+      "transactionBase64": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAMHiojj3XQJ8ZX9UtstPLpdcspnCb8dlBIb83SIAbQPb1z/CQZcNC6jJbaUyn5eF3S4ibWamhwBD0hCXYwbcYCQ4wCYap+EL/GwA8evnGEH5xXyLB0QcCZHSWCYzAvWrd3KypOsFwUYcHHWe4PH/w7+gQjo7EUwV113JoeTM9vavnwDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAbd9uHXZaGT2cvhRs7reawctIXtX1s3kTqM9YV+/wCp7UkoxijRwsbq6QM4kFmVYSlZJzpcY/k2NsFGFKyHN9FuehzdKbC3j9E69MVZj+/07yqXFm48pvLk+/zNgFBb8QQEAAUCQA0DAAQACQPiBAAAAAAAAAUEAQYCAAoMAAAAAAAAAIAGBQQDBgIACgz/////////fwY="
+    },
+    {
+      "name": "spl-create-full-u64",
+      "sender": "AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9",
+      "recipient": "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu",
+      "mint": "GyGKxMyg1p9SsHfm15MkNUu1u9TN2JtTspcdmrtGUdse",
+      "blockhash": "8SFqwqnq4whPhs8icwHA2hQg3hUoN1qrCLK1SBx3WKwe",
+      "microLamports": 1250,
+      "limit": 200000,
+      "decimals": 6,
+      "create": true,
+      "debits": [
+        {
+          "account": "JAYwnTWS9z44Bv3N3otEHihbKfMLzTwwskqhWc9n5qii",
+          "amount": "9223372036854775808"
+        },
+        {
+          "account": "EdmxWPmx2WH6WgFfTdu9xfkYf3k1g5wD1zccTVySEEh1",
+          "amount": "9223372036854775807"
+        }
+      ],
+      "messageBase64": "AQAGCoqI4910CfGV/VLbLTy6XXLKZwm/HZQSG/N0iAG0D29cAJhqn4Qv8bADx6+cYQfnFfIsHRBwJkdJYJjMC9at3cr/CQZcNC6jJbaUyn5eF3S4ibWamhwBD0hCXYwbcYCQ48qTrBcFGHBx1nuDx/8O/oEI6OxFMFdddyaHkzPb2r58AwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAACMlyWPTiSJ8bs9ECkUjg2DC1oTmdr/EIQEjnvY2+n4WYE5dw6ofRdfVqNUZsNMfszLjYqRtO43ol32D1uPybOU7UkoxijRwsbq6QM4kFmVYSlZJzpcY/k2NsFGFKyHN9EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbd9uHXZaGT2cvhRs7reawctIXtX1s3kTqM9YV+/wCpbnoc3Smwt4/ROvTFWY/v9O8qlxZuPKby5Pv8zYBQW/EFBAAFAkANAwAEAAkD4gQAAAAAAAAFBgABBgcICQEBCQQCBwEACgwAAAAAAAAAgAYJBAMHAQAKDP////////9/Bg==",
+      "transactionBase64": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAYKiojj3XQJ8ZX9UtstPLpdcspnCb8dlBIb83SIAbQPb1wAmGqfhC/xsAPHr5xhB+cV8iwdEHAmR0lgmMwL1q3dyv8JBlw0LqMltpTKfl4XdLiJtZqaHAEPSEJdjBtxgJDjypOsFwUYcHHWe4PH/w7+gQjo7EUwV113JoeTM9vavnwDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZgTl3Dqh9F19Wo1Rmw0x+zMuNipG07jeiXfYPW4/Js5TtSSjGKNHCxurpAziQWZVhKVknOlxj+TY2wUYUrIc30QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKluehzdKbC3j9E69MVZj+/07yqXFm48pvLk+/zNgFBb8QUEAAUCQA0DAAQACQPiBAAAAAAAAAUGAAEGBwgJAQEJBAIHAQAKDAAAAAAAAACABgkEAwcBAAoM/////////38G"
+    }
+  ]
+}

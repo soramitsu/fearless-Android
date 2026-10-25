@@ -93,7 +93,7 @@ fun PoolListScreen(state: PoolListState, callback: PoolListScreenInterface) {
 @Composable
 private fun PreviewPoolListScreen() {
     val itemState = BasicPoolListItemState(
-        ids = "0" to "1",
+        ids = StringPair("0", "1"),
         token1Icon = "DEFAULT_ICON_URI",
         token2Icon = "DEFAULT_ICON_URI",
         text1 = "XOR-VAL",

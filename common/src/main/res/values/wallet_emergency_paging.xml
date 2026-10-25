@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">Choose a stored key to view. Only the key you select is decrypted.</string>
+    <string name="wallet_emergency_view_key">View this key</string>
+    <string name="wallet_emergency_next_page">Next page</string>
+    <string name="wallet_emergency_first_page">Refresh from the first page</string>
+    <string name="wallet_emergency_back_to_list">Back to this page</string>
+    <string name="wallet_emergency_inventory_changed">The stored key list changed. Refresh from the first page to continue.</string>
+    <string name="wallet_emergency_no_more_keys">There are no more keys after this page.</string>
+    <string name="wallet_emergency_key_identifier">Stored key: %1$s</string>
+</resources>

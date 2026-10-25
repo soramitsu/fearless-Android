@@ -13,28 +13,49 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
 
 @AndroidEntryPoint
 class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectViewModel>() {
 
     companion object {
         const val KEY_SELECTED_ASSET_ID = "KEY_SELECTED_ASSET_ID"
+        const val KEY_SELECTED_CHAIN_ID = "KEY_SELECTED_CHAIN_ID"
         const val KEY_EXCLUDE_ASSET_ID = "KEY_EXCLUDE_ASSET_ID"
         const val KEY_FILTER_CHAIN_ID = "KEY_FILTER_CHAIN_ID"
         const val KEY_IS_FILTER_XCM_ASSETS = "KEY_IS_FILTER_XCM_ASSETS"
 
-        fun getBundle(assetId: String) = bundleOf(KEY_SELECTED_ASSET_ID to assetId)
+        /** [AssetSelectPurpose] name; a bundle without it (older build) opens a Send picker. */
+        const val KEY_PURPOSE = "KEY_PURPOSE"
 
-        fun getBundleFilterByChain(chainId: ChainId) = bundleOf(KEY_FILTER_CHAIN_ID to chainId)
+        fun getBundle(
+            assetId: String,
+            selectedChainId: ChainId? = null,
+            purpose: AssetSelectPurpose = AssetSelectPurpose.SEND
+        ) = bundleOf(
+            KEY_SELECTED_ASSET_ID to assetId,
+            KEY_SELECTED_CHAIN_ID to selectedChainId,
+            KEY_PURPOSE to purpose.name
+        )
+
+        fun getBundleFilterByChain(
+            chainId: ChainId,
+            purpose: AssetSelectPurpose = AssetSelectPurpose.SEND
+        ) = bundleOf(
+            KEY_FILTER_CHAIN_ID to chainId,
+            KEY_PURPOSE to purpose.name
+        )
 
         fun getBundle(
             chainId: ChainId,
             assetId: String?,
-            excludeAssetId: String?
+            excludeAssetId: String?,
+            purpose: AssetSelectPurpose
         ) = bundleOf(
             KEY_FILTER_CHAIN_ID to chainId,
             KEY_SELECTED_ASSET_ID to assetId,
-            KEY_EXCLUDE_ASSET_ID to excludeAssetId
+            KEY_EXCLUDE_ASSET_ID to excludeAssetId,
+            KEY_PURPOSE to purpose.name
         )
 
         fun getBundle(
@@ -44,7 +65,8 @@ class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectView
         ) = bundleOf(
             KEY_FILTER_CHAIN_ID to chainId,
             KEY_SELECTED_ASSET_ID to assetId,
-            KEY_IS_FILTER_XCM_ASSETS to isFilterXcmAssets
+            KEY_IS_FILTER_XCM_ASSETS to isFilterXcmAssets,
+            KEY_PURPOSE to (if (isFilterXcmAssets) AssetSelectPurpose.XCM else AssetSelectPurpose.SEND).name
         )
     }
 

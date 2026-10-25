@@ -1,0 +1,991 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="${XCM_REGISTRY_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+REGISTRY_FILE="$ROOT_DIR/runtime/src/main/assets/local_chains.json"
+REQUIRE_EXECUTABLE=false
+REQUIRE_ALL_ROUTES_EXECUTABLE=false
+GAP_REPORT_FILE=""
+REQUIRED_ROUTES=()
+REQUIRED_ROUTE_FILES=()
+REQUIRED_GAP_FILES=()
+
+usage() {
+  cat <<'USAGE'
+Usage: scripts/audit-xcm-registry-metadata.sh [--registry <path>] [--require-executable] [--require-all-routes-executable] [--write-gap-report <path>] [--require-route <origin-chain-id> <destination-chain-id> <asset-symbol>] [--require-route-file <path>] [--require-gap-file <path>]
+
+Validates Android local_chains.json XCM route metadata and any committed
+execution specs. By default the audit validates metadata shape and fails on any
+malformed execution spec. Release hardening can add --require-executable and
+--require-all-routes-executable to fail until real executable route specs are
+committed for the public XCM backend.
+
+--require-route can be repeated to require a specific executable route asset.
+--require-route-file reads required executable routes from a whitespace-separated
+file with origin chain id, destination chain id, and asset symbol columns.
+--require-gap-file reads expected discovery-only routes from a
+whitespace-separated file with origin chain id, destination chain id,
+comma-separated asset symbols, reason category, and bridge parachain id columns.
+--write-gap-report writes a deterministic JSON report listing advertised XCM
+routes that are still discovery-only because they do not have execution specs.
+USAGE
+}
+
+while (($#)); do
+  case "$1" in
+    --registry)
+      [[ $# -ge 2 ]] || { echo "[xcm-registry][error] --registry requires a path" >&2; exit 2; }
+      REGISTRY_FILE="$2"
+      shift 2
+      ;;
+    --require-executable)
+      REQUIRE_EXECUTABLE=true
+      shift
+      ;;
+    --require-all-routes-executable)
+      REQUIRE_ALL_ROUTES_EXECUTABLE=true
+      shift
+      ;;
+    --write-gap-report)
+      [[ $# -ge 2 ]] || { echo "[xcm-registry][error] --write-gap-report requires a path" >&2; exit 2; }
+      GAP_REPORT_FILE="$2"
+      shift 2
+      ;;
+    --require-route)
+      [[ $# -ge 4 ]] || { echo "[xcm-registry][error] --require-route requires origin, destination, and asset" >&2; exit 2; }
+      REQUIRED_ROUTES+=("$2|$3|$4")
+      shift 4
+      ;;
+    --require-route-file)
+      [[ $# -ge 2 ]] || { echo "[xcm-registry][error] --require-route-file requires a path" >&2; exit 2; }
+      REQUIRED_ROUTE_FILES+=("$2")
+      shift 2
+      ;;
+    --require-gap-file)
+      [[ $# -ge 2 ]] || { echo "[xcm-registry][error] --require-gap-file requires a path" >&2; exit 2; }
+      REQUIRED_GAP_FILES+=("$2")
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "[xcm-registry][error] Unknown argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "[xcm-registry][error] node is required for structured JSON validation" >&2
+  exit 1
+fi
+
+required_routes_raw=""
+if ((${#REQUIRED_ROUTES[@]} > 0)); then
+  required_routes_raw="$(printf '%s\n' "${REQUIRED_ROUTES[@]}")"
+fi
+
+required_route_files_raw=""
+if ((${#REQUIRED_ROUTE_FILES[@]} > 0)); then
+  required_route_files_raw="$(printf '%s\n' "${REQUIRED_ROUTE_FILES[@]}")"
+fi
+
+required_gap_files_raw=""
+if ((${#REQUIRED_GAP_FILES[@]} > 0)); then
+  required_gap_files_raw="$(printf '%s\n' "${REQUIRED_GAP_FILES[@]}")"
+fi
+
+node - "$REGISTRY_FILE" "$REQUIRE_EXECUTABLE" "$REQUIRE_ALL_ROUTES_EXECUTABLE" "$required_routes_raw" "$GAP_REPORT_FILE" "$required_route_files_raw" "$required_gap_files_raw" <<'NODE'
+const fs = require('fs');
+const path = require('path');
+
+const [
+  registryFile,
+  requireExecutableRaw,
+  requireAllRoutesExecutableRaw,
+  requiredRoutesRaw = '',
+  gapReportFile = '',
+  requiredRouteFilesRaw = '',
+  requiredGapFilesRaw = ''
+] = process.argv.slice(2);
+const requireExecutable = requireExecutableRaw === 'true';
+const requireAllRoutesExecutable = requireAllRoutesExecutableRaw === 'true';
+const errors = [];
+let unsafeGapReportErrorCount = 0;
+const executableRouteKeys = new Set();
+const missingExecutableDestinations = [];
+const requiredGaps = [];
+const allowedGapReasons = new Set(['bridge-sora', 'non-native-asset', 'cross-parachain-native']);
+const requireGapManifest = requiredGapFilesRaw.split('\n').filter(Boolean).length > 0;
+
+function fail(message, options = {}) {
+  errors.push(message);
+  if (!options.safeForGapReport) {
+    unsafeGapReportErrorCount += 1;
+  }
+}
+
+function label(...parts) {
+  return parts.filter(Boolean).join(' ');
+}
+
+function nonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function requiredString(value, field, context) {
+  if (!nonEmptyString(value)) {
+    fail(`${context}: ${field} must not be blank`);
+    return null;
+  }
+
+  return value.trim();
+}
+
+function nonNegativeInteger(value, field, context) {
+  if (!Number.isInteger(value) || value < 0) {
+    fail(`${context}: ${field} must be a non-negative integer`);
+    return null;
+  }
+
+  return value;
+}
+
+function nonNegativeIntegerString(value, field, context) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (typeof value !== 'string' || !/^(0|[1-9][0-9]*)$/.test(value.trim())) {
+    fail(`${context}: ${field} must be a non-negative integer string`);
+    return null;
+  }
+
+  return value.trim();
+}
+
+function normalizedEnum(value) {
+  return String(value)
+    .trim()
+    .replace(/-/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .toUpperCase();
+}
+
+function normalizeAssetSymbol(value) {
+  return String(value)
+    .trim()
+    .replace(/^xc/i, '')
+    .toUpperCase();
+}
+
+function normalizeAssetSymbols(values) {
+  return values
+    .map(normalizeAssetSymbol)
+    .filter(Boolean)
+    .sort()
+    .join(',');
+}
+
+const requiredRoutes = requiredRoutesRaw
+  .split('\n')
+  .filter(Boolean)
+  .map((route) => {
+    const parts = route.split('|');
+    if (parts.length !== 3 || parts.some((part) => !nonEmptyString(part))) {
+      fail(`Invalid required route declaration: ${route}`);
+      return null;
+    }
+    return {
+      originId: parts[0].trim(),
+      destinationId: parts[1].trim(),
+      assetSymbol: normalizeAssetSymbol(parts[2])
+    };
+  })
+  .filter(Boolean);
+
+function parseRequiredRouteLine(line, source, lineNumber) {
+  const trimmed = line.replace(/\s+#.*$/, '').trim();
+  if (!trimmed || trimmed.startsWith('#')) {
+    return null;
+  }
+
+  const parts = trimmed.split(/\s+/);
+  if (parts.length !== 3 || parts.some((part) => !nonEmptyString(part))) {
+    fail(`Invalid required route file line ${lineNumber} in ${source}: expected origin destination asset`);
+    return null;
+  }
+
+  return {
+    originId: parts[0].trim(),
+    destinationId: parts[1].trim(),
+    assetSymbol: normalizeAssetSymbol(parts[2])
+  };
+}
+
+function parseRequiredGapLine(line, source, lineNumber) {
+  const trimmed = line.replace(/\s+#.*$/, '').trim();
+  if (!trimmed || trimmed.startsWith('#')) {
+    return null;
+  }
+
+  const parts = trimmed.split(/\s+/);
+  if (parts.length !== 5 || parts.some((part) => !nonEmptyString(part))) {
+    fail(`Invalid required gap file line ${lineNumber} in ${source}: expected origin destination assets reason bridgeParachainId`);
+    return null;
+  }
+
+  const reason = parts[3].trim();
+  if (!allowedGapReasons.has(reason)) {
+    fail(`Invalid required gap file line ${lineNumber} in ${source}: unsupported reason ${reason}`);
+    return null;
+  }
+
+  const assetSymbols = parts[2]
+    .split(',')
+    .map((symbol) => symbol.trim())
+    .filter(Boolean);
+  if (assetSymbols.length === 0) {
+    fail(`Invalid required gap file line ${lineNumber} in ${source}: assets must not be blank`);
+    return null;
+  }
+
+  const bridgeParachainId = parts[4].trim();
+  return {
+    originId: parts[0].trim(),
+    destinationId: parts[1].trim(),
+    assetSymbols: normalizeAssetSymbols(assetSymbols),
+    reason,
+    bridgeParachainId: bridgeParachainId === '-' ? null : bridgeParachainId
+  };
+}
+
+for (const routeFile of requiredRouteFilesRaw.split('\n').filter(Boolean)) {
+  if (!fs.existsSync(routeFile)) {
+    fail(`Required route file missing: ${routeFile}`);
+    continue;
+  }
+
+  const routeFileContents = fs.readFileSync(routeFile, 'utf8');
+  routeFileContents.split(/\r?\n/).forEach((line, index) => {
+    const route = parseRequiredRouteLine(line, routeFile, index + 1);
+    if (route !== null) {
+      requiredRoutes.push(route);
+    }
+  });
+}
+
+for (const gapFile of requiredGapFilesRaw.split('\n').filter(Boolean)) {
+  if (!fs.existsSync(gapFile)) {
+    fail(`Required gap file missing: ${gapFile}`);
+    continue;
+  }
+
+  const gapFileContents = fs.readFileSync(gapFile, 'utf8');
+  gapFileContents.split(/\r?\n/).forEach((line, index) => {
+    const gap = parseRequiredGapLine(line, gapFile, index + 1);
+    if (gap !== null) {
+      requiredGaps.push(gap);
+    }
+  });
+}
+
+function gapKey(gap) {
+  return `${gap.originId}|${gap.destinationId}|${gap.assetSymbols}`;
+}
+
+function classifyMissingDestination(destination) {
+  if (destination.bridgeParachainId !== null) {
+    return 'bridge-sora';
+  }
+
+  const assetSymbols = destination.assetSymbols.map(normalizeAssetSymbol);
+  if (assetSymbols.some((symbol) => !['DOT', 'KSM'].includes(symbol))) {
+    return 'non-native-asset';
+  }
+
+  return 'cross-parachain-native';
+}
+
+function requiredEnum(value, field, allowed, context) {
+  const text = requiredString(value, field, context);
+  if (text === null) return null;
+
+  const normalized = normalizedEnum(text);
+  if (!allowed.includes(normalized)) {
+    fail(`${context}: ${field} is unsupported (${text})`);
+    return null;
+  }
+
+  return normalized;
+}
+
+function optionalEnum(value, field, allowed, defaultValue, context) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return defaultValue;
+  }
+
+  const normalized = normalizedEnum(value);
+  if (!allowed.includes(normalized)) {
+    const fieldMessage = field === 'argumentShape' ? 'argumentShape is unsupported' : `${field} is unsupported`;
+    fail(`${context}: ${fieldMessage} (${value})`);
+    return null;
+  }
+
+  return normalized;
+}
+
+function polkadotXcmCallName(transferType) {
+  if (transferType === 'RESERVE_TRANSFER_ASSETS') return 'reserveTransferAssets';
+  if (transferType === 'LIMITED_RESERVE_TRANSFER_ASSETS') return 'limitedReserveTransferAssets';
+  if (transferType === 'TELEPORT_ASSETS') return 'teleportAssets';
+  if (transferType === 'LIMITED_TELEPORT_ASSETS') return 'limitedTeleportAssets';
+  return null;
+}
+
+function validateCallShape(palletName, callName, transferType, argumentShape, context) {
+  if ([palletName, callName, transferType, argumentShape].some((value) => value === null)) {
+    return;
+  }
+
+  if (argumentShape === 'POLKADOT_XCM_TRANSFER_ASSETS') {
+    if (palletName !== 'PolkadotXcm') {
+      fail(`${context}: PolkadotXcm transfer-assets argumentShape requires palletName PolkadotXcm`);
+    }
+    if (callName !== polkadotXcmCallName(transferType)) {
+      fail(`${context}: PolkadotXcm transfer-assets argumentShape callName must match transferType`);
+    }
+    return;
+  }
+
+  if (argumentShape === 'X_TOKENS_TRANSFER_MULTIASSET') {
+    if (palletName !== 'XTokens') {
+      fail(`${context}: XTokens transferMultiasset argumentShape requires palletName XTokens`);
+    }
+    if (callName !== 'transferMultiasset') {
+      fail(`${context}: XTokens transferMultiasset argumentShape requires callName transferMultiasset`);
+    }
+    if (transferType !== 'X_TOKENS_TRANSFER_MULTIASSET') {
+      fail(`${context}: XTokens transferMultiasset argumentShape requires transferType xTokensTransferMultiasset`);
+    }
+  }
+}
+
+function requiredMultiLocation(value, field, context) {
+  const mlContext = `${context}: ${field}`;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    fail(`${mlContext} is required`);
+    return null;
+  }
+
+  nonNegativeInteger(value.parents, 'parents', mlContext);
+  const interior = requiredString(value.interior, 'interior', mlContext);
+  if (interior !== null) {
+    return validateMultiLocationInterior(interior, `${mlContext}.interior`);
+  }
+  return null;
+}
+
+function splitTopLevel(value, context) {
+  const parts = [];
+  let start = 0;
+  let parentheses = 0;
+  let braces = 0;
+  let brackets = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if (char === '(') parentheses += 1;
+    if (char === ')') parentheses -= 1;
+    if (char === '{') braces += 1;
+    if (char === '}') braces -= 1;
+    if (char === '[') brackets += 1;
+    if (char === ']') brackets -= 1;
+
+    if (parentheses < 0 || braces < 0 || brackets < 0) {
+      fail(`${context} has unbalanced delimiters`);
+      return null;
+    }
+
+    if (char === ',' && parentheses === 0 && braces === 0 && brackets === 0) {
+      parts.push(value.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+
+  if (parentheses !== 0 || braces !== 0 || brackets !== 0) {
+    fail(`${context} has unbalanced delimiters`);
+    return null;
+  }
+
+  parts.push(value.slice(start).trim());
+  return parts.filter(Boolean);
+}
+
+function validateJunction(value, context) {
+  const match = /^([A-Za-z][A-Za-z0-9]*)(?:\((.*)\))?$/.exec(value.trim());
+  if (!match) {
+    fail(`${context} has malformed junction`);
+    return null;
+  }
+
+  const type = normalizedEnum(match[1]);
+  const argument = typeof match[2] === 'string' ? match[2].trim() : null;
+  const requireArgument = (name) => {
+    if (!argument) {
+      fail(`${context} ${name} must include a value`);
+      return null;
+    }
+    return argument;
+  };
+  const requireUnsignedInteger = (name) => {
+    const parsed = requireArgument(name);
+    if (parsed !== null && !/^(0|[1-9][0-9]*)$/.test(parsed)) {
+      fail(`${context} ${name} must be a non-negative integer`);
+    }
+  };
+
+  if (['PARACHAIN', 'PALLET_INSTANCE', 'GENERAL_INDEX'].includes(type)) {
+    requireUnsignedInteger(match[1]);
+  } else if (type === 'GENERAL_KEY') {
+    requireArgument(match[1]);
+  } else if (type === 'ACCOUNT_ID32' || type === 'ACCOUNT_KEY20') {
+    const parsed = requireArgument(match[1]);
+    const accountField = type === 'ACCOUNT_ID32' ? 'id' : 'key';
+    const expected = `{network: Any, ${accountField}: <account>}`;
+    if (parsed !== null && parsed !== expected) {
+      fail(`${context} ${match[1]} must use exact ${expected} recipient authority`);
+    }
+  } else {
+    fail(`${context} has unsupported junction ${match[1]}`);
+  }
+  return { type, argument };
+}
+
+function validateMultiLocationInterior(value, context) {
+  if (value === 'Here') return [];
+
+  const match = /^X([1-8])\((.*)\)$/.exec(value);
+  if (!match) {
+    fail(`${context} must be Here or X1..X8 junctions`);
+    return null;
+  }
+
+  const expectedCount = Number(match[1]);
+  const junctions = splitTopLevel(match[2], context);
+  if (junctions === null) return null;
+
+  if (junctions.length !== expectedCount) {
+    fail(`${context} declares X${expectedCount} but contains ${junctions.length} junctions`);
+    return null;
+  }
+
+  return junctions.map((junction, index) =>
+    validateJunction(junction, `${context} junction ${index + 1}`)
+  ).filter(Boolean);
+}
+
+function validateWeightLimit(value, context) {
+  const weightContext = `${context}: weightLimit`;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    fail(`${weightContext} is required`);
+    return;
+  }
+
+  const type = requiredEnum(value.type, 'type', ['UNLIMITED', 'LIMITED'], weightContext);
+  const refTime = nonNegativeIntegerString(value.refTime, 'refTime', weightContext);
+  const proofSize = nonNegativeIntegerString(value.proofSize, 'proofSize', weightContext);
+
+  if (type === 'LIMITED' && (refTime === null || proofSize === null)) {
+    fail(`${weightContext}: limited weight requires refTime and proofSize`);
+  }
+
+  if (type === 'UNLIMITED' && (refTime !== null || proofSize !== null)) {
+    fail(`${weightContext}: unlimited weight must not include refTime or proofSize`);
+  }
+}
+
+function validateDestinationFee(value, context) {
+  const feeContext = `${context}: destinationFee`;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    fail(`${feeContext} is required`);
+    return null;
+  }
+
+  const mode = requiredEnum(value.mode, 'mode', ['INCLUDED', 'FIXED'], feeContext);
+  const assetSymbol = requiredString(value.assetSymbol, 'assetSymbol', feeContext);
+  const amount = nonNegativeIntegerString(value.amount, 'amount', feeContext);
+
+  if (mode === 'FIXED' && amount === null) {
+    fail(`${feeContext}: fixed destination fee requires amount`);
+  }
+
+  if (mode !== null && mode !== 'FIXED' && amount !== null) {
+    fail(`${feeContext}: amount is only valid for fixed destination fees`);
+  }
+
+  return assetSymbol === null ? null : normalizeAssetSymbol(assetSymbol);
+}
+
+function validateProductionRouteChains(originChain, destinationChain, beneficiaryJunctions, context) {
+  const routeChainSemantics = (chain, role) => {
+    if (!chain || typeof chain !== 'object' || Array.isArray(chain)) {
+      fail(`${context}: ${role} chain metadata is missing`);
+      return null;
+    }
+
+    const ecosystemValue = requiredString(chain.ecosystem, 'ecosystem', `${context}: ${role} chain`);
+    const ecosystem = ecosystemValue === null ? null : normalizedEnum(ecosystemValue);
+    if (ecosystem !== null && !['SUBSTRATE', 'ETHEREUM_BASED'].includes(ecosystem)) {
+      fail(`${context}: ${role} chain ecosystem is not supported for XCM execution`);
+    }
+
+    const options = chain.options === undefined || chain.options === null ? [] : chain.options;
+    if (!Array.isArray(options) || options.some((option) => !nonEmptyString(option) || option !== option.trim())) {
+      fail(`${context}: ${role} chain options must be canonical non-blank strings`);
+      return ecosystem;
+    }
+    const optionSet = new Set(options);
+    const isEthereumBased = optionSet.has('ethereum') || optionSet.has('ethereumBased');
+    if (ecosystem !== null && isEthereumBased !== (ecosystem === 'ETHEREUM_BASED')) {
+      fail(`${context}: ${role} chain ecosystem and account-width metadata must agree`);
+    }
+    if (optionSet.has('testnet')) {
+      fail(`${context}: ${role} chain must not be a testnet for approved production XCM execution`);
+    }
+
+    return ecosystem;
+  };
+
+  routeChainSemantics(originChain, 'origin');
+  const destinationEcosystem = routeChainSemantics(destinationChain, 'destination');
+  if (!beneficiaryJunctions || destinationEcosystem === null) return;
+
+  const accountTypes = beneficiaryJunctions
+    .filter((junction) => junction.type === 'ACCOUNT_ID32' || junction.type === 'ACCOUNT_KEY20')
+    .map((junction) => junction.type);
+  if (accountTypes.length !== 1) return;
+
+  const expectedAccountType = destinationEcosystem === 'ETHEREUM_BASED' ? 'ACCOUNT_KEY20' : 'ACCOUNT_ID32';
+  if (accountTypes[0] !== expectedAccountType) {
+    fail(`${context}: destination ecosystem requires ${expectedAccountType === 'ACCOUNT_KEY20' ? 'AccountKey20' : 'AccountId32'} beneficiary`);
+  }
+}
+
+// Mirrors xcmDestinationPath in XcmExecutionSpec.kt: the relay chain seen from its parachain, a parachain seen from
+// its relay chain, or a sibling parachain. Anything else has no reviewed destination path.
+function expectedDestinationPath(originChain, destinationChain) {
+  const present = (value) => (typeof value === 'string' && value.length > 0 ? value : null);
+  const originParent = present(originChain.parentId);
+  const originIsParachain = originParent !== null && present(originChain.paraId) !== null;
+  const destinationParent = present(destinationChain.parentId);
+  const destinationParaId = present(destinationChain.paraId);
+  if (destinationParent === null) {
+    const isRelayOfOrigin = destinationParaId === null && originIsParachain && originParent === destinationChain.chainId;
+    return isRelayOfOrigin ? { parents: 1, junctions: [] } : null;
+  }
+  if (destinationParaId === null || !/^(0|[1-9][0-9]*)$/.test(destinationParaId)) return null;
+  const parachain = [{ type: 'PARACHAIN', argument: destinationParaId }];
+  if (originParent === null && present(originChain.paraId) === null && originChain.chainId === destinationParent) {
+    return { parents: 0, junctions: parachain };
+  }
+  return originIsParachain && originParent === destinationParent ? { parents: 1, junctions: parachain } : null;
+}
+
+function validateDestinationPath(destinationLocation, destinationJunctions, originChain, destinationChain, context) {
+  const isChain = (chain) => chain && typeof chain === 'object' && !Array.isArray(chain);
+  if (!destinationJunctions || !isChain(originChain) || !isChain(destinationChain)) return;
+  const expected = expectedDestinationPath(originChain, destinationChain);
+  if (expected === null) {
+    fail(`${context}: route must join a relay chain and its parachain or two sibling parachains`);
+    return;
+  }
+  const actual = destinationJunctions.map(({ type, argument }) => ({ type, argument }));
+  if (destinationLocation.parents !== expected.parents || JSON.stringify(actual) !== JSON.stringify(expected.junctions)) {
+    fail(`${context}: destinationLocation does not address the destination chain's parachain id`);
+  }
+}
+
+function validateExecutionSpec(
+  execution,
+  destination,
+  routeAsset,
+  xcmVersion,
+  originChain,
+  destinationChain,
+  context
+) {
+  if (!execution || typeof execution !== 'object' || Array.isArray(execution)) {
+    fail(`${context}: execution must be an object`);
+    return;
+  }
+
+  const normalizedXcmVersion = requiredString(xcmVersion, 'xcmVersion', context);
+  if (normalizedXcmVersion !== null && xcmVersion !== normalizedXcmVersion) {
+    fail(`${context}: xcmVersion must not contain surrounding whitespace`);
+  }
+  if (normalizedXcmVersion !== null && !/^v[1-9][0-9]*$/.test(normalizedXcmVersion)) {
+    fail(`${context}: xcmVersion must use canonical v<number> syntax`);
+  }
+  const palletName = requiredString(execution.palletName, 'palletName', context);
+  const callName = requiredString(execution.callName, 'callName', context);
+  const transferType = requiredEnum(
+    execution.transferType,
+    'transferType',
+    ['RESERVE_TRANSFER_ASSETS', 'LIMITED_RESERVE_TRANSFER_ASSETS', 'TELEPORT_ASSETS', 'LIMITED_TELEPORT_ASSETS', 'X_TOKENS_TRANSFER_MULTIASSET'],
+    context
+  );
+  const argumentShape = optionalEnum(
+    execution.argumentShape,
+    'argumentShape',
+    ['POLKADOT_XCM_TRANSFER_ASSETS', 'X_TOKENS_TRANSFER_MULTIASSET'],
+    'POLKADOT_XCM_TRANSFER_ASSETS',
+    context
+  );
+  validateCallShape(palletName, callName, transferType, argumentShape, context);
+  const destinationJunctions = requiredMultiLocation(execution.destinationLocation, 'destinationLocation', context);
+  const assetJunctions = requiredMultiLocation(execution.assetLocation, 'assetLocation', context);
+  const beneficiaryJunctions = requiredMultiLocation(execution.beneficiaryLocation, 'beneficiaryLocation', context);
+  const feeAssetJunctions = requiredMultiLocation(execution.feeAssetLocation, 'feeAssetLocation', context);
+  const isRecipientAccount = (junction) =>
+    junction.type === 'ACCOUNT_ID32' || junction.type === 'ACCOUNT_KEY20';
+  for (const [field, junctions] of [
+    ['destinationLocation', destinationJunctions],
+    ['assetLocation', assetJunctions],
+    ['feeAssetLocation', feeAssetJunctions]
+  ]) {
+    if (junctions && junctions.some(isRecipientAccount)) {
+      fail(`${context}: ${field} must not contain a recipient account junction`);
+    }
+  }
+  if (beneficiaryJunctions && beneficiaryJunctions.filter(isRecipientAccount).length !== 1) {
+    fail(`${context}: beneficiaryLocation must contain exactly one recipient account junction`);
+  }
+  validateProductionRouteChains(originChain, destinationChain, beneficiaryJunctions, context);
+  validateDestinationPath(execution.destinationLocation, destinationJunctions, originChain, destinationChain, context);
+  if (argumentShape === 'X_TOKENS_TRANSFER_MULTIASSET' && destinationJunctions && beneficiaryJunctions) {
+    // xTokens takes one destination that already contains the recipient.
+    const account = beneficiaryJunctions[beneficiaryJunctions.length - 1];
+    const path = (junctions) => JSON.stringify(junctions.map(({ type, argument }) => ({ type, argument })));
+    if (
+      execution.beneficiaryLocation.parents !== execution.destinationLocation.parents ||
+      !account ||
+      !isRecipientAccount(account) ||
+      path(beneficiaryJunctions.slice(0, -1)) !== path(destinationJunctions)
+    ) {
+      fail(`${context}: XTokens beneficiaryLocation must be destinationLocation followed by the recipient account`);
+    }
+  }
+  if (
+    execution.assetLocation &&
+    execution.feeAssetLocation &&
+    (
+      execution.assetLocation.parents !== execution.feeAssetLocation.parents ||
+      String(execution.assetLocation.interior || '').trim() !== String(execution.feeAssetLocation.interior || '').trim()
+    )
+  ) {
+    fail(`${context}: single-asset feeAssetLocation must equal assetLocation`);
+  }
+  const feeAssetItem = nonNegativeInteger(execution.feeAssetItem, 'feeAssetItem', context);
+  if (feeAssetItem !== null && feeAssetItem !== 0) {
+    fail(`${context}: single-asset feeAssetItem must be zero`);
+  }
+  validateWeightLimit(execution.weightLimit, context);
+  const destinationFeeAssetSymbol = validateDestinationFee(execution.destinationFee, context);
+
+  if (!routeAsset || typeof routeAsset !== 'object' || Array.isArray(routeAsset)) {
+    fail(`${context}: execution must belong to an exact route asset`);
+  } else if (destinationFeeAssetSymbol !== null && nonEmptyString(routeAsset.symbol)) {
+    const routeAssetSymbol = normalizeAssetSymbol(routeAsset.symbol);
+    if (destinationFeeAssetSymbol !== routeAssetSymbol) {
+      fail(`${context}: destinationFee.assetSymbol must match the exact route asset ${routeAssetSymbol}`);
+    }
+  }
+
+  const routeBridgeParachainId = typeof destination.bridgeParachainId === 'string'
+    ? destination.bridgeParachainId.trim()
+    : '';
+
+  if (execution.bridge !== undefined && execution.bridge !== null) {
+    const bridgeContext = `${context}: bridge`;
+    if (typeof execution.bridge !== 'object' || Array.isArray(execution.bridge)) {
+      fail(`${bridgeContext} must be an object`);
+    } else {
+      const bridgeParachainId = requiredString(execution.bridge.parachainId, 'parachainId', bridgeContext);
+      requiredMultiLocation(execution.bridge.feeAssetLocation, 'feeAssetLocation', bridgeContext);
+      nonNegativeInteger(execution.bridge.feeAssetItem, 'feeAssetItem', bridgeContext);
+
+      if (!routeBridgeParachainId) {
+        fail(`${context}: execution.bridge requires destination.bridgeParachainId`);
+      } else if (bridgeParachainId !== null && bridgeParachainId !== routeBridgeParachainId) {
+        fail(`${context}: bridge.parachainId must match destination.bridgeParachainId`);
+      }
+
+      fail(`${context}: bridge execution is unsupported until the production transfer engine consumes bridge fee semantics`);
+    }
+  } else if (routeBridgeParachainId) {
+    fail(`${context}: destination.bridgeParachainId requires execution.bridge`);
+  }
+}
+
+function validateRouteAsset(asset, context) {
+  if (!asset || typeof asset !== 'object' || Array.isArray(asset)) {
+    fail(`${context}: route asset must be an object`);
+    return;
+  }
+
+  requiredString(asset.symbol, 'symbol', context);
+  nonNegativeIntegerString(asset.minAmount, 'minAmount', context);
+}
+
+let registry;
+try {
+  registry = JSON.parse(fs.readFileSync(registryFile, 'utf8'));
+} catch (error) {
+  console.error(`[xcm-registry][error] Failed to parse ${registryFile}: ${error.message}`);
+  process.exit(1);
+}
+
+const chains = Array.isArray(registry)
+  ? registry
+  : Array.isArray(registry.chains)
+    ? registry.chains
+    : null;
+
+if (!chains) {
+  console.error('[xcm-registry][error] Registry root must be an array or contain a chains array');
+  process.exit(1);
+}
+
+let xcmChainCount = 0;
+let destinationCount = 0;
+let routeAssetCount = 0;
+let executableDestinationCount = 0;
+let executableRouteAssetCount = 0;
+const chainNamesById = new Map();
+const chainsById = new Map();
+
+for (const chain of Array.isArray(chains) ? chains : []) {
+  if (!chain || typeof chain !== 'object' || Array.isArray(chain)) {
+    continue;
+  }
+
+  const chainId = chain.chainId || chain.id;
+  if (nonEmptyString(chainId)) {
+    const normalizedChainId = chainId.trim();
+    if (chainsById.has(normalizedChainId)) {
+      fail(`Registry contains duplicate chain id: ${normalizedChainId}`);
+    } else {
+      chainsById.set(normalizedChainId, chain);
+      chainNamesById.set(normalizedChainId, nonEmptyString(chain.name) ? chain.name.trim() : null);
+    }
+  }
+}
+
+for (const chain of chains) {
+  if (!chain || typeof chain !== 'object' || Array.isArray(chain) || !chain.xcm) {
+    continue;
+  }
+
+  xcmChainCount += 1;
+  const originId = chain.chainId || chain.id || chain.name || '<unknown origin>';
+  const xcm = chain.xcm;
+  const destinations = Array.isArray(xcm.availableDestinations) ? xcm.availableDestinations : [];
+
+  if (xcm.availableDestinations !== undefined && !Array.isArray(xcm.availableDestinations)) {
+    fail(`${originId}: xcm.availableDestinations must be an array`);
+  }
+
+  if (xcm.availableAssets !== undefined && !Array.isArray(xcm.availableAssets)) {
+    fail(`${originId}: xcm.availableAssets must be an array`);
+  }
+
+  for (const asset of Array.isArray(xcm.availableAssets) ? xcm.availableAssets : []) {
+    validateRouteAsset(asset, `${originId}: availableAssets`);
+  }
+
+  for (const destination of destinations) {
+    destinationCount += 1;
+    if (!destination || typeof destination !== 'object' || Array.isArray(destination)) {
+      fail(`${originId}: destination must be an object`);
+      continue;
+    }
+
+    const destinationId = requiredString(destination.chainId, 'chainId', `${originId}: destination`) || '<unknown destination>';
+    const context = label(originId, '->', destinationId);
+    const assets = Array.isArray(destination.assets) ? destination.assets : [];
+
+    if (Object.prototype.hasOwnProperty.call(destination, 'execution')) {
+      fail(`${context}: legacy destination-scoped execution is forbidden; attach execution to an exact asset`);
+    }
+
+    if (destination.assets !== undefined && !Array.isArray(destination.assets)) {
+      fail(`${context}: destination.assets must be an array`);
+    }
+
+    const normalizedAssetSymbols = new Set();
+    const missingAssetSymbols = [];
+    let validExecutableAssets = 0;
+    for (const asset of assets) {
+      routeAssetCount += 1;
+      validateRouteAsset(asset, context);
+      const normalizedSymbol = nonEmptyString(asset?.symbol) ? normalizeAssetSymbol(asset.symbol) : null;
+      if (normalizedSymbol !== null) {
+        if (normalizedAssetSymbols.has(normalizedSymbol)) {
+          fail(`${context}: destination contains duplicate or ambiguous normalized route asset ${normalizedSymbol}`);
+        }
+        normalizedAssetSymbols.add(normalizedSymbol);
+      }
+
+      if (asset?.execution !== undefined && asset.execution !== null) {
+        const errorCountBeforeExecutionValidation = errors.length;
+        validateExecutionSpec(
+          asset.execution,
+          destination,
+          asset,
+          xcm.xcmVersion,
+          chain,
+          chainsById.get(destinationId),
+          `${context}: ${normalizedSymbol || '<unknown asset>'} execution`
+        );
+        if (errors.length === errorCountBeforeExecutionValidation) {
+          validExecutableAssets += 1;
+          executableRouteAssetCount += 1;
+          if (normalizedSymbol !== null) {
+            executableRouteKeys.add(`${originId}|${destinationId}|${normalizedSymbol}`);
+          }
+        }
+      } else if (normalizedSymbol !== null) {
+        missingAssetSymbols.push(normalizedSymbol);
+      }
+    }
+
+    if (validExecutableAssets > 0) {
+      executableDestinationCount += 1;
+    }
+
+    if (missingAssetSymbols.length > 0) {
+      missingExecutableDestinations.push({
+        originChainId: String(originId),
+        originName: nonEmptyString(chain.name) ? chain.name.trim() : null,
+        destinationChainId: String(destinationId),
+        destinationName: chainNamesById.get(destinationId) || null,
+        assetSymbols: missingAssetSymbols,
+        bridgeParachainId: nonEmptyString(destination.bridgeParachainId) ? destination.bridgeParachainId.trim() : null,
+        reason: 'missingExecutionSpec'
+      });
+
+      if (requireAllRoutesExecutable) {
+        fail(`${context}: executable route metadata is required for every asset`, { safeForGapReport: true });
+      }
+    }
+  }
+}
+
+if (requireExecutable && executableDestinationCount === 0) {
+  fail('No executable XCM route metadata found', { safeForGapReport: true });
+}
+
+for (const route of requiredRoutes) {
+  const key = `${route.originId}|${route.destinationId}|${route.assetSymbol}`;
+  if (!executableRouteKeys.has(key)) {
+    fail(`Required executable XCM route missing: ${route.originId} -> ${route.destinationId} ${route.assetSymbol}`, { safeForGapReport: true });
+  }
+}
+
+if (requireGapManifest) {
+  const actualGaps = new Map();
+  for (const destination of missingExecutableDestinations) {
+    const gap = {
+      originId: destination.originChainId,
+      destinationId: destination.destinationChainId,
+      assetSymbols: normalizeAssetSymbols(destination.assetSymbols),
+      bridgeParachainId: destination.bridgeParachainId,
+      reason: classifyMissingDestination(destination)
+    };
+    const key = gapKey(gap);
+    if (actualGaps.has(key)) {
+      fail(`Duplicate generated discovery-only XCM gap: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`);
+    }
+    actualGaps.set(key, gap);
+  }
+
+  const expectedGaps = new Map();
+  for (const gap of requiredGaps) {
+    const key = gapKey(gap);
+    if (expectedGaps.has(key)) {
+      fail(`Duplicate required discovery-only XCM gap: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`);
+      continue;
+    }
+    expectedGaps.set(key, gap);
+
+    const actual = actualGaps.get(key);
+    if (!actual) {
+      fail(`Required discovery-only XCM gap is stale or executable: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`, { safeForGapReport: true });
+      continue;
+    }
+
+    if (gap.reason !== actual.reason) {
+      fail(`Required discovery-only XCM gap reason mismatch: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols} expected ${gap.reason} actual ${actual.reason}`, { safeForGapReport: true });
+    }
+
+    if (gap.bridgeParachainId !== actual.bridgeParachainId) {
+      fail(`Required discovery-only XCM gap bridge mismatch: ${gap.originId} -> ${gap.destinationId} ${gap.assetSymbols}`, { safeForGapReport: true });
+    }
+  }
+
+  for (const [key, actual] of actualGaps.entries()) {
+    if (!expectedGaps.has(key)) {
+      fail(`Untracked discovery-only XCM gap: ${actual.originId} -> ${actual.destinationId} ${actual.assetSymbols}`, { safeForGapReport: true });
+    }
+  }
+}
+
+if (gapReportFile && unsafeGapReportErrorCount === 0) {
+  const report = {
+    schemaVersion: 1,
+    registryFile: path.relative(process.cwd(), registryFile),
+    summary: {
+      chains: chains.length,
+      xcmChains: xcmChainCount,
+      destinations: destinationCount,
+      routeAssets: routeAssetCount,
+      executableDestinations: executableDestinationCount,
+      executableRouteAssets: executableRouteAssetCount,
+      remainingDiscoveryOnlyDestinations: missingExecutableDestinations.length,
+      remainingDiscoveryOnlyRouteAssets: missingExecutableDestinations.reduce(
+        (count, destination) => count + destination.assetSymbols.length,
+        0
+      )
+    },
+    missingExecutableDestinations
+  };
+
+  try {
+    fs.mkdirSync(path.dirname(gapReportFile), { recursive: true });
+    fs.writeFileSync(gapReportFile, `${JSON.stringify(report, null, 2)}\n`);
+  } catch (error) {
+    console.error(`[xcm-registry][error] Failed to write XCM gap report ${gapReportFile}: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+if (errors.length > 0) {
+  console.error('[xcm-registry][error] XCM registry metadata audit failed:');
+  for (const error of errors) {
+    console.error(`  - ${error}`);
+  }
+  process.exit(1);
+}
+
+console.log(
+  `[xcm-registry] XCM metadata audit passed: chains=${chains.length}, xcmChains=${xcmChainCount}, ` +
+  `destinations=${destinationCount}, routeAssets=${routeAssetCount}, ` +
+  `executableDestinations=${executableDestinationCount}, executableRouteAssets=${executableRouteAssetCount}, ` +
+  `remainingDiscoveryOnlyDestinations=${missingExecutableDestinations.length}`
+);
+NODE

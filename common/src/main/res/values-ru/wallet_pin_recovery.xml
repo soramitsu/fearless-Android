@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">Восстановление PIN кошелька</string>
+    <string name="pin_recovery_intro">Не удалось прочитать сохранённый PIN. Кошельки и исходная запись PIN сохранены. Подтвердите владение, чтобы задать новый PIN.</string>
+    <string name="pin_recovery_failed">Восстановление не завершено или срок авторизации истёк. Сохранённые данные не удалены. Повторите попытку.</string>
+    <string name="pin_recovery_retry">Повторить</string>
+    <string name="pin_recovery_biometric">Подтвердить строгой биометрией</string>
+    <string name="pin_recovery_backup_intro">Выберите ключ кошелька и введите его резервную копию. Она должна соответствовать сохранённым публичным данным. Подходящая копия также может восстановить этот ключ.</string>
+    <string name="pin_recovery_no_identity">Сейчас нельзя проверить ни одни сохранённые публичные данные кошелька. Используйте ранее включённую строгую биометрию или разблокировку устройства для просмотра.</string>
+    <string name="pin_recovery_view_only_intro">Разблокировка устройства открывает только балансы и публичные адреса. Отправка, подпись и резервное копирование ключей заблокированы до восстановления PIN кошелька.</string>
+    <string name="pin_recovery_view_only">Разблокировать устройство для просмотра</string>
+    <string name="pin_recovery_verified">Владение подтверждено. Задайте новый PIN кошелька.</string>
+    <string name="pin_recovery_verify_backup">Проверить резервную копию кошелька</string>
+    <string name="pin_recovery_reset">Восстановить PIN кошелька</string>
+    <string name="pin_recovery_view_only_title">Только просмотр</string>
+</resources>

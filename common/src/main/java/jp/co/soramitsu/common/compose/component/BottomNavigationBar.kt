@@ -6,6 +6,7 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,10 +22,10 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 @Composable
 fun BottomNavigationBar(navController: NavController?) {
     val items = listOf(
-        NavigationItem.Wallet,
-        NavigationItem.Crowdloans,
-        NavigationItem.Staking,
-        NavigationItem.Governance,
+        NavigationItem.Portfolio,
+        NavigationItem.DeFi,
+        NavigationItem.Polkaswap,
+        NavigationItem.CrossChain,
         NavigationItem.Settings
     )
     Column {
@@ -40,10 +41,10 @@ fun BottomNavigationBar(navController: NavController?) {
             items.forEachIndexed { index, item ->
                 BottomNavigationItem(
                     icon = { Icon(painterResource(id = item.icon), contentDescription = item.title) },
-//                label = { Text(text = item.title) },
+                    label = { Text(text = item.title) },
                     selectedContentColor = Color.White,
                     unselectedContentColor = Color.White.copy(0.5f),
-                    alwaysShowLabel = false,
+                    alwaysShowLabel = true,
                     selected = currentRoute == item.route,
                     onClick = {
                         navController?.navigate(item.route) {

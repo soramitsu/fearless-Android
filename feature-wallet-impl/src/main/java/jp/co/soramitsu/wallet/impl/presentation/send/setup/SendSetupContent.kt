@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -37,6 +40,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,6 +59,7 @@ import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.ColoredButton
 import jp.co.soramitsu.common.compose.component.FeeInfo
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -67,6 +76,7 @@ import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black05
+import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.transparent
@@ -86,14 +96,18 @@ data class SendSetupViewState(
     val buttonState: ButtonViewState,
     val isSoftKeyboardOpen: Boolean,
     val isInputLocked: Boolean,
-    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.entries,
+    val quickAmountInputValues: List<jp.co.soramitsu.common.compose.component.QuickInput> = QuickAmountInput.entries,
     val isHistoryAvailable: Boolean,
     val sendAllChecked: Boolean,
     val sendAllAllowed: Boolean,
-    val commentState: TextInputViewState?
+    val commentState: TextInputViewState?,
+    val recipientHint: String? = null,
+    val nativeReview: Boolean = false,
+    val crossChainAvailable: Boolean = false
 )
 
 interface SendSetupScreenInterface {
+    val onCrossChainClick: () -> Unit
     fun onNavigationClick()
     fun onAddressInput(input: String)
     fun onAddressInputClear()
@@ -116,6 +130,8 @@ fun SendSetupContent(
     state: SendSetupViewState,
     callback: SendSetupScreenInterface
 ) {
+    var footerHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val showQuickInput = state.amountInputState.isFocused && state.isSoftKeyboardOpen && state.isInputLocked.not()
 
@@ -147,11 +163,11 @@ fun SendSetupContent(
                 .nestedScroll(rememberNestedScrollInteropConnection())
                 .fillMaxSize()
         ) {
-            val bottomPadding = 50 + if (state.isInputLocked.not()) 80 else 0 + if (state.sendAllAllowed) 40 else 0
+            val bottomPadding = with(density) { footerHeight.toDp() }
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = bottomPadding.dp)
+                    .padding(bottom = bottomPadding)
                     .verticalScroll(rememberScrollState())
                     .imePadding()
                     .fillMaxWidth()
@@ -161,6 +177,7 @@ fun SendSetupContent(
                     onNavigationClick = callback::onNavigationClick
                 )
                 MarginVertical(margin = 16.dp)
+                state.recipientHint?.let { B1(text = it, modifier = Modifier.padding(bottom = 8.dp)) }
                 AddressInputWithScore(
                     state = state.addressInputState,
                     onClear = callback::onAddressInputClear,
@@ -174,14 +191,22 @@ fun SendSetupContent(
                     onInput = callback::onAmountInput,
                     onInputFocusChange = callback::onAmountFocusChanged,
                     onTokenClick = callback::onTokenClick,
-                    focusRequester = focusRequester
+                    focusRequester = focusRequester,
+                    stacked = density.fontScale > 1.3f
                 )
 
                 MarginVertical(margin = 12.dp)
-                SelectorWithBorder(
-                    state = state.chainSelectorState,
-                    onClick = callback::onChainClick
-                )
+                if (density.fontScale > 1.3f) {
+                    jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder(
+                        modifier = Modifier.fillMaxWidth().clickable(enabled = state.chainSelectorState.clickable && state.chainSelectorState.enabled,
+                            role = Role.Button, onClick = callback::onChainClick), borderColor = white24
+                    ) {
+                        Column(Modifier.padding(12.dp)) {
+                            jp.co.soramitsu.common.compose.component.B2(text = state.chainSelectorState.title, color = black2)
+                            state.chainSelectorState.subTitle?.let { B1(text = it) }
+                        }
+                    }
+                } else SelectorWithBorder(state = state.chainSelectorState, onClick = callback::onChainClick)
                 MarginVertical(12.dp)
                 state.commentState?.let {
                     TextInput(state = state.commentState, onInput = callback::onCommentInput)
@@ -190,14 +215,34 @@ fun SendSetupContent(
                     MarginVertical(margin = 8.dp)
                     WarningInfo(state = it, onClick = callback::onWarningInfoClick)
                 }
+                if (!state.isInputLocked && state.crossChainAvailable) {
+                    MarginVertical(12.dp)
+                    GrayButton(
+                        text = stringResource(R.string.ux_network_transfer),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = callback.onCrossChainClick
+                    )
+                }
                 MarginVertical(margin = 8.dp)
-                FeeInfo(state = state.feeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
+                val fee = state.feeInfoState
+                val feeAmount = fee.feeAmount
+                if ((state.nativeReview || density.fontScale > 1.3f) && feeAmount != null && !fee.tooltip) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                        jp.co.soramitsu.common.compose.component.B2(text = fee.caption ?: stringResource(R.string.common_network_fee), color = black2)
+                        B1(text = feeAmount, modifier = Modifier.fillMaxWidth())
+                        fee.feeAmountFiat?.let { jp.co.soramitsu.common.compose.component.B2(text = it, color = black2) }
+                    }
+                } else FeeInfo(state = fee, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
+                if (state.sendAllAllowed) {
+                    B1(text = stringResource(R.string.ux_send_maximum_description))
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
             }
 
             Column(
                 modifier = Modifier
+                    .onSizeChanged { footerHeight = it.height }
                     .background(backgroundBlack.copy(alpha = 0.75f))
                     .align(Alignment.BottomCenter)
             ) {
@@ -205,10 +250,12 @@ fun SendSetupContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 16.dp)
+                            .defaultMinSize(minHeight = 48.dp)
+                            .toggleable(value = state.sendAllChecked, role = Role.Switch, onValueChange = callback::onSendAllChecked),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        B1(text = stringResource(id = R.string.send_all_and_reap_account))
+                        B1(text = stringResource(id = R.string.ux_send_maximum), modifier = Modifier.weight(1f))
                         MarginHorizontal(margin = 8.dp)
                         val trackColor = when {
                             state.sendAllChecked -> colorAccentDark
@@ -217,7 +264,7 @@ fun SendSetupContent(
                         Switch(
                             colors = switchColors,
                             checked = state.sendAllChecked,
-                            onCheckedChange = callback::onSendAllChecked,
+                            onCheckedChange = null,
                             modifier = Modifier
                                 .background(color = trackColor, shape = RoundedCornerShape(20.dp))
                                 .padding(3.dp)
@@ -332,6 +379,7 @@ private fun SendSetupPreview() {
     )
 
     val emptyCallback = object : SendSetupScreenInterface {
+        override val onCrossChainClick: () -> Unit = {}
         override fun onNavigationClick() {}
         override fun onAddressInput(input: String) {}
         override fun onAddressInputClear() {}

@@ -18,11 +18,12 @@ internal fun CompactWalletItemViewState(title: String): WalletItemViewState {
     )
 }
 
-internal fun CompactWalletNameItemViewState(title: String): WalletNameItemViewState {
+internal fun CompactWalletNameItemViewState(title: String, subtitle: String? = null): WalletNameItemViewState {
     return WalletNameItemViewState(
         id = Random.nextLong(),
         title = title,
         walletIcon = R.drawable.ic_wallet,
-        isSelected = false
+        isSelected = false,
+        subtitle = subtitle
     )
 }

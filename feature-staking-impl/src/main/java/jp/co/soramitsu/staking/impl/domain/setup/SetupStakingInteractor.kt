@@ -5,10 +5,10 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
@@ -44,9 +44,11 @@ class SetupStakingInteractor(
         )
     }
 
-    suspend fun estimateParachainFee(): BigInteger {
+    suspend fun estimateParachainFee(accountAddress: String): BigInteger {
         val (chain, asset) = stakingSharedState.assetWithChain.first()
-        return extrinsicService.estimateFee(chain) {
+        val accountId = chain.accountIdOf(accountAddress)
+
+        return extrinsicService.estimateFee(chain, accountId) {
             val eth = fakeEthereumAddress()
             val fakeAmountInPlanks = asset.planksFromAmount(fakeAmount())
 
@@ -54,10 +56,16 @@ class SetupStakingInteractor(
         }
     }
 
-    suspend fun estimateFinalParachainFee(selectedCollator: Collator, amountInPlanks: BigInteger, delegationCount: Int): BigInteger {
-        val (chain, asset) = stakingSharedState.assetWithChain.first()
+    suspend fun estimateFinalParachainFee(
+        accountAddress: String,
+        selectedCollator: Collator,
+        amountInPlanks: BigInteger,
+        delegationCount: Int
+    ): BigInteger {
+        val (chain, _) = stakingSharedState.assetWithChain.first()
+        val accountId = chain.accountIdOf(accountAddress)
 
-        return extrinsicService.estimateFee(chain) {
+        return extrinsicService.estimateFee(chain, accountId) {
             delegate(selectedCollator.address.fromHex(), amountInPlanks, selectedCollator.delegationCount, delegationCount.toBigInteger())
         }
     }
@@ -68,8 +76,9 @@ class SetupStakingInteractor(
         bondPayload: BondPayload?
     ): BigInteger {
         val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+        val accountId = chain.accountIdOf(controllerAddress)
 
-        return extrinsicService.estimateFee(chain) {
+        return extrinsicService.estimateFee(chain, accountId) {
             formExtrinsic(chain, chainAsset, controllerAddress, validatorAccountIds, bondPayload)
         }
     }

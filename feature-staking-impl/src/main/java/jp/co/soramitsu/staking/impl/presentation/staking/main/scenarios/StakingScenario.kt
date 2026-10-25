@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
@@ -11,13 +13,16 @@ import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDat
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
+import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 class StakingScenario(
     private val state: StakingSharedState,
@@ -31,64 +36,74 @@ class StakingScenario(
     private val stakingViewStateFactory: StakingViewStateFactory,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
-    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl
+    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl,
+    private val setupStakingSharedState: SetupStakingSharedState,
+    private val router: StakingRouter,
+    private val validationExecutor: ValidationExecutor,
+    private val soraStakingRewardsScenario: SoraStakingRewardsScenario
 ) {
 
-    private val parachainViewModel by lazy {
-        StakingParachainScenarioViewModel(
-            stakingInteractor,
-            parachainInteractor,
-            resourceManager,
-            baseViewModel,
-            stakingViewStateFactory,
-            stakingParachainStoriesDataSourceImpl
-        )
-    }
-    private val relaychainViewModel by lazy {
-        StakingRelaychainScenarioViewModel(
-            stakingInteractor,
-            relaychainInteractor,
-            resourceManager,
-            baseViewModel,
-            alertsInteractor,
-            stakingViewStateFactory,
-            stakingStoriesDataSourceImpl,
-            state
-        )
-    }
-    private val stakingPoolViewModel by lazy {
-        StakingPoolViewModel(
-            stakingPoolInteractor,
-            stakingInteractor,
-            resourceManager,
-            rewardCalculatorFactory,
-            baseViewModel
-        )
-    }
+    /** Each selection gets fresh observations bound to the supplied cancellable owner. */
+    fun createViewModel(stakingType: StakingType, scope: CoroutineScope): StakingScenarioViewModel {
+        val scopedBaseViewModel = object : BaseStakingViewModel by baseViewModel {
+            override val stakingStateScope: CoroutineScope = scope
 
-    fun getViewModel(stakingType: StakingType): StakingScenarioViewModel {
+            override suspend fun captureAlertSource(state: StakingState, type: StakingType): () -> Boolean {
+                val sourceIsCurrent = baseViewModel.captureAlertSource(state, type)
+                return { scope.isActive && sourceIsCurrent() }
+            }
+        }
         return when (stakingType) {
-            StakingType.PARACHAIN -> parachainViewModel
-            StakingType.RELAYCHAIN -> relaychainViewModel
-            StakingType.POOL -> stakingPoolViewModel
-            else -> error("StakingScenario.getViewModel")
+            StakingType.PARACHAIN -> StakingParachainScenarioViewModel(
+                stakingInteractor,
+                parachainInteractor,
+                resourceManager,
+                scopedBaseViewModel,
+                stakingViewStateFactory,
+                stakingParachainStoriesDataSourceImpl,
+                rewardCalculatorFactory,
+                setupStakingSharedState,
+                router
+            )
+            StakingType.RELAYCHAIN -> StakingRelaychainScenarioViewModel(
+                stakingInteractor,
+                relaychainInteractor,
+                resourceManager,
+                scopedBaseViewModel,
+                alertsInteractor,
+                stakingViewStateFactory,
+                stakingStoriesDataSourceImpl,
+                state,
+                rewardCalculatorFactory,
+                setupStakingSharedState,
+                router,
+                validationExecutor,
+                soraStakingRewardsScenario
+            )
+            StakingType.POOL -> StakingPoolViewModel(
+                stakingPoolInteractor,
+                stakingInteractor,
+                resourceManager,
+                rewardCalculatorFactory,
+                scopedBaseViewModel
+            )
         }
     }
 
-    val viewModel = state.selectionItem.map {
-        getViewModel(it.type)
-    }
 }
 
 interface BaseStakingViewModel {
     val stakingStateScope: CoroutineScope
-    fun openCurrentValidators()
-    fun openChangeValidators()
-    fun redeemAlertClicked()
-    fun bondMoreAlertClicked()
+    fun openCurrentValidators(isCurrent: () -> Boolean = { true })
+    fun openChangeValidators(isCurrent: () -> Boolean = { true })
+    fun redeemAlertClicked(isCurrent: () -> Boolean = { true })
+    fun bondMoreAlertClicked(isCurrent: () -> Boolean = { true })
     fun showError(throwable: Throwable)
     fun showError(text: String)
-    fun openStakingBalance(collatorAddress: String)
+    fun openStakingBalance(collatorAddress: String, isCurrent: () -> Boolean = { true })
+
+    /** Capture the observed source before asynchronous alert production. */
+    suspend fun captureAlertSource(state: StakingState, type: StakingType): () -> Boolean
 
     val enteredAmountEvent: Flow<Event<BigDecimal>>
 }

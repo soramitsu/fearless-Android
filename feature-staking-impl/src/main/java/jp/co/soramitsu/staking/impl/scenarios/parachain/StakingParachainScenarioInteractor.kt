@@ -1,5 +1,10 @@
 package jp.co.soramitsu.staking.impl.scenarios.parachain
 
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.CancellationException
+import jp.co.soramitsu.common.data.storage.WalletSelectionEpoch
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -20,11 +25,11 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -90,6 +95,9 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.wallet.impl.domain.validation.assetBalanceProducer
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -248,7 +256,8 @@ class StakingParachainScenarioInteractor(
     }
 
     override suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>> {
-        collatorAddress ?: throw IllegalArgumentException("No collator address provided")
+        if (collatorAddress == null) return flowOf(emptyList())
+
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
         val delegationHistoryFlow: Flow<List<Unbonding>> = flowOf(
@@ -326,20 +335,43 @@ class StakingParachainScenarioInteractor(
         extrinsicBuilder: ExtrinsicBuilder,
         amountInPlanks: BigInteger,
         stashState: StakingState,
-        currentBondedBalance: BigInteger,
-        candidate: String?
+        currentBondedBalance: BigInteger?,
+        candidate: String?,
+        isCurrent: () -> Boolean
     ) {
         require(stashState is StakingState.Parachain)
-        require(candidate != null) {
-            "Candidate address not specified for stake less"
+        require(candidate != null) { "Candidate address not specified for stake less" }
+        require(amountInPlanks.signum() >= 0)
+        val epoch = jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.snapshot()
+        val revision = stakingInteractor.selectionRevision
+        val selection = revision.capture()
+        val coroutine = kotlinx.coroutines.currentCoroutineContext()
+        fun requireCurrent() {
+            coroutine.ensureActive()
+            if (!isCurrent() || !jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.isCurrent(epoch) ||
+                revision.capture() !== selection) throw kotlinx.coroutines.CancellationException("Unbond review changed")
         }
+        requireCurrent()
         val chain = stakingInteractor.getSelectedChain()
-        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        requireCurrent()
+        require(chain.id == stashState.chain.id) { "Unbond chain changed" }
+        val wallet = accountRepository.getSelectedMetaAccount()
+        requireCurrent()
+        val accountId = wallet.accountId(chain) ?: error("Cannot find accountId")
+        require(accountId.contentEquals(stashState.accountId)) { "Unbond wallet changed" }
         val asset = stakingInteractor.currentAssetFlow().first()
+        requireCurrent()
+        require(asset.metaId == wallet.id && asset.chainId == chain.id &&
+            asset.accountId.contentEquals(stashState.accountId)) { "Unbond asset changed" }
+        require(revision.matchesAction(selection, jp.co.soramitsu.staking.api.data.StakingType.PARACHAIN,
+            asset.chainId, asset.token.configuration.id)) { "Unbond selection changed" }
         val maxUnstakeAmount = getUnstakeAvailableAmount(asset, candidate.fromHex())
+        requireCurrent()
+        require(maxUnstakeAmount.signum() >= 0) { "Unbond quote is invalid" }
         val maxInPlanks = asset.token.planksFromAmount(maxUnstakeAmount)
-        val userIsCollator = candidate.fromHex().contentEquals(accountId)
+        val userIsCollator = candidate.fromHex().contentEquals(stashState.accountId)
         val performRevoke = maxInPlanks == amountInPlanks
+        requireCurrent()
         when {
             userIsCollator -> extrinsicBuilder.parachainScheduleCandidateBondLess(amountInPlanks)
             performRevoke -> extrinsicBuilder.parachainScheduleRevokeDelegation(candidate)
@@ -369,7 +401,8 @@ class StakingParachainScenarioInteractor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
-        collatorId ?: error("cannot find collatorId")
+        if (collatorId == null) return emptyFlow()
+
         return combine(
             stakingInteractor.selectedChainFlow().distinctUntilChanged(),
             accountRepository.selectedMetaAccountFlow().distinctUntilChanged()
@@ -444,14 +477,16 @@ class StakingParachainScenarioInteractor(
 //        }
     }
 
-    override suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding> = flowOf(
-        stakingInteractor.getSelectedChain()
-    ).flatMapLatest { chain ->
-        collatorAddress ?: error("cannot find collatorAddress")
-        getUnbondingRequestsFlow(chain.id, collatorAddress.fromHex())
+    override suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding> {
+        if (collatorAddress == null) return emptyList()
+
+        return flowOf(stakingInteractor.getSelectedChain())
+            .flatMapLatest { chain ->
+                getUnbondingRequestsFlow(chain.id, collatorAddress.fromHex())
+            }
+            .map { it.filter { it.timeLeft > 0 } }
+            .first()
     }
-        .map { it.filter { it.timeLeft > 0 } }
-        .first()
 
     override fun rebond(extrinsicBuilder: ExtrinsicBuilder, amount: BigInteger, candidate: String?): ExtrinsicBuilder {
         candidate ?: error("cannot find collatorAddress")
@@ -482,44 +517,80 @@ class StakingParachainScenarioInteractor(
     override fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal) = amount
 
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal {
-        collatorId ?: error("cannot find collatorId")
+        currentCoroutineContext().ensureActive()
+        // Compatibility: no selected delegation means no amount to quote, without reading an account.
+        if (collatorId == null) return BigDecimal.ZERO
+        require(collatorId.size == 20 || collatorId.size == 32) { "Unbond candidate is invalid" }
+        require(asset.token.configuration.precision in 0..255) { "Unbond token precision is invalid" }
 
-        val chainToAccountIdFlow = flowOf {
-            val chain = stakingInteractor.getSelectedChain()
-            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-            chain to accountId
+        val candidate = collatorId.copyOf()
+        val epoch = WalletSelectionEpoch.snapshot()
+        val selection = stakingSharedState.selectionRevision.capture()
+        fun requireCurrent() {
+            if (!WalletSelectionEpoch.isCurrent(epoch) ||
+                !stakingSharedState.selectionRevision.matchesAction(
+                    selection, jp.co.soramitsu.staking.api.data.StakingType.PARACHAIN,
+                    asset.chainId, asset.token.configuration.id
+                )
+            ) throw CancellationException("Unbond quote context changed")
         }
 
-        val availableToStakeLessFlow = chainToAccountIdFlow.flatMapLatest { (chain, accountId) ->
-            combine(
-                stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).filterIsInstance<StakingState.Parachain.Delegator>(),
-                stakingParachainScenarioRepository.getDelegationScheduledRequestsFlow(chain.id, collatorId)
-            ) { delegatorState, delegationScheduledRequests ->
-                val staked = delegatorState.delegations.firstOrNull {
-                    it.collatorId.contentEquals(collatorId)
-                }?.delegatedAmountInPlanks.orZero()
+        requireCurrent()
+        val chain = stakingInteractor.getSelectedChain()
+        requireCurrent()
+        require(chain.id == asset.chainId) { "Unbond quote chain changed" }
+        val wallet = accountRepository.getSelectedMetaAccount()
+        requireCurrent()
+        val accountId = wallet.accountId(chain)?.copyOf() ?: error("Cannot find unbond account")
+        require(wallet.id == asset.metaId && accountId.contentEquals(asset.accountId)) {
+            "Unbond quote wallet changed"
+        }
 
-                val currentRound = getCurrentRound(chain.id).getOrNull()?.current ?: BigInteger.ZERO
-
-                val userRequests = delegationScheduledRequests.filter {
-                    it.delegator.contentEquals(accountId)
-                }
-                val unstaking = userRequests.filter {
-                    it.whenExecutable >= currentRound
-                }.sumByBigInteger { it.actionValue }
-
-                val readyForUnlocking = userRequests.filter {
-                    it.whenExecutable < currentRound
-                }.sumByBigInteger { it.actionValue }
-
-                val availableToStakeLess = staked - unstaking - readyForUnlocking
-                val amount = asset.token.amountFromPlanks(availableToStakeLess)
-                amount
+        // A source's own CancellationException must reach the caller, rather than silently ending
+        // combine's child. Empty initial slots also let failures surface before the other source emits.
+        val states = stakingParachainScenarioRepository.stakingStateFlow(chain, accountId)
+            .unbondQuoteRead()
+        val requests = stakingParachainScenarioRepository.getDelegationScheduledRequestsFlow(chain.id, candidate)
+            .unbondQuoteRead()
+        val available = combine(states, requests) { stateResult, requestsResult ->
+            currentCoroutineContext().ensureActive()
+            requireCurrent()
+            val state = stateResult.getOrThrow()
+            val scheduled = requestsResult.getOrThrow()
+            if (state == null || scheduled == null) return@combine null
+            require(state is StakingState.Parachain.Delegator &&
+                state.chain.id == chain.id && state.accountId.contentEquals(accountId)) {
+                "Unbond delegation is unavailable"
             }
-        }
-
-        return availableToStakeLessFlow.first()
+            val staked = state.delegations.firstOrNull {
+                it.collatorId.contentEquals(candidate)
+            }?.delegatedAmountInPlanks ?: BigInteger.ZERO
+            require(staked.signum() >= 0) { "Unbond delegation amount is invalid" }
+            val ownRequests = scheduled.filter { it.delegator.contentEquals(accountId) }
+            require(ownRequests.all { it.actionValue.signum() >= 0 }) { "Unbond scheduled amount is invalid" }
+            // Both ready and pending requests already reserve their entire amount.
+            val remaining = staked - ownRequests.sumByBigInteger { it.actionValue }
+            require(remaining.signum() >= 0) { "Unbond scheduled amounts exceed the delegation" }
+            asset.token.amountFromPlanks(remaining)
+        }.filterNotNull().first()
+        currentCoroutineContext().ensureActive()
+        requireCurrent()
+        return available
     }
+
+    /** Materialize failed reads outside their owned job, including source self-cancellation. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun <T : Any> Flow<T>.unbondQuoteRead(): Flow<Result<T?>> = channelFlow<T> {
+        val read = launch { collect { send(it) } }
+        read.invokeOnCompletion { failure ->
+            // close is non-suspending and retains the original cause even when read cancelled itself.
+            // Cancellation of this observer already closes its channel and cannot create a new result.
+            if (failure != null) close(failure)
+        }
+    }.buffer(0)
+        .map { Result.success<T?>(it) }
+        .onStart { emit(Result.success(null)) }
+        .catch { emit(Result.failure(it)) }
 
     override suspend fun accountIsNotController(controllerAddress: String): Boolean {
         return true
@@ -740,7 +811,7 @@ class StakingParachainScenarioInteractor(
         )
     )
 
-    override suspend fun getAvailableForBondMoreBalance(): BigDecimal {
+    override suspend fun getAvailableForBondMoreBalance(): BigDecimal? {
         val asset = stakingInteractor.currentAssetFlow().first()
         return asset.availableForStaking
     }

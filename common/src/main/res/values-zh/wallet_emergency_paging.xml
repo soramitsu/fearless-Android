@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">请选择要查看的已存储密钥。仅解密您选择的密钥。</string>
+    <string name="wallet_emergency_view_key">查看此密钥</string>
+    <string name="wallet_emergency_next_page">下一页</string>
+    <string name="wallet_emergency_first_page">从第一页刷新</string>
+    <string name="wallet_emergency_back_to_list">返回此页</string>
+    <string name="wallet_emergency_inventory_changed">已存储的密钥列表已更改。请从第一页刷新以继续。</string>
+    <string name="wallet_emergency_no_more_keys">此页之后没有更多密钥。</string>
+    <string name="wallet_emergency_key_identifier">已存储的密钥：%1$s</string>
+</resources>

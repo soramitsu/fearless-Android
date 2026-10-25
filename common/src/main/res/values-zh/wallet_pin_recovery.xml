@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">恢复钱包 PIN</string>
+    <string name="pin_recovery_intro">无法读取已保存的 PIN。您的钱包和原始 PIN 记录均已保留。请验证所有权以设置新的 PIN。</string>
+    <string name="pin_recovery_failed">未能完成恢复，或授权已过期。保留的数据未被删除。请重试。</string>
+    <string name="pin_recovery_retry">重试</string>
+    <string name="pin_recovery_biometric">使用强生物识别验证</string>
+    <string name="pin_recovery_backup_intro">选择钱包密钥并输入其备份。备份必须与已保存的公开身份信息一致。匹配的备份也可修复该密钥。</string>
+    <string name="pin_recovery_no_identity">目前没有可验证的已保存钱包身份信息。请使用之前启用的强生物识别，或解锁设备以进行只读访问。</string>
+    <string name="pin_recovery_view_only_intro">解锁设备仅可查看余额和公开地址。在恢复钱包 PIN 之前，发送、签名和密钥备份功能仍将锁定。</string>
+    <string name="pin_recovery_view_only">解锁设备以只读访问</string>
+    <string name="pin_recovery_verified">所有权已验证。请设置新的钱包 PIN。</string>
+    <string name="pin_recovery_verify_backup">验证钱包备份</string>
+    <string name="pin_recovery_reset">恢复钱包 PIN</string>
+    <string name="pin_recovery_view_only_title">只读访问</string>
+</resources>

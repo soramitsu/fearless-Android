@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">Select endpoint</string>
+    <string name="saved_endpoint_selection_refresh">Refresh selection status</string>
+    <string name="saved_endpoint_selection_checking">Checking attached endpoint…</string>
+    <string name="saved_endpoint_selection_available">This attached endpoint can be selected for the network.</string>
+    <string name="saved_endpoint_selection_unattached">Attach this endpoint before selecting it.</string>
+    <string name="saved_endpoint_selection_saving">Saving selection…</string>
+    <string name="saved_endpoint_selection_saved">Selection saved</string>
+    <string name="saved_endpoint_selection_failed">Selection could not be confirmed. Refresh before trying again.</string>
+    <string name="saved_endpoint_selection_stale">The endpoint or selection changed. Refresh before selecting.</string>
+    <string name="saved_endpoint_runtime_preferred">Preferred Solana endpoint saved. Requests may use another provider.</string>
+    <string name="saved_endpoint_runtime_pending">Waiting for the network to use this selection.</string>
+    <string name="saved_endpoint_runtime_not_in_use">This network is not currently in use.</string>
+    <string name="saved_endpoint_runtime_unavailable">The network connection is unavailable.</string>
+    <string name="saved_endpoint_runtime_paused">The network connection is paused.</string>
+    <string name="saved_endpoint_runtime_connecting">Connecting to the selected endpoint…</string>
+    <string name="saved_endpoint_runtime_connected">Connected to the selected endpoint</string>
+</resources>

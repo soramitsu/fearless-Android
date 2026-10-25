@@ -1,0 +1,16 @@
+# origin_chain_id destination_chain_id asset_symbol
+#
+# This APK-owned allowlist selects the reviewed, single-asset execution specs
+# from local_chains.json. Mutable remote chain configuration is discovery-only
+# and cannot add or alter transaction authority.
+#
+# No route is approved. Every route that used to be listed here has been retired:
+# - Moonbeam, Moonriver and Parallel are no longer registered on their relay chains
+#   (Moonbeam and Moonriver were sunset in July 2026, Parallel stopped operating).
+# - Since the Asset Hub Migration (Kusama 2025-10-07, Polkadot 2025-11-04) DOT and KSM
+#   live on Asset Hub. limitedReserveTransferAssets from or to a relay chain is rejected
+#   on chain (Filtered / InvalidAssetUnknownReserve); only relay <-> Asset Hub
+#   limitedTeleportAssets still execute.
+# A route may only be added here again with a per-destination reserve decision, a dry run
+# against the live origin and destination runtimes, and funded evidence (see
+# docs/release-checklist.md).

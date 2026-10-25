@@ -1,10 +1,196 @@
 package jp.co.soramitsu.coredb.migrations
 
+import android.database.Cursor
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+private data class HistoricalForeignKey(
+    val parentTable: String,
+    val childColumn: String,
+    val parentColumn: String,
+    val onUpdate: String,
+    val onDelete: String
+)
+
+private fun migrationRowCount(
+    db: SupportSQLiteDatabase,
+    query: String,
+    description: String
+): Long {
+    return db.query(query).use { cursor ->
+        check(cursor.moveToFirst()) {
+            "$description did not return a count"
+        }
+        check(cursor.getType(0) == Cursor.FIELD_TYPE_INTEGER) {
+            "$description returned an invalid count"
+        }
+        val count = cursor.getLong(0)
+        check(!cursor.moveToNext()) {
+            "$description returned more than one count"
+        }
+        check(count >= 0L) {
+            "$description returned a negative count"
+        }
+        count
+    }
+}
+
+private fun requireMigrationRowCount(
+    expected: Long,
+    actual: Long,
+    description: String
+) {
+    check(actual == expected) {
+        "$description changed from $expected to $actual rows"
+    }
+}
+
+private fun requireNoMigrationRows(
+    db: SupportSQLiteDatabase,
+    query: String,
+    description: String
+) {
+    db.query(query).use { cursor ->
+        check(!cursor.moveToFirst()) {
+            description
+        }
+    }
+}
+
+private fun requireKnownHistoricalForeignKeys(
+    db: SupportSQLiteDatabase,
+    tableName: String,
+    allowedVariants: Set<Set<HistoricalForeignKey>>
+) {
+    check(
+        tableName.isNotEmpty() &&
+            tableName.all { it == '_' || it.isLetterOrDigit() }
+    )
+    check(allowedVariants.isNotEmpty())
+    val observed = linkedSetOf<HistoricalForeignKey>()
+    db.query("PRAGMA foreign_key_list(`$tableName`)").use { cursor ->
+        var rowCount = 0
+        while (cursor.moveToNext()) {
+            check(rowCount < MAX_HISTORICAL_FOREIGN_KEYS) {
+                "$tableName has too many foreign keys"
+            }
+            rowCount += 1
+            check(
+                cursor.getType(cursor.getColumnIndexOrThrow("table")) ==
+                    Cursor.FIELD_TYPE_STRING &&
+                    cursor.getType(cursor.getColumnIndexOrThrow("from")) ==
+                    Cursor.FIELD_TYPE_STRING &&
+                    cursor.getType(cursor.getColumnIndexOrThrow("to")) ==
+                    Cursor.FIELD_TYPE_STRING &&
+                    cursor.getType(cursor.getColumnIndexOrThrow("on_update")) ==
+                    Cursor.FIELD_TYPE_STRING &&
+                    cursor.getType(cursor.getColumnIndexOrThrow("on_delete")) ==
+                    Cursor.FIELD_TYPE_STRING
+            ) {
+                "$tableName has an unreadable foreign-key declaration"
+            }
+            check(
+                observed.add(
+                    HistoricalForeignKey(
+                        parentTable = cursor.getString(
+                            cursor.getColumnIndexOrThrow("table")
+                        ),
+                        childColumn = cursor.getString(
+                            cursor.getColumnIndexOrThrow("from")
+                        ),
+                        parentColumn = cursor.getString(
+                            cursor.getColumnIndexOrThrow("to")
+                        ),
+                        onUpdate = cursor.getString(
+                            cursor.getColumnIndexOrThrow("on_update")
+                        ),
+                        onDelete = cursor.getString(
+                            cursor.getColumnIndexOrThrow("on_delete")
+                        )
+                    )
+                )
+            ) {
+                "$tableName has duplicate foreign-key declarations"
+            }
+        }
+    }
+    check(observed in allowedVariants) {
+        "$tableName has an unknown historical foreign-key layout"
+    }
+}
+
+private fun requireNoHistoricalForeignKeyViolations(
+    db: SupportSQLiteDatabase,
+    tableName: String
+) {
+    check(
+        tableName.isNotEmpty() &&
+            tableName.all { it == '_' || it.isLetterOrDigit() }
+    )
+    requireNoMigrationRows(
+        db = db,
+        query = "PRAGMA foreign_key_check(`$tableName`)",
+        description = "$tableName contains foreign-key violations"
+    )
+}
+
+private const val MAX_HISTORICAL_FOREIGN_KEYS = 8
+
+/*
+ * Historical 18 -> 19 added nodes.isActive and copied the selected id from
+ * preferences. This compatibility edge currently preserves only the column;
+ * restoring pre19 preference selection remains separate unresolved work.
+ * The 30 -> 31 transfer preserves stored custom/active rows before removing nodes.
+ */
+val AddLegacyActiveNodeColumn_18_19 = object : Migration(18, 19) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0"
+        )
+    }
+}
+
+/*
+ * These historical edges refreshed bundled endpoints. The nodes table also
+ * contains user-custom endpoints and selection, so compatibility no-ops retain
+ * it for the 30 -> 31 transfer. Both fresh DB27 layouts lack the newer registry;
+ * 27 -> 28 creates it while preserving already-present parent/account cohorts.
+ * The 39 -> 40 refresh retains custom or explicitly selected registry nodes
+ * and their parents. These edges do not restore missing pre19 preference state.
+ */
+private fun legacyNodeCacheCompatibilityMigration(startVersion: Int) =
+    object : Migration(startVersion, startVersion + 1) {
+        override fun migrate(db: SupportSQLiteDatabase) = Unit
+    }
+
+val LegacyNodeCacheCompatibility_19_20 = legacyNodeCacheCompatibilityMigration(19)
+val LegacyNodeCacheCompatibility_20_21 = legacyNodeCacheCompatibilityMigration(20)
+val LegacyNodeCacheCompatibility_24_25 = legacyNodeCacheCompatibilityMigration(24)
+val LegacyNodeCacheCompatibility_25_26 = legacyNodeCacheCompatibilityMigration(25)
+val LegacyNodeCacheCompatibility_26_27 = legacyNodeCacheCompatibilityMigration(26)
+
+val Migration_75_76 = object : Migration(75, 76) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `xcm` TEXT NULL DEFAULT NULL")
+    }
+}
+
+val Migration_73_74 = object : Migration(73, 74) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chain_assets ADD COLUMN `coinbaseUrl` TEXT NULL DEFAULT NULL")
+        db.execSQL("DROP TABLE IF EXISTS `sora_card`")
+    }
+}
+
+val Migration_74_75 = object : Migration(74, 75) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `sora_card`")
+    }
+}
+
 val Migration_72_73 = object : Migration(72, 73) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        LegacyUsersRecoveryMigration.requireSafeSourceAndTarget(db)
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `ton_connection` (
@@ -22,7 +208,7 @@ val Migration_72_73 = object : Migration(72, 73) {
 
         db.execSQL("ALTER TABLE chains ADD COLUMN `tonBridgeUrl` TEXT NULL DEFAULT NULL")
 
-        db.execSQL("DROP TABLE IF EXISTS `users`")
+        LegacyUsersRecoveryMigration.migrate(db)
     }
 }
 
@@ -244,10 +430,54 @@ val Migration_55_56 = object : Migration(55, 56) {
 
 val Migration_54_55 = object : Migration(54, 55) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("DROP TABLE IF EXISTS `_address_book`")
-        db.execSQL("CREATE TABLE `_address_book` AS SELECT * FROM `address_book`")
-        db.execSQL("DELETE FROM `address_book` where `id` NOT IN (SELECT `id` FROM `_address_book` GROUP BY `address`, `chainId`)")
-        db.execSQL("DROP TABLE IF EXISTS `_address_book`")
+        val expectedRetainedRows = migrationRowCount(
+            db = db,
+            query =
+            "SELECT COUNT(*) FROM (" +
+                "SELECT 1 FROM `address_book` " +
+                "GROUP BY `address`, `chainId`" +
+                ")",
+            description = "Address-book unique identity groups"
+        )
+        db.execSQL(
+            """
+            DELETE FROM `address_book`
+            WHERE EXISTS (
+                SELECT 1
+                FROM `address_book` AS `newer`
+                WHERE `newer`.`address` = `address_book`.`address`
+                  AND `newer`.`chainId` = `address_book`.`chainId`
+                  AND (
+                      `newer`.`created` > `address_book`.`created`
+                      OR (
+                          `newer`.`created` = `address_book`.`created`
+                          AND `newer`.`id` > `address_book`.`id`
+                      )
+                  )
+            )
+            """.trimIndent()
+        )
+        requireMigrationRowCount(
+            expected = expectedRetainedRows,
+            actual = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM `address_book`",
+                description = "Deduplicated address book"
+            ),
+            description = "Address-book deterministic deduplication"
+        )
+        requireNoMigrationRows(
+            db = db,
+            query =
+            "SELECT 1 FROM `address_book` AS `older` " +
+                "INNER JOIN `address_book` AS `newer` " +
+                "ON `newer`.`address` = `older`.`address` " +
+                "AND `newer`.`chainId` = `older`.`chainId` " +
+                "AND (`newer`.`created` > `older`.`created` " +
+                "OR (`newer`.`created` = `older`.`created` " +
+                "AND `newer`.`id` > `older`.`id`)) LIMIT 1",
+            description = "Address-book deduplication retained an older row"
+        )
 
         db.execSQL(
             """
@@ -259,6 +489,8 @@ val Migration_54_55 = object : Migration(54, 55) {
 
 val Migration_53_54 = object : Migration(53, 54) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        UpgradeEntryEndpointArchive.beforeDestructiveEdge(db, 53)
+        ModernEndpointArchive.capture(db, sourceEdgeVersion = 53)
         db.execSQL("DROP TABLE IF EXISTS _chains")
         db.execSQL(
             """
@@ -805,18 +1037,7 @@ val Migration_51_52 = object : Migration(51, 52) {
 
 val Migration_50_51 = object : Migration(50, 51) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            """
-             CREATE TABLE IF NOT EXISTS `sora_card` (
-             `id` TEXT NOT NULL, 
-             `accessToken` TEXT NOT NULL, 
-             `refreshToken` TEXT NOT NULL, 
-             `accessTokenExpirationTime` INTEGER NOT NULL, 
-             `kycStatus` TEXT NOT NULL,
-             PRIMARY KEY(`id`)
-             )
-            """.trimIndent()
-        )
+        db.execSQL("DROP TABLE IF EXISTS `sora_card`")
     }
 }
 
@@ -851,6 +1072,9 @@ val Migration_46_47 = object : Migration(46, 47) {
 
 val Migration_45_46 = object : Migration(45, 46) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        UpgradeEntryEndpointArchive.beforeDestructiveEdge(db, 45)
+        ModernEndpointArchive.capture(db, sourceEdgeVersion = 45)
+        ModernEndpointProjection().retainOrdinaryRows(db)
         // on some devices FOREIGN KEY(`chainId`) REFERENCES to `_chains` table.
         // So we need to recreate all the tables with new FK which were created after the renaming chains to _chains (Migration_41_42)
         // assets - done in Migration_42_43
@@ -859,10 +1083,203 @@ val Migration_45_46 = object : Migration(45, 46) {
         // chain_nodes - done here
         // chain_accounts - done here
 
-        // delete all data related to chains and assets - emulating cold start with existing accounts
-        db.execSQL("DELETE FROM chains")
-        db.execSQL("DELETE FROM chain_assets")
-        db.execSQL("DELETE FROM assets")
+        val chainForeignKeyVariants = setOf("chains", "_chains").mapTo(
+            linkedSetOf()
+        ) { parentTable ->
+            setOf(
+                HistoricalForeignKey(
+                    parentTable = parentTable,
+                    childColumn = "chainId",
+                    parentColumn = "id",
+                    onUpdate = "NO ACTION",
+                    onDelete = "CASCADE"
+                )
+            )
+        }
+        requireKnownHistoricalForeignKeys(
+            db = db,
+            tableName = "chain_nodes",
+            allowedVariants = chainForeignKeyVariants
+        )
+        requireKnownHistoricalForeignKeys(
+            db = db,
+            tableName = "chain_explorers",
+            allowedVariants = chainForeignKeyVariants
+        )
+        val chainAccountForeignKeyVariants = setOf("chains", "_chains").mapTo(
+            linkedSetOf()
+        ) { parentTable ->
+            setOf(
+                HistoricalForeignKey(
+                    parentTable = parentTable,
+                    childColumn = "chainId",
+                    parentColumn = "id",
+                    onUpdate = "NO ACTION",
+                    onDelete = "NO ACTION"
+                ),
+                HistoricalForeignKey(
+                    parentTable = "meta_accounts",
+                    childColumn = "metaId",
+                    parentColumn = "id",
+                    onUpdate = "NO ACTION",
+                    onDelete = "CASCADE"
+                )
+            )
+        }
+        requireKnownHistoricalForeignKeys(
+            db = db,
+            tableName = "chain_accounts",
+            allowedVariants = chainAccountForeignKeyVariants
+        )
+        requireNoMigrationRows(
+            db = db,
+            query =
+            "SELECT 1 FROM `chain_nodes` AS `child` " +
+                "LEFT JOIN `chains` AS `parent` " +
+                "ON `parent`.`id` = `child`.`chainId` " +
+                "WHERE `parent`.`id` IS NULL LIMIT 1",
+            description = "Chain-node rows reference missing chains"
+        )
+        requireNoMigrationRows(
+            db = db,
+            query =
+            "SELECT 1 FROM `chain_explorers` AS `child` " +
+                "LEFT JOIN `chains` AS `parent` " +
+                "ON `parent`.`id` = `child`.`chainId` " +
+                "WHERE `parent`.`id` IS NULL LIMIT 1",
+            description = "Chain-explorer rows reference missing chains"
+        )
+        requireNoMigrationRows(
+            db = db,
+            query =
+            "SELECT 1 FROM `chain_accounts` AS `child` " +
+                "LEFT JOIN `chains` AS `chain_parent` " +
+                "ON `chain_parent`.`id` = `child`.`chainId` " +
+                "LEFT JOIN `meta_accounts` AS `meta_parent` " +
+                "ON `meta_parent`.`id` = `child`.`metaId` " +
+                "WHERE `chain_parent`.`id` IS NULL " +
+                "OR `meta_parent`.`id` IS NULL LIMIT 1",
+            description = "Chain-account rows reference missing public identities"
+        )
+
+        val chainCount = migrationRowCount(
+            db = db,
+            query = "SELECT COUNT(*) FROM `chains`",
+            description = "Chains before 45 to 46 migration"
+        )
+        val chainNodeCount = migrationRowCount(
+            db = db,
+            query = "SELECT COUNT(*) FROM `chain_nodes`",
+            description = "Chain nodes before 45 to 46 migration"
+        )
+        val chainExplorerCount = migrationRowCount(
+            db = db,
+            query = "SELECT COUNT(*) FROM `chain_explorers`",
+            description = "Chain explorers before 45 to 46 migration"
+        )
+        val chainAccountCount = migrationRowCount(
+            db = db,
+            query = "SELECT COUNT(*) FROM `chain_accounts`",
+            description = "Chain accounts before 45 to 46 migration"
+        )
+
+        db.execSQL("DROP TABLE IF EXISTS temp.`_migration_45_chain_nodes`")
+        db.execSQL(
+            """
+            CREATE TEMP TABLE `_migration_45_chain_nodes` (
+            `chainId` TEXT NOT NULL,
+            `url` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            `isActive` INTEGER NOT NULL,
+            `isDefault` INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO temp.`_migration_45_chain_nodes`
+            (`chainId`, `url`, `name`, `isActive`, `isDefault`)
+            SELECT `chainId`, `url`, `name`, `isActive`, `isDefault`
+            FROM `chain_nodes`
+            """.trimIndent()
+        )
+        requireMigrationRowCount(
+            expected = chainNodeCount,
+            actual = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM temp.`_migration_45_chain_nodes`",
+                description = "Chain-node migration snapshot"
+            ),
+            description = "Chain-node migration snapshot"
+        )
+
+        db.execSQL("DROP TABLE IF EXISTS temp.`_migration_45_chain_explorers`")
+        db.execSQL(
+            """
+            CREATE TEMP TABLE `_migration_45_chain_explorers` (
+            `chainId` TEXT NOT NULL,
+            `type` TEXT NOT NULL,
+            `types` TEXT NOT NULL,
+            `url` TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO temp.`_migration_45_chain_explorers`
+            (`chainId`, `type`, `types`, `url`)
+            SELECT `chainId`, `type`, `types`, `url`
+            FROM `chain_explorers`
+            """.trimIndent()
+        )
+        requireMigrationRowCount(
+            expected = chainExplorerCount,
+            actual = migrationRowCount(
+                db = db,
+                query =
+                "SELECT COUNT(*) FROM temp.`_migration_45_chain_explorers`",
+                description = "Chain-explorer migration snapshot"
+            ),
+            description = "Chain-explorer migration snapshot"
+        )
+
+        db.execSQL("DROP TABLE IF EXISTS temp.`_migration_45_chain_accounts`")
+        db.execSQL(
+            """
+            CREATE TEMP TABLE `_migration_45_chain_accounts` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `cryptoType` TEXT NOT NULL,
+            `name` TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO temp.`_migration_45_chain_accounts`
+            (`metaId`, `chainId`, `publicKey`, `accountId`, `cryptoType`, `name`)
+            SELECT `metaId`, `chainId`, `publicKey`, `accountId`, `cryptoType`, `name`
+            FROM `chain_accounts`
+            """.trimIndent()
+        )
+        requireMigrationRowCount(
+            expected = chainAccountCount,
+            actual = migrationRowCount(
+                db = db,
+                query =
+                "SELECT COUNT(*) FROM temp.`_migration_45_chain_accounts`",
+                description = "Chain-account migration snapshot"
+            ),
+            description = "Chain-account migration snapshot"
+        )
+
+        // Runtime-derived balance and registry-asset caches are reconstructible.
+        // Public chains, custom endpoints, and chain-account signing identities
+        // are user state and must survive this repair edge.
+        db.execSQL("DELETE FROM `chain_assets`")
+        db.execSQL("DELETE FROM `assets`")
 
         db.execSQL("DROP TABLE IF EXISTS chain_nodes")
         db.execSQL(
@@ -879,6 +1296,14 @@ val Migration_45_46 = object : Migration(45, 46) {
             """.trimIndent()
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
+        db.execSQL(
+            """
+            INSERT INTO `chain_nodes`
+            (`chainId`, `url`, `name`, `isActive`, `isDefault`)
+            SELECT `chainId`, `url`, `name`, `isActive`, `isDefault`
+            FROM temp.`_migration_45_chain_nodes`
+            """.trimIndent()
+        )
 
         db.execSQL("DROP TABLE IF EXISTS chain_explorers")
         db.execSQL(
@@ -893,6 +1318,14 @@ val Migration_45_46 = object : Migration(45, 46) {
             """.trimIndent()
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
+        db.execSQL(
+            """
+            INSERT INTO `chain_explorers`
+            (`chainId`, `type`, `types`, `url`)
+            SELECT `chainId`, `type`, `types`, `url`
+            FROM temp.`_migration_45_chain_explorers`
+            """.trimIndent()
+        )
 
         db.execSQL("DROP TABLE chain_accounts")
         db.execSQL(
@@ -913,6 +1346,58 @@ val Migration_45_46 = object : Migration(45, 46) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+        db.execSQL(
+            """
+            INSERT INTO `chain_accounts`
+            (`metaId`, `chainId`, `publicKey`, `accountId`, `cryptoType`, `name`)
+            SELECT `metaId`, `chainId`, `publicKey`, `accountId`, `cryptoType`, `name`
+            FROM temp.`_migration_45_chain_accounts`
+            """.trimIndent()
+        )
+
+        requireMigrationRowCount(
+            expected = chainCount,
+            actual = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM `chains`",
+                description = "Chains after 45 to 46 migration"
+            ),
+            description = "Chain preservation during 45 to 46 migration"
+        )
+        requireMigrationRowCount(
+            expected = chainNodeCount,
+            actual = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM `chain_nodes`",
+                description = "Chain nodes after 45 to 46 migration"
+            ),
+            description = "Chain-node preservation during 45 to 46 migration"
+        )
+        requireMigrationRowCount(
+            expected = chainExplorerCount,
+            actual = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM `chain_explorers`",
+                description = "Chain explorers after 45 to 46 migration"
+            ),
+            description = "Chain-explorer preservation during 45 to 46 migration"
+        )
+        requireMigrationRowCount(
+            expected = chainAccountCount,
+            actual = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM `chain_accounts`",
+                description = "Chain accounts after 45 to 46 migration"
+            ),
+            description = "Chain-account preservation during 45 to 46 migration"
+        )
+        requireNoHistoricalForeignKeyViolations(db, "chain_nodes")
+        requireNoHistoricalForeignKeyViolations(db, "chain_explorers")
+        requireNoHistoricalForeignKeyViolations(db, "chain_accounts")
+
+        db.execSQL("DROP TABLE temp.`_migration_45_chain_nodes`")
+        db.execSQL("DROP TABLE temp.`_migration_45_chain_explorers`")
+        db.execSQL("DROP TABLE temp.`_migration_45_chain_accounts`")
     }
 }
 
@@ -1021,6 +1506,8 @@ val Migration_42_43 = object : Migration(42, 43) {
 
 val Migration_41_42 = object : Migration(41, 42) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        UpgradeEntryEndpointArchive.beforeDestructiveEdge(db, 41)
+        ModernEndpointArchive.capture(db, sourceEdgeVersion = 41)
         db.execSQL("ALTER TABLE chains RENAME TO _chains")
         db.execSQL("DROP TABLE IF EXISTS chains")
         db.execSQL(
@@ -1132,174 +1619,391 @@ val AssetsMigration_40_41 = object : Migration(40, 41) {
 
 val ChainAssetsMigration_39_40 = object : Migration(39, 40) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("DELETE FROM chain_explorers")
-        db.execSQL("DELETE FROM chain_assets")
-        db.execSQL("DELETE FROM chain_nodes")
-
-        db.execSQL("DROP TABLE IF EXISTS chains")
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `chains` (
-            `id` TEXT NOT NULL,
-            `parentId` TEXT,
-            `name` TEXT NOT NULL,
-            `minSupportedVersion` TEXT,
-            `icon` TEXT NOT NULL,
-            `prefix` INTEGER NOT NULL,
-            `isEthereumBased` INTEGER NOT NULL,
-            `isTestNet` INTEGER NOT NULL,
-            `hasCrowdloans` INTEGER NOT NULL,
-            `url` TEXT,
-            `overridesCommon` INTEGER,
-            `staking_url` TEXT,
-            `staking_type` TEXT,
-            `history_url` TEXT,
-            `history_type` TEXT,
-            `crowdloans_url` TEXT,
-            `crowdloans_type` TEXT,
-            PRIMARY KEY(`id`))
-            """.trimIndent()
+        UpgradeEntryEndpointArchive.beforeDestructiveEdge(db, 39)
+        ModernEndpointArchive.capture(db, sourceEdgeVersion = 39)
+        ModernEndpointProjection().retainOrdinaryRows(db)
+        // Custom endpoints and selected defaults are user-owned alongside
+        // chain accounts. Snapshot their parents before the registry rebuild;
+        // dropping a parent also cascades to its node rows with FK checks on.
+        listOf("chains", "chain_nodes", "chain_accounts").forEach { table ->
+            requireBoundedMigrationTableRows(
+                database = db,
+                tableName = table,
+                maximumRows = TON_UPGRADE_FOREIGN_KEY_CHECK_LIMITS
+                    .maximumRowsByTable.getValue(table),
+                rowDescription = "Version 39 $table rows"
+            )
+        }
+        requireNoMigrationRows(
+            db = db,
+            query = "SELECT 1 FROM sqlite_temp_master WHERE name COLLATE NOCASE IN " +
+                "('_migration_39_wallet_chains', '_migration_39_retained_nodes') LIMIT 1",
+            description = "Version 39 node-preservation work objects already exist"
         )
+        if (HistoricalNodeUpgradePreflight.hasRetainedNodes(db)) {
+            HistoricalNodeUpgradePreflight.requireBoundedRetentionPayloads(db)
+        }
+        try {
+            db.execSQL(
+                """
+                CREATE TEMP TABLE `_migration_39_retained_nodes` AS
+                SELECT chainId, url, name, isActive, isDefault
+                FROM chain_nodes
+                WHERE isDefault = 0 OR isActive = 1
+                """.trimIndent()
+            )
+            requireNoMigrationRows(
+                db = db,
+                query = "SELECT 1 FROM temp.`_migration_39_retained_nodes` AS n " +
+                    "LEFT JOIN chains AS c ON c.id = n.chainId WHERE c.id IS NULL LIMIT 1",
+                description = "Version 39 retained nodes reference missing chains"
+            )
+            val retainedNodeCount = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM temp.`_migration_39_retained_nodes`",
+                description = "Version 39 retained nodes"
+            )
+            db.execSQL(
+                """
+                CREATE TEMP TABLE `_migration_39_wallet_chains` AS
+                SELECT
+                    c.id,
+                    c.parentId,
+                    c.name,
+                    c.icon,
+                    c.prefix,
+                    c.isEthereumBased,
+                    c.isTestNet,
+                    c.hasCrowdloans,
+                    c.url,
+                    c.overridesCommon,
+                    c.staking_url,
+                    c.staking_type,
+                    c.history_url,
+                    c.history_type,
+                    c.crowdloans_url,
+                    c.crowdloans_type
+                FROM chains AS c
+                WHERE EXISTS(
+                    SELECT 1
+                    FROM chain_accounts AS ca
+                    WHERE ca.chainId = c.id
+                ) OR c.id IN (
+                    SELECT chainId FROM temp.`_migration_39_retained_nodes`
+                )
+                """.trimIndent()
+            )
+            db.execSQL("DELETE FROM chain_explorers")
+            db.execSQL("DELETE FROM chain_assets")
+            db.execSQL("DELETE FROM chain_nodes")
+
+            db.execSQL("DROP TABLE IF EXISTS chains")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `chains` (
+                `id` TEXT NOT NULL,
+                `parentId` TEXT,
+                `name` TEXT NOT NULL,
+                `minSupportedVersion` TEXT,
+                `icon` TEXT NOT NULL,
+                `prefix` INTEGER NOT NULL,
+                `isEthereumBased` INTEGER NOT NULL,
+                `isTestNet` INTEGER NOT NULL,
+                `hasCrowdloans` INTEGER NOT NULL,
+                `url` TEXT,
+                `overridesCommon` INTEGER,
+                `staking_url` TEXT,
+                `staking_type` TEXT,
+                `history_url` TEXT,
+                `history_type` TEXT,
+                `crowdloans_url` TEXT,
+                `crowdloans_type` TEXT,
+                PRIMARY KEY(`id`))
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                INSERT INTO chains(
+                    id,
+                    parentId,
+                    name,
+                    minSupportedVersion,
+                    icon,
+                    prefix,
+                    isEthereumBased,
+                    isTestNet,
+                    hasCrowdloans,
+                    url,
+                    overridesCommon,
+                    staking_url,
+                    staking_type,
+                    history_url,
+                    history_type,
+                    crowdloans_url,
+                    crowdloans_type
+                )
+                SELECT
+                    id,
+                    parentId,
+                    name,
+                    NULL,
+                    icon,
+                    prefix,
+                    isEthereumBased,
+                    isTestNet,
+                    hasCrowdloans,
+                    url,
+                    overridesCommon,
+                    staking_url,
+                    staking_type,
+                    history_url,
+                    history_type,
+                    crowdloans_url,
+                    crowdloans_type
+                FROM temp.`_migration_39_wallet_chains`
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                INSERT INTO chain_nodes(chainId, url, name, isActive, isDefault)
+                SELECT chainId, url, name, isActive, isDefault
+                FROM temp.`_migration_39_retained_nodes`
+                """.trimIndent()
+            )
+            requireMigrationRowCount(
+                expected = retainedNodeCount,
+                actual = migrationRowCount(
+                    db = db,
+                    query = "SELECT COUNT(*) FROM chain_nodes",
+                    description = "Version 40 retained nodes"
+                ),
+                description = "Node preservation during 39 to 40 migration"
+            )
+            requireNoHistoricalForeignKeyViolations(db, "chain_nodes")
+            requireNoHistoricalForeignKeyViolations(db, "chain_accounts")
+        } finally {
+            db.execSQL("DROP TABLE IF EXISTS temp.`_migration_39_retained_nodes`")
+            db.execSQL("DROP TABLE IF EXISTS temp.`_migration_39_wallet_chains`")
+        }
     }
 }
 
 val AssetsMigration_38_39 = object : Migration(38, 39) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.beginTransaction()
+        try {
 
-        db.execSQL("ALTER TABLE assets RENAME TO _assets")
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `assets` (
-            `tokenSymbol` TEXT NOT NULL, 
-            `chainId` TEXT NOT NULL, 
-            `accountId` BLOB NOT NULL, 
-            `metaId` INTEGER NOT NULL, 
-            `freeInPlanks` TEXT, 
-            `reservedInPlanks` TEXT, 
-            `miscFrozenInPlanks` TEXT, 
-            `feeFrozenInPlanks` TEXT, 
-            `bondedInPlanks` TEXT, 
-            `redeemableInPlanks` TEXT, 
-            `unbondingInPlanks` TEXT, 
-            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
-            `enabled` INTEGER NOT NULL DEFAULT 1, 
-            `chainAccountName` TEXT, 
-            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`), 
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            db.execSQL("ALTER TABLE assets RENAME TO _assets")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `assets` (
+                `tokenSymbol` TEXT NOT NULL,
+                `chainId` TEXT NOT NULL,
+                `accountId` BLOB NOT NULL,
+                `metaId` INTEGER NOT NULL,
+                `freeInPlanks` TEXT,
+                `reservedInPlanks` TEXT,
+                `miscFrozenInPlanks` TEXT,
+                `feeFrozenInPlanks` TEXT,
+                `bondedInPlanks` TEXT,
+                `redeemableInPlanks` TEXT,
+                `unbondingInPlanks` TEXT,
+                `sortIndex` INTEGER NOT NULL DEFAULT 0,
+                `enabled` INTEGER NOT NULL DEFAULT 1,
+                `chainAccountName` TEXT,
+                PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`),
+                FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                )
+                """.trimIndent()
             )
-            """.trimIndent()
-        )
 
-        db.execSQL(
-            """
-            INSERT INTO assets SELECT 
-                a.tokenSymbol,
-                a.chainId,
-                a.accountId,
-                a.metaId,
-                a.freeInPlanks,
-                a.reservedInPlanks,
-                a.miscFrozenInPlanks,
-                a.feeFrozenInPlanks,
-                a.bondedInPlanks,
-                a.redeemableInPlanks,
-                a.unbondingInPlanks, 
-                0 as `sortIndex`, 
-                1 as `enabled`, 
-                null as `chainAccountName` 
-            FROM _assets a
-            """.trimIndent()
-        )
-        db.execSQL("DROP TABLE _assets")
+            db.execSQL(
+                """
+                INSERT INTO assets SELECT
+                    a.tokenSymbol,
+                    a.chainId,
+                    a.accountId,
+                    a.metaId,
+                    a.freeInPlanks,
+                    a.reservedInPlanks,
+                    a.miscFrozenInPlanks,
+                    a.feeFrozenInPlanks,
+                    a.bondedInPlanks,
+                    a.redeemableInPlanks,
+                    a.unbondingInPlanks,
+                    0 as `sortIndex`,
+                    1 as `enabled`,
+                    null as `chainAccountName`
+                FROM _assets a
+                """.trimIndent()
+            )
+            db.execSQL("DROP TABLE _assets")
 
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
 
-        db.setTransactionSuccessful()
-        db.endTransaction()
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 }
 
 val DifferentCurrenciesMigrations_37_38 = object : Migration(37, 38) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.beginTransaction()
+        try {
 
-        db.execSQL("DROP TABLE tokens")
-        db.execSQL(
-            """
-                CREATE TABLE IF NOT EXISTS `tokens` (
-                `symbol` TEXT NOT NULL,
-                `fiatRate` TEXT,
-                `fiatSymbol` TEXT,
-                `recentRateChange` TEXT,
-                PRIMARY KEY(`symbol`)
-                )
-            """.trimIndent()
-        )
-        db.setTransactionSuccessful()
-        db.endTransaction()
+            db.execSQL("DROP TABLE tokens")
+            db.execSQL(
+                """
+                    CREATE TABLE IF NOT EXISTS `tokens` (
+                    `symbol` TEXT NOT NULL,
+                    `fiatRate` TEXT,
+                    `fiatSymbol` TEXT,
+                    `recentRateChange` TEXT,
+                    PRIMARY KEY(`symbol`)
+                    )
+                """.trimIndent()
+            )
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 }
 
 val FixAssetsMigration_36_37 = object : Migration(36, 37) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.beginTransaction()
+        try {
 
-        db.execSQL("ALTER TABLE assets RENAME TO _assets")
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `assets` (
-            `tokenSymbol` TEXT NOT NULL, 
-            `chainId` TEXT NOT NULL, 
-            `accountId` BLOB NOT NULL, 
-            `metaId` INTEGER NOT NULL, 
-            `freeInPlanks` TEXT NOT NULL, 
-            `reservedInPlanks` TEXT NOT NULL, 
-            `miscFrozenInPlanks` TEXT NOT NULL, 
-            `feeFrozenInPlanks` TEXT NOT NULL, 
-            `bondedInPlanks` TEXT NOT NULL, 
-            `redeemableInPlanks` TEXT NOT NULL, 
-            `unbondingInPlanks` TEXT NOT NULL, 
-            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
-            `enabled` INTEGER NOT NULL DEFAULT 1, 
-            `chainAccountName` TEXT, 
-            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`), 
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            db.execSQL("ALTER TABLE assets RENAME TO _assets")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `assets` (
+                `tokenSymbol` TEXT NOT NULL,
+                `chainId` TEXT NOT NULL,
+                `accountId` BLOB NOT NULL,
+                `metaId` INTEGER NOT NULL,
+                `freeInPlanks` TEXT NOT NULL,
+                `reservedInPlanks` TEXT NOT NULL,
+                `miscFrozenInPlanks` TEXT NOT NULL,
+                `feeFrozenInPlanks` TEXT NOT NULL,
+                `bondedInPlanks` TEXT NOT NULL,
+                `redeemableInPlanks` TEXT NOT NULL,
+                `unbondingInPlanks` TEXT NOT NULL,
+                `sortIndex` INTEGER NOT NULL DEFAULT 0,
+                `enabled` INTEGER NOT NULL DEFAULT 1,
+                `chainAccountName` TEXT,
+                PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`),
+                FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                )
+                """.trimIndent()
             )
-            """.trimIndent()
-        )
 
-        db.execSQL(
-            """
-            INSERT INTO assets SELECT 
-                a.tokenSymbol,
-                a.chainId,
-                a.accountId,
-                a.metaId,
-                a.freeInPlanks,
-                a.reservedInPlanks,
-                a.miscFrozenInPlanks,
-                a.feeFrozenInPlanks,
-                a.bondedInPlanks,
-                a.redeemableInPlanks,
-                a.unbondingInPlanks, 
-                0 as `sortIndex`, 
-                1 as `enabled`, 
-                null as `chainAccountName` 
-            FROM _assets a
-            """.trimIndent()
-        )
-        db.execSQL("DROP TABLE _assets")
+            db.execSQL(
+                """
+                INSERT INTO assets SELECT
+                    a.tokenSymbol,
+                    a.chainId,
+                    a.accountId,
+                    a.metaId,
+                    a.freeInPlanks,
+                    a.reservedInPlanks,
+                    a.miscFrozenInPlanks,
+                    a.feeFrozenInPlanks,
+                    a.bondedInPlanks,
+                    a.redeemableInPlanks,
+                    a.unbondingInPlanks,
+                    0 as `sortIndex`,
+                    1 as `enabled`,
+                    null as `chainAccountName`
+                FROM _assets a
+                """.trimIndent()
+            )
+            db.execSQL("DROP TABLE _assets")
 
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
 
-        db.setTransactionSuccessful()
-        db.endTransaction()
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 }
 
 val RemoveLegacyData_35_36 = object : Migration(35, 36) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        requireKnownHistoricalForeignKeys(
+            db = db,
+            tableName = "chain_accounts",
+            allowedVariants = setOf(
+                setOf(
+                    HistoricalForeignKey(
+                        parentTable = "chains",
+                        childColumn = "chainId",
+                        parentColumn = "id",
+                        onUpdate = "NO ACTION",
+                        onDelete = "NO ACTION"
+                    ),
+                    HistoricalForeignKey(
+                        parentTable = "meta_accounts",
+                        childColumn = "metaId",
+                        parentColumn = "id",
+                        onUpdate = "NO ACTION",
+                        onDelete = "CASCADE"
+                    )
+                )
+            )
+        )
+        requireNoMigrationRows(
+            db = db,
+            query =
+            "SELECT 1 FROM `chain_accounts` AS `child` " +
+                "LEFT JOIN `chains` AS `chain_parent` " +
+                "ON `chain_parent`.`id` = `child`.`chainId` " +
+                "LEFT JOIN `meta_accounts` AS `meta_parent` " +
+                "ON `meta_parent`.`id` = `child`.`metaId` " +
+                "WHERE `chain_parent`.`id` IS NULL " +
+                "OR `meta_parent`.`id` IS NULL LIMIT 1",
+            description = "Version 35 chain accounts reference missing identities"
+        )
+        val chainAccountCount = migrationRowCount(
+            db = db,
+            query = "SELECT COUNT(*) FROM `chain_accounts`",
+            description = "Version 35 chain accounts"
+        )
+        db.execSQL("DROP TABLE IF EXISTS temp.`_migration_35_chain_accounts`")
+        db.execSQL(
+            """
+            CREATE TEMP TABLE `_migration_35_chain_accounts` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `cryptoType` TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO temp.`_migration_35_chain_accounts`
+            (`metaId`, `chainId`, `publicKey`, `accountId`, `cryptoType`)
+            SELECT `metaId`, `chainId`, `publicKey`, `accountId`, `cryptoType`
+            FROM `chain_accounts`
+            """.trimIndent()
+        )
+        requireMigrationRowCount(
+            expected = chainAccountCount,
+            actual = migrationRowCount(
+                db = db,
+                query =
+                "SELECT COUNT(*) FROM temp.`_migration_35_chain_accounts`",
+                description = "Version 35 chain-account snapshot"
+            ),
+            description = "Version 35 chain-account snapshot"
+        )
+
         db.execSQL("DROP TABLE chain_accounts")
 
         db.execSQL(
@@ -1321,6 +2025,31 @@ val RemoveLegacyData_35_36 = object : Migration(35, 36) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+        db.execSQL(
+            """
+            INSERT INTO `chain_accounts`
+            (`metaId`, `chainId`, `publicKey`, `accountId`, `cryptoType`, `name`)
+            SELECT
+                `metaId`,
+                `chainId`,
+                `publicKey`,
+                `accountId`,
+                `cryptoType`,
+                ''
+            FROM temp.`_migration_35_chain_accounts`
+            """.trimIndent()
+        )
+        requireMigrationRowCount(
+            expected = chainAccountCount,
+            actual = migrationRowCount(
+                db = db,
+                query = "SELECT COUNT(*) FROM `chain_accounts`",
+                description = "Version 36 chain accounts"
+            ),
+            description = "Chain-account preservation during 35 to 36 migration"
+        )
+        requireNoHistoricalForeignKeyViolations(db, "chain_accounts")
+        db.execSQL("DROP TABLE temp.`_migration_35_chain_accounts`")
 
         // remove `networkType` INTEGER NOT NULL
         db.execSQL("ALTER TABLE users RENAME TO _users")
@@ -1387,10 +2116,7 @@ val MigrateTablesToV2_32_33 = object : Migration(32, 33) {
 
 val MigrateTablesToV2_30_31 = object : Migration(30, 31) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isDefault` INTEGER NOT NULL DEFAULT 1")
-
-        db.execSQL("DROP TABLE nodes")
+        HistoricalNodeUpgradePreflight.migrateLegacyNodes(db)
     }
 }
 
@@ -1510,7 +2236,10 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
 
 val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("DROP TABLE IF EXISTS chains")
+        // Both exact fresh DB27 fixtures lack the registry. CREATE IF NOT
+        // EXISTS also preserves cohorts that already have parent rows and
+        // wallet chain accounts. The later 39 -> 40 refresh retains parents
+        // referenced by wallet accounts or custom/explicitly selected nodes.
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chains` (

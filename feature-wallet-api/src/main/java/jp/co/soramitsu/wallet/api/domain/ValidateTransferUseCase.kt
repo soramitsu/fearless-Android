@@ -1,12 +1,17 @@
 package jp.co.soramitsu.wallet.api.domain
 
+import android.os.Parcelable
+import jp.co.soramitsu.common.R
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.CrossChainDestinationUnavailableException
 import jp.co.soramitsu.common.validation.DeadRecipientException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
+import jp.co.soramitsu.common.validation.ExistentialDepositUnknownException
+import jp.co.soramitsu.common.validation.ExistentialDepositUnknownWarning
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
 import jp.co.soramitsu.common.validation.SubstrateBridgeAmountLessThenFeeException
 import jp.co.soramitsu.common.validation.SubstrateBridgeMinimumAmountRequired
@@ -15,8 +20,13 @@ import jp.co.soramitsu.common.validation.TransferToTheSameAddressException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlinx.parcelize.Parcelize
 
 interface ValidateTransferUseCase {
+    /**
+     * [destinationFeeInPlanks] is the part of [amountInPlanks] that the destination network keeps as its execution
+     * fee of a cross-chain transfer; only the rest reaches the recipient. It is zero on one network.
+     */
     suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
         originAsset: Asset,
@@ -24,7 +34,8 @@ interface ValidateTransferUseCase {
         destinationAddress: String,
         originAddress: String,
         originFee: BigInteger,
-        confirmedValidations: List<TransferValidationResult> = emptyList()
+        confirmedValidations: List<TransferValidationResult> = emptyList(),
+        destinationFeeInPlanks: BigInteger = BigInteger.ZERO
     ): Result<TransferValidationResult>
 
     suspend fun validateTransfer(
@@ -51,8 +62,10 @@ interface ValidateTransferUseCase {
     ): Result<TransferValidationResult>
 }
 
-sealed class TransferValidationResult {
+@Parcelize
+sealed class TransferValidationResult : Parcelable {
     object Valid : TransferValidationResult()
+    object BalanceUnavailable : TransferValidationResult()
     object InsufficientBalance : TransferValidationResult()
     object InsufficientUtilityAssetBalance : TransferValidationResult()
     data class SubstrateBridgeMinimumAmountRequired(val amount: String): TransferValidationResult()
@@ -61,6 +74,12 @@ sealed class TransferValidationResult {
     data class ExistentialDepositError(val edAmount: String) : TransferValidationResult()
     data class UtilityExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
     data class UtilityExistentialDepositError(val edAmount: String) : TransferValidationResult()
+    // The network minimum of these assets could not be read; the user decides with that knowledge.
+    data class ExistentialDepositUnknown(val symbols: String) : TransferValidationResult()
+    // A cross-chain transfer stops instead: an unknown minimum on either network can make it lose the amount.
+    data class ExistentialDepositUnavailable(val symbol: String) : TransferValidationResult()
+    // The destination copy of the asset or the recipient's balance on it could not be determined.
+    object CrossChainDestinationUnavailable : TransferValidationResult()
     data class DeadRecipient(val resultAmount: String, val edAmount: String, val extraAmount: String) : TransferValidationResult()
     object InvalidAddress : TransferValidationResult()
     object TransferToTheSameAddress : TransferValidationResult()
@@ -73,6 +92,10 @@ sealed class TransferValidationResult {
 fun ValidationException.Companion.fromValidationResult(result: TransferValidationResult, resourceManager: ResourceManager): ValidationException? {
     return when (result) {
         TransferValidationResult.Valid -> null
+        TransferValidationResult.BalanceUnavailable -> ValidationException(
+            resourceManager.getString(R.string.common_error_general_title),
+            resourceManager.getString(R.string.portfolio_balance_unavailable)
+        )
         TransferValidationResult.InsufficientBalance -> SpendInsufficientBalanceException(resourceManager)
         TransferValidationResult.InsufficientUtilityAssetBalance -> SpendInsufficientBalanceException(resourceManager)
         is TransferValidationResult.SubstrateBridgeMinimumAmountRequired -> SubstrateBridgeMinimumAmountRequired(resourceManager, result.amount)
@@ -81,6 +104,9 @@ fun ValidationException.Companion.fromValidationResult(result: TransferValidatio
         is TransferValidationResult.UtilityExistentialDepositWarning -> ExistentialDepositCrossedWarning(resourceManager, result.edAmount)
         is TransferValidationResult.ExistentialDepositError -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
         is TransferValidationResult.UtilityExistentialDepositError -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
+        is TransferValidationResult.ExistentialDepositUnknown -> ExistentialDepositUnknownWarning(resourceManager, result.symbols)
+        is TransferValidationResult.ExistentialDepositUnavailable -> ExistentialDepositUnknownException(resourceManager, result.symbol)
+        TransferValidationResult.CrossChainDestinationUnavailable -> CrossChainDestinationUnavailableException(resourceManager)
         is TransferValidationResult.DeadRecipient -> DeadRecipientException(resourceManager, result.resultAmount, result.edAmount, result.extraAmount)
         TransferValidationResult.InvalidAddress -> TransferAddressNotValidException(resourceManager)
         TransferValidationResult.WaitForFee -> WaitForFeeCalculationException(resourceManager)

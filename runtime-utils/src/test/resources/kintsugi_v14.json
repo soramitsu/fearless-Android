@@ -1,0 +1,20 @@
+{
+  "runtime_id": 9,
+  "types": {},
+  "versioning": [
+    {
+      "runtime_range": [1, null],
+      "types": {
+        "Balance": "u128",
+        "kintsugi_runtime::Event": "GenericEvent",
+        "kintsugi_runtime::Call": "GenericCall",
+        "Index": "u32",
+        "Phase": "frame_system::Phase",
+        "Address": "sp_runtime::multiaddress::MultiAddress",
+        "ExtrinsicSignature": "sp_runtime::MultiSignature",
+        "sp_core::crypto::AccountId32": "GenericAccountId",
+        "pallet_identity::types.Data": "Data"
+      }
+    }
+  ]
+}

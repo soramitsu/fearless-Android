@@ -13,6 +13,7 @@ import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlinx.coroutines.CancellationException
 import java.math.BigInteger
 
 class EthereumValidationChecksProvider(
@@ -27,13 +28,19 @@ class EthereumValidationChecksProvider(
         destinationAddress: String,
         fee: BigInteger
     ): Map<TransferValidationResult, Boolean> {
+        val transferable = asset.transferableInPlanks
+            ?: return mapOf(TransferValidationResult.BalanceUnavailable to true)
+        val free = asset.freeInPlanks
+            ?: return mapOf(TransferValidationResult.BalanceUnavailable to true)
         val chainId = asset.token.configuration.chainId
         val chain = chainsRepository.getChain(chainId)
 
         val metaAccount = accountRepository.getSelectedMetaAccount()
 
         val accountId = metaAccount.accountId(chain)!!
-        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+        val existentialDepositResult = existentialDepositUseCase(asset.token.configuration)
+            .onFailure { if (it is CancellationException) throw it }
+        val existentialDeposit = existentialDepositResult.getOrNull().orZero()
         val edFormatted = existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)
 
         val utilityAsset = chain.utilityAsset?.let {
@@ -44,12 +51,14 @@ class EthereumValidationChecksProvider(
                 chain.minSupportedVersion
             )
         }
-        val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+        val utilityAssetBalance = utilityAsset?.transferableInPlanks
+            ?: return mapOf(TransferValidationResult.BalanceUnavailable to true)
         val resultedBalance =
-            (asset.freeInPlanks.positiveOrNull().orZero()) - (amountInPlanks + fee)
+            free - (amountInPlanks + fee)
 
         return mapOf(
-            TransferValidationResult.InsufficientBalance to (amountInPlanks + fee > asset.transferableInPlanks),
+            TransferValidationResult.InsufficientBalance to (amountInPlanks + fee > transferable),
+            existentialDepositUnknownCheck(asset.token.configuration to existentialDepositResult),
             TransferValidationResult.ExistentialDepositWarning(edFormatted) to (resultedBalance < existentialDeposit),
             TransferValidationResult.InsufficientUtilityAssetBalance to (fee > utilityAssetBalance)
         )

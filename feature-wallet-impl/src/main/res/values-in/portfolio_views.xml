@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">Per token</string>
+    <string name="portfolio_by_network">Per jaringan</string>
+    <string name="portfolio_show_zero_networks">Tampilkan jaringan populer / saldo nol (%1$d)</string>
+    <string name="portfolio_hide_zero_networks">Sembunyikan jaringan bersaldo nol (%1$d)</string>
+    <string name="portfolio_hide_group_title">Sembunyikan token di semua jaringan?</string>
+    <string name="portfolio_hide_group_message">Aset jaringan ini akan disembunyikan dan tidak dihitung dalam total portofolio. Saldo dan cadangannya tetap tersedia di Kelola aset.</string>
+    <string name="portfolio_choose_network">Pilih jaringan</string>
+    <string name="portfolio_price_unavailable">Harga tidak tersedia</string>
+    <string name="portfolio_price_incomplete">Harga tidak lengkap — saldo tanpa harga tidak dihitung</string>
+    <string name="portfolio_group_networks">Di %1$d jaringan</string>
+    <string name="portfolio_group_hidden">%1$d aset tersembunyi tidak dihitung</string>
+    <string name="portfolio_value_notice">Total portofolio mencakup saldo bebas dan saldo yang dicadangkan. Aset tersembunyi, aset tanpa harga, testnet, dan staking pool tidak dihitung.</string>
+    <string name="portfolio_hidden_manage">Aset tersembunyi (%1$d) · %2$s tidak dihitung · Kelola</string>
+    <string name="portfolio_filter_all">Semua</string>
+    <string name="portfolio_filter_shown">Ditampilkan</string>
+    <string name="portfolio_filter_hidden">Tersembunyi</string>
+    <string name="portfolio_preference_auto">Otomatis</string>
+    <string name="portfolio_manage_group_count">%1$d dari %2$d ditampilkan</string>
+    <string name="portfolio_no_hidden">Tidak ada aset tersembunyi</string>
+    <string name="portfolio_only_network">Token ini hanya tersedia di %1$s dalam Fearless.</string>
+</resources>

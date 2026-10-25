@@ -83,6 +83,13 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
             adapter.handleAutoSelected(it)
         }
 
+        viewModel.supportsAutoSelection.observe { supported ->
+            binding.autoSelectNodesContainer.visibility = if (supported) android.view.View.VISIBLE else android.view.View.GONE
+        }
+        viewModel.selectionPending.observe { pending ->
+            binding.addNodeButton.isEnabled = !pending
+            binding.autoSelectNodesSwitch.isEnabled = !pending
+        }
         viewModel.hasCustomNodeModelsLiveData.observe(binding.nodesToolbar.rightActionText::setEnabled)
     }
 

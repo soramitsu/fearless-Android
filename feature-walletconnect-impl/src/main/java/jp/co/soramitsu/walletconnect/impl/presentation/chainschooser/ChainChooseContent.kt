@@ -218,13 +218,13 @@ private fun SelectChainScreenPreview() {
     val items = listOf(
         ChainItemState(
             caip2id = "1",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonriver.svg",
             title = "Kusama",
             isSelected = true
         ),
         ChainItemState(
             caip2id = "2",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
             title = "Moonriver"
         )
     )

@@ -3,8 +3,8 @@ package jp.co.soramitsu.staking.impl.scenarios
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -65,16 +65,17 @@ interface StakingScenarioInteractor {
         extrinsicBuilder: ExtrinsicBuilder,
         amountInPlanks: BigInteger,
         stashState: StakingState,
-        currentBondedBalance: BigInteger,
-        candidate: String? = null
+        currentBondedBalance: BigInteger?,
+        candidate: String? = null,
+        isCurrent: () -> Boolean = { true }
     )
 
     suspend fun confirmRevoke(extrinsicBuilder: ExtrinsicBuilder, candidate: String?, stashState: StakingState)
 
     suspend fun overrideUnbondHint(): String?
     fun overrideUnbondAvailableLabel(): Int?
-    suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal
-    fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal): BigDecimal
+    suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal?
+    fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal): BigDecimal?
     suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload): Boolean
     suspend fun checkEnoughToRebondValidation(payload: RebondValidationPayload): Boolean
     suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean
@@ -85,5 +86,5 @@ interface StakingScenarioInteractor {
     fun getRebondValidationSystem(): RebondValidationSystem
     fun provideRedeemValidationSystem(): RedeemValidationSystem
     suspend fun provideBondMoreValidationSystem(): BondMoreValidationSystem
-    suspend fun getAvailableForBondMoreBalance(): BigDecimal
+    suspend fun getAvailableForBondMoreBalance(): BigDecimal?
 }

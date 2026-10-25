@@ -12,5 +12,8 @@ class TransferDraft(
     val assetPayload: AssetPayload,
     val recipientAddress: String,
     val tip: BigDecimal?,
-    val message: String?
+    val message: String?,
+    val sendMax: Boolean = false,
+    val walletId: Long? = null,
+    val walletSelectionEpoch: Long? = null
 ) : Parcelable

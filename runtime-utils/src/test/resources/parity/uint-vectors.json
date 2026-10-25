@@ -1,0 +1,103 @@
+{
+  "provenance": {
+    "oracle": "soramitsu/shared-features-android@7508bc83627b7068cfd0f4498ca5f0540205257d shared-utils (jp.co.soramitsu.shared_utils 1.1.1.44-FLW, resolved by Play 4.2.0)",
+    "note": "uint(sizeBytes).write output, little endian"
+  },
+  "cases": [
+    {
+      "sizeBytes": 1,
+      "value": "0",
+      "encoded": "0x00"
+    },
+    {
+      "sizeBytes": 1,
+      "value": "127",
+      "encoded": "0x7f"
+    },
+    {
+      "sizeBytes": 1,
+      "value": "128",
+      "encoded": "0x80"
+    },
+    {
+      "sizeBytes": 1,
+      "value": "255",
+      "encoded": "0xff"
+    },
+    {
+      "sizeBytes": 2,
+      "value": "32767",
+      "encoded": "0xff7f"
+    },
+    {
+      "sizeBytes": 2,
+      "value": "32768",
+      "encoded": "0x0080"
+    },
+    {
+      "sizeBytes": 2,
+      "value": "65535",
+      "encoded": "0xffff"
+    },
+    {
+      "sizeBytes": 4,
+      "value": "2147483647",
+      "encoded": "0xffffff7f"
+    },
+    {
+      "sizeBytes": 4,
+      "value": "2147483648",
+      "encoded": "0x00000080"
+    },
+    {
+      "sizeBytes": 4,
+      "value": "4294967295",
+      "encoded": "0xffffffff"
+    },
+    {
+      "sizeBytes": 8,
+      "value": "0",
+      "encoded": "0x0000000000000000"
+    },
+    {
+      "sizeBytes": 8,
+      "value": "1",
+      "encoded": "0x0100000000000000"
+    },
+    {
+      "sizeBytes": 8,
+      "value": "9223372036854775807",
+      "encoded": "0xffffffffffffff7f"
+    },
+    {
+      "sizeBytes": 8,
+      "value": "9223372036854775808",
+      "encoded": "0x0000000000000080"
+    },
+    {
+      "sizeBytes": 8,
+      "value": "18446744073709551615",
+      "encoded": "0xffffffffffffffff"
+    },
+    {
+      "sizeBytes": 16,
+      "value": "0",
+      "encoded": "0x00000000000000000000000000000000"
+    },
+    {
+      "sizeBytes": 16,
+      "value": "170141183460469231731687303715884105727",
+      "encoded": "0xffffffffffffffffffffffffffffff7f"
+    },
+    {
+      "sizeBytes": 16,
+      "value": "170141183460469231731687303715884105728",
+      "encoded": "0x00000000000000000000000000000080"
+    },
+    {
+      "sizeBytes": 16,
+      "value": "340282366920938463463374607431768211455",
+      "encoded": "0xffffffffffffffffffffffffffffffff"
+    }
+  ]
+}

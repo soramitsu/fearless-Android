@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">Выбрать эндпоинт</string>
+    <string name="saved_endpoint_selection_refresh">Обновить статус выбора</string>
+    <string name="saved_endpoint_selection_checking">Проверяем добавленный эндпоинт…</string>
+    <string name="saved_endpoint_selection_available">Этот добавленный эндпоинт можно выбрать для сети.</string>
+    <string name="saved_endpoint_selection_unattached">Добавьте этот эндпоинт перед выбором.</string>
+    <string name="saved_endpoint_selection_saving">Сохраняем выбор…</string>
+    <string name="saved_endpoint_selection_saved">Выбор сохранён</string>
+    <string name="saved_endpoint_selection_failed">Не удалось подтвердить выбор. Обновите статус перед повторной попыткой.</string>
+    <string name="saved_endpoint_selection_stale">Эндпоинт или выбор изменился. Обновите статус перед выбором.</string>
+    <string name="saved_endpoint_runtime_preferred">Предпочитаемый эндпоинт Solana сохранён. Запросы могут использовать другого провайдера.</string>
+    <string name="saved_endpoint_runtime_pending">Ожидаем, когда сеть начнёт использовать этот выбор.</string>
+    <string name="saved_endpoint_runtime_not_in_use">Эта сеть сейчас не используется.</string>
+    <string name="saved_endpoint_runtime_unavailable">Подключение к сети недоступно.</string>
+    <string name="saved_endpoint_runtime_paused">Подключение к сети приостановлено.</string>
+    <string name="saved_endpoint_runtime_connecting">Подключаемся к выбранному эндпоинту…</string>
+    <string name="saved_endpoint_runtime_connected">Подключено к выбранному эндпоинту</string>
+</resources>

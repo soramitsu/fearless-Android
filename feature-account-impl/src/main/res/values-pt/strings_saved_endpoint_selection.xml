@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">Selecionar endpoint</string>
+    <string name="saved_endpoint_selection_refresh">Atualizar estado da seleção</string>
+    <string name="saved_endpoint_selection_checking">A verificar o endpoint adicionado…</string>
+    <string name="saved_endpoint_selection_available">Este endpoint adicionado pode ser selecionado para a rede.</string>
+    <string name="saved_endpoint_selection_unattached">Adicione este endpoint antes de o selecionar.</string>
+    <string name="saved_endpoint_selection_saving">A guardar a seleção…</string>
+    <string name="saved_endpoint_selection_saved">Seleção guardada</string>
+    <string name="saved_endpoint_selection_failed">Não foi possível confirmar a seleção. Atualize antes de tentar novamente.</string>
+    <string name="saved_endpoint_selection_stale">O endpoint ou a seleção mudou. Atualize antes de selecionar.</string>
+    <string name="saved_endpoint_runtime_preferred">Endpoint Solana preferido guardado. Os pedidos podem usar outro fornecedor.</string>
+    <string name="saved_endpoint_runtime_pending">A aguardar que a rede use esta seleção.</string>
+    <string name="saved_endpoint_runtime_not_in_use">Esta rede não está a ser utilizada.</string>
+    <string name="saved_endpoint_runtime_unavailable">A ligação à rede está indisponível.</string>
+    <string name="saved_endpoint_runtime_paused">A ligação à rede está em pausa.</string>
+    <string name="saved_endpoint_runtime_connecting">A ligar ao endpoint selecionado…</string>
+    <string name="saved_endpoint_runtime_connected">Ligado ao endpoint selecionado</string>
+</resources>

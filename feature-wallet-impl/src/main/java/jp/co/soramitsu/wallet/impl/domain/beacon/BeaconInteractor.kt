@@ -30,18 +30,19 @@ import jp.co.soramitsu.common.utils.isTransfer
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.generics.GenericCall
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.useScaleWriter
-import jp.co.soramitsu.shared_utils.scale.utils.directWrite
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
+import jp.co.soramitsu.fearless_utils.scale.utils.directWrite
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -320,7 +321,11 @@ class BeaconInteractor(
     suspend fun estimateFee(operation: SignableOperation): BigInteger {
         val chainId = getBeaconRegisteredNetwork() ?: return BigInteger.ZERO
         val chain = chainRegistry.getChain(chainId)
-        return extrinsicService.estimateFee(chain, false) {
+        val account = accountRepository.getSelectedMetaAccount()
+        val address = account.address(chain) ?: return BigInteger.ZERO
+        val accountId = chain.accountIdOf(address)
+
+        return extrinsicService.estimateFee(chain, accountId) {
             call(operation.module, operation.call, operation.args)
         }
     }

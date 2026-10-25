@@ -6,8 +6,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.account.api.presentation.account.capturedPortfolioDetailFlow
+import jp.co.soramitsu.account.api.presentation.account.CapturedPortfolioDetail
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
+import jp.co.soramitsu.account.api.presentation.account.withAllHoldings
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
@@ -18,13 +22,10 @@ import jp.co.soramitsu.account.impl.presentation.account.model.ConnectedAccounts
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -36,6 +37,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -54,28 +57,24 @@ class AccountDetailsViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
 
-    private val walletItem = interactor.lightMetaAccountFlow(walletId)
-        .map { wallet ->
-
-            val icon = iconGenerator.createAddressIcon(
-                wallet.supportedEcosystemWithIconAddress(),
-                AddressIconGenerator.SIZE_BIG
-            )
-
-            val balanceModel = totalBalanceUseCase(walletId)
-
-            WalletItemViewState(
-                id = walletId,
-                title = wallet.name,
-                isSelected = false,
-                walletIcon = icon,
-                balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-                changeBalanceViewState = ChangeBalanceViewState(
-                    percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                    fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-                )
-            )
-        }
+    private val walletItem = capturedPortfolioDetailFlow(totalBalanceUseCase.observe(walletId)) { ready ->
+        iconGenerator.createAddressIcon(
+            ready.meta.supportedEcosystemWithIconAddress(),
+            AddressIconGenerator.SIZE_BIG
+        )
+    }.catch { failure ->
+        if (failure is CancellationException) throw failure
+        emit(CapturedPortfolioDetail(TotalBalance.Unavailable, null))
+        showError(failure)
+    }.map { captured ->
+        val ready = captured.source as? TotalBalance.Ready
+        WalletItemViewState(
+            id = walletId,
+            title = ready?.meta?.name.orEmpty(),
+            isSelected = false,
+            walletIcon = captured.detail ?: R.drawable.ic_wallet
+        ).withAllHoldings(captured.source, resourceManager)
+    }
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
@@ -123,6 +122,9 @@ class AccountDetailsViewModel @Inject constructor(
             WalletEcosystem.Substrate -> R.string.connected_accounts_substrate_title
             WalletEcosystem.Ethereum -> R.string.connected_accounts_ethereum_title
             WalletEcosystem.Ton -> R.string.connected_accounts_ton_title
+            WalletEcosystem.Bitcoin -> R.string.connected_accounts_bitcoin_title
+            WalletEcosystem.Solana -> R.string.connected_accounts_solana_title
+            WalletEcosystem.Iroha -> R.string.connected_accounts_iroha_title
         }
         return resourceManager.getString(resId)
     }

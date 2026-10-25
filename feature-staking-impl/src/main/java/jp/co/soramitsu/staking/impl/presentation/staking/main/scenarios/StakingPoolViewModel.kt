@@ -9,19 +9,20 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
+import jp.co.soramitsu.staking.impl.domain.rewards.PeriodReturns
+import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
@@ -31,23 +32,33 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.Pool
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ReturnsModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingRewardEstimationBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.toViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.default
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+
+internal suspend fun RewardCalculator.calculatePoolStakingReturns(
+    amount: BigDecimal,
+    periodInDays: Int,
+    chainId: ChainId
+): PeriodReturns = calculateReturns(amount, periodInDays, isCompound = true, chainId = chainId)
 
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
@@ -57,17 +68,12 @@ class StakingPoolViewModel(
     baseViewModel: BaseStakingViewModel
 ) : StakingScenarioViewModel {
 
-    private val initialValue = BigDecimal.TEN
-    private val defaultAmountInputState = AmountInputViewState(
-        tokenName = "...",
-        tokenImage = "",
-        totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
-        fiatAmount = "",
-        tokenAmount = initialValue
-    )
-    private val currentAssetFlow = stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }
+    override val stakingType = jp.co.soramitsu.staking.api.data.StakingType.POOL
 
-    override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
+    private val initialValue = BigDecimal.TEN
+    private val currentAssetFlow = stakingInteractor.currentAssetFlow()
+
+    override val stakingStateFlow: Flow<StakingState?> = stakingPoolInteractor.stakingStateFlow()
 
     @Deprecated(
         "Don't use this method, use the getStakingViewStateFlow instead",
@@ -90,108 +96,116 @@ class StakingPoolViewModel(
 
     override val enteredAmountFlow = MutableStateFlow(initialValue)
 
-    private val amountInputViewState: Flow<AmountInputViewState> = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
-        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
-        val fiatAmount = amount?.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
-
-        AmountInputViewState(
-            tokenName = asset.token.configuration.symbol,
-            tokenImage = asset.token.configuration.iconUrl,
-            totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
-            fiatAmount = fiatAmount,
-            tokenAmount = amount.orZero()
-        )
-    }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, defaultAmountInputState)
-
-    private val estimatedEarningsViewState = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
-        getReturns(asset.token.configuration.chainId, amount.orZero())
-    }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, ReturnsModel.default)
-
-    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
-        return combine(stakingStateFlow, amountInputViewState, estimatedEarningsViewState) { state, inputState, returns ->
-            when (state) {
-                is StakingState.Pool.Member -> {
-                    val asset = stakingInteractor.currentAssetFlow().first()
-                    val poolViewState = state.pool.toViewState(asset, resourceManager)
-                    StakingViewState.Pool.PoolMember(poolViewState)
-                }
-
-                is StakingState.Pool.None -> {
-                    val monthly =
-                        returns.monthly.gain.nullIfEmpty()?.let { TitleValueViewState(it, returns.monthly.amount.nullIfEmpty(), returns.monthly.fiatAmount) }
-                    val yearly =
-                        returns.yearly.gain.nullIfEmpty()?.let { TitleValueViewState(it, returns.yearly.amount.nullIfEmpty(), returns.yearly.fiatAmount) }
-                    val returnsViewState = EstimatedEarningsViewState(
-                        monthlyChange = monthly,
-                        yearlyChange = yearly,
-                        inputState
-                    )
-                    StakingViewState.Pool.Welcome(returnsViewState)
-                }
-
-                is StakingState.Pool.Nominator -> error("StakingState.Pool.Nominator is not supported")
-                is StakingState.Pool.Root -> error("StakingState.Pool.Root is not supported")
-                is StakingState.Pool.StateToggler -> error("StakingState.Pool.StateToggler is not supported")
-                else -> error("StakingPoolViewModel.getStakingViewStateFlow wrong staking state")
-            }
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState?> {
+        return stakingStateFlow.flatMapLatest { state ->
+            if (state == null) return@flatMapLatest kotlinx.coroutines.flow.flowOf(null)
+            combine(currentAssetFlow, enteredAmountFlow) { asset, amount -> asset to amount.orZero() }
+                .transformLatest { (asset, amount) ->
+                    if (!asset.token.configuration.supportStakingPool || asset.chainId != state.chain.id ||
+                        !asset.accountId.contentEquals(state.accountId)) {
+                        emit(null)
+                        return@transformLatest
+                    }
+                    when (state) {
+                        is StakingState.Pool.Member -> emit(
+                            StakingViewState.Pool.PoolMember(state.pool.toViewState(asset, resourceManager))
+                        )
+                        is StakingState.Pool.None -> {
+                            val input = AmountInputViewState(
+                                tokenName = asset.token.configuration.symbol,
+                                tokenImage = asset.token.configuration.iconUrl,
+                                totalBalance = resourceManager.getString(
+                                    R.string.common_balance_format, (asset.transferable?.formatCrypto(asset.token.configuration.symbol)
+                ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable))
+                                ),
+                                fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),
+                                tokenAmount = amount
+                            )
+                            // Optional reward estimates never gate a healthy pool entry or retain a prior quote.
+                            emit(poolWelcome(input, ReturnsModel.default))
+                            try {
+                                emit(poolWelcome(input, getReturns(asset, amount)))
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                // Keep the current input available without an unverified estimate.
+                            }
+                        }
+                        else -> emit(null)
+                    }
+                }.onStart { emit(null) }.catch { emit(null) }
         }
     }
 
-    private suspend fun getReturns(id: ChainId, amount: BigDecimal): ReturnsModel {
-        // todo hardcoded returns for demo
-        val kusamaOnTestNodeChainId = "51cdb4b3101904a9d234d126656d33cd17518249819b510a03d6c90d0a019611"
-        val polkadotOnTestNodeChainId = "4f77f65b21b1f396c1555850be6f21e2b1f36c26b94dbcbfec976901c9f08bf3"
-        val chainId = if (id == kusamaOnTestNodeChainId || id == polkadotOnTestNodeChainId) {
-            polkadotChainId
-        } else {
-            id
+    private fun poolWelcome(input: AmountInputViewState, returns: ReturnsModel): StakingViewState.Pool.Welcome {
+        val monthly = returns.monthly.gain.nullIfEmpty()?.let {
+            TitleValueViewState(it, returns.monthly.amount.nullIfEmpty(), returns.monthly.fiatAmount)
         }
-        val asset = stakingInteractor.currentAssetFlow().first()
-        val calculator = rewardCalculatorFactory.create(asset.token.configuration)
-        val monthly = calculator.calculateReturns(amount, PERIOD_MONTH, true, chainId)
-        val yearly = calculator.calculateReturns(amount, PERIOD_YEAR, true, chainId)
+        val yearly = returns.yearly.gain.nullIfEmpty()?.let {
+            TitleValueViewState(it, returns.yearly.amount.nullIfEmpty(), returns.yearly.fiatAmount)
+        }
+        return StakingViewState.Pool.Welcome(EstimatedEarningsViewState(monthly, yearly, input))
+    }
 
+    private suspend fun getReturns(asset: Asset, amount: BigDecimal): ReturnsModel {
+        val calculator = rewardCalculatorFactory.create(asset.token.configuration)
+        val chainId = asset.chainId
+        val monthly = calculator.calculatePoolStakingReturns(amount, PERIOD_MONTH, chainId)
+        val yearly = calculator.calculatePoolStakingReturns(amount, PERIOD_YEAR, chainId)
         val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
-
         return ReturnsModel(monthlyEstimation, yearlyEstimation)
     }
 
+    override suspend fun rewardEstimationPayload(): StakingRewardEstimationBottomSheet.Payload =
+        rewardEstimationPayload(currentAssetFlow.filter { it.token.configuration.supportStakingPool }.first())
+
+    override suspend fun rewardEstimationPayload(asset: Asset): StakingRewardEstimationBottomSheet.Payload {
+        val chainId = asset.token.configuration.chainId
+        val calculator = rewardCalculatorFactory.create(asset.token.configuration)
+
+        return StakingRewardEstimationBottomSheet.Payload(
+            calculator.calculateMaxAPY(chainId).formatAsPercentage(),
+            calculator.calculateAvgAPY().formatAsPercentage(),
+            R.string.staking_reward_info_apr_max,
+            R.string.staking_reward_info_apr_avg
+        )
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
-        return stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }.mapNotNull { asset ->
+        return currentAssetFlow.transformLatest<Asset, LoadingState<StakingNetworkInfoModel>> { asset ->
+            emit(LoadingState.Loading())
+            if (!asset.token.configuration.supportStakingPool) return@transformLatest
             try {
                 val config = asset.token.configuration
                 val chainId = config.chainId
-
-                val minToJoinPoolInPlanks = stakingPoolInteractor.getMinToJoinPool(chainId)
-                val minToJoinPool = asset.token.configuration.amountFromPlanks(minToJoinPoolInPlanks)
-                val minToJoinPoolFormatted = minToJoinPool.formatCryptoDetail(config.symbol)
-                val minToJoinPoolFiat = asset.token.fiatAmount(minToJoinPool)?.formatFiat(asset.token.fiatSymbol)
-
-                val minToCreatePoolInPlanks = stakingPoolInteractor.getMinToCreate(chainId)
-                val minToCreatePool = asset.token.configuration.amountFromPlanks(minToCreatePoolInPlanks)
-                val minToCreatePoolFormatted = minToCreatePool.formatCryptoDetail(config.symbol)
-                val minToCreatePoolFiat = asset.token.fiatAmount(minToCreatePool)?.formatFiat(asset.token.fiatSymbol)
-
+                val minToJoin = config.amountFromPlanks(stakingPoolInteractor.getMinToJoinPool(chainId))
+                val minToCreate = config.amountFromPlanks(stakingPoolInteractor.getMinToCreate(chainId))
                 val existingPools = stakingPoolInteractor.getExistingPools(chainId).toString()
                 val possiblePools = stakingPoolInteractor.getPossiblePools(chainId).toString()
                 val maxMembersInPool = stakingPoolInteractor.getMaxMembersInPool(chainId).toString()
                 val maxPoolsMembers = stakingPoolInteractor.getMaxPoolsMembers(chainId).toString()
-
-                StakingNetworkInfoModel.Pool(
-                    minToJoinPoolFormatted,
-                    minToJoinPoolFiat,
-                    minToCreatePoolFormatted,
-                    minToCreatePoolFiat,
+                emit(LoadingState.Loaded(StakingNetworkInfoModel.Pool(
+                    minToJoin.formatCryptoDetail(config.symbol),
+                    asset.token.fiatAmount(minToJoin)?.formatFiat(asset.token.fiatSymbol),
+                    minToCreate.formatCryptoDetail(config.symbol),
+                    asset.token.fiatAmount(minToCreate)?.formatFiat(asset.token.fiatSymbol),
                     existingPools,
                     possiblePools,
                     maxMembersInPool,
                     maxPoolsMembers
-                )
-            } catch (e: NullPointerException) {
-                null
+                )))
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Current values remain unavailable; the next asset observation can recover.
             }
-        }.withLoading()
+        }.onStart { emit(LoadingState.Loading()) }.catch { error ->
+            if (error is CancellationException) throw error
+            emit(LoadingState.Loading())
+        }
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {

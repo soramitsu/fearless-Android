@@ -50,7 +50,9 @@ fun chainOf(
     identityChain = null,
     ecosystem = "Substrate",
     androidMinAppVersion = null,
-    remoteAssetsSource = null
+    remoteAssetsSource = null,
+    tonBridgeUrl = null,
+    xcm = null
 )
 
 fun ChainLocal.nodeOf(
@@ -82,7 +84,8 @@ fun ChainLocal.assetOf(
     existentialDeposit = null,
     color = null,
     isNative = null,
-    priceProvider = null
+    priceProvider = null,
+    coinbaseUrl = null
 )
 
 suspend fun ChainDao.addChain(joinedChainInfo: JoinedChainInfo) {

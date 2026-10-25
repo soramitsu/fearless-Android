@@ -1,12 +1,14 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -22,6 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.Role
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
@@ -30,6 +34,7 @@ import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.GoogleButton
+import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.IconButton
 import jp.co.soramitsu.common.compose.component.Image
@@ -38,7 +43,6 @@ import jp.co.soramitsu.common.compose.component.TransparentBorderedButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.feature_onboarding_impl.R
 import kotlinx.coroutines.flow.StateFlow
 
@@ -51,8 +55,9 @@ data class WelcomeState(
 interface WelcomeScreenInterface {
     fun backClicked()
 
-    fun importAccountClicked(accountType: AccountType)
-    fun createAccountClicked(accountType: AccountType)
+    fun importAccountClicked(accountType: AccountType?)
+    fun createAccountClicked(accountType: AccountType?)
+    fun savedEndpointsClicked()
     fun googleSigninClicked()
     fun getPreInstalledWalletClicked()
     fun privacyClicked()
@@ -70,14 +75,15 @@ fun NavGraphBuilder.WelcomeScreen(
         arguments = listOf(
             navArgument("accountType") {
                 type = NavType.StringType
-                nullable = false
+                nullable = true
+                defaultValue = null
             }
         )
     ) {
         val state by welcomeStateFlow.collectAsState()
-        val accountType = it.arguments?.getString("accountType")?.let { stringValue ->
+        val accountType = it.arguments?.getString("accountType")?.takeIf { value -> value.isNotEmpty() }?.let { stringValue ->
             AccountType.valueOf(stringValue)
-        } ?: throw IllegalStateException("accountType can't be null")
+        }
 
         FullScreenLoading(state.isLoading) {
             WelcomeScreenContent(
@@ -94,12 +100,13 @@ fun NavGraphBuilder.WelcomeScreen(
 private fun WelcomeScreenContent(
     state: WelcomeState,
     isGoogleAvailable: Boolean,
-    accountType: AccountType,
+    accountType: AccountType?,
     callbacks: WelcomeScreenInterface
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .paint(
                 painter = painterResource(R.drawable.drawable_background_image),
                 contentScale = ContentScale.FillWidth
@@ -116,20 +123,26 @@ private fun WelcomeScreenContent(
             ) {
                 IconButton(
                     painter = painterResource(id = R.drawable.ic_arrow_back_24dp),
+                    contentDescription = stringResource(R.string.ux_back),
                     onClick = callbacks::backClicked
                 )
             }
         }
 
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            Image(res = R.drawable.drawable_fearless_logo)
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(res = R.drawable.fw_brand_hero)
+            MarginVertical(margin = 16.dp)
+            H2(text = stringResource(R.string.fearless_wallet), textAlign = TextAlign.Center)
         }
         AccentButton(
             text = stringResource(id = R.string.username_setup_title_2_0),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
-                .height(48.dp),
+                .heightIn(min = 48.dp),
             onClick = { callbacks.createAccountClicked(accountType) }
         )
         MarginVertical(margin = 8.dp)
@@ -138,7 +151,7 @@ private fun WelcomeScreenContent(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
-                .height(48.dp),
+                .heightIn(min = 48.dp),
             onClick = { callbacks.importAccountClicked(accountType) }
         )
 
@@ -160,16 +173,25 @@ private fun WelcomeScreenContent(
                 onClick = callbacks::getPreInstalledWalletClicked
             )
         }
+        MarginVertical(margin = 16.dp)
+        GrayButton(
+            text = stringResource(R.string.saved_endpoints_title),
+            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().heightIn(min = 48.dp),
+            onClick = callbacks::savedEndpointsClicked
+        )
         MarginVertical(margin = 68.dp)
 
         Text(
             style = MaterialTheme.customTypography.body1,
             color = Color.White,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            textAlign = TextAlign.Center,
             text = stringResource(id = R.string.onboarding_terms_and_conditions_prefix)
         )
-        Row {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                modifier = Modifier.clickable(onClick = callbacks::termsClicked),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 48.dp).clickable(role = Role.Button, onClick = callbacks::termsClicked).padding(vertical = 8.dp),
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.customTypography.body1,
                 color = colorAccentDark,
                 text = stringResource(id = R.string.onboarding_terms_and_conditions_2)
@@ -181,7 +203,8 @@ private fun WelcomeScreenContent(
                 text = stringResource(id = R.string.common_and)
             )
             Text(
-                modifier = Modifier.clickable(onClick = callbacks::privacyClicked),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 48.dp).clickable(role = Role.Button, onClick = callbacks::privacyClicked).padding(vertical = 8.dp),
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.customTypography.body1,
                 color = colorAccentDark,
                 text = stringResource(id = R.string.onboarding_privacy_policy)
@@ -201,8 +224,9 @@ private fun WelcomeScreenPreview() {
             accountType = AccountType.SubstrateOrEvm,
             callbacks = object : WelcomeScreenInterface {
                 override fun backClicked() {}
-                override fun importAccountClicked(accountType: AccountType) {}
-                override fun createAccountClicked(accountType: AccountType) {}
+                override fun importAccountClicked(accountType: AccountType?) {}
+                override fun createAccountClicked(accountType: AccountType?) {}
+                override fun savedEndpointsClicked() {}
                 override fun googleSigninClicked() {}
                 override fun getPreInstalledWalletClicked() {}
                 override fun privacyClicked() {}

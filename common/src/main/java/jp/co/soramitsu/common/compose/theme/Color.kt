@@ -8,81 +8,75 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
+import jp.co.soramitsu.common.compose.theme.fw.FwLegacyPalette
 import androidx.core.graphics.toColorInt
-import jp.co.soramitsu.shared_utils.extensions.requirePrefix
+import jp.co.soramitsu.fearless_utils.extensions.requirePrefix
 
-val colorPrimary = Color(0xFF004CB7)
-val colorSelected = Color(0x66FF009A)
-val colorPrimaryDark = Color(0x80004CB7)
-val colorAccent = Color(0xFFFF009A)
-val colorHint = Color(0xFFCCCCCC)
-val gray1 = Color(0xFFCCCCCC)
-val gray2 = Color(0xFF888888)
-val gray3 = Color(0xFF444444)
-val gray4 = Color(0xFF181818)
-val grayDisabled = Color(0xFFD0D0D0)
-val colorGreyText = Color(0xFF888888)
-val black = Color(0xFF000000)
-val green = Color(0xFF0ED33B)
-val greenText = Color(0xFF09C8A1)
-val dividerGray = Color(0xFF444444)
-val bottomSheetBackground = Color(0x80838383)
-val red = Color(0xFFF00004)
-val blurColorDark = Color(0xB3000000)
-val blurColor = Color(0x8C000000)
-val blurColorLight = Color(0x66000000)
-val backgroundBlurColor = Color(0x0AFFFFFF)
-val selectedGreen = Color(0xFF09C8A1)
-val soracardDialog = Color(0xFF1e1e1e)
+val colorPrimary = FwLegacyPalette.colorPrimary
+val colorSelected = FwLegacyPalette.colorSelected
+val colorPrimaryDark = FwLegacyPalette.colorPrimaryDark
+val colorAccent = FwLegacyPalette.colorAccent
+val colorHint = FwLegacyPalette.colorHint
+val gray1 = FwLegacyPalette.gray1
+val gray2 = FwLegacyPalette.gray2
+val gray3 = FwLegacyPalette.gray3
+val gray4 = FwLegacyPalette.gray4
+val grayDisabled = FwLegacyPalette.grayDisabled
+val colorGreyText = FwLegacyPalette.colorGreyText
+val black = FwLegacyPalette.black
+val green = FwLegacyPalette.green
+val greenText = FwLegacyPalette.greenText
+val dividerGray = FwLegacyPalette.dividerGray
+val bottomSheetBackground = FwLegacyPalette.bottomSheetBackground
+val red = FwLegacyPalette.red
+val blurColorDark = FwLegacyPalette.blurColorDark
+val blurColor = FwLegacyPalette.blurColor
+val blurColorLight = FwLegacyPalette.blurColorLight
+val backgroundBlurColor = FwLegacyPalette.backgroundBlurColor
+val selectedGreen = FwLegacyPalette.selectedGreen
+val white = FwLegacyPalette.white
+val white04 = FwLegacyPalette.white04
+val white08 = FwLegacyPalette.white08
+val white10 = FwLegacyPalette.white10
+val white16 = FwLegacyPalette.white16
+val white20 = FwLegacyPalette.white20
+val white24 = FwLegacyPalette.white24
+val white30 = FwLegacyPalette.white30
+val white40 = FwLegacyPalette.white40
+val white50 = FwLegacyPalette.white50
+val white60 = FwLegacyPalette.white60
+val white64 = FwLegacyPalette.white64
 
-val white = Color(0xFFFFFFFF)
-val white04 = Color(0x0AFFFFFF)
-val white08 = Color(0x14FFFFFF)
-val white10 = Color(0x1AFFFFFF)
-val white16 = Color(0x29FFFFFF)
-val white20 = Color(0x33FFFFFF)
-val white24 = Color(0x3DFFFFFF)
-val white30 = Color(0x4DFFFFFF)
-val white40 = Color(0x66FFFFFF)
-val white50 = Color(0x80FFFFFF)
-val white60 = Color(0xA6FFFFFF)
-val white64 = Color(0xA3FFFFFF)
+val borderGradientColors = FwLegacyPalette.borderGradientColors
 
-val borderGradientColors = listOf(
-    Color(0xFFEE0077),
-    Color(0xFFEE7700),
-    Color(0xFF7700EE),
-    Color(0xFFC800EE)
-)
+val black1 = FwLegacyPalette.black1
+val black2 = FwLegacyPalette.black2
+val black3 = FwLegacyPalette.black3
+val black4 = FwLegacyPalette.black4
+val black05 = FwLegacyPalette.black05
+val black72 = FwLegacyPalette.black72
+val black50 = FwLegacyPalette.black50
 
-val black1 = gray1
-val black2 = gray2
-val black3 = gray3
-val black4 = gray4
-val black05 = Color(0xff1D1F21)
-val black72 = Color(0xB8000000)
-val black50 = Color(0x80000000)
+val purple = FwLegacyPalette.purple
+val backgroundBlack = FwLegacyPalette.backgroundBlack
+val grayButtonBackground = FwLegacyPalette.grayButtonBackground
+val darkButtonBackground = FwLegacyPalette.darkButtonBackground
+val shimmerColor = FwLegacyPalette.shimmerColor
 
-val purple = Color(0xFF7700EE)
-val backgroundBlack = Color(0xFF131313)
-val grayButtonBackground = Color(0xFF2b2b2b)
-val darkButtonBackground = Color(0xFF1C1A1B)
-val shimmerColor = Color(0x80DBDBDB)
+val accountIconLight = FwLegacyPalette.accountIconLight
+val accountIconDark = FwLegacyPalette.accountIconDark
+val errorRed = FwLegacyPalette.errorRed
+val warningOrange = FwLegacyPalette.warningOrange
+val alertYellow = FwLegacyPalette.alertYellow
+val warningYellow = FwLegacyPalette.warningYellow
+val demeterYellow = FwLegacyPalette.demeterYellow
 
-val accountIconLight = Color(0xFFEEEEEE)
-val accountIconDark = Color(0xFF000000)
-val errorRed = Color(0xFFFF3B30)
-val warningOrange = Color(0xFFEE7700)
-val alertYellow = Color(0xFFEE7700)
-val warningYellow = Color(0xFFFFD600)
-val demeterYellow = Color(0xFFEC7430)
+val transparent = FwLegacyPalette.transparent
 
-val transparent = Color(0xffffff)
-
-val colorAccentDark = Color(0xFFEE0077)
-val colorAccentSecondary = Color(0xFFD5D5D5)
-val soraRed = Color(0xFFEE2233)
-val soraBlueDialog = Color(0xFF007aff)
+val colorAccentDark = FwLegacyPalette.colorAccentDark
+val colorAccentSecondary = FwLegacyPalette.colorAccentSecondary
+val soraRed = FwLegacyPalette.soraRed
+val soraBlueDialog = FwLegacyPalette.soraBlueDialog
 
 val accentButtonColors = object : ButtonColors {
     @Composable

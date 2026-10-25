@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.data.repository.datasource
 
+import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.AuthType
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
@@ -10,7 +12,7 @@ import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 interface AccountDataSource : SecretStoreV1 {
@@ -18,6 +20,8 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun saveAuthType(authType: AuthType)
 
     suspend fun getAuthType(): AuthType
+
+    suspend fun getPinHealth(): PinHealth
 
     suspend fun savePinCode(pinCode: String)
 
@@ -30,6 +34,16 @@ interface AccountDataSource : SecretStoreV1 {
 
     suspend fun getSelectedMetaAccount(): MetaAccount
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
+
+    /**
+     * Null means selection is absent or its current catalog mapping is not ready.
+     * Every local selection replacement revokes the preceding account before mapping.
+     * Callers must keep null distinct from a completed empty wallet and clear on failure.
+     */
+    fun selectedMetaAccountStateFlow(): Flow<MetaAccount?>
+
+    /** Cold per-wallet state; null revokes removed or not-yet-mapped accounts. No equality conflation. */
+    fun metaAccountStateFlow(metaId: Long): Flow<MetaAccount?>
     suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
 
     suspend fun allMetaAccounts(): List<MetaAccount>
@@ -49,7 +63,6 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun updateMetaAccountName(metaId: Long, newName: String)
     suspend fun updateMetaAccountBackedUp(metaId: Long)
     suspend fun updateWalletOnGoogleBackupDelete(metaId: Long)
-    suspend fun deleteMetaAccount(metaId: Long)
 
     fun observeAllMetaAccounts(): Flow<List<MetaAccount>>
     fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount>

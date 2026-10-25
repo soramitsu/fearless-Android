@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
@@ -31,6 +32,9 @@ class PolkaswapFeatureModule {
         extrinsicService: ExtrinsicService,
         chainRegistry: ChainRegistry,
         accountRepository: AccountRepository,
+        featureToggleStore: ProductFeatureToggleStore,
+        preferences: Preferences,
+        walletRepository: WalletRepository,
     ): PolkaswapRepository {
         return PolkaswapRepositoryImpl(
             remoteConfigFetcher,
@@ -38,6 +42,9 @@ class PolkaswapFeatureModule {
             extrinsicService,
             chainRegistry,
             accountRepository,
+            featureToggleStore,
+            preferences,
+            walletRepository,
         )
     }
 

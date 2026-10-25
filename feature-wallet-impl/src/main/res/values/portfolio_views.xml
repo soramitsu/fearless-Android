@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">By token</string>
+    <string name="portfolio_by_network">By network</string>
+    <string name="portfolio_show_zero_networks">Show popular / zero-balance networks (%1$d)</string>
+    <string name="portfolio_hide_zero_networks">Hide zero-balance networks (%1$d)</string>
+    <string name="portfolio_hide_group_title">Hide token on all networks?</string>
+    <string name="portfolio_hide_group_message">These network assets will be hidden and excluded from the portfolio total. Their balances and backup remain available in Manage assets.</string>
+    <string name="portfolio_choose_network">Choose network</string>
+    <string name="portfolio_price_unavailable">Price unavailable</string>
+    <string name="portfolio_price_incomplete">Price incomplete — unpriced balances excluded</string>
+    <string name="portfolio_group_networks">On %1$d networks</string>
+    <string name="portfolio_group_hidden">%1$d hidden assets excluded</string>
+    <string name="portfolio_value_notice">Your portfolio total includes free and reserved balances. Hidden assets, unpriced assets, testnets and pool stakes are excluded.</string>
+    <string name="portfolio_hidden_manage">Hidden assets (%1$d) · %2$s excluded · Manage</string>
+    <string name="portfolio_filter_all">All</string>
+    <string name="portfolio_filter_shown">Shown</string>
+    <string name="portfolio_filter_hidden">Hidden</string>
+    <string name="portfolio_preference_auto">Auto</string>
+    <string name="portfolio_manage_group_count">%1$d of %2$d shown</string>
+    <string name="portfolio_no_hidden">No hidden assets</string>
+    <string name="portfolio_only_network">This token is only available on %1$s in Fearless.</string>
+</resources>

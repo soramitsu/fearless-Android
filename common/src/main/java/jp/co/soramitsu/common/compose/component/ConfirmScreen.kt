@@ -111,7 +111,7 @@ private fun ConfirmJoinPoolScreenPreview() {
             TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32")
         ),
         amount = "10KSM",
-        assetIcon = GradientIconState.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg", ""),
+        assetIcon = GradientIconState.Remote("https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg", ""),
         titleRes = R.string.common_confirm,
         additionalMessageRes = R.string.pool_staking_unstake_alert,
         isLoading = false

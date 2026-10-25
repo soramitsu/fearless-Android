@@ -14,14 +14,24 @@ import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.account.api.presentation.account.CapturedPortfolioDetail
+import jp.co.soramitsu.account.api.presentation.account.presentPortfolioOrigin
+import jp.co.soramitsu.account.api.presentation.account.portfolioBalanceCaption
+import jp.co.soramitsu.account.api.presentation.account.capturedPortfolioOriginFlow
+import jp.co.soramitsu.common.address.AddressModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
@@ -70,7 +80,22 @@ class BeaconViewModel @Inject constructor(
     }.inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance.observe().map { it.balance.formatCryptoDetail() }.asLiveData()
+    private val _portfolioOrigin = MutableStateFlow(presentPortfolioOrigin(
+        CapturedPortfolioDetail<AddressModel>(TotalBalance.AwaitingSelection, null)
+    ) { portfolioBalanceCaption(it, resourceManager) })
+    val portfolioOrigin = _portfolioOrigin.asStateFlow()
+
+    init {
+        capturedPortfolioOriginFlow(totalBalance.observe(), polkadotChainId, iconGenerator)
+            .catch { failure ->
+                if (failure is CancellationException) throw failure
+                emit(CapturedPortfolioDetail(TotalBalance.Unavailable, null))
+            }
+            .onEach { origin ->
+                _portfolioOrigin.value = presentPortfolioOrigin(origin) { portfolioBalanceCaption(it, resourceManager) }
+            }
+            .launchIn(viewModelScope)
+    }
 
     private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
     val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent

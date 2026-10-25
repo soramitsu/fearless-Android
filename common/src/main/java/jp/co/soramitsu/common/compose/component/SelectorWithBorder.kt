@@ -130,7 +130,7 @@ fun SelectorWithBorder(
 private fun SelectorWithBorderPreview() {
     val state = SelectorState(
         title = "Kusama",
-        iconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+        iconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg",
         subTitle = "300 KSM"
     )
     FearlessTheme {

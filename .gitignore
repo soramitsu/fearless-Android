@@ -1,16 +1,46 @@
 *.iml
 .gradle
+.kotlin/
 /local.properties
 .DS_Store
 /build
+**/build/
 /captures
 .externalNativeBuild
 app/src/main/aidl/
 app/*.apk
 /.idea/
+__pycache__/
+*.pyc
 
 # ignore jacoco coverage reports
 /coverage
 
+# ignore local logs
+*.log
+
 fearless.jks
+fearless-upload.jks
+debug-keystore.jks
+*.keystore
+*.p12
+*.p8
+*.pem
+/.release-overlays/
 /buildSrc/build
+
+# Local temporary files and generated review artifacts
+/tmp/
+/.tmp/
+/tmp-*/
+/.tmp-*/
+*.tmp
+/output/
+/.playwright-cli/
+/playwright-report/
+/test-results/
+/review-output/
+/review-artifacts/
+# Dated local acceptance and review reports
+/docs/validation/20*/
+/docs/legacy-upgrade-audit-20*.md

@@ -1,0 +1,552 @@
+{
+  "format": "fearless.portfolio-parity-cases",
+  "version": 1,
+  "description": "Golden cases that each app reproduces in one consumer test (critique T-5): the listed zero defaults per wallet type, and the effective capability state after a sequence of remote-config fetches under veto-only semantics. Labels are symbol@network from the registry.",
+  "zeroDefaults": [
+    {
+      "id": "substrate-and-evm-mnemonic-wallet",
+      "accounts": [
+        "substrate",
+        "evm"
+      ],
+      "expected": [
+        "xor@SORA Mainnet",
+        "eth@Ethereum",
+        "BNB@BNB Smart Chain",
+        "pol@Polygon",
+        "eth@Arbitrum One",
+        "eth@OP Mainnet",
+        "avax@Avalanche C-Chain",
+        "eth@Polygon zkEVM",
+        "dot@Polkadot",
+        "ksm@Kusama",
+        "pen@Pendulum",
+        "movr@Moonriver",
+        "glmr@Moonbeam",
+        "okb@X Layer Mainnet",
+        "anlog@Analog Timechain"
+      ]
+    },
+    {
+      "id": "substrate-only-legacy-wallet",
+      "accounts": [
+        "substrate"
+      ],
+      "expected": [
+        "xor@SORA Mainnet",
+        "dot@Polkadot",
+        "ksm@Kusama",
+        "pen@Pendulum",
+        "anlog@Analog Timechain"
+      ]
+    },
+    {
+      "id": "evm-only-private-key-wallet",
+      "accounts": [
+        "evm"
+      ],
+      "expected": [
+        "eth@Ethereum",
+        "BNB@BNB Smart Chain",
+        "pol@Polygon",
+        "eth@Arbitrum One",
+        "eth@OP Mainnet",
+        "avax@Avalanche C-Chain",
+        "eth@Polygon zkEVM",
+        "movr@Moonriver",
+        "glmr@Moonbeam",
+        "okb@X Layer Mainnet"
+      ]
+    },
+    {
+      "id": "ton-only-wallet",
+      "accounts": [
+        "ton"
+      ],
+      "expected": [
+        "ton@TON Mainnet"
+      ]
+    },
+    {
+      "id": "universal-wallet",
+      "accounts": [
+        "substrate",
+        "evm",
+        "ton",
+        "bitcoin",
+        "solana"
+      ],
+      "expected": [
+        "xor@SORA Mainnet",
+        "eth@Ethereum",
+        "BNB@BNB Smart Chain",
+        "pol@Polygon",
+        "eth@Arbitrum One",
+        "eth@OP Mainnet",
+        "avax@Avalanche C-Chain",
+        "eth@Polygon zkEVM",
+        "dot@Polkadot",
+        "ksm@Kusama",
+        "pen@Pendulum",
+        "movr@Moonriver",
+        "glmr@Moonbeam",
+        "okb@X Layer Mainnet",
+        "anlog@Analog Timechain",
+        "ton@TON Mainnet",
+        "BTC@Bitcoin",
+        "SOL@Solana"
+      ]
+    },
+    {
+      "id": "universal-wallet-with-bitcoin-send-vetoed",
+      "accounts": [
+        "substrate",
+        "evm",
+        "ton",
+        "bitcoin",
+        "solana"
+      ],
+      "sendPausedChainIds": [
+        "bitcoin:mainnet"
+      ],
+      "expected": [
+        "xor@SORA Mainnet",
+        "eth@Ethereum",
+        "BNB@BNB Smart Chain",
+        "pol@Polygon",
+        "eth@Arbitrum One",
+        "eth@OP Mainnet",
+        "avax@Avalanche C-Chain",
+        "eth@Polygon zkEVM",
+        "dot@Polkadot",
+        "ksm@Kusama",
+        "pen@Pendulum",
+        "movr@Moonriver",
+        "glmr@Moonbeam",
+        "okb@X Layer Mainnet",
+        "anlog@Analog Timechain",
+        "ton@TON Mainnet",
+        "SOL@Solana"
+      ]
+    }
+  ],
+  "remoteConfig": [
+    {
+      "id": "first-launch-offline",
+      "steps": [
+        {
+          "fetchFailure": true
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": true,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        }
+      }
+    },
+    {
+      "id": "normal-payload-changes-nothing",
+      "steps": [
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": true,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        }
+      }
+    },
+    {
+      "id": "empty-documents-change-nothing",
+      "steps": [
+        {
+          "fetch": {
+            "mobile": {},
+            "web": {}
+          }
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": true,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        }
+      }
+    },
+    {
+      "id": "polkaswap-veto-is-sticky",
+      "steps": [
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false,
+              "polkaswap_mutations_enabled": false
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              },
+              "actions": {
+                "polkaswap": false
+              }
+            }
+          }
+        },
+        {
+          "fetchFailure": true
+        },
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": false,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": false,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": false,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        }
+      }
+    },
+    {
+      "id": "explicit-true-lifts-a-veto",
+      "steps": [
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false,
+              "polkaswap_mutations_enabled": false
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              },
+              "actions": {
+                "polkaswap": false
+              }
+            }
+          }
+        },
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false,
+              "polkaswap_mutations_enabled": true
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              },
+              "actions": {
+                "polkaswap": true
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": true,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        }
+      }
+    },
+    {
+      "id": "remote-true-never-enables-compiled-off",
+      "steps": [
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false,
+              "demeter_mutations_enabled": true
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              },
+              "actions": {
+                "demeter": true,
+                "polkamarkt": true,
+                "crossChainXcm": true,
+                "crossChainSoraBridge": true,
+                "crossChainLiberland": true
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": true,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        }
+      }
+    },
+    {
+      "id": "bitcoin-kill-switch-pauses-only-bitcoin",
+      "steps": [
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false,
+              "bitcoin_send_enabled": false
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              },
+              "actions": {
+                "bitcoinSend": false
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": true,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": false,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": false,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": false,
+          "solanaSend": true
+        }
+      }
+    },
+    {
+      "id": "non-boolean-values-diverge-and-are-forbidden",
+      "note": "Gson reads the string \"false\" as a veto, iOS rejects the document (state unchanged) and the extension ignores non-booleans. The template validator therefore requires JSON booleans.",
+      "steps": [
+        {
+          "fetch": {
+            "mobile": {
+              "pendulum_case_enabled": false,
+              "nft_enabled": false,
+              "dapp_enabled": false,
+              "polkaswap_mutations_enabled": "false"
+            },
+            "web": {
+              "fiat": {
+                "soraCard": false,
+                "moonpay": true,
+                "ramp": true
+              },
+              "actions": {
+                "polkaswap": "false"
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "android": {
+          "polkaswap": false,
+          "demeter": true,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "ios": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        },
+        "web": {
+          "polkaswap": true,
+          "demeter": false,
+          "polkamarkt": false,
+          "crossChain": false,
+          "bitcoinSend": true,
+          "solanaSend": true
+        }
+      }
+    }
+  ]
+}

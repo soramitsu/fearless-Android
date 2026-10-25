@@ -20,7 +20,7 @@ class SelectImportModeDialog : BaseComposeBottomSheetDialogFragment<SelectImport
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+        val isGoogleAvailable = state.isGoogleImportAllowed && context?.isGooglePlayServicesAvailable() == true
         SelectImportModeContent(
             state = state,
             isGoogleAvailable = isGoogleAvailable,
@@ -37,7 +37,12 @@ class SelectImportModeDialog : BaseComposeBottomSheetDialogFragment<SelectImport
     companion object {
 
         const val RESULT_IMPORT_MODE = "RESULT_IMPORT_MODE"
+        const val IS_ADDING_ACCOUNT_KEY = "IS_ADDING_ACCOUNT_KEY"
 
-        fun getBundle() = bundleOf()
+        /**
+         * [isAddingAccount]: the chosen mode imports one account into an existing wallet, so the
+         * modes that restore whole wallets (Google Drive, pre-installed) are left out.
+         */
+        fun getBundle(isAddingAccount: Boolean = false) = bundleOf(IS_ADDING_ACCOUNT_KEY to isAddingAccount)
     }
 }

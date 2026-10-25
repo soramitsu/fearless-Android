@@ -16,11 +16,11 @@ import com.journeyapps.barcodescanner.CaptureManager
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.emptyClick
-import javax.inject.Inject
 import jp.co.soramitsu.common.databinding.ActivityScannerBinding
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ScannerActivity : AppCompatActivity() {
@@ -69,6 +69,7 @@ class ScannerActivity : AppCompatActivity() {
         negativeButtonText: String? = null,
         positiveClick: () -> Unit = emptyClick
     ) {
+        if(supportFragmentManager.isDestroyed) return
         ErrorDialog(
             title = resources.getString(R.string.common_error_general_title),
             message = message,

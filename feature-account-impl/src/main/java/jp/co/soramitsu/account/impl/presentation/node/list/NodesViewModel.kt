@@ -7,6 +7,7 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.runtime.multiNetwork.NodeMutation
 import jp.co.soramitsu.account.api.domain.interfaces.NodesSettingsScenario
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
@@ -18,9 +19,13 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
@@ -37,6 +42,12 @@ class NodesViewModel @Inject constructor(
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
     private val chainId = savedStateHandle.get<ChainId>(CHAIN_ID_KEY)!!
+
+    private var mutation: NodeMutation? = null
+    private var closed = false
+    private var selectionJob: Job? = null
+    val selectionPending = MutableLiveData(false)
+    val supportsAutoSelection = MutableLiveData(true)
 
     private val _editMode = MutableLiveData<Boolean>()
     val editMode: LiveData<Boolean> = _editMode
@@ -55,8 +66,25 @@ class NodesViewModel @Inject constructor(
 
     val autoSelectedNodeFlow = MutableStateFlow(nodesSettingsStorage.getIsAutoSelectNodes(chainId)).apply {
         this.drop(1)
-            .map { nodesSettingsStorage.setIsAutoSelectNodes(chainId, it) }
+            .map { if (supportsAutoSelection.value == true) nodesSettingsStorage.setIsAutoSelectNodes(chainId, it) }
             .share()
+    }
+
+    init {
+        viewModelScope.launch {
+            try {
+                if (nodesSettingsScenario.getChain(chainId).isUniversalWalletSolana() && !closed) {
+                    // HTTP RPC selection is explicit; websocket node balancing
+                    // preferences do not control this native transport.
+                    supportsAutoSelection.value = false
+                    autoSelectedNodeFlow.value = false
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                if (!closed) showError(resourceManager.getString(R.string.common_error_general_message))
+            }
+        }
     }
 
     val toolbarAction = editMode.map {
@@ -73,21 +101,49 @@ class NodesViewModel @Inject constructor(
     }
 
     fun backClicked() {
+        if (closed) return
+        closed = true
+        mutation?.cancel()
+        selectionJob?.cancel()
         router.back()
     }
 
     fun infoClicked(nodeModel: NodeModel) {
+        if (closed || selectionJob?.isActive == true) return
         router.openNodeDetails(NodeDetailsPayload(chainId, nodeModel.link))
     }
 
     fun selectNodeClicked(nodeModel: NodeModel) {
-        viewModelScope.launch {
-            nodesSettingsScenario.selectNode(NodeId(chainId to nodeModel.link))
-            router.openMain()
+        if (closed || selectionJob?.isActive == true) return
+        val admitted = try {
+            nodesSettingsScenario.admitMutation(chainId)
+        } catch (_: Exception) {
+            showError(resourceManager.getString(R.string.common_error_general_message))
+            return
+        }
+        mutation = admitted
+        selectionPending.value = true
+        selectionJob = viewModelScope.launch {
+            try {
+                nodesSettingsScenario.selectNode(admitted, NodeId(chainId to nodeModel.link))
+                ensureActive()
+                if (!closed && admitted.isLatest) {
+                    closed = true
+                    router.openMain()
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                if (!closed && admitted.isLatest) showError(resourceManager.getString(R.string.common_error_general_message))
+            } finally {
+                admitted.cancel()
+                if (!closed) selectionPending.value = false
+            }
         }
     }
 
     fun addNodeClicked() {
+        if (closed || selectionJob?.isActive == true) return
         router.openAddNode(chainId)
     }
 
@@ -96,8 +152,32 @@ class NodesViewModel @Inject constructor(
     }
 
     fun confirmNodeDeletion(nodeModel: NodeModel) {
-        viewModelScope.launch {
-            nodesSettingsScenario.deleteNode(NodeId(chainId to nodeModel.link))
+        if (closed || selectionJob?.isActive == true) return
+        val admitted = try {
+            nodesSettingsScenario.admitMutation(chainId)
+        } catch (_: Exception) {
+            showError(resourceManager.getString(R.string.common_error_general_message))
+            return
         }
+        mutation = admitted
+        selectionPending.value = true
+        selectionJob = viewModelScope.launch {
+            try {
+                nodesSettingsScenario.deleteNode(admitted, NodeId(chainId to nodeModel.link))
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                if (!closed && admitted.isLatest) showError(resourceManager.getString(R.string.common_error_general_message))
+            } finally {
+                admitted.cancel()
+                if (!closed) selectionPending.value = false
+            }
+        }
+    }
+
+    override fun onCleared() {
+        closed = true
+        mutation?.cancel()
+        super.onCleared()
     }
 }

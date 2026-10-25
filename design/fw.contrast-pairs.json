@@ -1,0 +1,702 @@
+{
+  "format": "fearless.contrast-pairs",
+  "version": 1,
+  "method": "WCAG 2.x sRGB rounded source-over; compare unrounded ratios. All group Cartesian pairs and all backdrop variants are mandatory. Run standard/high contrast with source and 8-bit alpha.",
+  "source": "design-system.md sections 3.4, 3.5 and 14.0",
+  "recipes": {
+    "white": {
+      "token": "textOnAccent"
+    },
+    "base": {
+      "token": "bgBase"
+    },
+    "auroraMagenta": {
+      "aurora": "magenta"
+    },
+    "auroraCyan": {
+      "aurora": "cyan"
+    },
+    "auroraViolet": {
+      "aurora": "violet"
+    },
+    "peakMagenta": {
+      "over": "auroraMagenta",
+      "background": "base"
+    },
+    "peakCyan": {
+      "over": "auroraCyan",
+      "background": "base"
+    },
+    "peakViolet": {
+      "over": "auroraViolet",
+      "background": "base"
+    },
+    "peakMagentaCyan": {
+      "over": "auroraCyan",
+      "background": "peakMagenta"
+    },
+    "peakAll": {
+      "over": "auroraViolet",
+      "background": "peakMagentaCyan"
+    },
+    "peakAllDither": {
+      "over": "white",
+      "background": "peakAll",
+      "alpha": 0.02
+    },
+    "aurora": {
+      "variants": [
+        "base",
+        "peakMagenta",
+        "peakCyan",
+        "peakViolet",
+        "peakMagentaCyan",
+        "peakAllDither"
+      ]
+    },
+    "scrollContent": {
+      "variants": [
+        "aurora",
+        "white"
+      ]
+    },
+    "raised": {
+      "token": "surfaceRaised"
+    },
+    "raised2": {
+      "token": "surfaceRaised2"
+    },
+    "pressed": {
+      "token": "surfacePressed"
+    },
+    "sunken": {
+      "token": "surfaceSunken"
+    },
+    "glassTint": {
+      "over": "glass",
+      "background": "aurora"
+    },
+    "glassSurface": {
+      "over": "glassSheen",
+      "background": "glassTint"
+    },
+    "elevatedTint": {
+      "over": "glassElevated",
+      "background": "aurora"
+    },
+    "elevatedSurface": {
+      "over": "glassElevatedSheen",
+      "background": "elevatedTint"
+    },
+    "chromeTint": {
+      "over": "chrome",
+      "background": "scrollContent"
+    },
+    "chromeSurface": {
+      "over": "chromeSheen",
+      "background": "chromeTint"
+    },
+    "chromeSolidSurface": {
+      "over": "chromeSolid",
+      "background": "scrollContent"
+    },
+    "selectedRow": {
+      "over": "rowSelected",
+      "background": "glassSurface"
+    },
+    "selectedChip": {
+      "over": "selectFill",
+      "background": "glassSurface"
+    },
+    "selectedTab": {
+      "over": "selectFill",
+      "background": "chromeSurface"
+    },
+    "primaryFill": {
+      "gradient": "primaryFill"
+    },
+    "accentBoundary": {
+      "over": "accentEdge",
+      "background": "fillTop"
+    },
+    "chromeOverBaseTint": {
+      "over": "chrome",
+      "background": "base"
+    },
+    "chromeOverBase": {
+      "over": "chromeSheen",
+      "background": "chromeOverBaseTint"
+    },
+    "successContainer": {
+      "over": "success",
+      "background": "glassSurface",
+      "alphaSource": "status"
+    },
+    "successContainerCalm": {
+      "over": "success",
+      "background": "raised",
+      "alphaSource": "status"
+    },
+    "warningContainer": {
+      "over": "warning",
+      "background": "glassSurface",
+      "alphaSource": "status"
+    },
+    "warningContainerCalm": {
+      "over": "warning",
+      "background": "raised",
+      "alphaSource": "status"
+    },
+    "dangerContainer": {
+      "over": "danger",
+      "background": "glassSurface",
+      "alphaSource": "status"
+    },
+    "dangerContainerCalm": {
+      "over": "danger",
+      "background": "raised",
+      "alphaSource": "status"
+    },
+    "infoContainer": {
+      "over": "info",
+      "background": "glassSurface",
+      "alphaSource": "info"
+    },
+    "infoContainerCalm": {
+      "over": "info",
+      "background": "raised",
+      "alphaSource": "info"
+    }
+  },
+  "pairs": [
+    {
+      "id": "text-base",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textBrand",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "base"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-raised",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textBrand",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "raised"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-raised2",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textBrand",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "raised2"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-pressed",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "pressed"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-sunken",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textBrand",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "sunken"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-glassSurface",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textBrand",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "glassSurface"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-elevatedSurface",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "elevatedSurface"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-chromeSurface",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "chromeSurface"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-chromeSolidSurface",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "chromeSolidSurface"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-selectedRow",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textTertiary",
+        "textLink",
+        "textPromo",
+        "priceUp",
+        "priceDown",
+        "success",
+        "danger",
+        "warning",
+        "info"
+      ],
+      "backgrounds": [
+        "selectedRow"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-aurora",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary",
+        "textLink",
+        "info",
+        "priceUp",
+        "priceDown",
+        "success",
+        "warning"
+      ],
+      "backgrounds": [
+        "aurora"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-selectedChip",
+      "foregrounds": [
+        "textPrimary"
+      ],
+      "backgrounds": [
+        "selectedChip"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "text-selectedTab",
+      "foregrounds": [
+        "textPrimary"
+      ],
+      "backgrounds": [
+        "selectedTab"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "primary-label",
+      "foregrounds": [
+        "textOnAccent"
+      ],
+      "backgrounds": [
+        "primaryFill"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "danger-label",
+      "foregrounds": [
+        "textOnAccent"
+      ],
+      "backgrounds": [
+        "dangerFill"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "cyan-pill-label",
+      "foregrounds": [
+        "bgBase"
+      ],
+      "backgrounds": [
+        "info"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "qr",
+      "foregrounds": [
+        "qrModule"
+      ],
+      "backgrounds": [
+        "qrField"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "successContainer-labels",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary"
+      ],
+      "backgrounds": [
+        "successContainer",
+        "successContainerCalm"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "successContainer-glyph",
+      "foregrounds": [
+        "success"
+      ],
+      "backgrounds": [
+        "successContainer",
+        "successContainerCalm"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "warningContainer-labels",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary"
+      ],
+      "backgrounds": [
+        "warningContainer",
+        "warningContainerCalm"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "warningContainer-glyph",
+      "foregrounds": [
+        "warning"
+      ],
+      "backgrounds": [
+        "warningContainer",
+        "warningContainerCalm"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "dangerContainer-labels",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary"
+      ],
+      "backgrounds": [
+        "dangerContainer",
+        "dangerContainerCalm"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "dangerContainer-glyph",
+      "foregrounds": [
+        "danger"
+      ],
+      "backgrounds": [
+        "dangerContainer",
+        "dangerContainerCalm"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "infoContainer-labels",
+      "foregrounds": [
+        "textPrimary",
+        "textSecondary"
+      ],
+      "backgrounds": [
+        "infoContainer",
+        "infoContainerCalm"
+      ],
+      "kind": "text",
+      "minimum": 4.5
+    },
+    {
+      "id": "infoContainer-glyph",
+      "foregrounds": [
+        "info"
+      ],
+      "backgrounds": [
+        "infoContainer",
+        "infoContainerCalm"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "control-boundary",
+      "foregrounds": [
+        "strokeControl"
+      ],
+      "backgrounds": [
+        "base",
+        "raised",
+        "raised2",
+        "pressed",
+        "sunken",
+        "glassSurface",
+        "elevatedSurface",
+        "chromeSurface",
+        "chromeSolidSurface"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "toggle-on-boundary",
+      "foregrounds": [
+        "accentBoundary"
+      ],
+      "backgrounds": [
+        "glassSurface",
+        "raised"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "toggle-on-thumb",
+      "foregrounds": [
+        "textOnAccent"
+      ],
+      "backgrounds": [
+        "fillTop"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "toggle-off-thumb",
+      "foregrounds": [
+        "thumbOff"
+      ],
+      "backgrounds": [
+        "sunken"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "focus",
+      "foregrounds": [
+        "focus"
+      ],
+      "backgrounds": [
+        "base",
+        "glassSurface",
+        "raised",
+        "primaryFill"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "swap-disc",
+      "foregrounds": [
+        "fillTop"
+      ],
+      "backgrounds": [
+        "chromeOverBase",
+        "base"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "swap-disc-edge",
+      "foregrounds": [
+        "selectEdge"
+      ],
+      "backgrounds": [
+        "chromeOverBase"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    },
+    {
+      "id": "selected-tab-edge",
+      "foregrounds": [
+        "selectEdge"
+      ],
+      "backgrounds": [
+        "chromeSurface"
+      ],
+      "kind": "nonText",
+      "minimum": 3
+    }
+  ],
+  "cvd": [
+    {
+      "id": "price-up-down",
+      "foreground": "priceUp",
+      "background": "priceDown",
+      "simulations": [
+        "protan",
+        "deutan"
+      ],
+      "minimumDeltaE76": 40
+    }
+  ],
+  "constraints": {
+    "auroraMaximumAlpha": {
+      "magenta": 0.18,
+      "cyan": 0.12,
+      "violet": 0.16
+    },
+    "whiteDitherMaximumAlpha": 0.02,
+    "selectedState": "Labels require a check glyph or filled icon; hue alone is insufficient.",
+    "statusState": "Status glyph and word are mandatory; coloured status titles are forbidden on banners.",
+    "focus": "Cyan ring always has a 2px bgBase offset.",
+    "blur": "Glass/elevated recipes assume the page aurora backdrop only. Over arbitrary scrolling content use chrome recipes, which include pure white at zero blur.",
+    "decorative": "strokeStrong, divider, hudTrace and glow are never the sole interactive boundary; text on glow is forbidden.",
+    "priceState": "Price uses direction glyph and explicit sign; it does not share a component with info or success.",
+    "highContrast": "High-contrast numeric passes do not relax placement restrictions."
+  },
+  "limits": [
+    "Mathematical token contract; actual pixels, glyphs, screen placement and assistive technology require native/browser qualification.",
+    "No production UI rollout or full per-repository gate is implied by the shared checker alone."
+  ]
+}

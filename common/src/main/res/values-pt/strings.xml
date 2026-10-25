@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="ECDSA_crypto_type">Compatível com ECDSA | BTC/ETH</string>
   <string name="about_announcement">Receber Alertas</string>
@@ -34,6 +34,20 @@
   <string name="account_export_password_change">Alterar senha</string>
   <string name="account_export_warning_message">Partilhar ou copiar o seu segredo é uma operação de alto risco, não o envie a ninguém. Gostaria de continuar com o processo de partilhar/copiar?</string>
   <string name="account_export_warning_title">Seja cuidadoso</string>
+  <string name="account_stats_description_text">Sua Pontuação Multichain é baseada na sua jornada on-chain através de 3 ecossistemas: Ethereum, Polygon e Binance Smart Chain</string>
+  <string name="account_stats_error_message">Não foi possível obter a pontuação da conta. Tente novamente mais tarde.</string>
+  <string name="account_stats_hold_tokens_usd_title">Tokens mantidos em USD</string>
+  <string name="account_stats_avg_transaction_time_title">Tempo médio de transação</string>
+  <string name="account_stats_max_transaction_time_title">Tempo máximo de transação</string>
+  <string name="account_stats_min_transaction_time_title">Tempo mínimo de transação</string>
+  <string name="account_stats_native_balance_usd_title">Saldo nativo em USD</string>
+  <string name="account_stats_rejected_transactions_title">Transações rejeitadas</string>
+  <string name="account_stats_title">Sua pontuação</string>
+  <string name="account_stats_total_transactions_title">Total de transações</string>
+  <string name="account_stats_unavailable_text">Você não possui uma conta compatível com EVM. Se quiser ver a pontuação, adicione-a pela opção \"Importar carteira\".</string>
+  <string name="account_stats_updated_title">Atualizado</string>
+  <string name="account_stats_wallet_age_title">Idade da carteira</string>
+  <string name="account_stats_wallet_option_title">Mostrar pontuação da carteira</string>
   <string name="account_import_ethereum_raw_seed_placeholder">A seed original para contas da ETH (64 símbolos hexadecimais)</string>
   <string name="account_import_invalid_keystore">Restauro do JSON inválido. Por favor, certifique-se de que a entrada contém um JSON válido.</string>
   <string name="account_import_invalid_seed">A seed é inválida. Por favor, certifique-se de que a sua entrada contém 64 símbolos hexadecimais.</string>
@@ -84,6 +98,10 @@
   <string name="backup_now">Faça backup agora</string>
   <string name="backup_wallet_backup_to_google">Backup para o Google</string>
   <string name="backup_wallet_delete_alert_message">Se você excluir seu backup do Google, só poderá recuperar sua carteira com um backup manual de sua senha</string>
+  <plurals name="backup_wallet_delete_copies_alert_message">
+    <item quantity="one">Isso exclui %d backup do Google desta carteira. Depois disso, você só poderá recuperar sua carteira com um backup manual da sua frase secreta</item>
+    <item quantity="other">Isso exclui todos os %d backups do Google desta carteira, incluindo os salvos em seus outros dispositivos ou com outra senha. Depois disso, você só poderá recuperar sua carteira com um backup manual da sua frase secreta</item>
+  </plurals>
   <string name="backup_wallet_delete_google_backup">Excluir backup do Google</string>
   <string name="backup_wallet_export_json">Exportar JSON</string>
   <string name="backup_wallet_replace_accounts_alert" formatted="false">Atualmente você tem uma conta na cadeia %s e um endereço %s que foi adicionado substituindo o par de chaves principal e possui um par específico. No entanto, observe que nosso fluxo atual de backup (exportação) de carteira não suporta o armazenamento de vários pares de chaves. Como resultado, você só pode salvar seu par de chaves principal. \n \n Para garantir a segurança da sua conta chain substituída, recomendamos que você primeiro faça backup dela separadamente antes de prosseguir com o fluxo atual. Depois de fazer backup com êxito de sua conta em cadeia substituída, você poderá prosseguir para o fluxo atual sem preocupações.</string>
@@ -92,9 +110,6 @@
   <string name="backup_wallet_show_raw_seed">Mostrar semente original</string>
   <string name="backup_wallet_warning_about_lose_phrase">Se você perder o acesso a este dispositivo, seus fundos serão perdidos, a menos que você faça backup!</string>
   <string name="banners_backup_description">Se você perder seu dispositivo, seus fundos serão perdidos para sempre</string>
-  <string name="banners_buy_xor">Comprar XOR</string>
-  <string name="banners_buy_xor_description">Comprar ou vender tokens XOR com Euros</string>
-  <string name="banners_buy_xor_title">Comprar token XOR</string>
   <string name="beacon_connect_warning">Aviso: Ao clicar em conectar, você permite que este dapp visualize seu endereço público. Esta é uma etapa de segurança importante para proteger seus dados contra possíveis riscos de phishing.</string>
   <string name="beacon_connected">Conectado a %s</string>
   <string name="beacon_connected_to">Conectado a</string>
@@ -196,7 +211,7 @@
   </plurals>
   <string name="common_delete">Eliminar</string>
   <string name="common_delete_wallet">Deletar carteira</string>
-  <string name="common_destination_network">Taxa da rede de destino</string>
+  <string name="common_destination_network">Rede de destino</string>
   <string name="common_destination_network_fee">Taxa da rede de destino</string>
   <string name="common_destroy">Destruir</string>
   <string name="common_details">Detalhes</string>
@@ -213,6 +228,9 @@
   <string name="common_error_network">Ocorreu um erro durante a comunicação com o servidor remoto</string>
   <string name="common_event">Evento</string>
   <string name="common_existential_error_message">Esta transação terá como resultado que a conta passe abaixo do Depósito Existencial(%s), o que fará com que ela seja colhida (a conta será apagada da blockchain para conservar espaço).</string>
+  <string name="common_existential_unknown_message">A Fearless Wallet não conseguiu verificar o saldo mínimo (Depósito Existencial) que a rede exige para %s. Se esta transferência deixar qualquer uma das contas abaixo desse mínimo, a rede pode remover a conta junto com o valor que restar nela. Continue apenas se tiver certeza de que as duas contas ficarão com saldo suficiente, ou cancele e tente novamente mais tarde.</string>
+  <string name="common_existential_unknown_retry_message">A Fearless Wallet não conseguiu verificar o saldo mínimo (Depósito Existencial) que a rede exige para %s, por isso nada foi enviado. Verifique sua conexão e tente novamente.</string>
+  <string name="common_existential_unknown_title">Saldo mínimo não verificado</string>
   <string name="common_existential_warning_message">Esta transação terá como resultado que a conta passe abaixo do Depósito Existencial(%s), o que fará com que ela seja colhida (a conta será apagada da blockchain para conservar espaço). Se optar por continuar, perderá quaisquer fundos que estejam abaixo do montante do depósito existencial estabelecido pela rede. Para informações detalhadas, consulte a documentação oficial da rede (por exemplo, a Polkadot Wiki). A Fearless Wallet é uma aplicação totalmente não custodial, e não tem nenhum controlo ou conhecimento de qualquer das suas ações na própria rede. CONTINUE SÓ SE CONCORDAR PLENAMENTE E COMPREENDER AS IMPLICAÇÕES.</string>
   <string name="common_existential_warning_title">A operação irá remover a conta</string>
   <string name="common_filter_sort_header">Ordenar por</string>
@@ -246,6 +264,8 @@
   <string name="common_not_enough_funds_title">Saldo insuficiente</string>
   <string name="common_note">Nota:</string>
   <string name="common_ok">OK</string>
+  <string name="update_security_notice_title">A sua carteira móvel está segura</string>
+  <string name="update_security_notice_message">A Fearless para iOS e Android não foi afetada pelo problema de segurança da antiga extensão Fearless para Chrome.\n\nSe utilizou a extensão para Chrome antes de 23 de outubro de 2026, crie uma nova carteira e transfira os seus fundos para ela.</string>
   <string name="common_options">Opções</string>
   <string name="common_options_title">Selecione uma opção</string>
   <string name="common_origin_network">Rede de origem</string>
@@ -282,7 +302,7 @@
   <string name="common_staking">Staking</string>
   <string name="common_till_date">até %s</string>
   <string name="common_time_left">Tempo restante</string>
-  <string name="common_title_cross_chain">Taxa entre cadeias</string>
+  <string name="common_title_cross_chain">Entre cadeias</string>
   <string name="common_title_frozen_token">Bloqueado %s</string>
   <string name="common_title_select_wallet">Selecione sua carteira</string>
   <string name="common_title_wallet">Carteira</string>
@@ -326,6 +346,50 @@
   <string name="connection_methods_not_supported_warning">Certos métodos solicitados pelo Wallet Connect não são atualmente suportados pela aplicação. Embora a conexão possa ser estabelecida, certas funcionalidades do dApp podem não estar disponíveis.</string>
   <string name="connection_optional_networks">Redes opcionais</string>
   <string name="connection_problems_alert_message">Falha no carregamento dos dados necessários para o lançamento do pedido. Por favor, verifique a sua ligação à Internet e tente novamente.</string>
+  <string name="wallet_secure_storage_unavailable_title">Os dados da carteira estão protegidos</string>
+  <string name="wallet_secure_storage_unavailable_message">A Fearless não conseguiu aceder ao armazenamento seguro do Android. Os dados encriptados da sua carteira foram preservados e não foram repostos. Desbloqueie o dispositivo e tente novamente. Se o problema persistir, contacte o suporte da Fearless.</string>
+  <string name="wallet_database_unavailable_title">Não foi possível abrir os dados da carteira</string>
+  <string name="wallet_database_unavailable_message">A Fearless não eliminou nem repôs quaisquer dados da carteira. Tente abrir a carteira novamente. Se o problema persistir, contacte o suporte da Fearless.</string>
+  <string name="wallet_recovery_required_title">É necessária a recuperação da carteira</string>
+  <string name="wallet_recovery_required_message">Uma chave desta carteira precisa de atenção. As outras chaves e as suas outras carteiras continuam a funcionar. Abra a recuperação da carteira para restaurar o acesso ou verificar a cópia de segurança.</string>
+  <string name="wallet_startup_recovery_required_message">O Fearless não conseguiu terminar de abrir as suas carteiras. Nada foi alterado nem apagado. Pode ver e anotar agora todas as chaves guardadas com o seu PIN. Não limpe os dados da aplicação nem desinstale o Fearless: isso removeria as chaves deste dispositivo. Código de diagnóstico: %1$s</string>
+  <string name="wallet_startup_restart_required_title">Feche e volte a abrir a Fearless</string>
+  <string name="wallet_startup_restart_required_message">A Fearless parou porque o Android não conseguiu confirmar uma gravação no armazenamento da carteira. Não serão efetuadas mais alterações à carteira neste processo. Feche agora a aplicação e volte a abri-la para verificar em segurança o estado armazenado. Não limpe os dados da aplicação nem a reinstale.</string>
+  <string name="wallet_recovery_scoped_title">Uma chave precisa de atenção</string>
+  <string name="wallet_emergency_open">Ver as minhas chaves guardadas</string>
+  <string name="wallet_emergency_title">As suas chaves guardadas</string>
+  <string name="wallet_emergency_intro">Insira o PIN do Fearless para ver todas as frases mnemónicas e chaves guardadas neste dispositivo, exatamente como foram guardadas. Nada é alterado nem apagado.</string>
+  <string name="wallet_emergency_pin_hint">PIN de 6 dígitos</string>
+  <string name="wallet_emergency_unlock">Mostrar as minhas chaves</string>
+  <string name="wallet_emergency_wrong_pin">PIN incorreto</string>
+  <string name="wallet_emergency_locked">Demasiadas tentativas. Tente novamente dentro de %1$d segundos.</string>
+  <string name="wallet_emergency_unavailable">Este dispositivo já não consegue ler o seu PIN, por isso não pode mostrar as chaves guardadas. Nada foi apagado. Se anotou a sua frase mnemónica, pode restaurar a carteira com ela.</string>
+  <string name="wallet_emergency_read_failed">O Fearless não conseguiu ler as chaves guardadas neste momento. Nada foi alterado nem apagado. Tente novamente.</string>
+  <string name="wallet_emergency_warning">Qualquer pessoa que veja estas palavras ou chaves pode levar os seus fundos. Anote-as em papel, guarde-as offline e nunca as partilhe.</string>
+  <string name="wallet_emergency_empty">Não há chaves de carteira guardadas neste dispositivo.</string>
+  <string name="wallet_emergency_wallet">Carteira %1$d</string>
+  <string name="wallet_emergency_wallet_unknown">Carteira de uma versão antiga</string>
+  <string name="wallet_emergency_kind_substrate">Chave Polkadot e Substrate</string>
+  <string name="wallet_emergency_kind_ethereum">Chave Ethereum</string>
+  <string name="wallet_emergency_kind_ton">Chave TON</string>
+  <string name="wallet_emergency_kind_legacy">Chave da carteira, formato anterior à 4.0</string>
+  <string name="wallet_emergency_kind_network">Chave para uma única rede</string>
+  <string name="wallet_emergency_kind_early">Chave da carteira, formato antigo</string>
+  <string name="wallet_emergency_state_active">Em uso</string>
+  <string name="wallet_emergency_state_set_aside">Posta de lado, não usada para assinar</string>
+  <string name="wallet_emergency_state_archived">Guardada de uma versão anterior, não usada para assinar</string>
+  <string name="wallet_emergency_field_phrase">Frase mnemónica</string>
+  <string name="wallet_emergency_field_ton_phrase">Frase mnemónica TON. Escreva-a exatamente como mostrada</string>
+  <string name="wallet_emergency_field_entropy">Entropia</string>
+  <string name="wallet_emergency_field_seed">Seed primária</string>
+  <string name="wallet_emergency_field_path">Caminho de derivação</string>
+  <string name="wallet_emergency_field_ethereum_path">Caminho de derivação Ethereum</string>
+  <string name="wallet_emergency_field_private_key">Chave privada</string>
+  <string name="wallet_emergency_field_ethereum_private_key">Chave privada Ethereum</string>
+  <string name="wallet_emergency_field_ton_private_key">Chave privada TON</string>
+  <string name="wallet_emergency_field_nonce">Nonce</string>
+  <string name="wallet_emergency_field_stored">Dados guardados, tal como encontrados</string>
+  <string name="wallet_emergency_unreadable">Este valor não pode ser decifrado neste dispositivo. Foi mantido sem alterações.</string>
   <string name="connection_reject">Rejeitar</string>
   <string name="connection_required_networks">Redes necessárias</string>
   <string name="connection_review_optional_permissions">Rever as permissões opcionais</string>
@@ -429,6 +493,42 @@
   <string name="fearless_wallet">Carteira Fearless</string>
   <string name="fee_not_yet_loaded_message">Por favor aguarde até que a taxa seja calculada</string>
   <string name="fee_not_yet_loaded_title">Cálculo das taxas em curso</string>
+  <string name="google_backup_already_imported_message">Esta carteira já está no Fearless neste dispositivo, por isso não foi importada novamente.</string>
+  <string name="google_backup_already_imported_title">Já está neste dispositivo</string>
+  <string name="google_backup_back_up_later">Fazer backup depois</string>
+  <string name="google_backup_ethereum_only_message">Este backup da extensão do navegador contém apenas uma chave Ethereum, e não é possível criar uma nova carteira só com ela. Nada foi alterado. Importe esta carteira com a frase mnemônica, a seed primária ou os arquivos JSON.</string>
+  <string name="google_backup_ethereum_only_title">Apenas uma chave Ethereum</string>
+  <string name="google_backup_failed_message">Algo deu errado ao conectar ao Google Drive. Tente novamente.</string>
+  <string name="google_backup_failed_title">O backup no Google Drive não foi concluído</string>
+  <string name="google_backup_import_another_way">Importar de outra forma</string>
+  <string name="google_backup_import_with_json">Importar com arquivo JSON</string>
+  <string name="google_backup_import_with_phrase">Importar com frase mnemônica</string>
+  <string name="google_backup_no_connection_message">Verifique sua conexão com a internet e tente novamente.</string>
+  <string name="google_backup_no_connection_title">Não foi possível acessar o Google Drive</string>
+  <string name="google_backup_none_found_message">O Fearless não encontrou backups de carteiras nesta conta do Google. Se você fez o backup com outra conta do Google, entre com ela. Você também pode importar com a frase mnemônica, a seed primária ou o arquivo JSON.</string>
+  <string name="google_backup_none_found_title">Nenhum backup nesta conta do Google</string>
+  <string name="google_backup_not_found_message">Este backup foi removido do Google Drive, possivelmente a partir de outro dispositivo. Atualize a lista para ver os backups que existem agora.</string>
+  <string name="google_backup_not_found_title">O backup não está mais no Google Drive</string>
+  <string name="google_backup_not_verified_message">A frase mnemônica ou a seed guardada para esta carteira não restaura exatamente esta carteira, por isso nada foi enviado e nada foi alterado neste dispositivo. Faça o backup desta carteira com Exportar JSON: ele guarda a chave que a carteira usa agora.</string>
+  <string name="google_backup_not_verified_title">Backup não enviado</string>
+  <string name="google_backup_open_wallet">Abrir carteira</string>
+  <string name="google_backup_origin_extension">Backup feito na extensão do navegador</string>
+  <string name="google_backup_refresh">Atualizar lista</string>
+  <string name="google_backup_saved_without_phrase_message">A frase mnemônica ou a seed guardada para esta carteira não restaura exatamente esta carteira, por isso ficou de fora. Seu backup no Google Drive restaura esta carteira a partir da chave que ela usa agora.</string>
+  <string name="google_backup_saved_without_phrase_title">Backup feito sem a frase mnemônica</string>
+  <string name="google_backup_sign_in">Entrar</string>
+  <string name="google_backup_sign_in_message">O Fearless precisa de acesso à sua pasta de backups no seu Google Drive. Entre novamente e permita o acesso para continuar.</string>
+  <string name="google_backup_sign_in_title">Entre no Google novamente</string>
+  <string name="google_backup_storage_full_message">Sua conta Google não tem mais espaço livre, por isso o backup não foi salvo. Libere espaço e tente novamente.</string>
+  <string name="google_backup_storage_full_title">O Google Drive está cheio</string>
+  <string name="google_backup_unavailable_message">O login com Google não pode ser usado nesta instalação do Fearless. As carteiras neste dispositivo não foram afetadas. Use uma frase mnemônica, uma seed primária ou um arquivo JSON para fazer backup ou importar carteiras.</string>
+  <string name="google_backup_unavailable_title">O backup no Google Drive não está disponível</string>
+  <string name="google_backup_unsupported_message">Este backup foi criado por uma versão mais nova do Fearless ou está danificado. Nada foi alterado. Você pode importar esta carteira com a frase mnemônica, a seed primária ou o arquivo JSON.</string>
+  <string name="google_backup_unsupported_title">Não é possível ler este backup</string>
+  <string name="google_backup_use_another_account">Usar outra conta do Google</string>
+  <string name="google_backup_wallet_created_not_backed_up">Sua nova carteira foi criada, mas ainda não tem backup. Você pode fazer o backup depois nas opções de backup da carteira.</string>
+  <string name="google_backup_wrong_password_message">Não é possível abrir este backup com essa senha. Digite a senha definida ao criar o backup e tente novamente.</string>
+  <string name="google_backup_wrong_password_title">Senha do backup incorreta</string>
   <string name="hash">Hash</string>
   <string name="hidden_assets">Ativos ocultos</string>
   <string name="history_v1.9.0">Histórico</string>
@@ -546,6 +646,17 @@
   <string name="parachain_staking_unbonding_period_template">%1$s em %2$s - que é %3$s</string>
   <string name="parachain_staking_unlock">Desbloquear</string>
   <string name="parachain_staking_unlock_title">Desbloquear tokens</string>
+  <string name="paused_cross_chain_message">As transferências entre cadeias, disponíveis em versões anteriores, estão pausadas nesta versão enquanto concluímos verificações de segurança após mudanças recentes na rede Polkadot. Seus tokens e saldos não foram afetados. Você ainda pode enviar e receber em cada rede.</string>
+  <string name="paused_cross_chain_send_on_network">Enviar em %1$s</string>
+  <string name="paused_cross_chain_send_within_network">Enviar dentro de uma rede</string>
+  <string name="paused_cross_chain_title">Transferências entre cadeias pausadas</string>
+  <string name="paused_farming_message">As ações de farming estão pausadas no momento. Suas posições de farming e seus saldos não foram afetados, e você ainda pode enviar e receber.</string>
+  <string name="paused_liquidity_message">As ações dos pools de liquidez estão pausadas no momento. Suas posições nos pools e seus saldos não foram afetados, e você ainda pode enviar e receber.</string>
+  <string name="paused_polkamarkt_message">As negociações no Polkamarkt estão pausadas nesta versão. Suas posições e saldos não foram afetados.</string>
+  <string name="paused_send_message">O envio na rede %1$s está pausado no momento enquanto verificamos um problema. Seu saldo não foi afetado, e você ainda pode receber.</string>
+  <string name="paused_send_title">Envio pausado</string>
+  <string name="paused_swap_message">As trocas estão pausadas no momento. Seus tokens e saldos não foram afetados, e você ainda pode enviar e receber.</string>
+  <string name="paused_swap_title">Trocas pausadas</string>
   <string name="pincode_biometry_dialog_title">Biometria</string>
   <string name="pincode_changed_message">O código PIN foi alterado com sucesso.</string>
   <string name="pincode_confirm_pin_code">Confirmar código PIN</string>
@@ -558,8 +669,8 @@
   <string name="pincode_title_create">Defina o seu código PIN</string>
   <string name="pincode_touch_fingerprint_scanner">Toque no leitor de impressão digital</string>
   <plurals name="plus_others_template">
-    <item quantity="one">outro</item>
-    <item quantity="other">outros</item>
+    <item quantity="one">+ %d outro</item>
+    <item quantity="other">+ %d outros</item>
   </plurals>
   <string name="polkaswap_btn_reset_to_default">Redefinir para o padrão</string>
   <string name="polkaswap_confirmation_swap_stub">Trocar</string>
@@ -667,7 +778,6 @@
   <string name="profile_network_title">Redes</string>
   <string name="profile_pincode_change_title">Alterar código PIN</string>
   <string name="profile_settings_title">Configurações</string>
-  <string name="profile_soracard_title">Cartão SORA</string>
   <string name="profile_title">Conta</string>
   <string name="profile_wallets_title">Carteiras</string>
   <string name="reason">Razão</string>
@@ -682,6 +792,8 @@
   <string name="recovery_raw_seed_hint">Chave privada</string>
   <string name="recovery_source_type">Tipo de fonte</string>
   <string name="referral_email_acala">Aceito receber correio eletrónico da Acala</string>
+  <string name="relay_moved_to_asset_hub_message">Desde a migração para o Asset Hub em 2025, staking, pools de nomeação, vesting e contribuições de crowdloan desta rede são processados no Polkadot Asset Hub ou no Kusama Asset Hub, e esta versão do Fearless não consegue gerenciá-los lá. A relay chain cobraria a taxa e depois rejeitaria esta ação, por isso nada foi assinado nem enviado. Sua conta lá tem o mesmo endereço e aparece nesta carteira.</string>
+  <string name="relay_moved_to_asset_hub_title">Movido para o Asset Hub</string>
   <string name="remove_backup_extension_error_message">O backup foi criado pela extensão do navegador Fearless Wallet. O aplicativo móvel não pode removê-lo devido à falta de credenciais</string>
   <string name="rename_account_description">Exemplo: Poupanças, Investimentos, Crowdloans, Staking. Este nome será exibido apenas para você e armazenado localmente em seu dispositivo móvel.</string>
   <string name="replace_account">Substituir conta</string>
@@ -729,13 +841,6 @@
   <string name="settings_hide_zero_balances">Ocultar saldos nulos</string>
   <string name="share_referral_code">Partilhar código de referência</string>
   <string name="social_media">Mídia social</string>
-  <string name="sora_card_annual_service_fee">€0 de taxa de serviço anual</string>
-  <string name="sora_card_blacklisted_countires_title">Excluído do aplicativo</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residentes de <b>determinados países<br>não podem solicitar</b> o Cartão SORA neste momento<br><a href=\"https://soracard.com/blacklist/\">Veja a lista</a>]]></string>
-  <string name="sora_card_enable_card_title">Habilitar cartão</string>
-  <string name="sora_card_get_sora_card">Obter o cartão SORA</string>
-  <string name="sora_card_title">Recarregue o cartão SORA com moeda fiduciária ou cripto e pague online, na loja ou saque em caixa eletrônico</string>
-  <string name="sora_card_verification_successful">Seu cartão está a caminho</string>
   <string name="specify_network">Especifique a rede</string>
   <string name="specify_network_description">O prefixo do endereço corresponde a várias redes por favor especifique a rede</string>
   <string name="sr25519_selection_subtitle">sr25519 (recomendado)</string>
@@ -793,7 +898,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Mostrar selecionados: %d (max %d)</string>
   <string name="staking_custom_validators_list_title">Selecione validadores</string>
   <string name="staking_custom_validators_settings_filters">Mostrar</string>
-  <string name="staking_custom_validators_settings_sort_apy">Recompensas estimadas (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy" formatted="false">Recompensas estimadas (% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Stake total (%s)</string>
   <string name="staking_custom_validators_title">Escolher validadores personalizados</string>
   <string name="staking_custom_validators_update_list">Atualize a sua lista</string>
@@ -965,7 +1070,7 @@
   <string name="staking_unbonding_limit_reached_title">Limite de pedidos de unstaking atingido</string>
   <string name="staking_unbondings_placeholder">As transações de unstaking aparecerão aqui</string>
   <string name="staking_unstaking_period">Período de Unstaking</string>
-  <string name="staking_validator_apy_percent">Recompensa estimada (% APY)</string>
+  <string name="staking_validator_apy_percent" formatted="false">Recompensa estimada (% APY)</string>
   <string name="staking_validator_estimated_reward">Recompensa estimada</string>
   <string name="staking_validator_info_title">Informação do validador</string>
   <string name="staking_validator_my_oversubscribed_message">Excesso de subscrições. Não receberá recompensas do validador nesta era.</string>
@@ -1106,4 +1211,584 @@
   <string name="what_accounts_for_export">Que contas na carteira pretende exportar?</string>
   <string name="yesterday">Ontem</string>
   <string name="your_collator">Seu coletor</string>
+  <string name="balance_locks_blocked_row_title">Bloqueado</string>
+  <string name="balance_locks_governance_row_title">Governança</string>
+  <string name="balance_locks_nomination_pools_row_title">Pools de nomeação</string>
+  <string name="balance_locks_screen_title">Detalhes de bloqueio</string>
+
+
+  <string name="banner_addwallet_regular_button_title">Сreate or import</string>
+
+  <string name="banner_addwallet_regular_subtitle">Join the ecosystems with more than 90+ chains and fascinating features</string>
+
+  <string name="banner_addwallet_regular_title">EVM/Substrate accounts</string>
+
+  <string name="banner_addwallet_ton_button_title">Join now</string>
+
+  <string name="banner_addwallet_ton_title">Join the fastest growing ecosystem ever</string>
+
+  <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
+
+  <string name="banners_demeter_title">Demeter Protocol</string>
+
+  <string name="banners_liquidity_pools_title">Liquidity Pools</string>
+
+  <string name="common_and_others_placeholder">%s &amp; others</string>
+
+  <string name="common_available_networks">Available networks</string>
+
+  <string name="common_commission">Commission</string>
+
+  <string name="common_contacts">Contacts</string>
+
+  <string name="common_host">Host</string>
+
+  <plurals name="common_months_format">
+    <item quantity="one">%d month</item>
+    <item quantity="other">%d months</item>
+  </plurals>
+
+  <string name="common_more">More</string>
+
+  <string name="common_my_networks">My networks</string>
+
+  <string name="common_network_hash">%s Hash</string>
+
+  <plurals name="common_networks_format">
+    <item quantity="one">%d network</item>
+    <item quantity="other">%d networks</item>
+  </plurals>
+
+  <string name="common_price">Price</string>
+
+  <string name="common_refund">Refund</string>
+
+  <string name="common_see_all">See all</string>
+
+  <string name="common_show_details">Show details</string>
+
+  <string name="common_show_more">Show more</string>
+
+  <string name="common_start">Start</string>
+
+  <string name="common_transaction_sent">Transaction sent</string>
+
+  <string name="connected_accounts_common">Connected Accounts</string>
+
+  <string name="connected_accounts_ethereum_title">EVM chain accounts</string>
+
+  <string name="connected_accounts_substrate_title">Substrate chain accounts</string>
+
+  <string name="connected_accounts_ton_title">TON chain accounts</string>
+
+  <string name="connected_accounts_bitcoin_title">Contas da rede Bitcoin</string>
+
+  <string name="connected_accounts_solana_title">Contas da rede Solana</string>
+
+  <string name="connected_accounts_iroha_title">Contas da rede Iroha</string>
+
+  <string name="connection_details_title">Connection details</string>
+
+  <string name="contacts_empty_message">No contacts found</string>
+
+  <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
+
+  <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
+
+  <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>
+
+  <string name="cross_chain_tx_status_done_title">All done</string>
+
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
+
+  <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
+
+  <string name="cross_chain_tx_status_source_fail_description">Transaction failed on the %s network. Please, try again.</string>
+
+  <string name="cross_chain_tx_status_source_fail_title">Transaction failed</string>
+
+  <string name="dapp_category_connected_title">Connected</string>
+
+  <string name="dapp_category_defi_title">DeFi</string>
+
+  <string name="dapp_category_featured_title">Featured</string>
+
+  <string name="dapp_category_nft_title">NFT</string>
+
+  <string name="dapp_category_utilities_title">Utilities</string>
+
+  <string name="dapp_connected_title">Connected</string>
+
+  <string name="dapp_discover_title">Discover dApp</string>
+
+  <string name="dapp_no_connected_dapps_title">No connected dApps</string>
+
+  <string name="dapp_not_found_title">No dApps were found</string>
+
+  <string name="ecosystem_options_backup_title">Backup chain accounts</string>
+
+  <string name="ecosystem_options_details_title">Chain accounts</string>
+
+  <string name="ecosystem_options_title">Account options</string>
+
+  <string name="fee_calculation_error">Something went wrong while calculating the fee. Please try again later.</string>
+
+  <string name="fee_calculation_error_inactive_account">Your account is inactive. Top up your balance to calculate the fee.</string>
+
+  <string name="lp_apy_alert_text">Farming reward for liquidity provision</string>
+
+  <string name="lp_apy_title">Strategic Bonus APY</string>
+
+  <string name="lp_available_pools_title">Available pools</string>
+
+  <string name="lp_banner_text">Join Liquidity Pools\nand gain rewards</string>
+
+  <string name="lp_confirm_liquidity_screen_title">Confirm Liquidity</string>
+
+  <string name="lp_confirm_liquidity_warning_text">Output is estimated. If the price changes more than 0.5% your transaction will revert.</string>
+
+  <string name="lp_liquidity_add_complete_text">Your supply to Liquidity pools has been successfully completed</string>
+
+  <string name="lp_network_fee_alert_text">Network fee is used to ensure SORA system’s growth and stable performance.</string>
+
+  <string name="lp_pool_details_title">Pool details</string>
+
+  <string name="lp_pool_remove_warning_text">Removing pool tokens converts your position back into underlying tokens at the current rate, proportional to your share of the pool. Accrued fees are included in the amounts you receive.</string>
+
+  <string name="lp_pool_remove_warning_title">NOTE</string>
+
+  <string name="lp_remove_button_title">Remove Liquidity</string>
+
+  <string name="lp_remove_liquidity_screen_title">Remove Liquidity</string>
+
+  <string name="lp_reward_token_text">Earn %s</string>
+
+  <string name="lp_reward_token_title">Rewards Payout In</string>
+
+  <string name="lp_slippage_title">Slippage</string>
+
+  <string name="lp_supply_button_title">Supply Liquidity</string>
+
+  <string name="lp_supply_liquidity_screen_title">Supply Liquidity</string>
+
+  <string name="lp_user_pools_title">User pools</string>
+
+  <string name="lp_your_pooled_format">Your %s Pooled</string>
+
+  <string name="network_issue_main">Connection Error: Unable to connect to the network. Please try again.</string>
+
+  <string name="nft_choose_recipient_title">Choose recipient</string>
+
+  <string name="nft_collection_available_nfts">Available NFTs in the %s collection</string>
+
+  <string name="nft_collection_my_nfts">My NFTs</string>
+
+  <string name="nft_creator_title">Creator</string>
+
+  <string name="nft_list_empty_message">There aren\'t any NFTs yet. Buy or mint NFTs to see them here.</string>
+
+  <string name="nft_load_error">Failed to load NFTs</string>
+
+  <string name="nft_token_type_title">Token type</string>
+
+  <string name="nfts_collection_count" formatted="false">Quantity: %d/%d</string>
+
+  <string name="onboarding_banner_regular_ecosystem_button_title">Join EVM or Substrate</string>
+
+  <string name="onboarding_banner_regular_ecosystem_title">Create or import Substrate or EVM accounts</string>
+
+  <string name="onboarding_banner_ton_ecosystem_button_title">Join TON</string>
+
+  <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
+
+  <string name="profile_account_score_title">Nomis multichain score</string>
+
+  <string name="profile_tonconnect_title">Ton connect</string>
+
+  <string name="profile_walletconnect_title">WalletConnect</string>
+
+  <string name="scam_description_lowscore_text">The address you are about to transfer to has low onchain activity, which may indicate a potential scammer or sybil attacker</string>
+
+  <string name="scam_info_nomis_name">Nomis multi-chain score</string>
+
+  <string name="scam_info_nomis_reason_text">Low network activity</string>
+
+  <string name="scam_info_nomis_subtype_text">Proceed with caution</string>
+
+  <string name="send_all_and_reap_account">Send all tokens and reap the account</string>
+
+  <string name="set_max_amount">Set max amount</string>
+
+  <string name="sora_bridge_amount_less_fee">The amount you\'re trying to transfer is insufficient to cover the transaction fees on the %s network. Although the transaction won\'t process, you\'ll still be charged the fees on the Sora network.</string>
+
+  <string name="sora_bridge_low_amount_format_alert">Currently, there\'s a min. amount %s for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
+
+  <string name="sora_bridge_low_amount_format_alert_2">Currently, there\'s a min. amount %s for bridging to ensure the stability and security. We appreciate your understanding.</string>
+
+  <string name="success_message_transaction_sent">Your transaction has been successfully sent to the blockchain</string>
+
+  <string name="tc_connected_dapp">Connected</string>
+
+  <string name="tc_discover_dapp">Discover dApp</string>
+
+  <string name="tc_review_dapp_info">Review dApp info</string>
+
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="tc_see_all">See all</string>
+
+  <string name="tc_service_address">Service address</string>
+
+  <string name="ton_connect_alert_description">Service address</string>
+
+  <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="ton_connect_alert_title">Review dApp info</string>
+
+  <string name="ton_tonviewer_action_title">View in Tonviewer</string>
+
+  <string name="tranaction_history_others_tab_title">Others</string>
+
+  <string name="transaction_details_view_reefscan">View in Reefscan</string>
+
+  <string name="validator_info_min_stake_alert_text">Minimum stake among active nominators is %s. To get rewards you have to stake more.</string>
+
+  <string name="validator_info_min_stake_among_active_nominators_text">Minimum stake among active nominators</string>
+
+  <string name="vesting_claim_disclaimer_text">Due to the unique vesting schedules of each parachain, our app is unable to display the quantity of locked tokens eligible for claiming. Please be advised that initiating a claim may be impractical if the prospective amount is marginal and comparable to the transaction fee involved. For comprehensive insights into your locked balances, consult the Subscan blockexplorer. We urge you to assess the information carefully and proceed at your own discretion.</string>
+
+  <string name="vesting_claim_disclaimer_title">Important Notice Regarding Token Claims:</string>
+
+  <string name="vesting_locked_title">Vesting Locked</string>
+
+  <string name="wallet_send_dead_recipient_message_v2">Your transfer will fail since the final amount (%1$s) on the destination account will be less than the minimal balance (%2$s). Please increase the amount by %3$s</string>
+
+  <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">Compartilhar endereço</string>
+  <string name="portfolio_sync_catalog_only">Alguns tokens podem não aparecer</string>
+  <string name="portfolio_balance_update_failed">Falha ao atualizar os saldos</string>
+  <string name="portfolio_balances_outdated">Os saldos podem estar desatualizados</string>
+  <string name="portfolio_balances_not_loaded">Saldos não carregados</string>
+  <string name="portfolio_balance_incl_hidden">incl. ocultos</string>
+  <plurals name="portfolio_hidden_assets_not_included">
+    <item quantity="one">%1$d ativo oculto não incluído</item>
+    <item quantity="other">%1$d ativos ocultos não incluídos</item>
+  </plurals>
+  <plurals name="portfolio_hidden_assets_not_included_manage">
+    <item quantity="one">%1$d ativo oculto não incluído · Gerir</item>
+    <item quantity="other">%1$d ativos ocultos não incluídos · Gerir</item>
+  </plurals>
+  <plurals name="portfolio_assets_without_price_not_included">
+    <item quantity="one">%1$d ativo sem preço não incluído</item>
+    <item quantity="other">%1$d ativos sem preço não incluídos</item>
+  </plurals>
+  <string name="portfolio_pool_stakes_not_included">Stakes em pools de nomeação não incluídos</string>
+  <plurals name="portfolio_hidden_assets_hold_funds">
+    <item quantity="one">%1$d ativo oculto tem saldo</item>
+    <item quantity="other">%1$d ativos ocultos têm saldo</item>
+  </plurals>
+  <string name="portfolio_hidden_assets_hold_funds_description">Os ativos ocultos não estão incluídos no seu total. Reveja-os ou mantenha-os ocultos.</string>
+  <string name="portfolio_hidden_assets_review">Rever</string>
+  <string name="portfolio_hidden_assets_keep_hidden">Manter ocultos</string>
+  <string name="portfolio_hidden_in_previous_version">Oculto na versão anterior</string>
+  <string name="portfolio_asset_hidden">Oculto</string>
+  <string name="portfolio_show_testnets">Mostrar testnets</string>
+  <string name="portfolio_show_testnets_description">Os tokens de teste não têm valor e nunca são contabilizados no seu total.</string>
+  <string name="portfolio_testnet_no_value">Sem valor</string>
+  <string name="search_assets_hint">Pesquisar por token ou rede</string>
+  <string name="search_assets_section_portfolio">No seu portfólio</string>
+  <string name="search_assets_section_other">Outros ativos</string>
+  <string name="search_assets_section_other_description">Ainda não estão no seu portfólio. Abra um para recebê-lo.</string>
+  <string name="asset_select_nothing_to_send">Ainda não há nada para enviar. Os ativos com saldo transferível aparecem aqui.</string>
+  <string name="wallet_recovery_center">Recuperação da carteira</string>
+  <string name="wallet_recovery_center_intro">Restaure o acesso a uma carteira ou verifique uma cópia de segurança. As chaves funcionais continuam disponíveis enquanto recupera outra chave.</string>
+  <string name="wallet_recovery_inventory_failed">Não foi possível ler alguns detalhes de recuperação. Tente novamente ou exporte os dados guardados.</string>
+  <string name="wallet_recovery_identity_issue">A chave guardada pertence a outra conta. Importe a sua cópia de segurança como uma carteira separada; esta entrada permanecerá apenas para consulta.</string>
+  <string name="wallet_recovery_missing_key">A chave de assinatura não está neste dispositivo. Restaure a chave correspondente a esta conta.</string>
+  <string name="wallet_recovery_unusable_key">Esta chave de assinatura não pode ser utilizada neste dispositivo. Os dados originais foram preservados.</string>
+  <string name="wallet_recovery_import_corrected">Importar como uma nova carteira corrigida</string>
+  <string name="wallet_recovery_use_phrase">Restaurar com frase de recuperação</string>
+  <string name="wallet_recovery_use_seed">Restaurar com seed bruta ou chave privada</string>
+  <string name="wallet_recovery_use_json">Restaurar com ficheiro JSON</string>
+  <string name="wallet_recovery_as_typed">Esta frase só restaura a sua conta quando é introduzida exatamente como foi guardada, incluindo espaços e maiúsculas. Guarde uma cópia de segurança exata.</string>
+  <string name="wallet_recovery_backup_advisory">A frase de recuperação ou seed guardada não reproduz esta chave de assinatura. Faça uma cópia de segurança da chave funcional em JSON ou como chave privada.</string>
+  <string name="wallet_recovery_no_attention">De momento, nenhuma chave de carteira precisa de recuperação.</string>
+  <string name="wallet_recovery_retained">Dados de carteira preservados</string>
+  <string name="wallet_recovery_retained_intro">Os dados de carteiras removidas e de reparações anteriores são guardados aqui. Verifique as contas derivadas antes de restaurar qualquer dado.</string>
+  <string name="wallet_recovery_keep_view_only">Manter apenas para consulta por agora</string>
+  <string name="wallet_recovery_restore">Restaurar</string>
+  <string name="wallet_recovery_restore_key">Restaurar chave da carteira</string>
+  <string name="wallet_recovery_restore_explanation">Introduza uma cópia de segurança desta conta. Verificamos se corresponde antes de restaurar o acesso. Os dados existentes são preservados.</string>
+  <string name="wallet_recovery_restored">Chave da carteira restaurada</string>
+  <string name="wallet_recovery_different_key">Esta cópia de segurança não corresponde a esta conta. Verifique a frase, a palavra-passe e o caminho de derivação.</string>
+  <string name="wallet_recovery_restore_failed">Não foi possível restaurar a chave. Os seus dados guardados foram preservados. Verifique a cópia de segurança e tente novamente.</string>
+  <string name="wallet_recovery_fix_now">Corrigir agora</string>
+  <string name="wallet_recovery_backup_key">Fazer cópia de segurança da chave funcional</string>
+
+    <!-- Retained wallet data: authenticated preview, restore and explicit purge. -->
+    <string name="wallet_archive_open">Abrir dados de carteiras preservados</string>
+    <string name="wallet_archive_intro">Confira os endereços antes de restaurar. Cada chave se torna uma carteira separada. Os dados originais são preservados; talvez seja necessário selecionar as redes novamente.</string>
+    <string name="wallet_archive_unlock">Desbloquear dados preservados</string>
+    <string name="wallet_archive_empty">Nenhum dado de carteira preservado foi encontrado.</string>
+    <string name="wallet_archive_unproved">Não foi possível comprovar que parte do material armazenado pode ser usada. Ele continua disponível na exportação dos dados originais.</string>
+    <string name="wallet_archive_exact_data">Ver dados originais</string>
+    <string name="wallet_archive_unreadable">Este dispositivo não consegue ler este registro. Os dados preservados não foram alterados.</string>
+    <string name="wallet_archive_delete">Excluir permanentemente</string>
+    <string name="wallet_archive_delete_first">Isso exclui todo o registro preservado, incluindo chaves que não podem ser exibidas. Continue apenas se tiver outro backup funcional.</string>
+    <string name="wallet_archive_delete_final">Confirmação final: excluir permanentemente este registro preservado? Isso não pode ser desfeito. As outras carteiras e registros serão mantidos.</string>
+    <string name="wallet_archive_restore_confirm">Restaurar este endereço como uma carteira separada? O registro original será mantido. A frase de recuperação salva ainda pode precisar de verificação.</string>
+    <string name="wallet_archive_continue_delete">Continuar para a confirmação final</string>
+    <string name="wallet_archive_export_warning">Estes dados podem conter chaves privadas e material de recuperação incompleto. Quem os receber poderá controlar seus fundos. Compartilhe apenas com um destino confiável.</string>
+    <string name="wallet_archive_share">Compartilhar dados armazenados</string>
+    <string name="wallet_archive_restored_name">Carteira restaurada</string>
+    <string name="wallet_archive_purged">Registro preservado excluído</string>
+
+  <string name="wallet_keyloss_title">Recuperar armazenamento seguro</string>
+  <string name="wallet_keyloss_intro">Este dispositivo não consegue abrir o armazenamento seguro anterior. Os registos das carteiras e as chaves encriptadas são mantidos. Tente novamente primeiro. Não elimine a aplicação.</string>
+  <string name="wallet_keyloss_retry">Tentar o armazenamento anterior</string>
+  <string name="wallet_keyloss_start">Iniciar novo armazenamento seguro</string>
+  <string name="wallet_keyloss_view">Ver apenas carteiras em cache</string>
+  <string name="wallet_keyloss_restart_device">A chave anterior continua indisponível. Reinicie o dispositivo, abra o Fearless e tente novamente. O novo armazenamento só é oferecido após tentativas falhadas antes e depois de reiniciar.</string>
+  <string name="wallet_keyloss_retry_later">O armazenamento está indisponível ou a verificação de recuperação mudou. Nada foi removido. Tente verificar novamente.</string>
+  <string name="wallet_keyloss_can_start">A chave anterior continua indisponível após reiniciar. Se tiver cópias de recuperação, pode iniciar novo armazenamento e restaurar as carteiras. Os dados anteriores ficam neste dispositivo.</string>
+  <string name="wallet_keyloss_backup_confirmation">Tenho frases de recuperação, seeds ou cópias JSON das carteiras que preciso de restaurar.</string>
+  <string name="wallet_keyloss_consent">Uma nova chave de encriptação não abre os dados encriptados antigos. Precisa de cópias de recuperação correspondentes para restaurar a assinatura. Mantemos a chave encapsulada anterior, o seu alias no dispositivo e todos os valores encriptados das carteiras. O Fearless continuará a tentar a chave anterior e voltará a usá-la se ficar disponível. As novas carteiras e respetivas chaves também serão mantidas.</string>
+  <string name="wallet_keyloss_authenticate">Confirme a credencial do dispositivo para continuar.</string>
+  <string name="wallet_keyloss_cached_warning">Estes são registos públicos em cache, não saldos atuais da rede. A assinatura e as alterações estão indisponíveis aqui. Montantes sem nome de token estão em unidades mínimas. Chaves públicas não são endereços de receção.</string>
+  <string name="wallet_keyloss_incomplete">Não foi possível mostrar alguns registos ou saldos em cache. Os dados originais são mantidos. Tente o armazenamento seguro novamente para recuperar o acesso completo.</string>
+  <string name="wallet_keyloss_no_cached">Não foram encontradas carteiras em cache legíveis. Os dados guardados não foram alterados.</string>
+  <string name="wallet_keyloss_working">A verificar os dados mantidos…</string>
+  <string name="wallet_keyloss_back">Voltar à recuperação</string>
+  <string name="wallet_keyloss_substrate_id">ID da conta Substrate: %1$s</string>
+  <string name="wallet_keyloss_evm_address">Endereço Ethereum: %1$s</string>
+  <string name="wallet_keyloss_ton_public">Chave pública TON: %1$s</string>
+  <string name="wallet_keyloss_address">Endereço: %1$s</string>
+  <string name="wallet_keyloss_public">Chave pública: %1$s</string>
+  <string name="wallet_keyloss_balance">Rede %1$s · Ativo %2$s: %3$s</string>
+    <string name="send_max">Máx.</string>
+    <string name="send_account_creation">Criação de conta</string>
+    <string name="send_fee_rate">Taxa por tamanho</string>
+    <string name="send_sat_per_vbyte">%1$s sat/vB</string>
+    <string name="send_recent_payment">Pagamento recente</string>
+    <string name="send_pending_message">O resultado deste pagamento ainda é desconhecido. Verifique o estado ou reenvie o mesmo pagamento. Não crie um pagamento substituto.</string>
+    <string name="send_pending_expired">O blockhash deste pagamento expirou, mas ele pode já ter sido processado. Continue verificando o estado ou o explorador. A Fearless não assinará um substituto enquanto o resultado for desconhecido.</string>
+    <string name="send_confirmed_message">Este pagamento foi confirmado pela rede.</string>
+    <string name="send_failed_message">A rede informou que este pagamento falhou. A transação original foi preservada.</string>
+    <string name="send_check_status">Verificar estado</string>
+    <string name="send_retry_same_payment">Reenviar o mesmo pagamento</string>
+    <string name="send_view_explorer">Ver no explorador</string>
+    <string name="send_history_explorer">Ver histórico no explorador</string>
+    <string name="send_recovery_unavailable">Não foi possível verificar o estado. Os dados originais foram preservados. Tente novamente.</string>
+    <string name="send_submitted_title">Estado do pagamento</string>
+    <string name="send_submitted_message">Verifique Pagamento recente na tela de saldo ou o explorador para saber se houve confirmação. Não envie este pagamento novamente enquanto o resultado for desconhecido.</string>
+    <string name="send_existing_pending">Um pagamento anterior precisa ser verificado. Abra Pagamento recente na tela de saldo para conferir o valor original e reenviar o mesmo pagamento. Esta nova cotação não será enviada.</string>
+    <string name="send_review_changed">A carteira, a taxa, o saldo ou a cotação mudou. Volte à tela de valor e revise o pagamento novamente.</string>
+    <string name="send_pending_network_unavailable">Não é possível verificar a rede original deste pagamento salvo. O pagamento é mantido neste dispositivo. A consulta de status e o reenvio estão indisponíveis.</string>
+    <string name="send_unsupported_account">Esta conta ou este token não pode enviar com esta carteira. Tokens SPL padrão são aceitos; envios de Token-2022 não estão disponíveis.</string>
+    <string name="send_storage_unavailable">Não foi possível verificar o pagamento preservado. O envio está bloqueado para evitar duplicação. Mantenha os dados deste aplicativo e tente novamente.</string>
+    <string name="send_bitcoin_address_help">O envio de Bitcoin aceita apenas endereços SegWit nativos: bc1q no Bitcoin ou tb1q no Bitcoin Testnet. Outros tipos de endereço não podem receber este envio.</string>
+    <string name="send_insufficient_spendable">O saldo disponível não cobre este valor e a taxa de rede. Os fundos Bitcoin pendentes precisam ser confirmados primeiro.</string>
+    <string name="send_bitcoin_dust">Este valor de Bitcoin está abaixo do valor mínimo de saída. Aumente o valor.</string>
+    <string name="send_solana_rent">Reserve SOL suficiente para o saldo mínimo da conta, a taxa de rede e a criação de contas de token. Reduza o valor ou adicione SOL.</string>
+    <string name="send_solana_account_invalid">Use um endereço de carteira Solana capaz de assinar e uma conta de token SPL padrão não congelada. Endereços de programa, contas incompatíveis e tokens congelados não podem ser usados.</string>
+  <string name="startup_network_refresh_unavailable">Não foi possível atualizar alguns dados de rede. As suas carteiras continuam disponíveis. Os saldos podem estar desatualizados e o envio nas redes afetadas pode estar indisponível. Tente novamente ou continue.</string>
+  <string name="startup_settings_refresh_unavailable">Não foi possível atualizar algumas definições de arranque. As suas carteiras continuam disponíveis. Tente novamente ou continue.</string>
+  <string name="startup_app_update_notice">Esta versão já não é suportada. Pode continuar para as suas carteiras e aceder aos dados de recuperação guardados neste dispositivo ou procurar uma atualização.</string>
+  <string name="fw_font_licenses">Licenças de fontes</string>
+  <string name="wallet_recovery_back">Voltar</string>
+  <string name="fw_loading_in_progress">Em andamento</string>
+
+  <string name="pool_join_recovery_title">Transação anterior do pool</string>
+  <string name="pool_join_recovery_pending">O estado da transação anterior do pool está por confirmar. Verifique antes de efetuar outra transação do pool. Estas verificações não assinam nem reenviam a transação.</string>
+  <string name="pool_join_recovery_checking">A verificar blocos finalizados. Pode voltar enquanto a verificação decorre.</string>
+  <string name="pool_join_recovery_not_found">A transação original não foi encontrada nos blocos verificados. O estado continua por confirmar. Verifique blocos mais antigos ou volte a verificar os recentes mais tarde.</string>
+  <string name="pool_join_recovery_unavailable">Não foi possível verificar o estado da transação. Não foi criada uma nova transação do pool. Guarde os dados originais e tente novamente mais tarde.</string>
+  <string name="pool_join_recovery_legacy">Esta tentativa antiga não tem uma referência de bloco inicial e não pode ser removida aqui em segurança. Guarde o hash da transação e verifique o estado antes de efetuar outra transação do pool.</string>
+  <string name="pool_join_recovery_finalized">O nó configurado informa que a transação original está num bloco finalizado. Isto não confirma que o staking teve sucesso. Verifique o estado do pool antes de iniciar uma nova revisão.</string>
+  <string name="pool_join_recovery_hash">Hash da transação</string>
+  <string name="pool_join_recovery_recent">Verificar blocos recentes</string>
+  <string name="pool_join_recovery_older">Verificar blocos mais antigos</string>
+  <string name="pool_join_recovery_return">Voltar ao pool</string>
+
+    <string name="pool_join_recovery_loading">A ler a transação do pool guardada neste dispositivo…</string>
+    <string name="pool_join_recovery_empty">Não existe uma transação do pool por resolver guardada para esta conta nesta rede. Volte ao pool para verificar o estado atual.</string>
+  <string name="pool_recovery_return_earn">Voltar a Earn</string>
+  <string name="pool_recovery_state_control">Controlo do estado do pool</string>
+
+  <!-- Offline, authenticated saved endpoint recovery. -->
+  <string name="saved_endpoints_title">Endpoints guardados</string>
+  <string name="saved_endpoints_intro">Veja os endpoints guardados neste dispositivo. Abrir este ecrã não estabelece ligações a eles nem altera a ligação atual.</string>
+  <string name="saved_endpoints_locked">Desbloqueie para ver os endpoints guardados. Podem conter dados de acesso privados.</string>
+  <string name="saved_endpoints_unlock">Desbloquear endpoints guardados</string>
+  <string name="saved_endpoints_refresh">Atualizar</string>
+  <string name="saved_endpoints_loading">A ler endpoints guardados…</string>
+  <string name="saved_endpoints_read_failed">Não foi possível ler os endpoints guardados. Os registos apresentados são da última leitura bem-sucedida. Pode tentar novamente ou voltar mais tarde.</string>
+  <string name="saved_endpoints_empty">Não foram encontrados registos nesta página. Atualize para voltar ao início.</string>
+  <string name="saved_endpoints_absent">Não foi encontrado um arquivo de endpoints guardados.</string>
+  <string name="saved_endpoints_escaped">Os valores estão entre aspas para mostrar espaços. As barras invertidas e os caracteres invisíveis aparecem como sequências de escape.</string>
+  <string name="saved_endpoints_record">Registo guardado %1$s</string>
+  <string name="saved_endpoints_name">Nome guardado</string>
+  <string name="saved_endpoints_url">Endpoint guardado</string>
+  <string name="saved_endpoints_network_code">Código de rede guardado: %1$s. Isto não seleciona uma rede atual.</string>
+  <string name="saved_endpoints_unknown">Desconhecido</string>
+  <string name="saved_endpoints_previous">Registos anteriores</string>
+  <string name="saved_endpoints_next">Registos seguintes</string>
+  <string name="saved_endpoints_not_saved">Nenhum valor foi guardado.</string>
+  <string name="saved_endpoints_unrecognized">O valor guardado não é reconhecido como texto. É mantido neste dispositivo.</string>
+  <string name="saved_endpoints_too_large">Este valor é demasiado grande para esta vista. O valor completo é mantido neste dispositivo.</string>
+  <string name="saved_endpoints_invalid_text">Não foi possível descodificar este valor como texto. Os bytes originais são mantidos neste dispositivo.</string>
+  <string name="saved_endpoints_bytes">Tamanho guardado: %1$s bytes</string>
+  <string name="saved_endpoints_unlock_failed">Não foi possível iniciar o desbloqueio. Tente novamente.</string>
+
+  <!-- Complete existing production navigation, portfolio and safety copy. -->
+  <string name="cross_chain_route_checking">A verificar rotas revistas…</string>
+  <string name="cross_chain_destination_unavailable_message">A Fearless Wallet não conseguiu determinar o ativo ou o saldo do destinatário na rede de destino, por isso nada foi enviado. Verifique a sua ligação e tente novamente.</string>
+  <string name="cross_chain_destination_fee_included">Descontada do montante no destino</string>
+  <string name="cross_chain_pending_message">Uma transferência entre redes anterior desta conta pode ter sido enviada e o seu resultado é desconhecido. Nenhuma nova transferência entre redes é enviada desta conta até o seu estado ser verificado. A verificação não assina nem reenvia a transferência.</string>
+  <string name="cross_chain_pending_not_found">A transferência anterior não foi encontrada em blocos finalizados. Ainda pode ser incluída até expirar, alguns minutos depois de ter sido assinada. Verifique novamente mais tarde.</string>
+  <string name="cross_chain_pending_included">A transferência anterior está num bloco finalizado da rede de origem, por isso foi enviada. Isto não confirma a sua chegada: verifique o saldo do destinatário na rede de destino.</string>
+  <string name="cross_chain_pending_expired">A transferência anterior expirou sem ser incluída, por isso não foi executada e nada foi movido. Pode enviar novamente.</string>
+  <string name="cross_chain_pending_unavailable">Não foi possível verificar o estado da transferência anterior. Continua guardada neste dispositivo e nada de novo é enviado. Verifique a sua ligação e tente novamente.</string>
+  <string name="cross_chain_protocol_xcm">Protocolo: rotas XCM revistas</string>
+  <string name="cross_chain_no_supported_route">Não há uma rota compatível disponível para esta carteira e o registo de produção atual.</string>
+  <string name="cross_chain_route_protocol">Protocolo: %1$s</string>
+  <string name="cross_chain_route_minimum_value">Mínimo: %1$s %2$s</string>
+  <string name="cross_chain_route_minimum_unknown">Mínimo: não fornecido por este prestador revisto</string>
+  <string name="cross_chain_route_origin_fee">Taxa atual da rede de origem: %1$s %2$s</string>
+  <string name="cross_chain_route_destination_fee">Taxa atual da rede de destino: %1$s %2$s</string>
+  <string name="cross_chain_route_estimated_time">Tempo estimado: %1$s</string>
+  <string name="cross_chain_route_estimated_time_unknown">Tempo estimado: não fornecido por este prestador revisto</string>
+  <string name="cross_chain_route_warning">Aviso: %1$s</string>
+  <string name="connection_add_ton_account">Adicionar uma conta TON</string>
+  <string name="connection_add_signing_account">Adicionar uma conta Substrate ou EVM</string>
+  <string name="tabbar_portfolio_title">Portefólio</string>
+  <string name="tabbar_defi_title">DeFi</string>
+  <string name="tabbar_cross_chain_title">Entre cadeias</string>
+  <string name="settings_section_wallets_accounts">Carteiras e contas</string>
+  <string name="settings_section_networks_assets">Redes e ativos</string>
+  <string name="settings_section_connections">Conexões</string>
+  <string name="settings_section_security">Segurança</string>
+  <string name="settings_section_preferences">Preferências</string>
+  <string name="settings_manage_assets">Gerir ativos</string>
+  <string name="portfolio_detected_assets">Ativos detetados (%1$d)</string>
+  <string name="portfolio_detected_assets_description">Encontrados na blockchain. Reveja os metadados antes de utilizar.</string>
+  <string name="portfolio_price_unavailable">Preço indisponível</string>
+  <string name="portfolio_asset_verified">Verificado</string>
+  <string name="portfolio_asset_unverified">Não verificado</string>
+  <string name="portfolio_asset_metadata_missing">Metadados em falta</string>
+  <string name="portfolio_sync_updated">Atualizado em %1$s</string>
+  <string name="portfolio_sync_stale_since">Dados desatualizados · última atualização em %1$s</string>
+  <string name="portfolio_sync_error">Falha na sincronização · a mostrar o último saldo conhecido</string>
+  <string name="portfolio_sync_pending">A aguardar a primeira pesquisa de ativos</string>
+  <string name="portfolio_sync_limited">Cobertura de ativos limitada</string>
+  <string name="common_collapse">Recolher</string>
+  <string name="common_expand">Expandir</string>
+  <plurals name="portfolio_assets_count">
+    <item quantity="one">%1$d ativo</item>
+    <item quantity="many">%1$d ativos</item>
+    <item quantity="other">%1$d ativos</item>
+  </plurals>
+  <string name="ux_choose_network">Escolha uma rede</string>
+  <string name="ux_network_selection_title">Que ativos vai utilizar?</string>
+  <string name="ux_network_selection_description">Escolha a rede para esta carteira. Ao restaurar, utilize a mesma rede da carteira existente. Pode adicionar outra carteira mais tarde.</string>
+  <string name="ux_networks_ethereum_polkadot">Ethereum, Polkadot e redes compatíveis</string>
+  <string name="ux_assets_ethereum_polkadot">ETH, DOT e outros</string>
+  <string name="ux_network_ton">Rede TON</string>
+  <string name="ux_asset_ton">Toncoin (TON)</string>
+  <string name="ux_receive_network">Rede: %1$s</string>
+  <string name="ux_receive_instruction">Envie apenas %1$s na rede %2$s para este endereço.</string>
+  <string name="ux_receive_qr">Receber %1$s na rede %2$s</string>
+  <string name="ux_backup_status">Faça uma cópia de segurança da carteira</string>
+  <string name="ux_backup_description">Guarde um método de recuperação para poder restaurar o acesso aos seus fundos.</string>
+  <string name="ux_swap_direction">Trocar os ativos que paga e recebe</string>
+  <string name="ux_execution_details">Detalhes da execução</string>
+  <string name="ux_show_details">Mostrar detalhes da execução</string>
+  <string name="ux_hide_details">Ocultar detalhes da execução</string>
+  <string name="ux_switch_wallet">Mudar de carteira</string>
+  <string name="ux_scan">Ler código QR</string>
+  <string name="ux_search">Pesquisa</string>
+  <string name="ux_more">Mais opções</string>
+  <string name="ux_filter">Filtrar</string>
+  <string name="ux_sort">Ordenar</string>
+  <string name="ux_close">Fechar</string>
+  <string name="ux_copy">Copiar</string>
+  <string name="ux_share">Partilhar</string>
+  <string name="ux_send_maximum">Enviar o máximo e encerrar esta conta de rede</string>
+  <string name="ux_send_maximum_description">Utiliza também a reserva da conta. Poderá ser necessário um novo depósito para voltar a utilizar esta conta. Verá o aviso da rede antes de continuar.</string>
+  <string name="ux_staking_estimate">Recompensas anuais estimadas: %s</string>
+  <string name="ux_staking_variability">As recompensas são estimativas e podem mudar. As condições da rede, as taxas do pool e o desempenho dos validadores afetam os seus ganhos.</string>
+  <string name="ux_pool_operator_options">Opções do operador do pool</string>
+  <string name="ux_pool_operator_description">Criar um pool implica gerir os seus validadores e definições. Para fazer staking num pool existente, escolha Juntar-se à pool.</string>
+  <string name="ux_tab_wallet">Carteira</string>
+  <string name="ux_tab_earn">Ganhar</string>
+  <string name="ux_tab_swap">Trocar</string>
+  <string name="ux_tab_transfer">Transferir</string>
+  <string name="ux_network_transfer">Transferir para outra rede</string>
+  <string name="ux_back">Voltar</string>
+  <string name="ux_swap_settings">Configurações de troca</string>
+  <string name="saved_endpoints_inspect_name">Inspecionar nome guardado</string>
+  <string name="saved_endpoints_inspect_url">Inspecionar endpoint guardado</string>
+  <string name="saved_endpoints_part_range">Bytes %1$s–%2$s de %3$s</string>
+  <string name="saved_endpoints_part_empty">Não há bytes no deslocamento %1$s. Tamanho atual: %2$s bytes.</string>
+  <string name="saved_endpoints_part_escaped">É apresentada uma parte do valor guardado. Os bytes que não podem ser apresentados como texto aparecem como \\xNN.</string>
+  <string name="saved_endpoints_part_unavailable">Este valor guardado já não está disponível. Volte à lista para atualizar.</string>
+  <string name="saved_endpoints_part_previous">Parte anterior</string>
+  <string name="saved_endpoints_part_next">Parte seguinte</string>
+  <string name="saved_endpoints_part_return">Voltar aos endpoints guardados</string>
+  <string name="saved_endpoint_collection">Conjunto de registos: %1$s</string>
+  <string name="saved_endpoint_source_legacy">Endpoints guardados no formato antigo</string>
+  <string name="saved_endpoint_source_historical">Primeiros registos guardados</string>
+  <string name="saved_endpoint_source_entry">Registos no início da atualização</string>
+  <string name="saved_endpoint_source_current">Registos da última atualização</string>
+  <string name="saved_endpoint_source_owned">Endpoints atuais</string>
+  <string name="saved_endpoint_source_absent">Não existem registos deste conjunto guardados neste dispositivo.</string>
+  <string name="saved_endpoint_historical_notice">Os registos históricos não alteram a ligação atual.</string>
+  <string name="saved_endpoint_deleted">Endpoint removido — mantido para recuperação</string>
+  <string name="saved_endpoint_attached">Associado a uma rede</string>
+  <string name="saved_endpoint_pending">A aguardar associação a uma rede</string>
+  <string name="saved_endpoint_changed">Este registo foi alterado. Volte à lista para selecionar a versão atual.</string>
+  <string name="saved_endpoint_inspect_field">Inspecionar: %1$s</string>
+  <string name="saved_endpoint_chain_reference">Referência de rede guardada</string>
+  <string name="saved_endpoint_network_type">Código de rede guardado</string>
+  <string name="saved_endpoint_default_value">Valor predefinido guardado</string>
+  <string name="saved_endpoint_selection_value">Valor de seleção guardado</string>
+
+  <!-- Authenticated offline endpoint choices. -->
+  <string name="saved_endpoint_choice_edit">Editar escolha salva</string>
+  <string name="saved_endpoint_choice_title">Escolha de conexão salva</string>
+  <string name="saved_endpoint_choice_intro">Escolha uma rede e insira um nome e uma URL. Os registros originais continuam disponíveis. Salvar não conecta à rede.</string>
+  <string name="saved_endpoint_choice_target">Rede para esta escolha</string>
+  <string name="saved_endpoint_choice_choose">Escolher esta rede</string>
+  <string name="saved_endpoint_choice_selected">Rede escolhida: %1$s</string>
+  <string name="saved_endpoint_choice_unavailable">Esta rede não pode ser escolhida com base nos detalhes salvos.</string>
+  <string name="saved_endpoint_choice_empty">Não há redes salvas neste dispositivo. Volte à carteira e tente novamente quando as redes estiverem disponíveis.</string>
+  <string name="saved_endpoint_choice_refresh_targets">Atualizar redes</string>
+  <string name="saved_endpoint_choice_save">Salvar offline</string>
+  <string name="saved_endpoint_choice_saving">Salvando sua escolha…</string>
+  <string name="saved_endpoint_choice_saved">Salvo neste dispositivo. A verificação da conexão ainda está pendente.</string>
+  <string name="saved_endpoint_choice_failed">Não foi possível salvar esta escolha. Tente novamente ou recarregue o estado salvo mantendo suas alterações.</string>
+  <string name="saved_endpoint_choice_reload">Recarregar e manter alterações</string>
+  <string name="saved_endpoint_choice_invalid">O texto é muito longo ou contém caracteres não compatíveis. Encurte-o e tente novamente.</string>
+  <string name="saved_endpoint_choice_missing">Insira uma URL e escolha uma rede antes de salvar.</string>
+  <string name="saved_endpoint_choice_unsupported">A verificação desta rede ainda não está disponível. Você pode salvar esta escolha como pendente.</string>
+  <string name="saved_endpoint_attachment_intro">Verifique o URL salvo para a rede escolhida. Adicionar ou restaurar um endpoint não o seleciona.</string>
+  <string name="saved_endpoint_attachment_add">Verificar e adicionar endpoint</string>
+  <string name="saved_endpoint_attachment_restore">Verificar e restaurar endpoint</string>
+  <string name="saved_endpoint_attachment_working">Verificando endpoint…</string>
+  <string name="saved_endpoint_attachment_added">Endpoint adicionado. Ele não está selecionado.</string>
+  <string name="saved_endpoint_attachment_restored">Endpoint restaurado. Ele não está selecionado. Volte à lista para atualizar este registro.</string>
+  <string name="saved_endpoint_attachment_present_active">Este endpoint já está selecionado. Nenhuma nova verificação foi realizada.</string>
+  <string name="saved_endpoint_attachment_present_inactive">Este endpoint já foi adicionado e não está selecionado. Nenhuma nova verificação foi realizada.</string>
+  <string name="saved_endpoint_attachment_mismatch">O endpoint retornou uma identidade de rede diferente. Nada foi adicionado.</string>
+  <string name="saved_endpoint_attachment_invalid">O endpoint retornou uma resposta inválida. Nada foi adicionado.</string>
+  <string name="saved_endpoint_attachment_unreachable">Não foi possível acessar o endpoint. Nada foi adicionado.</string>
+  <string name="saved_endpoint_attachment_large">A resposta do endpoint era muito grande. Nada foi adicionado.</string>
+  <string name="saved_endpoint_attachment_timeout">O tempo de verificação esgotou. Nada foi adicionado.</string>
+  <string name="saved_endpoint_attachment_busy">A verificação está ocupada. Tente novamente.</string>
+  <string name="saved_endpoint_attachment_failed">Não foi possível confirmar o estado do endpoint. Volte à lista, atualize a escolha salva e tente novamente.</string>
+  <string name="saved_endpoint_attachment_source_changed">O registro salvo foi alterado. Revise esta escolha e salve novamente antes de verificar.</string>
+  <string name="portfolio_balance_loading">Carregando saldo…</string>
+  <string name="portfolio_prices_loading">Carregando preços…</string>
+  <string name="portfolio_balance_partial">Saldo parcial</string>
+  <string name="portfolio_balance_unavailable">Saldo indisponível</string>
 </resources>

@@ -26,7 +26,9 @@ abstract class StakingConfirmViewModel(
     executeOperation: suspend (String, BigInteger?) -> Result<String>,
     accountNameProvider: suspend (String) -> String?,
     private val onOperationSuccess: () -> Unit,
-    private val customSuccessMessage: String? = null
+    private val customSuccessMessage: String? = null,
+    withCurrentPresentation: (() -> Unit) -> Unit = { it() },
+    withSuccessPresentation: (() -> Unit) -> Unit = withCurrentPresentation
 ) : BaseConfirmViewModel(
     walletInteractor,
     existentialDepositUseCase,
@@ -42,10 +44,12 @@ abstract class StakingConfirmViewModel(
     executeOperation,
     accountNameProvider,
     {
-        onOperationSuccess()
-        router.openOperationSuccess(it, asset.token.configuration.chainId, customSuccessMessage)
+        withSuccessPresentation {
+            withCurrentPresentation { onOperationSuccess() }
+            withCurrentPresentation { router.openOperationSuccess(it, asset.token.configuration.chainId, customSuccessMessage) }
+        }
     },
     {
-        router.openAlert(it)
+        withCurrentPresentation { router.openAlert(it) }
     }
 )

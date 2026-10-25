@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
+import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -10,14 +12,15 @@ import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.model.UniversalWalletMigrationSnapshot
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
@@ -29,6 +32,12 @@ interface AccountInteractor {
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun createAccount(payload: AddAccountPayload): Result<Long>
+
+    /** Import both roots from a decrypted legacy backup in one durable wallet creation. */
+    suspend fun createAccountFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Result<Long>
 
     suspend fun importFromSeed(
         walletId: Long?,
@@ -52,6 +61,8 @@ interface AccountInteractor {
     ): Result<Unit>
 
     suspend fun isCodeSet(): Boolean
+
+    suspend fun getPinHealth(): PinHealth
 
     suspend fun savePin(code: String)
 
@@ -112,11 +123,34 @@ interface AccountInteractor {
     suspend fun selectedLightMetaAccount(): LightMetaAccount
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
     fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>>
+    fun universalWalletMigrationSnapshotFlow(): Flow<UniversalWalletMigrationSnapshot>
+    suspend fun universalWalletMigrationSnapshot(): UniversalWalletMigrationSnapshot
+    suspend fun isWalletRecoveryRequired(metaId: Long): Boolean
+    fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean>
 
-    suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String)
+    /** False when this build cannot sign in to Google Drive, so backup and import must use another way. */
+    fun isGoogleBackupAvailable(): Boolean
+
+    /**
+     * Uploads the wallet's Google Drive backup. A stored phrase or seed that does not restore this
+     * exact wallet is left out and the backup keeps the types that do; returns the types left out.
+     */
+    suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String): Set<BackupAccountType>
     suspend fun getGoogleBackupAccounts(): List<BackupAccountMeta>
     suspend fun getExtensionGoogleBackups(): List<BackupAccountMeta>
-    suspend fun deleteGoogleBackupAccount(walletId: Long, address: String)
+
+    /**
+     * The wallet's app backups on Drive, newest first: the copies filed under its own address, one for
+     * each device that backed it up. A backup the wallet was imported from is not among them unless it
+     * restores this exact wallet's address.
+     */
+    suspend fun getGoogleBackupCopies(walletId: Long): List<BackupAccountMeta>
+
+    /**
+     * Deletes the confirmed [copies] of the wallet's backup that are filed under its own address. A
+     * backup that is already gone from Drive counts as deleted; any other failure is thrown.
+     */
+    suspend fun deleteGoogleBackupAccount(walletId: Long, copies: List<BackupAccountMeta>)
     suspend fun authorizeGoogleBackup(launcher: ActivityResultLauncher<Intent>): Boolean
     suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>?
 

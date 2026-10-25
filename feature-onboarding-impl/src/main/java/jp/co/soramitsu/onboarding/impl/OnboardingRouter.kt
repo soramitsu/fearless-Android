@@ -25,5 +25,8 @@ interface OnboardingRouter {
 
     fun openInitialCheckPincode()
 
+    /** Saved endpoint recovery is reachable without a selected wallet. */
+    fun openSavedEndpoints()
+
     fun openMain()
 }

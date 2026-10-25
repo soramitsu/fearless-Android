@@ -6,7 +6,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
+import jp.co.soramitsu.account.api.presentation.account.capturedPortfolioDetailFlow
+import jp.co.soramitsu.account.api.presentation.account.CapturedPortfolioDetail
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
+import jp.co.soramitsu.account.api.presentation.account.withAllHoldings
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
@@ -18,16 +23,12 @@ import jp.co.soramitsu.account.impl.presentation.account.details.WalletAccountAc
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -39,6 +40,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -58,32 +61,24 @@ class ChainAccountsViewModel @Inject constructor(
     private val walletId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
     private val type = savedStateHandle.get<WalletEcosystem>(ACCOUNT_TYPE_KEY)!!
 
-    private val wallet = flowOf {
-        interactor.getMetaAccount(walletId)
-    }.share()
-
-    private val walletItem = wallet
-        .map { wallet ->
-
-            val icon = iconGenerator.createAddressIcon(
-                wallet.substrateAccountId ?: wallet.tonPublicKey ?: error("Can't create an icon without the input data"),
-                AddressIconGenerator.SIZE_BIG
-            )
-
-            val balanceModel = totalBalanceUseCase(walletId)
-
-            WalletItemViewState(
-                id = walletId,
-                title = wallet.name,
-                isSelected = false,
-                walletIcon = icon,
-                balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-                changeBalanceViewState = ChangeBalanceViewState(
-                    percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                    fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-                )
-            )
-        }
+    private val walletItem = capturedPortfolioDetailFlow(totalBalanceUseCase.observe(walletId)) { ready ->
+        iconGenerator.createAddressIcon(
+            ready.meta.supportedEcosystemWithIconAddress(),
+            AddressIconGenerator.SIZE_BIG
+        )
+    }.catch { failure ->
+        if (failure is CancellationException) throw failure
+        emit(CapturedPortfolioDetail(TotalBalance.Unavailable, null))
+        showError(failure)
+    }.map { captured ->
+        val ready = captured.source as? TotalBalance.Ready
+        WalletItemViewState(
+            id = walletId,
+            title = ready?.meta?.name.orEmpty(),
+            isSelected = false,
+            walletIcon = captured.detail ?: R.drawable.ic_wallet
+        ).withAllHoldings(captured.source, resourceManager)
+    }
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
@@ -167,6 +162,7 @@ class ChainAccountsViewModel @Inject constructor(
             isSupported = accountInChain.chain.isSupported,
             hasAccount = accountInChain.hasAccount,
             markedAsNotNeed = accountInChain.markedAsNotNeed,
+            isOffline = accountInChain.isOffline,
             enabled = hasAddress
         )
     }
@@ -196,6 +192,10 @@ class ChainAccountsViewModel @Inject constructor(
     }
 
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {
+        item.offlineActionsPayload()?.let { payload ->
+            externalAccountActions.showExternalActions(payload)
+            return
+        }
         launch {
             val chain = chainsRepository.getChain(item.chainId)
             val supportedExplorers =

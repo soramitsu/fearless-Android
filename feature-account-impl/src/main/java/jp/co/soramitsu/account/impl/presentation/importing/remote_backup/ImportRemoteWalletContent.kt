@@ -63,6 +63,9 @@ internal fun PreviewImportRemoteWalletContent() {
                 override fun onWalletLongClick(backupAccount: WrappedBackupAccountMeta) {}
                 override fun onBackClick() {}
                 override fun loadRemoteWallets() {}
+                override fun onErrorActionClick() {}
+                override fun onImportAnotherWayClick() {}
+                override fun onUseAnotherGoogleAccountClick() {}
                 override fun onPasswordChanged(password: String) {}
                 override fun onPasswordVisibilityClick() {}
                 override fun onImportMore() {}

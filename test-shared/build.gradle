@@ -17,11 +17,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = '21'
     }
-    namespace 'jp.co.soramitsu.test_shared'
+    namespace = 'jp.co.soramitsu.test_shared'
 }
 
 
@@ -38,7 +36,7 @@ dependencies {
     api libs.mockk
     api libs.kotlinx.coroutines.test
 
-    api libs.nv.websocket.client
+    api project(':runtime-websocket')
 
     api libs.gson
 }

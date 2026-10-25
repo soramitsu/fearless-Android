@@ -9,9 +9,9 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.model.PoolRewards
@@ -124,16 +124,16 @@ class StakingPoolDataSource(
         )
     }
 
-    fun observePool(chainId: ChainId, poolId: BigInteger): Flow<BondedPool?> {
-        return remoteStorage.observe(
+    fun observePool(chainId: ChainId, poolId: BigInteger): Flow<Result<BondedPool?>> {
+        return remoteStorage.observeResult(
             chainId = chainId,
             keyBuilder = { it.metadata.nominationPools().storage("BondedPools").storageKey(it, poolId) },
             binder = ::bindBondedPool
         )
     }
 
-    fun observePoolMembers(chainId: ChainId, accountId: AccountId): Flow<PoolMember?> {
-        return remoteStorage.observe(
+    fun observePoolMembers(chainId: ChainId, accountId: AccountId): Flow<Result<PoolMember?>> {
+        return remoteStorage.observeResult(
             keyBuilder = { it.metadata.nominationPools().storage("PoolMembers").storageKey(it, accountId) },
             binder = ::bindPoolMember,
             chainId = chainId
@@ -141,14 +141,14 @@ class StakingPoolDataSource(
     }
 
     suspend fun getPoolMetadata(chainId: ChainId, poolId: BigInteger): String? {
-        return remoteStorage.query(
+        return remoteStorage.queryResult(
             chainId = chainId,
             keyBuilder = { it.metadata.nominationPools().storage("Metadata").storageKey(it, poolId) },
             binding = { scale, runtime ->
-                scale ?: return@query null
+                scale ?: return@queryResult null
                 bindBondedPoolsMetadata(scale, runtime)
             }
-        )
+        ).getOrThrow()
     }
 
     suspend fun observePoolRewards(chainId: ChainId, poolId: BigInteger): Flow<PoolRewards?> {

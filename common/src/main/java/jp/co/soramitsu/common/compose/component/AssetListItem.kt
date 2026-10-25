@@ -39,6 +39,7 @@ import coil.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -101,7 +102,10 @@ fun AssetListItem(
                 ) {
                     Row {
                         Text(
-                            text = state.assetName.uppercase(),
+                            text = listOf(state.assetName, state.assetChainName)
+                                .filter(String::isNotBlank)
+                                .joinToString(" · ")
+                                .uppercase(),
                             style = MaterialTheme.customTypography.capsTitle2,
                             modifier = Modifier
                                 .alpha(0.64f)
@@ -136,7 +140,8 @@ fun AssetListItem(
                                 .height(1.dp)
                                 .weight(1.0f)
                         )
-                        if (state.assetTransferableBalance == null) {
+                        val balance = state.assetTotalBalance ?: state.assetTransferableBalance
+                        if (balance == null) {
                             Shimmer(
                                 Modifier
                                     .padding(top = 8.dp, bottom = 4.dp)
@@ -144,7 +149,7 @@ fun AssetListItem(
                             )
                         } else {
                             Text(
-                                text = state.assetTransferableBalance,
+                                text = balance,
                                 style = MaterialTheme.customTypography.header3.copy(textAlign = TextAlign.End),
                                 modifier = Modifier
                                     .padding(vertical = 4.dp)
@@ -162,6 +167,22 @@ fun AssetListItem(
                             modifier = Modifier
                                 .weight(1f)
                         ) {
+                            // Verified is the normal case and carries no label; only warnings do.
+                            if (state.metadataTrust != "verified") {
+                                Text(
+                                    text = stringResource(
+                                        if (state.metadataTrust == "missing") {
+                                            R.string.portfolio_asset_metadata_missing
+                                        } else {
+                                            R.string.portfolio_asset_unverified
+                                        }
+                                    ),
+                                    style = MaterialTheme.customTypography.body1.copy(color = alertYellow),
+                                    modifier = Modifier
+                                        .padding(end = 4.dp)
+                                        .testTag("AssetListItem_${state.assetSymbol}_trust")
+                                )
+                            }
                             Text(
                                 text = state.assetTokenFiat.orEmpty(),
                                 style = MaterialTheme.customTypography.body1,
@@ -180,14 +201,35 @@ fun AssetListItem(
                                     .testTag("AssetListItem_${state.assetSymbol}_change_percent")
                             )
                         }
+                        val balanceFiat = if (state.assetTotalBalance != null) {
+                            state.assetTotalBalanceFiat
+                        } else {
+                            state.assetTransferableBalanceFiat
+                        }
                         Text(
-                            text = state.assetTransferableBalanceFiat.orEmpty(),
+                            // A testnet token has no value; it is not a token whose price failed.
+                            text = balanceFiat ?: stringResource(
+                                if (state.isTestnet) R.string.portfolio_testnet_no_value else R.string.portfolio_price_unavailable
+                            ),
                             style = MaterialTheme.customTypography.body1.copy(textAlign = TextAlign.End),
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .alpha(0.64f)
                                 .padding(start = 4.dp)
                                 .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
+                        )
+                    }
+                    if (state.showTransferableBalance && state.assetTransferableBalance != null) {
+                        Text(
+                            text = stringResource(
+                                R.string.wallet_send_transferable_amount_caption,
+                                state.assetTransferableBalance
+                            ),
+                            style = MaterialTheme.customTypography.body2.copy(textAlign = TextAlign.End),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(0.64f)
+                                .testTag("AssetListItem_${state.assetSymbol}_transferable_line")
                         )
                     }
                 }
@@ -326,15 +368,15 @@ fun AssetListItemShimmer(
 @Composable
 private fun PreviewAssetListItem() {
     val assetIconUrl =
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
+        "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polkadot.svg"
     val assetChainUrlsMap = mapOf(
-        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
-        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
-        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
-        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonbeam.svg",
-        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Statemine.svg",
-        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Rococo.svg"
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kilt.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonriver.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polkadot.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonbeam.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Statemine.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Rococo.svg"
     )
 
     val state = AssetListItemViewState(
@@ -372,7 +414,6 @@ private fun PreviewAssetListItem() {
                         assetChainUrlsMap.values.toList()
                     )
                 )
-                MarginVertical(margin = 8.dp)
             }
         }
     }

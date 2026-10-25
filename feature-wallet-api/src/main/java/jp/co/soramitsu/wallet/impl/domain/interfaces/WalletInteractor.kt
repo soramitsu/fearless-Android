@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
@@ -75,6 +75,9 @@ interface WalletInteractor {
 
     suspend fun getPhishingInfo(address: String): PhishingModel?
 
+    /** Returns a fresh exact protocol maximum for the selected wallet and recipient. */
+    suspend fun getTransferMaxAmount(transfer: Transfer): BigDecimal = throw UnsupportedOperationException()
+
     suspend fun observeTransferFee(transfer: Transfer): Flow<BigDecimal>
 
     suspend fun performTransfer(
@@ -99,7 +102,7 @@ interface WalletInteractor {
 
     suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String)
 
-    suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>)
+    suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>, expectedMetaId: Long? = null)
 
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
 

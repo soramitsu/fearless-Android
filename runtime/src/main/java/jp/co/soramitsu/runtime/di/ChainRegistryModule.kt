@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.di
 
+import android.util.Log
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,8 +30,11 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
+import jp.co.soramitsu.runtime.multiNetwork.tokengroups.PortfolioVisibility
+import jp.co.soramitsu.runtime.multiNetwork.tokengroups.SharedPortfolioConfigSource
+import jp.co.soramitsu.runtime.multiNetwork.tokengroups.TokenGroupRegistry
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
-import jp.co.soramitsu.shared_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 import javax.inject.Provider
@@ -128,12 +132,12 @@ class ChainRegistryModule {
     fun provideConnectionPool(
         socketProvider: Provider<SocketService>,
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-        nodesSettingsStorage: NodesSettingsStorage,
+        chainDao: ChainDao,
         networkStateService: NetworkStateService
     ) = ConnectionPool(
         socketProvider,
         externalRequirementsFlow,
-        nodesSettingsStorage,
+        chainDao,
         networkStateService
     )
 
@@ -171,7 +175,8 @@ class ChainRegistryModule {
         ethereumConnectionPool: EthereumConnectionPool,
         assetReadOnlyCache: AssetDao,
         chainsRepository: ChainsRepository,
-        chainEnvironmentConfiguratorProvider: ChainEnvironmentConfiguratorProvider
+        chainEnvironmentConfiguratorProvider: ChainEnvironmentConfiguratorProvider,
+        portfolioVisibility: PortfolioVisibility
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -183,7 +188,8 @@ class ChainRegistryModule {
         ethereumConnectionPool,
         assetReadOnlyCache,
         chainsRepository,
-        chainEnvironmentConfiguratorProvider
+        chainEnvironmentConfiguratorProvider,
+        portfolioVisibility
     )
 
     @Provides
@@ -193,7 +199,6 @@ class ChainRegistryModule {
         runtimeProviderPool: RuntimeProviderPool,
         runtimeSyncService: RuntimeSyncService,
         runtimeSubscriptionPool: RuntimeSubscriptionPool,
-        chainsRepository: ChainsRepository,
         ethereumConnectionPool: EthereumConnectionPool
     ): ChainEnvironmentConfiguratorProvider {
         return ChainEnvironmentConfiguratorProvider(
@@ -201,11 +206,33 @@ class ChainRegistryModule {
             runtimeProviderPool,
             runtimeSyncService,
             runtimeSubscriptionPool,
-            chainsRepository,
             ethereumConnectionPool
         )
     }
 
     @Provides
+    @Singleton
     fun provideChainsRepository(chainDao: ChainDao): ChainsRepository = ChainsRepository(chainDao)
+
+    @Provides
+    @Singleton
+    fun provideSharedPortfolioConfigSource(
+        contextManager: ContextManager
+    ): SharedPortfolioConfigSource = SharedPortfolioConfigSource(
+        readAsset = { name -> contextManager.getContext().assets.open(name).use { it.readBytes() } },
+        onLoadFailure = { name, error -> Log.w("SharedPortfolioConfig", "Bundled $name is unusable; falling back", error) }
+    )
+
+    @Provides
+    @Singleton
+    fun providePortfolioVisibility(
+        configSource: SharedPortfolioConfigSource
+    ): PortfolioVisibility = PortfolioVisibility(configSource)
+
+    @Provides
+    @Singleton
+    fun provideTokenGroupRegistry(
+        configSource: SharedPortfolioConfigSource,
+        chainsRepository: ChainsRepository
+    ): TokenGroupRegistry = TokenGroupRegistry(configSource, chainsRepository)
 }

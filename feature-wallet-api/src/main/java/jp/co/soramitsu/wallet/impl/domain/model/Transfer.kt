@@ -29,7 +29,9 @@ data class Transfer(
     val amount: BigDecimal,
     val chainAsset: Asset,
     val estimateFee: BigDecimal? = null,
-    val additionalParams: TransferParams? = null
+    val additionalParams: TransferParams? = null,
+    val quoteId: String? = null,
+    val sendMax: Boolean = false
 ) {
 
     val amountInPlanks: BigInteger = chainAsset.planksFromAmount(amount)

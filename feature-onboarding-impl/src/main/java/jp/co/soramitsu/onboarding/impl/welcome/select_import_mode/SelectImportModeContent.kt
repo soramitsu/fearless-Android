@@ -23,7 +23,9 @@ import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_onboarding_impl.R
 
 data class SelectImportModeState(
-    val preinstalledFeatureEnabled: Boolean
+    val preinstalledFeatureEnabled: Boolean,
+    /** Google Drive backups restore whole wallets, so they are not offered when adding an account to one. */
+    val isGoogleImportAllowed: Boolean = true
 )
 
 interface SelectImportModeScreenInterface {

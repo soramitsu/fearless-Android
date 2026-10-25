@@ -2,8 +2,9 @@ package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -39,15 +40,35 @@ data class ConfirmJoinPoolScreenViewState(
     val networkFee: TitleValueViewState,
     val assetIcon: GradientIconState,
     val additionalMessage: String? = null,
-    val isLoading: Boolean
+    val isLoading: Boolean,
+    val recovery: PoolJoinRecoveryViewState? = null
+)
+
+data class PoolJoinRecoveryViewState(
+    val message: String,
+    val amount: String?,
+    val poolId: String?,
+    val network: String,
+    val address: String,
+    val transactionHash: String?,
+    val canCheck: Boolean,
+    val canCheckOlder: Boolean,
+    val finalized: Boolean,
+    val canReturn: Boolean = finalized,
+    val create: jp.co.soramitsu.staking.impl.data.repository.PoolJoinJournal.CreateDetails? = null,
+    @androidx.annotation.StringRes val returnLabelRes: Int = R.string.pool_join_recovery_return
 )
 
 @Composable
-fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit) {
+fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit,
+    onCheckPending: (Boolean) -> Unit = {}, onReturnToPool: () -> Unit = {}) {
     BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
         FullScreenLoading(isLoading = state.isLoading) {
             Column {
                 Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
+                if (state.recovery != null) {
+                    PoolJoinRecoveryContent(state.recovery, onCheckPending, onReturnToPool)
+                } else {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -72,13 +93,80 @@ fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationCli
                         text = stringResource(id = R.string.common_confirm),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
+                            .heightIn(min = 48.dp),
                         onClick = onConfirm
                     )
                     MarginVertical(margin = 16.dp)
                 }
+                }
             }
         }
+    }
+}
+
+@Composable
+internal fun PoolJoinRecoveryContent(state: PoolJoinRecoveryViewState, onCheck: (Boolean) -> Unit, onReturn: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+        H2(text = stringResource(R.string.pool_join_recovery_title))
+        MarginVertical(16.dp)
+        B2(text = state.message)
+        MarginVertical(16.dp)
+        // Full public identifiers remain selectable and wrap; InfoTable abbreviates these values.
+        SelectionContainer {
+            Column {
+                if (state.network.isNotEmpty()) {
+                    B2(text = stringResource(R.string.common_network))
+                    B2(text = state.network)
+                }
+                if (state.address.isNotEmpty()) {
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.transaction_details_from))
+                    B2(text = state.address)
+                }
+                state.amount?.let {
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.common_amount))
+                    B2(text = it)
+                }
+                state.poolId?.let {
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.pool_staking_selected_pool))
+                    B2(text = it)
+                }
+                state.create?.let { created ->
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.pool_create_title))
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.pool_staking_pool_name))
+                    B2(text = created.poolName)
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.pool_staking_nominator))
+                    B2(text = created.nominatorAddress)
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.pool_recovery_state_control))
+                    B2(text = created.stateTogglerAddress)
+                }
+                state.transactionHash?.let {
+                    MarginVertical(12.dp)
+                    B2(text = stringResource(R.string.pool_join_recovery_hash))
+                    B2(text = it)
+                }
+            }
+        }
+        MarginVertical(24.dp)
+        if (state.canReturn) {
+            AccentButton(text = stringResource(state.returnLabelRes),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), onClick = onReturn)
+        } else {
+            AccentButton(text = stringResource(R.string.pool_join_recovery_recent), enabled = state.canCheck,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), onClick = { onCheck(false) })
+            if (state.canCheckOlder) {
+                MarginVertical(12.dp)
+                AccentButton(text = stringResource(R.string.pool_join_recovery_older),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), onClick = { onCheck(true) })
+            }
+        }
+        MarginVertical(16.dp)
     }
 }
 
@@ -91,7 +179,7 @@ private fun ConfirmJoinPoolScreenPreview() {
         address = TitleValueViewState("From", "Account for join", "0x3784348729384923849223423"),
         selectedPool = TitleValueViewState("Selected Pool", "Pool #1", "id: 1"),
         networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32"),
-        assetIcon = GradientIconState.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg", "ffffff"),
+        assetIcon = GradientIconState.Remote("https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg", "ffffff"),
         isLoading = false
     )
     FearlessTheme {

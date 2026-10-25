@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeEstimation
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -45,16 +46,18 @@ open class BaseEnterAmountViewModel(
     private val onNextStep: suspend (BigInteger) -> Unit,
     private vararg val validations: Validation,
     private val buttonValidation: (BigInteger) -> Boolean = { it != BigInteger.ZERO },
-    private val availableAmountForOperation: suspend (Asset) -> BigDecimal = { it.transferable },
+    private val availableAmountForOperation: suspend (Asset) -> BigDecimal? = { it.transferable },
     private val errorAlertPresenter: (AlertViewState) -> Unit,
     private val quickInputsCalculator: suspend () -> Map<Double, BigDecimal> = {
-        quickInputsUseCase?.calculateStakingQuickInputs(
-            asset.token.configuration.chainId,
-            asset.token.configuration.id,
-            calculateAvailableAmount = { availableAmountForOperation(asset) },
-            calculateFee = { feeEstimator(it) })
-            ?: emptyMap()
-    }
+        availableAmountForOperation(asset)?.let { available ->
+            quickInputsUseCase?.calculateStakingQuickInputs(
+                asset.token.configuration.chainId,
+                asset.token.configuration.id,
+                calculateAvailableAmount = { available },
+                calculateFee = { feeEstimator(it) })
+        } ?: emptyMap()
+    },
+    private val onAmountChanged: () -> Unit = {}
 ) : BaseViewModel() {
 
     private val defaultAmountInputState = AmountInputViewState(
@@ -67,7 +70,7 @@ open class BaseEnterAmountViewModel(
 
     private val defaultButtonState = ButtonViewState(
         resourceManager.getString(nextButtonTextRes),
-        true
+        false
     )
 
     private val toolbarViewState = ToolbarViewState(
@@ -85,8 +88,10 @@ open class BaseEnterAmountViewModel(
     private val enteredAmountFlow = MutableStateFlow(initialAmount.orZero())
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
-        val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbol)
-        val tokenBalanceFiat = availableAmountForOperation(asset).applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+        val available = availableAmountForOperation(asset)
+        val tokenBalance = available?.formatCrypto(asset.token.configuration.symbol)
+            ?: resourceManager.getString(R.string.portfolio_balance_unavailable)
+        val tokenBalanceFiat = available?.let(asset.token::fiatAmount)?.formatFiat(asset.token.fiatSymbol)
         val balanceWithFiat = if (tokenBalanceFiat == null) {
             tokenBalance
         } else {
@@ -105,9 +110,12 @@ open class BaseEnterAmountViewModel(
         )
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = enteredAmountFlow.map { amount ->
+    private val feeEstimation = FeeEstimation(resourceManager)
+
+    // Runs eagerly in viewModelScope for every amount: a failed estimation must neither crash the app nor stop later ones.
+    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(enteredAmountFlow, feeEstimation.retryFlow) { amount, _ ->
         val inPlanks = asset.token.planksFromAmount(amount)
-        val feeInPlanks = feeEstimator(inPlanks)
+        val feeInPlanks = feeEstimation.estimate { feeEstimator(inPlanks) } ?: return@combine FeeInfoViewState.default
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
         val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
@@ -119,7 +127,7 @@ open class BaseEnterAmountViewModel(
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
             resourceManager.getString(nextButtonTextRes),
-            buttonValidation(amountInPlanks)
+            availableAmountForOperation(asset) != null && buttonValidation(amountInPlanks)
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -139,12 +147,14 @@ open class BaseEnterAmountViewModel(
     protected var quickInputs: Map<Double, BigDecimal> = mapOf<Double, BigDecimal>()
     init {
         viewModelScope.launch  {
-            quickInputs = quickInputsCalculator()
+            quickInputs = if (availableAmountForOperation(asset) == null) emptyMap() else quickInputsCalculator()
         }
     }
 
     fun onAmountInput(amount: BigDecimal?) {
-        enteredAmountFlow.value = amount.orZero()
+        val updated = amount.orZero()
+        if (enteredAmountFlow.value.compareTo(updated) != 0) onAmountChanged()
+        enteredAmountFlow.value = updated
     }
 
     fun onNextClick() {
@@ -173,6 +183,12 @@ open class BaseEnterAmountViewModel(
     }
 
     private suspend fun isValid(amount: BigDecimal): Result<Any> {
+        if (availableAmountForOperation(asset) == null) return Result.failure(
+            ValidationException(resourceManager.getString(R.string.common_error_general_title),
+                resourceManager.getString(R.string.portfolio_balance_unavailable))
+        )
+        if (feeEstimation.hasFailed) return Result.failure(feeEstimation.missingFeeError())
+
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val allValidations = validations.toList()
         val firstError = allValidations.firstNotNullOfOrNull {
@@ -184,7 +200,7 @@ open class BaseEnterAmountViewModel(
     fun onQuickAmountInput(value: Double) {
         viewModelScope.launch {
             val amount = quickInputs[value] ?: return@launch
-            enteredAmountFlow.value  = amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)
+            onAmountInput(amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN))
         }
     }
 }

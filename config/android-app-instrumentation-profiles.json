@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "manualQualification": [
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.GlobalSavedEndpointsAuthenticationInstrumentedTest",
+      "reason": "Hardcoded API26/34/36 AVD+nonce profiles, empty UID provisioning and schema82 historical qualification."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.SavedEndpointAttachmentAuthenticationInstrumentedTest",
+      "reason": "Exact retained UID, prior proof digests, staged five-source decisions and optional previously failed save; no fresh-CI equivalent."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.SavedEndpointAttachmentReadDiagnosticInstrumentedTest",
+      "reason": "Read-only forensic diagnostic for exact retained failed-save files and receipt hashes; not a portable regression."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.SavedEndpointDecisionAuthenticationInstrumentedTest",
+      "reason": "Retained prior global PIN fixture and exact proof digest set; old schema82/83 start modes."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.SavedEndpointInspectionAuthenticationInstrumentedTest",
+      "reason": "API36 only, hardcoded dedicated AVD/serial, empty app UID setup and schema81 qualification."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.SavedEndpointRestoreAuthenticationInstrumentedTest",
+      "reason": "Fresh dedicated UID+AVD nonce and schema83 setup; meaningful regression, candidate portable fresh fixture conversion."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.SavedEndpointSelectionAuthenticationInstrumentedTest",
+      "reason": "Fresh dedicated UID+AVD nonce and schema83 setup; meaningful regression, candidate portable fresh fixture conversion."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.SavedEndpointsAuthenticationInstrumentedTest",
+      "reason": "Fresh exclusively owned app UID/PIN with historical serial map; meaningful regression, candidate isolated host invocation."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.StakingDelegationOptionsLifetimeInstrumentedTest",
+      "reason": "Requires preinstalled offline AuditPublicTwo and AuditPublic wallet/account rows; does not create them."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.StakingManagementDialogLifetimeInstrumentedTest",
+      "reason": "Requires preinstalled offline AuditPublicTwo and AuditPublic wallet/account rows; does not create them."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.presentation.main.StartupWarningAccessibilityInstrumentedTest",
+      "reason": "API26-only accessibility forensic diagnostic with external nonce/source/UID receipt contract."
+    },
+    {
+      "class": "jp.co.soramitsu.app.root.domain.staking.PoolJoinInstalledPublicFixtureInstrumentedTest",
+      "reason": "Requires retained offline AuditPublicTwo installed-wallet fixture and ordered host process restarts; not a fresh migration-CI test."
+    }
+  ],
+  "externalValidatorQualification": [
+    {
+      "class": "jp.co.soramitsu.app.root.domain.send.NativePrivateChainSendInstrumentedTest",
+      "reason": "Requires isolated bitcoind and Solana validators; run scripts/validation/test-native-private-chain-sends.mjs. Migration CI does not qualify private-chain send execution."
+    }
+  ],
+  "processClasses": [
+    "jp.co.soramitsu.app.root.domain.staking.PoolJoinJournalProcessInstrumentedTest",
+    "jp.co.soramitsu.app.root.domain.staking.PoolCreateJournalProcessInstrumentedTest"
+  ],
+  "v1Only": [
+    "jp.co.soramitsu.app.root.presentation.main.WalletRecoveryFocusInstrumentedTest",
+    "jp.co.soramitsu.app.root.presentation.main.WalletRecoveryAppearanceInstrumentedTest#recoveryButtonsKeepFocusPressAndActionWithoutDecorativeEffects"
+  ],
+  "v1Qualification": [
+    "jp.co.soramitsu.app.root.presentation.main.WalletRecoveryFocusInstrumentedTest",
+    "jp.co.soramitsu.app.root.presentation.main.WalletRecoveryAppearanceInstrumentedTest#recoveryButtonsKeepFocusPressAndActionWithoutDecorativeEffects",
+    "jp.co.soramitsu.app.root.presentation.main.WalletLoadingMotionInstrumentedTest"
+  ],
+  "limits": "Manual and external-validator profiles are not passing migration evidence. Current unit/navigation/store/UI tests provide separate behavior coverage, not retained-device PIN, physical device, public network, or release qualification."
+}

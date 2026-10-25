@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">過去のクラウドローン</string>
+    <string name="legacy_crowdloan_review">確認する</string>
+    <string name="legacy_crowdloan_description">このアカウントには、%1$s での過去のクラウドローン活動が確認されています。新たな貢献の受付は終了しています。保持されたオンチェーンの状態と、この端末の請求履歴は引き続きここで確認できます。</string>
+    <string name="legacy_crowdloan_current_contributions">現在の貢献</string>
+    <string name="legacy_crowdloan_historical_locks">過去のロック</string>
+    <string name="legacy_crowdloan_historical_claims">過去の請求</string>
+    <string name="legacy_crowdloan_view_locked">ロック済み残高を表示</string>
+    <string name="legacy_crowdloan_no_evidence">このアカウントに復元可能なクラウドローンの状態は見つかりませんでした。</string>
+    <string name="cross_chain_route_inventory_title">経路プロバイダー</string>
+    <string name="cross_chain_route_inventory_description">本番環境の対応状況には、確認済みの経路とカタログに掲載されているだけの経路が含まれます。利用できない経路も表示されますが、取引は送信できません。</string>
+    <string name="cross_chain_route_inventory_checking">経路プロバイダーの対応状況を確認中…</string>
+    <string name="cross_chain_route_inventory_status_available">利用可能</string>
+    <string name="cross_chain_route_inventory_status_paused">確認済みの経路あり · 操作は一時停止中</string>
+    <string name="cross_chain_route_inventory_status_setup">設定が必要</string>
+    <string name="cross_chain_route_inventory_status_unavailable">利用不可</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">資産 ID：%1$s</string>
+    <string name="cross_chain_route_inventory_summary">元ネットワーク %1$d 件 → 宛先ネットワーク %2$d 件 · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">このプロバイダーの具体的な本番経路カタログは同梱されていません。</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">最小額：具体的な元ネットワーク、資産、宛先ネットワークを選択してください</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">最小額：このカタログには記載されていません</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">最小額：確認済みの値はありません</string>
+</resources>

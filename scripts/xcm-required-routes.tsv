@@ -1,0 +1,4 @@
+# origin_chain_id destination_chain_id asset_symbol
+#
+# Must equal runtime/src/main/assets/approved_xcm_routes.tsv. No route is approved: the former
+# relay-native DOT/KSM routes were retired (dead destination chains and the Asset Hub Migration).

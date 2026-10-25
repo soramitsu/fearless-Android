@@ -13,17 +13,25 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportMode
+import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.showGoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.toGoogleBackupIssue
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.GoogleSignInResult
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.storage.UpdateSecurityNoticeTracker
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.onboarding.api.domain.OnboardingInteractor
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,12 +48,14 @@ import javax.inject.Inject
 class WelcomeViewModel @Inject constructor(
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider,
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val backupService: BackupService,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val onboardingInteractor: OnboardingInteractor,
     private val accountRepository: AccountRepository,
-    private val interactor: AccountInteractor
+    private val interactor: AccountInteractor,
+    private val resourceManager: ResourceManager,
+    private val updateSecurityNotice: UpdateSecurityNoticeTracker
 ) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback,
     OnboardingSplashScreenClickListener, SelectEcosystemScreenCallbacks {
 
@@ -85,59 +95,44 @@ class WelcomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val isAccountSelected = accountRepository.isAccountSelected()
+            // Explicit deep links preserve their account type and existing entry point.
+            if (payload.route != null) return@launch
+            val accountSelected = accountRepository.isAccountSelected()
+            updateSecurityNotice.recordStartup(hadStoredWallets = accountSelected)
+            if (!accountSelected) {
+                // New wallets can start without waiting for optional remote welcome slides.
+                _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen())
+                return@launch
+            }
 
             val useConfig = onboardingInteractor.getAppVersionSupportedConfig()
                 .onFailure {
                     Log.e("OnboardingScreen", "onboardingInteractor.getConfig() failed: $it")
-                    showError(it)
                 }.getOrNull()
-
-            val shouldShowSlides = useConfig != null
-                    && (onboardingInteractor.shouldShowWelcomeSlides(useConfig.minVersion) || isAccountSelected.not())
-
             currentOnboardingConfigVersion = useConfig?.minVersion
-
-            when {
-                payload.route != null -> {
-                    Unit // skip
-                }
-                isAccountSelected && shouldShowSlides -> {
-                    _onboardingFlowState.value =
-                        Result.success(OnboardingFlow(useConfig!!.enEn.regular))
-                    _onboardingBackgroundState.value = useConfig.background
-                    _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
-                }
-
-                isAccountSelected -> {
-                    moveNextToPincode()
-                }
-
-                shouldShowSlides -> {
-                    _onboardingFlowState.value =
-                        Result.success(OnboardingFlow(useConfig!!.enEn.new))
-                    _onboardingBackgroundState.value = useConfig.background
-                    _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
-                }
-
-                !isAccountSelected -> {
-                    _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
-                }
-
-                else -> {
-                    _onboardingFlowState.value =
-                        Result.failure(IllegalStateException("Onboarding config is empty"))
-                }
+            if (useConfig != null && onboardingInteractor.shouldShowWelcomeSlides(useConfig.minVersion)) {
+                _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig.enEn.regular))
+                _onboardingBackgroundState.value = useConfig.background
+                _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
+            } else {
+                moveNextToPincode()
             }
         }
     }
 
-    override fun createAccountClicked(accountType: AccountType) {
+    override fun createAccountClicked(accountType: AccountType?) {
+        if (accountType == null) {
+            savedStateHandle["wallet_setup_action"] = "create"
+            _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
+            return
+        }
         when (accountType) {
             AccountType.SubstrateOrEvm -> router.openCreateAccountFromOnboarding(accountType)
             AccountType.Ton -> silentCreateTonAccount()
         }
     }
+
+    override fun savedEndpointsClicked() = router.openSavedEndpoints()
 
     override fun googleSigninClicked() {
         _events.trySend(WelcomeEvent.AuthorizeGoogle)
@@ -148,7 +143,12 @@ class WelcomeViewModel @Inject constructor(
     }
 
 
-    override fun importAccountClicked(accountType: AccountType) {
+    override fun importAccountClicked(accountType: AccountType?) {
+        if (accountType == null) {
+            savedStateHandle["wallet_setup_action"] = "restore"
+            _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
+            return
+        }
         when (accountType) {
             AccountType.SubstrateOrEvm -> {
                 router.openSelectImportModeForResult()
@@ -175,17 +175,56 @@ class WelcomeViewModel @Inject constructor(
     }
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
+        if (!backupService.isAvailable) {
+            showGoogleSignInIssue(GoogleBackupIssue.UNAVAILABLE)
+            return
+        }
+
         viewModelScope.launch {
             try {
                 backupService.logout()
                 if (backupService.authorize(launcher)) {
                     openAddWalletThroughGoogleScreen()
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                e.printStackTrace()
-                showError(e)
+                showGoogleSignInIssue(e.toGoogleBackupIssue())
             }
         }
+    }
+
+    fun onGoogleSignInFailed(result: GoogleSignInResult) {
+        // Backing out of sign-in returns to the welcome screen, which still offers every option.
+        val issue = result.toGoogleBackupIssue() ?: return
+        showGoogleSignInIssue(issue)
+    }
+
+    private fun showGoogleSignInIssue(issue: GoogleBackupIssue) {
+        if (issue == GoogleBackupIssue.UNAVAILABLE) {
+            // Straight to the other import modes, which need no Google account.
+            showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.google_backup_import_with_phrase,
+                positiveClick = { openSubstrateImport(ImportMode.MnemonicPhrase) },
+                negativeButtonRes = R.string.google_backup_import_with_json,
+                negativeClick = { openSubstrateImport(ImportMode.Json) }
+            )
+        } else {
+            showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.common_try_again,
+                positiveClick = { _events.trySend(WelcomeEvent.AuthorizeGoogle) },
+                negativeButtonRes = R.string.google_backup_import_another_way,
+                negativeClick = { openSubstrateImport(ImportMode.MnemonicPhrase) }
+            )
+        }
+    }
+
+    private fun openSubstrateImport(importMode: ImportMode) {
+        router.openImportAccountScreen(walletEcosystem = WalletEcosystem.Substrate, importMode = importMode)
     }
 
     override fun termsClicked() {
@@ -193,11 +232,19 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun substrateEvmClick() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.SubstrateOrEvm))
+        when (savedStateHandle.get<String>("wallet_setup_action")) {
+            "create" -> createAccountClicked(AccountType.SubstrateOrEvm)
+            "restore" -> importAccountClicked(AccountType.SubstrateOrEvm)
+            else -> _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.SubstrateOrEvm))
+        }
     }
 
     override fun tonClick() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.Ton))
+        when (savedStateHandle.get<String>("wallet_setup_action")) {
+            "create" -> createAccountClicked(AccountType.Ton)
+            "restore" -> importAccountClicked(AccountType.Ton)
+            else -> _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen(AccountType.Ton))
+        }
     }
 
     override fun privacyClicked() {
@@ -208,12 +255,12 @@ class WelcomeViewModel @Inject constructor(
         router.openImportRemoteWalletDialog()
     }
 
-    fun onGoogleLoginError(message: String?) {
-        showError("GoogleLoginError\n$message")
-    }
-
     override fun backClicked() {
         _events.trySend(WelcomeEvent.Back)
+    }
+
+    fun exitOnboarding() {
+        router.back()
     }
 
     fun onQrScanResult(result: String?) {
@@ -235,7 +282,7 @@ class WelcomeViewModel @Inject constructor(
 
     override fun onStart() {
         if (_onboardingFlowState.value?.isFailure == true) {
-            _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
+            _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen())
         } else {
             _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
         }
@@ -246,7 +293,7 @@ class WelcomeViewModel @Inject constructor(
             if (accountRepository.isAccountSelected()) {
                 moveNextToPincode()
             } else {
-                _events.trySend(WelcomeEvent.Onboarding.SelectEcosystemScreen)
+                _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen())
             }
         }
         currentOnboardingConfigVersion?.let {

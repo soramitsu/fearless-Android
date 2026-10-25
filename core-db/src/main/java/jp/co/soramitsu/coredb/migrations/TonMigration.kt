@@ -1,340 +1,201 @@
 package jp.co.soramitsu.coredb.migrations
 
-import android.annotation.SuppressLint
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidation
+import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshotMove
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.coredb.model.MetaAccountLocal
-import jp.co.soramitsu.shared_utils.scale.Schema
-import jp.co.soramitsu.shared_utils.scale.byteArray
-import jp.co.soramitsu.shared_utils.scale.schema
-import jp.co.soramitsu.shared_utils.scale.string
+import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
+import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityRecovery
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
+import jp.co.soramitsu.common.data.storage.encrypt.quarantineEncryptedStringSnapshotDurably
+import jp.co.soramitsu.common.data.storage.encrypt.replaceEncryptedStringsForStatesDurably
+import jp.co.soramitsu.common.data.storage.encrypt.requireSnapshotMovesReady
+import jp.co.soramitsu.fearless_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.byteArray
+import jp.co.soramitsu.fearless_utils.scale.schema
+import jp.co.soramitsu.fearless_utils.scale.string
 import kotlinx.coroutines.runBlocking
 
 class TonMigration(
-    private val storeV2: SecretStoreV2,
-    private val substrateSecretStore: SubstrateSecretStore,
-    private val ethereumSecretStore: EthereumSecretStore,
-    private val encryptedPreferences: EncryptedPreferences
+    private val encryptedPreferences: EncryptedPreferences,
+    private val walletRootSecretValidation: WalletRootSecretValidation =
+        WalletRootSecretValidator
 ) : Migration(71, 72) {
 
-    override fun migrate(db: SupportSQLiteDatabase) {
-        runBlocking {
-            db.beginTransaction()
-            // 1. New fields in chain (ecosystem, androidMinAppVersion) and remove old ethereumType from chain_asset
-            // 2. New field in meta_accounts (tonPublicKey), make substrate accounts nullable
-            // 3. Change cascade delete of assets to no_action to avoid clearing user settings (enable/disable assets)
-            // 4. Change TokenPriceLocal configuration
-            migrateMetaAccounts(db)
+    override fun migrate(db: SupportSQLiteDatabase) = runBlocking {
+        encryptedPreferences.requireDurableStorageHealthy()
+        TonUpgradeSqlPreparation.prepare(db)
+        TonUpgradeSqlPreflight.requireSafeToMutate(db)
+        WalletSecretMigrationPreflight.requireSafeToMutate(
+            database = db,
+            encryptedPreferences = encryptedPreferences,
+            includeTonPublicKey = false
+        )
 
-            recreateChainsAndAssets(db)
-            recreateTokenPrice(db)
-            val metaIds = getAccounts(db)
-            migrateToSeparatedSecretsStorage(metaIds)
+        // Room owns the migration transaction. External secret writes are
+        // committed atomically and synchronously before Room can commit version
+        // 72. A failed commit is latched for this process so Room's automatic
+        // retry cannot accidentally finish against non-durable preference state.
+        TonSchemaMigration.migrate(db)
+        CurrentEndpointUpgradePreflight.requireSafe(db, fromVersion = 72)
+        // The first pass prepares every wallet without touching preferences.
+        // This prevents a late deterministic conflict from following durable
+        // mutations made for earlier wallets outside Room's transaction.
+        migrateToSeparatedSecretsStorage(db, executeActions = false)
+        migrateToSeparatedSecretsStorage(db, executeActions = true)
+    }
 
-            db.setTransactionSuccessful()
-            db.endTransaction()
+    private fun migrateToSeparatedSecretsStorage(
+        database: SupportSQLiteDatabase,
+        executeActions: Boolean
+    ) {
+        forEachBoundedWalletPublicIdentity(
+            database = database,
+            includeTonPublicKey = true
+        ) wallet@{ account ->
+            val legacySecretKey = "${account.metaId}:ACCESS_SECRETS"
+            if (!encryptedPreferences.hasKey(legacySecretKey)) return@wallet
+            if (
+                WalletSecretMigrationPreflight.hasValidPublicIdentityRecovery(
+                    encryptedPreferences = encryptedPreferences,
+                    metaId = account.metaId,
+                    activeSecretKey = legacySecretKey
+                )
+            ) {
+                return@wallet
+            }
+
+            val plan = prepareSeparatedSecretsOrQuarantine(
+                account = account,
+                legacySecretKey = legacySecretKey,
+                executeActions = executeActions
+            ) ?: return@wallet
+
+            // A CAS rejection leaves the legacy secret untouched. If a
+            // completed durable commit outlives Room's SQL rollback, the
+            // legacy payload has left ACCESS_SECRETS and the retry skips it.
+            if (executeActions) {
+                plan.commit(encryptedPreferences)
+            } else {
+                plan.requireReady(encryptedPreferences)
+            }
         }
     }
 
-    private fun migrateMetaAccounts(db: SupportSQLiteDatabase){
-        db.execSQL("PRAGMA foreign_keys = OFF;")
-        db.execSQL("DROP TABLE IF EXISTS _meta_accounts")
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `_meta_accounts` (
-            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            `substratePublicKey` BLOB,
-            `substrateCryptoType` TEXT,
-            `substrateAccountId` BLOB,
-            `ethereumPublicKey` BLOB,
-            `ethereumAddress` BLOB,
-            `tonPublicKey` BLOB,
-            `name` TEXT NOT NULL,
-            `isSelected` INTEGER NOT NULL,
-            `position` INTEGER NOT NULL,
-            `isBackedUp` INTEGER NOT NULL,
-            `googleBackupAddress` TEXT,
-            `initialized` INTEGER NOT NULL
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            INSERT INTO _meta_accounts SELECT 
-            m.id,
-            m.substratePublicKey,
-            m.substrateCryptoType,
-            m.substrateAccountId,
-            m.ethereumPublicKey,
-            m.ethereumAddress,
-            NULL as `tonPublicKey`,
-            m.name,
-            m.isSelected,
-            m.position,
-            m.isBackedUp,
-            m.googleBackupAddress,
-            m.initialized
-            FROM meta_accounts m
-            """.trimIndent()
-        )
-        db.execSQL("DROP TABLE IF EXISTS `meta_accounts`")
-        db.execSQL("ALTER TABLE _meta_accounts RENAME TO meta_accounts")
-
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_tonPublicKey` ON `meta_accounts` (`tonPublicKey`)")
-        db.execSQL("PRAGMA foreign_keys = ON;")
-    }
-
-    private fun recreateChainsAndAssets(db: SupportSQLiteDatabase) {
-        db.execSQL("DROP TABLE IF EXISTS `chains`")
-        db.execSQL("DROP TABLE IF EXISTS `chain_assets`")
-
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `chains` (
-            `id` TEXT NOT NULL,
-            `paraId` TEXT NULL,
-            `parentId` TEXT,
-            `rank` INTEGER NULL,
-            `name` TEXT NOT NULL,
-            `minSupportedVersion` TEXT,
-            `icon` TEXT NOT NULL,
-            `prefix` INTEGER NOT NULL,
-            `isEthereumBased` INTEGER NOT NULL,
-            `isTestNet` INTEGER NOT NULL,
-            `hasCrowdloans` INTEGER NOT NULL,
-            `supportStakingPool` INTEGER NOT NULL,
-            `isEthereumChain` INTEGER NOT NULL DEFAULT 0,
-            `isChainlinkProvider` INTEGER NOT NULL DEFAULT 0,
-            `supportNft` INTEGER NOT NULL DEFAULT 0,
-            `isUsesAppId` INTEGER NOT NULL DEFAULT 0,
-            `identityChain` TEXT NULL DEFAULT NULL,
-            `ecosystem` TEXT NOT NULL,
-            `androidMinAppVersion` TEXT NULL DEFAULT NULL,
-            `staking_url` TEXT,
-            `staking_type` TEXT,
-            `history_url` TEXT,
-            `history_type` TEXT,
-            `crowdloans_url` TEXT,
-            `crowdloans_type` TEXT,
-            `remoteAssetsSource` TEXT NULL DEFAULT NULL,
-            
-            PRIMARY KEY(`id`))
-            """.trimIndent()
-        )
-
-        db.execSQL("DROP TABLE IF EXISTS chain_assets")
-
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `chain_assets` (
-            `id` TEXT NOT NULL, 
-            `name` TEXT, 
-            `symbol` TEXT NOT NULL, 
-            `chainId` TEXT NOT NULL, 
-            `icon` TEXT NOT NULL, 
-            `priceId` TEXT, 
-            `staking` TEXT NOT NULL, 
-            `precision` INTEGER NOT NULL, 
-            `purchaseProviders` TEXT, 
-            `isUtility` INTEGER, 
-            `type` TEXT, 
-            `currencyId` TEXT, 
-            `existentialDeposit` TEXT, 
-            `color` TEXT, 
-            `isNative` INTEGER, 
-            `priceProvider` TEXT, 
-            PRIMARY KEY(`chainId`, `id`), 
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
-            """.trimIndent()
-        )
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
-
-        // balances
-
-        db.execSQL("DROP TABLE IF EXISTS _assets")
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `_assets` (
-            `id` TEXT NOT NULL, 
-            `chainId` TEXT NOT NULL, 
-            `accountId` BLOB NOT NULL, 
-            `metaId` INTEGER NOT NULL, 
-            `tokenPriceId` TEXT, 
-            `freeInPlanks` TEXT, 
-            `reservedInPlanks` TEXT, 
-            `miscFrozenInPlanks` TEXT, 
-            `feeFrozenInPlanks` TEXT, 
-            `bondedInPlanks` TEXT, 
-            `redeemableInPlanks` TEXT, 
-            `unbondingInPlanks` TEXT, 
-            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
-            `enabled` INTEGER DEFAULT NULL, 
-            `markedNotNeed` INTEGER NOT NULL DEFAULT 0, 
-            `chainAccountName` TEXT, 
-            `status` TEXT NULL,
-            PRIMARY KEY(`id`, `chainId`, `accountId`, `metaId`)
-            )
-            """.trimIndent()
-        )
-        db.execSQL(
-            """
-            INSERT INTO _assets SELECT 
-            a.id,
-            a.chainId,
-            a.accountId,
-            a.metaId,
-            a.tokenPriceId,
-            a.freeInPlanks,
-            a.reservedInPlanks,
-            a.miscFrozenInPlanks,
-            a.feeFrozenInPlanks,
-            a.bondedInPlanks,
-            a.redeemableInPlanks,
-            a.unbondingInPlanks,
-            a.sortIndex,
-            a.enabled,
-            a.markedNotNeed,
-            a.chainAccountName,
-            a.status
-            FROM assets a
-            """.trimIndent()
-        )
-
-        db.execSQL("DROP TABLE IF EXISTS assets")
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `assets` (
-            `id` TEXT NOT NULL, 
-            `chainId` TEXT NOT NULL, 
-            `accountId` BLOB NOT NULL, 
-            `metaId` INTEGER NOT NULL, 
-            `tokenPriceId` TEXT, 
-            `freeInPlanks` TEXT, 
-            `reservedInPlanks` TEXT, 
-            `miscFrozenInPlanks` TEXT, 
-            `feeFrozenInPlanks` TEXT, 
-            `bondedInPlanks` TEXT, 
-            `redeemableInPlanks` TEXT, 
-            `unbondingInPlanks` TEXT, 
-            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
-            `enabled` INTEGER DEFAULT NULL, 
-            `markedNotNeed` INTEGER NOT NULL DEFAULT 0, 
-            `chainAccountName` TEXT,
-            `status` TEXT NULL,
-            PRIMARY KEY(`id`, `chainId`, `accountId`, `metaId`), 
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION 
-            )
-            """.trimIndent()
-        )
-
-        db.execSQL(
-            """
-            INSERT INTO assets SELECT 
-            a.id,
-            a.chainId,
-            a.accountId,
-            a.metaId,
-            a.tokenPriceId,
-            a.freeInPlanks,
-            a.reservedInPlanks,
-            a.miscFrozenInPlanks,
-            a.feeFrozenInPlanks,
-            a.bondedInPlanks,
-            a.redeemableInPlanks,
-            a.unbondingInPlanks,
-            a.sortIndex,
-            a.enabled,
-            a.markedNotNeed,
-            a.chainAccountName,
-            a.status
-            FROM _assets a
-            """.trimIndent()
-        )
-        db.execSQL("DROP TABLE IF EXISTS _assets")
-
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
-    }
-
-    private fun recreateTokenPrice(db: SupportSQLiteDatabase) {
-        db.execSQL("DROP TABLE IF EXISTS `token_price`")
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `token_price` (
-            `priceId` TEXT NOT NULL, 
-            `fiatSymbol` TEXT NOT NULL, 
-            `fiatRate` TEXT, 
-            `recentRateChange` TEXT, 
-            PRIMARY KEY(`priceId`)
-            )
-            """.trimIndent()
-        )
-    }
-
-    private suspend fun migrateToSeparatedSecretsStorage(metaIds: List<Long>) {
-        metaIds.forEach { metaId ->
-            val oldSecrets = encryptedPreferences.getDecryptedString("$metaId:ACCESS_SECRETS")
-                ?.let(MetaAccountSecretsV69::read) ?: return@forEach
-
-            val entropy = oldSecrets[MetaAccountSecretsV69.Entropy] ?: return@forEach
-
-            val substrateKeypair =
-                oldSecrets[MetaAccountSecretsV69.SubstrateKeypair].let { struct ->
-                    Keypair(
-                        publicKey = struct[KeyPairSchema.PublicKey],
-                        privateKey = struct[KeyPairSchema.PrivateKey],
-                        nonce = struct[KeyPairSchema.Nonce]
-                    )
-                }
-            val seed = oldSecrets[MetaAccountSecretsV69.Seed]
-            val substrateDerivationPath = oldSecrets[MetaAccountSecretsV69.SubstrateDerivationPath]
-            val ethereumKeypair = oldSecrets[MetaAccountSecretsV69.EthereumKeypair]?.let { struct ->
-                Keypair(
-                    publicKey = struct[KeyPairSchema.PublicKey],
-                    privateKey = struct[KeyPairSchema.PrivateKey],
-                    nonce = struct[KeyPairSchema.Nonce]
+    private fun prepareSeparatedSecretsOrQuarantine(
+        account: WalletPublicIdentity,
+        legacySecretKey: String,
+        executeActions: Boolean
+    ): LegacySecretConversionPlan? {
+        if (
+            account.hasPartialSubstrateIdentity ||
+            account.hasPartialEthereumIdentity
+        ) {
+            if (executeActions) {
+                recordPublicIdentityRecovery(
+                    metaId = account.metaId,
+                    activeSecretKey = legacySecretKey
                 )
             }
-
-            val newSubstrateSecrets = SubstrateSecrets(
-                substrateKeyPair = substrateKeypair,
-                entropy = entropy,
-                seed = seed,
-                substrateDerivationPath = substrateDerivationPath
-            )
-            substrateSecretStore.put(metaId, newSubstrateSecrets)
-            if (ethereumKeypair != null) {
-                val newEthereumSecrets = EthereumSecrets(
-                    entropy = entropy,
-                    seed = ethereumKeypair.privateKey,
-                    ethereumKeypair = ethereumKeypair,
-                    ethereumDerivationPath = oldSecrets[MetaAccountSecretsV69.EthereumDerivationPath]
-                )
-                ethereumSecretStore.put(metaId, newEthereumSecrets)
-            }
-            storeV2.clearSecrets(metaId, listOf())
+            return null
         }
+        val snapshot = checkNotNull(
+            encryptedPreferences.getDecryptedStringSnapshot(legacySecretKey)
+        ) {
+            "Legacy wallet secret disappeared during migration"
+        }
+        val encodedOldSecrets = snapshot.plaintext
+        val replacement = try {
+            if (encodedOldSecrets.isEmpty()) {
+                throw WalletSecretIntegrityCorruptionException(
+                    "Unable to decode an empty legacy wallet secret during migration"
+                )
+            }
+            WalletSecretIntegrityValidator.validateLegacyAndPrepareReplacement(
+                encoded = encodedOldSecrets,
+                identity = account,
+                walletRootSecretValidation = walletRootSecretValidation
+            )
+        } catch (failure: WalletSecureStorageUnavailableException) {
+            throw failure
+        } catch (failure: WalletPublicIdentityIntegrityException) {
+            if (executeActions) {
+                recordPublicIdentityRecovery(
+                    metaId = account.metaId,
+                    activeSecretKey = legacySecretKey
+                )
+            }
+            return null
+        } catch (failure: WalletSecretIntegrityCorruptionException) {
+            null
+        }
+
+        if (replacement == null) {
+            // The payload itself cannot be decoded, so it serves no
+            // ecosystem: keep the exact ciphertext in the wallet's quarantine.
+            val snapshotMoves = listOf(
+                EncryptedPreferenceSnapshotMove(
+                    sourceKey = legacySecretKey,
+                    destinationKey =
+                        WalletSecretQuarantine.keyFor(legacySecretKey),
+                    expectedSnapshot = snapshot
+                )
+            )
+            if (executeActions) {
+                encryptedPreferences.quarantineEncryptedStringSnapshotDurably(
+                    sourceKey = legacySecretKey,
+                    quarantineKey =
+                        WalletSecretQuarantine.keyFor(legacySecretKey),
+                    expectedSnapshot = snapshot
+                )
+            } else {
+                encryptedPreferences.requireSnapshotMovesReady(snapshotMoves)
+            }
+            return null
+        }
+
+        return encryptedPreferences.planLegacySecretConversion(
+            identity = account,
+            legacySourceKey = legacySecretKey,
+            legacySnapshot = snapshot,
+            replacement = replacement,
+            walletRootSecretValidation = walletRootSecretValidation
+        )
     }
 
-    @SuppressLint("Range")
-    private fun getAccounts(database: SupportSQLiteDatabase): List<Long> {
-        return database.query("SELECT id FROM meta_accounts").let {
-            it.map {
-                getLong(getColumnIndex(MetaAccountLocal.Table.Column.ID))
-            }
+    private fun recordPublicIdentityRecovery(
+        metaId: Long,
+        activeSecretKey: String
+    ) {
+        val markerKey = WalletPublicIdentityRecovery.keyFor(
+            metaId = metaId,
+            activeSecretKey = activeSecretKey
+        )
+        if (
+            WalletSecretMigrationPreflight.hasValidPublicIdentityRecovery(
+                encryptedPreferences = encryptedPreferences,
+                metaId = metaId,
+                activeSecretKey = activeSecretKey
+            )
+        ) {
+            return
         }
+
+        val expectedMarkerState:
+            Map<String, EncryptedPreferenceSnapshot?> =
+            mapOf(markerKey to null)
+        encryptedPreferences.replaceEncryptedStringsForStatesDurably(
+            expectedStates = expectedMarkerState,
+            valuesToPut = mapOf(
+                markerKey to WalletPublicIdentityRecovery.MARKER_VALUE
+            ),
+            keysToRemove = emptySet()
+        )
     }
 
     object MetaAccountSecretsV69 : Schema<MetaAccountSecretsV69>() {

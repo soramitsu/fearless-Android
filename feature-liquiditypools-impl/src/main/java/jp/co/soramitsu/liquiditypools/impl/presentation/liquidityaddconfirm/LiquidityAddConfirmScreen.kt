@@ -57,7 +57,8 @@ data class LiquidityAddConfirmState(
     val apy: String? = null,
     val feeInfo: FeeInfoViewState = FeeInfoViewState.default,
     val buttonEnabled: Boolean = false,
-    val buttonLoading: Boolean = false
+    val buttonLoading: Boolean = false,
+    val capabilityReason: String? = null
 )
 
 interface LiquidityAddConfirmCallbacks {
@@ -167,7 +168,7 @@ fun LiquidityAddConfirmScreen(state: LiquidityAddConfirmState, callbacks: Liquid
                     InfoTableItemAsset(
                         TitleIconValueState(
                             title = stringResource(id = R.string.lp_reward_token_title),
-                            iconUrl = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PSWAP.svg",
+                            iconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PSWAP.svg",
                             value = "PSWAP"
                         )
                     )
@@ -185,6 +186,14 @@ fun LiquidityAddConfirmScreen(state: LiquidityAddConfirmState, callbacks: Liquid
             }
 
             MarginVertical(margin = 24.dp)
+        }
+
+        state.capabilityReason?.let { reason ->
+            B1(
+                text = reason,
+                color = white50,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
         }
 
         AccentButton(

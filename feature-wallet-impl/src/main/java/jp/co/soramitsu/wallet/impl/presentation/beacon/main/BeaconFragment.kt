@@ -105,13 +105,10 @@ class BeaconFragment : BaseFragment<BeaconViewModel>(R.layout.fragment_beacon) {
             }
         }
 
-        viewModel.currentAccountAddressModel.observe {
-            binding.beaconSelectedAccount.setTitle(it.name ?: "")
-            binding.beaconSelectedAccount.setAccountIcon(it.image)
-        }
-
-        viewModel.totalBalanceLiveData.observe {
-            binding.beaconSelectedAccount.setText(it)
+        viewModel.portfolioOrigin.observe { origin ->
+            binding.beaconSelectedAccount.setTitle(origin.name)
+            binding.beaconSelectedAccount.setAccountIcon(origin.icon)
+            binding.beaconSelectedAccount.setText(origin.balanceText)
         }
 
         viewModel.scanBeaconQrEvent.observeEvent {

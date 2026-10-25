@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.model.Unbonding
@@ -29,9 +29,14 @@ import jp.co.soramitsu.staking.impl.presentation.staking.rebond.confirm.ConfirmR
 import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.wallet.api.presentation.model.AmountModel
 import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +44,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -66,9 +74,29 @@ class StakingBalanceViewModel @Inject constructor(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val stakingBalanceModelFlow: Flow<StakingBalanceModel> = refresh.flatMapLatest {
-        stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex())
-            .catch { }
+    private val _hideLoadingEvent = MutableLiveData<Event<Unit>>()
+    val hideLoadingEvent: LiveData<Event<Unit>> = _hideLoadingEvent
+
+    val stakingBalanceModelFlow: Flow<StakingBalanceModel> = flow {
+        val observer = currentCoroutineContext()
+        var generation = 0L
+        emitAll(refresh.onEach { generation++ }.flatMapLatest {
+            val admittedGeneration = generation
+            flow {
+                emitAll(stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex()))
+            }.catch { failure ->
+                if (failure is CancellationException) throw failure
+                val unavailable = resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable)
+                val amount = AmountModel(null, unavailable, null)
+                emit(StakingBalanceModel(amount, amount, amount))
+            }.onCompletion { cause ->
+                // A current source cancelling itself must terminate its owning observer too.
+                // Cancellation of the previous refresh or the whole screen is already owned.
+                if (cause is CancellationException && generation == admittedGeneration && observer.isActive) {
+                    observer.cancel(cause)
+                }
+            }
+        })
     }.onEach { _hideLoadingEvent.postValue(Event(Unit)) }.share()
 
     private val unbondingsFlow: Flow<List<Unbonding>> = refresh.flatMapLatest {
@@ -78,16 +106,19 @@ class StakingBalanceViewModel @Inject constructor(
     val redeemTitle = stakingScenarioInteractor.overrideRedeemActionTitle()
 
     val redeemEnabledLiveData = stakingBalanceModelFlow.map {
-        it.redeemable.amount > BigDecimal.ZERO
+        it.redeemable.amount?.signum() == 1
     }.asLiveData()
 
     val pendingAction = MutableLiveData(false)
 
     val shouldBlockStakeMore = stakingBalanceModelFlow.map {
         val isParachain = assetFlow.first().token.configuration.staking == Asset.StakingType.PARACHAIN
-        val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).isZero()
-        val isReadyForUnlockFullAmount = (it.staked.amount - it.redeemable.amount).isZero()
-        val stakeIsZero = it.staked.amount.isZero()
+        val staked = it.staked.amount ?: return@map true
+        val unstaking = it.unstaking.amount ?: return@map true
+        val redeemable = it.redeemable.amount ?: return@map true
+        val isUnstakingFullAmount = (staked - unstaking).isZero()
+        val isReadyForUnlockFullAmount = (staked - redeemable).isZero()
+        val stakeIsZero = staked.isZero()
         val isFullUnstake = isUnstakingFullAmount || stakeIsZero || isReadyForUnlockFullAmount
 
         isFullUnstake.and(isParachain)
@@ -96,11 +127,14 @@ class StakingBalanceViewModel @Inject constructor(
     val shouldBlockUnstake = stakingBalanceModelFlow.map {
         val asset = assetFlow.first()
         val isParachain = asset.token.configuration.staking == Asset.StakingType.PARACHAIN
-        val stakedAmountIsZero = asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO
+        val staked = it.staked.amount ?: return@map true
+        val unstaking = it.unstaking.amount ?: return@map true
+        val redeemable = it.redeemable.amount ?: return@map true
+        val stakedAmountIsZero = asset.token.planksFromAmount(staked) == BigInteger.ZERO
         if (stakedAmountIsZero) {
             return@map true
         } else {
-            val hasPendingUnstake = it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO
+            val hasPendingUnstake = redeemable + unstaking > BigDecimal.ZERO
             hasPendingUnstake.and(isParachain)
         }
     }.onStart { emit(true) }.asLiveData()
@@ -126,8 +160,6 @@ class StakingBalanceViewModel @Inject constructor(
     private val _showRebondActionsEvent = MutableLiveData<Event<Set<RebondKind>>>()
     val showRebondActionsEvent: LiveData<Event<Set<RebondKind>>> = _showRebondActionsEvent
 
-    private val _hideLoadingEvent = MutableLiveData<Event<Unit>>()
-    val hideLoadingEvent: LiveData<Event<Unit>> = _hideLoadingEvent
 
 
     fun bondMoreClicked() = requireValidManageAction(stakingScenarioInteractor.getBondMoreValidation()) {

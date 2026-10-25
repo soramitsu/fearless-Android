@@ -14,5 +14,5 @@ interface RemoteConfigFetcher {
     suspend fun getPolkaswapConfig(): PolkaswapRemoteConfig
 
     @GET(BuildConfig.FEATURE_TOGGLE_URL)
-    suspend fun getFeatureToggle(): FeatureToggleConfig
+    suspend fun getFeatureToggle(@Header("Cache-Control") noCache: String = "no-cache"): FeatureToggleConfig
 }

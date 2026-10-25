@@ -1,0 +1,6 @@
+# Shared portfolio files are byte copies of the workspace root's config, pinned by sha256
+# (SharedPortfolioConfigPinTest and the reviewed registry snapshot); never convert them.
+runtime/src/main/assets/canonical-asset-groups.v1.json -text -whitespace
+runtime/src/main/assets/testnet-chain-ids.v1.json -text -whitespace
+runtime/src/main/assets/default-visible-at-zero.v1.json -text -whitespace
+runtime/src/test/resources/portfolio/*.json -text -whitespace

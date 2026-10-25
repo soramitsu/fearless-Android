@@ -7,6 +7,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -27,30 +28,37 @@ abstract class SingleAssetSharedState(
         val asset: Asset
     )
 
-    open val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
-        field = preferencesKey,
-        initialValueProducer = {
-            val defaultAsset = availableToSelect().first()
+    /** Emits null when the selected asset is unavailable so active consumers can cancel their work. */
+    open val assetWithChainAvailability: Flow<AssetWithChain?> = combine(
+        preferences.stringFlow(field = preferencesKey).distinctUntilChanged().debounce(100),
+        chainRegistry.currentChains
+    ) { encoded, chains ->
+        if (encoded == null) {
+            firstAvailable(chains)
+        } else {
+            val saved = decodeStored(encoded)
+            val chain = chains.firstOrNull { it.id == saved?.first }
+            val asset = chain?.assets?.firstOrNull { it.id == saved?.second }
 
-            encode(defaultAsset.chainId, defaultAsset.id)
+            // A stored choice must never authorize a different chain or asset.
+            if (chain != null && asset != null) AssetWithChain(chain, asset) else null
         }
-    )
-        .distinctUntilChanged()
-        .debounce(100)
+    }.distinctUntilChanged()
+
+    open val assetWithChain: Flow<AssetWithChain> = assetWithChainAvailability
         .filterNotNull()
-        .map { encoded ->
-            val (chainId, chainAssetId) = decode(encoded)
+        .distinctUntilChanged()
 
-            val (chain, chainAsset) = try {
-                chainRegistry.chainWithAsset(chainId, chainAssetId)
-            } catch (e: NoSuchElementException) {
-                val defaultAsset = availableToSelect().first()
-                preferences.putString(preferencesKey, encode(defaultAsset.chainId, defaultAsset.id))
-                chainRegistry.chainWithAsset(defaultAsset.chainId, defaultAsset.id)
-            }
+    private fun decodeStored(value: String): Pair<ChainId, String>? {
+        val delimiter = value.indexOf(DELIMITER)
+        if (delimiter <= 0 || delimiter == value.lastIndex) return null
 
-            AssetWithChain(chain, chainAsset)
-        }
+        return decode(value)
+    }
+
+    private fun firstAvailable(chains: List<Chain>): AssetWithChain? = chains.firstNotNullOfOrNull { chain ->
+        chain.assets.firstOrNull { filter(chain, it) }?.let { asset -> AssetWithChain(chain, asset) }
+    }
 
     suspend fun availableToSelect(): List<Asset> {
         val allChains = chainRegistry.currentChains.first()
@@ -75,7 +83,7 @@ abstract class SingleAssetSharedState(
     }
 
     protected open fun decode(value: String): Pair<ChainId, String> {
-        val (chainId, chainAssetRaw) = value.split(DELIMITER)
+        val (chainId, chainAssetRaw) = value.split(DELIMITER, limit = 2)
 
         return chainId to chainAssetRaw
     }

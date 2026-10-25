@@ -8,7 +8,7 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
@@ -31,7 +31,7 @@ class ControllerInteractor(
         return metadata.staking().calls?.get("set_controller")?.arguments?.isEmpty() == true
     }
 
-    suspend fun estimateFee(controllerAccountAddress: String, chainId: ChainId? = null): BigInteger {
+    suspend fun estimateFee(stashAccountAddress: String, controllerAccountAddress: String, chainId: ChainId? = null): BigInteger {
         return withContext(Dispatchers.IO) {
             val (chain, asset) = if (chainId.isNullOrEmpty()) {
                 sharedStakingSate.assetWithChain.first()
@@ -39,7 +39,9 @@ class ControllerInteractor(
                 val chain = stakingInteractor.getChain(chainId)
                 SingleAssetSharedState.AssetWithChain(chain, requireNotNull(chain.utilityAsset))
             }
-            extrinsicService.estimateFee(chain) {
+            val accountId = chain.accountIdOf(stashAccountAddress)
+
+            extrinsicService.estimateFee(chain, accountId) {
                 if (isControllerFeatureDeprecated(chain.id)) {
                     setController()
                 } else {

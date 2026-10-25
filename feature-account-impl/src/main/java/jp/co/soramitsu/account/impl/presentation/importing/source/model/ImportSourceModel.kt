@@ -20,9 +20,11 @@ import jp.co.soramitsu.common.utils.isNotEmpty
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
-import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
-import jp.co.soramitsu.shared_utils.exceptions.Bip39Exception
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
+import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
+import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -64,9 +66,11 @@ class JsonImportSource(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val recoveryMode: Boolean = false
 ) : ImportSource(R.string.recovery_json, R.string.recover_json_hint, R.drawable.ic_save_type_json), FileRequester {
 
+    private var fileReadJob: Job? = null
     val blockchainTypeFlow = MutableStateFlow<WalletEcosystem?>(null)
     val jsonContentLiveData = MutableLiveData<String>()
     val passwordLiveData = MutableLiveData<String>()
@@ -85,7 +89,7 @@ class JsonImportSource(
     }
 
     override fun isFieldsValid(): Boolean {
-        return jsonContentLiveData.isNotEmpty() && passwordLiveData.isNotEmpty()
+        return jsonContentLiveData.isNotEmpty() && (recoveryMode || passwordLiveData.isNotEmpty())
     }
 
     override fun handleError(throwable: Throwable): ImportError? {
@@ -110,11 +114,24 @@ class JsonImportSource(
     }
 
     override fun fileChosen(uri: Uri) {
-        scope.launch {
-            val content = fileReader.readFile(uri)!!
-
-            jsonReceived(content)
+        fileReadJob?.cancel()
+        fileReadJob = scope.launch {
+            try {
+                val content = checkNotNull(fileReader.readFile(uri))
+                jsonReceived(content)
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (_: Exception) {
+                _showImportErrorEvent.value = Event(ImportError(messageRes = R.string.import_json_invalid_format_message))
+            }
         }
+    }
+
+    fun clearRecoveryInput() {
+        if (!recoveryMode) return
+        fileReadJob?.cancel()
+        jsonContentLiveData.value = ""
+        passwordLiveData.value = ""
     }
 
     fun jsonClicked() {
@@ -130,6 +147,16 @@ class JsonImportSource(
     }
 
     private fun jsonReceived(newJson: String) {
+        if (newJson.length !in 1..FileReader.MAX_JSON_CHARS) {
+            _showImportErrorEvent.value = Event(ImportError(messageRes = R.string.import_json_invalid_format_message))
+            return
+        }
+        if (recoveryMode) {
+            // The durable target chooses the signing type. In particular, an
+            // ECDSA Substrate backup must not be mistaken for an EVM backup.
+            jsonContentLiveData.value = newJson
+            return
+        }
         scope.launch {
             val result = interactor.processAccountJson(newJson)
 
@@ -172,6 +199,9 @@ class JsonImportSource(
             }
 
             WalletEcosystem.Ton -> return
+            WalletEcosystem.Bitcoin,
+            WalletEcosystem.Solana,
+            WalletEcosystem.Iroha -> return
         }
     }
 

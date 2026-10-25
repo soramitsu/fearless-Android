@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.getUserRole
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
@@ -27,14 +28,16 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
@@ -48,26 +51,30 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val router: StakingRouter
 ) : BaseViewModel(), ManagePoolStakeScreenInterface {
 
-    private val mainState = stakingPoolSharedStateProvider.requireMainState
+    private val context = stakingPoolSharedStateProvider.mainState.capture()
+    private val review = stakingPoolSharedStateProvider.poolContextReview(context)
+    private var visible = true
+    private var pendingAction: Any? = null
+    private val mainState = requireNotNull(context.value)
     private val chain = mainState.requireChain
     private val asset = mainState.requireAsset
     private val accountId = mainState.accountId
 
-    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain, accountId).onEach { pool ->
+    private fun managementFields(pool: OwnPool?) = StakingPoolManageFlowState(
+        redeemInPlanks = pool?.redeemable.orZero(),
+        claimableInPlanks = pool?.pendingRewards.orZero(),
+        stakedInPlanks = pool?.myStakeInPlanks.orZero(),
+        userRole = pool?.getUserRole(accountId),
+        context = context
+    )
 
-        stakingPoolSharedStateProvider.manageState.mutate {
-            StakingPoolManageFlowState(
-                redeemInPlanks = pool?.redeemable.orZero(),
-                claimableInPlanks = pool?.pendingRewards.orZero(),
-                stakedInPlanks = pool?.myStakeInPlanks.orZero(),
-                userRole = pool?.getUserRole(accountId)
-            )
+    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain, accountId).map { it.getOrNull() }.onEach { pool ->
+        review.withCurrent {
+            if (visible && pendingAction == null) {
+                stakingPoolSharedStateProvider.publishManageState(context, managementFields(pool))
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val validatorIdsFlow = poolStateFlow.filterNotNull()
-        .map { pool -> stakingPoolInteractor.getValidatorsIds(chain, pool.poolId) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val defaultAvailableState = TitleValueViewState(
         resourceManager.getString(R.string.wallet_balance_available)
@@ -109,7 +116,8 @@ class ManagePoolStakeViewModel @Inject constructor(
         }
     }
 
-    val state = combine(poolStateFlow.filterNotNull(), unstakingPeriodFlow) { pool, unstakingPeriod ->
+    val state = combine(poolStateFlow, unstakingPeriodFlow) { pool, unstakingPeriod ->
+        pool ?: return@combine defaultScreenViewState
         val isFullUnstake = pool.myStakeInPlanks == BigInteger.ZERO
         val total = asset.token.amountFromPlanks(pool.myStakeInPlanks)
         val totalFormatted = total.formatCryptoDetail(asset.token.configuration.symbol)
@@ -151,8 +159,9 @@ class ManagePoolStakeViewModel @Inject constructor(
             null
         }
 
-        val available = asset.transferable.formatCryptoDetail(asset.token.configuration.symbol)
-        val availableFiat = asset.transferable.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+        val available = asset.transferable?.formatCryptoDetail(asset.token.configuration.symbol)
+            ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable)
+        val availableFiat = asset.transferable?.let(asset.token::fiatAmount)?.formatFiat(asset.token.fiatSymbol)
         val availableState = defaultAvailableState.copy(value = available, additionalValue = availableFiat)
 
         val unstaking = asset.token.amountFromPlanks(pool.unbonding)
@@ -178,36 +187,63 @@ class ManagePoolStakeViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenViewState)
 
     override fun onBackClick() {
-        router.back()
+        review.withCurrent {
+            if (visible) {
+                review.revoke()
+                pendingAction = null
+                router.back()
+            }
+        }
     }
 
-    override fun onClaimClick() {
-        router.openPoolClaim()
+    fun onPaused() {
+        review.withCurrent {
+            visible = false
+            pendingAction = null
+        }
     }
 
-    override fun onRedeemClick() {
-        router.openPoolRedeem()
+    fun onResumed() {
+        review.withCurrent {
+            visible = true
+            pendingAction = null
+        }
     }
 
-    override fun onStakeMoreClick() {
-        router.openPoolBondMore()
+    fun onDismissed() { review.revoke() }
+
+    override fun onCleared() {
+        review.revoke()
+        super.onCleared()
     }
 
-    override fun onUnstakeClick() {
-        router.openPoolUnstake()
+    override fun onClaimClick() = openMemberAction(router::openPoolClaim)
+
+    override fun onRedeemClick() = openMemberAction(router::openPoolRedeem)
+
+    override fun onStakeMoreClick() = openMemberAction(router::openPoolBondMore)
+
+    override fun onUnstakeClick() = openMemberAction(router::openPoolUnstake)
+
+    private fun openMemberAction(navigate: () -> Unit) {
+        openPoolAction(
+            prepare = { pool -> { stakingPoolSharedStateProvider.publishManageState(context, managementFields(pool)) } },
+            navigate = { navigate() }
+        )
     }
 
     override fun onSelectValidatorsClick() {
-        viewModelScope.launch {
-            val pool = requireNotNull(poolStateFlow.first { it != null })
-            stakingPoolSharedStateProvider.selectValidatorsState.set(
-                SelectValidatorFlowState(
-                    poolName = pool.name,
-                    poolId = pool.poolId
-                )
-            )
-            router.openStartSelectValidators()
-        }
+        val state = stakingPoolSharedStateProvider.selectValidatorsState
+        val original = state.capture()
+        openPoolAction(
+            prepare = { pool ->
+                {
+                    state.replaceIfCurrent(original, SelectValidatorFlowState(poolName = pool.name, poolId = pool.poolId))
+                        ?.let(state::isEditable) == true
+                }
+            },
+            navigate = { router.openStartSelectValidators() }
+        )
     }
 
     override fun onBottomSheetOptionSelected(option: PoolStakeManagementOptions) {
@@ -224,29 +260,93 @@ class ManagePoolStakeViewModel @Inject constructor(
     }
 
     private fun onPoolInfoClick() {
-        viewModelScope.launch {
-            val pool = requireNotNull(poolStateFlow.first { it != null })
-            stakingPoolSharedStateProvider.poolsCache.update { prevState ->
-                prevState + (pool.poolId.toInt() to pool.toPoolInfo())
-            }
-            router.openPoolInfo(pool.poolId.toInt())
-        }
+        val cache = stakingPoolSharedStateProvider.poolsCache
+        val original = cache.value
+        openPoolAction(
+            prepare = { pool ->
+                val updated = original + (pool.poolId.toInt() to pool.toPoolInfo())
+                val publish: () -> Boolean = {
+                    if (cache.compareAndSet(original, updated)) {
+                        val current = cache.value
+                        current === updated || (updated == original && current === original)
+                    } else false
+                }
+                publish
+            },
+            navigate = { pool -> router.openPoolInfo(pool.poolId.toInt()) }
+        )
     }
 
     private fun onNominationsClick() {
-        viewModelScope.launch {
-            val pool = poolStateFlow.first { it != null } ?: return@launch
-
-            val canChangeValidators = pool.root.contentEquals(accountId) || pool.nominator.contentEquals(accountId)
-            stakingPoolSharedStateProvider.selectedValidatorsState.set(
-                SelectedValidatorsFlowState(
-                    canChangeValidators = canChangeValidators,
+        val state = stakingPoolSharedStateProvider.selectedValidatorsState
+        val original = state.capture()
+        openPoolAction(
+            prepare = { pool ->
+                // Load nominations for this exact pool; a cached list may belong to an earlier pool.
+                val validators = stakingPoolInteractor.getValidatorsIds(chain, pool.poolId)
+                val fields = SelectedValidatorsFlowState(
+                    canChangeValidators = pool.root.contentEquals(accountId) || pool.nominator.contentEquals(accountId),
                     poolId = pool.poolId,
                     poolName = pool.name,
-                    selectedValidators = validatorIdsFlow.value
+                    selectedValidators = validators
                 )
-            )
-            router.openSelectedValidators()
+                val publish: () -> Boolean = { state.replaceIfCurrent(original, fields)?.let(state::isEditable) == true }
+                publish
+            },
+            navigate = { router.openSelectedValidators() }
+        )
+    }
+
+    /** One action owns its original context, pool and destination until navigation or cancellation. */
+    private fun openPoolAction(
+        prepare: suspend (OwnPool) -> (() -> Boolean),
+        navigate: (OwnPool) -> Unit
+    ) {
+        val attempt = Any()
+        val admitted = review.withCurrent {
+            if (visible && pendingAction == null) {
+                pendingAction = attempt
+                true
+            } else false
+        } == true
+        if (!admitted) return
+        viewModelScope.launch {
+            var preparingPool: OwnPool? = null
+            try {
+                val pool = poolStateFlow.filterNotNull().first()
+                preparingPool = pool
+                currentCoroutineContext().ensureActive()
+                // Withdrawn work must not begin a new public lookup when a held pool arrives.
+                if (review.withCurrent { visible && pendingAction === attempt && poolStateFlow.value === pool } != true) {
+                    return@launch
+                }
+                val publish = prepare(pool)
+                val job = currentCoroutineContext()
+                job.ensureActive()
+                review.withCurrent {
+                    if (visible && pendingAction === attempt && poolStateFlow.value === pool) {
+                        if (publish()) {
+                            // Publication may synchronously replace context, dismiss, or clear the owner.
+                            job.ensureActive()
+                            if (review.isCurrent() && visible && pendingAction === attempt && poolStateFlow.value === pool) {
+                                visible = false
+                                pendingAction = null
+                                navigate(pool)
+                            }
+                        }
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                review.withCurrent {
+                    if (visible && pendingAction === attempt && preparingPool != null && poolStateFlow.value === preparingPool) {
+                        showError(error)
+                    }
+                }
+            } finally {
+                review.withCurrent { if (pendingAction === attempt) pendingAction = null }
+            }
         }
     }
 }

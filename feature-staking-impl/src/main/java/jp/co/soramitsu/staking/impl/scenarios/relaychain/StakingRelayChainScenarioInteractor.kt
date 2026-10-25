@@ -11,6 +11,8 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.core.models.Asset.StakingType
+import jp.co.soramitsu.core.models.SoraMainChainId
+import jp.co.soramitsu.core.models.SoraTestChainId
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
@@ -21,14 +23,14 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.GetStorageRequest
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
@@ -63,6 +65,7 @@ import jp.co.soramitsu.staking.impl.domain.model.NominatorStatus
 import jp.co.soramitsu.staking.impl.domain.model.PendingPayout
 import jp.co.soramitsu.staking.impl.domain.model.PendingPayoutsStatistics
 import jp.co.soramitsu.staking.impl.domain.model.StakeSummary
+import jp.co.soramitsu.staking.impl.domain.model.StakeSummarySource
 import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.staking.impl.domain.model.Unbonding
 import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
@@ -99,6 +102,7 @@ import jp.co.soramitsu.staking.impl.domain.validations.unbond.UnbondValidationSy
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.coredb.model.cache.FreshAssetCacheUpdate
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
@@ -121,6 +125,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
@@ -249,13 +254,13 @@ class StakingRelayChainScenarioInteractor(
 
     fun observeStashSummary(
         stashState: StakingState.Stash.None
-    ): Flow<StakeSummary<StashNoneStatus>> = observeStakeSummary(stashState) {
+    ): Flow<StakeSummary<StashNoneStatus>?> = observeStakeSummary(stashState) {
         StashNoneStatus.INACTIVE
     }
 
     fun observeValidatorSummary(
         validatorState: StakingState.Stash.Validator
-    ): Flow<StakeSummary<ValidatorStatus>> = observeStakeSummary(validatorState) {
+    ): Flow<StakeSummary<ValidatorStatus>?> = observeStakeSummary(validatorState) {
         when {
             isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.ACTIVE
             else -> ValidatorStatus.INACTIVE
@@ -264,7 +269,7 @@ class StakingRelayChainScenarioInteractor(
 
     fun observeNominatorSummary(
         nominatorState: StakingState.Stash.Nominator
-    ): Flow<StakeSummary<NominatorStatus>> {
+    ): Flow<StakeSummary<NominatorStatus>?> {
         return observeStakeSummary(nominatorState) {
             val eraStakers = it.eraStakers.values
             val chainId = nominatorState.chain.id
@@ -304,36 +309,48 @@ class StakingRelayChainScenarioInteractor(
         return minActiveStake.coerceAtLeast(minimumNominatorBond)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun <S> observeStakeSummary(
         state: StakingState.Stash,
         statusResolver: suspend (StatusResolutionContext) -> S
-    ): Flow<StakeSummary<S>> {
+    ): Flow<StakeSummary<S>?> {
         return combine(
             stakingRelayChainScenarioRepository.observeActiveEraIndex(state.chain.id),
             stakingSharedState.currentAssetFlow(),
             stakingRewardsRepository.totalRewardFlow(state.stashAddress)
                 .onStart { emit(BigInteger.ZERO) }
-        ) { activeEraIndex, asset, totalReward ->
-            val totalStaked = asset.bonded
+        ) { activeEraIndex, asset, totalReward -> Triple(activeEraIndex, asset, totalReward) }
+            .transformLatest { (activeEraIndex, asset, totalReward) ->
+                emit(null)
+                if (asset.chainId != state.chain.id ||
+                    !asset.accountId.contentEquals(state.accountId) ||
+                    asset.token.configuration.staking != StakingType.RELAYCHAIN
+                ) {
+                    return@transformLatest
+                }
+                val source = StakeSummarySource.from(asset)
+                val totalStaked = asset.bonded
+                val eraStakers = stakingRelayChainScenarioRepository.getLegacyActiveElectedValidatorsExposures(state.chain.id)
+                val rewardedNominatorsPerValidator =
+                    stakingConstantsRepository.maxRewardedNominatorPerValidator(state.chain.id)
 
-            val eraStakers = stakingRelayChainScenarioRepository.getLegacyActiveElectedValidatorsExposures(state.chain.id)
-            val rewardedNominatorsPerValidator =
-                stakingConstantsRepository.maxRewardedNominatorPerValidator(state.chain.id)
-
-            val statusResolutionContext = StatusResolutionContext(
-                eraStakers,
-                activeEraIndex,
-                asset,
-                rewardedNominatorsPerValidator
-            )
-            val status = statusResolver(statusResolutionContext)
-            StakeSummary(
-                status = status,
-                totalStaked = totalStaked,
-                totalReward = asset.token.amountFromPlanks(totalReward),
-                currentEra = activeEraIndex.toInt()
-            )
-        }.flowOn(Dispatchers.Default)
+                val statusResolutionContext = StatusResolutionContext(
+                    eraStakers,
+                    activeEraIndex,
+                    asset,
+                    rewardedNominatorsPerValidator
+                )
+                val status = statusResolver(statusResolutionContext)
+                emit(
+                    StakeSummary(
+                        status = status,
+                        totalStaked = totalStaked,
+                        totalReward = asset.token.amountFromPlanks(totalReward),
+                        currentEra = activeEraIndex.toInt(),
+                        source = source
+                    )
+                )
+            }.flowOn(Dispatchers.Default)
     }
 
     private fun isValidatorActive(
@@ -392,11 +409,15 @@ class StakingRelayChainScenarioInteractor(
         extrinsicBuilder: ExtrinsicBuilder,
         amountInPlanks: BigInteger,
         stashState: StakingState,
-        currentBondedBalance: BigInteger,
-        candidate: String?
+        currentBondedBalance: BigInteger?,
+        candidate: String?,
+        isCurrent: () -> Boolean
     ) {
         require(stashState is StakingState.Stash)
-        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks)
+        if (!isCurrent()) throw kotlinx.coroutines.CancellationException("Unbond review changed")
+        val bonded = requireNotNull(currentBondedBalance) { "Bonded balance is unavailable" }
+        require(bonded.signum() >= 0 && amountInPlanks.signum() >= 0)
+        extrinsicBuilder.constructUnbondExtrinsic(stashState, bonded, amountInPlanks, isCurrent)
     }
 
     override suspend fun confirmRevoke(
@@ -418,10 +439,10 @@ class StakingRelayChainScenarioInteractor(
         selectedAccountStakingStateFlow().first()
 
     override fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
-        return stakingInteractor.currentAssetFlow().filter { it.bonded != null }.map { asset ->
+        return stakingInteractor.currentAssetFlow().map { asset ->
             StakingBalanceModel(
                 staked = mapAmountToAmountModel(
-                    asset.bonded.orZero(),
+                    asset.bonded,
                     asset,
                     R.string.wallet_balance_bonded,
                     useDetailCryptoFormat = true
@@ -470,16 +491,14 @@ class StakingRelayChainScenarioInteractor(
         val activeEra = stakingRelayChainScenarioRepository.getActiveEraIndex(chain.id)
 
         newLedgerResult.onSuccess { stakingLedger ->
-            assetCache.updateAsset(metaAccount.id, accountId, chainAsset) { cached ->
-                val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(activeEra) }
-                val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(activeEra) }
-
-                cached.copy(
-                    redeemableInPlanks = redeemable,
-                    unbondingInPlanks = unbonding,
-                    bondedInPlanks = stakingLedger.active
+            assetCache.updateAsset(
+                metaAccount.id, accountId, chainAsset,
+                FreshAssetCacheUpdate.Staking(
+                    redeemable = stakingLedger.sumStaking { it.isRedeemableIn(activeEra) },
+                    unbonding = stakingLedger.sumStaking { it.isUnbondingIn(activeEra) },
+                    bonded = stakingLedger.active
                 )
-            }
+            )
         }
     }
 
@@ -487,23 +506,23 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun overrideUnbondHint(): String? = null
     override fun overrideUnbondAvailableLabel(): Int = R.string.staking_bonded_format
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?) =
-        asset.bonded.orZero()
+        asset.bonded
 
     override fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal) = asset.unbonding
     override suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload) =
-        payload.amount <= payload.asset.bonded
+        payload.asset.bonded?.let { payload.amount <= it } ?: false
 
     override suspend fun checkEnoughToRebondValidation(payload: RebondValidationPayload) =
-        payload.rebondAmount <= payload.controllerAsset.unbonding
+        payload.controllerAsset.unbonding?.let { payload.rebondAmount <= it } ?: false
 
     override suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean {
+        val bonded = payload.asset.bonded ?: return false
         val tokenConfiguration = payload.asset.token.configuration
 
         val existentialDepositInPlanks =
             walletConstants.existentialDeposit(tokenConfiguration).orZero()
         val existentialDeposit = tokenConfiguration.amountFromPlanks(existentialDepositInPlanks)
 
-        val bonded = payload.asset.bonded.orZero()
         val resultGreaterThanExistential = bonded - payload.amount >= existentialDeposit
         val resultIsZero = bonded == payload.amount
         return resultGreaterThanExistential || resultIsZero
@@ -801,7 +820,8 @@ class StakingRelayChainScenarioInteractor(
     private suspend fun ExtrinsicBuilder.constructUnbondExtrinsic(
         stashState: StakingState.Stash,
         currentBondedBalance: BigInteger,
-        unbondAmount: BigInteger
+        unbondAmount: BigInteger,
+        isCurrent: () -> Boolean
     ): ExtrinsicBuilder {
         // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         // if account is nominating
@@ -814,6 +834,7 @@ class StakingRelayChainScenarioInteractor(
                 // and resulting bonded balance is less than min bond
                 (resultedBalance.compareTo(minBond) == -1 || isFullUnbond)
 
+        if (!isCurrent()) throw kotlinx.coroutines.CancellationException("Unbond review changed")
         if (needChill) {
             chill()
         }
@@ -846,7 +867,7 @@ class StakingRelayChainScenarioInteractor(
 
                         val controllerId = it.stash.controllerId
                         val meta = accountRepository.findMetaAccount(controllerId)
-                            ?: return@ControllerCanPayFeeValidation BigDecimal.ZERO
+                            ?: return@ControllerCanPayFeeValidation null
 
                         val controllerAsset = walletRepository.getAsset(
                             meta.id,
@@ -854,7 +875,7 @@ class StakingRelayChainScenarioInteractor(
                             it.asset.token.configuration,
                             null
                         )
-                        controllerAsset?.availableForStaking.orZero()
+                        controllerAsset?.availableForStaking
                     },
                     errorProducer = { UnbondValidationFailure.ControllerCantPayFees }
                 )
@@ -911,7 +932,7 @@ class StakingRelayChainScenarioInteractor(
         )
     }
 
-    override suspend fun getAvailableForBondMoreBalance(): BigDecimal {
+    override suspend fun getAvailableForBondMoreBalance(): BigDecimal? {
         return withContext(Dispatchers.Default) {
             val state = selectedAccountStakingStateFlow().first()
             val asset = stakingInteractor.currentAssetFlow().first()

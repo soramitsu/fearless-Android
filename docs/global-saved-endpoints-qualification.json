@@ -1,0 +1,155 @@
+{
+  "status": "qualified-global-inventory-checkpoint",
+  "createdUtc": "2026-10-20T12:47:29.252282+00:00",
+  "qualifiedSourceCommit": "2dffe5e6597e2076ab4498633d25b6df1b3d866a",
+  "productionBaselineCommit": "a575a8a050bff00bce88e943fe1e78ef0c186485",
+  "onlySubsequentChanges": [
+    "app/src/androidTest/java/jp/co/soramitsu/app/root/presentation/main/GlobalSavedEndpointRawSnapshot.kt",
+    "app/src/androidTest/java/jp/co/soramitsu/app/root/presentation/main/GlobalSavedEndpointsAuthenticationInstrumentedTest.kt",
+    "app/src/androidTest/java/jp/co/soramitsu/app/root/presentation/main/StartupWarningAccessibilityInstrumentedTest.kt",
+    "docs/roadmap.md",
+    "docs/status.md"
+  ],
+  "unit": {
+    "passes": 1945,
+    "skips": 14,
+    "failures": 0,
+    "freshAtBuild2": true,
+    "currentBuildResultsExplicitlyReused": true
+  },
+  "currentLint": {
+    "errors": 0,
+    "warnings": 100,
+    "freshAppLint": true
+  },
+  "components": {
+    "passes": 201,
+    "failures": 0,
+    "skips": 0,
+    "freshApi26": 67,
+    "explicitlyReusedApi34And36": 134
+  },
+  "actualPinJourneys": {
+    "26": {
+      "sourceCommit": "2dffe5e6597e2076ab4498633d25b6df1b3d866a",
+      "serial": "emulator-5752",
+      "evidencePath": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api26-v7.json",
+      "sha256": "4f5c63d42b6e6eece783feeb02b61ffd02a67b88cca0915f5794d5c263fa1d69",
+      "chunks": 16,
+      "pinLifetimes": 4,
+      "foreignKeysObservation": [
+        [
+          1
+        ]
+      ],
+      "qualification": "fresh-at-current-fixture"
+    },
+    "34": {
+      "sourceCommit": "279cd4dc41220f2528558cacb494bb606b25c4cc",
+      "serial": "emulator-5742",
+      "evidencePath": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api34-v3.json",
+      "sha256": "916711c3fb4e3aaa83fc31975bed1705f397b1c5593caa8ef0a44c1ff39ab3d9",
+      "chunks": 16,
+      "pinLifetimes": 4,
+      "foreignKeysObservation": [
+        [
+          0
+        ]
+      ],
+      "qualification": "retained-source-qualified-proof-with-identical-production-apk"
+    },
+    "36": {
+      "sourceCommit": "279cd4dc41220f2528558cacb494bb606b25c4cc",
+      "serial": "emulator-5748",
+      "evidencePath": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api36-v3.json",
+      "sha256": "ba4ad98b1fe164ceaaa72bdfe07e7b00399070376acfd572dc9ca3d3dab3cc48",
+      "chunks": 16,
+      "pinLifetimes": 4,
+      "foreignKeysObservation": [
+        [
+          0
+        ]
+      ],
+      "qualification": "retained-source-qualified-proof-with-identical-production-apk"
+    }
+  },
+  "applicationApkSHA256": "d05d669b0c84d232648a3c73d18ac2478329e52c83c46f3e2672f62316705ca5",
+  "schema82SHA256": "6689903e98651304ad002e3aad876225ca3cf7a6ee5c5d8de504874c12e91758",
+  "preservation": "All protected typedSQL, PIN ciphertext, wrappedkey andmarker exact except the declared owned revision7-to8; startup admits only exact nativeBTC/SOLbootstrap. All failedprofiles/evidence retained.",
+  "limitations": [
+    "Fresh schema82 synthetic publicfixtures only; no retained81to82 qualification.",
+    "Background/activity recreation is qualified, not operating-system process death.",
+    "No offline decision persistence, verified attachment or separate selection yet.",
+    "Broader startup/historical, physical/design and release gates remain open; full audit is active."
+  ],
+  "pins": {
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-inventory-build-root-verification-v2.json": {
+      "sha256": "1fb942694f69f8b6c17ce871bdcf2b3e503e547b08066da8c48bdf281d237d2e",
+      "bytes": 496509
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-inventory-build-independent-verification-v2.json": {
+      "sha256": "8b4c43a98c9f7b0e19880b62f18346359710fa9976cb0798a4b28ad3e39dc124",
+      "bytes": 8130
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-inventory-build-root-verification-v7.json": {
+      "sha256": "a9679c0d1b0c8596f4adcd05e046b9ea00c1ace8fccc808e27175ac961e428c9",
+      "bytes": 28419
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-inventory-build-independent-verification-v7.json": {
+      "sha256": "db4a4d8e4b289cfe96fcb9e4f5e8dc7db442b1e8c257dc58e9e804a47078778c",
+      "bytes": 3815
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-inventory-native-root-verification-v7.json": {
+      "sha256": "4978c4c06647ac2b7cc9739d0b70e2f91ad06ae007de2b3e2a0d728ff63bf6d1",
+      "bytes": 290290
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-inventory-native-independent-verification-v7.json": {
+      "sha256": "6da7b76a34c83d6d2aa903294302fce0dbf16b36c796a531ec2e93dc69154c68",
+      "bytes": 3255
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api26-v7.json": {
+      "sha256": "4f5c63d42b6e6eece783feeb02b61ffd02a67b88cca0915f5794d5c263fa1d69",
+      "bytes": 54043
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api26-v8.json": {
+      "sha256": "87cc2f8aac76784a24c80c6c6f5c5e0dd5ae5812ed3ad32f8009a0f32667ac43",
+      "bytes": 54043
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api34-v3.json": {
+      "sha256": "916711c3fb4e3aaa83fc31975bed1705f397b1c5593caa8ef0a44c1ff39ab3d9",
+      "bytes": 55016
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api34-v4.json": {
+      "sha256": "7590996a7667dd902be2d6ca3afba1930c87a8e7ab28918de64817d386e3eed4",
+      "bytes": 55016
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api36-v3.json": {
+      "sha256": "ba4ad98b1fe164ceaaa72bdfe07e7b00399070376acfd572dc9ca3d3dab3cc48",
+      "bytes": 54058
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-independent-verification-api36-v4.json": {
+      "sha256": "1b26d4976130d80492e5ccf72fc4f95f4baca156f8f6227804435d1127d74336",
+      "bytes": 54058
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-api26-baseline-independent-review-v1.json": {
+      "sha256": "5a84166ff758d8f7d216c298754d26931deb69c3df7294e4f0fb84be47c44d54",
+      "bytes": 48454
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-api26-baseline-independent-review-v2.json": {
+      "sha256": "e2f15afc74fbb18e8cac648515ffe6cdaaa33bdf364ba9bf916359841708b833",
+      "bytes": 47863
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-warning-accessibility-v1/native-independent-review-v1.json": {
+      "sha256": "18e02269f44ebeba83bdf5e3899c09eeb08a48a06a5421324918cb8a00f6f4b4",
+      "bytes": 48603
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-api36-baseline-independent-review-v1.json": {
+      "sha256": "b79009254d9e011d2e6d9c722694aff241862335f71503482db3603e6e440c81",
+      "bytes": 45021
+    },
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-global-endpoint-auth-api36-baseline-independent-review-v2.json": {
+      "sha256": "3743e38a90b9d5b8efd0bc5cec0016d063db723807ea1bce57d62f6e40d0c8e6",
+      "bytes": 42294
+    }
+  }
+}

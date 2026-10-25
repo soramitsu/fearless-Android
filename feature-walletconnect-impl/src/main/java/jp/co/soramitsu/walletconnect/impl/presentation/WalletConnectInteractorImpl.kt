@@ -1,11 +1,11 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
-import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
-import com.walletconnect.web3.wallet.utils.CacaoSigner
+import com.reown.android.cacao.signature.SignatureType
+import com.reown.android.utils.cacao.sign
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
+import com.reown.walletkit.utils.CacaoSigner
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -19,17 +19,17 @@ import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
+import jp.co.soramitsu.fearless_utils.encrypt.SignatureWrapper
+import jp.co.soramitsu.fearless_utils.encrypt.Signer
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
+import jp.co.soramitsu.fearless_utils.scale.utils.directWrite
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
-import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
-import jp.co.soramitsu.shared_utils.encrypt.Signer
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.useScaleWriter
-import jp.co.soramitsu.shared_utils.scale.utils.directWrite
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,6 +40,7 @@ import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
 import org.web3j.utils.Numeric
 import java.math.BigInteger
+import java.util.concurrent.CancellationException
 
 @Suppress("LargeClass")
 class WalletConnectInteractorImpl(
@@ -142,15 +143,17 @@ class WalletConnectInteractorImpl(
             )
         } + optionalSessionNamespaces.filter { it.key !in requiredSessionNamespaces.keys }
 
-        Web3Wallet.approveSession(
-            params = Wallet.Params.SessionApprove(
-                proposerPublicKey = proposal.proposerPublicKey,
-                namespaces = sessionNamespaces,
-                relayProtocol = proposal.relayProtocol
-            ),
-            onSuccess = onSuccess,
-            onError = onError
-        )
+        callWalletConnect(onError) {
+            WalletKit.approveSession(
+                params = Wallet.Params.SessionApprove(
+                    proposerPublicKey = proposal.proposerPublicKey,
+                    namespaces = sessionNamespaces,
+                    relayProtocol = proposal.relayProtocol
+                ),
+                onSuccess = onSuccess,
+                onError = onError
+            )
+        }
     }
 
     override fun rejectSession(
@@ -158,14 +161,16 @@ class WalletConnectInteractorImpl(
         onSuccess: (Wallet.Params.SessionReject) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.rejectSession(
-            params = Wallet.Params.SessionReject(
-                proposal.proposerPublicKey,
-                "User rejected"
-            ),
-            onSuccess = onSuccess,
-            onError = onError
-        )
+        callWalletConnect(onError) {
+            WalletKit.rejectSession(
+                params = Wallet.Params.SessionReject(
+                    proposal.proposerPublicKey,
+                    "User rejected"
+                ),
+                onSuccess = onSuccess,
+                onError = onError
+            )
+        }
     }
 
     override fun silentRejectSession(
@@ -173,14 +178,16 @@ class WalletConnectInteractorImpl(
         onSuccess: (Wallet.Params.SessionReject) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.rejectSession(
-            params = Wallet.Params.SessionReject(
-                proposal.proposerPublicKey,
-                "Blockchain not supported by wallet"
-            ),
-            onSuccess = onSuccess,
-            onError = onError
-        )
+        callWalletConnect(onError) {
+            WalletKit.rejectSession(
+                params = Wallet.Params.SessionReject(
+                    proposal.proposerPublicKey,
+                    "Blockchain not supported by wallet"
+                ),
+                onSuccess = onSuccess,
+                onError = onError
+            )
+        }
     }
 
     override suspend fun handleSignAction(
@@ -197,6 +204,8 @@ class WalletConnectInteractorImpl(
 
         val signResult = try {
             getSignResult(metaAccount, recentSession)
+        } catch (error: CancellationException) {
+            throw error
         } catch (e: Exception) {
             onSignError(e)
             return
@@ -215,22 +224,24 @@ class WalletConnectInteractorImpl(
             )
         }
 
-        Web3Wallet.respondSessionRequest(
-            params = Wallet.Params.SessionRequestResponse(
-                sessionTopic = topic,
-                jsonRpcResponse = jsonRpcResponse
-            ),
-            onSuccess = {
-                val operationHash = signResult.takeIf {
-                    recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
-                }
-                val chainId = chain.id.takeIf {
-                    recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
-                }
-                onRequestSuccess(operationHash, chainId)
-            },
-            onError = onRequestError
-        )
+        callWalletConnect(onRequestError) {
+            WalletKit.respondSessionRequest(
+                params = Wallet.Params.SessionRequestResponse(
+                    sessionTopic = topic,
+                    jsonRpcResponse = jsonRpcResponse
+                ),
+                onSuccess = {
+                    val operationHash = signResult.takeIf {
+                        recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
+                    }
+                    val chainId = chain.id.takeIf {
+                        recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
+                    }
+                    onRequestSuccess(operationHash, chainId)
+                },
+                onError = onRequestError
+            )
+        }
     }
 
     private suspend fun getSignResult(metaAccount: MetaAccount, recentSession: Wallet.Model.SessionRequest): String? =
@@ -441,37 +452,51 @@ class WalletConnectInteractorImpl(
         onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.respondSessionRequest(
-            params = Wallet.Params.SessionRequestResponse(
-                sessionTopic = sessionTopic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                    id = requestId,
-                    code = 4001,
-                    message = "User rejected request"
-                )
-            ),
-            onSuccess = onSuccess,
-            onError = onError
-        )
+        callWalletConnect(onError) {
+            WalletKit.respondSessionRequest(
+                params = Wallet.Params.SessionRequestResponse(
+                    sessionTopic = sessionTopic,
+                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
+                        id = requestId,
+                        code = 4001,
+                        message = "User rejected request"
+                    )
+                ),
+                onSuccess = onSuccess,
+                onError = onError
+            )
+        }
     }
 
-    override fun getActiveSessionByTopic(topic: String) = Web3Wallet.getActiveSessionByTopic(topic)
+    override fun getActiveSessionByTopic(topic: String) = walletConnectRuntimeBoundary {
+        WalletKit.getActiveSessionByTopic(topic)
+    }.getOrElse { error ->
+        error.printStackTrace()
+        null
+    }
 
-    override fun getPendingListOfSessionRequests(topic: String) = Web3Wallet.getPendingListOfSessionRequests(topic)
+    override fun getPendingListOfSessionRequests(topic: String) = walletConnectRuntimeBoundary {
+        WalletKit.getPendingListOfSessionRequests(topic)
+    }.getOrElse { error ->
+        error.printStackTrace()
+        emptyList()
+    }
 
     override fun disconnectSession(
         topic: String,
         onSuccess: (Wallet.Params.SessionDisconnect) -> Unit,
         onError: (Wallet.Model.Error) -> Unit
     ) {
-        Web3Wallet.disconnectSession(
-            params = Wallet.Params.SessionDisconnect(topic),
-            onSuccess = {
-                WCDelegate.refreshConnections()
-                onSuccess(it)
-            },
-            onError = onError
-        )
+        callWalletConnect(onError) {
+            WalletKit.disconnectSession(
+                params = Wallet.Params.SessionDisconnect(topic),
+                onSuccess = {
+                    WCDelegate.refreshConnections()
+                    onSuccess(it)
+                },
+                onError = onError
+            )
+        }
     }
 
     override fun pair(
@@ -480,11 +505,13 @@ class WalletConnectInteractorImpl(
         onError: (Wallet.Model.Error) -> Unit
     ) {
         val pairingParams = Wallet.Params.Pair(pairingUri)
-        Web3Wallet.pair(
-            params = pairingParams,
-            onSuccess = onSuccess,
-            onError = onError
-        )
+        callWalletConnect(onError) {
+            WalletKit.pair(
+                params = pairingParams,
+                onSuccess = onSuccess,
+                onError = onError
+            )
+        }
     }
 
     companion object {

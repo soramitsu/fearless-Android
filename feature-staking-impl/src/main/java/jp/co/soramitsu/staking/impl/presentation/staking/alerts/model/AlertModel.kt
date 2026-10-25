@@ -6,11 +6,18 @@ class AlertModel(
     @DrawableRes val icon: Int,
     val title: String,
     val extraMessage: String,
-    val type: Type
+    val type: Type,
+    val sourceIsCurrent: () -> Boolean = { true }
 ) {
     sealed class Type {
         object Info : Type()
 
-        class CallToAction(val action: () -> Unit) : Type()
+        class CallToAction(private val guardedAction: (isCurrent: () -> Boolean) -> Unit) : Type() {
+            val action: () -> Unit = { invokeIfCurrent { true } }
+
+            fun invokeIfCurrent(isCurrent: () -> Boolean) {
+                if (isCurrent()) guardedAction(isCurrent)
+            }
+        }
     }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from approved Figma masters; run scripts/generate-brand-assets.py. -->
+<vector xmlns:aapt="http://schemas.android.com/aapt" xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="512" android:viewportHeight="512">
+  <path android:pathData="M0 0H512V512H0Z" android:fillType="nonZero" android:fillAlpha="1.0">
+    <aapt:attr name="android:fillColor">
+      <gradient android:type="linear" android:startX="76.8" android:startY="51.2" android:endX="435.2" android:endY="486.4">
+        <item android:offset="0.45" android:color="#F5046B" />
+        <item android:offset="1" android:color="#78003F" />
+      </gradient>
+    </aapt:attr>
+  </path>
+</vector>

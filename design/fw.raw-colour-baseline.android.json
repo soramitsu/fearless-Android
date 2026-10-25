@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "76ec4cf6e7f284cf26f54b6911ed913a9ccfb182",
+  "sites": [
+    {
+      "path": "app/src/androidTest/java/jp/co/soramitsu/app/root/presentation/main/WalletPaintInstrumentedTest.kt",
+      "source": "val marker = Color(0xFFE1F7B3)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Black100 = Color(0xFF000000)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue10 = Color(0xFFCDE6FF)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue20 = Color(0xFF98CAFB)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue30 = Color(0xFF69AEF3)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue40 = Color(0xFF4394E6)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue5 = Color(0xFFE6F3FF)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue50 = Color(0xFF267DD4)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue60 = Color(0xFF1166BB)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue70 = Color(0xFF054D94)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue80 = Color(0xFF003367)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Blue90 = Color(0xFF001A34)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown10 = Color(0xFFE8E1E1)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown20 = Color(0xFFD7CDCD)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown30 = Color(0xFFC3B3B3)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown40 = Color(0xFFAA9999)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown5 = Color(0xFFF5F2F2)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown50 = Color(0xFF9D8181)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown60 = Color(0xFF8A6969)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown70 = Color(0xFF704E4E)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown80 = Color(0xFF4E3333)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Brown90 = Color(0xFF281818)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green10 = Color(0xFF9DE9D9)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green20 = Color(0xFF6BDEC7)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green30 = Color(0xFF3AD3B4)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green40 = Color(0xFF09C8A1)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green5 = Color(0xFFCEF4EC)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green50 = Color(0xFF07A081)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green60 = Color(0xFF057861)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green70 = Color(0xFF045040)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green80 = Color(0xFF022820)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Green90 = Color(0xFF011410)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey10 = Color(0xFFAAAAAA)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey20 = Color(0xFF808080)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey30 = Color(0xFF555555)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey40 = Color(0xFF2B2B2B)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey5 = Color(0xFFD5D5D5)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey50 = Color(0xFF222222)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey60 = Color(0xFF1A1A1A)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey70 = Color(0xFF111111)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey80 = Color(0xFF090909)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Grey90 = Color(0xFF040404)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Outline = Color(0xFF262626)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink10 = Color(0xFFF899C9)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink20 = Color(0xFFF566AD)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink30 = Color(0xFFF13392)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink40 = Color(0xFFEE0077)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink5 = Color(0xFFFCCCE4)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink50 = Color(0xFFBE005F)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink60 = Color(0xFF8F0047)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink70 = Color(0xFF5F0030)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink80 = Color(0xFF300018)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Pink90 = Color(0xFF18000C)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap10 = Color(0xFFFFC6E3)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap20 = Color(0xFFFF8DC1)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap30 = Color(0xFFFF56A0)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap40 = Color(0xFFFF2782)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap5 = Color(0xFFFFE3F1)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap50 = Color(0xFFFF0066)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap60 = Color(0xFFD80057)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap70 = Color(0xFFAA0044)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap80 = Color(0xFF75012F)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Polkaswap90 = Color(0xFF3B0219)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple10 = Color(0xFFC999F8)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple20 = Color(0xFFAD66F5)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple30 = Color(0xFF9233F1)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple40 = Color(0xFF7700EE)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple5 = Color(0xFFE4CCFC)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple50 = Color(0xFF5F00BE)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple60 = Color(0xFF47008F)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple70 = Color(0xFF30005F)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple80 = Color(0xFF180030)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Purple90 = Color(0xFF0C0018)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red10 = Color(0xFFFFD0D5)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red20 = Color(0xFFFF9BA6)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red30 = Color(0xFFFF6B79)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red40 = Color(0xFFFC4252)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red5 = Color(0xFFFFE8EB)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red50 = Color(0xFFEE2233)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red60 = Color(0xFFCB0F1F)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red70 = Color(0xFFA00411)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red80 = Color(0xFF6F0009)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Red90 = Color(0xFF380005)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val White100 = Color(0xFFFFFFFF)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow10 = Color(0xFFF8C999)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow20 = Color(0xFFF5AD66)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow30 = Color(0xFFF19233)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow40 = Color(0xFFEE7700)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow5 = Color(0xFFFCE4CC)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow50 = Color(0xFFBE5F00)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow60 = Color(0xFF8F4700)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow70 = Color(0xFF5F3000)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow80 = Color(0xFF301800)",
+      "count": 1
+    },
+    {
+      "path": "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/Colors.kt",
+      "source": "val Yellow90 = Color(0xFF180C00)",
+      "count": 1
+    },
+    {
+      "path": "feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/presentation/pincode/PinRecoveryScreen.kt",
+      "source": "Column(Modifier.fillMaxSize().background(if (restyled) c.bgBase else Color(0xff11121a)).verticalScroll(rememberScrollState()).padding(16.dp),",
+      "count": 1
+    },
+    {
+      "path": "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/presentation/balance/list/PortfolioList.kt",
+      "source": "backgroundColor = Color(0xFF191919), contentColor = Color.White,",
+      "count": 1
+    }
+  ]
+}

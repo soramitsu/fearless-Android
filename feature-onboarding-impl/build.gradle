@@ -1,8 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../tests.gradle'
 
 android {
@@ -18,11 +19,11 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile%20v2.json\""
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appConfigs/onboarding/mobile%20v2.json\""
         }
 
         release {
-            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/onboarding/mobile%20v2.json\""
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/appConfigs/onboarding/mobile%20v2.json\""
         }
     }
 
@@ -38,15 +39,10 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
-    }
 
-    namespace 'jp.co.soramitsu.feature_onboarding_impl'
+    namespace = 'jp.co.soramitsu.feature_onboarding_impl'
 }
 
 dependencies {
@@ -69,19 +65,21 @@ dependencies {
     implementation libs.coroutines.core
 
     implementation libs.hilt.android
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
     implementation libs.converter.gson
 
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug
 
+    testImplementation project(':test-shared')
+    testImplementation libs.arch.core.testing
     testImplementation libs.junit
     testImplementation libs.mockito.inline
 
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
-    implementation libs.sharedFeaturesBackupDep
+    implementation project(':core-backup')
 }

@@ -14,6 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
+import com.valentinilk.shimmer.rememberShimmer
+import com.valentinilk.shimmer.ShimmerBounds
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.FwLoadingShimmerTheme
+import jp.co.soramitsu.common.compose.theme.fw.FW_LOADING_SKELETON_ALPHA
 import jp.co.soramitsu.common.compose.theme.black
 import jp.co.soramitsu.common.compose.theme.shimmerColor
 
@@ -43,30 +51,46 @@ fun ShimmerB2(modifier: Modifier = Modifier) {
 
 @Composable
 fun Shimmer(modifier: Modifier = Modifier) {
+    val restyled = FwRestyle.isEnabled(FwSurface.Loading)
+    val still = restyled && LocalFwEffects.current.reduceMotion
+    val skeleton = if (restyled) LocalFwColors.current.strokeStrong else shimmerColor
+    val effect = when {
+        still -> Modifier
+        restyled -> Modifier.shimmer(rememberShimmer(ShimmerBounds.View, FwLoadingShimmerTheme))
+        else -> Modifier.shimmer()
+    }
     Box(
         modifier = modifier
-            .shimmer(),
+            .then(effect),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(shimmerColor, RoundedCornerShape(size = 50.dp))
+                .background(if (still) skeleton.copy(alpha = skeleton.alpha * FW_LOADING_SKELETON_ALPHA) else skeleton, RoundedCornerShape(size = 50.dp))
         )
     }
 }
 
 @Composable
 fun ShimmerRectangle(modifier: Modifier = Modifier) {
+    val restyled = FwRestyle.isEnabled(FwSurface.Loading)
+    val still = restyled && LocalFwEffects.current.reduceMotion
+    val skeleton = if (restyled) LocalFwColors.current.strokeStrong else shimmerColor
+    val effect = when {
+        still -> Modifier
+        restyled -> Modifier.shimmer(rememberShimmer(ShimmerBounds.View, FwLoadingShimmerTheme))
+        else -> Modifier.shimmer()
+    }
     Box(
         modifier = modifier
-            .shimmer(),
+            .then(effect),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(shimmerColor, RoundedCornerShape(size = 16.dp))
+                .background(if (still) skeleton.copy(alpha = skeleton.alpha * FW_LOADING_SKELETON_ALPHA) else skeleton, RoundedCornerShape(size = 16.dp))
         )
     }
 }

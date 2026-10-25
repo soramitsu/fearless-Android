@@ -1,10 +1,10 @@
 package jp.co.soramitsu.nft.impl.domain.models.transfer
 
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.nft.impl.domain.utils.getBaseFee
 import jp.co.soramitsu.nft.impl.domain.utils.getMaxPriorityFeePerGas
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import java.math.BigInteger
 
 internal class EIP1559CallImpl<Call : EthCall> private constructor(

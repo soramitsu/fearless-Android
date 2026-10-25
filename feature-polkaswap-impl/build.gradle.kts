@@ -2,8 +2,9 @@ plugins {
     id("com.android.library")
     id("dagger.hilt.android.plugin")
     id("kotlin-android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -23,9 +24,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = rootProject.ext["composeCompilerVersion"] as String
-    }
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
@@ -36,19 +34,21 @@ android {
 
 dependencies {
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    implementation(libs.xnetworking.lib.android)
+    implementation(project(":core-networking"))
 
-    implementation(libs.soramitsu.android.foundation)
+    implementation(project(":core-foundation"))
     implementation(projects.coreDb)
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featurePolkaswapApi)
     implementation(projects.featureWalletApi)
     implementation(projects.featureAccountApi)
+
+    testImplementation(projects.testShared)
 }

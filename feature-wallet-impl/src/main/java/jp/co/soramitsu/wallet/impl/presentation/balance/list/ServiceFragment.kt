@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,10 +58,10 @@ class ServiceFragment : BottomSheetDialogFragment() {
                                 testTagsAsResourceId = true
                             }
                     ) {
-                        val state by ChainsStateTracker.state.map { it.values.toList() }
-                            .collectAsState(
-                                emptyList()
-                            )
+                        val stateFlow = remember {
+                            ChainsStateTracker.state.map { it.values.toList() }
+                        }
+                        val state by stateFlow.collectAsState(emptyList<ChainState>())
 
                         LazyColumn(content = {
                             items(state) {

@@ -45,11 +45,15 @@ class SelectPoolViewModel @Inject constructor(
     private val chain: Chain
     private val asset: Asset
 
+    private val joinScreen = stakingPoolSharedStateProvider.joinFlowState.capture()
+    private val mainReview = requireNotNull(joinScreen.value).context
+    private var reviewActive = true
+
     private val selectedItem: MutableStateFlow<SelectableListItemState<Int>?>
 
     init {
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
-        val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
+        val setupState = requireNotNull(joinScreen.value)
+        val mainState = requireNotNull(mainReview.value)
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
         selectedItem = MutableStateFlow(setupState.selectedPool?.toState(asset, true))
@@ -103,7 +107,14 @@ class SelectPoolViewModel @Inject constructor(
     }
 
     fun onBackClick() {
+        if (!reviewActive) return
+        onDismissed()
         router.back()
+    }
+
+    /** Discards callbacks from a dismissed selector while preserving the flow for back-editing. */
+    fun onDismissed() {
+        reviewActive = false
     }
 
     fun onPoolSelected(item: SelectableListItemState<Int>) {
@@ -111,6 +122,9 @@ class SelectPoolViewModel @Inject constructor(
     }
 
     fun onInfoClick(item: SelectableListItemState<Int>) {
+        val joinFlow = stakingPoolSharedStateProvider.joinFlowState
+        val review = joinFlow.capture()
+        if (!reviewActive || !stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) || !review.isSameFlowAs(joinScreen) || !joinFlow.isEditable(review)) return
         val selectedPoolId = requireNotNull(item.id)
         val pools = (poolsFlow.value as? LoadingState.Loaded)?.data
         val pool = requireNotNull(pools?.find { it.poolId == selectedPoolId.toBigInteger() })
@@ -122,14 +136,18 @@ class SelectPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
+        if (!reviewActive) return
+        val joinFlow = stakingPoolSharedStateProvider.joinFlowState
+        val review = joinFlow.capture()
+        val setupFlow = review.value ?: return router.returnToMain()
+        if (!stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) || !review.isSameFlowAs(joinScreen) || !joinFlow.isEditable(review)) return
         val selectedPoolId = requireNotNull(selectedItem.value?.id)
         val pools = (poolsFlow.value as? LoadingState.Loaded)?.data
         val pool = requireNotNull(pools?.find { it.poolId == selectedPoolId.toBigInteger() })
 
-        stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(selectedPool = pool))
-
-        router.openConfirmJoinPool()
+        if (joinFlow.setIfCurrent(review, setupFlow.copy(selectedPool = pool))) {
+            router.openConfirmJoinPool()
+        }
     }
 
     fun onSortingSelected(sorting: PoolSorting) {

@@ -23,7 +23,9 @@ fun SwipeableAssetListItem(
     assetState: AssetListItemViewState,
     isHideVisible: Boolean,
     assetClicked: (AssetListItemViewState) -> Unit,
-    actionItemClicked: (actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) -> Unit
+    actionItemClicked: (actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) -> Unit,
+    /** The visibility action behind the row; by default Show for a hidden row and Hide otherwise. */
+    visibilityAction: ActionItemType = if (assetState.isHidden) ActionItemType.SHOW else ActionItemType.HIDE
 ) {
     val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
 
@@ -39,7 +41,7 @@ fun SwipeableAssetListItem(
     }
 
     val leftBarActionViewState = remember { getLeftActionBarViewState(assetState) }
-    val rightBarActionViewState = remember { getRightActionBarViewState(assetState) }
+    val rightBarActionViewState = remember { getRightActionBarViewState(assetState, visibilityAction) }
     SwipeBox(
         swipeableState = swipeableState,
         state = swipeBoxViewState,
@@ -79,13 +81,8 @@ private fun getLeftActionBarViewState(asset: AssetListItemViewState) = ActionBar
     )
 )
 
-private fun getRightActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
+private fun getRightActionBarViewState(asset: AssetListItemViewState, visibilityAction: ActionItemType) = ActionBarViewState(
     chainId = asset.chainId,
     chainAssetId = asset.chainAssetId,
-    actionItems = listOf(
-        when {
-            asset.isHidden -> ActionItemType.SHOW
-            else -> ActionItemType.HIDE
-        }
-    )
+    actionItems = listOf(visibilityAction)
 )

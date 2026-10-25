@@ -35,6 +35,7 @@ class AlertsView @JvmOverloads constructor(
     }
 
     fun setStatus(alerts: List<AlertModel>) {
+        alertsAdapter.submitList(alerts)
         if (alerts.isEmpty()) {
             binding.alertsRecycler.makeGone()
             binding.alertNoAlertsInfoTextView.makeVisible()
@@ -42,11 +43,11 @@ class AlertsView @JvmOverloads constructor(
             binding.alertsRecycler.makeVisible()
             binding.alertNoAlertsInfoTextView.makeGone()
 
-            alertsAdapter.submitList(alerts)
         }
     }
 
     fun showLoading() {
+        alertsAdapter.submitList(emptyList())
         binding.alertShimmer.makeVisible()
         binding.alertNoAlertsInfoTextView.makeGone()
         binding.alertsRecycler.makeGone()

@@ -14,6 +14,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
+import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
@@ -38,7 +39,12 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openAssetDetailsAndPopUpToBalancesList(assetPayload: AssetPayload)
 
-    fun openAssetIntermediateDetails(assetId: String)
+    /**
+     * The old "networks of this asset" screen. Nothing opens it any more: Search, like the
+     * portfolio list, opens the exact (network, asset) with [openAssetDetails].
+     */
+    @Deprecated("Open the exact network-scoped asset with openAssetDetails")
+    fun openAssetIntermediateDetails(assetPayload: AssetPayload)
 
     fun openAssetIntermediateDetailsSort()
 
@@ -72,12 +78,14 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
         selectedChainId: ChainId?,
         xcmChainType: XcmChainType,
         selectedOriginChainId: String? = null,
+        xcmOriginAssetId: String? = null,
         xcmAssetSymbol: String? = null
     )
 
-    fun openSelectAsset(selectedAssetId: String)
+    /** The Send token picker over every network; [selectedChainId] marks the exact current asset. */
+    fun openSelectAsset(selectedAssetId: String, selectedChainId: ChainId?)
 
-    fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, excludeAssetId: String?)
+    fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, excludeAssetId: String?, purpose: AssetSelectPurpose)
 
     fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean)
 
@@ -162,6 +170,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
 
+    fun openLegacyCrowdloan(assetPayload: AssetPayload)
+
     fun openAddressHistory(chainId: ChainId)
 
     fun openWalletSelectorForResult(
@@ -186,7 +196,12 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openNFTFilter()
 
-    fun openManageAssets()
+    fun openManageAssets(filter: String = "All")
+
+    /** Emergency key access (addendum U0.4): every stored key behind the PIN. */
+    fun openRecoveryCenter()
+
+    fun openWalletEmergencyExport()
 
     fun openServiceScreen()
 

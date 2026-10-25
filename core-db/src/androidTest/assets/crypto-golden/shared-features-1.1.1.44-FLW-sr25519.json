@@ -1,0 +1,2436 @@
+{
+ "schema": "fearless-upgrade-matrix/crypto-golden/v1",
+ "provenance": {
+  "library": "shared-features 1.1.1.44-FLW",
+  "library_source": "shared-features-android@7508bc83627b7068cfd0f4498ca5f0540205257d",
+  "app_glue_source": "fearless-Android@b5e22d49d16a0207c03ab703559892eaf9d41cf9",
+  "releases": [
+   "4.1.1+218",
+   "4.2.0+229"
+  ],
+  "oracle": "AL-4 production-parity oracle, root docs/android-production-parity-oracle.md",
+  "prng_seed": 20261010,
+  "rc_compared_by_oracle": {
+   "fearless-utils-Android": "1c80a2bf3fa1f996cf1328873e09f282ee29b69e",
+   "fearless-Android": "5e8b36a96c07e5fd28ac9761d497896a3cbdeae8"
+  },
+  "converted_by": "tools/upgrade-fixtures/android/convert_parity_vectors.py",
+  "input_sha256": {
+   "01-scale-canonical-hex.json": "0fa34c1e85d28699530d797a2a3b1716f34e123312ef2e2477e225e86a56de21",
+   "02-bip39.json": "19c1aefdf41609c0024b12ae1f27844cca08bcb95a97b97566ad74bac1311db2",
+   "03-seeds.json": "6ce51b48611a945f547f04add3c8275232a85cbb0164bf514052854c3c8e445c",
+   "04-junctions.json": "d559e5168886d2d7ed76ab2e6c5f045519d739f878b56708aaf3a2fa57377f98",
+   "05-keypairs.json": "e100e551893ac690b10f5d8788c885b74d0034b5a79a574a31e68b37addfcc8d",
+   "06-signer.json": "ea93ffeefff2095788828cb3ef438aee478576272134ed037d47133807d2bd81",
+   "07-json-keyring.json": "e2341a3fadcc1b189f19df0309d568a36909ef81b2a6c19905d20e492c2148a4",
+   "08-ton.json": "6bb8f14d883590c0e71a22643291e4755610185fc6968ee11e39732c690efbc7",
+   "12-validator-acceptance.json": "730a1a2a9b20edcc2dc0c5d7d40bfe912583aab4417905f33939d045e2b65519"
+  }
+ },
+ "synthetic_only": true,
+ "notes": {
+  "05": [
+   "SR25519 soft derivation draws a random nonce (schnorrkel 0.9.1 witness_bytes -> thread_rng). For paths whose last junction is soft only privateKey and publicKey are compared and the vector records nonceDeterministic=false (finding F5)."
+  ],
+  "07": [
+   "Inputs: polkadot-js keyring exports (scrypt + xsalsa20-poly1305 and the legacy padded-password layout) generated offline with the web repo's @polkadot/keyring, plus Fearless JsonSeedEncoder exports written by the production 7508bc83 encoder and by the RC encoder (cross-direction).",
+   "Chrome 3.0.5 exports use the same polkadot-js format; they are covered by the polkadot-js inputs. A real-Chromium 3.0.5 export is not part of this run."
+  ],
+  "12": [
+   "Each vector is a secret exactly as 4.2.0 (or 3.7.x for V2 chain accounts) stored it, built with the production 7508bc83 crypto and the 4.2.0 schema DSL, together with the durable public identity 4.2.0 recorded. The RC validator must accept every one (signing keeps working; safety invariant 4).",
+   "Sources: 4.2.0 AccountRepositoryDelegate.create (mnemonic), AccountRepositoryImpl.importNewAccount (raw seed), importFromJson (JSON), TonAccountRepository.create (TON, raw typed text stored), 3.7.4 importChainFromMnemonic/importChainFromSeed (V2 chain accounts)."
+  ]
+ },
+ "keypairs": [
+  {
+   "kind": "anchor",
+   "mnemonic": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+   "path": "//Alice",
+   "cryptoType": "SR25519",
+   "publicKey": "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x05d65584630d16cd4af6d0bec10f34bb504a5dcb62dba2122d49f5a663763d0a",
+    "publicKey": "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a",
+    "nonce": "0xfd190cce74df356432b410bd64682309d6dedb27c76845daf388557cbac3ca34"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//polkadot",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x3f324bcc884358b2a34cd0926ed3bb25552d834af72273a8b7d8e314aa31290d",
+    "publicKey": "0xf606519cb8726753885cd4d0f518804a69a5e0badf36fee70feadd8044081730",
+    "nonce": "0x9b33e9385b3bf080217bfab6308b1f096146bb1ed41336c1e85bce6df212105d"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//kusama",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xf45678d33d22bc82a46e2858e6f77e5283ed8acadf21a21272cdde357495810d",
+    "publicKey": "0x64a31235d4bf9b37cfed3afa8aa60754675f9c4915430454d365c05112784d05",
+    "nonce": "0x44b772a90e4977d43e8c68b33765a851fef7aba4c416623c27b02a4d78439a7e"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//polkadot/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0xac78678dd56b21a4c21a559e996942000814af750e69e402c5644324948a4000",
+    "publicKey": "0x1ea8e6c8824b7540dd58badd8f5384715c67b0ececdebf07d356ba88c0530019",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x79344d08b92e53ca00fd8afe9cdc7af851541249c4886e9e11327010dcb9420c",
+    "publicKey": "0xb696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab1310",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0xc1d7cdfab7edbcba2272c6336e4f3990b0af5dbda23d667221b397a02805a00e",
+    "publicKey": "0x84aedc0aba19f398f70dbcbc94b318e1e8d4eab5854e4d8de569bc4890afa45e",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//1//2/3",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x7cdbc162e22403533e8cc2d9d8ad10b0f4c280fafcc093317fbe29af8f84570b",
+    "publicKey": "0xd46bc0005b78c1e7a149e53618c02ab91a75262bcc293d95b6b95de8932dad74",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0xf9fb0895be5c0f4d983f125b11242f920610d0eeec2e67f56132bc1502aa8104",
+    "publicKey": "0x881cdc4ff2029648b2f49d00cc7dd6f91d04789097502e05ab8a444911e7372a",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft///pw",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0xf9fb0895be5c0f4d983f125b11242f920610d0eeec2e67f56132bc1502aa8104",
+    "publicKey": "0x881cdc4ff2029648b2f49d00cc7dd6f91d04789097502e05ab8a444911e7372a",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "///pw",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x05d65584630d16cd4af6d0bec10f34bb504a5dcb62dba2122d49f5a663763d0a",
+    "publicKey": "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a",
+    "nonce": "0xfd190cce74df356432b410bd64682309d6dedb27c76845daf388557cbac3ca34"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//0",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x187749f4973e6fbd808a09e238f042c222f0e510c55ec171bb028d82c40ddd0d",
+    "publicKey": "0x2afba9278e30ccf6a6ceb3a8b6e336b70068f045c666f2e7f4f9cc5f47db8972",
+    "nonce": "0x7be7c693358d9636a65442b6b7d904ed458914c9eb4da42df1bd4743d2ffa7f5"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//18446744073709551616",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xe2c96f7d4d80b25c738ea1b68ac5955b79d860bcf1a274ae59323cecfc34bc0d",
+    "publicKey": "0xb87a0293774882793da7d40e05b5455c80279181cc4c753e4b662b826f7ab369",
+    "nonce": "0x6bd3eb6285b3473f39834b9d224c4dd602cf8bf7520beff320287b88cc8ece75"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "java.lang.IllegalStateException"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//ポルカ/1",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x56f68b6f9bc47470fcf830ed0d66208548e44af047e1bac5350d5e88ce7ad602",
+    "publicKey": "0x5a3bd40567107df8cecaf69e92ae06f37f8a8915c1fec3c607194b6ec22fef18",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//polkadot//0///p@ss",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x14ffef781c621cd47d5f34d6af019b4ce5238bed5456df168388bb09fc8bb60f",
+    "publicKey": "0x9c9c968ebb31417a36bec0908ecd9eb6e847b44821e521dda9add8c418ef7c30",
+    "nonce": "0x936d8c0f75e34f652a882444668bd0bd7afd8a679c74dd4d46d897cb99659552"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//1/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x6b254a437f0277f478b313352ce4d9850ae6588297d9b03f36fac4fe561d3e01",
+    "publicKey": "0xacd69199a795ec9ce8669863c2f99066d03faf24d1095b9c957a67a7e6bb5225",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x79344d08b92e53ca00fd8afe9cdc7af851541249c4886e9e11327010dcb9420c",
+    "publicKey": "0xb696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab1310",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x05d65584630d16cd4af6d0bec10f34bb504a5dcb62dba2122d49f5a663763d0a",
+    "publicKey": "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a",
+    "nonce": "0xfd190cce74df356432b410bd64682309d6dedb27c76845daf388557cbac3ca34"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "abc",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$InvalidStart"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//a///",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$EmptyPassphrase"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0xfac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e",
+   "cryptoType": "SR25519",
+   "path": "//a///x///y",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$MultiplePassphrase"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x2ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d",
+    "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+    "nonce": "0x14a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd8"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xdfb77f0e34ced0b747f30641b8cb98198fb56b4869e09aa0dc06c0cb8970f308",
+    "publicKey": "0x1254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a49470",
+    "nonce": "0x2bf3a389a52120b68d1674c67c5bc1c3802fc7264df155ba2da36b01ed86f570"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//kusama",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x288cba63ecae310428b4064df53282ad913d1cc874ea51764bcc01cac37c310e",
+    "publicKey": "0x02781d31a11de9dd0f82dbd8850a13a0e03719538d9ddb2f07fbfa6a0c522174",
+    "nonce": "0xdf64d21fd6525c7767c073adcc0ef6f458830eeabfb644ad7b3d32b2d5037e1d"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x78d4d9285d2c5b951b9cd593ddb8498b91af52f7161cede47d44a8076cd0560c",
+    "publicKey": "0xc2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x7ff11b8116db778978d26ca30391ffe35b34f203a61da9f6e6e73a3a59bc4e04",
+    "publicKey": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x52f51d0d767ae92464b22d2d6ed128b96ad18ef777e036e8b9a86aa30e7e5206",
+    "publicKey": "0x201854fe65987d8bf30ae6ebe6df154dfd18a9b551ec0bd81a1faad0ab7de806",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//1//2/3",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x4d23eb9ef9c271a2e5dcd7433f4426969880fc84926b4f4db36615255b1e1405",
+    "publicKey": "0x884fa9450c149b79715f1c895c6cbbefe6dda102eb0d0f8cad8e705c90bbb50c",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x8c601c9579784f82ed4463dd4502c2a4f98ea1414dfde72522a759879a6eb205",
+    "publicKey": "0xa4ab85b3f6ab6c3166b2cf6def47c3977bf6e8f45fb593d7aaefbcbf25919d67",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft///pw",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x8c601c9579784f82ed4463dd4502c2a4f98ea1414dfde72522a759879a6eb205",
+    "publicKey": "0xa4ab85b3f6ab6c3166b2cf6def47c3977bf6e8f45fb593d7aaefbcbf25919d67",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "///pw",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x2ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d",
+    "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+    "nonce": "0x14a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd8"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//0",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x8491e5398431cfa719c13edfd90053ca69eaad2b03e2a79cf0b7edefff16bf0f",
+    "publicKey": "0x5244eb2b8a9f975c603485c5a76eeec41fdad88aa6ef204b7c56691940ad1671",
+    "nonce": "0x7ce29f7eb4d9309652f2118481a2c1d9909a6f267baf7152ea4f2d2de4a1bdc4"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//18446744073709551616",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x48caffe59e0e0ffa71cde15b827ff97f196fb2c916d34c5656b31c629b47bf0c",
+    "publicKey": "0x6ab0256265267f00f5594ccf65fed7ecffb527f5643855a6b1f77336f692cd41",
+    "nonce": "0xe4117598b1c71db3e3bf2271fe8e98ea3b0d138abccd45f0a2a70866d4da1665"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "java.lang.IllegalStateException"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//ポルカ/1",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x153e24e9b5c739d26714b2bd7b73e4ae8092584062822b1ade99cff528d79f0a",
+    "publicKey": "0xa690144aee6b445041870ebcb605c56cefc53d9c8521ec15bcc0215a811a220c",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot//0///p@ss",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xc8233229ebc3c8d833402f94637372a9893c7c521898df41d33ced6518848c0e",
+    "publicKey": "0x68852a8ff5ad05623064600d5c02f33fc6546a30e698127fcc05f987d9e4ca38",
+    "nonce": "0x1fde894a2d3ce875619c3e49cc78e0e23da60d4f2dcc0e1d2f24de00426e9f00"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//1/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x1a1736e7d9354d6b3b59fbfeda632c520221d22e8ce605302ae6d5c3a1ab6a0f",
+    "publicKey": "0x04ab4d4c3c5850dfe48f80b525e92c19e8fcca817f42df87cb814ae49cc2b142",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x7ff11b8116db778978d26ca30391ffe35b34f203a61da9f6e6e73a3a59bc4e04",
+    "publicKey": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x2ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d",
+    "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+    "nonce": "0x14a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd8"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "abc",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$InvalidStart"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//a///",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$EmptyPassphrase"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//a///x///y",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$MultiplePassphrase"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x2ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d",
+    "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+    "nonce": "0x14a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd8"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xdfb77f0e34ced0b747f30641b8cb98198fb56b4869e09aa0dc06c0cb8970f308",
+    "publicKey": "0x1254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a49470",
+    "nonce": "0x2bf3a389a52120b68d1674c67c5bc1c3802fc7264df155ba2da36b01ed86f570"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//kusama",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x288cba63ecae310428b4064df53282ad913d1cc874ea51764bcc01cac37c310e",
+    "publicKey": "0x02781d31a11de9dd0f82dbd8850a13a0e03719538d9ddb2f07fbfa6a0c522174",
+    "nonce": "0xdf64d21fd6525c7767c073adcc0ef6f458830eeabfb644ad7b3d32b2d5037e1d"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x78d4d9285d2c5b951b9cd593ddb8498b91af52f7161cede47d44a8076cd0560c",
+    "publicKey": "0xc2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x7ff11b8116db778978d26ca30391ffe35b34f203a61da9f6e6e73a3a59bc4e04",
+    "publicKey": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x52f51d0d767ae92464b22d2d6ed128b96ad18ef777e036e8b9a86aa30e7e5206",
+    "publicKey": "0x201854fe65987d8bf30ae6ebe6df154dfd18a9b551ec0bd81a1faad0ab7de806",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//1//2/3",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x4d23eb9ef9c271a2e5dcd7433f4426969880fc84926b4f4db36615255b1e1405",
+    "publicKey": "0x884fa9450c149b79715f1c895c6cbbefe6dda102eb0d0f8cad8e705c90bbb50c",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x8c601c9579784f82ed4463dd4502c2a4f98ea1414dfde72522a759879a6eb205",
+    "publicKey": "0xa4ab85b3f6ab6c3166b2cf6def47c3977bf6e8f45fb593d7aaefbcbf25919d67",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft///pw",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x8c601c9579784f82ed4463dd4502c2a4f98ea1414dfde72522a759879a6eb205",
+    "publicKey": "0xa4ab85b3f6ab6c3166b2cf6def47c3977bf6e8f45fb593d7aaefbcbf25919d67",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "///pw",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x2ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d",
+    "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+    "nonce": "0x14a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd8"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//0",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x8491e5398431cfa719c13edfd90053ca69eaad2b03e2a79cf0b7edefff16bf0f",
+    "publicKey": "0x5244eb2b8a9f975c603485c5a76eeec41fdad88aa6ef204b7c56691940ad1671",
+    "nonce": "0x7ce29f7eb4d9309652f2118481a2c1d9909a6f267baf7152ea4f2d2de4a1bdc4"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//18446744073709551616",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x48caffe59e0e0ffa71cde15b827ff97f196fb2c916d34c5656b31c629b47bf0c",
+    "publicKey": "0x6ab0256265267f00f5594ccf65fed7ecffb527f5643855a6b1f77336f692cd41",
+    "nonce": "0xe4117598b1c71db3e3bf2271fe8e98ea3b0d138abccd45f0a2a70866d4da1665"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "java.lang.IllegalStateException"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//ポルカ/1",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x153e24e9b5c739d26714b2bd7b73e4ae8092584062822b1ade99cff528d79f0a",
+    "publicKey": "0xa690144aee6b445041870ebcb605c56cefc53d9c8521ec15bcc0215a811a220c",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot//0///p@ss",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xc8233229ebc3c8d833402f94637372a9893c7c521898df41d33ced6518848c0e",
+    "publicKey": "0x68852a8ff5ad05623064600d5c02f33fc6546a30e698127fcc05f987d9e4ca38",
+    "nonce": "0x1fde894a2d3ce875619c3e49cc78e0e23da60d4f2dcc0e1d2f24de00426e9f00"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//1/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x1a1736e7d9354d6b3b59fbfeda632c520221d22e8ce605302ae6d5c3a1ab6a0f",
+    "publicKey": "0x04ab4d4c3c5850dfe48f80b525e92c19e8fcca817f42df87cb814ae49cc2b142",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x7ff11b8116db778978d26ca30391ffe35b34f203a61da9f6e6e73a3a59bc4e04",
+    "publicKey": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x2ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d",
+    "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+    "nonce": "0x14a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd8"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "abc",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$InvalidStart"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//a///",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$EmptyPassphrase"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+   "cryptoType": "SR25519",
+   "path": "//a///x///y",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$MultiplePassphrase"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xad8a44476e667ef8eab356d1d6f09303f21ba1ac44a3f8b96210bdd603d1900b",
+    "publicKey": "0x625e25364c7b68e0a83065ccb40afed43f8fe933e669b24f3d69a57eddb3b715",
+    "nonce": "0xb25d15f130020fffc3261f584f84168e7a6f0009f6c3abb2f3fa460f493b0595"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x41dcb5ae97036e1cb92324baccd091b64e014d35ffcc770d3292b34898866d0d",
+    "publicKey": "0x269412acb6a9f2717946ed02414efc22459c69ff1a24979bcacb00448e6b3e57",
+    "nonce": "0x99017098f85012fc2c6329018c2c6e22d51dfa81d1148a1fcdce79c22fd636aa"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//kusama",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xb172cd75bc9add53942e2241a3dad169906b74204ac4cd42546e94e56148170d",
+    "publicKey": "0xf00d8715e2face851f5b78bd98cefe359258d197900ee3d454c1da13cc9a7354",
+    "nonce": "0xf0801c26add8e4bc2ebfae89ed647f8c2b9ba89582cff5c87c6cc169ec210c06"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0xc9256407f177eec6f6b91f9a689a03486a0243be4455ebca2eec4b1f159b7e06",
+    "publicKey": "0x26bfcd80ecc0674d26b928bdb140162eb6d7740d3a01d20533b8f07a171fd46a",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "/0",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x78afdd6713d765536746d19229bf9062200127a191ecb320e4de718945f7ee0c",
+    "publicKey": "0x50630669798fa575e08cdcf9cda553996e9d28ebe7e363759d86910c36a96d3f",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x079627ddde3cbd7c8824682f2a1416e7a8f636e953db7122c4f476c490c17a01",
+    "publicKey": "0x6860418651801d8d685088e87c731414c5326bec3730d3c0c49a74aaeb66d57a",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//1//2/3",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x7c0d8c0a543a90f51c65212460f0f98fe30e8f9a6b6056582027e0adb307af00",
+    "publicKey": "0x58a10891798f8743085296c79b39f46b159f8d3bd647b7e59a5f8c88d97f983c",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x697395412356afabcd937bed11cc1a1d6277c163672fc8fa29af3a5ba9e0fa0d",
+    "publicKey": "0x60368e7618eae4f067260921a005e932a3c08a7845dc8c952d6a8b49128d0e62",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//hard/soft///pw",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x697395412356afabcd937bed11cc1a1d6277c163672fc8fa29af3a5ba9e0fa0d",
+    "publicKey": "0x60368e7618eae4f067260921a005e932a3c08a7845dc8c952d6a8b49128d0e62",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "///pw",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xad8a44476e667ef8eab356d1d6f09303f21ba1ac44a3f8b96210bdd603d1900b",
+    "publicKey": "0x625e25364c7b68e0a83065ccb40afed43f8fe933e669b24f3d69a57eddb3b715",
+    "nonce": "0xb25d15f130020fffc3261f584f84168e7a6f0009f6c3abb2f3fa460f493b0595"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//0",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xb0c365d800def4720306d416781ffbfb6bbd3bbd66907f42a8ba945ea0d4f90a",
+    "publicKey": "0x2621d61eb7dc578366e21f197a343b49dfeb4c0aade440c014f67ead72ce642c",
+    "nonce": "0xf11d0379db9a5152123f225a970d48482bce8c779972cf2743ba72652bbbdc3d"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//18446744073709551616",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x440f158591d7dd2365d8e95ac7438d7d3601a18c4c477418d44be117383bb60e",
+    "publicKey": "0xd65758b35f1e9b2c068fd3436d11ffdfa5597821e65348c8b082e7ea2a432a62",
+    "nonce": "0x6f2ed6c01fa8dcfc71733f46f218d432d2f4739694cad942aaac6d5f55ca84b7"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "java.lang.IllegalStateException"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//ポルカ/1",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0xcd0d563a1d5c88838a7e582b64efe87e202422f0731c3509bedfab438521c200",
+    "publicKey": "0x9a85b4222f63ca802f8e19dc4a53a6e489fc1003b32fc322d013d57145ca8d6e",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//polkadot//0///p@ss",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0x8138f7cb509c19d9d1f8c571c6b2b2220c5831265de92bf3a5e80bb9f5ea3c0d",
+    "publicKey": "0x3ac5824742b8859186cccd3016b63168aa2903e955257723bede565f9935db1a",
+    "nonce": "0xf3eec6428bcc31fae02c4f3a45b7c88e2db27934f015de22069101141682c476"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//1/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0xccf6a18f7748f08c536a4558b1976ce2da812452ba9d546c25260dbe60b8c30f",
+    "publicKey": "0xc88f5f7c070342836b147ccb46a2767f3938f4995376a0643f236117e1d04607",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "/",
+   "nonceDeterministic": false,
+   "expected": {
+    "privateKey": "0x78afdd6713d765536746d19229bf9062200127a191ecb320e4de718945f7ee0c",
+    "publicKey": "0x50630669798fa575e08cdcf9cda553996e9d28ebe7e363759d86910c36a96d3f",
+    "nonce": null
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//",
+   "nonceDeterministic": true,
+   "expected": {
+    "privateKey": "0xad8a44476e667ef8eab356d1d6f09303f21ba1ac44a3f8b96210bdd603d1900b",
+    "publicKey": "0x625e25364c7b68e0a83065ccb40afed43f8fe933e669b24f3d69a57eddb3b715",
+    "nonce": "0xb25d15f130020fffc3261f584f84168e7a6f0009f6c3abb2f3fa460f493b0595"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "abc",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$InvalidStart"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//a///",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$EmptyPassphrase"
+   }
+  },
+  {
+   "kind": "substrate",
+   "seed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+   "cryptoType": "SR25519",
+   "path": "//a///x///y",
+   "nonceDeterministic": true,
+   "expected": {
+    "error": "encrypt.junction.JunctionDecoder$DecodingError$MultiplePassphrase"
+   }
+  }
+ ],
+ "json_keyring": [
+  {
+   "input": "polkadotjs-sr25519-scrypt.json",
+   "source": "@polkadot/keyring 14.0.3 toJson (scrypt + xsalsa20-poly1305)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"aI0CWvpECIaaRElEVdbYIJjije12qPQn+Yiju0AzhCEAAAIAAQAAAAgAAAAb/q9EtsMRWTD4FddzoBaHgCB9vrmzJAFwBbLTjuL7dSKMDZRE4dQ3SO/H+fYr409k7eCJaIb2M2qjrSqIhxYa9BizNBfLMJctI05jWiiEcgIQZVsFQpXQNMYIBR4kV4bDeY8b19XC1HvsFBbx281f3hj+FGWxnh8fhNY/vkeunUgVoR/JMbyXGkD6/8T5RA9aaYMFNunZnsG4bMDZ\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"143Epgrghu1kDdRnDNkegsr6nUrEhCYG33ZLfh82gV7P8dhk\",\"meta\":{\"name\":\"parity sr25519\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\"}}",
+   "expected": {
+    "encryption": "SR25519",
+    "keypair": {
+     "privateKey": "0x809f6d171011d05ea85ef2ca8d17e4abe15725cc9484765961872f98aebb590f",
+     "publicKey": "0x8669b8876c06cd577bf9e1c2353f2bc5d00bd6d72a76aff3fb1f99fbe5cac64b",
+     "nonce": "0xb7811d0dcccea8f8a6f21f31d42b0dc915c6c06186818eee36df84ff98bc5497"
+    },
+    "seed": null,
+    "username": "parity sr25519"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$IncorrectPasswordException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "polkadotjs-sr25519-soft.json",
+   "source": "@polkadot/keyring 14.0.3 toJson (scrypt + xsalsa20-poly1305)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"Rsjpf6Jqkn068GYYbOaawUzdG4oGJHwTzKtMppszUhUAAAIAAQAAAAgAAABRsdt20qROHcE7PDLbETB6a+zfX03lyPts/kJPcDm45V884e/HF6e8PVlmMx9tqH8XHqRy5MnHwNN1GhBnGngEbxPtM0XxzUPJDvWfXXDMTLaJ2z582jdnxfdirxP4wI8bAfXC3JlPYx8mx2EWNgYWu89p5uzkvMOvdtoNwcw4rMAt0J5Wpk+wCnpwRsLX1hDVHoCHdgVPy7I1IAGH\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"15yZcprVeuERvTWwtqSFFQojbUmyoAF42b51J5cHXUPTwUCZ\",\"meta\":{\"name\":\"parity sr25519\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\"}}",
+   "expected": {
+    "encryption": "SR25519",
+    "keypair": {
+     "privateKey": "0xa778c7c1f0bd78601f184c0aba25c032feab6673c4ee602a386fa751b1476709",
+     "publicKey": "0xdc147a32787cf326fc490d93889f499734ad01e7338a961b6af920927c5e2677",
+     "nonce": "0x7aa7f13dac8e03b2cb9dcbe6694d9471d023003eabda93c05189825411572d91"
+    },
+    "seed": null,
+    "username": "parity sr25519"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$IncorrectPasswordException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "fearless-4.2.0-encoder-SR25519",
+   "password": "pw-0-SR25519",
+   "json": "{\"address\":\"15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5\",\"encoded\":\"+GLInmZgT1SnYjkQyPJDYve4+OCEHRTpi/qTkWgg+VYAgAAAAQAAAAgAAACQJlUW+BinUCVg71duo79I3PHO/qnIRiYELVOVmbuyc6zIWsBwMaq2+mWZhjVVUrIgkuVtGHdhEJ4ExgiCSoW/eHQoyaerqw+t9JgMsSlpKqef983vnjOgxkHl+P89Ou7tnZhHeIicciCrt1QNBU4ejGGSDhHo+iQ/z13oH8CIwLfKQFtQ+Lp8P1Rzsp3Tadv2xgmy4jjXUx6YNMgY\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"name\":\"acc\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\",\"whenCreated\":1791591824373}}",
+   "expected": {
+    "encryption": "SR25519",
+    "keypair": {
+     "privateKey": "0x26a89e002001a8164d8361ebb27a71f5482a93167792c7d0a93d5a95ca2b9a0a",
+     "publicKey": "0x8c9044e2f594b3ddd34a3e850e3c841c49d99dda715db73f776f83ffb9146b72",
+     "nonce": "0x7933a8af8e30955c39fdd6f3832aa2bf7586142dc951e8fd6f204b9827f4c98e"
+    },
+    "seed": null,
+    "username": "acc"
+   }
+  }
+ ],
+ "stored_secrets": [
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e8005d65584630d16cd4af6d0bec10f34bb504a5dcb62dba2122d49f5a663763d0a8046ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a0180fd190cce74df356432b410bd64682309d6dedb27c76845daf388557cbac3ca340100",
+   "publicKey": "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a",
+   "accountId": "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e803f324bcc884358b2a34cd0926ed3bb25552d834af72273a8b7d8e314aa31290d80f606519cb8726753885cd4d0f518804a69a5e0badf36fee70feadd804408173001809b33e9385b3bf080217bfab6308b1f096146bb1ed41336c1e85bce6df212105d01282f2f706f6c6b61646f74",
+   "publicKey": "0xf606519cb8726753885cd4d0f518804a69a5e0badf36fee70feadd8044081730",
+   "accountId": "0xf606519cb8726753885cd4d0f518804a69a5e0badf36fee70feadd8044081730",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://kusama#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//kusama",
+   "lastJunctionSoft": false,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e80f45678d33d22bc82a46e2858e6f77e5283ed8acadf21a21272cdde357495810d8064a31235d4bf9b37cfed3afa8aa60754675f9c4915430454d365c05112784d05018044b772a90e4977d43e8c68b33765a851fef7aba4c416623c27b02a4d78439a7e01202f2f6b7573616d61",
+   "publicKey": "0x64a31235d4bf9b37cfed3afa8aa60754675f9c4915430454d365c05112784d05",
+   "accountId": "0x64a31235d4bf9b37cfed3afa8aa60754675f9c4915430454d365c05112784d05",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot/0#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e80ac78678dd56b21a4c21a559e996942000814af750e69e402c5644324948a4000801ea8e6c8824b7540dd58badd8f5384715c67b0ececdebf07d356ba88c05300190180cd7803ac2d1f60a42e257c3b3a456e37783aa5894c2da6c1a41b66a966ace96601302f2f706f6c6b61646f742f30",
+   "publicKey": "0x1ea8e6c8824b7540dd58badd8f5384715c67b0ececdebf07d356ba88c0530019",
+   "accountId": "0x1ea8e6c8824b7540dd58badd8f5384715c67b0ececdebf07d356ba88c0530019",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/0#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e8079344d08b92e53ca00fd8afe9cdc7af851541249c4886e9e11327010dcb9420c80b696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab1310018092c41c422c07d4b26725ecd2fb6ed77d9a36f4aab9ebeb568abe1b9d4a981a7f01082f30",
+   "publicKey": "0xb696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab1310",
+   "accountId": "0xb696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab1310",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://1//2/3#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//1//2/3",
+   "lastJunctionSoft": true,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e807cdbc162e22403533e8cc2d9d8ad10b0f4c280fafcc093317fbe29af8f84570b80d46bc0005b78c1e7a149e53618c02ab91a75262bcc293d95b6b95de8932dad740180fdb36282632e147af3092435b59e0ab234b567985bdf2f046ef6cff7ccef0aeb01202f2f312f2f322f33",
+   "publicKey": "0xd46bc0005b78c1e7a149e53618c02ab91a75262bcc293d95b6b95de8932dad74",
+   "accountId": "0xd46bc0005b78c1e7a149e53618c02ab91a75262bcc293d95b6b95de8932dad74",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://hard///pw#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//hard///pw",
+   "lastJunctionSoft": false,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180a1a8f79db9a9554ed446fd97c5c65c19cb36bf80d069872a1736fbd07933da3f807117c755b0af26843101cbf5a5b462214bc7f9e87d7d8ebfd93a3732bdd1520880d0930ed3763148ec2804edecf7221f85a09a5b747b8ab64fc67f548cb424b33f0180f028273fca644e761e93695eed7fa1cbc217b72140ed0de04955de72ad4251ca012c2f2f686172642f2f2f7077",
+   "publicKey": "0xd0930ed3763148ec2804edecf7221f85a09a5b747b8ab64fc67f548cb424b33f",
+   "accountId": "0xd0930ed3763148ec2804edecf7221f85a09a5b747b8ab64fc67f548cb424b33f",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/soft///pw#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "/soft///pw",
+   "lastJunctionSoft": true,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180a1a8f79db9a9554ed446fd97c5c65c19cb36bf80d069872a1736fbd07933da3f80d973b823983ca217a334f8f6093e1e62e4a42886ed52d009d45d0f8c0ff0eb09802c5756fa4802d2e15915efa83ae7e68e8fa7a88ef4200b160c144c2cd9a1a5060180e7c4b6d056d0e04467c2be8503f0be584ce32747fbc1ca1d54805d4cc703f4bd01282f736f66742f2f2f7077",
+   "publicKey": "0x2c5756fa4802d2e15915efa83ae7e68e8fa7a88ef4200b160c144c2cd9a1a506",
+   "accountId": "0x2c5756fa4802d2e15915efa83ae7e68e8fa7a88ef4200b160c144c2cd9a1a506",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot//0///p@ss#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot//0///p@ss",
+   "lastJunctionSoft": false,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180001420c09e26bfa94443aea3a58562f1227aa4b394dd4a5700fd70d69f0c1c098081daf57436560890b1c747f309eb2418be5c23405b4df8fe140ae1291bbbeb0c80c8c8f7604a8ba3d49120a687af5034d49f5701a959d37f59b633affc8a9a0a660180d3ff82046d10f4ac204170334754bf2eb1a85f9820e5affe9ed1cf047cca66e401502f2f706f6c6b61646f742f2f302f2f2f70407373",
+   "publicKey": "0xc8c8f7604a8ba3d49120a687af5034d49f5701a959d37f59b633affc8a9a0a66",
+   "accountId": "0xc8c8f7604a8ba3d49120a687af5034d49f5701a959d37f59b633affc8a9a0a66",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://ポルカ/1#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//ポルカ/1",
+   "lastJunctionSoft": true,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e8056f68b6f9bc47470fcf830ed0d66208548e44af047e1bac5350d5e88ce7ad602805a3bd40567107df8cecaf69e92ae06f37f8a8915c1fec3c607194b6ec22fef18018015302befbbd25e42af724a64120eb335c4d72a6a57ef6062cb759023a788b79301342f2fe3839de383abe382ab2f31",
+   "publicKey": "0x5a3bd40567107df8cecaf69e92ae06f37f8a8915c1fec3c607194b6ec22fef18",
+   "accountId": "0x5a3bd40567107df8cecaf69e92ae06f37f8a8915c1fec3c607194b6ec22fef18",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2802ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d8066933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972018014a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd80100",
+   "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+   "accountId": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e280dfb77f0e34ced0b747f30641b8cb98198fb56b4869e09aa0dc06c0cb8970f308801254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a4947001802bf3a389a52120b68d1674c67c5bc1c3802fc7264df155ba2da36b01ed86f57001282f2f706f6c6b61646f74",
+   "publicKey": "0x1254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a49470",
+   "accountId": "0x1254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a49470",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://kusama#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//kusama",
+   "lastJunctionSoft": false,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e280288cba63ecae310428b4064df53282ad913d1cc874ea51764bcc01cac37c310e8002781d31a11de9dd0f82dbd8850a13a0e03719538d9ddb2f07fbfa6a0c5221740180df64d21fd6525c7767c073adcc0ef6f458830eeabfb644ad7b3d32b2d5037e1d01202f2f6b7573616d61",
+   "publicKey": "0x02781d31a11de9dd0f82dbd8850a13a0e03719538d9ddb2f07fbfa6a0c522174",
+   "accountId": "0x02781d31a11de9dd0f82dbd8850a13a0e03719538d9ddb2f07fbfa6a0c522174",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot/0#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e28078d4d9285d2c5b951b9cd593ddb8498b91af52f7161cede47d44a8076cd0560c80c2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b018047cc4458c67d30d3da01017e17982a1073ef47bbe5788880dfa7e2cbee8f1b2a01302f2f706f6c6b61646f742f30",
+   "publicKey": "0xc2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b",
+   "accountId": "0xc2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/0#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2807ff11b8116db778978d26ca30391ffe35b34f203a61da9f6e6e73a3a59bc4e04800c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab6760180a9d14b9a6f6dc822c545d3d656edf4b1e848ef667f9ef1b45e4f1e88f33cbe9501082f30",
+   "publicKey": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+   "accountId": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://1//2/3#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//1//2/3",
+   "lastJunctionSoft": true,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2804d23eb9ef9c271a2e5dcd7433f4426969880fc84926b4f4db36615255b1e140580884fa9450c149b79715f1c895c6cbbefe6dda102eb0d0f8cad8e705c90bbb50c01807a5026e39888f96a72ceabb56de5fa4a5841bdbe8958d65825205dc120b6e6c101202f2f312f2f322f33",
+   "publicKey": "0x884fa9450c149b79715f1c895c6cbbefe6dda102eb0d0f8cad8e705c90bbb50c",
+   "accountId": "0x884fa9450c149b79715f1c895c6cbbefe6dda102eb0d0f8cad8e705c90bbb50c",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://hard///pw#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//hard///pw",
+   "lastJunctionSoft": false,
+   "stored": "0x01400000000000000000000000000000000001809e31e0a6cff7f892bbaffe44114b0500eee83bb37a0fe6a3394e21a9bee24164805532ef36ef1c72e4578bfd63afc194d100aafe0266bb57133866d4d7067db20e8080e565fcc48cce1e2aea63cf1ec9569d14930269762e86ee4c2c148f1ccd475a0180be1496459de31ad0e1b4de79a2edbff3c396fa50862666cabffe12deb66ac53b012c2f2f686172642f2f2f7077",
+   "publicKey": "0x80e565fcc48cce1e2aea63cf1ec9569d14930269762e86ee4c2c148f1ccd475a",
+   "accountId": "0x80e565fcc48cce1e2aea63cf1ec9569d14930269762e86ee4c2c148f1ccd475a",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/soft///pw#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "/soft///pw",
+   "lastJunctionSoft": true,
+   "stored": "0x01400000000000000000000000000000000001809e31e0a6cff7f892bbaffe44114b0500eee83bb37a0fe6a3394e21a9bee241648000f35519d66b876cfb085f6e0a2d68f00943bf496cfe13201033f7d5c07ae70380a42c97d0513e39eba04f627ac564199cb6cfbff6b8d8c834bd2f4d202a8107230180fd3dbf5ae000d17ce6e98b36fc9802bec2f80f62faa9ec3998611508c5bbb94f01282f736f66742f2f2f7077",
+   "publicKey": "0xa42c97d0513e39eba04f627ac564199cb6cfbff6b8d8c834bd2f4d202a810723",
+   "accountId": "0xa42c97d0513e39eba04f627ac564199cb6cfbff6b8d8c834bd2f4d202a810723",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot//0///p@ss#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot//0///p@ss",
+   "lastJunctionSoft": false,
+   "stored": "0x0140000000000000000000000000000000000180a021e38c61f3c52332b873b7ca2e5091fd592561e8ab56dc6926f0397bee5a87809f114072e283679b9f2c833284ec3e525844a465cbbd8e9cd7a2ea39b3247a0f8038018a8bdd7d2ce58232dcd13d1e21d8bd9808f281a50767de6754627325773e0180f4c5ff2538eb7cca887eb56029a53cd4e8ea6756bc5e4615c90ddb2a5f51679b01502f2f706f6c6b61646f742f2f302f2f2f70407373",
+   "publicKey": "0x38018a8bdd7d2ce58232dcd13d1e21d8bd9808f281a50767de6754627325773e",
+   "accountId": "0x38018a8bdd7d2ce58232dcd13d1e21d8bd9808f281a50767de6754627325773e",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://ポルカ/1#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//ポルカ/1",
+   "lastJunctionSoft": true,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e280153e24e9b5c739d26714b2bd7b73e4ae8092584062822b1ade99cff528d79f0a80a690144aee6b445041870ebcb605c56cefc53d9c8521ec15bcc0215a811a220c018055e1347dcb507ff678d97d80235269867a257f37ede1cdb9cff7e1c44657b7d101342f2fe3839de383abe382ab2f31",
+   "publicKey": "0xa690144aee6b445041870ebcb605c56cefc53d9c8521ec15bcc0215a811a220c",
+   "accountId": "0xa690144aee6b445041870ebcb605c56cefc53d9c8521ec15bcc0215a811a220c",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c77180a46dce37aa73ba3c4449a2693458d5904d7869bc9740eee1016d0de93b750a0b80d8249248f903bd18c1fefb8552cd31d339bbb20cac5346befb001b394c4a071e018000ce8c36f1efa6f08a701394b109a17f859a3299eea6fd9f95bb025cb45431270100",
+   "publicKey": "0xd8249248f903bd18c1fefb8552cd31d339bbb20cac5346befb001b394c4a071e",
+   "accountId": "0xd8249248f903bd18c1fefb8552cd31d339bbb20cac5346befb001b394c4a071e",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c77180fbbf63a1b9282df6d7599fcf9b5d88bee010ef00b1e041549843a3ddd87d480a80cc7b4546d16a35d907afac8ed39ea26745b17390103aa5f3d761a04073477a0a0180ae6110266351ff1cfa06210a98ec3898c252fd74cc397800be084dff9f88e27001282f2f706f6c6b61646f74",
+   "publicKey": "0xcc7b4546d16a35d907afac8ed39ea26745b17390103aa5f3d761a04073477a0a",
+   "accountId": "0xcc7b4546d16a35d907afac8ed39ea26745b17390103aa5f3d761a04073477a0a",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://kusama#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//kusama",
+   "lastJunctionSoft": false,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c77180b429aaefdcb6a9a505658f56a6f73615b3b42ad61765e6f99f374e42d9ee510c80b6c14d6a5c6ba5af5c1352bc3242f59cb18f76b628986a0621cdc36230fee36c01802fffe5819fc7bcce922616708a35aa24f5ac4545b92529110bfebf26327d27fc01202f2f6b7573616d61",
+   "publicKey": "0xb6c14d6a5c6ba5af5c1352bc3242f59cb18f76b628986a0621cdc36230fee36c",
+   "accountId": "0xb6c14d6a5c6ba5af5c1352bc3242f59cb18f76b628986a0621cdc36230fee36c",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot/0#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c771801ddb87e367d50ef5d261f03c2a660fc0dca07d1bc5820ae56a13a28cee78e50180a206b61ccefaeb0c94c976c76d4d0ce897189eff2220ec4373d3139e4062a15a018037c6e9129e621fc5e177c34c961f230afbc143266e57397f645266a60b65654e01302f2f706f6c6b61646f742f30",
+   "publicKey": "0xa206b61ccefaeb0c94c976c76d4d0ce897189eff2220ec4373d3139e4062a15a",
+   "accountId": "0xa206b61ccefaeb0c94c976c76d4d0ce897189eff2220ec4373d3139e4062a15a",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/0#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c7718076af77380702fc478dec8d05421e8383465f9ba418efc321de0623fae15e100780b6ea744adca68575216f163d29e191d689fa9bffc8d9571b9cc24e5e83e75b53018099943644ed77b40795b0c1e13a9f5580d70fe5a6cda234f735d0d7aa79d2d15d01082f30",
+   "publicKey": "0xb6ea744adca68575216f163d29e191d689fa9bffc8d9571b9cc24e5e83e75b53",
+   "accountId": "0xb6ea744adca68575216f163d29e191d689fa9bffc8d9571b9cc24e5e83e75b53",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://1//2/3#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//1//2/3",
+   "lastJunctionSoft": true,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c771804042b49d2f5a44105a49b09b364ed27a9fd2e0c0d7330dc6a770256cae04560e80baad35e73cb03b79401eb0e3f6b15faab1c5ba92a421e690feb30f7ba27a724801806b4a229e68f9575f1364c42a46c145ca3966ab2a9c8cef6855445a2d4e6d7e4101202f2f312f2f322f33",
+   "publicKey": "0xbaad35e73cb03b79401eb0e3f6b15faab1c5ba92a421e690feb30f7ba27a7248",
+   "accountId": "0xbaad35e73cb03b79401eb0e3f6b15faab1c5ba92a421e690feb30f7ba27a7248",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://hard///pw#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//hard///pw",
+   "lastJunctionSoft": false,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01807126dea1e0d16fde55cc61662682467b92f1f87b1a51994c866187212aa74d5d80488637ba462fdfe56a80b8b883513f4d3b03d1b4c4a246a415c25e47d9e78d0b8020b651107f93729a949f31141a332a7e694578a8cd866a754b99fd0c39ef8d6001804d1cc27481d75acca5802b864f871208e0d719adddc402d04563d0e02e7d1d2b012c2f2f686172642f2f2f7077",
+   "publicKey": "0x20b651107f93729a949f31141a332a7e694578a8cd866a754b99fd0c39ef8d60",
+   "accountId": "0x20b651107f93729a949f31141a332a7e694578a8cd866a754b99fd0c39ef8d60",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/soft///pw#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "/soft///pw",
+   "lastJunctionSoft": true,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01807126dea1e0d16fde55cc61662682467b92f1f87b1a51994c866187212aa74d5d80ab07977ed5b71edf9623faea538e3decc430992053e15e54546eaf0aa4ff7b0980cce81408672baa9f9477d2eb5c3b752266a1064de53294e98d9873010593232d0180fad51813904a788845deb3bebac730f29e21e23dd278be1278b9e404717f340c01282f736f66742f2f2f7077",
+   "publicKey": "0xcce81408672baa9f9477d2eb5c3b752266a1064de53294e98d9873010593232d",
+   "accountId": "0xcce81408672baa9f9477d2eb5c3b752266a1064de53294e98d9873010593232d",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot//0///p@ss#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot//0///p@ss",
+   "lastJunctionSoft": false,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce0180bb34170074f4cf45dee14d618382f5db35eb812abfc7373300201504690b1b0b80ebdd7e12a0defb9bf1172c0204dd79a9579f35109ef48c9f9477c7342c21060c801c20d93e38ce6283d0a5533f5b155a071795070d35e4d3ec76dfa73f66c525600180d3bafdfc6740f726dcc9e5e2ffb5000ebf201d51d8d5c6b4a65acaadb3ab0ff001502f2f706f6c6b61646f742f2f302f2f2f70407373",
+   "publicKey": "0x1c20d93e38ce6283d0a5533f5b155a071795070d35e4d3ec76dfa73f66c52560",
+   "accountId": "0x1c20d93e38ce6283d0a5533f5b155a071795070d35e4d3ec76dfa73f66c52560",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://ポルカ/1#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//ポルカ/1",
+   "lastJunctionSoft": true,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c77180f9c337e189108e60ab0fcb1544f2d999ea02ccfd228c79011fed99a7d6e0170380e0b90abcd60073687b04f821a33bf703b0b9ab6fbd5f2c2f753832d2f3140968018035507a644e307de305f8562bc173c715013f9d7a52c8cdf7709f13780146a08601342f2fe3839de383abe382ab2f31",
+   "publicKey": "0xe0b90abcd60073687b04f821a33bf703b0b9ab6fbd5f2c2f753832d2f3140968",
+   "accountId": "0xe0b90abcd60073687b04f821a33bf703b0b9ab6fbd5f2c2f753832d2f3140968",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018059529a94c16c9e95e781691bf51a9688a7e0099225e64187341907fa5aea4fb480484ce523e71cc099e2ab37293d794d1edc5e5548b56c6bead61fee7da902b00c804e00930c3d70810e31644df410340e085b710c598bf7e78eff082e3de0de387501807c8b1e183d20106f05f9da5dfefceb05f0f3b877307688ea3a00f88da9f4825e0100",
+   "publicKey": "0x4e00930c3d70810e31644df410340e085b710c598bf7e78eff082e3de0de3875",
+   "accountId": "0x4e00930c3d70810e31644df410340e085b710c598bf7e78eff082e3de0de3875",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018059529a94c16c9e95e781691bf51a9688a7e0099225e64187341907fa5aea4fb480b0d446d48eba038537f91e409abf0026b1b44246603da2d701f72b525549720c808017a84613878394ed2ec6ffc4a3a11e4f427dee54f8b11a06d983aabd1d61430180333d6b0f5a9c4009e5aaa4743763cda597d06db276d1de41b545897901cb166801282f2f706f6c6b61646f74",
+   "publicKey": "0x8017a84613878394ed2ec6ffc4a3a11e4f427dee54f8b11a06d983aabd1d6143",
+   "accountId": "0x8017a84613878394ed2ec6ffc4a3a11e4f427dee54f8b11a06d983aabd1d6143",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://kusama#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//kusama",
+   "lastJunctionSoft": false,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018059529a94c16c9e95e781691bf51a9688a7e0099225e64187341907fa5aea4fb48014848a95367be516c5f4b651b2700542efaf9a9e10a8591d143f414517d2a40b8022ae8cd3592f9b013c3e6228c09908c25b88bd2a350042b9e8235d7e1737044d0180a187a6014ec72e951d1d4d6dc987dcd9e3d18eb74624436e20b2c39348955f5601202f2f6b7573616d61",
+   "publicKey": "0x22ae8cd3592f9b013c3e6228c09908c25b88bd2a350042b9e8235d7e1737044d",
+   "accountId": "0x22ae8cd3592f9b013c3e6228c09908c25b88bd2a350042b9e8235d7e1737044d",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot/0#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018059529a94c16c9e95e781691bf51a9688a7e0099225e64187341907fa5aea4fb48095ebd63ddcd250eece1a211bdd40393b951b9e5ce42eac0e4d2d4e8c602fd808805e49a4fe46b012b23e7a05a0ce438823388e353ad7f46ee1ff5825404139d551018057caabf7f4b95a0a6b7d86c81aa81ffb03e46be9b47e140a1059c6f377f534f201302f2f706f6c6b61646f742f30",
+   "publicKey": "0x5e49a4fe46b012b23e7a05a0ce438823388e353ad7f46ee1ff5825404139d551",
+   "accountId": "0x5e49a4fe46b012b23e7a05a0ce438823388e353ad7f46ee1ff5825404139d551",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/0#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018059529a94c16c9e95e781691bf51a9688a7e0099225e64187341907fa5aea4fb480788ea1d217f230747111b4f1bbf210af5aa24ead08455b4883eef3695b731b0e809abd0d1b049ef45d1573b9119eb0f6f32f368f19bf69f638a00c6ea9ad7990600180dc1cff56dad09f054b4b6431b2b39e1da36a3c3da7af2dc674169e4ce7959a4d01082f30",
+   "publicKey": "0x9abd0d1b049ef45d1573b9119eb0f6f32f368f19bf69f638a00c6ea9ad799060",
+   "accountId": "0x9abd0d1b049ef45d1573b9119eb0f6f32f368f19bf69f638a00c6ea9ad799060",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://1//2/3#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//1//2/3",
+   "lastJunctionSoft": true,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018059529a94c16c9e95e781691bf51a9688a7e0099225e64187341907fa5aea4fb4809921fc53730378813d0ea1491595d3a1df5145f038c868f1cb431d74e4b2df0a8096c86333123dd0939e26876df792154ef7fcf0b766167a7e683289f63aff550301805c916a845cd5a38a85ab88b6b54b57ee6e58e0373887c5c0e44528e9e9348ce501202f2f312f2f322f33",
+   "publicKey": "0x96c86333123dd0939e26876df792154ef7fcf0b766167a7e683289f63aff5503",
+   "accountId": "0x96c86333123dd0939e26876df792154ef7fcf0b766167a7e683289f63aff5503",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://hard///pw#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//hard///pw",
+   "lastJunctionSoft": false,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018004d0f6b53e8cb13b8d773280346abd05c0859a04bc1623ea4f764e85e0a1e39d805bc6a656de7c4dd4efe28f26b612c689e532ce72dafd797545053fb0a1e57e098020cd28a8dcd214c0798696515262d812fabaee218765a1568836574001bc5150018028220fad6fbc6ba01b682773e2950ea1d58a52709c39a929e484456afa28d4db012c2f2f686172642f2f2f7077",
+   "publicKey": "0x20cd28a8dcd214c0798696515262d812fabaee218765a1568836574001bc5150",
+   "accountId": "0x20cd28a8dcd214c0798696515262d812fabaee218765a1568836574001bc5150",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/soft///pw#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "/soft///pw",
+   "lastJunctionSoft": true,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018004d0f6b53e8cb13b8d773280346abd05c0859a04bc1623ea4f764e85e0a1e39d8051d65850f865382d48a48df79fd5f673bd34400e5cb648b4d43c9b9e0a3bc20580527f4332c7f96e042c456b51df5ff3e718a1338f5c440c9d76e600868fc0280e018069f2722ec2e1df8cc5f289395d4abde2738ae60b7888ae80c10c525b4d6840b901282f736f66742f2f2f7077",
+   "publicKey": "0x527f4332c7f96e042c456b51df5ff3e718a1338f5c440c9d76e600868fc0280e",
+   "accountId": "0x527f4332c7f96e042c456b51df5ff3e718a1338f5c440c9d76e600868fc0280e",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot//0///p@ss#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot//0///p@ss",
+   "lastJunctionSoft": false,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d01807d7b1d81205e1c97a07806772db4a5a6fc11faeee314492e7a6e4ff3313c54d68046cc8179e427e3203de16ee29740ad11289a4b68852d93d35b4623b7604f140d8058e3718b1641823b948030d8f7643e99bef6863a50e86ff17b150529007c462e0180791aa3a0a12f6ed826168c184551f64f648c5d887f2b1ce1573d19d5ecbe6a3301502f2f706f6c6b61646f742f2f302f2f2f70407373",
+   "publicKey": "0x58e3718b1641823b948030d8f7643e99bef6863a50e86ff17b150529007c462e",
+   "accountId": "0x58e3718b1641823b948030d8f7643e99bef6863a50e86ff17b150529007c462e",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://ポルカ/1#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//ポルカ/1",
+   "lastJunctionSoft": true,
+   "stored": "0x014092f4d36096d6b97230920c803510a22d018059529a94c16c9e95e781691bf51a9688a7e0099225e64187341907fa5aea4fb480133b6351b366a9c4c1ab281688b3fb5209cff6a2f9bc0b4cc6576d4b7ea7c30080288aa8fb5b9ffcb83a4b5e2e4fe61387ffa8a9c0e24d1f84836fe8cd06a48f770180b05850fef6567ed47446c8776a492acec58e85cdcad364f21e670784065de1bc01342f2fe3839de383abe382ab2f31",
+   "publicKey": "0x288aa8fb5b9ffcb83a4b5e2e4fe61387ffa8a9c0e24d1f84836fe8cd06a48f77",
+   "accountId": "0x288aa8fb5b9ffcb83a4b5e2e4fe61387ffa8a9c0e24d1f84836fe8cd06a48f77",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae80180bbbb411135367d372fe5aa868ff0b02873e143c33c4a64e56117d068993e0a5080fbf2753f47a0857821043f05a97d8af4a6aee5342c3a65bdabdd245ce73dc90e808e3fcda8b8f211ac3c7c1cb364b502c8ef0e568b494caf1a106118b540847f6d0180009a1074cb68a1f5edf751be52dd2ebdeba9a2d13f5b8061ec1fcb12ac49d3d70100",
+   "publicKey": "0x8e3fcda8b8f211ac3c7c1cb364b502c8ef0e568b494caf1a106118b540847f6d",
+   "accountId": "0x8e3fcda8b8f211ac3c7c1cb364b502c8ef0e568b494caf1a106118b540847f6d",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae80180bbbb411135367d372fe5aa868ff0b02873e143c33c4a64e56117d068993e0a5080001eebd0299c80420ecb29e3a97ff1bf8e4474eb0b612c521893818ee539880e80681941099ac51be2240a8ebc0a2161774a41725d492077d135fa4fd84b9fcb6c0180c844bf0029ef955d1bcbf3fbb3f11ec413ccb5aa5c5a722c35eae957ed1b8c8d01282f2f706f6c6b61646f74",
+   "publicKey": "0x681941099ac51be2240a8ebc0a2161774a41725d492077d135fa4fd84b9fcb6c",
+   "accountId": "0x681941099ac51be2240a8ebc0a2161774a41725d492077d135fa4fd84b9fcb6c",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://kusama#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "//kusama",
+   "lastJunctionSoft": false,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae80180bbbb411135367d372fe5aa868ff0b02873e143c33c4a64e56117d068993e0a5080edcf8aa8172af513613a9ce75120f0f4d96dad92f1e89c25b4dcab61d8514d0a80bc017569876dff6414f4dd8c648ffc113b21430b990dc444630ce8d07c9cac4b01808b1c634a5e33780b66fa0dd4832a0fe7c1eee14183cc5e1abf04985989a2c38001202f2f6b7573616d61",
+   "publicKey": "0xbc017569876dff6414f4dd8c648ffc113b21430b990dc444630ce8d07c9cac4b",
+   "accountId": "0xbc017569876dff6414f4dd8c648ffc113b21430b990dc444630ce8d07c9cac4b",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot/0#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae80180bbbb411135367d372fe5aa868ff0b02873e143c33c4a64e56117d068993e0a50806c3675dbadbf61a441098b9678be5f47a248a870fe83da798821830c0f9b400880c68d2cb7e68489c24f8911e0eca83f2f461a19bc7d5d9c7035330a9455c12d540180ad08e53ede40d5d8fd7b3ce5ff733f83a1423c29ad7627f3abcd0494cd01e70b01302f2f706f6c6b61646f742f30",
+   "publicKey": "0xc68d2cb7e68489c24f8911e0eca83f2f461a19bc7d5d9c7035330a9455c12d54",
+   "accountId": "0xc68d2cb7e68489c24f8911e0eca83f2f461a19bc7d5d9c7035330a9455c12d54",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/0#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae80180bbbb411135367d372fe5aa868ff0b02873e143c33c4a64e56117d068993e0a50808f99506355cdbdabf6b95f9de88e859df5d02e31ee398f9c30227a9fed36230380debcaaf850b74291e1ffbb34b4eace85f45a6dfc0cee657614cc6a204a54724e018020f02531c918fa9efb71e339850953e76dd1b3445b48336cc29d3875db3a4adb01082f30",
+   "publicKey": "0xdebcaaf850b74291e1ffbb34b4eace85f45a6dfc0cee657614cc6a204a54724e",
+   "accountId": "0xdebcaaf850b74291e1ffbb34b4eace85f45a6dfc0cee657614cc6a204a54724e",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://1//2/3#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "//1//2/3",
+   "lastJunctionSoft": true,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae80180bbbb411135367d372fe5aa868ff0b02873e143c33c4a64e56117d068993e0a50801e90d0e0316b2ec0e2649dc0a1be76aab3018df2258b148046221526c33aee0380c863d139ef0e56bba3503f3304a5223150727492629067d6a7d4a7b26bbd9b250180777a218e3e737a86bf1c7dff9311da6673259adee8c7cfc88f682242b5defb4b01202f2f312f2f322f33",
+   "publicKey": "0xc863d139ef0e56bba3503f3304a5223150727492629067d6a7d4a7b26bbd9b25",
+   "accountId": "0xc863d139ef0e56bba3503f3304a5223150727492629067d6a7d4a7b26bbd9b25",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://hard///pw#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "//hard///pw",
+   "lastJunctionSoft": false,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae8018009d544d80ce6d2a892a109ece175ad6c2618379f632d673f588a4912e8c2f2e3802f9b129e1651b8a370019b05006f81393ae85380dbbdb2d4419c21957a4f6e0c806e8ba93b1064870adb39e055a27dff6bb84d6eb4f02eaa7a88908a7bd10f582d0180c18754f3b74a66b9bdb29d3906d3ac25f63acf07d98e4d9e3ef1c1f3faebf1a9012c2f2f686172642f2f2f7077",
+   "publicKey": "0x6e8ba93b1064870adb39e055a27dff6bb84d6eb4f02eaa7a88908a7bd10f582d",
+   "accountId": "0x6e8ba93b1064870adb39e055a27dff6bb84d6eb4f02eaa7a88908a7bd10f582d",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/soft///pw#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "/soft///pw",
+   "lastJunctionSoft": true,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae8018009d544d80ce6d2a892a109ece175ad6c2618379f632d673f588a4912e8c2f2e380a0440d43a4bd87977f510abfba46772d8f326e5ac71452daebc332faafbfb80e80d6af49e1bc1673df06d8be748a79a93755ba88062085224018cc0ff985538c48018081adad9e13833a1cc8bf79922fdef7eda19540a861cb4592d5e46683a4b8229001282f736f66742f2f2f7077",
+   "publicKey": "0xd6af49e1bc1673df06d8be748a79a93755ba88062085224018cc0ff985538c48",
+   "accountId": "0xd6af49e1bc1673df06d8be748a79a93755ba88062085224018cc0ff985538c48",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot//0///p@ss#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot//0///p@ss",
+   "lastJunctionSoft": false,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae8018087fd075ee5a2db8192e5e9f0105e7adee1dc58daa170a83be0a8d8d61272d09a805ec53e22122c7dbe0e140e5671cb15bd4b86268821d5b1b3ff57f048ac25780d806437428034b6b73bd8bf5b785a71f8a8fa3d12aa4b575fe9b03b6f23f7c9c6710180909890c04b6993d6fc3caf0a8c3927575cd01b441c3107e9a0a69b4c1ce021b201502f2f706f6c6b61646f742f2f302f2f2f70407373",
+   "publicKey": "0x6437428034b6b73bd8bf5b785a71f8a8fa3d12aa4b575fe9b03b6f23f7c9c671",
+   "accountId": "0x6437428034b6b73bd8bf5b785a71f8a8fa3d12aa4b575fe9b03b6f23f7c9c671",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://ポルカ/1#4",
+   "cryptoType": "SR25519",
+   "derivationPath": "//ポルカ/1",
+   "lastJunctionSoft": true,
+   "stored": "0x01406019e55c153ef5adecee43229a942ae80180bbbb411135367d372fe5aa868ff0b02873e143c33c4a64e56117d068993e0a50803f8a68128ebb1d1e3d2d586359de8069f057b1aca3bd8062fad381b6695f0f04800c9dcac38d440f83642cbd89e7220387a6ab89977927265739733c7688bbe67f0180bc5c38ac26f44b157fe867e859462295f875d10dda20e0b7f33ebbf5354b9f7701342f2fe3839de383abe382ab2f31",
+   "publicKey": "0x0c9dcac38d440f83642cbd89e7220387a6ab89977927265739733c7688bbe67f",
+   "accountId": "0x0c9dcac38d440f83642cbd89e7220387a6ab89977927265739733c7688bbe67f",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb14501809bcea100133cc010a67884cc2cc3e87a17d14bbe28f327a3af73386fa7c5d46f80d5f1c71ed9f66f8232197e8b52381f8330fc96da377c65f73f154cff5001e00c808c417688319d9058b5dac750b1b3f1cfff9c199a9f6cdd36dcfd7b74a505a7520180b0a190df280e62d0eae6261e8200688fc9ca7dd5348b49021016a122caffd37f0100",
+   "publicKey": "0x8c417688319d9058b5dac750b1b3f1cfff9c199a9f6cdd36dcfd7b74a505a752",
+   "accountId": "0x8c417688319d9058b5dac750b1b3f1cfff9c199a9f6cdd36dcfd7b74a505a752",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb14501809bcea100133cc010a67884cc2cc3e87a17d14bbe28f327a3af73386fa7c5d46f80cd9e4903b3bcd86c28c1c5f96d09a264c1c947c938dc8b74a8f3ef2a7d44520a803e86cb21b694566d7217efda40bb8e4023ebbe50922727c2510ed169b3840a67018009e9a88ab191178796d4b4327ca972eaef73a0aee4764214321ab105520c362601282f2f706f6c6b61646f74",
+   "publicKey": "0x3e86cb21b694566d7217efda40bb8e4023ebbe50922727c2510ed169b3840a67",
+   "accountId": "0x3e86cb21b694566d7217efda40bb8e4023ebbe50922727c2510ed169b3840a67",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://kusama#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "//kusama",
+   "lastJunctionSoft": false,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb14501809bcea100133cc010a67884cc2cc3e87a17d14bbe28f327a3af73386fa7c5d46f804d32aa64ad262a7684b6eab347896a5d3643e96e7b621401664ac55ca294aa0d80c266bd4b3ffcfee884f4372efbb4f33b96333786f7936d66e6e791753fd3c3500180e20e5abdd88bd801eebfb2ca59057a58b69afe5e31c0e73ebaeeedb5fc1b93c601202f2f6b7573616d61",
+   "publicKey": "0xc266bd4b3ffcfee884f4372efbb4f33b96333786f7936d66e6e791753fd3c350",
+   "accountId": "0xc266bd4b3ffcfee884f4372efbb4f33b96333786f7936d66e6e791753fd3c350",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot/0#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb14501809bcea100133cc010a67884cc2cc3e87a17d14bbe28f327a3af73386fa7c5d46f80d86c76ecb60e2fd332739395d75ad537d6b3ab10bf2cf43fad38447655b3ea0e80228261965134a0ff0ef97a87367b097299dd18550e26c81b007ca468af9dcc6d0180e31ca811d80928ba1a94aad3f6292cc0b63e3a392f5895a352f253d1ab10b51801302f2f706f6c6b61646f742f30",
+   "publicKey": "0x228261965134a0ff0ef97a87367b097299dd18550e26c81b007ca468af9dcc6d",
+   "accountId": "0x228261965134a0ff0ef97a87367b097299dd18550e26c81b007ca468af9dcc6d",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/0#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb14501809bcea100133cc010a67884cc2cc3e87a17d14bbe28f327a3af73386fa7c5d46f80149778d4f90e90aa997dcd28d5db99addd2022768e895c752e96d062f9951c0680f88f594b391f2d4acd43a9a62f5fadcaefa97c33c0bb251096c9e6d2664e726d0180aba823cd625971f2cdd12876a325f0e5ba2d9bdb29e69bb114c5d9c79f068ac501082f30",
+   "publicKey": "0xf88f594b391f2d4acd43a9a62f5fadcaefa97c33c0bb251096c9e6d2664e726d",
+   "accountId": "0xf88f594b391f2d4acd43a9a62f5fadcaefa97c33c0bb251096c9e6d2664e726d",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://1//2/3#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "//1//2/3",
+   "lastJunctionSoft": true,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb14501809bcea100133cc010a67884cc2cc3e87a17d14bbe28f327a3af73386fa7c5d46f80102c37e55f4408bc161abd8fcfb0414c6eaaa69c873c4baa67f541518a733a0e804037aafded12196d8bd0e513fadbeb51e5fb8faa416db4ef5eb11836190d344701800a3f841dbb276914d1f06e137c4a5d5352ab2d01a55236be9b44f272bb9d463d01202f2f312f2f322f33",
+   "publicKey": "0x4037aafded12196d8bd0e513fadbeb51e5fb8faa416db4ef5eb11836190d3447",
+   "accountId": "0x4037aafded12196d8bd0e513fadbeb51e5fb8faa416db4ef5eb11836190d3447",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://hard///pw#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "//hard///pw",
+   "lastJunctionSoft": false,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb1450180f2abac92d641bb8ff8a2c850679fab3f1ceea2a1f6cdd13b7d81d08f00ec2f26807a104955a443f44da94ab9ab5611349725b58d34645bc2a91bda2bac2b16e70a80aa89b6926aa1e4cb5eb899577f7df782c2fd5ba5b84d8dc92cf1bc1bbf764108018030ec82f995a2b171926761070c6adc0f25e07e53d10527ca956fd7602f239310012c2f2f686172642f2f2f7077",
+   "publicKey": "0xaa89b6926aa1e4cb5eb899577f7df782c2fd5ba5b84d8dc92cf1bc1bbf764108",
+   "accountId": "0xaa89b6926aa1e4cb5eb899577f7df782c2fd5ba5b84d8dc92cf1bc1bbf764108",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/soft///pw#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "/soft///pw",
+   "lastJunctionSoft": true,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb1450180f2abac92d641bb8ff8a2c850679fab3f1ceea2a1f6cdd13b7d81d08f00ec2f2680bbc176682fcc6f0dba0ed205397e44812d06d2c8f68a90b8b199980371f1e20880ec64261efcccab8bd467a5e00dd4d06b6a214c51ffdb5c2c9ce68d930292812b0180114a6a4fd8b260549f6776a9aa6d9b4550d4448ecc54fb5119285008552c650f01282f736f66742f2f2f7077",
+   "publicKey": "0xec64261efcccab8bd467a5e00dd4d06b6a214c51ffdb5c2c9ce68d930292812b",
+   "accountId": "0xec64261efcccab8bd467a5e00dd4d06b6a214c51ffdb5c2c9ce68d930292812b",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot//0///p@ss#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot//0///p@ss",
+   "lastJunctionSoft": false,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb1450180ccc5c8ba6428e08d84665ea55d5a809f712c90524ea431c8a0443a4d5c669d028063c5462a782432c949c50d4c3d79d4d90e7248f4e308aec5ec4ea6d7c17e100b809690bd8225b14324832ae9bfeb29550880037dbf3cccd6ba65f3597fd7e000280180c150e4fef0f1f704bc33fabe548eddf1ef994ec19b8a1d35d4effa7ee0ebdc2201502f2f706f6c6b61646f742f2f302f2f2f70407373",
+   "publicKey": "0x9690bd8225b14324832ae9bfeb29550880037dbf3cccd6ba65f3597fd7e00028",
+   "accountId": "0x9690bd8225b14324832ae9bfeb29550880037dbf3cccd6ba65f3597fd7e00028",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://ポルカ/1#5",
+   "cryptoType": "SR25519",
+   "derivationPath": "//ポルカ/1",
+   "lastJunctionSoft": true,
+   "stored": "0x0180a0e4b778f1d592c0ffd817936609a9f8a92799038a41c68e95256442bfafb14501809bcea100133cc010a67884cc2cc3e87a17d14bbe28f327a3af73386fa7c5d46f803375c2975ddd562d7eac2c4ccde552b592b804152d9a7fd1cb3eb501f75f7e06809c022f262d4c4bf3609d3c2e10f6ff20d04e89e4f369dbe1614a47479f6f566401804a1c9c317fdfecf0086c53960cdd283936b4ddc9ba136997e093b9a149af6e0e01342f2fe3839de383abe382ab2f31",
+   "publicKey": "0x9c022f262d4c4bf3609d3c2e10f6ff20d04e89e4f369dbe1614a47479f6f5664",
+   "accountId": "0x9c022f262d4c4bf3609d3c2e10f6ff20d04e89e4f369dbe1614a47479f6f5664",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801802fc98244fd2b6928ada93f3dce9868ebd79e7fd20d90525288cfb9e6aca7e34380b3d56b7fb8746d9a50182af84b92a8bfcf25d8f95556ad1dd541a0245e0e9a0c80ec6326369e80b3841dc44aec867c571319f371c6a3406d844b4a972d0a8fe5490180f0a736d3ced707a6b44b8314bdca280185385b809ae9cdd4a035dae55c86fa960100",
+   "publicKey": "0xec6326369e80b3841dc44aec867c571319f371c6a3406d844b4a972d0a8fe549",
+   "accountId": "0xec6326369e80b3841dc44aec867c571319f371c6a3406d844b4a972d0a8fe549",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801802fc98244fd2b6928ada93f3dce9868ebd79e7fd20d90525288cfb9e6aca7e34380c8a1dc4b439d9dc9977ad2d509751c9e89adcda387d9219871ea491edf3d330a80c4ccb0e08d57864496d8d8466227c661d3f1ec6b49d230a99b4487880e46284701809b9c294a059f52cfe1c00d61c8548dcd341d5ddcad6fc144c66b8fbc7a57463101282f2f706f6c6b61646f74",
+   "publicKey": "0xc4ccb0e08d57864496d8d8466227c661d3f1ec6b49d230a99b4487880e462847",
+   "accountId": "0xc4ccb0e08d57864496d8d8466227c661d3f1ec6b49d230a99b4487880e462847",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://kusama#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "//kusama",
+   "lastJunctionSoft": false,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801802fc98244fd2b6928ada93f3dce9868ebd79e7fd20d90525288cfb9e6aca7e34380658e8d1011d007183fca6cb1a5a871fd130b2b0bf2d68769b12c3212915fdc0a800ab0e37e60cc5ee2031fa33ae0a17264932bfbef3656ce9dae41239cfed5d227018036c265b10eefe47a682a8d75b365174f11a0afa91d548c2b8af3c064d8747b8001202f2f6b7573616d61",
+   "publicKey": "0x0ab0e37e60cc5ee2031fa33ae0a17264932bfbef3656ce9dae41239cfed5d227",
+   "accountId": "0x0ab0e37e60cc5ee2031fa33ae0a17264932bfbef3656ce9dae41239cfed5d227",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot/0#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801802fc98244fd2b6928ada93f3dce9868ebd79e7fd20d90525288cfb9e6aca7e3438082c3b6e47618f63eb5b1fa65ae74eaad12edcfa7b1d6d49e92c75f4ec6531f09803682fce206549319f9838ec78df0f8f12439f8c7e38cb81a9d3fa68f4ca03d1f0180cc74bb9cbf8fd070f9e1d3bd359266d8b11267ead9f3e74e84bbc447d44723bb01302f2f706f6c6b61646f742f30",
+   "publicKey": "0x3682fce206549319f9838ec78df0f8f12439f8c7e38cb81a9d3fa68f4ca03d1f",
+   "accountId": "0x3682fce206549319f9838ec78df0f8f12439f8c7e38cb81a9d3fa68f4ca03d1f",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/0#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801802fc98244fd2b6928ada93f3dce9868ebd79e7fd20d90525288cfb9e6aca7e34380900ba6bade9108e5d114afe00a3c045367e144e1b3405a424c5a480595a35d0e805e1855cafb68212bbefd2491af1f1526659c54595ab379861121e5d0fff80b120180872d7f0f46431b520693a6282eee7672580bea9512cc2c01cb9f458bd941df2301082f30",
+   "publicKey": "0x5e1855cafb68212bbefd2491af1f1526659c54595ab379861121e5d0fff80b12",
+   "accountId": "0x5e1855cafb68212bbefd2491af1f1526659c54595ab379861121e5d0fff80b12",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://1//2/3#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "//1//2/3",
+   "lastJunctionSoft": true,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801802fc98244fd2b6928ada93f3dce9868ebd79e7fd20d90525288cfb9e6aca7e343808509f98d5b3302238b735159f6e283ae336826d18f2bf8028cf8fa12e9930a05808e8a3ab18ae5f9238822eb7611e77f9a0c034b4c676f5619f98606a13f45b6330180ca6a7bdaa7c5faf5c11ea23636df40b7c0a20ed0ed4d3dd6f1812d35cdc6b75701202f2f312f2f322f33",
+   "publicKey": "0x8e8a3ab18ae5f9238822eb7611e77f9a0c034b4c676f5619f98606a13f45b633",
+   "accountId": "0x8e8a3ab18ae5f9238822eb7611e77f9a0c034b4c676f5619f98606a13f45b633",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://hard///pw#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "//hard///pw",
+   "lastJunctionSoft": false,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801806b17a6344d4b10e758d0ac88583ef9d7a87219839e8cff2af358919cde4ee9e48018a2dbb20fd0ffd3c247f59248f01241287664a8d384a53adfb51af0bbaae80b803607173816fa4bd23fd6913cebde23102abf208d2ac523746b58700119f3e04701808d329688f7aa49223387089cbfe2b7724fe208c615c8e9a813fc43aabb09c152012c2f2f686172642f2f2f7077",
+   "publicKey": "0x3607173816fa4bd23fd6913cebde23102abf208d2ac523746b58700119f3e047",
+   "accountId": "0x3607173816fa4bd23fd6913cebde23102abf208d2ac523746b58700119f3e047",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519:/soft///pw#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "/soft///pw",
+   "lastJunctionSoft": true,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801806b17a6344d4b10e758d0ac88583ef9d7a87219839e8cff2af358919cde4ee9e4802fad38780cb83dfd7ed646d43048ffb2b736d3f489a59fe09407ab32d7eb5d02805a47c755662887c0b15fd4cf5d0d080331b85012e7f4faa586364fb540d9e6640180057505acd1725161a9ffe784243e7cdacb61e022ba31d7d4daa0b218e7737bea01282f736f66742f2f2f7077",
+   "publicKey": "0x5a47c755662887c0b15fd4cf5d0d080331b85012e7f4faa586364fb540d9e664",
+   "accountId": "0x5a47c755662887c0b15fd4cf5d0d080331b85012e7f4faa586364fb540d9e664",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://polkadot//0///p@ss#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot//0///p@ss",
+   "lastJunctionSoft": false,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a48018024abcede0068849bc4cb9bd2f6502e24d03c44cf1739d332e0aea58a0259bf4b80583c788a94bb50c1fd0be979592bf5149ee86edb8259c3eba74ed75898a5760c8032fadd3acd0aa0ce01a0da0c33d8780bf4213b8a6efe0d7001c7544f53a90e7601801d6310c8ae06cf42f12d34f9fe5ce7f0871f8ce58d47eb0701da822da186b54e01502f2f706f6c6b61646f742f2f302f2f2f70407373",
+   "publicKey": "0x32fadd3acd0aa0ce01a0da0c33d8780bf4213b8a6efe0d7001c7544f53a90e76",
+   "accountId": "0x32fadd3acd0aa0ce01a0da0c33d8780bf4213b8a6efe0d7001c7544f53a90e76",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "mnemonic",
+   "case": "mnemonic:SR25519://ポルカ/1#6",
+   "cryptoType": "SR25519",
+   "derivationPath": "//ポルカ/1",
+   "lastJunctionSoft": true,
+   "stored": "0x0180f91a00da3a14b58738bbd407e38081dd2bdbc2a460309801b826f7afa3192a4801802fc98244fd2b6928ada93f3dce9868ebd79e7fd20d90525288cfb9e6aca7e343804c78ba3d5bcb0df4ee71c2b3adfa39aaacdadb0ab3cfb6045bc47f5cecced90680fa10b02f9cb81c4d6448ff6b6a5122bf56382aca545c931ff468ec12ee1a5d3001803a672a70867858a9ca457de62c941b4863556206293516236db6de4cf6ba34f201342f2fe3839de383abe382ab2f31",
+   "publicKey": "0xfa10b02f9cb81c4d6448ff6b6a5122bf56382aca545c931ff468ec12ee1a5d30",
+   "accountId": "0xfa10b02f9cb81c4d6448ff6b6a5122bf56382aca545c931ff468ec12ee1a5d30",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x0001802d783fbfe8e39b1840212fa73854da2b2eb2dc043b41e34e96573d7676c3f958801b1316affcf510cc38ba0ebe7cee3f093a3bd0d9401dfb21e50f96c20e80cf0f80a8e308e0dda1bd13c54b69abdfce2840bc88b9d7e47637a205e29718a3f99c6a0180ff8ceb7b6a9a32187fec38d01499ea3a6fb471cda2f50eba427abae045be54e20100",
+   "publicKey": "0xa8e308e0dda1bd13c54b69abdfce2840bc88b9d7e47637a205e29718a3f99c6a",
+   "accountId": "0xa8e308e0dda1bd13c54b69abdfce2840bc88b9d7e47637a205e29718a3f99c6a",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x0001802d783fbfe8e39b1840212fa73854da2b2eb2dc043b41e34e96573d7676c3f958802a8b5ddb078a6851a6ca9d13d1350537f5efc842f528926dfb4ea1df36fb8b08807466b063cb75f7766a2d186201ee337a059caf0f72742f93ade1a87201be152d0180389b9d159d792ebdcc7d3d4f1fe459f63676c18e17cfc674a2f3f41e6ae0f68301282f2f706f6c6b61646f74",
+   "publicKey": "0x7466b063cb75f7766a2d186201ee337a059caf0f72742f93ade1a87201be152d",
+   "accountId": "0x7466b063cb75f7766a2d186201ee337a059caf0f72742f93ade1a87201be152d",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot/0#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0001802d783fbfe8e39b1840212fa73854da2b2eb2dc043b41e34e96573d7676c3f95880d823efc3fea0ab60060e633f2ae07b87b255d083ed441f1cbae42230f8e2b60080be94ff80ddca8953e2b326e59627af8a6fcbdb730194283284dac739aa349d22018099c2e8090492456e78f362a40aa63e496faf0e060b91e0bcd87eda97639b1d1101302f2f706f6c6b61646f742f30",
+   "publicKey": "0xbe94ff80ddca8953e2b326e59627af8a6fcbdb730194283284dac739aa349d22",
+   "accountId": "0xbe94ff80ddca8953e2b326e59627af8a6fcbdb730194283284dac739aa349d22",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:/0#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0001802d783fbfe8e39b1840212fa73854da2b2eb2dc043b41e34e96573d7676c3f95880bc2ab2e0bb403dac4240d5d1486cb99424a66a333ef2ed50d5ffc44cc762ce0980bc48e263743de10022274a66bff4d2b721553035c4431ede4875749d2592e55e01804bab68881580f9f1ecc49bafc1706ce25c26cb95cabf71279a885effda31466401082f30",
+   "publicKey": "0xbc48e263743de10022274a66bff4d2b721553035c4431ede4875749d2592e55e",
+   "accountId": "0xbc48e263743de10022274a66bff4d2b721553035c4431ede4875749d2592e55e",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x0001800b83301b5b17c6e755155f24b6132dd4d880e60d57895142c1d36250e45a856d8080168e9034a94353d163e4f6b2a13457c3b1008f24b44e2bcd883cfd53562e0c804a481ae9c18af889487c0f77f020bb3a41234bd272f468df3ae957e50ec28774018067eb28a72a69bf839a5c6580b567251f56dfc6d98e763e906f8c3146861380d50100",
+   "publicKey": "0x4a481ae9c18af889487c0f77f020bb3a41234bd272f468df3ae957e50ec28774",
+   "accountId": "0x4a481ae9c18af889487c0f77f020bb3a41234bd272f468df3ae957e50ec28774",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x0001800b83301b5b17c6e755155f24b6132dd4d880e60d57895142c1d36250e45a856d803f084877f97d79dc8fe9132c500359703d7b5f41333ecf711d65e69ad81ea50d80c0fcdfe408c51aa5c005424cedb87261d17c7625f70603daf569636c6dd8b02f0180044a4758744337fd6cdd34f72e678d5c788f95a61035069eb8e0808e34939ea001282f2f706f6c6b61646f74",
+   "publicKey": "0xc0fcdfe408c51aa5c005424cedb87261d17c7625f70603daf569636c6dd8b02f",
+   "accountId": "0xc0fcdfe408c51aa5c005424cedb87261d17c7625f70603daf569636c6dd8b02f",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot/0#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0001800b83301b5b17c6e755155f24b6132dd4d880e60d57895142c1d36250e45a856d802873be5271b7c335c7505585e9b2a809d2949d3f2e7f30256ad75405475d090280766b875abc45179f79e24f2ea5d818d54e7569326b3df348b89f6dcdcc7a72590180835fa5c969e365872ca53acb1e61fcfc34ec1b2c0c61f3e6e7f866a5f4610aca01302f2f706f6c6b61646f742f30",
+   "publicKey": "0x766b875abc45179f79e24f2ea5d818d54e7569326b3df348b89f6dcdcc7a7259",
+   "accountId": "0x766b875abc45179f79e24f2ea5d818d54e7569326b3df348b89f6dcdcc7a7259",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:/0#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0001800b83301b5b17c6e755155f24b6132dd4d880e60d57895142c1d36250e45a856d80dd1ffa02ab2d163589f18cd0c91c02325097616c4baec297f23e081d8d11b70e80b8fbfc089ace42c6aab62246107680f43bbab9581fe525ab9e38bfcf42a9e75b0180c8972a1d46e89163a2fa2bc445c2fe44825fc810212d5a376eeffa4e5735f04d01082f30",
+   "publicKey": "0xb8fbfc089ace42c6aab62246107680f43bbab9581fe525ab9e38bfcf42a9e75b",
+   "accountId": "0xb8fbfc089ace42c6aab62246107680f43bbab9581fe525ab9e38bfcf42a9e75b",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x000180ad7d6da0bd128cdb772315bf406c9bd7b42116f8b91953a3c285a3f174ed2c8680a4156d2d3884410c33d96892fe568efe5c141fb105e185e033a855077df81d0a80dccb0fffbc0b4d750591a20be55c4f74a75decd5092924d2681d3105c9773931018087746602dc40bddebe3c1733c7e1fd205b478ebb9107814dfbccc4fce4c87d9d0100",
+   "publicKey": "0xdccb0fffbc0b4d750591a20be55c4f74a75decd5092924d2681d3105c9773931",
+   "accountId": "0xdccb0fffbc0b4d750591a20be55c4f74a75decd5092924d2681d3105c9773931",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x000180ad7d6da0bd128cdb772315bf406c9bd7b42116f8b91953a3c285a3f174ed2c868093941d7da3235910781d2860ee34536360fec62f9cbec997758f75151198540a80200e552840d9c925d655f3cacb7fc4cdda467952f7241641e25061e5afc1c548018035864d3d8780b9955087c5cd1312f413ae50117d986ef85b25fdb055c877a58801282f2f706f6c6b61646f74",
+   "publicKey": "0x200e552840d9c925d655f3cacb7fc4cdda467952f7241641e25061e5afc1c548",
+   "accountId": "0x200e552840d9c925d655f3cacb7fc4cdda467952f7241641e25061e5afc1c548",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot/0#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x000180ad7d6da0bd128cdb772315bf406c9bd7b42116f8b91953a3c285a3f174ed2c86809be767ee203e2aaf6b611db4c2cf1ebb09742a2af027942db7e6897c526ffe05801a24b5f3a5aec2190d9a95d11d3fbbc7807d8ec832b2c4adf7c76a3a5b79a92b018000d1c490502aef72465355654952fcd0cba6719645f022d8e85ccc41f033381801302f2f706f6c6b61646f742f30",
+   "publicKey": "0x1a24b5f3a5aec2190d9a95d11d3fbbc7807d8ec832b2c4adf7c76a3a5b79a92b",
+   "accountId": "0x1a24b5f3a5aec2190d9a95d11d3fbbc7807d8ec832b2c4adf7c76a3a5b79a92b",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:/0#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x000180ad7d6da0bd128cdb772315bf406c9bd7b42116f8b91953a3c285a3f174ed2c8680660855ca528572f07272292de34a5f666b02f2ca122d48f3209c7cc5e28bdb0c8098756694581ffac389d4b784fc8a7b0a0dce9cb883f2a7d27975daaa5bd4f70301802fcbc6fea575ebf046534b7046893c7ab010b6f18bedf637777ceb19784b16bd01082f30",
+   "publicKey": "0x98756694581ffac389d4b784fc8a7b0a0dce9cb883f2a7d27975daaa5bd4f703",
+   "accountId": "0x98756694581ffac389d4b784fc8a7b0a0dce9cb883f2a7d27975daaa5bd4f703",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x00018060651931352f955f2dbd4f0b98c09f567d2781c653995c80a293cdd6c4d088d1803ca2b5bfa20463cdddd7e313ea3cfc616534260308a4530c6239d44a75ce5708806ee19dc6fb58e64ed0e68f84208c089dba0daf39bce52bf65ef79e60e43ce05e01807eec835fa82a2210a45d5b8cc670cd25cac5577083ba5f402a4a07bc995fc3f50100",
+   "publicKey": "0x6ee19dc6fb58e64ed0e68f84208c089dba0daf39bce52bf65ef79e60e43ce05e",
+   "accountId": "0x6ee19dc6fb58e64ed0e68f84208c089dba0daf39bce52bf65ef79e60e43ce05e",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x00018060651931352f955f2dbd4f0b98c09f567d2781c653995c80a293cdd6c4d088d180fe25763dc9286623b1d05e9faab93a679da029796b592b1df06773a0088be309803efb84aabd04eb2fa8e8937f820e034624b425ebe6a7a425d2b7027a0180503f0180493b036592c4af87fc320a1d552fd41b2a9ac8074d4a0bca81e5697904d6bbbd01282f2f706f6c6b61646f74",
+   "publicKey": "0x3efb84aabd04eb2fa8e8937f820e034624b425ebe6a7a425d2b7027a0180503f",
+   "accountId": "0x3efb84aabd04eb2fa8e8937f820e034624b425ebe6a7a425d2b7027a0180503f",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519://polkadot/0#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x00018060651931352f955f2dbd4f0b98c09f567d2781c653995c80a293cdd6c4d088d1801472a64255f9de1cf12cbfb5044d230025521f7ee9d20828aa51dcdbe424ea04809aa937a53fb9657b78fb6fdebbad1cb6ddb2e17debcba0cff8367e6cb806de6e0180fe5e497953137b98e31896d4a8ff3c4c18653676a594f25650085554562d285801302f2f706f6c6b61646f742f30",
+   "publicKey": "0x9aa937a53fb9657b78fb6fdebbad1cb6ddb2e17debcba0cff8367e6cb806de6e",
+   "accountId": "0x9aa937a53fb9657b78fb6fdebbad1cb6ddb2e17debcba0cff8367e6cb806de6e",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "raw-seed",
+   "case": "seed:SR25519:/0#3",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x00018060651931352f955f2dbd4f0b98c09f567d2781c653995c80a293cdd6c4d088d180624726a5d7ddcd3f61bc44cf7546e0f12bbd0951bd1ea2cf4cb199156a86cb0080be8bfcd1e6441ddfa5faf781fc392bbfe851e6b622b31672c6d972bba55ac2460180d01d742cee15f5e974128f4fc471263fc1c2e6b20efb285e1b6c91fc1b819dec01082f30",
+   "publicKey": "0xbe8bfcd1e6441ddfa5faf781fc392bbfe851e6b622b31672c6d972bba55ac246",
+   "accountId": "0xbe8bfcd1e6441ddfa5faf781fc392bbfe851e6b622b31672c6d972bba55ac246",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "WalletRootSecretCorruptionException"
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "json",
+   "case": "json:polkadotjs-sr25519-scrypt",
+   "cryptoType": "SR25519",
+   "stored": "0x000080809f6d171011d05ea85ef2ca8d17e4abe15725cc9484765961872f98aebb590f808669b8876c06cd577bf9e1c2353f2bc5d00bd6d72a76aff3fb1f99fbe5cac64b0180b7811d0dcccea8f8a6f21f31d42b0dc915c6c06186818eee36df84ff98bc549700",
+   "publicKey": "0x8669b8876c06cd577bf9e1c2353f2bc5d00bd6d72a76aff3fb1f99fbe5cac64b",
+   "accountId": "0x8669b8876c06cd577bf9e1c2353f2bc5d00bd6d72a76aff3fb1f99fbe5cac64b",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "SubstrateSecrets(V3)",
+   "source": "json",
+   "case": "json:polkadotjs-sr25519-soft",
+   "cryptoType": "SR25519",
+   "stored": "0x000080a778c7c1f0bd78601f184c0aba25c032feab6673c4ee602a386fa751b147670980dc147a32787cf326fc490d93889f499734ad01e7338a961b6af920927c5e267701807aa7f13dac8e03b2cb9dcbe6694d9471d023003eabda93c05189825411572d9100",
+   "publicKey": "0xdc147a32787cf326fc490d93889f499734ad01e7338a961b6af920927c5e2677",
+   "accountId": "0xdc147a32787cf326fc490d93889f499734ad01e7338a961b6af920927c5e2677",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519:#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e8005d65584630d16cd4af6d0bec10f34bb504a5dcb62dba2122d49f5a663763d0a8046ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a0180fd190cce74df356432b410bd64682309d6dedb27c76845daf388557cbac3ca340100",
+   "publicKey": "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a",
+   "accountId": "0x46ebddef8cd9bb167dc30878d7113b7e168e6f0646beffd77d69d39bad76b47a",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519://polkadot#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e803f324bcc884358b2a34cd0926ed3bb25552d834af72273a8b7d8e314aa31290d80f606519cb8726753885cd4d0f518804a69a5e0badf36fee70feadd804408173001809b33e9385b3bf080217bfab6308b1f096146bb1ed41336c1e85bce6df212105d01282f2f706f6c6b61646f74",
+   "publicKey": "0xf606519cb8726753885cd4d0f518804a69a5e0badf36fee70feadd8044081730",
+   "accountId": "0xf606519cb8726753885cd4d0f518804a69a5e0badf36fee70feadd8044081730",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519://polkadot/0#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e80ac78678dd56b21a4c21a559e996942000814af750e69e402c5644324948a4000801ea8e6c8824b7540dd58badd8f5384715c67b0ececdebf07d356ba88c05300190180ea095f358a740a423ede37372325c95918d8b0f356e576003c09e8618d68033701302f2f706f6c6b61646f742f30",
+   "publicKey": "0x1ea8e6c8824b7540dd58badd8f5384715c67b0ececdebf07d356ba88c0530019",
+   "accountId": "0x1ea8e6c8824b7540dd58badd8f5384715c67b0ececdebf07d356ba88c0530019",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519:/0#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01401a486a5fbe53639984cb64b070755f7b0180fac7959dbfe72f052e5a0c3c8d6530f202b02fd8f9f5ca3580ec8deb7797479e8079344d08b92e53ca00fd8afe9cdc7af851541249c4886e9e11327010dcb9420c80b696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab131001809e75c088f9d23a7f3731e207321955985fdb8c648f0a5daffd342a27367d6cd601082f30",
+   "publicKey": "0xb696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab1310",
+   "accountId": "0xb696d3a7fbc9dd6648e18fd56169b90f3be49714133eaa464cbfd6ca79ab1310",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519:#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2802ec306fc1c5bc2f0e3a2c7a6ec6014ca4a0823a7d7d42ad5e9d7f376a1c36c0d8066933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972018014a2ddb1ef1df4adba49f3a4d8c0f6205117907265f09a53ccf07a4e8616dfd80100",
+   "publicKey": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+   "accountId": "0x66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519://polkadot#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e280dfb77f0e34ced0b747f30641b8cb98198fb56b4869e09aa0dc06c0cb8970f308801254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a4947001802bf3a389a52120b68d1674c67c5bc1c3802fc7264df155ba2da36b01ed86f57001282f2f706f6c6b61646f74",
+   "publicKey": "0x1254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a49470",
+   "accountId": "0x1254bc913cfc8d181e2d80641c4206144c06f813f26ca5bc13ca57f9a0a49470",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519://polkadot/0#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e28078d4d9285d2c5b951b9cd593ddb8498b91af52f7161cede47d44a8076cd0560c80c2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b0180ae8309647c5e56fe5a55ddd0258308c4c61362ebee373d64308826e98bf8926701302f2f706f6c6b61646f742f30",
+   "publicKey": "0xc2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b",
+   "accountId": "0xc2cb78846562cdbf41fcd022f38316e050829010e4805a2658b8e0a59eb3312b",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519:/0#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x01400000000000000000000000000000000001804ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2807ff11b8116db778978d26ca30391ffe35b34f203a61da9f6e6e73a3a59bc4e04800c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab6760180c753cfe11e39ae2ba83438c04eaed5e1ebc8b5d3a89364284ee08788bf0fd0f901082f30",
+   "publicKey": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+   "accountId": "0x0c4f096369eaeea12066045a810c9e5ea73b81d420c1b606324050ec477ab676",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519:#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c77180a46dce37aa73ba3c4449a2693458d5904d7869bc9740eee1016d0de93b750a0b80d8249248f903bd18c1fefb8552cd31d339bbb20cac5346befb001b394c4a071e018000ce8c36f1efa6f08a701394b109a17f859a3299eea6fd9f95bb025cb45431270100",
+   "publicKey": "0xd8249248f903bd18c1fefb8552cd31d339bbb20cac5346befb001b394c4a071e",
+   "accountId": "0xd8249248f903bd18c1fefb8552cd31d339bbb20cac5346befb001b394c4a071e",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519://polkadot#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot",
+   "lastJunctionSoft": false,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c77180fbbf63a1b9282df6d7599fcf9b5d88bee010ef00b1e041549843a3ddd87d480a80cc7b4546d16a35d907afac8ed39ea26745b17390103aa5f3d761a04073477a0a0180ae6110266351ff1cfa06210a98ec3898c252fd74cc397800be084dff9f88e27001282f2f706f6c6b61646f74",
+   "publicKey": "0xcc7b4546d16a35d907afac8ed39ea26745b17390103aa5f3d761a04073477a0a",
+   "accountId": "0xcc7b4546d16a35d907afac8ed39ea26745b17390103aa5f3d761a04073477a0a",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519://polkadot/0#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c771801ddb87e367d50ef5d261f03c2a660fc0dca07d1bc5820ae56a13a28cee78e50180a206b61ccefaeb0c94c976c76d4d0ce897189eff2220ec4373d3139e4062a15a01808396ff27bd760bc2b03bfd5a7f2b166929ea7040196695baa7593c818ba4b15001302f2f706f6c6b61646f742f30",
+   "publicKey": "0xa206b61ccefaeb0c94c976c76d4d0ce897189eff2220ec4373d3139e4062a15a",
+   "accountId": "0xa206b61ccefaeb0c94c976c76d4d0ce897189eff2220ec4373d3139e4062a15a",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-mnemonic",
+   "case": "chain-mnemonic:SR25519:/0#2",
+   "cryptoType": "SR25519",
+   "derivationPath": "/0",
+   "lastJunctionSoft": true,
+   "stored": "0x0140c2bc1030e553d1f1b874f8f706e9fdce01806861dc5a8093056d261cea81823798acb74e4d1570a564eec9ef37a92751c7718076af77380702fc478dec8d05421e8383465f9ba418efc321de0623fae15e100780b6ea744adca68575216f163d29e191d689fa9bffc8d9571b9cc24e5e83e75b530180be0a9e19f0f3e8c7cf9e7ca1e44c03c2714dd306b1743cc22e047d15abc63e0c01082f30",
+   "publicKey": "0xb6ea744adca68575216f163d29e191d689fa9bffc8d9571b9cc24e5e83e75b53",
+   "accountId": "0xb6ea744adca68575216f163d29e191d689fa9bffc8d9571b9cc24e5e83e75b53",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-seed",
+   "case": "chain-seed:SR25519:#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x00018023eddf379f73ce67d1edb7c0c63a94f3edbb57725abd15f0ba8ecb8a19099cf680271079844cea5191ae7c907927db971cd9ae1d8492e8298b6928e90c17d4ab0c80f6de76d8303ee0cc2b735eb28085a349feb35794e69a6d35e36b68d4bce0937101806b31b144238c5d25be67fcf122cef1fbf8bf3ed9677a466d7ca8b0f9f920f4220100",
+   "publicKey": "0xf6de76d8303ee0cc2b735eb28085a349feb35794e69a6d35e36b68d4bce09371",
+   "accountId": "0xf6de76d8303ee0cc2b735eb28085a349feb35794e69a6d35e36b68d4bce09371",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-seed",
+   "case": "chain-seed:SR25519://polkadot/0#0",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x00018023eddf379f73ce67d1edb7c0c63a94f3edbb57725abd15f0ba8ecb8a19099cf6805aea873262435639de5c9bf87bb4d7378a43e488cb199b53ad5ff08880c68f05804ebf5a6bb5d1602035b044f4b0f9481bb450ca5d3859b8cc1067a99b6511f85901803a045f39006ae8155c2042e239a806e723b5bb48ce791e2b0baedf4704010d0201302f2f706f6c6b61646f742f30",
+   "publicKey": "0x4ebf5a6bb5d1602035b044f4b0f9481bb450ca5d3859b8cc1067a99b6511f859",
+   "accountId": "0x4ebf5a6bb5d1602035b044f4b0f9481bb450ca5d3859b8cc1067a99b6511f859",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-seed",
+   "case": "chain-seed:SR25519:#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "",
+   "lastJunctionSoft": false,
+   "stored": "0x00018076d39200130016e5e6a25c49f415c56ebfd9c2c09509815a1933927ea3302f7d807bf197e6d87b170bb7bc66aa0c233821810aa8912000ab18a0d4135644ed270d8016013621b642df9a50c3d35826b2dbfd76b9a47025e5095535bafd81431a564e01803d78b1f70c4bc411b3a0317b1f45a72bb6d7eb7f72600897e33b62ab7fd84dc40100",
+   "publicKey": "0x16013621b642df9a50c3d35826b2dbfd76b9a47025e5095535bafd81431a564e",
+   "accountId": "0x16013621b642df9a50c3d35826b2dbfd76b9a47025e5095535bafd81431a564e",
+   "rc_verdict_2026_10_10": "accept",
+   "rc_sanitizer_changed_fields_2026_10_10": []
+  },
+  {
+   "store": "ChainAccountSecrets(V2)",
+   "source": "chain-seed",
+   "case": "chain-seed:SR25519://polkadot/0#1",
+   "cryptoType": "SR25519",
+   "derivationPath": "//polkadot/0",
+   "lastJunctionSoft": true,
+   "stored": "0x00018076d39200130016e5e6a25c49f415c56ebfd9c2c09509815a1933927ea3302f7d805f105f57867d22fe8080ee14d760634b85b4190de791f5dd412caa8d4923210280da77cd6ef8833a689872dd63e060470cb232c272adc73d2366b49dfc525b86490180dbcc02aea1d834c1f4549f493d5e2f6ab6d37c9816bd0161ab7dbd313c3ccea901302f2f706f6c6b61646f742f30",
+   "publicKey": "0xda77cd6ef8833a689872dd63e060470cb232c272adc73d2366b49dfc525b8649",
+   "accountId": "0xda77cd6ef8833a689872dd63e060470cb232c272adc73d2366b49dfc525b8649",
+   "rc_verdict_2026_10_10": "reject",
+   "rc_error_2026_10_10": "ChainAccountSecretCorruptionException"
+  }
+ ]
+}

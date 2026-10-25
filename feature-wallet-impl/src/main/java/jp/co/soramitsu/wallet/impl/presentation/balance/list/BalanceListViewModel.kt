@@ -9,14 +9,21 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
-import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
+import com.reown.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.hasTon
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.account.api.presentation.account.CapturedPortfolioHeader
+import jp.co.soramitsu.account.api.presentation.account.capturedPortfolioHeaderFlow
+import jp.co.soramitsu.account.api.presentation.account.portfolioBalanceCaption
+import jp.co.soramitsu.account.api.presentation.account.presentTotalBalance
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
@@ -28,7 +35,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
@@ -40,21 +46,27 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.data.storage.UpdateSecurityNoticeTracker
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.common.model.PriceTrust
+import jp.co.soramitsu.common.model.AssetMetadataTrust
+import jp.co.soramitsu.common.model.NetworkScanKey
+import jp.co.soramitsu.common.model.AssetMetadataDescriptorStore
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.lessThan
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.Ecosystem
@@ -69,14 +81,17 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
+import jp.co.soramitsu.runtime.multiNetwork.tokengroups.PortfolioVisibility
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.TonConnectException
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.NetworkScanStateStore
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_TON_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
+import jp.co.soramitsu.wallet.impl.domain.SendPausePolicy
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
@@ -91,6 +106,9 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTColle
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
+import jp.co.soramitsu.wallet.impl.presentation.send.showSendPausedSheet
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -107,6 +125,8 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -125,6 +145,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
+
+internal fun forcedPortfolioChainId(
+    isPendulumMode: Boolean,
+    supportedEcosystems: Set<WalletEcosystem>
+): ChainId? = when {
+    isPendulumMode -> pendulumChainId
+    supportedEcosystems == setOf(WalletEcosystem.Ton) -> tonMainnetChainId
+    else -> null
+}
 
 @HiltViewModel
 class BalanceListViewModel @Inject constructor(
@@ -145,6 +174,14 @@ class BalanceListViewModel @Inject constructor(
     private val walletConnectInteractor: WalletConnectInteractor,
     private val coroutineManager: CoroutineManager,
     private val tonConnectInteractor: TonConnectInteractor,
+    private val networkScanStateStore: NetworkScanStateStore,
+    private val assetMetadataDescriptorStore: AssetMetadataDescriptorStore,
+    private val featureToggleStore: ProductFeatureToggleStore,
+    private val sendPausePolicy: SendPausePolicy,
+    private val portfolioVisibility: PortfolioVisibility,
+    private val portfolioPreferences: PortfolioPresentationPreferences,
+    private val tokenGroupRegistry: jp.co.soramitsu.runtime.multiNetwork.tokengroups.TokenGroupRegistry,
+    private val updateSecurityNotice: UpdateSecurityNoticeTracker,
 ) : BaseViewModel(), WalletScreenInterface {
 
     private var awaitAssetsJob: Job? = null
@@ -154,6 +191,9 @@ class BalanceListViewModel @Inject constructor(
 
     private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
+
+    private val _showUpdateSecurityNotice = MutableLiveData<Event<Unit>>()
+    val showUpdateSecurityNotice: LiveData<Event<Unit>> = _showUpdateSecurityNotice
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
@@ -177,28 +217,24 @@ class BalanceListViewModel @Inject constructor(
 
     private val currentMetaAccountFlow = accountInteractor.selectedLightMetaAccountFlow()
 
-    private val chainsFlow = combine(currentMetaAccountFlow, chainInteractor.getChainsFlow()) { metaAccount, chains ->
-        val filteredChains = if(metaAccount.tonPublicKey != null) {
-            chains.filter { it.ecosystem == Ecosystem.Ton }
-        } else {
-            chains.filter { it.ecosystem != Ecosystem.Ton }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val currentWalletRecoveryStateFlow = currentMetaAccountFlow.flatMapLatest { metaAccount ->
+        accountInteractor.walletRecoveryRequiredFlow(metaAccount.id).map { isRecoveryRequired ->
+            metaAccount to isRecoveryRequired
         }
-        filteredChains.map {it.toChainItemState()}
-    }.inBackground()
+    }
+
+    private val chainsFlow = chainInteractor.getChainsFlow()
+        .map { chains -> chains.map { it.toChainItemState() } }
+        .inBackground()
 
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
     private val allowSelectChain = MutableStateFlow(false)
 
     private val selectedChainItemFlow =
         combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
-            if ((selectedChainId == null && chains.size == 1) || selectedChainId == tonMainnetChainId) {
-                allowSelectChain.value = false
-                return@combine chains.first()
-            }
-            allowSelectChain.value = true
-            selectedChainId?.let {
-                chains.firstOrNull { it.id == selectedChainId }
-            }
+            allowSelectChain.value = !((selectedChainId == null && chains.size == 1) || selectedChainId == tonMainnetChainId)
+            selectedPortfolioChainItem(selectedChainId, chains)
         }
 
     private val networkIssueStateFlow = MutableStateFlow<WalletAssetsState.NetworkIssue?>(null)
@@ -214,23 +250,39 @@ class BalanceListViewModel @Inject constructor(
 
     private val currentAssetsFlow = MutableStateFlow<List<AssetWithStatus>>(emptyList())
 
-    private val assetStates = combine(
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val showTestnetsFlow = currentMetaAccountFlow
+        .map { it.id }
+        .distinctUntilChanged()
+        .flatMapLatest(portfolioPreferences::observeShowTestnets)
+
+    private val baseAssetStates = combine(
         interactor.assetsFlowAndAccount(),
         chainInteractor.getChainsFlow(),
         selectedChainId,
         interactor.selectedMetaAccountFlow(),
-        interactor.observeSelectedAccountChainSelectFilter()
+        interactor.observeSelectedAccountChainSelectFilter(),
+        showTestnetsFlow
     )  { (walletId: Long, assets: List<AssetWithStatus>),
         chains: List<Chain>,
         selectedChainId: ChainId?,
         currentMetaAccount: MetaAccount,
-        filter: ChainSelectorViewStateWithFilters.Filter ->
+        filter: ChainSelectorViewStateWithFilters.Filter,
+        showTestnets: Boolean ->
 
         if (currentMetaAccount.id != walletId) {
             return@combine AssetsLoadingState.Loading()
         }
 
+        // The first list of a wallet in this version holds exactly what earlier versions left hidden.
+        portfolioPreferences.rememberLegacyHiddenAssets(walletId) {
+            assets.filter { it.asset.enabled == false }.mapTo(mutableSetOf()) { (asset, _, _) ->
+                PortfolioPresentationPreferences.assetKey(asset.token.configuration.chainId, asset.token.configuration.id)
+            }
+        }
+
         val selectedAccountFavoriteChains = currentMetaAccount.favoriteChains
+        val chainsById = chains.associateBy(Chain::id)
 
         val chainsWithFavoriteInfo = chains.map { chain ->
             chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
@@ -245,7 +297,7 @@ class BalanceListViewModel @Inject constructor(
 
             filter == ChainSelectorViewStateWithFilters.Filter.Popular ->
                 chainsWithFavoriteInfo.filter { (chain, _) ->
-                    chain.rank != null
+                    chain.rank != null && !portfolioVisibility.isTestnet(chain)
                 }.sortedBy { (chain, _) ->
                     chain.rank
                 }.map { it.first }
@@ -253,36 +305,123 @@ class BalanceListViewModel @Inject constructor(
             else -> emptyList()
         }
 
-        val filteredAssets = assets.asSequence()
-            .filter { (asset, _, _) ->
-                asset.enabled != false &&
-                        ((selectedChainId == null && filter == ChainSelectorViewStateWithFilters.Filter.All) ||
-                                asset.token.configuration.chainId == selectedChainId || filteredChains.any { it.id == asset.token.configuration.chainId })
-            }
-            .toList()
+        val scopedAssets = assets.filter { (asset, _, _) ->
+            (selectedChainId == null && filter == ChainSelectorViewStateWithFilters.Filter.All) ||
+                asset.token.configuration.chainId == selectedChainId ||
+                filteredChains.any { it.id == asset.token.configuration.chainId }
+        }
+
+        val filteredAssets = scopedAssets.filter { (asset, _, _) ->
+            val chainId = asset.token.configuration.chainId
+            val chain = chainsById[chainId] ?: return@filter false
+
+            portfolioVisibility.isVisible(
+                enabled = asset.enabled,
+                total = asset.total,
+                chain = chain,
+                asset = asset.token.configuration,
+                isFavourite = selectedAccountFavoriteChains[chainId]?.isFavorite == true,
+                isOnlySelectedNetwork = chainId == selectedChainId,
+                isSendVetoed = sendPausePolicy.isPaused(chain),
+                showTestnets = showTestnets
+            )
+        }
 
         currentAssetsFlow.update { filteredAssets }
 
-        val filteredAssetsWithoutBrokenAssets =
-            filteredAssets.filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
+        val filteredAssetsIncludingUnavailable = filteredAssets
+
+        // Subtotals, network order and the header total count the same set: every holding that is
+        // neither hidden nor on a testnet, independent of the network display filter.
+        val accountingAssets = assets.filter {
+            val chain = chainsById[it.asset.token.configuration.chainId]
+            chain != null && portfolioVisibility.isCountedInTotals(it.asset.enabled, chain)
+        }
+        val accountingItems = AssetListHelper.processAssets(
+            assets = accountingAssets,
+            filteredChains = chains,
+            metadataDescriptor = assetMetadataDescriptorStore::get,
+            isTestnet = portfolioVisibility::isTestnet,
+            hasTrustedPrice = portfolioVisibility::hasTrustedPrice
+        )
+        val accountingItemsByNetwork = accountingItems.groupBy { it.canonicalIdentity.chainId }
 
         val balanceListItems = AssetListHelper.processAssets(
-            assets = filteredAssetsWithoutBrokenAssets,
+            assets = filteredAssetsIncludingUnavailable,
             filteredChains = filteredChains,
-            selectedChainId = selectedChainId
+            selectedChainId = selectedChainId,
+            metadataDescriptor = assetMetadataDescriptorStore::get,
+            isTestnet = portfolioVisibility::isTestnet,
+            hasTrustedPrice = portfolioVisibility::hasTrustedPrice
         )
 
-        val assetStates: List<AssetListItemViewState> = balanceListItems
-            .sortedWith(defaultBalanceListItemSort())
+        val presentedItems = AssetListHelper.filterForPortfolioPresentation(
+            assets = balanceListItems,
+            assetDiscoveryShadowEnabled = featureToggleStore.assetDiscoveryShadowEnabled
+        )
+        val networkOrderedItems = AssetListHelper.sortByNetwork(presentedItems, accountingItems)
+        val itemsByNetwork = networkOrderedItems.groupBy { it.canonicalIdentity.chainId }
+
+        val assetStates: List<AssetListItemViewState> = networkOrderedItems
             .mapIndexed { index, item ->
+                val networkItems = itemsByNetwork.getValue(item.canonicalIdentity.chainId)
+                val accountingNetworkItems = accountingItemsByNetwork[item.canonicalIdentity.chainId].orEmpty()
+                val networkFiatSubtotal = AssetListHelper.trustedFiatSubtotal(accountingNetworkItems)
+                    ?.formatFiat(item.token.fiatSymbol)
+                val networkAccountLabel = item.chain
+                    ?.let(currentMetaAccount::address)
+                    ?.shortenAddress()
+                    ?: item.chainAccountName
                 if (currentMetaAccount.id == walletId) {
-                    item.toAssetState(index)
+                    item.toAssetState(index, networkFiatSubtotal, networkItems.size, resourceManager.getString(R.string.portfolio_balance_unavailable))
+                        .copy(networkAccountLabel = networkAccountLabel)
                 } else {
                     // invoke shimmers
-                    item.toAssetState(index).copy(assetTransferableBalance = null)
+                    item.toAssetState(index, networkFiatSubtotal, networkItems.size, resourceManager.getString(R.string.portfolio_balance_unavailable))
+                        .copy(
+                            assetTransferableBalance = null,
+                            assetTotalBalance = null,
+                            networkAccountLabel = networkAccountLabel
+                        )
                 }
             }
-        AssetsLoadingState.Loaded(assetStates)
+
+        // What the total leaves out is wallet-wide like the total, whatever the network filter.
+        val hiddenItems = AssetListHelper.processAssets(
+            assets = assets.filter { (asset, _, _) ->
+                val chain = chainsById[asset.token.configuration.chainId]
+                asset.enabled == false && chain != null && !portfolioVisibility.isTestnet(chain)
+            },
+            filteredChains = chains,
+            metadataDescriptor = assetMetadataDescriptorStore::get,
+            isTestnet = portfolioVisibility::isTestnet,
+            hasTrustedPrice = portfolioVisibility::hasTrustedPrice
+        )
+
+        AssetsLoadingState.Loaded(
+            assetStates,
+            allAssetsHidden = areAllPortfolioAssetsHidden(scopedAssets.map { it.asset.enabled }),
+            exclusions = AssetListHelper.portfolioExclusions(
+                countedItems = accountingItems,
+                hiddenItems = hiddenItems
+            ),
+            walletId = walletId,
+            selectedNetwork = selectedChainId,
+            portfolioAssets = networkOrderedItems.zip(assetStates).map { (raw, state) ->
+                PortfolioAsset(state, raw.total, raw.fiatAmount, raw.token.fiatSymbol, raw.chain?.rank)
+            },
+            availableAssets = PortfolioGroupMembers.includeUnfunded(
+                holdings = (accountingItems + hiddenItems).map { raw ->
+                    PortfolioAsset(raw.toAssetState(unavailableText = resourceManager.getString(R.string.portfolio_balance_unavailable)).copy(networkAccountLabel = raw.chain?.let(currentMetaAccount::address)?.shortenAddress()),
+                        raw.total, raw.fiatAmount, raw.token.fiatSymbol, raw.chain?.rank)
+                }, chains = chains, groups = tokenGroupRegistry.resolve(chains),
+                hasAccount = { chain -> currentMetaAccount.accountId(chain)?.let { !it.contentEquals(emptyAccountIdValue) } == true },
+                accountLabel = { chain -> currentMetaAccount.address(chain)?.shortenAddress() }
+            ),
+            walletHasPositiveBalance = accountingItems.any {
+                it.total?.signum() == 1 && it.metadataTrust == AssetMetadataTrust.Verified
+            }
+        )
     }.distinctUntilChanged()
         .onStart { emit(buildInitialAssetsList()) }
     .stateIn(
@@ -290,6 +429,61 @@ class BalanceListViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AssetsLoadingState.Loading()
     )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val reviewedHiddenFundedAssetsFlow = currentMetaAccountFlow
+        .map { it.id }
+        .distinctUntilChanged()
+        .flatMapLatest(portfolioPreferences::observeReviewedHiddenFundedAssets)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val hiddenFundedDismissalFlow = currentMetaAccountFlow.map { it.id }.distinctUntilChanged()
+        .flatMapLatest(portfolioPreferences::observeHiddenFundedDismissal)
+
+    private val freshAssetStates = combine(
+        baseAssetStates,
+        currentMetaAccountFlow,
+        networkScanStateStore.states,
+        reviewedHiddenFundedAssetsFlow,
+        hiddenFundedDismissalFlow
+    ) { state, wallet, scanStates, reviewedHiddenFundedAssets, dismissedFingerprint ->
+        if (state !is AssetsLoadingState.Loaded || state.walletId != wallet.id) return@combine AssetsLoadingState.Loading()
+
+        state.with(
+            // Announced once: again only when another hidden asset holds funds.
+            hiddenFundedNoticeCount = portfolioPreferences.hiddenFundedNoticeCount(state.exclusions.hiddenFundedAssetKeys, reviewedHiddenFundedAssets, dismissedFingerprint),
+            assets = state.assets.map { asset ->
+                val scanState = scanStates[NetworkScanKey(wallet.id, asset.chainId)]
+                asset.copy(
+                    networkLastSuccessMillis = scanState?.lastSuccessMillis,
+                    networkIsStale = scanState?.isStale == true,
+                    networkSyncError = scanState?.errorMessage,
+                    networkScanCoverage = scanState?.coverage?.name ?: when (asset.ecosystemId) {
+                        "bitcoin" -> "Limited"
+                        "solana", "iroha", "ton" -> "Complete"
+                        else -> "CatalogOnly"
+                    }
+                )
+            }
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = AssetsLoadingState.Loading()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val portfolioUiFlow = currentMetaAccountFlow.map { it.id }.distinctUntilChanged()
+        .flatMapLatest { id -> portfolioPreferences.observeUi(id).map { id to it } }
+
+    private val assetStates = combine(freshAssetStates, portfolioUiFlow, tokenGroupRegistry.observeResolvedGroups()) { state, preference, groups ->
+        if (state !is AssetsLoadingState.Loaded || state.walletId != preference.first) return@combine AssetsLoadingState.Loading()
+        val states = state.assets.associateBy { it.canonicalAssetKey }
+        val visible = state.portfolioAssets.map { it.copy(state = states[it.key] ?: it.state) }
+        state.with(portfolioItems = PortfolioListBuilder.build(visible, state.availableAssets.filter { it.state.isHidden },
+            groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance),
+            portfolioUi = preference.second, tokenGroups = groups)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AssetsLoadingState.Loading())
 
     @OptIn(FlowPreview::class)
     private fun createNFTCollectionScreenViewsFlow(): Flow<Pair<LoadableListPage<NFTCollectionsScreenView>, ScreenLayout>> {
@@ -321,15 +515,22 @@ class BalanceListViewModel @Inject constructor(
 
             nftInteractor.collectionsFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,
-                chainSelectionFlow = selectedChainId
+                // Network filters are presentation-only. Keeping discovery on the all-network
+                // stream prevents a selected filter from pausing background NFT synchronization.
+                chainSelectionFlow = flowOf(null)
             ).onEach {
                 isLoadingCompleted.set(true)
             }.combine(mutableScreenLayoutFlow) { allNFTCollectionsData, screenLayout ->
+                allNFTCollectionsData to screenLayout
+            }.combine(selectedChainId) { (allNFTCollectionsData, screenLayout), selectedNetworkId ->
                 val chainsWithFailedRequests = mutableSetOf<String>()
 
                 val successfulCollections = ArrayDeque<NFTCollection.Loaded.Result>()
                     .apply {
                         allNFTCollectionsData.forEach {
+                            if (selectedNetworkId != null && it is NFTCollection.Loaded && it.chainId != selectedNetworkId) {
+                                return@forEach
+                            }
                             if (it is NFTCollection.Reloading) {
                                 send(ScreenModel.Reloading to screenLayout)
                                 return@combine
@@ -388,22 +589,22 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private val assetTypeState: Flow<WalletAssetsState> = combine(
-        selectedChainId,
         assetTypeSelectorState,
         assetStates,
         nftInteractor.nftFiltersFlow(),
         createNFTCollectionScreenViewsFlow(),
         networkIssueStateFlow
-    ) { selectedChainId, selectorState, assetStates, filters, (pageViews, screenLayout), networkIssueState ->
+    ) { selectorState, assetStates, filters, (pageViews, screenLayout), networkIssueState ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
                 val isSelectedChainHasIssues = networkIssueState != null
                 if (isSelectedChainHasIssues) {
                     requireNotNull(networkIssueState)
                 } else {
+                    // Rows are network-scoped, so Hide acts on exactly one (chainId, assetId).
                     WalletAssetsState.Assets(
                         assets = assetStates,
-                        isHideVisible = selectedChainId != null
+                        isHideVisible = true
                     )
                 }
             }
@@ -520,9 +721,7 @@ class BalanceListViewModel @Inject constructor(
             val assets = chainInteractor.getChainAssets()
 
             val shimmers = when {
-                currentMetaAccount.tonPublicKey != null && 
-                currentMetaAccount.substratePublicKey == null && 
-                currentMetaAccount.ethereumPublicKey == null -> {
+                currentMetaAccount.supportedEcosystems() == setOf(WalletEcosystem.Ton) -> {
                     val tonAsset = assets.firstOrNull { it.chainId == tonMainnetChainId || it.chainName.contains("ton", true) || it.name?.contains("ton", true) == true} ?: assets.first()
                     listOf(
                         AssetListItemShimmerViewState(
@@ -552,13 +751,6 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    private fun defaultBalanceListItemSort() =
-        compareByDescending<BalanceListItemModel> { it.total > BigDecimal.ZERO }
-            .thenByDescending { it.fiatAmount.orZero() }
-            .thenBy { it.asset.isTestNet }
-            .thenBy { it.asset.chainId.defaultChainSort() }
-            .thenBy { it.asset.chainName }
-
     private fun defaultChainAssetListSort() = compareBy<Asset> { it.isTestNet }
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
@@ -574,27 +766,23 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(multiToggleButtonState = it)
         }.launchIn(viewModelScope)
 
-        currentMetaAccountFlow.distinctUntilChanged().onEach { metaAccount ->
+        currentWalletRecoveryStateFlow.distinctUntilChanged().onEach { (metaAccount, isRecoveryRequired) ->
             val showCurrenciesOrNftSelector =
                 metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
                     .contains(WalletEcosystem.Substrate)
 
             state.value = state.value.copy(
                 isBackedUp = metaAccount.isBackedUp,
+                isRecoveryRequired = isRecoveryRequired,
                 scrollToTopEvent = Event(Unit),
                 showCurrenciesOrNftSelector = showCurrenciesOrNftSelector
             )
 
 
-            val customChainId = when {
-                pendulumPreInstalledAccountsScenario.isPendulumMode(metaAccount.id) -> {
-                    pendulumChainId
-                }
-                metaAccount.hasTon -> {
-                    tonMainnetChainId
-                }
-                else -> null
-            }
+            val customChainId = forcedPortfolioChainId(
+                isPendulumMode = pendulumPreInstalledAccountsScenario.isPendulumMode(metaAccount.id),
+                supportedEcosystems = metaAccount.supportedEcosystems()
+            )
 
             if(customChainId != null) {
                 interactor.saveChainId(metaAccount.id, customChainId)
@@ -644,21 +832,21 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private fun subscribeTotalBalance() {
-        combine(
-            selectedChainId.map { chainId -> chainId?.let { currentAccountAddress(it) }.orEmpty() },
-            getTotalBalance.observe()
-        ) { selectedChainAddress, balanceModel ->
-            AssetBalanceViewState(
-                transferableBalance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-                address = selectedChainAddress,
-                changeViewState = ChangeBalanceViewState(
-                    percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                    fiatChange = balanceModel.balanceChange.abs()
-                        .formatFiat(balanceModel.fiatSymbol)
-                )
+        capturedPortfolioHeaderFlow(
+            balances = getTotalBalance.observe(),
+            selectedChainIds = selectedChainId
+        ).catch { failure ->
+            if (failure is CancellationException) throw failure
+            emit(CapturedPortfolioHeader(TotalBalance.Unavailable, null, null))
+        }.onEach { header ->
+            val presentation = presentTotalBalance(header.source, includeHidden = false)
+            val balance = AssetBalanceViewState(
+                transferableBalance = presentation.value,
+                address = header.address.orEmpty(),
+                changeViewState = presentation.change,
+                balanceCaption = portfolioBalanceCaption(presentation, resourceManager)
             )
-        }.onEach {
-            state.value = state.value.copy(balance = it)
+            state.update { it.copy(balance = balance) }
         }.launchIn(viewModelScope)
     }
 
@@ -666,10 +854,17 @@ class BalanceListViewModel @Inject constructor(
         MutableStateFlow(MainToolbarViewStateWithFilters(title = null, selectorViewState = null))
 
     init {
+        if (updateSecurityNotice.isPending) {
+            _showUpdateSecurityNotice.value = Event(Unit)
+        }
         subscribeScreenState()
         observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
+        viewModelScope.launch {
+            withContext(coroutineManager.io) {
+            }
+        }
 //        sync()
 
         router.chainSelectorPayloadFlow.map { chainId ->
@@ -682,7 +877,11 @@ class BalanceListViewModel @Inject constructor(
         selectedChainId.onEach { chainId ->
             BalanceUpdateTrigger.invoke(chainId = chainId)
         }.launchIn(this)
+
     }
+
+    /** It counts as shown only once closed; one that was not closed is shown at the next launch. */
+    fun onUpdateSecurityNoticeClosed() = updateSecurityNotice.acknowledge()
 
     override fun onRefresh() {
         sync()
@@ -691,8 +890,63 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    override fun onPortfolioLensChanged(lens: PortfolioLens) {
+        currentPortfolio()?.walletId?.let { portfolioPreferences.setLens(it, lens) }
+    }
+    override fun onPortfolioGroupToggle(id: String) { currentPortfolio()?.walletId?.let { portfolioPreferences.toggleGroup(it, id) } }
+    override fun onPortfolioNetworkToggle(id: String) { currentPortfolio()?.walletId?.let { portfolioPreferences.toggleNetwork(it, id) } }
+    override fun onPortfolioZeroToggle(id: String?) {
+        val loaded = currentPortfolio() ?: return
+        val walletId = loaded.walletId ?: return
+        if (id == null) portfolioPreferences.setZeroSummaryExpanded(walletId, !loaded.portfolioUi.zeroSummaryExpanded)
+        else portfolioPreferences.toggleZeroGroup(walletId, id)
+    }
+    override fun onPortfolioValueNoticeDismiss() = portfolioPreferences.acknowledgeValueNotice()
+    private fun currentPortfolio() = (state.value.assetsState as? WalletAssetsState.Assets)?.assets as? AssetsLoadingState.Loaded
+
+    override fun onPortfolioMemberAction(walletId: Long, chainId: String, assetId: String, action: ActionItemType) {
+        launch {
+            val loaded = currentPortfolio() ?: return@launch
+            if (loaded.walletId != walletId || interactor.getSelectedMetaAccount().id != walletId) return@launch
+            val member = loaded.availableAssets.firstOrNull { it.state.chainId == chainId && it.state.chainAssetId == assetId } ?: return@launch
+            if (member.state.metadataTrust != "verified" || member.state.isTestnet) return@launch
+            when (action) {
+                ActionItemType.SEND -> sendClicked(AssetPayload(chainId, assetId), walletId)
+                ActionItemType.RECEIVE -> receiveClicked(AssetPayload(chainId, assetId))
+                ActionItemType.HIDE -> hideAsset(chainId, assetId, walletId)
+                else -> Unit
+            }
+        }
+    }
+
+    override fun onPortfolioHideGroup(walletId: Long, groupId: String) {
+        launch {
+            val loaded = currentPortfolio() ?: return@launch
+            if (loaded.walletId != walletId) return@launch
+            val members = loaded.availableAssets.filter { !it.state.isHidden && !it.state.isTestnet &&
+                it.state.metadataTrust == "verified" && loaded.tokenGroups?.groupOf(it.state.chainId, it.state.chainAssetId)?.id == groupId }
+            interactor.updateAssetsHiddenState(members.map { jp.co.soramitsu.common.model.AssetBooleanState(it.state.chainId, it.state.chainAssetId, false) }, walletId)
+            portfolioPreferences.markHiddenFundedAssetsReviewed(walletId, members.filter { it.total?.signum() == 1 }
+                .mapTo(mutableSetOf()) { PortfolioPresentationPreferences.assetKey(it.state.chainId, it.state.chainAssetId) })
+        }
+    }
+
     override fun onManageAssetClick() {
         router.openManageAssets()
+    }
+
+    // Manage assets lists hidden assets that hold funds first, with their amounts.
+    override fun onHiddenFundsReviewClick() {
+        router.openManageAssets("Hidden")
+    }
+
+    override fun onHiddenFundsKeepHiddenClick() {
+        val loaded = (state.value.assetsState as? WalletAssetsState.Assets)?.assets as? AssetsLoadingState.Loaded
+        val hiddenFundedAssetKeys = loaded?.exclusions?.hiddenFundedAssetKeys.orEmpty()
+        launch {
+            val walletId = loaded?.walletId ?: return@launch
+            if (interactor.getSelectedMetaAccount().id == walletId) portfolioPreferences.dismissHiddenFundedNotice(walletId, hiddenFundedAssetKeys)
+        }
     }
 
     override fun onRetry() {
@@ -786,16 +1040,46 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    private suspend fun hideAsset(chainId: ChainId, chainAssetId: String) {
-        interactor.markAssetAsHidden(chainId, chainAssetId)
+    private suspend fun hideAsset(chainId: ChainId, chainAssetId: String, expectedWalletId: Long? = null) {
+        // Hiding a funded asset here is the user's own decision; the notice must not question it.
+        val isFunded = currentAssetsFlow.value.any { (asset, _, _) ->
+            asset.token.configuration.chainId == chainId &&
+                asset.token.configuration.id == chainAssetId &&
+                asset.total.orZero() > BigDecimal.ZERO
+        }
+        if (isFunded) {
+            portfolioPreferences.markHiddenFundedAssetsReviewed(
+                metaId = expectedWalletId ?: interactor.getSelectedMetaAccount().id,
+                assetKeys = setOf(PortfolioPresentationPreferences.assetKey(chainId, chainAssetId))
+            )
+        }
+        if (expectedWalletId == null) interactor.markAssetAsHidden(chainId, chainAssetId)
+        else interactor.updateAssetsHiddenState(listOf(jp.co.soramitsu.common.model.AssetBooleanState(chainId, chainAssetId, false)), expectedWalletId)
     }
 
     private suspend fun showAsset(chainId: ChainId, chainAssetId: String) {
         interactor.markAssetAsShown(chainId, chainAssetId)
     }
 
-    private fun sendClicked(assetPayload: AssetPayload) {
-        router.openSend(assetPayload)
+    private fun sendClicked(assetPayload: AssetPayload, expectedWalletId: Long? = null) {
+        launch {
+            if (expectedWalletId != null && interactor.getSelectedMetaAccount().id != expectedWalletId) return@launch
+            // The transfer service enforces the veto again, so a failed lookup may proceed.
+            val chain = runCatching { interactor.getChain(assetPayload.chainId) }.getOrNull()
+            if (chain != null && sendPausePolicy.isPaused(chain)) {
+                showSendPausedSheet(
+                    resourceManager = resourceManager,
+                    error = sendPausePolicy.pausedError(chain),
+                    onReceive = {
+                        if (expectedWalletId == null) receiveClicked(assetPayload)
+                        else onPortfolioMemberAction(expectedWalletId, assetPayload.chainId, assetPayload.chainAssetId, ActionItemType.RECEIVE)
+                    }
+                )
+            } else {
+                if (expectedWalletId != null && interactor.getSelectedMetaAccount().id != expectedWalletId) return@launch
+                router.openSend(assetPayload)
+            }
+        }
     }
 
     private fun receiveClicked(assetPayload: AssetPayload) {
@@ -808,15 +1092,13 @@ class BalanceListViewModel @Inject constructor(
                 _showUnsupportedChainAlert.value = Event(Unit)
                 return@launch
             }
-            if (state.assetChainUrls.size > 1) {
-                router.openAssetIntermediateDetails(state.chainAssetId)
-            } else {
-                val payload = AssetPayload(
-                    chainId = state.chainId,
-                    chainAssetId = state.chainAssetId
-                )
-                router.openAssetDetails(payload)
-            }
+            // Portfolio rows are canonical, network-scoped assets. Never route through the
+            // legacy ticker-group detail because it can combine unrelated same-symbol assets.
+            val payload = AssetPayload(
+                chainId = state.chainId,
+                chainAssetId = state.chainAssetId
+            )
+            router.openAssetDetails(payload)
         }
     }
 
@@ -835,6 +1117,10 @@ class BalanceListViewModel @Inject constructor(
             _showFiatChooser.value =
                 FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
         }
+    }
+
+    override fun onWalletRecoveryClick() {
+        router.openRecoveryCenter()
     }
 
     override fun onBackupClicked() {
@@ -883,14 +1169,9 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun onAddressClick() {
-        launch {
-            selectedChainId.value?.let {
-                currentAccountAddress(chainId = it)
-            }?.let { address ->
-                copyToClipboard(address)
-            }
-        }
+        state.value.balance.address.takeIf { it.isNotEmpty() }?.let(::copyToClipboard)
     }
+
 
     fun onFiatSelected(item: FiatCurrency) {
         viewModelScope.launch {
@@ -979,7 +1260,13 @@ class BalanceListViewModel @Inject constructor(
             showError(resourceManager.getString(R.string.common_undefined_error_message))
         }
 
-        val app = tonConnectInteractor.readManifest(request.manifestUrl)
+        val app = kotlin.runCatching {
+            tonConnectInteractor.readManifest(request.manifestUrl)
+        }.getOrElse {
+            showError(it)
+            return
+        }
+
         val signedRequest = router.openTonConnectionAndWaitForResult(app, request.proofPayload)
         kotlin.runCatching { tonConnectInteractor.respondDappConnectRequest(clientId!!, request, signedRequest, app) }
             .onFailure { showError(it) }

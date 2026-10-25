@@ -13,6 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -28,6 +29,7 @@ data class BackupWalletState(
     val walletItem: WalletItemViewState,
     val isAuthedToGoogle: Boolean,
     val isWalletSavedInGoogle: Boolean,
+    val isGoogleBackupAllowed: Boolean,
     val isMnemonicBackupSupported: Boolean,
     val isSeedBackupSupported: Boolean,
     val isJsonBackupSupported: Boolean
@@ -47,6 +49,7 @@ data class BackupWalletState(
             ),
             isAuthedToGoogle = false,
             isWalletSavedInGoogle = false,
+            isGoogleBackupAllowed = false,
             isMnemonicBackupSupported = true,
             isSeedBackupSupported = false,
             isJsonBackupSupported = true
@@ -68,7 +71,7 @@ interface BackupWalletCallback {
 
     fun onGoogleBackupClick()
 
-    fun onGoogleLoginError(message: String)
+    fun onGoogleSignInFailed(result: GoogleSignInResult)
 
     fun onGoogleSignInSuccess()
 }
@@ -126,8 +129,9 @@ internal fun BackupWalletContent(
                 )
                 SettingsDivider()
             }
-            if (isGoogleAvailable && state.isAuthedToGoogle) {
-                if (state.isWalletSavedInGoogle) {
+            // Signed out, the backup item signs in first, so a cancelled sign-in can be retried here.
+            if (isGoogleAvailable && state.isGoogleBackupAllowed) {
+                if (state.isAuthedToGoogle && state.isWalletSavedInGoogle) {
                     SettingsItem(
                         icon = painterResource(R.drawable.ic_google_24),
                         text = stringResource(R.string.backup_wallet_delete_google_backup),
@@ -179,7 +183,7 @@ private fun PreviewBackupWalletContent() {
                 override fun onExportJsonClick() {}
                 override fun onDeleteGoogleBackupClick() {}
                 override fun onGoogleBackupClick() {}
-                override fun onGoogleLoginError(message: String) {}
+                override fun onGoogleSignInFailed(result: GoogleSignInResult) {}
                 override fun onGoogleSignInSuccess() {}
             }
         )

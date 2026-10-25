@@ -7,9 +7,9 @@ import jp.co.soramitsu.common.data.network.runtime.binding.fromHexOrIncompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.extrinsicHash
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.generics.Extrinsic
-import jp.co.soramitsu.shared_utils.runtime.metadata.call
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Extrinsic
+import jp.co.soramitsu.fearless_utils.runtime.metadata.callOrNull
 import java.math.BigInteger
 
 class TransferExtrinsic(
@@ -20,7 +20,9 @@ class TransferExtrinsic(
     val hash: String
 )
 
-private val TRANSFER_CALL_NAMES = listOf("transfer", "transfer_keep_alive")
+// Runtimes built on polkadot-sdk 1.x removed Balances.transfer in favour of transfer_allow_death; a call the
+// runtime does not have is simply not looked for.
+private val TRANSFER_CALL_NAMES = listOf("transfer", "transfer_allow_death", "transfer_keep_alive")
 
 fun notTransfer(): Nothing = throw IllegalArgumentException("Extrinsic is not a transfer extrinsic")
 
@@ -29,7 +31,7 @@ fun bindTransferExtrinsic(scale: String, runtime: RuntimeSnapshot): TransferExtr
     val call = extrinsicInstance.call
 
     val transferModule = runtime.metadata.balances()
-    val transferCalls = TRANSFER_CALL_NAMES.map(transferModule::call)
+    val transferCalls = TRANSFER_CALL_NAMES.mapNotNull(transferModule::callOrNull)
 
     val isTransferCall = transferCalls.any { it.index == call.function.index }
 

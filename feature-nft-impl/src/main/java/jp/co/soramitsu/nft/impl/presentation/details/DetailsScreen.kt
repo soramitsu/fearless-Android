@@ -445,9 +445,7 @@ fun NftCollectionScreenPreview() {
         NftDetailsScreen(
             previewState,
             object : NftDetailsScreenInterface {
-                override fun sendClicked() {
-                    TODO("Not yet implemented")
-                }
+                override fun sendClicked() = Unit
 
                 override fun shareClicked() = Unit
 

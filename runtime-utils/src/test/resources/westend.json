@@ -1,0 +1,187 @@
+{
+  "runtime_id": 48,
+  "types": {
+    "Address": "MultiAddress",
+    "LookupSource": "MultiAddress",
+    "AccountInfo": "AccountInfoWithProviders",
+    "BlockNumber": "U32",
+    "LeasePeriod": "BlockNumber",
+    "Keys": {
+      "type": "struct",
+      "type_mapping": [
+        ["grandpa", "AccountId"],
+        ["babe", "AccountId"],
+        ["im_online", "AccountId"],
+        ["para_validator", "AccountId"],
+        ["para_assignment", "AccountId"],
+        ["authority_discovery", "AccountId"]
+      ]
+    },
+    "ValidatorPrefs": "ValidatorPrefsWithBlocked",
+    "ProxyType": {
+      "type": "enum",
+      "value_list": [
+        "Any",
+        "NonTransfer",
+        "Staking",
+        "Unused",
+        "IdentityJudgement"
+      ]
+    },
+    "RefCount": "u32"
+  },
+  "versioning": [
+    {
+      "runtime_range": [3, 22],
+      "types": {
+        "OpenTip": {
+          "type": "struct",
+          "type_mapping": [
+            ["reason", "Hash"],
+            ["who", "AccountId"],
+            ["finder", "Option<OpenTipFinder>"],
+            ["closes", "Option<BlockNumber>"],
+            ["tips", "Vec<OpenTipTip>"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [23, null],
+      "types": {
+        "OpenTip": {
+          "type": "struct",
+          "type_mapping": [
+            ["reason", "Hash"],
+            ["who", "AccountId"],
+            ["finder", "AccountId"],
+            ["deposit", "Balance"],
+            ["closes", "Option<BlockNumber>"],
+            ["tips", "Vec<OpenTipTip>"],
+            ["findersFee", "bool"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [3, 44],
+      "types": {
+        "RefCount": "u8"
+      }
+    },
+    {
+      "runtime_range": [45, null],
+      "types": {
+        "RefCount": "u32"
+      }
+    },
+    {
+      "runtime_range": [1, 42],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsTo257"
+      }
+    },
+    {
+      "runtime_range": [43, null],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsFrom258"
+      }
+    },
+    {
+      "runtime_range": [1, 44],
+      "types": {
+        "Heartbeat": {
+          "type": "struct",
+          "type_mapping": [
+            ["blockNumber", "BlockNumber"],
+            ["networkState", "OpaqueNetworkState"],
+            ["sessionIndex", "SessionIndex"],
+            ["authorityIndex", "AuthIndex"]
+          ]
+        },
+        "DispatchInfo": {
+          "type": "struct",
+          "type_mapping": [
+            ["weight", "Weight"],
+            ["class", "DispatchClass"],
+            ["paysFee", "bool"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [45, null],
+      "types": {
+        "Heartbeat": {
+          "type": "struct",
+          "type_mapping": [
+            ["blockNumber", "BlockNumber"],
+            ["networkState", "OpaqueNetworkState"],
+            ["sessionIndex", "SessionIndex"],
+            ["authorityIndex", "AuthIndex"],
+            ["validatorsLen", "u32"]
+          ]
+        },
+        "DispatchInfo": {
+          "type": "struct",
+          "type_mapping": [
+            ["weight", "Weight"],
+            ["class", "DispatchClass"],
+            ["paysFee", "Pays"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1, 44],
+      "types": {
+        "Weight": "u32"
+      }
+    },
+    {
+      "runtime_range": [45, null],
+      "types": {
+        "Weight": "u64"
+      }
+    },
+    {
+      "runtime_range": [0, 47],
+      "types": {
+        "Address": "AccountIdAddress",
+        "LookupSource": "AccountIdAddress",
+        "AccountInfo": "AccountInfoWithRefCount",
+        "Keys": {
+          "type": "struct",
+          "type_mapping": [
+            ["grandpa", "AccountId"],
+            ["babe", "AccountId"],
+            ["im_online", "AccountId"],
+            ["authority_discovery", "AccountId"],
+            ["parachains", "AccountId"]
+          ]
+        },
+        "ValidatorPrefs": "ValidatorPrefsWithCommission"
+      }
+    },
+    {
+      "runtime_range": [48, null],
+      "types": {
+        "Address": "MultiAddress",
+        "LookupSource": "MultiAddress",
+        "AccountInfo": "AccountInfoWithProviders",
+        "Keys": {
+          "type": "struct",
+          "type_mapping": [
+            ["grandpa", "AccountId"],
+            ["babe", "AccountId"],
+            ["im_online", "AccountId"],
+            ["para_validator", "AccountId"],
+            ["para_assignment", "AccountId"],
+            ["authority_discovery", "AccountId"]
+          ]
+        },
+        "ValidatorPrefs": "ValidatorPrefsWithBlocked"
+      }
+    }
+  ]
+}

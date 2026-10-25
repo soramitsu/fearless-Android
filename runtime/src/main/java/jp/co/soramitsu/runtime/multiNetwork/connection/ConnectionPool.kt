@@ -1,133 +1,210 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Provider
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.domain.NetworkStateService
-import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.core.runtime.EndpointRuntimeStatus
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
+import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChainOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
-import jp.co.soramitsu.shared_utils.wsrpc.SocketService
-import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.state.SocketStateMachine
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-
+/** The pool owns one serial configuration path; state observers never acquire that lane. */
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
     private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-    private val nodesSettingsStorage: NodesSettingsStorage,
+    private val chainDao: ChainDao,
     private val networkStateService: NetworkStateService
-) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
-
+) {
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val serial = Mutex()
+    private val desired = ConcurrentHashMap<String, Any>()
+    private val configured = mutableMapOf<String, Any>()
     private val poolFlow = MutableStateFlow<Map<String, ChainConnection>>(emptyMap())
-    private val connectionWatcher = MutableStateFlow(Event(Unit))
+    private val observers = mutableMapOf<String, Job>()
 
-    suspend fun awaitConnection(chainId: ChainId): ChainConnection {
-        return poolFlow.map { it[chainId] }.filterNotNull().first()
+    init {
+        externalRequirementFlow.onEach { requirement ->
+            serial.withLock {
+                // Read the current value, since a queued collector value may already be obsolete.
+                val current = externalRequirementFlow.value
+                if (current == requirement) poolFlow.value.values.forEach { it.applyExternalRequirement(current) }
+            }
+        }.launchIn(scope)
+        chainDao.endpointMutationLane.runtimeChanges.onEach {
+            serial.withLock {
+                // Only existing demanded connections are refreshed. A failed Select grants no demand.
+                for ((id, connection) in poolFlow.value) {
+                    val command = configured[id] ?: continue
+                    if (!connection.hasCurrentRuntimeBinding()) refreshRuntime(id, command, connection)
+                }
+            }
+        }.launchIn(scope)
+    }
+
+    suspend fun awaitConnection(chainId: ChainId): ChainConnection =
+        poolFlow.map { it[chainId] }.filterNotNull().first()
+
+    /** Observation never creates connection demand or starts transport. */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    fun runtimeStatus(chainId: ChainId): Flow<EndpointRuntimeStatus?> = poolFlow.flatMapLatest { entries ->
+        entries[chainId]?.runtime ?: flowOf(null)
     }
 
     fun getConnectionOrNull(chainId: ChainId): ChainConnection? = poolFlow.value[chainId]
     fun getConnectionOrThrow(chainId: ChainId): ChainConnection = poolFlow.value.getValue(chainId)
 
-    suspend fun setupConnection(
-        chain: Chain,
-        onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
-    ): ChainConnection {
-        var isNew = false
-
-        val connection = poolFlow.updateAndGet { currentPool ->
-            if (currentPool.containsKey(chain.id)) {
-                currentPool
-            } else {
-                isNew = true
-
-                val nodes = chain.nodes.map {
-                    it.fillDwellirApiKey()
+    /** The caller requests a chain ID. Captured caller nodes never become transport authority. */
+    suspend fun setupConnection(chain: Chain): ChainConnection {
+        val command = Any()
+        desired[chain.id] = command
+        try {
+            return serial.withLock {
+                check(desired[chain.id] === command) { "Runtime configuration was superseded" }
+                val read = chainDao.readEndpointRuntime(chain.id)
+                currentCoroutineContext().ensureActive()
+                val fresh = read.value?.let(::mapChainLocalToChainOrNull)
+                    ?: error("Runtime target is unavailable")
+                require(fresh.id == chain.id && !fresh.isEthereumChain &&
+                    (fresh.ecosystem == Ecosystem.Substrate || fresh.ecosystem == Ecosystem.EthereumBased)) {
+                    "Runtime target no longer uses the Substrate transport"
                 }
-
-                val newConnection = ChainConnection(
-                    chain = chain,
+                check(desired[chain.id] === command && chainDao.endpointMutationLane.isCurrent(read.version)) {
+                    "Runtime configuration was superseded"
+                }
+                val connection = poolFlow.value[chain.id] ?: ChainConnection(
+                    chain = fresh,
                     socketService = socketServiceProvider.get(),
-                    initialNodes = nodes,
-                    externalRequirementFlow = externalRequirementFlow,
-                    onSelectedNodeChange = { onSelectedNodeChange(chain.id, clearDwellirApiKey(it)) },
-                    isAutoBalanceEnabled = { nodesSettingsStorage.getIsAutoSelectNodes(chain.id) }
-                ).also { connection ->
-                    connection.state.onEach { connectionState ->
-                        val newState = when (connectionState) {
-                            is SocketStateMachine.State.Connected -> ChainState.ConnectionStatus.Connected(connectionState.url)
-                            is SocketStateMachine.State.Connecting -> ChainState.ConnectionStatus.Connecting(connectionState.url)
-                            is SocketStateMachine.State.Disconnected -> ChainState.ConnectionStatus.Disconnected
-                            is SocketStateMachine.State.Paused -> ChainState.ConnectionStatus.Paused(connectionState.url)
-                            is SocketStateMachine.State.WaitingForReconnect -> ChainState.ConnectionStatus.Connecting(connectionState.url)
+                    transportUrl = { fillDwellirApiKey(it.url) },
+                    currentRequirement = { externalRequirementFlow.value }
+                ).also { created ->
+                    poolFlow.value = poolFlow.value + (chain.id to created)
+                    observers[chain.id] = created.runtime.onEach { status ->
+                        val logical = created.selectedNode
+                        if (poolFlow.value[chain.id] !== created || logical == null || !status.isCurrentFor(logical)) return@onEach
+                        val latest = created.chain as Chain
+                        val newState = when (status.phase) {
+                            EndpointRuntimeStatus.Phase.CONNECTED -> ChainState.ConnectionStatus.Connected(logical.url)
+                            EndpointRuntimeStatus.Phase.PAUSED -> ChainState.ConnectionStatus.Paused(logical.url)
+                            EndpointRuntimeStatus.Phase.CONNECTING -> ChainState.ConnectionStatus.Connecting(logical.url)
+                            else -> ChainState.ConnectionStatus.Disconnected
                         }
-
-                        ChainsStateTracker.updateState(chain) { it.copy(connectionStatus = newState) }
-
-                        when (connectionState) {
-                            is SocketStateMachine.State.Connected -> networkStateService.notifyConnectionSuccess(chain.id)
-                            is SocketStateMachine.State.WaitingForReconnect -> networkStateService.notifyConnectionProblem(chain.id)
-                            else -> Unit
+                        ChainsStateTracker.updateState(latest) { it.copy(chain = latest, connectionStatus = newState) }
+                        if (status.phase == EndpointRuntimeStatus.Phase.CONNECTED) networkStateService.notifyConnectionSuccess(chain.id)
+                        else if (created.state.value is SocketStateMachine.State.WaitingForReconnect) {
+                            networkStateService.notifyConnectionProblem(chain.id)
                         }
-                    }.launchIn(this@ConnectionPool)
+                    }.launchIn(scope)
                 }
-
-                currentPool + (chain.id to newConnection)
+                configured[chain.id] = command
+                connection.reconcile(fresh, externalRequirementFlow.value) {
+                    desired[chain.id] === command && poolFlow.value[chain.id] === connection &&
+                        chainDao.endpointMutationLane.isCurrent(read.version)
+                }
+                currentCoroutineContext().ensureActive()
+                connection
             }
-        }[chain.id]!!
-
-        if (isNew) {
-            connectionWatcher.tryEmit(Event(Unit))
+        } catch (error: Exception) {
+            // Cancellation of a queued Mutex waiter still retires its own superseded connection.
+            // A newer command wins before cleanup can acquire the pool and must remain untouched.
+            scope.launch {
+                serial.withLock {
+                    if (desired[chain.id] === command) {
+                        retireConnection(chain.id)
+                        desired.remove(chain.id, command)
+                    }
+                }
+            }
+            throw error
         }
+    }
 
-        if (connection.chain.nodes != chain.nodes) {
-            connection.considerUpdateNodes(chain.nodes.map {
-                it.fillDwellirApiKey()
-            })
+    /** Called under the pool serial lane; database callbacks never call back into this pool. */
+    private suspend fun refreshRuntime(chainId: ChainId, command: Any, connection: ChainConnection) {
+        if (desired[chainId] !== command || poolFlow.value[chainId] !== connection) return
+        try {
+            val read = chainDao.readEndpointRuntime(chainId)
+            currentCoroutineContext().ensureActive()
+            if (desired[chainId] !== command || poolFlow.value[chainId] !== connection ||
+                !chainDao.endpointMutationLane.isSettled(read.version)) return
+            val fresh = read.value?.let(::mapChainLocalToChainOrNull)
+            if (fresh == null || fresh.id != chainId || fresh.isEthereumChain ||
+                (fresh.ecosystem != Ecosystem.Substrate && fresh.ecosystem != Ecosystem.EthereumBased)) {
+                connection.markRuntimeUnavailable()
+                return
+            }
+            connection.reconcile(fresh, externalRequirementFlow.value) {
+                desired[chainId] === command && poolFlow.value[chainId] === connection &&
+                    chainDao.endpointMutationLane.isCurrent(read.version)
+            }
+        } catch (canceled: CancellationException) {
+            throw canceled
+        } catch (_: jp.co.soramitsu.coredb.recovery.selection.EndpointMutationLane.RuntimeReadSuperseded) {
+            // The newer lane signal schedules a fresh read; keep the current peer until that decision.
+        } catch (_: Exception) {
+            if (desired[chainId] === command && poolFlow.value[chainId] === connection) {
+                connection.markRuntimeUnavailable()
+            }
         }
+    }
 
-        return connection
+    private fun retireConnection(chainId: ChainId) {
+        configured.remove(chainId)
+        val connection = poolFlow.value[chainId]
+        poolFlow.value = poolFlow.value - chainId
+        observers.remove(chainId)?.cancel()
+        connection?.finish()
     }
 
     fun removeConnection(chainId: ChainId) {
-        val connection = getConnectionOrNull(chainId)
-        poolFlow.update { it - chainId }
-        connection?.finish()
-        connectionWatcher.tryEmit(Event(Unit))
-        networkStateService.notifyConnectionSuccess(chainId)
+        val removal = Any()
+        desired[chainId] = removal
+        scope.launch {
+            serial.withLock {
+                if (desired[chainId] !== removal) return@withLock
+                retireConnection(chainId)
+                desired.remove(chainId, removal)
+                // Existing API clears a no-longer-demanded connection problem; this is not a Connected observation.
+                networkStateService.notifyConnectionSuccess(chainId)
+            }
+        }
     }
 }
+
 fun ChainNode.fillDwellirApiKey(): ChainNode {
     return copy(url = fillDwellirApiKey(url))
 }
 
-fun clearDwellirApiKey(url: String): String {
-    val key = BuildConfig.FL_DWELLIR_API_KEY
-    return if(url.lowercase().contains(key)){
-        url.removeSuffix("/$key")
-    } else {
-        url
-    }
-}
+/** Remove only the configured credential from an admitted Dwellir endpoint, preserving other URLs. */
+fun clearDwellirApiKey(url: String): String = DwellirEndpointCredentials.clear(url, BuildConfig.FL_DWELLIR_API_KEY)
 
-fun fillDwellirApiKey(url: String): String {
-    return if(url.lowercase().contains("dwellir")){
-        "${url}/${BuildConfig.FL_DWELLIR_API_KEY}"
-    } else {
-        url
-    }
-}
+/** Decorate an admitted Dwellir WSS origin; arbitrary custom URLs remain byte-exact. */
+fun fillDwellirApiKey(url: String): String = DwellirEndpointCredentials.fill(url, BuildConfig.FL_DWELLIR_API_KEY)

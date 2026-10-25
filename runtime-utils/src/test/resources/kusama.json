@@ -1,0 +1,396 @@
+{
+  "runtime_id": 2027,
+  "types": {
+    "Address": "AccountIdAddress",
+    "LookupSource": "AccountIdAddress",
+    "AccountInfo": "AccountInfoWithRefCount",
+    "BlockNumber": "U32",
+    "LeasePeriod": "BlockNumber",
+    "Weight": "u64",
+    "Keys": {
+      "type": "struct",
+      "type_mapping": [
+        ["grandpa", "AccountId"],
+        ["babe", "AccountId"],
+        ["im_online", "AccountId"],
+        ["authority_discovery", "AccountId"],
+        ["parachains", "AccountId"]
+      ]
+    },
+    "DispatchInfo": {
+      "type": "struct",
+      "type_mapping": [
+        ["weight", "Weight"],
+        ["class", "DispatchClass"],
+        ["paysFee", "Pays"]
+      ]
+    },
+    "ProxyType": {
+      "type": "enum",
+      "value_list": [
+        "Any",
+        "NonTransfer",
+        "Governance",
+        "Staking",
+        "IdentityJudgement"
+      ]
+    },
+    "RefCount": "u32"
+  },
+  "versioning": [
+    {
+      "runtime_range": [1019, 1031],
+      "types": {
+        "DispatchError": {
+          "type": "struct",
+          "type_mapping": [
+            ["module", "Option<u8>"],
+            ["error", "u8"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1032, null],
+      "types": {
+        "DispatchError": {
+          "type": "enum",
+          "type_mapping": [
+            ["Other", "Null"],
+            ["CannotLookup", "Null"],
+            ["BadOrigin", "Null"],
+            ["Module", "DispatchErrorModule"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1019, 1037],
+      "types": {
+        "IdentityInfo": {
+          "type": "struct",
+          "type_mapping": [
+            ["additional", "Vec<IdentityInfoAdditional>"],
+            ["display", "Data"],
+            ["legal", "Data"],
+            ["web", "Data"],
+            ["riot", "Data"],
+            ["email", "Data"],
+            ["pgpFingerprint", "Option<H160>"],
+            ["image", "Data"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1038, null],
+      "types": {
+        "IdentityInfo": {
+          "type": "struct",
+          "type_mapping": [
+            ["additional", "Vec<IdentityInfoAdditional>"],
+            ["display", "Data"],
+            ["legal", "Data"],
+            ["web", "Data"],
+            ["riot", "Data"],
+            ["email", "Data"],
+            ["pgpFingerprint", "Option<H160>"],
+            ["image", "Data"],
+            ["twitter", "Data"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1019, 1042],
+      "types": {
+        "SlashingSpans": {
+          "type": "struct",
+          "type_mapping": [
+            ["spanIndex", "SpanIndex"],
+            ["lastStart", "EraIndex"],
+            ["prior", "Vec<EraIndex>"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1043, null],
+      "types": {
+        "SlashingSpans": {
+          "type": "struct",
+          "type_mapping": [
+            ["spanIndex", "SpanIndex"],
+            ["lastStart", "EraIndex"],
+            ["lastNonzeroSlash", "EraIndex"],
+            ["prior", "Vec<EraIndex>"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1019, 1045],
+      "types": {
+        "StakingLedger": "StakingLedgerTo223",
+        "BalanceLock": {
+          "type": "struct",
+          "type_mapping": [
+            ["id", "LockIdentifier"],
+            ["amount", "Balance"],
+            ["until", "BlockNumber"],
+            ["reasons", "WithdrawReasons"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1050, 1056],
+      "types": {
+        "StakingLedger": "StakingLedgerTo240",
+        "BalanceLock": {
+          "type": "struct",
+          "type_mapping": [
+            ["id", "LockIdentifier"],
+            ["amount", "Balance"],
+            ["reasons", "Reasons"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1057, null],
+      "types": {
+        "StakingLedger": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "stash",
+              "AccountId"
+            ],
+            [
+              "total",
+              "Compact<Balance>"
+            ],
+            [
+              "active",
+              "Compact<Balance>"
+            ],
+            [
+              "unlocking",
+              "Vec<UnlockChunk>"
+            ],
+            [
+              "claimedRewards",
+              "Vec<EraIndex>"
+            ]
+          ]
+        },
+        "BalanceLock": {
+          "type": "struct",
+          "type_mapping": [
+            ["id", "LockIdentifier"],
+            ["amount", "Balance"],
+            ["reasons", "Reasons"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1019, 1054],
+      "types": {
+        "ReferendumInfo": {
+          "type": "struct",
+          "type_mapping": [
+            ["end", "BlockNumber"],
+            ["proposal", "Proposal"],
+            ["threshold", "VoteThreshold"],
+            ["delay", "BlockNumber"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1054, null],
+      "types": {
+        "ReferendumInfo": {
+          "type": "enum",
+          "type_mapping": [
+            ["Ongoing", "ReferendumStatus"],
+            ["Finished", "ReferendumInfoFinished"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1019, 1056],
+      "types": {
+        "Weight": "u32"
+      }
+    },
+    {
+      "runtime_range": [1057, null],
+      "types": {
+        "Weight": "u64"
+      }
+    },
+    {
+      "runtime_range": [1019, 1061],
+      "types": {
+        "Heartbeat": {
+          "type": "struct",
+          "type_mapping": [
+            ["blockNumber", "BlockNumber"],
+            ["networkState", "OpaqueNetworkState"],
+            ["sessionIndex", "SessionIndex"],
+            ["authorityIndex", "AuthIndex"]
+          ]
+        },
+        "DispatchInfo": {
+          "type": "struct",
+          "type_mapping": [
+            ["weight", "Weight"],
+            ["class", "DispatchClass"],
+            ["paysFee", "bool"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1062, null],
+      "types": {
+        "Heartbeat": {
+          "type": "struct",
+          "type_mapping": [
+            ["blockNumber", "BlockNumber"],
+            ["networkState", "OpaqueNetworkState"],
+            ["sessionIndex", "SessionIndex"],
+            ["authorityIndex", "AuthIndex"],
+            ["validatorsLen", "u32"]
+          ]
+        },
+        "DispatchInfo": {
+          "type": "struct",
+          "type_mapping": [
+            ["weight", "Weight"],
+            ["class", "DispatchClass"],
+            ["paysFee", "Pays"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1019, 2012],
+      "types": {
+        "OpenTip": {
+          "type": "struct",
+          "type_mapping": [
+            ["reason", "Hash"],
+            ["who", "AccountId"],
+            ["finder", "Option<OpenTipFinder>"],
+            ["closes", "Option<BlockNumber>"],
+            ["tips", "Vec<OpenTipTip>"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [2013, null],
+      "types": {
+        "OpenTip": {
+          "type": "struct",
+          "type_mapping": [
+            ["reason", "Hash"],
+            ["who", "AccountId"],
+            ["finder", "AccountId"],
+            ["deposit", "Balance"],
+            ["closes", "Option<BlockNumber>"],
+            ["tips", "Vec<OpenTipTip>"],
+            ["findersFee", "bool"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [1019, 2022],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsTo257"
+      }
+    },
+    {
+      "runtime_range": [2023, null],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsFrom258"
+      }
+    },
+    {
+      "runtime_range": [1019, 2024],
+      "types": {
+        "RefCount": "u8"
+      }
+    },
+    {
+      "runtime_range": [2025, null],
+      "types": {
+        "RefCount": "u32"
+      }
+    },
+    {
+      "runtime_range": [1019, 1045],
+      "types": {
+        "Address": "RawAddress",
+        "LookupSource": "RawAddress",
+        "AccountInfo": "AccountInfoWithRefCount",
+        "Keys": {
+          "type": "struct",
+          "type_mapping": [
+            ["grandpa", "AccountId"],
+            ["babe", "AccountId"],
+            ["im_online", "AccountId"],
+            ["authority_discovery", "AccountId"],
+            ["parachains", "AccountId"]
+          ]
+        },
+        "ValidatorPrefs": "ValidatorPrefsWithCommission"
+      }
+    },
+    {
+      "runtime_range": [1050, 2027],
+      "types": {
+        "Address": "AccountIdAddress",
+        "LookupSource": "AccountIdAddress",
+        "AccountInfo": "AccountInfoWithRefCount",
+        "Keys": {
+          "type": "struct",
+          "type_mapping": [
+            ["grandpa", "AccountId"],
+            ["babe", "AccountId"],
+            ["im_online", "AccountId"],
+            ["authority_discovery", "AccountId"],
+            ["parachains", "AccountId"]
+          ]
+        },
+        "ValidatorPrefs": "ValidatorPrefsWithCommission"
+      }
+    },
+    {
+      "runtime_range": [2028, null],
+      "types": {
+        "Address": "MultiAddress",
+        "LookupSource": "MultiAddress",
+        "AccountInfo": "AccountInfoWithProviders",
+        "Keys": {
+          "type": "struct",
+          "type_mapping": [
+            ["grandpa", "AccountId"],
+            ["babe", "AccountId"],
+            ["im_online", "AccountId"],
+            ["para_validator", "AccountId"],
+            ["para_assignment", "AccountId"],
+            ["authority_discovery", "AccountId"]
+          ]
+        },
+        "ValidatorPrefs": "ValidatorPrefsWithBlocked"
+      }
+    }
+  ]
+}

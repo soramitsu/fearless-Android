@@ -1,0 +1,142 @@
+{
+  "format": "fearless.testnet-chain-ids",
+  "version": 1,
+  "registry": {
+    "source": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json",
+    "snapshot": "config/portfolio/registry/chains-v13-20261009.json",
+    "snapshotSha256": "fa6f0e23cd87dfb3e5536980591dd22ae30e49bf59d04dc2a0b31fc53237ea66",
+    "appOwnedChains": "config/portfolio/app-owned-chains.v1.json",
+    "appOwnedChainsSha256": "79aae5e781447ef5476acfbc910818a134330a0cfbcea11a75a64fa96b6777ba",
+    "reviewedAt": "2026-10-10",
+    "reviewedBy": "Fearless 4.2.0 release lead decision record (Portfolio / token grouping); issuer lists checked 2026-10-10"
+  },
+  "rule": "isTestnet(chain) = 'testnet' in chain.options OR chain.chainId in chainIds. Testnets are hidden by default behind a Testnets toggle, never zero defaults, never grouped, never counted in totals or subtotals, and render with a Testnet badge when shown.",
+  "chainIds": [
+    {
+      "chainId": "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+      "name": "Westend",
+      "source": "registry",
+      "registryTestnetOption": true,
+      "reason": "registry marks it testnet (rank 108 would otherwise count as ranked)"
+    },
+    {
+      "chainId": "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527",
+      "name": "Moonbase Alpha",
+      "source": "registry",
+      "registryTestnetOption": true,
+      "reason": "registry marks it testnet"
+    },
+    {
+      "chainId": "6e938c4a786f8df6f38d0c06f00a8573f1f7aabeebf48aee5157a93cc5fe3271",
+      "name": "Kusama (test)",
+      "source": "registry",
+      "registryTestnetOption": false,
+      "reason": "test relay chain without the testnet option"
+    },
+    {
+      "chainId": "fd4d46e9a51e16babf791b94d6dbf771ed1d7de8a11b310aa98c847890fa9ff3",
+      "name": "Polkadot (test)",
+      "source": "registry",
+      "registryTestnetOption": false,
+      "reason": "test relay chain without the testnet option"
+    },
+    {
+      "chainId": "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17",
+      "name": "SORA test",
+      "source": "registry",
+      "registryTestnetOption": true,
+      "reason": "registry marks it testnet"
+    },
+    {
+      "chainId": "a37725fd8943d2a524cb7ecc65da438f9fa644db78ba24dcd0003e2f95645e8f",
+      "name": "Canary Matrixchain",
+      "source": "registry",
+      "registryTestnetOption": true,
+      "reason": "registry marks it testnet; its cENJ carries priceId enjincoin and must never be priced into totals"
+    },
+    {
+      "chainId": "72778",
+      "name": "CAGA Ankara Testnet",
+      "source": "registry",
+      "registryTestnetOption": false,
+      "reason": "enabled test network without the testnet option"
+    },
+    {
+      "chainId": "d3d2f3a3495dc597434a99d7d449ebad6616db45e4e4f178f31cc6fa14378b70",
+      "name": "Avail Turing Testnet",
+      "source": "registry",
+      "registryTestnetOption": false,
+      "reason": "enabled test network without the testnet option"
+    },
+    {
+      "chainId": "0614f7b74a2e47f7c8d8e2a5335be84bdde9402a43f5decdec03200a87c8b943",
+      "name": "Analog Testnet",
+      "source": "registry",
+      "registryTestnetOption": false,
+      "reason": "test network without the testnet option"
+    },
+    {
+      "chainId": "1001",
+      "name": "Kaia Kairos Testnet",
+      "source": "registry",
+      "registryTestnetOption": true,
+      "reason": "registry marks it testnet"
+    },
+    {
+      "chainId": "2340",
+      "name": "Atleta Olympia",
+      "source": "registry",
+      "registryTestnetOption": true,
+      "reason": "registry marks it testnet"
+    },
+    {
+      "chainId": "-3",
+      "name": "TON Testnet",
+      "source": "registry",
+      "registryTestnetOption": true,
+      "reason": "registry marks it testnet"
+    },
+    {
+      "chainId": "bitcoin:testnet",
+      "name": "Bitcoin Testnet",
+      "source": "app-owned",
+      "reason": "app-owned Bitcoin Testnet"
+    },
+    {
+      "chainId": "bitcoin-testnet",
+      "name": "Bitcoin Testnet",
+      "source": "app-owned",
+      "reason": "alias of bitcoin:testnet used by migration contracts"
+    },
+    {
+      "chainId": "solana:devnet",
+      "name": "Solana Devnet",
+      "source": "app-owned",
+      "reason": "app-owned Solana Devnet"
+    },
+    {
+      "chainId": "solana-devnet",
+      "name": "Solana Devnet",
+      "source": "app-owned",
+      "reason": "alias of solana:devnet used by migration contracts"
+    },
+    {
+      "chainId": "iroha3-taira",
+      "name": "Taira Testnet",
+      "source": "app-owned",
+      "reason": "app-owned Taira (android, ios); auto-provisioning stays additive but hidden behind the Testnets toggle"
+    },
+    {
+      "chainId": "taira-testnet",
+      "name": "Taira Testnet",
+      "source": "app-owned",
+      "reason": "alias of iroha3-taira used by migration contracts"
+    },
+    {
+      "chainId": "fc56984b-2be7-431d-840e-21514d1883f0",
+      "name": "Taira Testnet",
+      "source": "app-owned",
+      "reason": "app-owned Taira (web); auto-provisioning stays additive but hidden behind the Testnets toggle"
+    }
+  ]
+}

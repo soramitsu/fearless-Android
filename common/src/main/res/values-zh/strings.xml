@@ -98,6 +98,9 @@
   <string name="backup_now">立即备份</string>
   <string name="backup_wallet_backup_to_google">备份到谷歌</string>
   <string name="backup_wallet_delete_alert_message">如果您删除了Google的备份，只能通过手动备份助记词来恢复您的钱包。</string>
+  <plurals name="backup_wallet_delete_copies_alert_message">
+    <item quantity="other">这将删除此钱包的全部 %d 个Google备份，包括从您的其他设备或使用其他密码保存的备份。删除后，只能通过手动备份助记词来恢复您的钱包。</item>
+  </plurals>
   <string name="backup_wallet_delete_google_backup">删除Google备份</string>
   <string name="backup_wallet_export_json">导出 JSON</string>
   <string name="backup_wallet_replace_accounts_alert" formatted="false">您目前有一个%s 链账户和地址%s ，通过替换主密钥对添加了该地址，并拥有特定的一项。但请注意，我们当前的钱包备份（导出）流程不支持存储多个密钥对。因此，您只能保存您的主要密钥对。\n \n为确保替换后的链账户安全，请在继续当前流程之前先单独备份它。一旦成功备份了替换后的链账户，您可以放心地进行当前流程。</string>
@@ -110,9 +113,6 @@
   <string name="balance_locks_nomination_pools_row_title">提名池</string>
   <string name="balance_locks_screen_title">锁定的详细信息</string>
   <string name="banners_backup_description">保护自己避免失去对资金的访问权限。</string>
-  <string name="banners_buy_xor">购买XOR</string>
-  <string name="banners_buy_xor_description">使用欧元现金购买或出售XOR代币</string>
-  <string name="banners_buy_xor_title">购买XOR代币</string>
   <string name="banners_liquidity_pools_title">流动性池</string>
   <string name="beacon_connect_warning">警告：点击连接按钮，您将允许此dapp查看您的公共地址。这是一个重要的安全步骤，以保护您的数据免受潜在的网络钓鱼风险。</string>
   <string name="beacon_connected">连接到%s</string>
@@ -235,6 +235,9 @@
   <string name="common_error_network">与远程服务器通信时发生错误</string>
   <string name="common_event">事件</string>
   <string name="common_existential_error_message">此交易将导致账户余额低于存在性存款（%s），从而使其被清除（账户将从区块链状态中删除以节省空间）。</string>
+  <string name="common_existential_unknown_message">Fearless Wallet 无法检查网络对 %s 要求的最低余额（存在性存款）。如果此次转账后任一账户的余额低于该最低额，网络可能会删除该账户及其中剩余的金额。只有在确定两个账户都会保留足够余额时才继续，否则请取消并稍后重试。</string>
+  <string name="common_existential_unknown_retry_message">Fearless Wallet 无法检查网络对 %s 要求的最低余额（存在性存款），因此未发送任何内容。请检查网络连接后重试。</string>
+  <string name="common_existential_unknown_title">未能检查最低余额</string>
   <string name="common_existential_warning_message">此交易将导致账户余额低于存在性存款（%s），从而使其被清除（账户将从区块链状态中删除以节省空间）。如果您选择继续，您将失去低于网络设置的存在性存款金额的任何资金。有关详细信息，请参阅官方网络文档（例如 Polkadot Wiki）。Fearless 钱包是一个完全非托管的应用程序，对网络上的任何操作都没有控制权或知识。只有在您完全同意并理解相关影响后才能继续。</string>
   <string name="common_existential_warning_title">此操作将删除账户</string>
   <string name="common_filter_sort_header">排序方式：</string>
@@ -273,6 +276,8 @@
   <string name="common_not_enough_funds_title">余额不足</string>
   <string name="common_note">注意：</string>
   <string name="common_ok">好的</string>
+  <string name="update_security_notice_title">您的移动钱包是安全的</string>
+  <string name="update_security_notice_message">iOS 和 Android 版 Fearless 未受旧版 Fearless Chrome 扩展程序安全问题的影响。\n\n如果您在 2026 年 10 月 23 日之前使用过该 Chrome 扩展程序，请创建一个新钱包，并将资金转入新钱包。</string>
   <string name="common_options">选项</string>
   <string name="common_options_title">选择一个选项</string>
   <string name="common_origin_network">原始网络</string>
@@ -359,6 +364,50 @@
   <string name="connection_methods_not_supported_warning">某些 Wallet Connect 请求的方法目前不受该应用支持。虽然连接可以建立，但是 dApp 的某些功能可能无法使用。</string>
   <string name="connection_optional_networks">可选网络</string>
   <string name="connection_problems_alert_message">无法加载启动应用程序所需的数据。请检查您的互联网连接并重试。</string>
+  <string name="wallet_secure_storage_unavailable_title">钱包数据受到保护</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless 无法访问 Android 安全存储空间。您的加密钱包数据已保留且未被重置。请解锁设备后重试。如果问题仍然存在，请联系 Fearless 支持团队。</string>
+  <string name="wallet_database_unavailable_title">无法打开钱包数据</string>
+  <string name="wallet_database_unavailable_message">Fearless 未删除或重置任何钱包数据。请重试打开钱包。如果问题仍然存在，请联系 Fearless 支持团队。</string>
+  <string name="wallet_recovery_required_title">需要恢复钱包</string>
+  <string name="wallet_recovery_required_message">此钱包中的一个密钥需要处理。其他密钥和其他钱包仍可正常使用。请打开钱包恢复，以恢复访问权限或检查备份。</string>
+  <string name="wallet_startup_recovery_required_message">Fearless 未能完成打开钱包。没有任何内容被更改或删除。你现在可以使用 PIN 码查看并抄写所有已存储的密钥。请勿清除应用数据或卸载 Fearless，否则密钥将从此设备上移除。诊断代码：%1$s</string>
+  <string name="wallet_startup_restart_required_title">关闭并重新打开 Fearless</string>
+  <string name="wallet_startup_restart_required_message">由于 Android 无法确认钱包存储写入，Fearless 已停止。此进程不会再尝试更改钱包。请立即关闭应用，然后重新打开，以安全验证已存储的状态。请勿清除应用数据或重新安装应用。</string>
+  <string name="wallet_recovery_scoped_title">有一个密钥需要处理</string>
+  <string name="wallet_emergency_open">查看我存储的密钥</string>
+  <string name="wallet_emergency_title">已存储的密钥</string>
+  <string name="wallet_emergency_intro">输入 Fearless PIN 码，即可按原样查看此设备上存储的所有助记词和密钥。不会更改或删除任何内容。</string>
+  <string name="wallet_emergency_pin_hint">6 位 PIN 码</string>
+  <string name="wallet_emergency_unlock">显示我的密钥</string>
+  <string name="wallet_emergency_wrong_pin">PIN 码错误</string>
+  <string name="wallet_emergency_locked">尝试次数过多。请在 %1$d 秒后重试。</string>
+  <string name="wallet_emergency_unavailable">此设备已无法读取你的 PIN 码，因此无法显示已存储的密钥。没有任何内容被删除。如果你抄写过助记词，可以用它恢复钱包。</string>
+  <string name="wallet_emergency_read_failed">Fearless 暂时无法读取已存储的密钥。没有任何内容被更改或删除。请重试。</string>
+  <string name="wallet_emergency_warning">任何看到这些单词或密钥的人都可以拿走你的资金。请将它们抄写在纸上，离线保存，切勿与他人分享。</string>
+  <string name="wallet_emergency_empty">此设备上没有存储任何钱包密钥。</string>
+  <string name="wallet_emergency_wallet">钱包 %1$d</string>
+  <string name="wallet_emergency_wallet_unknown">早期版本的钱包</string>
+  <string name="wallet_emergency_kind_substrate">Polkadot 和 Substrate 密钥</string>
+  <string name="wallet_emergency_kind_ethereum">Ethereum 密钥</string>
+  <string name="wallet_emergency_kind_ton">TON 密钥</string>
+  <string name="wallet_emergency_kind_legacy">钱包密钥（4.0 之前的格式）</string>
+  <string name="wallet_emergency_kind_network">单一网络密钥</string>
+  <string name="wallet_emergency_kind_early">钱包密钥（早期格式）</string>
+  <string name="wallet_emergency_state_active">使用中</string>
+  <string name="wallet_emergency_state_set_aside">已搁置，不用于签名</string>
+  <string name="wallet_emergency_state_archived">从早期版本保留，不用于签名</string>
+  <string name="wallet_emergency_field_phrase">助记词</string>
+  <string name="wallet_emergency_field_ton_phrase">TON 助记词。请严格按显示内容输入</string>
+  <string name="wallet_emergency_field_entropy">熵</string>
+  <string name="wallet_emergency_field_seed">原始种子词</string>
+  <string name="wallet_emergency_field_path">派生路径</string>
+  <string name="wallet_emergency_field_ethereum_path">Ethereum 派生路径</string>
+  <string name="wallet_emergency_field_private_key">私钥</string>
+  <string name="wallet_emergency_field_ethereum_private_key">Ethereum 私钥</string>
+  <string name="wallet_emergency_field_ton_private_key">TON 私钥</string>
+  <string name="wallet_emergency_field_nonce">Nonce</string>
+  <string name="wallet_emergency_field_stored">存储的数据（原样）</string>
+  <string name="wallet_emergency_unreadable">此值无法在此设备上解密。它已原样保留。</string>
   <string name="connection_reject">拒绝</string>
   <string name="connection_required_networks">所需网络</string>
   <string name="connection_review_optional_permissions">审核可选权限</string>
@@ -463,6 +512,42 @@
   <string name="fearless_wallet">无畏钱包</string>
   <string name="fee_not_yet_loaded_message">请等待，直到费用计算完成。</string>
   <string name="fee_not_yet_loaded_title">费用计算正在进行中</string>
+  <string name="google_backup_already_imported_message">此钱包已在本设备的 Fearless 中，因此没有重复导入。</string>
+  <string name="google_backup_already_imported_title">已在本设备上</string>
+  <string name="google_backup_back_up_later">稍后备份</string>
+  <string name="google_backup_ethereum_only_message">此浏览器扩展备份仅包含以太坊密钥，无法仅凭它创建新钱包。未做任何更改。请改用助记词、原始种子词或 JSON 文件导入此钱包。</string>
+  <string name="google_backup_ethereum_only_title">仅有以太坊密钥</string>
+  <string name="google_backup_failed_message">连接 Google 云端硬盘时出现问题。请重试。</string>
+  <string name="google_backup_failed_title">Google 云端硬盘备份未完成</string>
+  <string name="google_backup_import_another_way">用其他方式导入</string>
+  <string name="google_backup_import_with_json">使用 JSON 文件导入</string>
+  <string name="google_backup_import_with_phrase">使用助记词导入</string>
+  <string name="google_backup_no_connection_message">请检查网络连接后重试。</string>
+  <string name="google_backup_no_connection_title">无法连接 Google 云端硬盘</string>
+  <string name="google_backup_none_found_message">Fearless 未在此 Google 账号中找到钱包备份。如果您是用其他 Google 账号备份的，请使用该账号登录。您也可以使用助记词、原始种子词或 JSON 文件导入。</string>
+  <string name="google_backup_none_found_title">此 Google 账号中没有备份</string>
+  <string name="google_backup_not_found_message">此备份已从 Google 云端硬盘删除，可能是在其他设备上删除的。请刷新列表，查看当前存在的备份。</string>
+  <string name="google_backup_not_found_title">Google 云端硬盘中已没有此备份</string>
+  <string name="google_backup_not_verified_message">此钱包保存的助记词或种子无法恢复出这个钱包本身，因此没有上传任何内容，本设备上也未做任何更改。请改用“导出 JSON”备份此钱包：它会保存钱包当前使用的密钥。</string>
+  <string name="google_backup_not_verified_title">备份未上传</string>
+  <string name="google_backup_open_wallet">打开钱包</string>
+  <string name="google_backup_origin_extension">通过浏览器扩展备份</string>
+  <string name="google_backup_refresh">刷新列表</string>
+  <string name="google_backup_saved_without_phrase_message">此钱包保存的助记词或种子无法恢复出这个钱包本身，因此未包含在备份中。您的 Google 云端硬盘备份会用钱包当前使用的密钥恢复此钱包。</string>
+  <string name="google_backup_saved_without_phrase_title">已备份，但不含助记词</string>
+  <string name="google_backup_sign_in">登录</string>
+  <string name="google_backup_sign_in_message">Fearless 需要访问您 Google 云端硬盘中的备份文件夹。请重新登录并允许访问以继续。</string>
+  <string name="google_backup_sign_in_title">请重新登录 Google</string>
+  <string name="google_backup_storage_full_message">您的 Google 账号已没有可用存储空间，因此备份未保存。请释放空间后重试。</string>
+  <string name="google_backup_storage_full_title">Google 云端硬盘已满</string>
+  <string name="google_backup_unavailable_message">此 Fearless 安装版本无法使用 Google 登录。本设备上的钱包不受影响。请改用助记词、原始种子词或 JSON 文件来备份或导入钱包。</string>
+  <string name="google_backup_unavailable_title">Google 云端硬盘备份不可用</string>
+  <string name="google_backup_unsupported_message">此备份由更新版本的 Fearless 创建或已损坏。未做任何更改。您可以改用助记词、原始种子词或 JSON 文件导入此钱包。</string>
+  <string name="google_backup_unsupported_title">无法读取此备份</string>
+  <string name="google_backup_use_another_account">使用其他 Google 账号</string>
+  <string name="google_backup_wallet_created_not_backed_up">新钱包已创建，但尚未备份。您可以稍后在钱包的备份选项中进行备份。</string>
+  <string name="google_backup_wrong_password_message">无法用该密码打开此备份。请输入创建备份时设置的密码后重试。</string>
+  <string name="google_backup_wrong_password_title">备份密码不正确</string>
   <string name="hash">哈希</string>
   <string name="hidden_assets">隐藏资产</string>
   <string name="history_v1.9.0">历史</string>
@@ -609,6 +694,17 @@
   <string name="parachain_staking_unbonding_period_template">%1$s在%2$s中 - 即%3$s</string>
   <string name="parachain_staking_unlock">解锁</string>
   <string name="parachain_staking_unlock_title">解锁代币</string>
+  <string name="paused_cross_chain_message">早期版本中提供的跨链转账在此版本中已暂停，我们正在针对 Polkadot 网络的近期变更完成安全检查。您的代币和余额不受影响。您仍可以在各个网络上发送和接收。</string>
+  <string name="paused_cross_chain_send_on_network">在 %1$s 上发送</string>
+  <string name="paused_cross_chain_send_within_network">在同一网络内发送</string>
+  <string name="paused_cross_chain_title">跨链转账已暂停</string>
+  <string name="paused_farming_message">流动性挖矿操作目前已暂停。您的挖矿仓位和余额不受影响，您仍可以发送和接收。</string>
+  <string name="paused_liquidity_message">流动性池操作目前已暂停。您的流动性池仓位和余额不受影响，您仍可以发送和接收。</string>
+  <string name="paused_polkamarkt_message">此版本中 Polkamarkt 交易已暂停。您的仓位和余额不受影响。</string>
+  <string name="paused_send_message">我们正在排查问题，%1$s 上的发送目前已暂停。您的余额不受影响，您仍可以接收。</string>
+  <string name="paused_send_title">发送已暂停</string>
+  <string name="paused_swap_message">兑换目前已暂停。您的代币和余额不受影响，您仍可以发送和接收。</string>
+  <string name="paused_swap_title">兑换已暂停</string>
   <string name="pincode_biometry_dialog_title">生物特征识别</string>
   <string name="pincode_changed_message">PIN代码已成功更改</string>
   <string name="pincode_confirm_pin_code">确认PIN码</string>
@@ -730,7 +826,6 @@
   <string name="profile_network_title">网路</string>
   <string name="profile_pincode_change_title">更改PIN码</string>
   <string name="profile_settings_title">设置</string>
-  <string name="profile_soracard_title">SORA卡</string>
   <string name="profile_title">账户</string>
   <string name="profile_walletconnect_title">钱包连接</string>
   <string name="profile_wallets_title">钱包</string>
@@ -746,6 +841,8 @@
   <string name="recovery_raw_seed_hint">私钥</string>
   <string name="recovery_source_type">来源类型</string>
   <string name="referral_email_acala">我同意接收来自Acala的电子邮件</string>
+  <string name="relay_moved_to_asset_hub_message">自 2025 年 Asset Hub 迁移以来，此网络的质押、提名池、归属释放和众贷贡献都在 Polkadot Asset Hub 或 Kusama Asset Hub 上处理，此版本的 Fearless 无法在那里管理它们。中继链会先收取手续费再拒绝此操作，因此没有签名或发送任何内容。您在那里的账户地址相同，并显示在此钱包中。</string>
+  <string name="relay_moved_to_asset_hub_title">已迁移至 Asset Hub</string>
   <string name="remove_backup_extension_error_message">由Fearless Wallet浏览器扩展程序创建了备份。移动应用无法删除它，因为缺乏凭据。</string>
   <string name="rename_account_description">示例：储蓄、投资、众贷、质押。此昵称将仅为您显示并本地存储在您的移动设备上。</string>
   <string name="replace_account">更换账户</string>
@@ -801,13 +898,6 @@
   <string name="sora_bridge_amount_less_fee">您尝试转账的金额不足以支付%s网络上的交易费用。尽管交易无法完成，您仍将在Sora网络上被收取费用。</string>
   <string name="sora_bridge_low_amount_format_alert">目前，为了确保SORA网络的稳定性和安全性，跨链桥转账的最低金额为%s。感谢您的理解。</string>
   <string name="sora_bridge_low_amount_format_alert_2">目前，为了确保稳定性和安全性，跨链的最低金额为 %s。感谢您的理解。</string>
-  <string name="sora_card_annual_service_fee">0欧元年服务费</string>
-  <string name="sora_card_blacklisted_countires_title">申请被排除</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[目前，来自<b>某些国家的居民<br>无法申请</b>SORA卡片。<br><a href=\"https://soracard.com/blacklist/\">查看名单</a>]]></string>
-  <string name="sora_card_enable_card_title">启用卡片</string>
-  <string name="sora_card_get_sora_card">获取SORA卡</string>
-  <string name="sora_card_title">使用法币或加密货币充值SORA卡，并可在线支付、实体店消费或在ATM机上取款。</string>
-  <string name="sora_card_verification_successful">您的卡已在路上</string>
   <string name="specify_network">指定网络</string>
   <string name="specify_network_description">地址前缀匹配了多个网络，请指定网络。</string>
   <string name="sr25519_selection_subtitle">sr25519（推荐）</string>
@@ -865,7 +955,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">显示所选： %d （最多%d ）</string>
   <string name="staking_custom_validators_list_title">选择验证人</string>
   <string name="staking_custom_validators_settings_filters">显示</string>
-  <string name="staking_custom_validators_settings_sort_apy">预计奖励（% APY）</string>
+  <string name="staking_custom_validators_settings_sort_apy" formatted="false">预计奖励（% APY）</string>
   <string name="staking_custom_validators_settings_sort_total_stake">质押总数 ( %s )</string>
   <string name="staking_custom_validators_title">选择自定义验证人</string>
   <string name="staking_custom_validators_update_list">更新你的清单</string>
@@ -1036,7 +1126,7 @@
   <string name="staking_unbonding_limit_reached_title">取消质押请求已达到限制</string>
   <string name="staking_unbondings_placeholder">解除质押的交易将显示在此处</string>
   <string name="staking_unstaking_period">解除质押期</string>
-  <string name="staking_validator_apy_percent">预计奖励（% APY）</string>
+  <string name="staking_validator_apy_percent" formatted="false">预计奖励（% APY）</string>
   <string name="staking_validator_estimated_reward">预计奖励</string>
   <string name="staking_validator_info_title">验证人信息</string>
   <string name="staking_validator_my_oversubscribed_message">超额抵押。在这个时间段，您将无法从验证人那里获得奖励。</string>
@@ -1186,4 +1276,441 @@
   <string name="what_accounts_for_export">您想导出钱包中的哪些账户？</string>
   <string name="yesterday">昨天</string>
   <string name="your_collator">你的收集人</string>
+
+
+  <string name="banner_addwallet_regular_button_title">Сreate or import</string>
+
+  <string name="banner_addwallet_regular_subtitle">Join the ecosystems with more than 90+ chains and fascinating features</string>
+
+  <string name="banner_addwallet_regular_title">EVM/Substrate accounts</string>
+
+  <string name="banner_addwallet_ton_button_title">Join now</string>
+
+  <string name="banner_addwallet_ton_title">Join the fastest growing ecosystem ever</string>
+
+  <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
+
+  <string name="banners_demeter_title">Demeter Protocol</string>
+
+  <plurals name="common_months_format">
+    <item quantity="one">%d month</item>
+    <item quantity="other">%d months</item>
+  </plurals>
+
+  <string name="common_network_hash">%s Hash</string>
+
+  <string name="common_refund">Refund</string>
+
+  <string name="common_see_all">See all</string>
+
+  <string name="connected_accounts_common">Connected Accounts</string>
+
+  <string name="connected_accounts_ethereum_title">EVM chain accounts</string>
+
+  <string name="connected_accounts_substrate_title">Substrate chain accounts</string>
+
+  <string name="connected_accounts_ton_title">TON chain accounts</string>
+
+  <string name="connected_accounts_bitcoin_title">Bitcoin 链账户</string>
+
+  <string name="connected_accounts_solana_title">Solana 链账户</string>
+
+  <string name="connected_accounts_iroha_title">Iroha 链账户</string>
+
+  <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
+
+  <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
+
+  <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>
+
+  <string name="cross_chain_tx_status_done_title">All done</string>
+
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
+
+  <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
+
+  <string name="cross_chain_tx_status_source_fail_description">Transaction failed on the %s network. Please, try again.</string>
+
+  <string name="cross_chain_tx_status_source_fail_title">Transaction failed</string>
+
+  <string name="dapp_category_connected_title">Connected</string>
+
+  <string name="dapp_category_defi_title">DeFi</string>
+
+  <string name="dapp_category_featured_title">Featured</string>
+
+  <string name="dapp_category_nft_title">NFT</string>
+
+  <string name="dapp_category_utilities_title">Utilities</string>
+
+  <string name="dapp_connected_title">Connected</string>
+
+  <string name="dapp_discover_title">Discover dApp</string>
+
+  <string name="dapp_no_connected_dapps_title">No connected dApps</string>
+
+  <string name="dapp_not_found_title">No dApps were found</string>
+
+  <string name="ecosystem_options_backup_title">Backup chain accounts</string>
+
+  <string name="ecosystem_options_details_title">Chain accounts</string>
+
+  <string name="ecosystem_options_title">Account options</string>
+
+  <string name="fee_calculation_error">Something went wrong while calculating the fee. Please try again later.</string>
+
+  <string name="fee_calculation_error_inactive_account">Your account is inactive. Top up your balance to calculate the fee.</string>
+
+  <string name="onboarding_banner_regular_ecosystem_button_title">Join EVM or Substrate</string>
+
+  <string name="onboarding_banner_regular_ecosystem_title">Create or import Substrate or EVM accounts</string>
+
+  <string name="onboarding_banner_ton_ecosystem_button_title">Join TON</string>
+
+  <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
+
+  <string name="profile_tonconnect_title">Ton connect</string>
+
+  <string name="tc_connected_dapp">Connected</string>
+
+  <string name="tc_discover_dapp">Discover dApp</string>
+
+  <string name="tc_review_dapp_info">Review dApp info</string>
+
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="tc_see_all">See all</string>
+
+  <string name="tc_service_address">Service address</string>
+
+  <string name="ton_connect_alert_description">Service address</string>
+
+  <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="ton_connect_alert_title">Review dApp info</string>
+
+  <string name="ton_tonviewer_action_title">View in Tonviewer</string>
+
+  <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">分享地址</string>
+  <string name="portfolio_sync_catalog_only">部分代币可能不会显示</string>
+  <string name="portfolio_balance_update_failed">余额更新失败</string>
+  <string name="portfolio_balances_outdated">余额可能不是最新的</string>
+  <string name="portfolio_balances_not_loaded">余额尚未加载</string>
+  <string name="portfolio_balance_incl_hidden">含已隐藏资产</string>
+  <plurals name="portfolio_hidden_assets_not_included">
+    <item quantity="other">未计入 %1$d 项已隐藏资产</item>
+  </plurals>
+  <plurals name="portfolio_hidden_assets_not_included_manage">
+    <item quantity="other">未计入 %1$d 项已隐藏资产 · 管理</item>
+  </plurals>
+  <plurals name="portfolio_assets_without_price_not_included">
+    <item quantity="other">未计入 %1$d 项无价格资产</item>
+  </plurals>
+  <string name="portfolio_pool_stakes_not_included">未计入提名池中的质押</string>
+  <plurals name="portfolio_hidden_assets_hold_funds">
+    <item quantity="other">%1$d 项已隐藏资产中有余额</item>
+  </plurals>
+  <string name="portfolio_hidden_assets_hold_funds_description">已隐藏的资产不计入总额。你可以查看这些资产，或继续隐藏。</string>
+  <string name="portfolio_hidden_assets_review">查看</string>
+  <string name="portfolio_hidden_assets_keep_hidden">继续隐藏</string>
+  <string name="portfolio_hidden_in_previous_version">在旧版本中已隐藏</string>
+  <string name="portfolio_asset_hidden">已隐藏</string>
+  <string name="portfolio_show_testnets">显示测试网</string>
+  <string name="portfolio_show_testnets_description">测试代币没有价值，绝不会计入总额。</string>
+  <string name="portfolio_testnet_no_value">无价值</string>
+  <string name="search_assets_hint">按代币或网络搜索</string>
+  <string name="search_assets_section_portfolio">在你的资产组合中</string>
+  <string name="search_assets_section_other">其他资产</string>
+  <string name="search_assets_section_other_description">尚未加入你的资产组合。打开即可接收。</string>
+  <string name="asset_select_nothing_to_send">暂无可发送的资产。有可转账余额的资产会显示在这里。</string>
+  <string name="wallet_recovery_center">钱包恢复</string>
+  <string name="wallet_recovery_center_intro">恢复钱包访问权限或检查备份。在恢复其他密钥期间，可用密钥仍可正常使用。</string>
+  <string name="wallet_recovery_inventory_failed">无法读取部分恢复信息。请重试或导出已保存的数据。</string>
+  <string name="wallet_recovery_identity_issue">已保存的密钥属于另一个账户。请将其备份导入为独立钱包；此条目将保持仅供查看。</string>
+  <string name="wallet_recovery_missing_key">此设备上缺少签名密钥。请恢复与此账户匹配的密钥。</string>
+  <string name="wallet_recovery_unusable_key">此签名密钥无法在此设备上使用。原始数据已保留。</string>
+  <string name="wallet_recovery_import_corrected">作为已修正的新钱包导入</string>
+  <string name="wallet_recovery_use_phrase">使用恢复助记词恢复</string>
+  <string name="wallet_recovery_use_seed">使用原始种子或私钥恢复</string>
+  <string name="wallet_recovery_use_json">使用 JSON 文件恢复</string>
+  <string name="wallet_recovery_as_typed">只有完全按照保存时的内容输入此助记词，包括空格和大写字母，才能恢复您的账户。请保留完全一致的备份。</string>
+  <string name="wallet_recovery_backup_advisory">已保存的恢复助记词或种子无法重新生成此签名密钥。请将可用密钥备份为 JSON 或私钥。</string>
+  <string name="wallet_recovery_no_attention">当前没有需要恢复的钱包密钥。</string>
+  <string name="wallet_recovery_retained">已保留的钱包数据</string>
+  <string name="wallet_recovery_retained_intro">此处保留了已移除钱包和先前修复的数据。恢复任何数据之前，请检查派生出的账户。</string>
+  <string name="wallet_recovery_keep_view_only">暂时保持仅供查看</string>
+  <string name="wallet_recovery_restore">恢复</string>
+  <string name="wallet_recovery_restore_key">恢复钱包密钥</string>
+  <string name="wallet_recovery_restore_explanation">输入此账户的备份。我们会在恢复访问权限前检查是否匹配。现有已保存数据将被保留。</string>
+  <string name="wallet_recovery_restored">钱包密钥已恢复</string>
+  <string name="wallet_recovery_different_key">此备份与此账户不匹配。请检查助记词、密码和派生路径。</string>
+  <string name="wallet_recovery_restore_failed">无法恢复密钥。您的已保存数据已保留。请检查备份并重试。</string>
+  <string name="wallet_recovery_fix_now">立即修复</string>
+  <string name="wallet_recovery_backup_key">备份可用密钥</string>
+
+    <!-- Retained wallet data: authenticated preview, restore and explicit purge. -->
+    <string name="wallet_archive_open">打开保留的钱包数据</string>
+    <string name="wallet_archive_intro">恢复前请核对地址。每个密钥将恢复为单独的钱包。原始数据会保留；您可能需要重新选择网络。</string>
+    <string name="wallet_archive_unlock">解锁保留的数据</string>
+    <string name="wallet_archive_empty">未找到保留的钱包数据。</string>
+    <string name="wallet_archive_unproved">部分已存材料无法验证是否可用。您仍可通过原始数据导出获取这些材料。</string>
+    <string name="wallet_archive_exact_data">查看原始存储数据</string>
+    <string name="wallet_archive_unreadable">此设备无法读取该记录。保留的数据未被更改。</string>
+    <string name="wallet_archive_delete">永久删除</string>
+    <string name="wallet_archive_delete_first">这将删除整个保留记录，包括无法显示的密钥。仅在您拥有另一份可用备份时继续。</string>
+    <string name="wallet_archive_delete_final">最后确认：永久删除此保留记录？此操作无法撤销。其他钱包和保留记录将保持不变。</string>
+    <string name="wallet_archive_restore_confirm">将此地址恢复为单独的钱包？原始记录将保留。已存的恢复助记词可能仍需验证。</string>
+    <string name="wallet_archive_continue_delete">继续到最后确认</string>
+    <string name="wallet_archive_export_warning">这些数据可能包含私钥和不完整的恢复材料。接收者可能控制您的资金。请仅分享至您信任的目标。</string>
+    <string name="wallet_archive_share">分享存储数据</string>
+    <string name="wallet_archive_restored_name">已恢复的钱包</string>
+    <string name="wallet_archive_purged">已删除保留记录</string>
+
+  <string name="wallet_keyloss_title">恢复安全存储</string>
+  <string name="wallet_keyloss_intro">此设备目前无法打开之前的安全存储。钱包记录和加密密钥均已保留。请先重试。请勿删除应用。</string>
+  <string name="wallet_keyloss_retry">尝试之前的安全存储</string>
+  <string name="wallet_keyloss_start">启用新的安全存储</string>
+  <string name="wallet_keyloss_view">仅查看已缓存的钱包</string>
+  <string name="wallet_keyloss_restart_device">之前的密钥仍不可用。请重启设备，打开 Fearless 并重试。只有在设备重启前后均重试失败，才会提供新存储选项。</string>
+  <string name="wallet_keyloss_retry_later">安全存储不可用，或恢复检查条件已改变。未删除任何内容。请重试检查。</string>
+  <string name="wallet_keyloss_can_start">设备重启后，之前的密钥仍不可用。如果您有恢复备份，可以启用新存储并恢复钱包。旧数据会保留在此设备上。</string>
+  <string name="wallet_keyloss_backup_confirmation">我拥有需要恢复的钱包的恢复短语、种子或 JSON 备份。</string>
+  <string name="wallet_keyloss_consent">新的加密密钥无法解锁旧的加密数据。恢复签名需要匹配的恢复备份。我们会保留之前的封装密钥、其设备别名及所有加密钱包数据。Fearless 会持续尝试之前的密钥，并在其可用时再次使用。新钱包及其密钥也会保留。</string>
+  <string name="wallet_keyloss_authenticate">请验证设备凭据以继续。</string>
+  <string name="wallet_keyloss_cached_warning">这些是已缓存的公有钱包记录，并非当前网络余额。此处无法签名或修改钱包。没有代币名称的金额以最小单位显示。公钥不是收款地址。</string>
+  <string name="wallet_keyloss_incomplete">部分已存记录或缓存余额无法显示。原始数据已保留。请重试安全存储以恢复完整访问。</string>
+  <string name="wallet_keyloss_no_cached">未找到可读取的缓存钱包。已存数据未被更改。</string>
+  <string name="wallet_keyloss_working">正在检查保留的数据…</string>
+  <string name="wallet_keyloss_back">返回恢复</string>
+  <string name="wallet_keyloss_substrate_id">Substrate 账户 ID：%1$s</string>
+  <string name="wallet_keyloss_evm_address">Ethereum 地址：%1$s</string>
+  <string name="wallet_keyloss_ton_public">TON 公钥：%1$s</string>
+  <string name="wallet_keyloss_address">地址：%1$s</string>
+  <string name="wallet_keyloss_public">公钥：%1$s</string>
+  <string name="wallet_keyloss_balance">网络 %1$s · 资产 %2$s：%3$s</string>
+    <string name="send_max">最大</string>
+    <string name="send_account_creation">创建账户</string>
+    <string name="send_fee_rate">费率</string>
+    <string name="send_sat_per_vbyte">%1$s sat/vB</string>
+    <string name="send_recent_payment">最近付款</string>
+    <string name="send_pending_message">此付款的结果尚未确定。请检查状态或重新提交同一笔付款。请勿创建替代付款。</string>
+    <string name="send_pending_expired">此付款的区块哈希已过期，但付款可能已经完成。请继续检查状态或区块浏览器。结果未知时，Fearless 不会签署替代付款。</string>
+    <string name="send_confirmed_message">此付款已获得网络确认。</string>
+    <string name="send_failed_message">网络报告此付款失败。原始交易仍已保留。</string>
+    <string name="send_check_status">检查状态</string>
+    <string name="send_retry_same_payment">重新提交同一笔付款</string>
+    <string name="send_view_explorer">在区块浏览器中查看</string>
+    <string name="send_history_explorer">在区块浏览器中查看历史</string>
+    <string name="send_recovery_unavailable">无法检查付款状态。原始数据仍已保留。请重试。</string>
+    <string name="send_submitted_title">付款状态</string>
+    <string name="send_submitted_message">请在余额页面的“最近付款”或区块浏览器中检查确认状态。结果未知时，请勿再次创建此付款。</string>
+    <string name="send_existing_pending">需要检查之前的付款。请打开余额页面的“最近付款”，查看原始金额并重新提交同一笔付款。此新报价不会被发送。</string>
+    <string name="send_review_changed">钱包、费用、余额或报价已更改。请返回金额页面，重新核对付款。</string>
+    <string name="send_pending_network_unavailable">无法验证这笔已保存付款的原始网络。付款记录仍保留在此设备上，暂时无法查询状态或重试。</string>
+    <string name="send_unsupported_account">此账户或代币无法使用此钱包发送。支持标准 SPL 代币；暂不支持发送 Token-2022。</string>
+    <string name="send_storage_unavailable">无法验证已保留的付款。为防止重复付款，发送已被阻止。请保留此应用的数据并重试。</string>
+    <string name="send_bitcoin_address_help">Bitcoin 发送仅支持原生 SegWit 地址：Bitcoin 使用 bc1q，Bitcoin Testnet 使用 tb1q。其他类型的地址无法接收此笔转账。</string>
+    <string name="send_insufficient_spendable">可用余额不足以支付此金额及网络费用。待处理的 Bitcoin 资金必须先获得确认。</string>
+    <string name="send_bitcoin_dust">此 Bitcoin 金额低于最小输出金额。请增加金额。</string>
+    <string name="send_solana_rent">请保留足够的 SOL，以满足账户最低余额、网络费用及代币账户创建费用。请减少金额或添加 SOL。</string>
+    <string name="send_solana_account_invalid">请使用可签名的 Solana 钱包地址及未冻结的标准 SPL 代币账户。程序地址、不匹配的账户和冻结代币无法使用。</string>
+  <string name="startup_network_refresh_unavailable">部分网络数据无法刷新。您仍可访问钱包。余额可能不是最新数据，受影响网络的转账可能暂时不可用。请重试或继续。</string>
+  <string name="startup_settings_refresh_unavailable">部分启动设置无法刷新。您仍可访问钱包。请重试或继续。</string>
+  <string name="startup_app_update_notice">此版本已不再受支持。您可以继续访问钱包和此设备上保存的恢复资料，或检查更新。</string>
+  <string name="fw_font_licenses">字体许可</string>
+  <string name="wallet_recovery_back">返回</string>
+  <string name="fw_loading_in_progress">正在处理</string>
+
+  <string name="pool_join_recovery_title">上一次矿池交易</string>
+  <string name="pool_join_recovery_pending">上一次矿池交易的状态尚未确认。请在进行另一笔矿池交易前检查状态。此检查不会签名或重新发送交易。</string>
+  <string name="pool_join_recovery_checking">正在检查已最终确认的区块。检查期间可以返回。</string>
+  <string name="pool_join_recovery_not_found">在已检查的区块中未找到原始交易，其状态仍未确认。请检查更早的区块，或稍后再次检查最新区块。</string>
+  <string name="pool_join_recovery_unavailable">无法验证交易状态。未创建新的矿池交易。请保留原始交易详情，稍后重试。</string>
+  <string name="pool_join_recovery_legacy">此旧尝试没有初始区块引用，因此无法在此安全清除。请保留交易哈希，并在进行另一笔矿池交易前验证其状态。</string>
+  <string name="pool_join_recovery_finalized">配置的节点报告原始交易已包含在最终确认的区块中。这并不表示质押成功。请检查矿池状态，然后再开始审核新的操作。</string>
+  <string name="pool_join_recovery_hash">交易哈希</string>
+  <string name="pool_join_recovery_recent">检查最新区块</string>
+  <string name="pool_join_recovery_older">检查更早的区块</string>
+  <string name="pool_join_recovery_return">返回矿池</string>
+
+    <string name="pool_join_recovery_loading">正在读取此设备上保存的池交易…</string>
+    <string name="pool_join_recovery_empty">此网络上的此账户没有保存的待解决矿池交易。请返回池查看当前状态。</string>
+  <string name="pool_recovery_return_earn">返回“Earn”</string>
+  <string name="pool_recovery_state_control">矿池状态管理</string>
+
+  <!-- Offline, authenticated saved endpoint recovery. -->
+  <string name="saved_endpoints_title">已保存的端点</string>
+  <string name="saved_endpoints_intro">查看此设备上保存的端点。打开此页面不会连接这些端点，也不会更改当前连接。</string>
+  <string name="saved_endpoints_locked">请解锁以查看已保存的端点。其中可能包含私密访问信息。</string>
+  <string name="saved_endpoints_unlock">解锁已保存的端点</string>
+  <string name="saved_endpoints_refresh">刷新</string>
+  <string name="saved_endpoints_loading">正在读取已保存的端点…</string>
+  <string name="saved_endpoints_read_failed">无法读取已保存的端点。当前显示的记录来自上一次成功读取。您可以重试或稍后再来。</string>
+  <string name="saved_endpoints_empty">此页未找到记录。刷新可返回开头。</string>
+  <string name="saved_endpoints_absent">未找到已保存的端点归档。</string>
+  <string name="saved_endpoints_escaped">值用引号括起以显示空格。反斜杠和不可见字符以转义序列显示。</string>
+  <string name="saved_endpoints_record">已保存的记录 %1$s</string>
+  <string name="saved_endpoints_name">已保存的名称</string>
+  <string name="saved_endpoints_url">已保存的端点</string>
+  <string name="saved_endpoints_network_code">已保存的网络代码：%1$s。这不会选择当前网络。</string>
+  <string name="saved_endpoints_unknown">未知</string>
+  <string name="saved_endpoints_previous">上一组记录</string>
+  <string name="saved_endpoints_next">下一组记录</string>
+  <string name="saved_endpoints_not_saved">未保存任何值。</string>
+  <string name="saved_endpoints_unrecognized">无法将存储的值识别为文本。该值仍保留在此设备上。</string>
+  <string name="saved_endpoints_too_large">此值过大，无法在此视图中显示。完整值仍保留在此设备上。</string>
+  <string name="saved_endpoints_invalid_text">无法将此值解码为文本。原始字节仍保留在此设备上。</string>
+  <string name="saved_endpoints_bytes">存储大小：%1$s 字节</string>
+  <string name="saved_endpoints_unlock_failed">无法开始解锁。请重试。</string>
+
+  <!-- Complete existing production navigation, portfolio and safety copy. -->
+  <string name="cross_chain_route_checking">正在检查已审核的路由…</string>
+  <string name="cross_chain_destination_unavailable_message">Fearless Wallet 无法确定目标网络上的资产或收款人余额，因此未发送任何内容。请检查网络连接后重试。</string>
+  <string name="cross_chain_destination_fee_included">在目标网络从金额中扣除</string>
+  <string name="cross_chain_pending_message">此账户之前的一笔跨链转账可能已经发出，结果尚不确定。在检查其状态之前，不会从此账户发送新的跨链转账。检查不会签名或重新发送该转账。</string>
+  <string name="cross_chain_pending_not_found">在已最终确定的区块中未找到之前的转账。在签名几分钟后过期之前，它仍可能被打包。请稍后再检查。</string>
+  <string name="cross_chain_pending_included">之前的转账已在源网络的已最终确定区块中，因此已经发出。这并不能确认它已到账：请在目标网络上检查收款人的余额。</string>
+  <string name="cross_chain_pending_expired">之前的转账在被打包前已过期，因此未执行，也没有转出任何资产。您可以再次发送。</string>
+  <string name="cross_chain_pending_unavailable">无法检查之前转账的状态。它仍保存在此设备上，不会发送任何新内容。请检查网络连接后重试。</string>
+  <string name="cross_chain_protocol_xcm">协议：已审核的 XCM 路由</string>
+  <string name="cross_chain_no_supported_route">此钱包和当前生产网络注册表没有可用的受支持路由。</string>
+  <string name="cross_chain_route_protocol">协议：%1$s</string>
+  <string name="cross_chain_route_minimum_value">最低金额：%1$s %2$s</string>
+  <string name="cross_chain_route_minimum_unknown">最低金额：此已审核的提供商未提供</string>
+  <string name="cross_chain_route_origin_fee">当前来源网络费用：%1$s %2$s</string>
+  <string name="cross_chain_route_destination_fee">当前目标网络费用：%1$s %2$s</string>
+  <string name="cross_chain_route_estimated_time">预计时间：%1$s</string>
+  <string name="cross_chain_route_estimated_time_unknown">预计时间：此已审核的提供商未提供</string>
+  <string name="cross_chain_route_warning">警告：%1$s</string>
+  <string name="connection_add_ton_account">添加 TON 账户</string>
+  <string name="connection_add_signing_account">添加 Substrate 或 EVM 账户</string>
+  <string name="tabbar_portfolio_title">资产组合</string>
+  <string name="tabbar_defi_title">DeFi</string>
+  <string name="tabbar_cross_chain_title">跨链</string>
+  <string name="settings_section_wallets_accounts">钱包与账户</string>
+  <string name="settings_section_networks_assets">网络与资产</string>
+  <string name="settings_section_connections">连接</string>
+  <string name="settings_section_security">安全</string>
+  <string name="settings_section_preferences">偏好设置</string>
+  <string name="settings_manage_assets">管理资产</string>
+  <string name="portfolio_detected_assets">检测到的资产（%1$d）</string>
+  <string name="portfolio_detected_assets_description">在链上发现。使用前请核对元数据。</string>
+  <string name="portfolio_price_unavailable">价格不可用</string>
+  <string name="portfolio_asset_verified">已验证</string>
+  <string name="portfolio_asset_unverified">未验证</string>
+  <string name="portfolio_asset_metadata_missing">缺少元数据</string>
+  <string name="portfolio_sync_updated">更新于 %1$s</string>
+  <string name="portfolio_sync_stale_since">信息已过期 · 上次更新于 %1$s</string>
+  <string name="portfolio_sync_error">同步失败 · 正在显示上次已知余额</string>
+  <string name="portfolio_sync_pending">正在等待首次资产扫描</string>
+  <string name="portfolio_sync_limited">资产覆盖范围有限</string>
+  <string name="common_collapse">收起</string>
+  <string name="common_expand">展开</string>
+  <plurals name="portfolio_assets_count">
+    <item quantity="other">%1$d 项资产</item>
+  </plurals>
+  <string name="ux_choose_network">选择网络</string>
+  <string name="ux_network_selection_title">您将使用哪些资产？</string>
+  <string name="ux_network_selection_description">选择此钱包的网络。恢复时，请使用与现有钱包相同的网络。您可以稍后添加其他钱包。</string>
+  <string name="ux_networks_ethereum_polkadot">Ethereum、Polkadot 及兼容网络</string>
+  <string name="ux_assets_ethereum_polkadot">ETH、DOT 等</string>
+  <string name="ux_network_ton">TON 网络</string>
+  <string name="ux_asset_ton">Toncoin（TON）</string>
+  <string name="ux_receive_network">网络：%1$s</string>
+  <string name="ux_receive_instruction">仅将 %2$s 网络上的 %1$s 发送到此地址。</string>
+  <string name="ux_receive_qr">在 %2$s 上接收 %1$s</string>
+  <string name="ux_backup_status">备份钱包</string>
+  <string name="ux_backup_description">保存一种恢复方式，以便恢复对资金的访问。</string>
+  <string name="ux_swap_direction">交换支付和接收的资产</string>
+  <string name="ux_execution_details">执行详情</string>
+  <string name="ux_show_details">显示执行详情</string>
+  <string name="ux_hide_details">隐藏执行详情</string>
+  <string name="ux_switch_wallet">切换钱包</string>
+  <string name="ux_scan">扫描二维码</string>
+  <string name="ux_search">搜索</string>
+  <string name="ux_more">更多选项</string>
+  <string name="ux_filter">筛选</string>
+  <string name="ux_sort">排序</string>
+  <string name="ux_close">关闭</string>
+  <string name="ux_copy">复制</string>
+  <string name="ux_share">分享</string>
+  <string name="ux_send_maximum">发送最大金额并关闭此网络账户</string>
+  <string name="ux_send_maximum_description">这也会使用账户预留金。再次使用此账户时可能需要重新存款。继续前您将查看网络警告。</string>
+  <string name="ux_staking_estimate">预计年奖励：%s</string>
+  <string name="ux_staking_variability">奖励为估算值，可能发生变化。网络状况、池费用和验证者表现都会影响收益。</string>
+  <string name="ux_pool_operator_options">池运营者选项</string>
+  <string name="ux_pool_operator_description">创建池意味着管理其验证者和设置。若要在现有池中质押，请选择加入池。</string>
+  <string name="ux_tab_wallet">钱包</string>
+  <string name="ux_tab_earn">赚取收益</string>
+  <string name="ux_tab_swap">兑换</string>
+  <string name="ux_tab_transfer">转移</string>
+  <string name="ux_network_transfer">转账至其他网络</string>
+  <string name="ux_back">返回</string>
+  <string name="ux_swap_settings">兑换设置</string>
+  <string name="saved_endpoints_inspect_name">查看已保存的名称</string>
+  <string name="saved_endpoints_inspect_url">查看已保存的端点</string>
+  <string name="saved_endpoints_part_range">字节 %1$s–%2$s，共 %3$s 字节</string>
+  <string name="saved_endpoints_part_empty">字节偏移量 %1$s 处没有字节。当前大小：%2$s 字节。</string>
+  <string name="saved_endpoints_part_escaped">这里显示已保存值的一部分。无法显示为文本的字节以 \\xNN 表示。</string>
+  <string name="saved_endpoints_part_unavailable">此已保存值已不可用。请返回列表刷新。</string>
+  <string name="saved_endpoints_part_previous">上一部分</string>
+  <string name="saved_endpoints_part_next">下一部分</string>
+  <string name="saved_endpoints_part_return">返回已保存的端点</string>
+  <string name="saved_endpoint_collection">记录类别：%1$s</string>
+  <string name="saved_endpoint_source_legacy">旧版保存的端点</string>
+  <string name="saved_endpoint_source_historical">最早保存的记录</string>
+  <string name="saved_endpoint_source_entry">升级开始时的记录</string>
+  <string name="saved_endpoint_source_current">上次升级期间保存的记录</string>
+  <string name="saved_endpoint_source_owned">当前端点</string>
+  <string name="saved_endpoint_source_absent">此设备上未存储该类别的记录。</string>
+  <string name="saved_endpoint_historical_notice">查看历史记录不会更改当前连接。</string>
+  <string name="saved_endpoint_deleted">已移除的端点 — 保留以供恢复</string>
+  <string name="saved_endpoint_attached">已关联网络</string>
+  <string name="saved_endpoint_pending">等待关联网络</string>
+  <string name="saved_endpoint_changed">此记录已更改。请返回列表并选择当前版本。</string>
+  <string name="saved_endpoint_inspect_field">检查%1$s</string>
+  <string name="saved_endpoint_chain_reference">保存的网络引用</string>
+  <string name="saved_endpoint_network_type">保存的网络代码</string>
+  <string name="saved_endpoint_default_value">保存的默认值</string>
+  <string name="saved_endpoint_selection_value">保存的选择值</string>
+
+  <!-- Authenticated offline endpoint choices. -->
+  <string name="saved_endpoint_choice_edit">编辑已保存的选择</string>
+  <string name="saved_endpoint_choice_title">已保存的连接选择</string>
+  <string name="saved_endpoint_choice_intro">选择网络并输入名称和URL。原始保存记录仍然可用。保存不会连接到网络。</string>
+  <string name="saved_endpoint_choice_target">此选择对应的网络</string>
+  <string name="saved_endpoint_choice_choose">选择此网络</string>
+  <string name="saved_endpoint_choice_selected">已选网络：%1$s</string>
+  <string name="saved_endpoint_choice_unavailable">无法根据已保存的信息选择此网络。</string>
+  <string name="saved_endpoint_choice_empty">此设备尚未保存任何网络。请返回钱包，待网络可用后重试。</string>
+  <string name="saved_endpoint_choice_refresh_targets">刷新网络</string>
+  <string name="saved_endpoint_choice_save">离线保存</string>
+  <string name="saved_endpoint_choice_saving">正在保存您的选择…</string>
+  <string name="saved_endpoint_choice_saved">已保存在此设备上，连接验证尚未完成。</string>
+  <string name="saved_endpoint_choice_failed">无法保存此选择。请重试，或在保留编辑内容的同时重新加载已保存的状态。</string>
+  <string name="saved_endpoint_choice_reload">重新加载并保留编辑</string>
+  <string name="saved_endpoint_choice_invalid">文本过长或包含不支持的字符。请缩短文本后重试。</string>
+  <string name="saved_endpoint_choice_missing">保存前请输入URL并选择网络。</string>
+  <string name="saved_endpoint_choice_unsupported">暂不支持验证此网络。您可以将此选择保存为待验证状态。</string>
+  <string name="saved_endpoint_attachment_intro">验证保存的 URL 是否与所选网络匹配。添加或恢复端点不会将其设为选定端点。</string>
+  <string name="saved_endpoint_attachment_add">验证并添加端点</string>
+  <string name="saved_endpoint_attachment_restore">验证并恢复端点</string>
+  <string name="saved_endpoint_attachment_working">正在验证端点…</string>
+  <string name="saved_endpoint_attachment_added">已添加端点，但尚未选定。</string>
+  <string name="saved_endpoint_attachment_restored">已恢复端点，但尚未选定。请返回列表刷新此记录。</string>
+  <string name="saved_endpoint_attachment_present_active">此端点已被选定。未进行新的验证。</string>
+  <string name="saved_endpoint_attachment_present_inactive">此端点已添加，但尚未选定。未进行新的验证。</string>
+  <string name="saved_endpoint_attachment_mismatch">端点返回了不同的网络标识。未添加任何内容。</string>
+  <string name="saved_endpoint_attachment_invalid">端点返回了无效响应。未添加任何内容。</string>
+  <string name="saved_endpoint_attachment_unreachable">无法连接到端点。未添加任何内容。</string>
+  <string name="saved_endpoint_attachment_large">端点响应过大。未添加任何内容。</string>
+  <string name="saved_endpoint_attachment_timeout">验证超时。未添加任何内容。</string>
+  <string name="saved_endpoint_attachment_busy">验证正忙。请重试。</string>
+  <string name="saved_endpoint_attachment_failed">无法确认端点状态。请返回列表，刷新保存的选择后重试。</string>
+  <string name="saved_endpoint_attachment_source_changed">保存的源记录已更改。请检查此选择并重新保存，然后再验证。</string>
+  <string name="portfolio_balance_loading">正在加载余额…</string>
+  <string name="portfolio_prices_loading">正在加载价格…</string>
+  <string name="portfolio_balance_partial">部分余额</string>
+  <string name="portfolio_balance_unavailable">余额不可用</string>
 </resources>

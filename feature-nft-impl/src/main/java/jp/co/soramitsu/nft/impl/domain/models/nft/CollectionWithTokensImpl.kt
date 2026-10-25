@@ -2,11 +2,11 @@ package jp.co.soramitsu.nft.impl.domain.models.nft
 
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.pagination.PageBackStack
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 
 class CollectionWithTokensImpl(
     private val response: PageBackStack.PageResult.ValidPage<TokenInfo>,

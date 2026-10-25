@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">Chọn điểm cuối</string>
+    <string name="saved_endpoint_selection_refresh">Làm mới trạng thái lựa chọn</string>
+    <string name="saved_endpoint_selection_checking">Đang kiểm tra điểm cuối đã thêm…</string>
+    <string name="saved_endpoint_selection_available">Có thể chọn điểm cuối đã thêm này cho mạng.</string>
+    <string name="saved_endpoint_selection_unattached">Hãy thêm điểm cuối này trước khi chọn.</string>
+    <string name="saved_endpoint_selection_saving">Đang lưu lựa chọn…</string>
+    <string name="saved_endpoint_selection_saved">Đã lưu lựa chọn</string>
+    <string name="saved_endpoint_selection_failed">Không thể xác nhận lựa chọn. Hãy làm mới trước khi thử lại.</string>
+    <string name="saved_endpoint_selection_stale">Điểm cuối hoặc lựa chọn đã thay đổi. Hãy làm mới trước khi chọn.</string>
+    <string name="saved_endpoint_runtime_preferred">Đã lưu điểm cuối Solana ưu tiên. Các yêu cầu có thể sử dụng nhà cung cấp khác.</string>
+    <string name="saved_endpoint_runtime_pending">Đang chờ mạng sử dụng lựa chọn này.</string>
+    <string name="saved_endpoint_runtime_not_in_use">Mạng này hiện không được sử dụng.</string>
+    <string name="saved_endpoint_runtime_unavailable">Kết nối mạng không khả dụng.</string>
+    <string name="saved_endpoint_runtime_paused">Kết nối mạng đang tạm dừng.</string>
+    <string name="saved_endpoint_runtime_connecting">Đang kết nối với điểm cuối đã chọn…</string>
+    <string name="saved_endpoint_runtime_connected">Đã kết nối với điểm cuối đã chọn</string>
+</resources>

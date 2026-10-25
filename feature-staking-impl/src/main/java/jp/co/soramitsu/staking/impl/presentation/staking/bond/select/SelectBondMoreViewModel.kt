@@ -86,8 +86,8 @@ class SelectBondMoreViewModel @Inject constructor(
     val stakeCreatorBalanceFlow = flowOf {
         val balance = stakingScenarioInteractor.getAvailableForBondMoreBalance()
         val asset = assetFlow.first()
-        val balanceAmount = balance.formatCrypto(asset.token.configuration.symbol)
-        val balanceFiatAmount = balance.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+        val balanceAmount = (balance?.formatCrypto(asset.token.configuration.symbol) ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable))
+        val balanceFiatAmount = balance?.let(asset.token::fiatAmount)?.formatFiat(asset.token.fiatSymbol)
         val balanceWithFiat = balanceAmount + balanceFiatAmount?.let { " ($it)" }
         resourceManager.getString(R.string.common_available_format, balanceWithFiat)
     }.inBackground().share()
@@ -133,7 +133,7 @@ class SelectBondMoreViewModel @Inject constructor(
                     stakingScenarioInteractor.getAvailableForBondMoreBalance()
                 },
                 calculateFee = { amountInPlanks ->
-                    bondMoreInteractor.estimateFee {
+                    bondMoreInteractor.estimateFee(stashAddress()) {
                         stakingScenarioInteractor.stakeMore(
                             this,
                             amountInPlanks,
@@ -172,7 +172,7 @@ class SelectBondMoreViewModel @Inject constructor(
             feeConstructor = { token ->
                 val amountInPlanks = token.planksFromAmount(amount)
 
-                bondMoreInteractor.estimateFee {
+                bondMoreInteractor.estimateFee(stashAddress()) {
                     stakingScenarioInteractor.stakeMore(this, amountInPlanks, payload.collatorAddress)
                 }
             },

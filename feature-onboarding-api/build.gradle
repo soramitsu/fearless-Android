@@ -18,16 +18,12 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
-    namespace 'jp.co.soramitsu.feature_onboarding_api'
+    namespace = 'jp.co.soramitsu.feature_onboarding_api'
 }
 
 dependencies {
     implementation project(':feature-account-api')
 }
-
-

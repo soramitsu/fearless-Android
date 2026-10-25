@@ -48,7 +48,11 @@ data class ConnectRequest(
         }
 
         private fun parseManifestUrl(value: String): String {
-            return value.removeSuffix("/")
+            return kotlin.runCatching {
+                TonConnectUrlValidator.normalizeManifestUrl(value)
+            }.getOrElse {
+                throw TonConnectException.RequestParsingError(value)
+            }
         }
 
         private fun parseItems(array: JSONArray): List<Item> {

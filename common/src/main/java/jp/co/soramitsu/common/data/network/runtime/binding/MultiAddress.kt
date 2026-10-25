@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
 import jp.co.soramitsu.core.models.MultiAddress
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 
 fun bindMultiAddress(dynamicInstance: DictEnum.Entry<*>): MultiAddress {
     return when (dynamicInstance.name) {
@@ -14,4 +14,11 @@ fun bindMultiAddress(dynamicInstance: DictEnum.Entry<*>): MultiAddress {
     }
 }
 
-fun bindMultiAddressId(dynamicInstance: DictEnum.Entry<*>) = (bindMultiAddress(dynamicInstance) as? MultiAddress.Id)?.value
+fun bindMultiAddressId(dynamicInstance: DictEnum.Entry<*>): ByteArray? {
+    return when (val address = bindMultiAddress(dynamicInstance)) {
+        is MultiAddress.Id -> address.accountId
+        is MultiAddress.Address32 -> address.accountId
+        is MultiAddress.Address20 -> address.accountId
+        else -> null
+    }
+}

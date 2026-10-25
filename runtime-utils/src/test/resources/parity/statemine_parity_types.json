@@ -1,0 +1,20 @@
+{
+  "runtime_id": 1,
+  "types": {},
+  "versioning": [
+    {
+      "runtime_range": [
+        0,
+        null
+      ],
+      "types": {
+        "Balance": "u128",
+        "Index": "u32",
+        "Address": "sp_runtime::multiaddress::MultiAddress",
+        "ExtrinsicSignature": "sp_runtime::MultiSignature",
+        "asset_hub_kusama_runtime::RuntimeCall": "GenericCall",
+        "sp_core::crypto::AccountId32": "GenericAccountId"
+      }
+    }
+  ]
+}

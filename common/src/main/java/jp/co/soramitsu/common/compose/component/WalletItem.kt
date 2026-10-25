@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,8 +44,13 @@ data class WalletItemViewState(
     val isSelected: Boolean,
     val additionalMetadata: String = "",
     val score: Int? = null,
-    val supportedEcosystems: Set<WalletEcosystem> = emptySet()
+    val supportedEcosystems: Set<WalletEcosystem> = emptySet(),
+    /** Says what [balance] covers, for example "incl. hidden" on wallet-management cards. */
+    val balanceCaption: String? = null
 ) {
+    val supportsTon: Boolean
+        get() = supportedEcosystems.contains(WalletEcosystem.Ton)
+
     val onlyTonSupported: Boolean
         get() {
             return supportedEcosystems.size == 1 && supportedEcosystems.contains(WalletEcosystem.Ton)
@@ -96,7 +103,7 @@ fun WalletItem(
             Box(
                 contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(48.dp)
             ) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
@@ -107,6 +114,7 @@ fun WalletItem(
             }
             MarginHorizontal(margin = 12.dp)
             Column(
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start
             ) {
                 B2(
@@ -117,18 +125,26 @@ fun WalletItem(
                     H4(
                         text = state.assetSymbol.orEmpty() + state.balance.orEmpty()
                     )
-                } else {
+                } else if (state.balanceCaption == null) {
                     MarginVertical(margin = 2.dp)
                     ShimmerB0(modifier = Modifier.width(60.dp))
+                } else {
+                    H4(text = "—")
+                }
+                state.balanceCaption?.let { caption ->
+                    B2(
+                        text = caption,
+                        color = gray2,
+                        modifier = Modifier.testTag("WalletItem_balance_caption")
+                    )
                 }
                 if (state.changeBalanceViewState != null) {
                     ChangeBalance(state = state.changeBalanceViewState)
-                } else {
+                } else if (state.balance == null && state.balanceCaption == null) {
                     MarginVertical(margin = 2.dp)
                     ShimmerB2(modifier = Modifier.width(100.dp))
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
             state.score?.let { score ->
                 Box(modifier = Modifier
                     .padding(9.dp)
@@ -146,12 +162,12 @@ fun WalletItem(
                         },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(32.dp)
+                            .size(48.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
                             tint = Color.Unspecified,
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.ux_more)
                         )
                     }
                 }

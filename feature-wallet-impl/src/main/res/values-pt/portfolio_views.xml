@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">Por token</string>
+    <string name="portfolio_by_network">Por rede</string>
+    <string name="portfolio_show_zero_networks">Mostrar redes populares / com saldo zero (%1$d)</string>
+    <string name="portfolio_hide_zero_networks">Ocultar redes com saldo zero (%1$d)</string>
+    <string name="portfolio_hide_group_title">Ocultar token em todas as redes?</string>
+    <string name="portfolio_hide_group_message">Estes ativos de rede serão ocultados e excluídos do total da carteira. Os saldos e o backup continuam disponíveis em Gerenciar ativos.</string>
+    <string name="portfolio_choose_network">Escolher rede</string>
+    <string name="portfolio_price_unavailable">Preço indisponível</string>
+    <string name="portfolio_price_incomplete">Preço incompleto — saldos sem preço excluídos</string>
+    <string name="portfolio_group_networks">Em %1$d redes</string>
+    <string name="portfolio_group_hidden">%1$d ativos ocultos excluídos</string>
+    <string name="portfolio_value_notice">O total da carteira inclui saldos livres e reservados. Ativos ocultos, ativos sem preço, redes de teste e staking em pools são excluídos.</string>
+    <string name="portfolio_hidden_manage">Ativos ocultos (%1$d) · %2$s excluídos · Gerenciar</string>
+    <string name="portfolio_filter_all">Todos</string>
+    <string name="portfolio_filter_shown">Exibidos</string>
+    <string name="portfolio_filter_hidden">Ocultos</string>
+    <string name="portfolio_preference_auto">Automático</string>
+    <string name="portfolio_manage_group_count">%1$d de %2$d exibidos</string>
+    <string name="portfolio_no_hidden">Nenhum ativo oculto</string>
+    <string name="portfolio_only_network">Este token só está disponível em %1$s no Fearless.</string>
+</resources>

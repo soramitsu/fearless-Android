@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.alerts
 
+import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -44,6 +45,8 @@ class AlertsAdapter : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(Ale
                     alert.type.action()
                 }
             } else {
+                setOnClickListener(null)
+                isClickable = false
                 findViewById<ImageView>(R.id.alertItemGoToFlowIcon).makeGone()
             }
 
@@ -57,7 +60,9 @@ private class AlertDiffCallback : DiffUtil.ItemCallback<AlertModel>() {
         return oldItem.title == newItem.title && oldItem.extraMessage == newItem.extraMessage
     }
 
+    // A new model carries fresh action authority even when its rendered text is unchanged.
+    @SuppressLint("DiffUtilEquals")
     override fun areContentsTheSame(oldItem: AlertModel, newItem: AlertModel): Boolean {
-        return true
+        return oldItem === newItem
     }
 }

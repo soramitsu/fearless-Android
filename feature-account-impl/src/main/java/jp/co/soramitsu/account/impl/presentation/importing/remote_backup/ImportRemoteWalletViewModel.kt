@@ -2,28 +2,36 @@ package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
 import android.content.Intent
 import android.widget.LinearLayout
+import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.api.domain.model.ImportMode
+import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.showGoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.toGoogleBackupIssue
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.BackupOrigin
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordState
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.RemoteWalletListError
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.RemoteWalletListState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.WalletImportedState
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.backup.domain.exceptions.AuthConsentException
+import jp.co.soramitsu.backup.domain.exceptions.FileNotFoundException
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
-import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,6 +57,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
     )
     private val currentStep = MutableStateFlow(steps.first())
     private val remoteWallets = MutableStateFlow<List<WrappedBackupAccountMeta>?>(null)
+    private val remoteWalletsIssue = MutableStateFlow<GoogleBackupIssue?>(null)
 
     private val selectedWallet = MutableStateFlow<WrappedBackupAccountMeta?>(null)
     private val walletImportedState = selectedWallet.map { selectedWallet ->
@@ -56,6 +65,9 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     val requestGoogleAuth = MutableSharedFlow<Event<Intent>>()
+
+    /** Asks the screen to sign in to Google again with its activity result launcher. */
+    val requestGoogleSignIn = MutableSharedFlow<Event<Unit>>()
 
     private val defaultTextInputViewState = TextInputViewState(
         text = "",
@@ -89,8 +101,8 @@ class ImportRemoteWalletViewModel @Inject constructor(
             isLoading = isLoading
         )
     }
-    private val remoteWalletListState = remoteWallets.map { wallets ->
-        RemoteWalletListState(wallets = wallets)
+    private val remoteWalletListState = combine(remoteWallets, remoteWalletsIssue) { wallets, issue ->
+        RemoteWalletListState(wallets = wallets, error = issue?.let(::createRemoteWalletListError))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = RemoteWalletListState())
 
@@ -133,15 +145,26 @@ class ImportRemoteWalletViewModel @Inject constructor(
                 positiveButtonText = resourceManager.getString(R.string.common_delete),
                 negativeButtonText = resourceManager.getString(R.string.common_cancel),
                 buttonsOrientation = LinearLayout.HORIZONTAL,
-                positiveClick = {
-                    launch {
-                        backupService.deleteBackupAccount(backupAccount.backupMeta.address)
-                        val current = remoteWallets.value
-                        val new = current?.minus(backupAccount)
-                        remoteWallets.value = new
-                    }
-                }
+                positiveClick = { deleteBackup(backupAccount) }
             )
+        }
+    }
+
+    private fun deleteBackup(backupAccount: WrappedBackupAccountMeta) {
+        launch {
+            try {
+                // Only the copy this entry shows; other devices' copies of the wallet stay on Drive.
+                val meta = backupAccount.backupMeta
+                backupService.deleteBackupAccount(meta.address, listOfNotNull(meta.fileId))
+            } catch (e: FileNotFoundException) {
+                // Already gone from Drive, so it leaves the list as well.
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                showGoogleBackupIssue(resourceManager, e.toGoogleBackupIssue())
+                return@launch
+            }
+            remoteWallets.value = remoteWallets.value?.minus(backupAccount)
         }
     }
 
@@ -161,26 +184,90 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun loadRemoteWallets() {
         viewModelScope.launch {
-            val backupAccounts = try {
-                backupService.getBackupAccounts().map(::getWrapped)
+            remoteWalletsIssue.value = null
+            try {
+                val backupAccounts = backupService.getBackupAccounts().map(::getWrapped)
+                val backupAddresses = backupAccounts.map { it.backupMeta.address }.toSet()
+
+                val webBackupNotInCommonBackup = backupService.getWebBackupAccounts()
+                    // Substrate-only extension backups all have an empty address; only file ids tell them apart.
+                    .distinctBy { it.address.ifEmpty { it.fileId } }
+                    .filter { it.address !in backupAddresses }
+                    .map { getWrapped(it, origin = BackupOrigin.WEB) }
+
+                remoteWallets.value = webBackupNotInCommonBackup + backupAccounts
             } catch (e: AuthConsentException) {
                 requestGoogleAuth.emit(Event(e.intent))
-                return@launch
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                remoteWalletsIssue.value = e.toGoogleBackupIssue()
             }
-
-            val webBackupAccounts = backupService.getWebBackupAccounts()
-                .distinctBy { it.address }
-                .map { getWrapped(it, origin = BackupOrigin.WEB) }
-
-            val webBackupNotInCommonBackup = webBackupAccounts.filter {
-                it.backupMeta.address !in backupAccounts.map { it.backupMeta.address }
-            }
-            remoteWallets.value = webBackupNotInCommonBackup + backupAccounts
         }
     }
 
-    fun onGoogleLoginError(message: String) {
-        showError("GoogleLoginError\n$message")
+    override fun onErrorActionClick() {
+        if (remoteWalletsIssue.value == GoogleBackupIssue.SIGN_IN_REQUIRED) {
+            requestSignIn()
+        } else {
+            loadRemoteWallets()
+        }
+    }
+
+    override fun onImportAnotherWayClick() {
+        accountRouter.openImportAccountScreen(WalletEcosystem.Substrate, ImportMode.MnemonicPhrase)
+    }
+
+    // An empty list often means the backups are in another Google account; signing in again picks one.
+    override fun onUseAnotherGoogleAccountClick() {
+        requestSignIn()
+    }
+
+    fun signInToGoogle(launcher: ActivityResultLauncher<Intent>) {
+        viewModelScope.launch {
+            backupService.logout()
+            if (backupService.authorize(launcher)) {
+                onGoogleAuthorized()
+            }
+        }
+    }
+
+    /** Google sign-in or the Drive permission screen succeeded: repeat what needed it. */
+    fun onGoogleAuthorized() {
+        when (currentStep.value) {
+            ImportRemoteWalletStep.WalletList -> loadRemoteWallets()
+            ImportRemoteWalletStep.EnterBackupPassword -> decryptWalletByPassword()
+            ImportRemoteWalletStep.WalletImported -> Unit
+        }
+    }
+
+    fun onGoogleSignInFailed(result: GoogleSignInResult) {
+        // Closing the permission screen leaves Drive out of reach, so it needs a way back as well.
+        val issue = result.toGoogleBackupIssue() ?: GoogleBackupIssue.SIGN_IN_REQUIRED
+        if (currentStep.value == ImportRemoteWalletStep.WalletList) {
+            remoteWalletsIssue.value = issue
+        } else {
+            showImportIssue(issue)
+        }
+    }
+
+    private fun requestSignIn() {
+        launch {
+            requestGoogleSignIn.emit(Event(Unit))
+        }
+    }
+
+    private fun createRemoteWalletListError(issue: GoogleBackupIssue): RemoteWalletListError {
+        val actionRes = when {
+            issue == GoogleBackupIssue.SIGN_IN_REQUIRED -> R.string.google_backup_sign_in
+            issue.isRetryable -> R.string.common_try_again
+            else -> null
+        }
+        return RemoteWalletListError(
+            title = resourceManager.getString(issue.titleRes),
+            message = resourceManager.getString(issue.messageRes),
+            actionText = actionRes?.let(resourceManager::getString)
+        )
     }
 
     private fun getWrapped(backupMeta: BackupAccountMeta, origin: BackupOrigin = BackupOrigin.APP): WrappedBackupAccountMeta {
@@ -238,21 +325,18 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     private fun decryptWalletByPassword() {
+        val backupAccountMeta = selectedWallet.value ?: return
         isLoading.value = true
         viewModelScope.launch {
-            runCatching {
-                val backupAccountMeta = selectedWallet.value
-                val decryptedBackupAccount = when (backupAccountMeta?.origin) {
-                    null -> return@launch
+            try {
+                val decryptedBackupAccount = when (backupAccountMeta.origin) {
                     BackupOrigin.APP -> backupService.importBackupAccount(
                         address = backupAccountMeta.backupMeta.address,
                         password = passwordText.value
                     )
 
-                    BackupOrigin.WEB -> backupService.importWebBackupAccount(
-                        address = backupAccountMeta.backupMeta.address,
-                        name = selectedWallet.value?.backupMeta?.name.orEmpty()
-                    )
+                    // By Drive file id: Substrate-only extension backups share an empty address.
+                    BackupOrigin.WEB -> backupService.importWebBackupAccount(backupAccountMeta.backupMeta)
                 }
 
                 if (decryptedBackupAccount.backupAccountType.contains(BackupAccountType.JSON)) {
@@ -260,62 +344,74 @@ class ImportRemoteWalletViewModel @Inject constructor(
                     interactor.validateJsonBackup(json, passwordText.value)
                 }
 
-                importFromBackup(decryptedBackupAccount)
+                val restoringSecretTypes = backupService.restoringSecretTypes(decryptedBackupAccount)
+                importLegacyGoogleBackupAccount(interactor, decryptedBackupAccount, passwordText.value, restoringSecretTypes)
                 nextStep()
+            } catch (e: AuthConsentException) {
+                requestGoogleAuth.emit(Event(e.intent))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                showImportIssue(e.toGoogleBackupIssue())
+            } finally {
                 isLoading.value = false
             }
-                .onFailure {
-                    isLoading.value = false
-                    handleDecryptException(it)
-                }
         }
     }
 
-    private fun handleDecryptException(throwable: Throwable) {
-        throwable.printStackTrace()
-        showError(resourceManager.getString(R.string.import_json_invalid_password))
-    }
-
-    private suspend fun importFromBackup(
-        decryptedBackupAccount: DecryptedBackupAccount
-    ) {
-        decryptedBackupAccount.mnemonicPhrase?.let { mnemonicPhrase ->
-            val payload = AddAccountPayload.SubstrateOrEvm(
-                accountName = decryptedBackupAccount.name,
-                mnemonic = mnemonicPhrase,
-                encryptionType = decryptedBackupAccount.cryptoType,
-                substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
-                ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(),
-                googleBackupAddress = decryptedBackupAccount.address,
-                isBackedUp = true
+    private fun showImportIssue(issue: GoogleBackupIssue) {
+        when (issue) {
+            // Closing the message returns to the password field.
+            GoogleBackupIssue.WRONG_PASSWORD -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.common_try_again
             )
-            interactor.createAccount(payload)
-            return
-        }
 
-        decryptedBackupAccount.seed?.let { seed ->
-            interactor.importFromSeed(
-                walletId = null,
-                substrateSeed = seed.substrateSeed.orEmpty(),
-                username = decryptedBackupAccount.name,
-                derivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
-                selectedEncryptionType = decryptedBackupAccount.cryptoType,
-                ethSeed = seed.ethSeed,
-                googleBackupAddress = decryptedBackupAccount.address
+            GoogleBackupIssue.ALREADY_ON_DEVICE -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.google_backup_open_wallet,
+                positiveClick = ::openMainScreen,
+                negativeButtonRes = R.string.common_close
             )
-            return
-        }
 
-        decryptedBackupAccount.json?.let { json ->
-            interactor.importFromJson(
-                walletId = null,
-                json = json.substrateJson.orEmpty(),
-                password = passwordText.value,
-                name = decryptedBackupAccount.name,
-                ethJson = json.ethJson,
-                googleBackupAddress = decryptedBackupAccount.address
+            // The list screen reloads from Drive when it is shown again.
+            GoogleBackupIssue.BACKUP_NOT_FOUND -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.google_backup_refresh,
+                positiveClick = ::previousStep
             )
-            return
+
+            GoogleBackupIssue.SIGN_IN_REQUIRED -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.google_backup_sign_in,
+                positiveClick = ::requestSignIn,
+                negativeButtonRes = R.string.common_close
+            )
+
+            GoogleBackupIssue.NO_CONNECTION,
+            GoogleBackupIssue.STORAGE_FULL,
+            GoogleBackupIssue.UNKNOWN -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.common_try_again,
+                positiveClick = ::decryptWalletByPassword,
+                negativeButtonRes = R.string.common_close
+            )
+
+            GoogleBackupIssue.UNSUPPORTED_BACKUP,
+            GoogleBackupIssue.ETHEREUM_ONLY_BACKUP,
+            GoogleBackupIssue.UNAVAILABLE,
+            GoogleBackupIssue.SECRET_NOT_VERIFIED -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                positiveButtonRes = R.string.google_backup_import_another_way,
+                positiveClick = ::onImportAnotherWayClick,
+                negativeButtonRes = R.string.common_close
+            )
         }
     }
 

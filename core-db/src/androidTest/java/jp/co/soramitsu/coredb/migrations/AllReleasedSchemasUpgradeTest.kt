@@ -1,0 +1,1088 @@
+package jp.co.soramitsu.coredb.migrations
+
+import android.content.Context
+import android.database.Cursor
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteOpenHelper
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
+import androidx.test.platform.app.InstrumentationRegistry
+import jp.co.soramitsu.common.data.secrets.v1.Keypair as StoredKeypair
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.data.storage.encrypt.TonConnectStorageKeys
+import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityRecovery
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
+import jp.co.soramitsu.common.utils.deriveSeed32
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
+import jp.co.soramitsu.common.utils.invoke
+import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
+import jp.co.soramitsu.coredb.AppDatabase
+import jp.co.soramitsu.coredb.migrations.fixtures.ReleasedSchemaFixture
+import jp.co.soramitsu.coredb.migrations.fixtures.ReleasedSchemaFixtures
+import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString as toPlainHexString
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.toHexString
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+
+/**
+ * Upgrades a database built from the exact DDL of every released Room schema
+ * (TM-A1) through the production [AppDatabase] builder and migration graph.
+ *
+ * Each fixture is the schema a fresh install of that release created, taken
+ * from the official APK (or, where no APK was published, from the exported
+ * schema or a source-backed derivation recorded in its manifest). Rows and
+ * secrets are synthetic and era-typical: V1 `users` with `security_source_*`
+ * secrets up to DB 27, V2 `meta_accounts` with six-field `ACCESS_SECRETS` and
+ * V2 chain accounts from DB 30, and V3 split secrets plus a TON wallet from
+ * DB 73. Secret shapes are the well-formed ones every era wrote; the legacy
+ * shape cohorts (raw seed, JSON, typed TON text, ...) belong to the secret
+ * shape matrix, not to this schema matrix.
+ *
+ * Invariants (test-matrix section 1): U1 wallet set, U2 public identity and
+ * signing material, U5 every secret still readable with its original plaintext
+ * (a legacy ACCESS secret only through its exact split V3 conversion), U8
+ * wallet-owned rows (chain accounts, contacts, custom endpoints, favourites,
+ * TonConnect, asset preferences where the release kept them). A second open
+ * checks same-process idempotence only; U9 process interruption/relaunch and
+ * U7 startup/recovery UI require separate tests. No quarantine or recovery
+ * marker may appear.
+ *
+ * Fixtures: `assets/migrations/<release>/`, generated by
+ * `tools/upgrade-fixtures/android/extract_room_schema.py` from
+ * `tools/upgrade-fixtures/android/releases.json`.
+ */
+@RunWith(Parameterized::class)
+class AllReleasedSchemasUpgradeTest(
+    private val fixture: ReleasedSchemaFixture
+) {
+
+    private val context: Context =
+        InstrumentationRegistry.getInstrumentation().targetContext
+    private val databaseName = "all-released-schemas-${fixture.directory}"
+
+    @After
+    fun deleteDatabase() {
+        context.deleteDatabase(databaseName)
+    }
+
+    @Test
+    fun releasedSchemaUpgradesToCurrentWithoutLosingWalletState() = runBlocking {
+        val preferences = HashMapEncryptedPreferences()
+        ReleasedSchemaFixtures.createDatabase(context, databaseName, fixture)
+
+        val era = withFixtureDatabase { database ->
+            database.assertFreshReleasedInstall()
+            val era = database.era()
+            when (era) {
+                Era.LEGACY_USERS -> database.seedLegacyUsers()
+                Era.META_ACCOUNTS_V2 -> database.seedMetaAccountsV2()
+                Era.MULTI_ECOSYSTEM -> database.seedMultiEcosystem()
+            }
+            database.assertSqliteHealthy()
+            era
+        }
+        when (era) {
+            Era.LEGACY_USERS -> preferences.seedLegacyUserSecrets()
+            Era.META_ACCOUNTS_V2 -> preferences.seedMetaAccountV2Secrets()
+            Era.MULTI_ECOSYSTEM -> preferences.seedMultiEcosystemSecrets()
+        }
+        val originalSecrets = preferences.snapshot()
+
+        // Reopen in the same process with the same preferences instance.
+        // This checks repeat-open idempotence, not U9 process-crash recovery.
+        repeat(2) { launch ->
+            openProductionDatabase(preferences).useDatabase { database ->
+                val migrated = database.openHelper.writableDatabase
+                assertEquals("launch $launch", APP_DATABASE_VERSION, migrated.version)
+                migrated.assertSqliteHealthy()
+                when (era) {
+                    Era.LEGACY_USERS -> migrated.assertLegacyUsersPreserved(preferences)
+                    Era.META_ACCOUNTS_V2 -> migrated.assertMetaAccountsV2Preserved(preferences)
+                    Era.MULTI_ECOSYSTEM -> migrated.assertMultiEcosystemPreserved(preferences)
+                }
+                assertNoSecretLost(originalSecrets, preferences)
+                assertNoRecoveryState(preferences)
+            }
+        }
+    }
+
+    // region fixture database
+
+    private enum class Era { LEGACY_USERS, META_ACCOUNTS_V2, MULTI_ECOSYSTEM }
+
+    private fun SupportSQLiteDatabase.era(): Era = when {
+        !tableExists("meta_accounts") -> Era.LEGACY_USERS
+        "tonPublicKey" !in columnsOf("meta_accounts").map(Column::name) -> Era.META_ACCOUNTS_V2
+        else -> Era.MULTI_ECOSYSTEM
+    }
+
+    private fun <T> withFixtureDatabase(block: (SupportSQLiteDatabase) -> T): T {
+        val callback = object : SupportSQLiteOpenHelper.Callback(fixture.databaseVersion) {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                error("The released ${fixture.directory} schema was not installed")
+            }
+
+            override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) {
+                error("Unexpected fixture migration from $oldVersion to $newVersion")
+            }
+        }
+        val openHelper = FrameworkSQLiteOpenHelperFactory().create(
+            SupportSQLiteOpenHelper.Configuration.builder(context)
+                .name(databaseName)
+                .callback(callback)
+                .build()
+        )
+        return try {
+            val database = openHelper.writableDatabase
+            database.setForeignKeyConstraintsEnabled(true)
+            database.beginTransaction()
+            try {
+                block(database).also { database.setTransactionSuccessful() }
+            } finally {
+                database.endTransaction()
+            }
+        } finally {
+            openHelper.close()
+        }
+    }
+
+    private fun SupportSQLiteDatabase.assertFreshReleasedInstall() {
+        assertEquals(fixture.databaseVersion, version)
+        fixture.roomIdentityHash?.let { identityHash ->
+            assertEquals(
+                identityHash,
+                singleString("SELECT identity_hash FROM room_master_table WHERE id = 42")
+            )
+        }
+        if (fixture.tables.isNotEmpty()) {
+            assertEquals(fixture.tables, userTables())
+        }
+        userTables().forEach { table ->
+            val expectedRows = if (table == "room_master_table" && fixture.roomIdentityHash != null) 1L else 0L
+            assertEquals("$table rows", expectedRows, singleLong("SELECT COUNT(*) FROM `$table`"))
+        }
+    }
+
+    private fun openProductionDatabase(preferences: HashMapEncryptedPreferences): AppDatabase =
+        AppDatabase.create(
+            context = context,
+            databaseName = databaseName,
+            storeV1 = SecretStoreV1Impl(preferences),
+            storeV2 = SecretStoreV2(preferences),
+            encryptedPreferences = preferences,
+            substrateSecretStore = SubstrateSecretStore(preferences),
+            ethereumSecretStore = EthereumSecretStore(preferences)
+        )
+
+    // endregion
+
+    // region legacy users era (DB 10-27)
+
+    private fun SupportSQLiteDatabase.seedLegacyUsers() {
+        listOf(V1_SIGNING, V1_WATCH_ONLY).forEach { user ->
+            insertAdaptive(
+                table = "users",
+                required = mapOf(
+                    "address" to user.address,
+                    "username" to user.name,
+                    "publicKey" to user.publicKey.toPlainHexString(withPrefix = false),
+                    "cryptoType" to CryptoType.SR25519.ordinal,
+                    "position" to user.position
+                ),
+                optional = mapOf("networkType" to 0)
+            )
+        }
+        if (tableExists("total_reward")) {
+            insertAdaptive(
+                table = "total_reward",
+                required = mapOf(
+                    "accountAddress" to V1_SIGNING.address,
+                    "totalReward" to V1_TOTAL_REWARD
+                )
+            )
+        }
+    }
+
+    private suspend fun HashMapEncryptedPreferences.seedLegacyUserSecrets() {
+        SecretStoreV1Impl(this).saveSecuritySource(
+            V1_SIGNING.address,
+            SecuritySource.Specified.Mnemonic(
+                seed = V1_SEED,
+                keypair = V1_KEYPAIR,
+                mnemonic = V1_MNEMONIC.words,
+                derivationPath = V1_DERIVATION_PATH
+            )
+        )
+    }
+
+    private suspend fun SupportSQLiteDatabase.assertLegacyUsersPreserved(
+        preferences: HashMapEncryptedPreferences
+    ) {
+        assertEquals(2L, singleLong("SELECT COUNT(*) FROM meta_accounts"))
+        assertEquals(1L, singleLong("SELECT COUNT(*) FROM meta_accounts WHERE isSelected = 1"))
+        listOf(V1_SIGNING, V1_WATCH_ONLY).forEach { user ->
+            val metaId = singleLong("SELECT id FROM meta_accounts WHERE name = ?", user.name)
+            assertArrayEquals(
+                user.publicKey,
+                singleBlob("SELECT substratePublicKey FROM meta_accounts WHERE id = ?", metaId)
+            )
+            assertArrayEquals(
+                user.publicKey.substrateAccountId(),
+                singleBlob("SELECT substrateAccountId FROM meta_accounts WHERE id = ?", metaId)
+            )
+            assertEquals(
+                CryptoType.SR25519.name,
+                singleString("SELECT substrateCryptoType FROM meta_accounts WHERE id = ?", metaId)
+            )
+            // The legacy table itself becomes a read-only recovery ledger at 72 -> 73.
+            assertEquals(
+                user.name,
+                singleString("SELECT username FROM legacy_users_recovery WHERE address = ?", user.address)
+            )
+            assertEquals(
+                user.publicKey.toPlainHexString(withPrefix = false),
+                singleString("SELECT publicKey FROM legacy_users_recovery WHERE address = ?", user.address)
+            )
+        }
+        assertEquals(2L, singleLong("SELECT COUNT(*) FROM legacy_users_recovery"))
+
+        val signingMetaId = singleLong(
+            "SELECT id FROM meta_accounts WHERE name = ?",
+            V1_SIGNING.name
+        )
+        val watchOnlyMetaId = singleLong(
+            "SELECT id FROM meta_accounts WHERE name = ?",
+            V1_WATCH_ONLY.name
+        )
+        val substrate = checkNotNull(
+            SubstrateSecretStore(preferences).get(
+                metaId = signingMetaId,
+                expectedPublicKey = V1_KEYPAIR.publicKey,
+                expectedCryptoType = CryptoType.SR25519,
+                expectedAccountId = V1_KEYPAIR.publicKey.substrateAccountId()
+            )
+        )
+        assertKeypair(V1_KEYPAIR, substrate[SubstrateSecrets.SubstrateKeypair])
+        assertEquals(V1_DERIVATION_PATH, substrate[SubstrateSecrets.SubstrateDerivationPath])
+        assertNotNull(EthereumSecretStore(preferences).get(signingMetaId))
+        assertNull(SubstrateSecretStore(preferences).get(watchOnlyMetaId))
+        assertNull(EthereumSecretStore(preferences).get(watchOnlyMetaId))
+
+        val source = checkNotNull(SecretStoreV1Impl(preferences).getSecuritySource(V1_SIGNING.address))
+        assertKeypair(V1_KEYPAIR, source.keypair)
+
+        // 22 -> 23 recreated total_reward (nullable -> NOT NULL) as an empty cache.
+        if (fixture.databaseVersion >= FIRST_KEPT_TOTAL_REWARD_VERSION) {
+            assertEquals(
+                V1_TOTAL_REWARD,
+                singleString(
+                    "SELECT totalReward FROM total_reward WHERE accountAddress = ?",
+                    V1_SIGNING.address
+                )
+            )
+        }
+    }
+
+    // endregion
+
+    // region V2 meta-account era (DB 30-71)
+
+    private fun SupportSQLiteDatabase.seedMetaAccountsV2() {
+        seedChain()
+        insertMetaAccount(W1, ethereum = true)
+        insertMetaAccount(W2, ethereum = false)
+        seedWalletOwnedRows()
+    }
+
+    private fun HashMapEncryptedPreferences.seedMetaAccountV2Secrets() {
+        putEncryptedString(accessKey(W1.metaId), W1.sixFieldAccessSecret(withEthereum = true))
+        putEncryptedString(accessKey(W2.metaId), W2.sixFieldAccessSecret(withEthereum = false))
+        putEncryptedString(CHAIN_ACCOUNT_SECRET_KEY, CHAIN_ACCOUNT_SECRET)
+    }
+
+    private fun SupportSQLiteDatabase.assertMetaAccountsV2Preserved(
+        preferences: HashMapEncryptedPreferences
+    ) {
+        // 2.0.1's EthereumDerivationPathMigration (31 -> 32) gave every 2.0.0 wallet
+        // with entropy an Ethereum account on the default path, derived from its own
+        // phrase. Later releases never add one.
+        val w2Ethereum = W2_DERIVED_ETHEREUM_KEYPAIR.takeIf {
+            fixture.databaseVersion < FIRST_VERSION_AFTER_ETHEREUM_PATH_MIGRATION
+        }
+        val ethereum = mapOf(W1.metaId to ETHEREUM_KEYPAIR, W2.metaId to w2Ethereum)
+        assertWallets(listOf(W1, W2), ethereum)
+        assertRootSecretsConverted(preferences, W1, ETHEREUM_KEYPAIR)
+        assertRootSecretsConverted(preferences, W2, w2Ethereum)
+        assertWalletOwnedRowsPreserved(preferences)
+    }
+
+    // endregion
+
+    // region multi-ecosystem era (DB 73-75)
+
+    private fun SupportSQLiteDatabase.seedMultiEcosystem() {
+        seedChain()
+        insertMetaAccount(W1, ethereum = true)
+        insertMetaAccount(W2, ethereum = false)
+        insertAdaptive(
+            table = "meta_accounts",
+            required = mapOf(
+                "id" to TON_META_ID,
+                "tonPublicKey" to TON_PUBLIC_KEY,
+                "name" to TON_WALLET_NAME,
+                "isSelected" to 0,
+                "position" to 2
+            ),
+            optional = mapOf("isBackedUp" to 0, "initialized" to 1)
+        )
+        seedWalletOwnedRows()
+        insertAdaptive(
+            table = "ton_connection",
+            required = mapOf(
+                "metaId" to W1.metaId,
+                "clientId" to "ab".repeat(16),
+                "name" to TON_CONNECTION_NAME,
+                "icon" to "https://released.example/icon.png",
+                "url" to TON_CONNECTION_URL,
+                "source" to TON_CONNECTION_SOURCE
+            )
+        )
+    }
+
+    private fun HashMapEncryptedPreferences.seedMultiEcosystemSecrets() {
+        // 4.x created wallets with split V3 secrets ...
+        putEncryptedString(substrateKey(W1.metaId), W1.substrateSecret())
+        putEncryptedString(ethereumKey(W1.metaId), W1.ethereumSecret())
+        // ... and could still hold a seven-field ACCESS secret TonMigration never split.
+        putEncryptedString(accessKey(W2.metaId), W2.sevenFieldAccessSecret())
+        putEncryptedString(tonKey(TON_META_ID), TON_SECRET)
+        putEncryptedString(CHAIN_ACCOUNT_SECRET_KEY, CHAIN_ACCOUNT_SECRET)
+        putEncryptedString(TON_CONNECT_SECRET_KEY, TON_CONNECT_SECRET)
+    }
+
+    private fun SupportSQLiteDatabase.assertMultiEcosystemPreserved(
+        preferences: HashMapEncryptedPreferences
+    ) {
+        assertWallets(listOf(W1, W2), mapOf(W1.metaId to ETHEREUM_KEYPAIR, W2.metaId to null))
+        assertEquals(3L, singleLong("SELECT COUNT(*) FROM meta_accounts"))
+        assertEquals(
+            TON_WALLET_NAME,
+            singleString("SELECT name FROM meta_accounts WHERE id = ?", TON_META_ID)
+        )
+        assertArrayEquals(
+            TON_PUBLIC_KEY,
+            singleBlob("SELECT tonPublicKey FROM meta_accounts WHERE id = ?", TON_META_ID)
+        )
+        assertRootSecretsConverted(preferences, W1, ETHEREUM_KEYPAIR)
+        assertRootSecretsConverted(preferences, W2, ethereum = null)
+
+        val ton = checkNotNull(TonSecretStore(preferences).get(TON_META_ID, TON_PUBLIC_KEY))
+        assertArrayEquals(TON_PHRASE.encodeToByteArray(), ton[TonSecrets.Seed])
+        assertArrayEquals(TON_PRIVATE_KEY, ton[TonSecrets.PrivateKey])
+        assertArrayEquals(TON_PUBLIC_KEY, ton[TonSecrets.PublicKey])
+
+        assertWalletOwnedRowsPreserved(preferences)
+        assertEquals(
+            TON_CONNECTION_NAME,
+            singleString(
+                "SELECT name FROM ton_connection WHERE metaId = ? AND url = ? AND source = ?",
+                W1.metaId,
+                TON_CONNECTION_URL,
+                TON_CONNECTION_SOURCE
+            )
+        )
+        assertEquals(TON_CONNECT_SECRET, preferences.getDecryptedString(TON_CONNECT_SECRET_KEY))
+    }
+
+    // endregion
+
+    // region shared V2/V3 seeds and assertions
+
+    private fun SupportSQLiteDatabase.seedChain() {
+        insertAdaptive(
+            table = "chains",
+            required = mapOf(
+                "id" to CHAIN_ID,
+                "name" to CHAIN_NAME,
+                "icon" to "released-chain-icon",
+                "prefix" to 42,
+                "isEthereumBased" to 0,
+                "isTestNet" to 0,
+                "hasCrowdloans" to 0
+            ),
+            optional = mapOf(
+                "supportStakingPool" to 0,
+                "isEthereumChain" to 0,
+                "isChainlinkProvider" to 0,
+                "supportNft" to 0,
+                "isUsesAppId" to 0,
+                "ecosystem" to "Substrate"
+            )
+        )
+        insertAdaptive(
+            table = "chain_nodes",
+            required = mapOf(
+                "chainId" to CHAIN_ID,
+                "url" to CUSTOM_NODE_URL,
+                "name" to CUSTOM_NODE_NAME
+            ),
+            optional = mapOf("isActive" to 1, "isDefault" to 0)
+        )
+    }
+
+    private fun SupportSQLiteDatabase.insertMetaAccount(wallet: Wallet, ethereum: Boolean) {
+        insertAdaptive(
+            table = "meta_accounts",
+            required = mapOf(
+                "id" to wallet.metaId,
+                "substratePublicKey" to wallet.keypair.publicKey,
+                "substrateCryptoType" to wallet.cryptoType.name,
+                "substrateAccountId" to wallet.keypair.publicKey.substrateAccountId(),
+                "ethereumPublicKey" to if (ethereum) ETHEREUM_KEYPAIR.publicKey else null,
+                "ethereumAddress" to if (ethereum) ETHEREUM_ADDRESS else null,
+                "name" to wallet.name,
+                "isSelected" to if (wallet.selected) 1 else 0,
+                "position" to wallet.position
+            ),
+            optional = mapOf("isBackedUp" to 1, "initialized" to 1)
+        )
+    }
+
+    private fun SupportSQLiteDatabase.seedWalletOwnedRows() {
+        insertAdaptive(
+            table = "chain_accounts",
+            required = mapOf(
+                "metaId" to W1.metaId,
+                "chainId" to CHAIN_ID,
+                "publicKey" to CHAIN_ACCOUNT_KEYPAIR.publicKey,
+                "accountId" to CHAIN_ACCOUNT_ID,
+                "cryptoType" to CryptoType.SR25519.name
+            ),
+            optional = mapOf("name" to CHAIN_ACCOUNT_NAME, "initialized" to 1)
+        )
+        if (tableExists("address_book")) {
+            insertAdaptive(
+                table = "address_book",
+                required = mapOf(
+                    "address" to CONTACT_ADDRESS,
+                    "name" to CONTACT_NAME,
+                    "chainId" to CHAIN_ID,
+                    "created" to CONTACT_CREATED
+                )
+            )
+        }
+        if (tableExists("favorite_chains")) {
+            insertAdaptive(
+                table = "favorite_chains",
+                required = mapOf("metaId" to W1.metaId, "chainId" to CHAIN_ID, "isFavorite" to 1)
+            )
+        }
+        if (fixture.databaseVersion >= FIRST_KEPT_ASSETS_VERSION) {
+            RELEASED_ASSET_ROWS.forEach { row ->
+                val loaded = row.freeInPlanks?.let { "0" }
+                insertAdaptive(
+                    table = "assets",
+                    required = mapOf(
+                        "id" to row.id,
+                        "chainId" to CHAIN_ID,
+                        "accountId" to CHAIN_ACCOUNT_ID,
+                        "metaId" to W1.metaId,
+                        "freeInPlanks" to row.freeInPlanks,
+                        "reservedInPlanks" to loaded,
+                        "miscFrozenInPlanks" to loaded,
+                        "feeFrozenInPlanks" to loaded,
+                        "sortIndex" to row.sortIndex,
+                        "enabled" to row.enabled,
+                        "markedNotNeed" to 0
+                    )
+                )
+            }
+        }
+    }
+
+    private fun SupportSQLiteDatabase.assertWallets(wallets: List<Wallet>, ethereum: Map<Long, Keypair?>) {
+        wallets.forEach { wallet ->
+            val where = "FROM meta_accounts WHERE id = ${wallet.metaId}"
+            assertEquals(wallet.name, singleString("SELECT name $where"))
+            assertEquals(wallet.position.toLong(), singleLong("SELECT position $where"))
+            assertEquals(if (wallet.selected) 1L else 0L, singleLong("SELECT isSelected $where"))
+            assertArrayEquals(wallet.keypair.publicKey, singleBlob("SELECT substratePublicKey $where"))
+            assertArrayEquals(
+                wallet.keypair.publicKey.substrateAccountId(),
+                singleBlob("SELECT substrateAccountId $where")
+            )
+            assertEquals(wallet.cryptoType.name, singleString("SELECT substrateCryptoType $where"))
+            val ethereumKeypair = ethereum.getValue(wallet.metaId)
+            if (ethereumKeypair != null) {
+                assertArrayEquals(ethereumKeypair.publicKey, singleBlob("SELECT ethereumPublicKey $where"))
+                assertArrayEquals(
+                    ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                    singleBlob("SELECT ethereumAddress $where")
+                )
+            } else {
+                assertNull(singleNullableBlob("SELECT ethereumPublicKey $where"))
+            }
+        }
+        assertEquals(1L, singleLong("SELECT COUNT(*) FROM meta_accounts WHERE isSelected = 1"))
+    }
+
+    private fun assertRootSecretsConverted(
+        preferences: HashMapEncryptedPreferences,
+        wallet: Wallet,
+        ethereum: Keypair?
+    ) {
+        val substrate = checkNotNull(
+            SubstrateSecretStore(preferences).get(
+                metaId = wallet.metaId,
+                expectedPublicKey = wallet.keypair.publicKey,
+                expectedCryptoType = wallet.cryptoType,
+                expectedAccountId = wallet.keypair.publicKey.substrateAccountId()
+            )
+        ) { "${wallet.name}: no Substrate signing secret after upgrade; keys ${preferences.snapshot().keys}" }
+        assertArrayEquals(wallet.entropy, substrate[SubstrateSecrets.Entropy])
+        assertEquals(wallet.derivationPath, substrate[SubstrateSecrets.SubstrateDerivationPath])
+        assertKeypair(wallet.keypair, substrate[SubstrateSecrets.SubstrateKeypair])
+
+        if (ethereum != null) {
+            val secrets = checkNotNull(
+                EthereumSecretStore(preferences).get(
+                    metaId = wallet.metaId,
+                    expectedPublicKey = ethereum.publicKey,
+                    expectedAddress = ethereum.publicKey.ethereumAddressFromPublicKey()
+                )
+            ) { "${wallet.name}: no Ethereum signing secret after upgrade; keys ${preferences.snapshot().keys}" }
+            assertArrayEquals(wallet.entropy, secrets[EthereumSecrets.Entropy])
+            assertEquals(ETHEREUM_DERIVATION_PATH, secrets[EthereumSecrets.EthereumDerivationPath])
+            assertKeypair(ethereum, secrets[EthereumSecrets.EthereumKeypair])
+        } else {
+            assertFalse(preferences.hasKey(ethereumKey(wallet.metaId)))
+        }
+    }
+
+    private fun SupportSQLiteDatabase.assertWalletOwnedRowsPreserved(
+        preferences: HashMapEncryptedPreferences
+    ) {
+        val chainAccount = "FROM chain_accounts WHERE metaId = ${W1.metaId} AND chainId = '$CHAIN_ID'"
+        assertArrayEquals(CHAIN_ACCOUNT_ID, singleBlob("SELECT accountId $chainAccount"))
+        assertArrayEquals(CHAIN_ACCOUNT_KEYPAIR.publicKey, singleBlob("SELECT publicKey $chainAccount"))
+        assertEquals(CryptoType.SR25519.name, singleString("SELECT cryptoType $chainAccount"))
+        if (fixture.databaseVersion >= FIRST_CHAIN_ACCOUNT_NAME_VERSION) {
+            assertEquals(CHAIN_ACCOUNT_NAME, singleString("SELECT name $chainAccount"))
+        }
+        assertEquals(CHAIN_ACCOUNT_SECRET, preferences.getDecryptedString(CHAIN_ACCOUNT_SECRET_KEY))
+        assertEquals(CHAIN_NAME, singleString("SELECT name FROM chains WHERE id = '$CHAIN_ID'"))
+
+        // Endpoints older than 40 were a registry cache, cleared at 39 -> 40.
+        if (fixture.databaseVersion >= FIRST_KEPT_CUSTOM_NODE_VERSION) {
+            assertEquals(
+                CUSTOM_NODE_NAME,
+                singleString(
+                    "SELECT name FROM chain_nodes WHERE chainId = ? AND url = ?",
+                    CHAIN_ID,
+                    CUSTOM_NODE_URL
+                )
+            )
+        }
+        if (fixture.databaseVersion >= FIRST_ADDRESS_BOOK_VERSION) {
+            assertEquals(
+                CONTACT_NAME,
+                singleString(
+                    "SELECT name FROM address_book WHERE address = ? AND chainId = ?",
+                    CONTACT_ADDRESS,
+                    CHAIN_ID
+                )
+            )
+            assertEquals(
+                CONTACT_CREATED,
+                singleLong("SELECT created FROM address_book WHERE address = ?", CONTACT_ADDRESS)
+            )
+        }
+        if (fixture.databaseVersion >= FIRST_FAVORITE_CHAINS_VERSION) {
+            assertEquals(
+                1L,
+                singleLong(
+                    "SELECT isFavorite FROM favorite_chains WHERE metaId = ? AND chainId = ?",
+                    W1.metaId,
+                    CHAIN_ID
+                )
+            )
+        }
+        // Balance rows before 68 were caches that 65 -> 68 cleared in every release since 3.5.x.
+        if (fixture.databaseVersion >= FIRST_KEPT_ASSETS_VERSION) {
+            assertEquals(
+                RELEASED_ASSET_ROWS.size.toLong(),
+                singleLong("SELECT COUNT(*) FROM assets WHERE metaId = ?", W1.metaId)
+            )
+            RELEASED_ASSET_ROWS.forEach { row ->
+                val where = "FROM assets WHERE metaId = ${W1.metaId} AND chainId = '$CHAIN_ID' AND id = '${row.id}'"
+                assertEquals(row.id, row.expectedEnabled, singleNullableLong("SELECT enabled $where"))
+                assertEquals(row.id, row.freeInPlanks, singleNullableString("SELECT freeInPlanks $where"))
+            }
+        }
+    }
+
+    /**
+     * U5: each secret present before the upgrade is still readable with the
+     * same plaintext. A legacy ACCESS secret may instead have been converted;
+     * its exact fields are then asserted in the split stores, and it must not
+     * have been replaced by anything else under its own key.
+     */
+    private fun assertNoSecretLost(
+        original: Map<String, String>,
+        preferences: HashMapEncryptedPreferences
+    ) {
+        original.forEach { (key, value) ->
+            val current = preferences.getDecryptedString(key)
+            val archived = preferences.getDecryptedString("$ARCHIVE_PREFIX$key")
+            when {
+                current == value || archived == value -> Unit
+                current == null && key.endsWith(":ACCESS_SECRETS") && key.count { it == ':' } == 1 -> {
+                    val metaId = key.substringBefore(':')
+                    assertTrue(
+                        "$key was removed without a converted Substrate secret",
+                        preferences.hasKey("$metaId:SUBSTRATE_SECRETS")
+                    )
+                }
+
+                else -> error("$key changed or disappeared during the upgrade")
+            }
+        }
+    }
+
+    private fun assertNoRecoveryState(preferences: HashMapEncryptedPreferences) {
+        assertFalse(preferences.hasKeyWithPrefix(WalletSecretQuarantine.KEY_PREFIX))
+        assertFalse(preferences.hasKeyWithPrefix(WalletPublicIdentityRecovery.KEY_PREFIX))
+    }
+
+    private fun assertKeypair(expected: Keypair, actual: Any?) {
+        when (actual) {
+            is Keypair -> {
+                assertArrayEquals(expected.privateKey, actual.privateKey)
+                assertArrayEquals(expected.publicKey, actual.publicKey)
+            }
+
+            is EncodableStruct<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                val struct = actual as EncodableStruct<KeyPairSchema>
+                assertArrayEquals(expected.privateKey, struct[KeyPairSchema.PrivateKey])
+                assertArrayEquals(expected.publicKey, struct[KeyPairSchema.PublicKey])
+                assertArrayEquals((expected as? Sr25519Keypair)?.nonce, struct[KeyPairSchema.Nonce])
+            }
+
+            else -> error("Unexpected keypair representation $actual")
+        }
+    }
+
+    private fun HashMapEncryptedPreferences.snapshot(): Map<String, String> {
+        val keys = keysWithPrefixes(
+            prefixes = setOf(""),
+            maxResultCount = 256,
+            maxKeyBytes = 1_024,
+            maxTotalKeyBytes = 65_536,
+            failOnOversizedMatch = true
+        )
+        return keys.associateWith { key -> checkNotNull(getDecryptedString(key)) }
+    }
+
+    // endregion
+
+    // region SQL helpers
+
+    private data class Column(
+        val name: String,
+        val type: String,
+        val notNull: Boolean,
+        val hasDefault: Boolean,
+        val primaryKeyPosition: Int
+    )
+
+    private fun SupportSQLiteDatabase.columnsOf(table: String): List<Column> =
+        query("PRAGMA table_info(`$table`)").use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(
+                        Column(
+                            name = cursor.getString(cursor.getColumnIndexOrThrow("name")),
+                            type = cursor.getString(cursor.getColumnIndexOrThrow("type")).uppercase(),
+                            notNull = cursor.getInt(cursor.getColumnIndexOrThrow("notnull")) == 1,
+                            hasDefault = !cursor.isNull(cursor.getColumnIndexOrThrow("dflt_value")),
+                            primaryKeyPosition = cursor.getInt(cursor.getColumnIndexOrThrow("pk"))
+                        )
+                    )
+                }
+            }
+        }
+
+    /**
+     * Inserts one row into whatever columns [table] has in this release.
+     * Every [required] column must exist; [optional] columns are written only
+     * where the release has them; any other NOT NULL column without a
+     * default gets a neutral value of its declared type.
+     */
+    private fun SupportSQLiteDatabase.insertAdaptive(
+        table: String,
+        required: Map<String, Any?>,
+        optional: Map<String, Any?> = emptyMap()
+    ) {
+        val columns = columnsOf(table)
+        check(columns.isNotEmpty()) { "${fixture.directory} has no table $table" }
+        val names = columns.map(Column::name).toSet()
+        val missing = required.keys - names
+        check(missing.isEmpty()) { "${fixture.directory} $table lacks $missing" }
+        val row = linkedMapOf<String, Any?>()
+        columns.forEach { column ->
+            when {
+                column.name in required -> row[column.name] = required[column.name]
+                column.name in optional -> row[column.name] = optional[column.name]
+                column.notNull && !column.hasDefault && !column.isRowId(columns) ->
+                    row[column.name] = neutralValue(column.type)
+            }
+        }
+        execSQL(
+            "INSERT INTO `$table`(${row.keys.joinToString { "`$it`" }}) " +
+                "VALUES(${row.keys.joinToString { "?" }})",
+            row.values.toTypedArray()
+        )
+    }
+
+    private fun Column.isRowId(columns: List<Column>): Boolean =
+        primaryKeyPosition == 1 && type == "INTEGER" && columns.count { it.primaryKeyPosition > 0 } == 1
+
+    private fun neutralValue(type: String): Any = when (type) {
+        "INTEGER" -> 0L
+        "REAL" -> 0.0
+        "BLOB" -> ByteArray(0)
+        else -> ""
+    }
+
+    private fun SupportSQLiteDatabase.userTables(): List<String> =
+        query(
+            "SELECT name FROM sqlite_master WHERE type = 'table' " +
+                "AND name NOT LIKE 'sqlite_%' AND name != 'android_metadata' ORDER BY name"
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) add(cursor.getString(0))
+            }
+        }
+
+    private fun SupportSQLiteDatabase.tableExists(table: String): Boolean =
+        singleLong("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?", table) == 1L
+
+    private fun SupportSQLiteDatabase.assertSqliteHealthy() {
+        assertEquals("ok", singleString("PRAGMA integrity_check"))
+        query("PRAGMA foreign_key_check").use { cursor ->
+            assertFalse("foreign_key_check reports a violation", cursor.moveToFirst())
+        }
+    }
+
+    private fun <T> SupportSQLiteDatabase.single(sql: String, args: Array<out Any?>, read: (Cursor) -> T): T =
+        query(sql, args).use { cursor ->
+            check(cursor.moveToFirst()) { "${fixture.directory}: no row for $sql" }
+            read(cursor).also {
+                check(!cursor.moveToNext()) { "${fixture.directory}: more than one row for $sql" }
+            }
+        }
+
+    private fun SupportSQLiteDatabase.singleLong(sql: String, vararg args: Any?): Long =
+        single(sql, args) { it.getLong(0) }
+
+    private fun SupportSQLiteDatabase.singleNullableLong(sql: String, vararg args: Any?): Long? =
+        single(sql, args) { if (it.isNull(0)) null else it.getLong(0) }
+
+    private fun SupportSQLiteDatabase.singleString(sql: String, vararg args: Any?): String =
+        single(sql, args) { it.getString(0) }
+
+    private fun SupportSQLiteDatabase.singleNullableString(sql: String, vararg args: Any?): String? =
+        single(sql, args) { if (it.isNull(0)) null else it.getString(0) }
+
+    private fun SupportSQLiteDatabase.singleBlob(sql: String, vararg args: Any?): ByteArray =
+        single(sql, args) { it.getBlob(0) }
+
+    private fun SupportSQLiteDatabase.singleNullableBlob(sql: String, vararg args: Any?): ByteArray? =
+        single(sql, args) { if (it.isNull(0)) null else it.getBlob(0) }
+
+    private inline fun AppDatabase.useDatabase(block: (AppDatabase) -> Unit) {
+        try {
+            block(this)
+        } finally {
+            close()
+        }
+    }
+
+    // endregion
+
+    private data class LegacyUser(
+        val address: String,
+        val name: String,
+        val publicKey: ByteArray,
+        val position: Int
+    )
+
+    private data class Wallet(
+        val metaId: Long,
+        val name: String,
+        val position: Int,
+        val selected: Boolean,
+        val cryptoType: CryptoType,
+        val entropy: ByteArray,
+        val derivationPath: String?,
+        val keypair: Keypair
+    ) {
+        fun sixFieldAccessSecret(withEthereum: Boolean): String = TonMigration.MetaAccountSecretsV69 { secrets ->
+            secrets[TonMigration.MetaAccountSecretsV69.Entropy] = entropy
+            secrets[TonMigration.MetaAccountSecretsV69.Seed] = null
+            secrets[TonMigration.MetaAccountSecretsV69.SubstrateKeypair] = keypair.toSchema()
+            secrets[TonMigration.MetaAccountSecretsV69.SubstrateDerivationPath] = derivationPath
+            secrets[TonMigration.MetaAccountSecretsV69.EthereumKeypair] =
+                if (withEthereum) ETHEREUM_KEYPAIR.toSchema() else null
+            secrets[TonMigration.MetaAccountSecretsV69.EthereumDerivationPath] =
+                if (withEthereum) ETHEREUM_DERIVATION_PATH else null
+        }.toHexString()
+
+        fun sevenFieldAccessSecret(): String = MetaAccountSecrets(
+            substrateKeyPair = keypair,
+            entropy = entropy,
+            substrateDerivationPath = derivationPath
+        ).toHexString()
+
+        fun substrateSecret(): String = SubstrateSecrets(
+            substrateKeyPair = keypair,
+            entropy = entropy,
+            substrateDerivationPath = derivationPath
+        ).toHexString()
+
+        fun ethereumSecret(): String = EthereumSecrets(
+            entropy = entropy,
+            seed = ETHEREUM_KEYPAIR.privateKey,
+            ethereumKeypair = ETHEREUM_KEYPAIR,
+            ethereumDerivationPath = ETHEREUM_DERIVATION_PATH
+        ).toHexString()
+    }
+
+    private data class ReleasedAssetRow(
+        val id: String,
+        val freeInPlanks: String?,
+        val enabled: Long,
+        val expectedEnabled: Long?,
+        val sortIndex: Int = Int.MAX_VALUE
+    )
+
+    companion object {
+        private const val ARCHIVE_PREFIX = "wallet_secret_archive:v1:"
+        private const val FIRST_KEPT_TOTAL_REWARD_VERSION = 23
+        private const val FIRST_VERSION_AFTER_ETHEREUM_PATH_MIGRATION = 32
+        private const val FIRST_CHAIN_ACCOUNT_NAME_VERSION = 37
+        private const val FIRST_KEPT_CUSTOM_NODE_VERSION = 40
+        private const val FIRST_ADDRESS_BOOK_VERSION = 45
+        private const val FIRST_FAVORITE_CHAINS_VERSION = 59
+        private const val FIRST_KEPT_ASSETS_VERSION = 68
+
+        @JvmStatic
+        @Parameterized.Parameters(name = "{0}")
+        fun fixtures(): List<Array<ReleasedSchemaFixture>> =
+            ReleasedSchemaFixtures.all(InstrumentationRegistry.getInstrumentation().targetContext)
+                .map { arrayOf(it) }
+
+        private const val CHAIN_ID = "released-schema-matrix-chain"
+        private const val CHAIN_NAME = "Released schema chain ' \" ; --"
+        private const val CUSTOM_NODE_URL = "wss://custom.released.invalid/path?q='\""
+        private const val CUSTOM_NODE_NAME = "My node 雪"
+        private const val CHAIN_ACCOUNT_NAME = "Chain account 🦊"
+        private const val CONTACT_ADDRESS = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        private const val CONTACT_NAME = "Contact Ünïcödé ' --"
+        private const val CONTACT_CREATED = 1_700_000_000_000L
+        private const val V1_TOTAL_REWARD = "999999999999999999999999.5"
+        private const val V1_DERIVATION_PATH = "//legacy//1"
+        private const val ETHEREUM_DERIVATION_PATH = "//44//60//0/0/0"
+        private const val TON_META_ID = 9L
+        private const val TON_WALLET_NAME = "   "
+        private const val TON_CONNECTION_NAME = "Released TON dApp"
+        private const val TON_CONNECTION_URL = "https://released.example/tonconnect-manifest.json"
+        private const val TON_CONNECTION_SOURCE = "WEB"
+        private const val TON_CONNECT_SECRET = "ton-connect-session-secret"
+
+        // AL-4 family 08 canonical TON-native vector as Android 4.2.0 stored it (synthetic).
+        private const val TON_PHRASE =
+            "dolphin idle manual armor add empty music report oblige vicious tongue betray pluck " +
+                "globe sphere journey aware comfort index monkey parade detect crane inject"
+        private val TON_PRIVATE_KEY =
+            "d1f71b8120bd7ad9f01e88bf79b182df65e30bb068725eceb084556c9c6367db".fromHex()
+        private val TON_PUBLIC_KEY =
+            "33a8d4b3715d8c3185ce22c0e060207c8d53fb929cc0dfcbdffc1d25627ca42c".fromHex()
+        private val TON_SECRET = TonSecrets(
+            seed = TON_PHRASE.encodeToByteArray(),
+            tonKeypair = StoredKeypair(
+                publicKey = TON_PUBLIC_KEY,
+                privateKey = TON_PRIVATE_KEY
+            )
+        ).toHexString()
+
+        private val V1_ENTROPY = ByteArray(16) { (it * 3 + 7).toByte() }
+        private val V1_MNEMONIC = MnemonicCreator.fromEntropy(V1_ENTROPY.copyOf())
+        private val V1_DECODED_PATH = SubstrateJunctionDecoder.decode(V1_DERIVATION_PATH)
+        private val V1_SEED = SubstrateSeedFactory.deriveSeed32(
+            mnemonicWords = V1_MNEMONIC.words,
+            password = V1_DECODED_PATH.password
+        ).seed
+        private val V1_KEYPAIR = SubstrateKeypairFactory.generate(
+            encryptionType = EncryptionType.SR25519,
+            seed = V1_SEED,
+            junctions = V1_DECODED_PATH.junctions
+        )
+        private val V1_SIGNING = LegacyUser(
+            address = V1_KEYPAIR.publicKey.toAddress(0),
+            name = "1.x wallet ' \" ; -- 雪",
+            publicKey = V1_KEYPAIR.publicKey,
+            position = 0
+        )
+        private val V1_WATCH_ONLY_PUBLIC_KEY = ByteArray(32) { (it + 113).toByte() }
+        private val V1_WATCH_ONLY = LegacyUser(
+            address = V1_WATCH_ONLY_PUBLIC_KEY.toAddress(0),
+            name = "1.x watch-only 🔐",
+            publicKey = V1_WATCH_ONLY_PUBLIC_KEY,
+            position = 1
+        )
+
+        private val W1 = mnemonicWallet(
+            metaId = 3L,
+            name = "Main 🦊 wallet",
+            position = 0,
+            selected = true,
+            cryptoType = CryptoType.SR25519,
+            entropy = ByteArray(16) { (it * 11 + 5).toByte() },
+            derivationPath = "//released//0///matrix"
+        )
+        private val W2 = mnemonicWallet(
+            metaId = 5L,
+            name = "Ünïcödé second wallet",
+            position = 1,
+            selected = false,
+            cryptoType = CryptoType.ED25519,
+            entropy = ByteArray(16) { (it * 13 + 1).toByte() },
+            derivationPath = null
+        )
+
+        private val ETHEREUM_KEYPAIR = defaultPathEthereumKeypair(W1.entropy)
+        private val W2_DERIVED_ETHEREUM_KEYPAIR = defaultPathEthereumKeypair(W2.entropy)
+        private val ETHEREUM_ADDRESS = ETHEREUM_KEYPAIR.publicKey.ethereumAddressFromPublicKey()
+
+        private val CHAIN_ACCOUNT_ENTROPY = ByteArray(16) { (it * 17 + 9).toByte() }
+        private const val CHAIN_ACCOUNT_PATH = "//chain"
+        private val CHAIN_ACCOUNT_SEED = SubstrateSeedFactory.deriveSeed32(
+            mnemonicWords = MnemonicCreator.fromEntropy(CHAIN_ACCOUNT_ENTROPY.copyOf()).words,
+            password = null
+        ).seed
+        private val CHAIN_ACCOUNT_KEYPAIR = SubstrateKeypairFactory.generate(
+            encryptionType = EncryptionType.SR25519,
+            seed = CHAIN_ACCOUNT_SEED,
+            junctions = SubstrateJunctionDecoder.decode(CHAIN_ACCOUNT_PATH).junctions
+        )
+        private val CHAIN_ACCOUNT_ID = CHAIN_ACCOUNT_KEYPAIR.publicKey.substrateAccountId()
+        private val CHAIN_ACCOUNT_SECRET_KEY =
+            "${W1.metaId}:${CHAIN_ACCOUNT_ID.toPlainHexString(withPrefix = false)}:ACCESS_SECRETS"
+        private val CHAIN_ACCOUNT_SECRET = ChainAccountSecrets(
+            keyPair = CHAIN_ACCOUNT_KEYPAIR,
+            entropy = CHAIN_ACCOUNT_ENTROPY,
+            seed = CHAIN_ACCOUNT_SEED,
+            derivationPath = CHAIN_ACCOUNT_PATH
+        ).toHexString()
+
+        private val TON_CONNECT_SECRET_KEY = TonConnectStorageKeys.scoped(
+            metaId = W1.metaId,
+            url = TON_CONNECTION_URL,
+            source = TON_CONNECTION_SOURCE
+        )
+
+        // A funded wallet as 3.5.x-4.2.0 left it after the first sync and one user hide.
+        private val RELEASED_ASSET_ROWS = listOf(
+            ReleasedAssetRow("matrix-funded-shown", "25000000000", enabled = 1, expectedEnabled = 1, sortIndex = 0),
+            ReleasedAssetRow("matrix-zero-auto-hidden", "0", enabled = 0, expectedEnabled = null),
+            ReleasedAssetRow("matrix-unloaded-auto-hidden", null, enabled = 0, expectedEnabled = null),
+            ReleasedAssetRow("matrix-funded-user-hidden", "990000", enabled = 0, expectedEnabled = 0)
+        )
+
+        private fun accessKey(metaId: Long) = "$metaId:ACCESS_SECRETS"
+        private fun substrateKey(metaId: Long) = "$metaId:SUBSTRATE_SECRETS"
+        private fun ethereumKey(metaId: Long) = "$metaId:ETHEREUM_SECRETS"
+        private fun tonKey(metaId: Long) = "$metaId:TON_SECRETS"
+
+        private fun mnemonicWallet(
+            metaId: Long,
+            name: String,
+            position: Int,
+            selected: Boolean,
+            cryptoType: CryptoType,
+            entropy: ByteArray,
+            derivationPath: String?
+        ): Wallet {
+            val mnemonic = MnemonicCreator.fromEntropy(entropy.copyOf())
+            val decoded = derivationPath?.let(SubstrateJunctionDecoder::decode)
+            val seed = SubstrateSeedFactory.deriveSeed32(mnemonic.words, decoded?.password).seed
+            val keypair = SubstrateKeypairFactory.generate(
+                encryptionType = when (cryptoType) {
+                    CryptoType.SR25519 -> EncryptionType.SR25519
+                    CryptoType.ED25519 -> EncryptionType.ED25519
+                    CryptoType.ECDSA -> EncryptionType.ECDSA
+                },
+                seed = seed,
+                junctions = decoded?.junctions.orEmpty()
+            )
+            return Wallet(metaId, name, position, selected, cryptoType, entropy, derivationPath, keypair)
+        }
+
+        private fun defaultPathEthereumKeypair(entropy: ByteArray): Keypair {
+            val mnemonic = MnemonicCreator.fromEntropy(entropy.copyOf())
+            val path = BIP32JunctionDecoder.decode(BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH)
+            return EthereumKeypairFactory.generate(
+                seed = EthereumSeedFactory.deriveSeed32(mnemonic.words, path.password).seed,
+                junctions = path.junctions
+            )
+        }
+
+        // The builder lambda has the schema as its receiver, so name this keypair explicitly.
+        private fun Keypair.toSchema(): EncodableStruct<KeyPairSchema> {
+            val source = this
+            return KeyPairSchema { keypair ->
+                keypair[KeyPairSchema.PublicKey] = source.publicKey
+                keypair[KeyPairSchema.PrivateKey] = source.privateKey
+                keypair[KeyPairSchema.Nonce] = (source as? Sr25519Keypair)?.nonce
+            }
+        }
+    }
+}

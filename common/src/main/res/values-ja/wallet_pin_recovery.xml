@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">ウォレットPINを復旧</string>
+    <string name="pin_recovery_intro">保存されたPINを読み取れません。ウォレットと元のPINレコードは保持されています。所有者であることを確認して、新しいPINを設定してください。</string>
+    <string name="pin_recovery_failed">復旧を完了できないか、認証の有効期限が切れました。保持データは削除されていません。再試行してください。</string>
+    <string name="pin_recovery_retry">再試行</string>
+    <string name="pin_recovery_biometric">強力な生体認証で確認</string>
+    <string name="pin_recovery_backup_intro">ウォレットの鍵を選び、バックアップを入力してください。保存済みの公開識別情報と一致する必要があります。一致するバックアップで、その鍵も修復できます。</string>
+    <string name="pin_recovery_no_identity">現在、確認できるウォレットの公開識別情報がありません。以前に有効にした強力な生体認証、または端末ロック解除による閲覧専用アクセスを使用してください。</string>
+    <string name="pin_recovery_view_only_intro">端末ロック解除で表示できるのは残高と公開アドレスのみです。ウォレットPINを復旧するまで、送信、署名、鍵のバックアップはロックされます。</string>
+    <string name="pin_recovery_view_only">端末ロックを解除して閲覧</string>
+    <string name="pin_recovery_verified">所有者の確認が完了しました。新しいウォレットPINを設定してください。</string>
+    <string name="pin_recovery_verify_backup">ウォレットのバックアップを確認</string>
+    <string name="pin_recovery_reset">ウォレットPINを復旧</string>
+    <string name="pin_recovery_view_only_title">閲覧専用アクセス</string>
+</resources>

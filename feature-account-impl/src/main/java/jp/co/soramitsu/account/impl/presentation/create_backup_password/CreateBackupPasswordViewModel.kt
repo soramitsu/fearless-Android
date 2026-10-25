@@ -1,18 +1,29 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
 import android.app.Activity
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.showGoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.toGoogleBackupIssue
 import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.backup.GoogleSignInResult
+import jp.co.soramitsu.backup.domain.exceptions.AuthConsentException
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -29,6 +40,24 @@ class CreateBackupPasswordViewModel @Inject constructor(
 ) : BaseViewModel(), CreateBackupPasswordCallback {
 
     private val payload = savedStateHandle.get<SaveBackupPayload?>(CreateBackupPasswordDialog.PAYLOAD_KEY)
+
+    // Kept across retries and a recreated screen, so one backup attempt never creates the wallet twice.
+    private var createdWalletId: Long?
+        get() = savedStateHandle.get<Long>(CREATED_WALLET_ID_KEY)
+        set(value) {
+            savedStateHandle[CREATED_WALLET_ID_KEY] = value
+        }
+    private var isBackupUploaded = false
+    private var leftOutBackupTypes: Set<BackupAccountType> = emptySet()
+
+    /** True once this screen created the wallet; leaving then hands the wallet to the caller. */
+    val isWalletCreated = MutableStateFlow(createdWalletId != null)
+
+    /** Asks the screen to open a Google Drive permission screen. */
+    val requestGoogleConsent = MutableSharedFlow<Event<Intent>>()
+
+    /** Asks the screen to sign in to Google again with its activity result launcher. */
+    val requestGoogleSignIn = MutableSharedFlow<Event<Unit>>()
 
     private val originPassword = MutableStateFlow("")
     private val confirmPassword = MutableStateFlow("")
@@ -146,43 +175,145 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     override fun onBackClick() {
-        accountRouter.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_CANCELED)
+        backUpLater()
     }
 
     override fun onApplyPasswordClick() {
+        if (isLoading.value) return
         isLoading.value = true
 
         viewModelScope.launch {
-            runCatching {
-                val createResult = payload?.addAccountPayload?.let {
-                    interactor.createAccount(it)
+            try {
+                val walletId = createdWalletId ?: payload?.walletId ?: createWallet()
+                if (!isBackupUploaded) {
+                    leftOutBackupTypes = interactor.saveGoogleBackupAccount(walletId, originPassword.value)
+                    isBackupUploaded = true
                 }
-
-                val walletId = createResult?.getOrNull() ?: payload?.walletId
-                walletId?.let {
-                    interactor.saveGoogleBackupAccount(
-                        walletId,
-                        originPassword.value
-                    )
-                }
-                walletId
-            }
-                .onSuccess { walletId ->
-                    walletId?.let {
-                        interactor.updateWalletBackedUp(walletId)
-                    }
+                // Only a backup that reached Drive marks the wallet as backed up.
+                interactor.updateWalletBackedUp(walletId)
+                if (leftOutBackupTypes.isEmpty()) {
                     continueBasedOnCodeStatus()
-                    isLoading.value = false
+                } else {
+                    showBackedUpWithoutPhrase()
                 }
-                .onFailure {
-                    isLoading.value = false
-                    showError(it)
-                }
+            } catch (e: AuthConsentException) {
+                requestGoogleConsent.emit(Event(e.intent))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                showBackupIssue(e.toGoogleBackupIssue())
+            } finally {
+                isLoading.value = false
+            }
         }
     }
 
+    fun signInToGoogle(launcher: ActivityResultLauncher<Intent>) {
+        viewModelScope.launch {
+            if (interactor.authorizeGoogleBackup(launcher)) {
+                onApplyPasswordClick()
+            }
+        }
+    }
+
+    /** Google sign-in or the Drive permission screen succeeded: try the backup again. */
+    fun onGoogleAuthorized() {
+        onApplyPasswordClick()
+    }
+
+    fun onGoogleSignInFailed(result: GoogleSignInResult) {
+        // Backing out of sign-in leaves the password screen, where the backup can be started again.
+        val issue = result.toGoogleBackupIssue() ?: return
+        showBackupIssue(issue)
+    }
+
+    private suspend fun createWallet(): Long {
+        val addAccountPayload = requireNotNull(payload?.addAccountPayload) { "No wallet to back up" }
+        return interactor.createAccount(addAccountPayload).getOrThrow().also { walletId ->
+            createdWalletId = walletId
+            isWalletCreated.value = true
+        }
+    }
+
+    private fun showBackupIssue(issue: GoogleBackupIssue) {
+        val message = resourceManager.getString(issue.messageRes).let { message ->
+            if (createdWalletId != null) {
+                message + "\n\n" + resourceManager.getString(R.string.google_backup_wallet_created_not_backed_up)
+            } else {
+                message
+            }
+        }
+
+        when (issue) {
+            GoogleBackupIssue.SIGN_IN_REQUIRED -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                message = message,
+                positiveButtonRes = R.string.google_backup_sign_in,
+                positiveClick = ::requestSignIn,
+                negativeButtonRes = R.string.google_backup_back_up_later,
+                negativeClick = ::backUpLater
+            )
+
+            // An earlier attempt already created this wallet; it only has to be opened.
+            GoogleBackupIssue.ALREADY_ON_DEVICE -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                message = message,
+                positiveButtonRes = R.string.google_backup_open_wallet,
+                positiveClick = { finishWith(CreateBackupPasswordDialog.RESULT_BACKUP_SKIPPED) }
+            )
+
+            // Trying again cannot help: the previous screen offers the other ways to back up.
+            GoogleBackupIssue.SECRET_NOT_VERIFIED,
+            GoogleBackupIssue.UNAVAILABLE -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                message = message,
+                positiveButtonRes = R.string.common_ok,
+                positiveClick = ::backUpLater
+            )
+
+            else -> showGoogleBackupIssue(
+                resourceManager,
+                issue,
+                message = message,
+                positiveButtonRes = R.string.common_try_again,
+                positiveClick = ::onApplyPasswordClick,
+                negativeButtonRes = R.string.google_backup_back_up_later,
+                negativeClick = ::backUpLater
+            )
+        }
+    }
+
+    // The uploaded seed or JSON restores this wallet; say why its phrase is not in the backup.
+    private fun showBackedUpWithoutPhrase() {
+        showError(
+            title = resourceManager.getString(R.string.google_backup_saved_without_phrase_title),
+            message = resourceManager.getString(R.string.google_backup_saved_without_phrase_message),
+            positiveButtonText = resourceManager.getString(R.string.common_continue),
+            positiveClick = ::continueBasedOnCodeStatus,
+            onBackClick = ::continueBasedOnCodeStatus
+        )
+    }
+
+    private fun requestSignIn() {
+        launch {
+            requestGoogleSignIn.emit(Event(Unit))
+        }
+    }
+
+    /** Leaves without a backup. A wallet created here stays, not marked as backed up, so the app keeps asking. */
+    private fun backUpLater() {
+        finishWith(if (createdWalletId != null) CreateBackupPasswordDialog.RESULT_BACKUP_SKIPPED else Activity.RESULT_CANCELED)
+    }
+
     private fun continueBasedOnCodeStatus() {
-        accountRouter.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_OK)
+        finishWith(Activity.RESULT_OK)
+    }
+
+    private fun finishWith(resultCode: Int) {
+        accountRouter.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to resultCode)
     }
 
     override fun onAgreementsClick() {
@@ -195,5 +326,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     override fun onConfirmPasswordVisibilityClick() {
         isConfirmPasswordVisible.value = isConfirmPasswordVisible.value.not()
+    }
+
+    private companion object {
+        const val CREATED_WALLET_ID_KEY = "created_wallet_id"
     }
 }

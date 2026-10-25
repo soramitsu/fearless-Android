@@ -1,0 +1,90 @@
+{
+  "status": "accepted-inactive-endpoint-attachment-and-restore",
+  "qualifiedSourceCommit": "e4c45589ab2b535fdd6fbdc7c3fa54073384b61c",
+  "qualification": {
+    "path": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-endpoint-attachment-draft-v1/qualification-v1/candidate.json",
+    "bytes": 25212,
+    "sha256": "98bca69ba8e9673d6529dff3bbda37ae8e12e6bf91ffc19639e1cf56ec8852c9"
+  },
+  "independentFinalReview": {
+    "path": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-endpoint-attachment-draft-v1/qualification-v1/independent-review-v1.json",
+    "bytes": 15400,
+    "sha256": "4dd88272b226d9cab773283b86b2b0343953c1e49b1b26a1203e321c96d4d0b4"
+  },
+  "counts": {
+    "freshUnitPass": 1966,
+    "inheritedUnitSkip": 4,
+    "freshNativePass": 1458,
+    "reusedCommonNativePass": 87,
+    "totalNativePass": 1545
+  },
+  "nativeByAPI": {
+    "26": {
+      "core": 443,
+      "auth": 1,
+      "components": 41,
+      "restore": 1,
+      "reusedCommon": 29
+    },
+    "34": {
+      "core": 443,
+      "auth": 1,
+      "components": 41,
+      "restore": 1,
+      "reusedCommon": 29
+    },
+    "36": {
+      "core": 443,
+      "auth": 1,
+      "components": 41,
+      "restore": 1,
+      "reusedCommon": 29
+    }
+  },
+  "lint": {
+    "core-db": {
+      "errors": 0,
+      "warnings": 0,
+      "task": "EXECUTED",
+      "reportTask": "UP-TO-DATE",
+      "fresh": false,
+      "reportSHA256": "f6a199ee69eaae06333f965106926fb34b6f8aba15a12b6b3fc06796e18c76cc"
+    },
+    "feature-account-impl": {
+      "errors": 0,
+      "warnings": 67,
+      "task": "EXECUTED",
+      "reportTask": "UP-TO-DATE",
+      "fresh": false,
+      "reportSHA256": "2770e1c9fce490e30be23f9985b88e97e1d673f380233b24a5929eba32d33572"
+    },
+    "common": {
+      "errors": 0,
+      "warnings": 288,
+      "task": "EXECUTED",
+      "reportTask": "UP-TO-DATE",
+      "fresh": false,
+      "reportSHA256": "6ba3e9f3f8a7654ee20e2abd6cc7bc84d79b6a274c25ad0f98acee066999a5b9"
+    },
+    "app": {
+      "errors": 0,
+      "warnings": 100,
+      "task": "EXECUTED",
+      "reportTask": "EXECUTED",
+      "fresh": true,
+      "reportSHA256": "90488a906fd178aff8acd82c44ac48c795751b20b2e709a127957f88f8595285"
+    }
+  },
+  "behavior": [
+    "Existing authenticated saved endpoint form verifies exact chosen network genesis under bounded protocol and Android cleartext policy. Explicit Add establishes durable custom ownership as inactive; verification alone never attaches or selects.",
+    "Explicit Restore binds the exact detached owner/revision/original record and reattaches inactive after fresh checks; no replacement owner or implicit selected endpoint.",
+    "Mutation/revocation/final grant, whole raw fixture SQL/preferences/known heartbeat, PIN lifetimes and original proofs are independently checked. Room guard accepts exact Room2.7.2 TEMP invalidation metadata and rejects counterfeit/shadow hooks."
+  ],
+  "qualificationLimits": [
+    "Scoped emulator/component/current-fixture acceptance only. No OS process-death or physical biometric qualification, public-network TLS success, automatic Select, runtime connection acknowledgment or release readiness claim.",
+    "Common29 perAPI is reused on the exact identical archived APK and unchanged common source; core443 and app41+PIN+Restore perAPI are fresh final-source executions.",
+    "Four inherited unit skips and lint warnings remain explicit; three lint reports and core production compile reuse are documented in the accepted build.",
+    "Earlier build, fixture, telemetry, observer, verifier and API26 Wi-Fi failures remain retained. API26 Restore continuation preserves same profile/boot and absent-package admission; no reset.",
+    "C3 selection/runtime, U0 per-key/global startup/cache/history, physical/design and final shipping checks remain open."
+  ]
+}

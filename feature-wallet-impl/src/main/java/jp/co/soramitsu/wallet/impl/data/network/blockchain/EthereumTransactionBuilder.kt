@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.wallet.impl.data.network.model.EvmTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import org.web3j.abi.FunctionEncoder

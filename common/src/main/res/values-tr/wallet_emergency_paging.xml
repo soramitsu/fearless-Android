@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">Görüntülemek için kayıtlı bir anahtar seçin. Yalnızca seçtiğiniz anahtarın şifresi çözülür.</string>
+    <string name="wallet_emergency_view_key">Bu anahtarı görüntüle</string>
+    <string name="wallet_emergency_next_page">Sonraki sayfa</string>
+    <string name="wallet_emergency_first_page">İlk sayfadan yenile</string>
+    <string name="wallet_emergency_back_to_list">Bu sayfaya dön</string>
+    <string name="wallet_emergency_inventory_changed">Kayıtlı anahtar listesi değişti. Devam etmek için ilk sayfadan yenileyin.</string>
+    <string name="wallet_emergency_no_more_keys">Bu sayfadan sonra başka anahtar yok.</string>
+    <string name="wallet_emergency_key_identifier">Saklanan anahtar: %1$s</string>
+</resources>

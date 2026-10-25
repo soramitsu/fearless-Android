@@ -98,6 +98,12 @@
   <string name="backup_now">Резервное копирование сейчас</string>
   <string name="backup_wallet_backup_to_google">Сохранить кошелек в Google</string>
   <string name="backup_wallet_delete_alert_message">Если вы удалите свою резервную копию Google, вы сможете восстановить свой кошелек только с резервной копией вашей парольной фразы вручную.</string>
+  <plurals name="backup_wallet_delete_copies_alert_message">
+    <item quantity="one">Будет удалена %d резервная копия этого кошелька в Google, включая копии, сохраненные с других ваших устройств или с другим паролем. После этого восстановить кошелек можно будет только с помощью резервной копии вашей парольной фразы, сделанной вручную</item>
+    <item quantity="few">Будут удалены все %d резервные копии этого кошелька в Google, включая сохраненные с других ваших устройств или с другим паролем. После этого восстановить кошелек можно будет только с помощью резервной копии вашей парольной фразы, сделанной вручную</item>
+    <item quantity="many">Будут удалены все %d резервных копий этого кошелька в Google, включая сохраненные с других ваших устройств или с другим паролем. После этого восстановить кошелек можно будет только с помощью резервной копии вашей парольной фразы, сделанной вручную</item>
+    <item quantity="other">Будут удалены все %d резервной копии этого кошелька в Google, включая сохраненные с других ваших устройств или с другим паролем. После этого восстановить кошелек можно будет только с помощью резервной копии вашей парольной фразы, сделанной вручную</item>
+  </plurals>
   <string name="backup_wallet_delete_google_backup">Удалить кошелек из Google</string>
   <string name="backup_wallet_export_json">Экспортировать JSON</string>
   <string name="backup_wallet_replace_accounts_alert" formatted="false">В настоящее время у вас есть %s Учетная запись и адрес сети %s Он был добавлен путем замены основной ключевой пары, и обладает специфическим ключом. Однако обратите внимание, что наш текущий процесс резервного копирования (экспорта) кошелька не поддерживает хранение нескольких пар ключей. В результате вы можете сохранить только свою основную ключевую пару. \n \n Чтобы обеспечить безопасность замененной учетной записи цепочки, мы рекомендуем сначала создать отдельную резервную копию учетной записи, прежде чем продолжить текущий процесс. После успешного резервного копирования замененной учетной записи цепочки вы можете без каких-либо проблем перейти к текущему процессу.</string>
@@ -110,9 +116,6 @@
   <string name="balance_locks_nomination_pools_row_title">Пулы номинаций</string>
   <string name="balance_locks_screen_title">Заблокированные детали</string>
   <string name="banners_backup_description">Защитите себя от потери доступа к своим средствам</string>
-  <string name="banners_buy_xor">Купить XOR</string>
-  <string name="banners_buy_xor_description">Купить или продать токен XOR за евро</string>
-  <string name="banners_buy_xor_title">Купить токен XOR</string>
   <string name="banners_liquidity_pools_title">Пулы ликвидности</string>
   <string name="beacon_connect_warning">Внимание: Нажимая «Подключиться», вы разрешаете этому dapp просматривать ваш публичный адрес. Это важный шаг для защиты ваших данных от потенциальных рисков фишинга.</string>
   <string name="beacon_connected">Подключено к %s</string>
@@ -238,6 +241,9 @@
   <string name="common_error_network">Возникла ошибка при обмене данными с удаленным сервером</string>
   <string name="common_event">Событие</string>
   <string name="common_existential_error_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита %s, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места).</string>
+  <string name="common_existential_unknown_message">Fearless Wallet не удалось проверить минимальный баланс (экзистенциальный депозит), который сеть требует для %s. Если после перевода на каком-либо из счетов останется меньше этого минимума, сеть может удалить счет вместе с оставшейся на нем суммой. Продолжайте, только если уверены, что на обоих счетах останется достаточно средств, или отмените и повторите попытку позже.</string>
+  <string name="common_existential_unknown_retry_message">Fearless Wallet не удалось проверить минимальный баланс (экзистенциальный депозит), который сеть требует для %s, поэтому ничего не было отправлено. Проверьте подключение и повторите попытку.</string>
+  <string name="common_existential_unknown_title">Минимальный баланс не проверен</string>
   <string name="common_existential_warning_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита %s, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места). Если вы решите продолжить, вы потеряете все средства, которые находятся ниже суммы экзистенциального депозита, установленного сетью. За подробной информацией обращайтесь к официальной документации сети (например, Polkadot Wiki). Fearless Wallet является полностью не опекунским приложением и не контролирует и не знает о любых ваших действиях в самой сети. ПРОДОЛЖАЙТЕ ТОЛЬКО В ТОМ СЛУЧАЕ, ЕСЛИ ВЫ ПОЛНОСТЬЮ СОГЛАСНЫ И ПОНИМАЕТЕ ПОСЛЕДСТВИЯ.</string>
   <string name="common_existential_warning_title">Операция сделает аккаунт неактивным</string>
   <string name="common_filter_sort_header">Сортировать по:</string>
@@ -288,6 +294,8 @@
   <string name="common_not_enough_funds_title">Недостаточный баланс</string>
   <string name="common_note">Примечание: </string>
   <string name="common_ok">OK</string>
+  <string name="update_security_notice_title">Ваш мобильный кошелёк в безопасности</string>
+  <string name="update_security_notice_message">Проблема безопасности в старом расширении Fearless для Chrome не затронула приложения Fearless для iOS и Android.\n\nЕсли вы пользовались расширением для Chrome до 23 октября 2026 года, создайте новый кошелёк и переведите на него свои средства.</string>
   <string name="common_options">Опции</string>
   <string name="common_options_title">Выберите опцию</string>
   <string name="common_origin_network">Исходная сеть</string>
@@ -374,6 +382,50 @@
   <string name="connection_methods_not_supported_warning">Некоторые методы, запрашиваемые Wallet Connect, в настоящее время не поддерживаются приложением. Хотя соединение может быть установлено, некоторые функции dApp могут быть недоступны.</string>
   <string name="connection_optional_networks">Дополнительные сети</string>
   <string name="connection_problems_alert_message">Не удалось загрузить необходимые данные для запуска приложения. Проверьте подключение к Интернету и повторите попытку.</string>
+  <string name="wallet_secure_storage_unavailable_title">Данные кошелька защищены</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless не удалось получить доступ к защищенному хранилищу Android. Зашифрованные данные кошелька сохранены и не были сброшены. Разблокируйте устройство и повторите попытку. Если проблема не исчезнет, обратитесь в службу поддержки Fearless.</string>
+  <string name="wallet_database_unavailable_title">Не удалось открыть данные кошелька</string>
+  <string name="wallet_database_unavailable_message">Fearless не удалял и не сбрасывал данные кошелька. Повторите попытку открыть кошелек. Если проблема не исчезнет, обратитесь в службу поддержки Fearless.</string>
+  <string name="wallet_recovery_required_title">Требуется восстановление кошелька</string>
+  <string name="wallet_recovery_required_message">Один из ключей этого кошелька требует внимания. Остальные ключи и другие ваши кошельки продолжают работать. Откройте восстановление кошелька, чтобы восстановить доступ или проверить резервную копию.</string>
+  <string name="wallet_startup_recovery_required_message">Fearless не удалось завершить открытие кошельков. Ничего не изменено и не удалено. Вы можете прямо сейчас просмотреть и записать все сохранённые ключи с помощью PIN-кода. Не очищайте данные приложения и не удаляйте Fearless: это удалит ключи с устройства. Диагностический код: %1$s</string>
+  <string name="wallet_startup_restart_required_title">Закройте и снова откройте Fearless</string>
+  <string name="wallet_startup_restart_required_message">Fearless остановился, поскольку Android не смог подтвердить запись данных кошелька. В этом процессе больше не будут предприниматься попытки изменить кошелёк. Закройте приложение, а затем снова откройте его, чтобы безопасно проверить сохранённое состояние. Не очищайте данные приложения и не переустанавливайте его.</string>
+  <string name="wallet_recovery_scoped_title">Ключ требует внимания</string>
+  <string name="wallet_emergency_open">Показать сохранённые ключи</string>
+  <string name="wallet_emergency_title">Сохранённые ключи</string>
+  <string name="wallet_emergency_intro">Введите PIN-код Fearless, чтобы увидеть все мнемонические фразы и ключи, сохранённые на этом устройстве, в точности как они сохранены. Ничего не изменяется и не удаляется.</string>
+  <string name="wallet_emergency_pin_hint">PIN-код из 6 цифр</string>
+  <string name="wallet_emergency_unlock">Показать ключи</string>
+  <string name="wallet_emergency_wrong_pin">Неверный PIN-код</string>
+  <string name="wallet_emergency_locked">Слишком много попыток. Повторите через %1$d с.</string>
+  <string name="wallet_emergency_unavailable">Устройство больше не может прочитать ваш PIN-код, поэтому сохранённые ключи показать нельзя. Ничего не удалено. Если вы записали мнемоническую фразу, с её помощью можно восстановить кошелёк.</string>
+  <string name="wallet_emergency_read_failed">Сейчас не удалось прочитать сохранённые ключи. Ничего не изменено и не удалено. Повторите попытку.</string>
+  <string name="wallet_emergency_warning">Любой, кто увидит эти слова или ключи, сможет забрать ваши средства. Запишите их на бумаге, храните офлайн и никому не показывайте.</string>
+  <string name="wallet_emergency_empty">На этом устройстве не сохранено ключей кошельков.</string>
+  <string name="wallet_emergency_wallet">Кошелёк %1$d</string>
+  <string name="wallet_emergency_wallet_unknown">Кошелёк из ранней версии</string>
+  <string name="wallet_emergency_kind_substrate">Ключ Polkadot и Substrate</string>
+  <string name="wallet_emergency_kind_ethereum">Ключ Ethereum</string>
+  <string name="wallet_emergency_kind_ton">Ключ TON</string>
+  <string name="wallet_emergency_kind_legacy">Ключ кошелька, формат до 4.0</string>
+  <string name="wallet_emergency_kind_network">Ключ для одной сети</string>
+  <string name="wallet_emergency_kind_early">Ключ кошелька, ранний формат</string>
+  <string name="wallet_emergency_state_active">Используется</string>
+  <string name="wallet_emergency_state_set_aside">Отложен, не используется для подписи</string>
+  <string name="wallet_emergency_state_archived">Сохранён из предыдущей версии, не используется для подписи</string>
+  <string name="wallet_emergency_field_phrase">Мнемоническая фраза</string>
+  <string name="wallet_emergency_field_ton_phrase">Мнемоническая фраза TON. Вводите в точности как показано</string>
+  <string name="wallet_emergency_field_entropy">Энтропия</string>
+  <string name="wallet_emergency_field_seed">Сид</string>
+  <string name="wallet_emergency_field_path">Путь деривации</string>
+  <string name="wallet_emergency_field_ethereum_path">Путь деривации Ethereum</string>
+  <string name="wallet_emergency_field_private_key">Приватный ключ</string>
+  <string name="wallet_emergency_field_ethereum_private_key">Приватный ключ Ethereum</string>
+  <string name="wallet_emergency_field_ton_private_key">Приватный ключ TON</string>
+  <string name="wallet_emergency_field_nonce">Nonce</string>
+  <string name="wallet_emergency_field_stored">Сохранённые данные как есть</string>
+  <string name="wallet_emergency_unreadable">Это значение нельзя расшифровать на этом устройстве. Оно сохранено без изменений.</string>
   <string name="connection_reject">Отклонить</string>
   <string name="connection_required_networks">Необходимые сети</string>
   <string name="connection_review_optional_permissions">Просмотр необязательных разрешений</string>
@@ -480,6 +532,42 @@
   <string name="fee_calculation_error_inactive_account">Ваш аккаунт неактивен. Пополните баланс, чтобы рассчитать комиссию.</string>
   <string name="fee_not_yet_loaded_message">Подождите, пока будет рассчитана комиссия</string>
   <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
+  <string name="google_backup_already_imported_message">Этот кошелёк уже есть в Fearless на этом устройстве, поэтому повторно он не импортирован.</string>
+  <string name="google_backup_already_imported_title">Уже на этом устройстве</string>
+  <string name="google_backup_back_up_later">Сохранить позже</string>
+  <string name="google_backup_ethereum_only_message">Эта резервная копия из браузерного расширения содержит только ключ Ethereum, а создать новый кошелёк только из него нельзя. Ничего не изменено. Импортируйте этот кошелёк с помощью мнемонической фразы, сида или JSON-файлов.</string>
+  <string name="google_backup_ethereum_only_title">Только ключ Ethereum</string>
+  <string name="google_backup_failed_message">Не удалось связаться с Google Диском. Попробуйте ещё раз.</string>
+  <string name="google_backup_failed_title">Резервное копирование в Google Диск не завершено</string>
+  <string name="google_backup_import_another_way">Импортировать иначе</string>
+  <string name="google_backup_import_with_json">Импорт из JSON-файла</string>
+  <string name="google_backup_import_with_phrase">Импорт по мнемонической фразе</string>
+  <string name="google_backup_no_connection_message">Проверьте подключение к интернету и попробуйте ещё раз.</string>
+  <string name="google_backup_no_connection_title">Нет связи с Google Диском</string>
+  <string name="google_backup_none_found_message">Fearless не нашёл резервных копий кошельков в этом аккаунте Google. Если вы сохраняли копию в другом аккаунте Google, войдите в него. Также можно импортировать кошелёк с помощью мнемонической фразы, сида или JSON-файла.</string>
+  <string name="google_backup_none_found_title">В этом аккаунте Google нет резервных копий</string>
+  <string name="google_backup_not_found_message">Эта резервная копия удалена с Google Диска, возможно, с другого устройства. Обновите список, чтобы увидеть копии, которые там есть сейчас.</string>
+  <string name="google_backup_not_found_title">Копии больше нет на Google Диске</string>
+  <string name="google_backup_not_verified_message">Мнемоническая фраза или сид, сохранённые для этого кошелька, восстанавливают не именно этот кошелёк, поэтому ничего не загружено и на устройстве ничего не изменено. Сохраните этот кошелёк через «Экспортировать JSON»: так сохраняется ключ, который кошелёк использует сейчас.</string>
+  <string name="google_backup_not_verified_title">Копия не загружена</string>
+  <string name="google_backup_open_wallet">Открыть кошелёк</string>
+  <string name="google_backup_origin_extension">Резервная копия из браузерного расширения</string>
+  <string name="google_backup_refresh">Обновить список</string>
+  <string name="google_backup_saved_without_phrase_message">Мнемоническая фраза или сид, сохранённые для этого кошелька, восстанавливают не именно этот кошелёк, поэтому они не включены. Ваша копия на Google Диске восстанавливает этот кошелёк по ключу, который он использует сейчас.</string>
+  <string name="google_backup_saved_without_phrase_title">Копия сохранена без мнемонической фразы</string>
+  <string name="google_backup_sign_in">Войти</string>
+  <string name="google_backup_sign_in_message">Fearless нужен доступ к своей папке резервных копий на вашем Google Диске. Войдите снова и разрешите доступ, чтобы продолжить.</string>
+  <string name="google_backup_sign_in_title">Войдите в Google снова</string>
+  <string name="google_backup_storage_full_message">В вашем аккаунте Google закончилось свободное место, поэтому копия не сохранена. Освободите место и попробуйте ещё раз.</string>
+  <string name="google_backup_storage_full_title">Google Диск заполнен</string>
+  <string name="google_backup_unavailable_message">Вход через Google недоступен в этой установке Fearless. Кошельки на этом устройстве не затронуты. Для резервного копирования и импорта используйте мнемоническую фразу, сид или JSON-файл.</string>
+  <string name="google_backup_unavailable_title">Резервное копирование в Google Диск недоступно</string>
+  <string name="google_backup_unsupported_message">Эта копия создана более новой версией Fearless или повреждена. Ничего не изменено. Вы можете импортировать этот кошелёк с помощью мнемонической фразы, сида или JSON-файла.</string>
+  <string name="google_backup_unsupported_title">Не удаётся прочитать копию</string>
+  <string name="google_backup_use_another_account">Войти в другой аккаунт Google</string>
+  <string name="google_backup_wallet_created_not_backed_up">Новый кошелёк создан, но ещё не сохранён в резервную копию. Сделать это можно позже в настройках резервного копирования кошелька.</string>
+  <string name="google_backup_wrong_password_message">Эту копию нельзя открыть с этим паролем. Введите пароль, заданный при создании копии, и попробуйте ещё раз.</string>
+  <string name="google_backup_wrong_password_title">Неверный пароль копии</string>
   <string name="hash">Хэш</string>
   <string name="hidden_assets">Скрытые активы</string>
   <string name="history_v1.9.0">История</string>
@@ -626,6 +714,17 @@
   <string name="parachain_staking_unbonding_period_template">%1$s в %2$s - который является %3$s</string>
   <string name="parachain_staking_unlock">Разблокировать</string>
   <string name="parachain_staking_unlock_title">Разблокировать токены</string>
+  <string name="paused_cross_chain_message">Кроссчейн-переводы, доступные в прошлых версиях, приостановлены в этой версии, пока мы завершаем проверки безопасности после недавних изменений в сети Polkadot. Ваши токены и балансы не затронуты. Вы по-прежнему можете отправлять и получать средства в каждой сети.</string>
+  <string name="paused_cross_chain_send_on_network">Перевести в сети %1$s</string>
+  <string name="paused_cross_chain_send_within_network">Перевести внутри одной сети</string>
+  <string name="paused_cross_chain_title">Кроссчейн-переводы приостановлены</string>
+  <string name="paused_farming_message">Действия с фармингом сейчас приостановлены. Ваши позиции фарминга и балансы не затронуты, и вы по-прежнему можете отправлять и получать средства.</string>
+  <string name="paused_liquidity_message">Действия с пулами ликвидности сейчас приостановлены. Ваши позиции в пулах и балансы не затронуты, и вы по-прежнему можете отправлять и получать средства.</string>
+  <string name="paused_polkamarkt_message">Торговля в Polkamarkt приостановлена в этой версии. Ваши позиции и балансы не затронуты.</string>
+  <string name="paused_send_message">Отправка в сети %1$s сейчас приостановлена, пока мы проверяем проблему. Ваш баланс не затронут, и вы по-прежнему можете получать средства.</string>
+  <string name="paused_send_title">Отправка приостановлена</string>
+  <string name="paused_swap_message">Обмены сейчас приостановлены. Ваши токены и балансы не затронуты, и вы по-прежнему можете отправлять и получать средства.</string>
+  <string name="paused_swap_title">Обмены приостановлены</string>
   <string name="pincode_biometry_dialog_title">Биометрия</string>
   <string name="pincode_changed_message">PIN-код успешно изменен</string>
   <string name="pincode_confirm_pin_code">Подтвердите пин-код</string>
@@ -750,7 +849,6 @@
   <string name="profile_network_title">Сеть</string>
   <string name="profile_pincode_change_title">Изменить PIN-код</string>
   <string name="profile_settings_title">Настройки</string>
-  <string name="profile_soracard_title">Карта SORA</string>
   <string name="profile_title">Аккаунт</string>
   <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Кошельки</string>
@@ -766,6 +864,8 @@
   <string name="recovery_raw_seed_hint">Приватный ключ</string>
   <string name="recovery_source_type">Тип источника</string>
   <string name="referral_email_acala">Я согласен получать электронную почту от Acala</string>
+  <string name="relay_moved_to_asset_hub_message">После миграции на Asset Hub в 2025 году стейкинг, пулы номинаций, вестинг и взносы в краудлоуны этой сети обрабатываются в Polkadot Asset Hub или Kusama Asset Hub, и эта версия Fearless не может управлять ими там. Релейная цепь взяла бы комиссию, а затем отклонила бы это действие, поэтому ничего не было подписано или отправлено. Ваш аккаунт там имеет тот же адрес и отображается в этом кошельке.</string>
+  <string name="relay_moved_to_asset_hub_title">Перенесено в Asset Hub</string>
   <string name="remove_backup_extension_error_message">Резервная копия была создана расширением для браузера Fearless Wallet. Мобильное приложение не может удалить ее из-за отсутствия учетных данных</string>
   <string name="rename_account_description">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
   <string name="replace_account">Заменить аккаунт</string>
@@ -824,13 +924,6 @@
   <string name="sora_bridge_amount_less_fee">Сумма, которую вы пытаетесь перевести, недостаточна для покрытия комиссии за транзакцию в сети %s. Хотя транзакция не будет выполнена, с вас все равно снимут комиссию в сети Sora.</string>
   <string name="sora_bridge_low_amount_format_alert">В настоящее время существует мин. сумма %s для моста, чтобы обеспечить стабильность и безопасность сети SORA. Мы ценим ваше понимание.</string>
   <string name="sora_bridge_low_amount_format_alert_2">В настоящее время существует мин. сумма %s для моста, чтобы обеспечить стабильность и безопасность. Мы ценим ваше понимание.</string>
-  <string name="sora_card_annual_service_fee">0 € годовой сервисный сбор</string>
-  <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[Резиденты <b>некоторых стран<br>не могут подать заявку</b> на получение карты SORA Card в данный момент<br><a href=\"https://soracard.com/blacklist/\">Просмотреть список </a>]]></string>
-  <string name="sora_card_enable_card_title">Aктивировать карту</string>
-  <string name="sora_card_get_sora_card">Получить SORA карту</string>
-  <string name="sora_card_title">Пополняйте карту SORA с помощью фиата или криптовалюты и оплачивайте онлайн, в магазине или в банкомате.</string>
-  <string name="sora_card_verification_successful">Карта в пути</string>
   <string name="specify_network">Укажите сеть</string>
   <string name="specify_network_description">Префикс адреса совпадает с несколькими сетями, пожалуйста, укажите сеть</string>
   <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
@@ -888,7 +981,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Показать выбранных: %d (макс. %d)</string>
   <string name="staking_custom_validators_list_title">Выберите валидаторов</string>
   <string name="staking_custom_validators_settings_filters">Показать</string>
-  <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy" formatted="false">Примерное вознаграждение (% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Общий стейк (%s)</string>
   <string name="staking_custom_validators_title">Выберите валидаторов сами</string>
   <string name="staking_custom_validators_update_list">Обновить свой список</string>
@@ -1062,7 +1155,7 @@
   <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
   <string name="staking_unbondings_placeholder">Операции по выводу из стейка появятся здесь</string>
   <string name="staking_unstaking_period">Время вывода</string>
-  <string name="staking_validator_apy_percent">Примерное вознаграждение (% APY)</string>
+  <string name="staking_validator_apy_percent" formatted="false">Примерное вознаграждение (% APY)</string>
   <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
   <string name="staking_validator_info_title">Информация о валидаторе</string>
   <string name="staking_validator_my_oversubscribed_message">Превышен лимит номинаторов для валидатора. В этой эре вы не получите награду от этого валидатора.</string>
@@ -1212,4 +1305,447 @@
   <string name="what_accounts_for_export">Какие аккаунты в кошельке вы хотите экспортировать?</string>
   <string name="yesterday">Вчера</string>
   <string name="your_collator">Ваш коллатор</string>
+
+
+  <string name="banner_addwallet_regular_button_title">Сreate or import</string>
+
+  <string name="banner_addwallet_regular_subtitle">Join the ecosystems with more than 90+ chains and fascinating features</string>
+
+  <string name="banner_addwallet_regular_title">EVM/Substrate accounts</string>
+
+  <string name="banner_addwallet_ton_button_title">Join now</string>
+
+  <string name="banner_addwallet_ton_title">Join the fastest growing ecosystem ever</string>
+
+  <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
+
+  <string name="banners_demeter_title">Demeter Protocol</string>
+
+  <string name="common_network_hash">%s Hash</string>
+
+  <string name="common_refund">Refund</string>
+
+  <string name="common_see_all">See all</string>
+
+  <string name="connected_accounts_common">Connected Accounts</string>
+
+  <string name="connected_accounts_ethereum_title">EVM chain accounts</string>
+
+  <string name="connected_accounts_substrate_title">Substrate chain accounts</string>
+
+  <string name="connected_accounts_ton_title">TON chain accounts</string>
+
+  <string name="connected_accounts_bitcoin_title">Аккаунты сети Bitcoin</string>
+
+  <string name="connected_accounts_solana_title">Аккаунты сети Solana</string>
+
+  <string name="connected_accounts_iroha_title">Аккаунты сети Iroha</string>
+
+  <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
+
+  <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
+
+  <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>
+
+  <string name="cross_chain_tx_status_done_title">All done</string>
+
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
+
+  <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
+
+  <string name="cross_chain_tx_status_source_fail_description">Transaction failed on the %s network. Please, try again.</string>
+
+  <string name="cross_chain_tx_status_source_fail_title">Transaction failed</string>
+
+  <string name="dapp_category_connected_title">Connected</string>
+
+  <string name="dapp_category_defi_title">DeFi</string>
+
+  <string name="dapp_category_featured_title">Featured</string>
+
+  <string name="dapp_category_nft_title">NFT</string>
+
+  <string name="dapp_category_utilities_title">Utilities</string>
+
+  <string name="dapp_connected_title">Connected</string>
+
+  <string name="dapp_discover_title">Discover dApp</string>
+
+  <string name="dapp_no_connected_dapps_title">No connected dApps</string>
+
+  <string name="dapp_not_found_title">No dApps were found</string>
+
+  <string name="ecosystem_options_backup_title">Backup chain accounts</string>
+
+  <string name="ecosystem_options_details_title">Chain accounts</string>
+
+  <string name="ecosystem_options_title">Account options</string>
+
+  <string name="onboarding_banner_regular_ecosystem_button_title">Join EVM or Substrate</string>
+
+  <string name="onboarding_banner_regular_ecosystem_title">Create or import Substrate or EVM accounts</string>
+
+  <string name="onboarding_banner_ton_ecosystem_button_title">Join TON</string>
+
+  <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
+
+  <string name="profile_tonconnect_title">Ton connect</string>
+
+  <string name="tc_connected_dapp">Connected</string>
+
+  <string name="tc_discover_dapp">Discover dApp</string>
+
+  <string name="tc_review_dapp_info">Review dApp info</string>
+
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="tc_see_all">See all</string>
+
+  <string name="tc_service_address">Service address</string>
+
+  <string name="ton_connect_alert_description">Service address</string>
+
+  <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="ton_connect_alert_title">Review dApp info</string>
+
+  <string name="ton_tonviewer_action_title">View in Tonviewer</string>
+
+  <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">Поделиться адресом</string>
+  <string name="portfolio_sync_catalog_only">Некоторые токены могут не отображаться</string>
+  <string name="portfolio_balance_update_failed">Не удалось обновить балансы</string>
+  <string name="portfolio_balances_outdated">Балансы могут быть устаревшими</string>
+  <string name="portfolio_balances_not_loaded">Балансы не загружены</string>
+  <string name="portfolio_balance_incl_hidden">вкл. скрытые</string>
+  <plurals name="portfolio_hidden_assets_not_included">
+    <item quantity="one">%1$d скрытый актив не учтён</item>
+    <item quantity="few">%1$d скрытых актива не учтены</item>
+    <item quantity="many">%1$d скрытых активов не учтены</item>
+    <item quantity="other">%1$d скрытого актива не учтено</item>
+  </plurals>
+  <plurals name="portfolio_hidden_assets_not_included_manage">
+    <item quantity="one">%1$d скрытый актив не учтён · Управление</item>
+    <item quantity="few">%1$d скрытых актива не учтены · Управление</item>
+    <item quantity="many">%1$d скрытых активов не учтены · Управление</item>
+    <item quantity="other">%1$d скрытого актива не учтено · Управление</item>
+  </plurals>
+  <plurals name="portfolio_assets_without_price_not_included">
+    <item quantity="one">%1$d актив без цены не учтён</item>
+    <item quantity="few">%1$d актива без цены не учтены</item>
+    <item quantity="many">%1$d активов без цены не учтены</item>
+    <item quantity="other">%1$d актива без цены не учтено</item>
+  </plurals>
+  <string name="portfolio_pool_stakes_not_included">Стейк в пулах номинаций не учтён</string>
+  <plurals name="portfolio_hidden_assets_hold_funds">
+    <item quantity="one">На %1$d скрытом активе есть средства</item>
+    <item quantity="few">На %1$d скрытых активах есть средства</item>
+    <item quantity="many">На %1$d скрытых активах есть средства</item>
+    <item quantity="other">На %1$d скрытого актива есть средства</item>
+  </plurals>
+  <string name="portfolio_hidden_assets_hold_funds_description">Скрытые активы не входят в общий баланс. Проверьте их или оставьте скрытыми.</string>
+  <string name="portfolio_hidden_assets_review">Проверить</string>
+  <string name="portfolio_hidden_assets_keep_hidden">Оставить скрытыми</string>
+  <string name="portfolio_hidden_in_previous_version">Скрыт в предыдущей версии</string>
+  <string name="portfolio_asset_hidden">Скрыт</string>
+  <string name="portfolio_show_testnets">Показывать тестовые сети</string>
+  <string name="portfolio_show_testnets_description">Тестовые токены ничего не стоят и никогда не учитываются в общем балансе.</string>
+  <string name="portfolio_testnet_no_value">Без стоимости</string>
+  <string name="search_assets_hint">Поиск по токену или сети</string>
+  <string name="search_assets_section_portfolio">В вашем портфеле</string>
+  <string name="search_assets_section_other">Другие активы</string>
+  <string name="search_assets_section_other_description">Пока нет в вашем портфеле. Откройте актив, чтобы получить его.</string>
+  <string name="asset_select_nothing_to_send">Пока нечего отправить. Здесь появятся активы с доступным для перевода балансом.</string>
+  <string name="wallet_recovery_center">Восстановление кошелька</string>
+  <string name="wallet_recovery_center_intro">Восстановите доступ к кошельку или проверьте резервную копию. Рабочие ключи остаются доступными, пока вы восстанавливаете другой ключ.</string>
+  <string name="wallet_recovery_inventory_failed">Не удалось прочитать часть сведений для восстановления. Попробуйте снова или экспортируйте сохранённые данные.</string>
+  <string name="wallet_recovery_identity_issue">Сохранённый ключ принадлежит другому аккаунту. Импортируйте его резервную копию как отдельный кошелёк; эта запись останется доступной только для просмотра.</string>
+  <string name="wallet_recovery_missing_key">На этом устройстве отсутствует ключ подписи. Восстановите ключ, соответствующий этому аккаунту.</string>
+  <string name="wallet_recovery_unusable_key">Этот ключ подписи нельзя использовать на данном устройстве. Исходные данные сохранены.</string>
+  <string name="wallet_recovery_import_corrected">Импортировать как новый исправленный кошелёк</string>
+  <string name="wallet_recovery_use_phrase">Восстановить с помощью фразы восстановления</string>
+  <string name="wallet_recovery_use_seed">Восстановить с помощью исходного сида или приватного ключа</string>
+  <string name="wallet_recovery_use_json">Восстановить из файла JSON</string>
+  <string name="wallet_recovery_as_typed">Эта фраза восстанавливает аккаунт только при вводе точно в сохранённом виде, включая пробелы и заглавные буквы. Храните точную резервную копию.</string>
+  <string name="wallet_recovery_backup_advisory">Сохранённая фраза восстановления или сид не воспроизводит этот ключ подписи. Создайте резервную копию рабочего ключа в формате JSON или в виде приватного ключа.</string>
+  <string name="wallet_recovery_no_attention">Сейчас ни один ключ кошелька не требует восстановления.</string>
+  <string name="wallet_recovery_retained">Сохранённые данные кошельков</string>
+  <string name="wallet_recovery_retained_intro">Здесь хранятся данные удалённых кошельков и предыдущих исправлений. Проверьте полученные аккаунты перед восстановлением.</string>
+  <string name="wallet_recovery_keep_view_only">Пока оставить только для просмотра</string>
+  <string name="wallet_recovery_restore">Восстановить</string>
+  <string name="wallet_recovery_restore_key">Восстановить ключ кошелька</string>
+  <string name="wallet_recovery_restore_explanation">Введите резервную копию этого аккаунта. Перед восстановлением доступа мы проверим соответствие. Существующие данные будут сохранены.</string>
+  <string name="wallet_recovery_restored">Ключ кошелька восстановлен</string>
+  <string name="wallet_recovery_different_key">Эта резервная копия не соответствует аккаунту. Проверьте фразу, пароль и путь деривации.</string>
+  <string name="wallet_recovery_restore_failed">Не удалось восстановить ключ. Ваши данные сохранены. Проверьте резервную копию и попробуйте снова.</string>
+  <string name="wallet_recovery_fix_now">Исправить сейчас</string>
+  <string name="wallet_recovery_backup_key">Создать резервную копию рабочего ключа</string>
+
+    <!-- Retained wallet data: authenticated preview, restore and explicit purge. -->
+    <string name="wallet_archive_open">Открыть сохранённые данные кошельков</string>
+    <string name="wallet_archive_intro">Проверьте адреса перед восстановлением. Каждый ключ станет отдельным кошельком. Исходные данные сохранятся; возможно, потребуется снова выбрать сети.</string>
+    <string name="wallet_archive_unlock">Разблокировать сохранённые данные</string>
+    <string name="wallet_archive_empty">Сохранённые данные кошельков не найдены.</string>
+    <string name="wallet_archive_unproved">Пригодность части сохранённых данных подтвердить не удалось. Они по-прежнему доступны для экспорта в исходном виде.</string>
+    <string name="wallet_archive_exact_data">Показать исходные данные</string>
+    <string name="wallet_archive_unreadable">Это устройство не может прочитать запись. Сохранённые данные не изменены.</string>
+    <string name="wallet_archive_delete">Удалить безвозвратно</string>
+    <string name="wallet_archive_delete_first">Будет удалена вся сохранённая запись, включая ключи, которые невозможно отобразить. Продолжайте только при наличии другой рабочей резервной копии.</string>
+    <string name="wallet_archive_delete_final">Последнее подтверждение: безвозвратно удалить эту запись? Отменить это действие нельзя. Другие кошельки и записи сохранятся.</string>
+    <string name="wallet_archive_restore_confirm">Восстановить этот адрес как отдельный кошелёк? Исходная запись сохранится. Сохранённая фраза восстановления может требовать проверки.</string>
+    <string name="wallet_archive_continue_delete">Перейти к последнему подтверждению</string>
+    <string name="wallet_archive_export_warning">Данные могут содержать закрытые ключи и неполные сведения для восстановления. Получатель может получить контроль над вашими средствами. Передавайте данные только доверенному получателю.</string>
+    <string name="wallet_archive_share">Поделиться сохранёнными данными</string>
+    <string name="wallet_archive_restored_name">Восстановленный кошелёк</string>
+    <string name="wallet_archive_purged">Сохранённая запись удалена</string>
+
+  <string name="wallet_keyloss_title">Восстановление защищённого хранилища</string>
+  <string name="wallet_keyloss_intro">Сейчас устройство не может открыть прежнее защищённое хранилище. Записи кошельков и зашифрованные ключи сохранены. Сначала повторите попытку. Не удаляйте приложение.</string>
+  <string name="wallet_keyloss_retry">Проверить прежнее хранилище</string>
+  <string name="wallet_keyloss_start">Создать новое защищённое хранилище</string>
+  <string name="wallet_keyloss_view">Просмотр сохранённых кошельков</string>
+  <string name="wallet_keyloss_restart_device">Прежний ключ пока недоступен. Перезагрузите устройство, откройте Fearless и повторите попытку. Новое хранилище доступно только после неудачных попыток до и после перезагрузки.</string>
+  <string name="wallet_keyloss_retry_later">Хранилище недоступно или условия восстановления изменились. Ничего не удалено. Повторите проверку.</string>
+  <string name="wallet_keyloss_can_start">Прежний ключ недоступен и после перезагрузки. Если у вас есть резервные копии, можно создать новое хранилище и восстановить кошельки. Старые данные останутся на устройстве.</string>
+  <string name="wallet_keyloss_backup_confirmation">У меня есть фразы восстановления, seed или резервные копии JSON нужных кошельков.</string>
+  <string name="wallet_keyloss_consent">Новый ключ шифрования не открывает старые зашифрованные данные. Для восстановления подписи нужны соответствующие резервные копии. Мы сохраним прежний обёрнутый ключ, его псевдоним на устройстве и все зашифрованные данные кошельков. Fearless продолжит проверять прежний ключ и снова использует его, если он станет доступен. Новые кошельки и их ключи тоже сохранятся.</string>
+  <string name="wallet_keyloss_authenticate">Для продолжения подтвердите учётные данные устройства.</string>
+  <string name="wallet_keyloss_cached_warning">Это сохранённые публичные записи кошельков, а не текущие балансы сети. Подпись и изменение кошельков здесь недоступны. Суммы без обозначения токена указаны в минимальных единицах. Публичные ключи — не адреса для получения.</string>
+  <string name="wallet_keyloss_incomplete">Некоторые записи или сохранённые балансы не удалось показать. Исходные данные сохранены. Повторите проверку хранилища для полного доступа.</string>
+  <string name="wallet_keyloss_no_cached">Читаемые сохранённые кошельки не найдены. Данные не изменены.</string>
+  <string name="wallet_keyloss_working">Проверка сохранённых данных…</string>
+  <string name="wallet_keyloss_back">Назад к восстановлению</string>
+  <string name="wallet_keyloss_substrate_id">ID аккаунта Substrate: %1$s</string>
+  <string name="wallet_keyloss_evm_address">Адрес Ethereum: %1$s</string>
+  <string name="wallet_keyloss_ton_public">Публичный ключ TON: %1$s</string>
+  <string name="wallet_keyloss_address">Адрес: %1$s</string>
+  <string name="wallet_keyloss_public">Публичный ключ: %1$s</string>
+  <string name="wallet_keyloss_balance">Сеть %1$s · Актив %2$s: %3$s</string>
+    <string name="send_max">Макс.</string>
+    <string name="send_account_creation">Создание счёта</string>
+    <string name="send_fee_rate">Ставка комиссии</string>
+    <string name="send_sat_per_vbyte">%1$s sat/vB</string>
+    <string name="send_recent_payment">Последний платёж</string>
+    <string name="send_pending_message">Результат этого платежа пока неизвестен. Проверьте статус или повторно отправьте тот же платёж. Не создавайте заменяющий платёж.</string>
+    <string name="send_pending_expired">Срок действия blockhash истёк, но платёж мог уже пройти. Проверяйте статус или обозреватель. Fearless не подпишет заменяющий платёж, пока результат неизвестен.</string>
+    <string name="send_confirmed_message">Этот платёж подтверждён сетью.</string>
+    <string name="send_failed_message">Сеть сообщила об ошибке платежа. Исходная транзакция сохранена.</string>
+    <string name="send_check_status">Проверить статус</string>
+    <string name="send_retry_same_payment">Повторить тот же платёж</string>
+    <string name="send_view_explorer">Открыть в обозревателе</string>
+    <string name="send_history_explorer">История в обозревателе</string>
+    <string name="send_recovery_unavailable">Не удалось проверить статус платежа. Исходные данные сохранены. Повторите попытку.</string>
+    <string name="send_submitted_title">Статус платежа</string>
+    <string name="send_submitted_message">Проверьте подтверждение в разделе «Последний платёж» на экране баланса или в обозревателе. Не отправляйте платёж заново, пока результат неизвестен.</string>
+    <string name="send_existing_pending">Нужно проверить предыдущий платёж. Откройте «Последний платёж» на экране баланса, чтобы увидеть исходную сумму и повторить тот же платёж. Новая расчётная транзакция не будет отправлена.</string>
+    <string name="send_review_changed">Кошелёк, комиссия, баланс или расчёт изменились. Вернитесь к вводу суммы и проверьте платёж заново.</string>
+    <string name="send_pending_network_unavailable">Не удаётся проверить исходную сеть сохранённого платежа. Запись платежа сохранена на этом устройстве. Проверка статуса и повторная отправка недоступны.</string>
+    <string name="send_unsupported_account">Этот счёт или токен не поддерживает отправку из данного кошелька. Поддерживаются стандартные токены SPL; отправка Token-2022 недоступна.</string>
+    <string name="send_storage_unavailable">Не удалось проверить сохранённый платёж. Отправка заблокирована во избежание дублирования. Сохраните данные приложения и повторите попытку.</string>
+    <string name="send_bitcoin_address_help">Отправка Bitcoin поддерживает только адреса native SegWit: bc1q в Bitcoin или tb1q в Bitcoin Testnet. Другие типы адресов не могут получить этот перевод.</string>
+    <string name="send_insufficient_spendable">Доступного баланса недостаточно для этой суммы и сетевой комиссии. Неподтверждённые средства Bitcoin сначала должны получить подтверждение.</string>
+    <string name="send_bitcoin_dust">Сумма Bitcoin ниже минимального размера выхода. Увеличьте сумму.</string>
+    <string name="send_solana_rent">Оставьте достаточно SOL для минимального баланса счёта, сетевой комиссии и создания счёта токена. Уменьшите сумму или добавьте SOL.</string>
+    <string name="send_solana_account_invalid">Используйте адрес кошелька Solana, способный подписывать, и незамороженный стандартный счёт токена SPL. Адреса программ, несовместимые счета и замороженные токены использовать нельзя.</string>
+  <string name="startup_network_refresh_unavailable">Не удалось обновить некоторые данные сетей. Ваши кошельки остаются доступными. Балансы могут быть устаревшими, а отправка в затронутых сетях — недоступной. Повторите попытку или продолжите.</string>
+  <string name="startup_settings_refresh_unavailable">Не удалось обновить некоторые настройки запуска. Ваши кошельки остаются доступными. Повторите попытку или продолжите.</string>
+  <string name="startup_app_update_notice">Эта версия больше не поддерживается. Вы можете перейти к кошелькам и получить доступ к данным восстановления, сохранённым на этом устройстве, или проверить наличие обновления.</string>
+  <string name="fw_font_licenses">Лицензии шрифтов</string>
+  <string name="wallet_recovery_back">Назад</string>
+  <string name="fw_loading_in_progress">Выполняется</string>
+
+  <string name="pool_join_recovery_title">Предыдущая транзакция пула</string>
+  <string name="pool_join_recovery_pending">Статус предыдущей транзакции пула неизвестен. Проверьте его перед следующей транзакцией пула. Проверка не подписывает и не отправляет транзакцию повторно.</string>
+  <string name="pool_join_recovery_checking">Проверяем финализированные блоки. Во время проверки можно вернуться назад.</string>
+  <string name="pool_join_recovery_not_found">Исходная транзакция не найдена в проверенных блоках. Её статус остаётся неизвестным. Проверьте более ранние блоки или повторите проверку последних блоков позже.</string>
+  <string name="pool_join_recovery_unavailable">Не удалось проверить статус транзакции. Новая транзакция пула не создана. Сохраните исходные данные и повторите проверку позже.</string>
+  <string name="pool_join_recovery_legacy">В этой старой попытке не сохранена исходная ссылка на блок, поэтому безопасно удалить её здесь нельзя. Сохраните хеш транзакции и проверьте её статус перед следующей транзакцией пула.</string>
+  <string name="pool_join_recovery_finalized">Настроенный узел сообщает, что исходная транзакция включена в финализированный блок. Это не подтверждает успешный стейкинг. Проверьте состояние пула перед новой проверкой операции.</string>
+  <string name="pool_join_recovery_hash">Хеш транзакции</string>
+  <string name="pool_join_recovery_recent">Проверить последние блоки</string>
+  <string name="pool_join_recovery_older">Проверить более ранние блоки</string>
+  <string name="pool_join_recovery_return">Вернуться к пулу</string>
+
+    <string name="pool_join_recovery_loading">Чтение сохранённой на устройстве транзакции пула…</string>
+    <string name="pool_join_recovery_empty">Для этого аккаунта в этой сети нет сохранённой неразрешённой транзакции пула. Вернитесь к пулу и проверьте его текущее состояние.</string>
+  <string name="pool_recovery_return_earn">Вернуться в «Earn»</string>
+  <string name="pool_recovery_state_control">Управление состоянием пула</string>
+
+  <!-- Offline, authenticated saved endpoint recovery. -->
+  <string name="saved_endpoints_title">Сохранённые узлы</string>
+  <string name="saved_endpoints_intro">Просмотрите адреса узлов, сохранённые на этом устройстве. Открытие этого экрана не подключает к ним и не меняет текущее соединение.</string>
+  <string name="saved_endpoints_locked">Разблокируйте просмотр сохранённых узлов. Они могут содержать конфиденциальные данные доступа.</string>
+  <string name="saved_endpoints_unlock">Разблокировать сохранённые узлы</string>
+  <string name="saved_endpoints_refresh">Обновить</string>
+  <string name="saved_endpoints_loading">Чтение сохранённых узлов…</string>
+  <string name="saved_endpoints_read_failed">Не удалось прочитать сохранённые узлы. Показанные записи остались с последнего успешного чтения. Повторите попытку или вернитесь позже.</string>
+  <string name="saved_endpoints_empty">На этой странице нет записей. Обновите, чтобы вернуться к началу.</string>
+  <string name="saved_endpoints_absent">Архив сохранённых узлов не найден.</string>
+  <string name="saved_endpoints_escaped">Значения заключены в кавычки, чтобы показать пробелы. Обратная косая черта и невидимые символы показаны escape-последовательностями.</string>
+  <string name="saved_endpoints_record">Сохранённая запись %1$s</string>
+  <string name="saved_endpoints_name">Сохранённое имя</string>
+  <string name="saved_endpoints_url">Сохранённый адрес узла</string>
+  <string name="saved_endpoints_network_code">Сохранённый код сети: %1$s. Текущая сеть при этом не выбирается.</string>
+  <string name="saved_endpoints_unknown">Неизвестно</string>
+  <string name="saved_endpoints_previous">Предыдущие записи</string>
+  <string name="saved_endpoints_next">Следующие записи</string>
+  <string name="saved_endpoints_not_saved">Значение не было сохранено.</string>
+  <string name="saved_endpoints_unrecognized">Сохранённое значение не распознано как текст. Оно остаётся на этом устройстве.</string>
+  <string name="saved_endpoints_too_large">Значение слишком велико для этого экрана. Полное значение остаётся на этом устройстве.</string>
+  <string name="saved_endpoints_invalid_text">Не удалось декодировать значение как текст. Исходные байты остаются на этом устройстве.</string>
+  <string name="saved_endpoints_bytes">Размер в хранилище: %1$s байт</string>
+  <string name="saved_endpoints_unlock_failed">Не удалось начать разблокировку. Повторите попытку.</string>
+
+  <!-- Complete existing production navigation, portfolio and safety copy. -->
+  <string name="cross_chain_route_checking">Проверка рассмотренных маршрутов…</string>
+  <string name="cross_chain_destination_unavailable_message">Fearless Wallet не удалось определить актив или баланс получателя в сети назначения, поэтому ничего не было отправлено. Проверьте подключение и повторите попытку.</string>
+  <string name="cross_chain_destination_fee_included">Удерживается из суммы в сети назначения</string>
+  <string name="cross_chain_pending_message">Предыдущий межсетевой перевод с этого аккаунта мог быть отправлен, и его результат неизвестен. Новые межсетевые переводы с этого аккаунта не отправляются, пока его статус не будет проверен. Проверка не подписывает и не отправляет его повторно.</string>
+  <string name="cross_chain_pending_not_found">Предыдущий перевод не найден в финализированных блоках. Он ещё может быть включён, пока не истечёт его срок — через несколько минут после подписания. Проверьте ещё раз позже.</string>
+  <string name="cross_chain_pending_included">Предыдущий перевод находится в финализированном блоке исходной сети, значит, он был отправлен. Это не подтверждает его зачисление: проверьте баланс получателя в сети назначения.</string>
+  <string name="cross_chain_pending_expired">Срок предыдущего перевода истёк до его включения в блок, поэтому он не был выполнен и средства не перемещались. Вы можете отправить его снова.</string>
+  <string name="cross_chain_pending_unavailable">Не удалось проверить статус предыдущего перевода. Он по-прежнему хранится на этом устройстве, и ничего нового не отправляется. Проверьте подключение и повторите попытку.</string>
+  <string name="cross_chain_protocol_xcm">Протокол: рассмотренные маршруты XCM</string>
+  <string name="cross_chain_no_supported_route">Для этого кошелька и текущего производственного реестра нет поддерживаемого маршрута.</string>
+  <string name="cross_chain_route_protocol">Протокол: %1$s</string>
+  <string name="cross_chain_route_minimum_value">Минимум: %1$s %2$s</string>
+  <string name="cross_chain_route_minimum_unknown">Минимум: не указан этим проверенным провайдером</string>
+  <string name="cross_chain_route_origin_fee">Текущая комиссия исходной сети: %1$s %2$s</string>
+  <string name="cross_chain_route_destination_fee">Текущая комиссия сети назначения: %1$s %2$s</string>
+  <string name="cross_chain_route_estimated_time">Примерное время: %1$s</string>
+  <string name="cross_chain_route_estimated_time_unknown">Примерное время: не указано этим проверенным провайдером</string>
+  <string name="cross_chain_route_warning">Предупреждение: %1$s</string>
+  <string name="connection_add_ton_account">Добавить аккаунт TON</string>
+  <string name="connection_add_signing_account">Добавить аккаунт Substrate или EVM</string>
+  <string name="tabbar_portfolio_title">Портфель</string>
+  <string name="tabbar_defi_title">DeFi</string>
+  <string name="tabbar_cross_chain_title">Cross-chain</string>
+  <string name="settings_section_wallets_accounts">Кошельки и аккаунты</string>
+  <string name="settings_section_networks_assets">Сети и активы</string>
+  <string name="settings_section_connections">Соединения</string>
+  <string name="settings_section_security">Безопасность</string>
+  <string name="settings_section_preferences">Настройки</string>
+  <string name="settings_manage_assets">Управление активами</string>
+  <string name="portfolio_detected_assets">Обнаруженные активы (%1$d)</string>
+  <string name="portfolio_detected_assets_description">Найдены в блокчейне. Проверьте метаданные перед использованием.</string>
+  <string name="portfolio_price_unavailable">Цена недоступна</string>
+  <string name="portfolio_asset_verified">Проверен</string>
+  <string name="portfolio_asset_unverified">Не проверен</string>
+  <string name="portfolio_asset_metadata_missing">Метаданные отсутствуют</string>
+  <string name="portfolio_sync_updated">Обновлено %1$s</string>
+  <string name="portfolio_sync_stale_since">Данные устарели · последнее обновление %1$s</string>
+  <string name="portfolio_sync_error">Сбой синхронизации · показан последний известный баланс</string>
+  <string name="portfolio_sync_pending">Ожидание первого поиска активов</string>
+  <string name="portfolio_sync_limited">Ограниченный охват активов</string>
+  <string name="common_collapse">Свернуть</string>
+  <string name="common_expand">Развернуть</string>
+  <plurals name="portfolio_assets_count">
+    <item quantity="one">%1$d актив</item>
+    <item quantity="few">%1$d актива</item>
+    <item quantity="many">%1$d активов</item>
+    <item quantity="other">%1$d актива</item>
+  </plurals>
+  <string name="ux_choose_network">Выберите сеть</string>
+  <string name="ux_network_selection_title">Какие активы вы будете использовать?</string>
+  <string name="ux_network_selection_description">Выберите сеть для этого кошелька. При восстановлении используйте ту же сеть, что и у существующего кошелька. Другой кошелёк можно добавить позже.</string>
+  <string name="ux_networks_ethereum_polkadot">Ethereum, Polkadot и совместимые сети</string>
+  <string name="ux_assets_ethereum_polkadot">ETH, DOT и другие</string>
+  <string name="ux_network_ton">Сеть TON</string>
+  <string name="ux_asset_ton">Тонкоин (TON)</string>
+  <string name="ux_receive_network">Сеть: %1$s</string>
+  <string name="ux_receive_instruction">Отправляйте на этот адрес только %1$s в сети %2$s.</string>
+  <string name="ux_receive_qr">Получить %1$s в сети %2$s</string>
+  <string name="ux_backup_status">Создайте резервную копию кошелька</string>
+  <string name="ux_backup_description">Сохраните способ восстановления, чтобы вернуть доступ к средствам.</string>
+  <string name="ux_swap_direction">Поменять местами отдаваемый и получаемый активы</string>
+  <string name="ux_execution_details">Подробности исполнения</string>
+  <string name="ux_show_details">Показать подробности исполнения</string>
+  <string name="ux_hide_details">Скрыть подробности исполнения</string>
+  <string name="ux_switch_wallet">Сменить кошелёк</string>
+  <string name="ux_scan">Сканировать QR-код</string>
+  <string name="ux_search">Поиск</string>
+  <string name="ux_more">Другие действия</string>
+  <string name="ux_filter">Фильтр</string>
+  <string name="ux_sort">Сортировка</string>
+  <string name="ux_close">Закрыть</string>
+  <string name="ux_copy">Копировать</string>
+  <string name="ux_share">Поделиться</string>
+  <string name="ux_send_maximum">Отправить максимум и закрыть этот сетевой аккаунт</string>
+  <string name="ux_send_maximum_description">Также используется резерв аккаунта. Для повторного использования аккаунта может потребоваться новый депозит. Перед продолжением вы увидите предупреждение сети.</string>
+  <string name="ux_staking_estimate">Ожидаемые годовые вознаграждения: %s</string>
+  <string name="ux_staking_variability">Вознаграждения приблизительны и могут меняться. На доход влияют условия сети, комиссии пула и работа валидаторов.</string>
+  <string name="ux_pool_operator_options">Действия оператора пула</string>
+  <string name="ux_pool_operator_description">Создание пула подразумевает управление его валидаторами и настройками. Для стейкинга в существующем пуле выберите Присоединиться к пулу.</string>
+  <string name="ux_tab_wallet">Кошелёк</string>
+  <string name="ux_tab_earn">Доход</string>
+  <string name="ux_tab_swap">Обменять</string>
+  <string name="ux_tab_transfer">Перевод</string>
+  <string name="ux_network_transfer">Перевести в другую сеть</string>
+  <string name="ux_back">Назад</string>
+  <string name="ux_swap_settings">Настройки обмена</string>
+  <string name="saved_endpoints_inspect_name">Просмотреть сохранённое имя</string>
+  <string name="saved_endpoints_inspect_url">Просмотреть сохранённый адрес узла</string>
+  <string name="saved_endpoints_part_range">Байты %1$s–%2$s из %3$s</string>
+  <string name="saved_endpoints_part_empty">Байтовое смещение %1$s: данных нет. Текущий размер (байт): %2$s.</string>
+  <string name="saved_endpoints_part_escaped">Показана часть сохранённого значения. Байты, которые нельзя отобразить как текст, обозначены как \\xNN.</string>
+  <string name="saved_endpoints_part_unavailable">Это сохранённое значение больше недоступно. Вернитесь к списку, чтобы обновить его.</string>
+  <string name="saved_endpoints_part_previous">Предыдущая часть</string>
+  <string name="saved_endpoints_part_next">Следующая часть</string>
+  <string name="saved_endpoints_part_return">Вернуться к сохранённым адресам узлов</string>
+  <string name="saved_endpoint_collection">Набор записей: %1$s</string>
+  <string name="saved_endpoint_source_legacy">Сохранённые узлы старого формата</string>
+  <string name="saved_endpoint_source_historical">Самые ранние записи</string>
+  <string name="saved_endpoint_source_entry">Записи на начало обновления</string>
+  <string name="saved_endpoint_source_current">Записи последнего обновления</string>
+  <string name="saved_endpoint_source_owned">Текущие узлы</string>
+  <string name="saved_endpoint_source_absent">На этом устройстве нет записей из этого набора.</string>
+  <string name="saved_endpoint_historical_notice">Исторические записи не меняют текущее подключение.</string>
+  <string name="saved_endpoint_deleted">Удалённый узел — сохранён для восстановления</string>
+  <string name="saved_endpoint_attached">Привязан к сети</string>
+  <string name="saved_endpoint_pending">Ожидает привязки к сети</string>
+  <string name="saved_endpoint_changed">Эта запись изменилась. Вернитесь к списку и выберите её текущую версию.</string>
+  <string name="saved_endpoint_inspect_field">Просмотреть: %1$s</string>
+  <string name="saved_endpoint_chain_reference">Сохранённая ссылка на сеть</string>
+  <string name="saved_endpoint_network_type">Сохранённый код сети</string>
+  <string name="saved_endpoint_default_value">Сохранённое значение по умолчанию</string>
+  <string name="saved_endpoint_selection_value">Сохранённое значение выбора</string>
+
+  <!-- Authenticated offline endpoint choices. -->
+  <string name="saved_endpoint_choice_edit">Изменить сохранённый выбор</string>
+  <string name="saved_endpoint_choice_title">Сохранённый вариант подключения</string>
+  <string name="saved_endpoint_choice_intro">Выберите сеть и введите имя и URL. Исходные сохранённые записи останутся доступны. Сохранение не подключает к сети.</string>
+  <string name="saved_endpoint_choice_target">Сеть для этого варианта</string>
+  <string name="saved_endpoint_choice_choose">Выбрать эту сеть</string>
+  <string name="saved_endpoint_choice_selected">Выбранная сеть: %1$s</string>
+  <string name="saved_endpoint_choice_unavailable">Эту сеть нельзя выбрать на основе сохранённых сведений.</string>
+  <string name="saved_endpoint_choice_empty">На этом устройстве нет сохранённых сетей. Вернитесь в кошелёк и повторите попытку, когда сети станут доступны.</string>
+  <string name="saved_endpoint_choice_refresh_targets">Обновить сети</string>
+  <string name="saved_endpoint_choice_save">Сохранить без подключения</string>
+  <string name="saved_endpoint_choice_saving">Сохранение выбора…</string>
+  <string name="saved_endpoint_choice_saved">Сохранено на этом устройстве. Проверка подключения ещё не выполнена.</string>
+  <string name="saved_endpoint_choice_failed">Не удалось сохранить этот вариант. Повторите попытку или загрузите сохранённое состояние заново, не теряя внесённых изменений.</string>
+  <string name="saved_endpoint_choice_reload">Перезагрузить, сохранив изменения</string>
+  <string name="saved_endpoint_choice_invalid">Текст слишком длинный или содержит неподдерживаемые символы. Сократите его и повторите попытку.</string>
+  <string name="saved_endpoint_choice_missing">Перед сохранением введите URL и выберите сеть.</string>
+  <string name="saved_endpoint_choice_unsupported">Проверка этой сети пока недоступна. Вы можете сохранить этот вариант как ожидающий проверки.</string>
+  <string name="saved_endpoint_attachment_intro">Проверьте сохранённый URL для выбранной сети. Добавление или восстановление узла не выбирает его для подключения.</string>
+  <string name="saved_endpoint_attachment_add">Проверить и добавить узел</string>
+  <string name="saved_endpoint_attachment_restore">Проверить и восстановить узел</string>
+  <string name="saved_endpoint_attachment_working">Проверка узла…</string>
+  <string name="saved_endpoint_attachment_added">Узел добавлен. Он не выбран для подключения.</string>
+  <string name="saved_endpoint_attachment_restored">Узел восстановлен. Он не выбран для подключения. Вернитесь к списку, чтобы обновить эту запись.</string>
+  <string name="saved_endpoint_attachment_present_active">Этот узел уже выбран. Новая проверка не выполнялась.</string>
+  <string name="saved_endpoint_attachment_present_inactive">Этот узел уже добавлен, но не выбран. Новая проверка не выполнялась.</string>
+  <string name="saved_endpoint_attachment_mismatch">Узел вернул идентификатор другой сети. Ничего не добавлено.</string>
+  <string name="saved_endpoint_attachment_invalid">Узел вернул некорректный ответ. Ничего не добавлено.</string>
+  <string name="saved_endpoint_attachment_unreachable">Не удалось связаться с узлом. Ничего не добавлено.</string>
+  <string name="saved_endpoint_attachment_large">Ответ узла слишком большой. Ничего не добавлено.</string>
+  <string name="saved_endpoint_attachment_timeout">Время проверки истекло. Ничего не добавлено.</string>
+  <string name="saved_endpoint_attachment_busy">Проверка занята. Повторите попытку.</string>
+  <string name="saved_endpoint_attachment_failed">Не удалось подтвердить состояние узла. Вернитесь к списку, обновите сохранённый выбор и повторите попытку.</string>
+  <string name="saved_endpoint_attachment_source_changed">Исходная сохранённая запись изменилась. Проверьте этот выбор и сохраните его снова перед проверкой подключения.</string>
+  <string name="portfolio_balance_loading">Загрузка баланса…</string>
+  <string name="portfolio_prices_loading">Загрузка цен…</string>
+  <string name="portfolio_balance_partial">Частичный баланс</string>
+  <string name="portfolio_balance_unavailable">Баланс недоступен</string>
 </resources>

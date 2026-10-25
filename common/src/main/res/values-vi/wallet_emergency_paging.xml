@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">Chọn khóa đã lưu để xem. Chỉ khóa bạn chọn mới được giải mã.</string>
+    <string name="wallet_emergency_view_key">Xem khóa này</string>
+    <string name="wallet_emergency_next_page">Trang tiếp theo</string>
+    <string name="wallet_emergency_first_page">Làm mới từ trang đầu</string>
+    <string name="wallet_emergency_back_to_list">Quay lại trang này</string>
+    <string name="wallet_emergency_inventory_changed">Danh sách khóa đã lưu đã thay đổi. Hãy làm mới từ trang đầu để tiếp tục.</string>
+    <string name="wallet_emergency_no_more_keys">Không còn khóa nào sau trang này.</string>
+    <string name="wallet_emergency_key_identifier">Khóa đã lưu: %1$s</string>
+</resources>

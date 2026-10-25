@@ -1,0 +1,11 @@
+# Fail-closed production contract for Google Drive wallet backup.
+#
+# SHA-256 of the exact `WEB_CLIENT_ID_RELEASE` Google OAuth web client id
+# (project 621183184145) compiled into every official release from 2.4.1
+# through 4.2.0. Drive keeps wallet backups per Google Cloud project, so the
+# Play release must keep this client or upgrading users lose sight of their
+# backups. The id itself stays in the GitHub secret and local.properties; it is
+# not the `client_type: 3` entry of 4.2.0's google-services.json.
+# Change this line only in a reviewed pull request that moves Drive backup to a
+# new client in the same Cloud project.
+541125bea830061774ef4c2fdab5d65d76efdb3ce7d91dec2b6eec5c24bbc5bc

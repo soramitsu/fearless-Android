@@ -53,4 +53,16 @@
         app:exitAnim="?android:attr/fragmentOpenExitAnimation"
         app:popUpTo="@id/splashFragment" />
 
+    <!-- Same owning controller as the PIN screen; never enter another product graph before authentication. -->
+    <fragment
+        android:id="@+id/pinRecoveryImportFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
+        android:label="Verify wallet backup" />
+
+    <!-- Starts locked. A restored destination or argument grants no access. -->
+    <fragment
+        android:id="@+id/savedEndpointsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.recovery.SavedEndpointsFragment"
+        android:label="@string/saved_endpoints_title" />
+
 </navigation>

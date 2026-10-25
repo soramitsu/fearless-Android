@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">トークン別</string>
+    <string name="portfolio_by_network">ネットワーク別</string>
+    <string name="portfolio_show_zero_networks">人気・残高ゼロのネットワークを表示（%1$d）</string>
+    <string name="portfolio_hide_zero_networks">残高ゼロのネットワークを非表示（%1$d）</string>
+    <string name="portfolio_hide_group_title">すべてのネットワークでトークンを非表示にしますか？</string>
+    <string name="portfolio_hide_group_message">これらのネットワーク資産は非表示になり、ポートフォリオの合計から除外されます。残高とバックアップは「資産の管理」で引き続き確認できます。</string>
+    <string name="portfolio_choose_network">ネットワークを選択</string>
+    <string name="portfolio_price_unavailable">価格情報なし</string>
+    <string name="portfolio_price_incomplete">価格情報が不完全です。価格不明の残高は除外されます</string>
+    <string name="portfolio_group_networks">%1$dのネットワーク</string>
+    <string name="portfolio_group_hidden">非表示の%1$d資産を除外</string>
+    <string name="portfolio_value_notice">ポートフォリオの合計には利用可能残高と予約残高が含まれます。非表示の資産、価格不明の資産、テストネット、プールのステーキングは除外されます。</string>
+    <string name="portfolio_hidden_manage">非表示の資産（%1$d）・%2$sを除外・管理</string>
+    <string name="portfolio_filter_all">すべて</string>
+    <string name="portfolio_filter_shown">表示</string>
+    <string name="portfolio_filter_hidden">非表示</string>
+    <string name="portfolio_preference_auto">自動</string>
+    <string name="portfolio_manage_group_count">%2$d件中%1$d件を表示</string>
+    <string name="portfolio_no_hidden">非表示の資産はありません</string>
+    <string name="portfolio_only_network">Fearlessでは、このトークンは%1$sでのみ利用できます。</string>
+</resources>

@@ -4,6 +4,7 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -11,6 +12,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.Phase
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
@@ -28,24 +30,25 @@ import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.getBlock
 import jp.co.soramitsu.core.runtime.storage.returnType
+import jp.co.soramitsu.core.utils.soraAssetIdCode
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.registry.TypeRegistry
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.primitives.FixedByteArray
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.runtime.metadata.module
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
@@ -72,6 +75,9 @@ class WssSubstrateSource(
         }
     }
 
+    override suspend fun getAccountSpendableBalance(chainAsset: Asset, accountId: AccountId): BigInteger =
+        getAccountInfo(chainAsset, accountId).spendableBalance(chainAsset.currency)
+
     override suspend fun getTotalBalance(chainAsset: Asset, accountId: AccountId): BigInteger {
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.totalBalance
@@ -82,8 +88,10 @@ class WssSubstrateSource(
         }
     }
 
+    // typeExtra, like the balance loader. SORA XOR is typed soraAsset in the registry but lives in System.Account;
+    // Tokens.Accounts holds no XOR entry, so reading by the registry type (as 4.2.0 did here) reported zero XOR.
     @Suppress("IMPLICIT_CAST_TO_ANY")
-    private suspend fun getAccountInfo(chainAsset: Asset, accountId: AccountId) = when (chainAsset.type) {
+    private suspend fun getAccountInfo(chainAsset: Asset, accountId: AccountId) = when (chainAsset.typeExtra) {
         null, ChainAssetType.Normal,
         ChainAssetType.SoraUtilityAsset -> {
             getDefaultAccountInfo(chainAsset.chainId, accountId)
@@ -189,9 +197,15 @@ class WssSubstrateSource(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): BigInteger {
+        val transferParams = transfer.additionalParams as? SubstrateTransferParams
+        val accountId = chain.accountIdOf(transfer.sender)
+
         return extrinsicService.estimateFee(
             chain = chain,
+            accountId = accountId,
             useBatchAll = batchAll,
+            tip = transferParams?.tipInPlanks,
+            appId = transferParams?.appId,
             formExtrinsic = {
                 transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
@@ -416,11 +430,7 @@ class WssSubstrateSource(
             callName = "xorless_transfer",
             arguments = mapOf(
                 "dex_id" to BigInteger.ZERO,
-                "asset_id" to Struct.Instance(
-                    mapOf(
-                        "code" to transfer.chainAsset.currencyId?.fromHex()?.toList()
-                            ?.map { it.toInt().toBigInteger() })
-                ),
+                "asset_id" to Struct.Instance(mapOf("code" to soraAssetIdCode(transfer.chainAsset.currencyId))),
                 "receiver" to recipientAccountId,
                 "amount" to transfer.amountInPlanks,
 
@@ -484,3 +494,18 @@ class WssSubstrateSource(
         )
     }
 }
+
+internal fun AssetBalanceData?.spendableBalance(currency: Any?): BigInteger {
+    val amount = when (this) {
+        is OrmlTokensAccountData -> free - frozen
+        is AccountInfo -> data.free - data.miscFrozen.max(data.feeFrozen)
+        is EqAccountInfo -> (currency as? BigInteger)?.let(data.balances::get).orZero() - data.lock
+        is AssetsAccountInfo -> if (status == FROZEN_ASSET_STATUS) BigInteger.ZERO else balance
+        is SimpleBalanceData -> balance
+        else -> BigInteger.ZERO
+    }
+
+    return amount.max(BigInteger.ZERO)
+}
+
+private const val FROZEN_ASSET_STATUS = "Frozen"

@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.profile
 
+import android.os.Bundle
+import android.view.View
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -14,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.common.base.BaseComposeFragment
@@ -23,6 +24,7 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ProfileFragment : BaseComposeFragment<ProfileViewModel>() {
@@ -42,7 +44,7 @@ class ProfileFragment : BaseComposeFragment<ProfileViewModel>() {
             subscribe(viewModel)
         }
         val state by viewModel.state.collectAsState()
-        ProfileScreen(state = state, callback = viewModel)
+        ProfileScreen(scrollState = scrollState, state = state, callback = viewModel)
     }
 
     @Composable

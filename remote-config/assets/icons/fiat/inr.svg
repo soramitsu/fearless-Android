@@ -1,0 +1,25 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_5854_18837)">
+<path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="white"/>
+<mask id="mask0_5854_18837" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="-4" y="0" width="32" height="24">
+<rect x="-4" width="32" height="24" fill="white"/>
+</mask>
+<g mask="url(#mask0_5854_18837)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M-4 0V24H28V0H-4Z" fill="#F7FCFF"/>
+<mask id="mask1_5854_18837" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="-4" y="0" width="32" height="24">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M-4 0V24H28V0H-4Z" fill="white"/>
+</mask>
+<g mask="url(#mask1_5854_18837)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M-4 0V8H28V0H-4Z" fill="#FF8C1A"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M-4 16V24H28V16H-4Z" fill="#5EAA22"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12ZM15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" fill="#3D58DB"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M11.9944 12.8607L11.4236 15.9813L11.7551 12.8263L10.3282 15.6596L11.5351 12.7258L9.36777 15.0424L11.3523 12.5675L8.62014 14.1796L11.2216 12.364L8.14587 13.1411L11.1534 12.132L7.9834 12.011L11.1534 11.8901L8.14587 10.881L11.2216 11.6581L8.62014 9.84251L11.3523 11.4546L9.36777 8.9797L11.5351 11.2963L10.3282 8.36247L11.7551 11.1958L11.4236 8.04083L11.9944 11.1614L12.5653 8.04083L12.2338 11.1958L13.6607 8.36247L12.4538 11.2963L14.6211 8.9797L12.6366 11.4546L15.3688 9.84251L12.7673 11.6581L15.843 10.881L12.8355 11.8901L16.0055 12.011L12.8355 12.132L15.843 13.1411L12.7673 12.364L15.3688 14.1796L12.6366 12.5675L14.6211 15.0424L12.4538 12.7258L13.6607 15.6596L12.2338 12.8263L12.5653 15.9813L11.9944 12.8607Z" fill="#3D58DB"/>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_5854_18837">
+<path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="white"/>
+</clipPath>
+</defs>
+</svg>

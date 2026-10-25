@@ -1,0 +1,43 @@
+# Room schema version that each distributed jp.co.soramitsu.fearless build
+# leaves on a device: Google Play tracks and Internal App Sharing. Debug,
+# develop, staging and pr builds use other application IDs and are not listed.
+#
+# Format: <versionName>+<versionCode>=<APP_DATABASE_VERSION of that build>
+#
+# AppDatabaseVersionFloorTest requires a line for the versionCode in
+# versioning/version.properties that records the current APP_DATABASE_VERSION
+# exactly (bump this line with the schema), and keeps APP_DATABASE_VERSION at
+# or above every value recorded up to that versionCode. A build below this floor cannot
+# open the database a newer build already migrated. This tree fails closed in
+# that case; master, develop and 4.2.0 (229) and earlier fall back to
+# destructive migration and wipe every table instead.
+#
+# The lowest line is the oldest release. EARLIEST_SUPPORTED_DATABASE_VERSION
+# must stay at or below it, so every database a user can still hold keeps its
+# adjacent migrations to this build.
+#
+# Never lower or delete a line; a hotfix is a forward fix with a higher
+# versionCode. See docs/rollback-checklist.md.
+#
+# Releases between the oldest and 4.2.0 carried databases 9 through 75 (for
+# example 3.7.4 = 71, 4.0.1 and 4.0.2 = 73, 4.1.1 = 74) and are not listed.
+
+# Oldest release, tag v0.4.0 (Room 9; versionCode as the tag source declares
+# it). AppDatabaseMigrationSafetyTest rebuilds this schema from the tag's
+# entities.
+0.4.0+1=9
+
+# Google Play production. The official v4.2.0 GitHub APK (sha256 3d4a9058...)
+# is versionCode 229 and carries the Room identity of schemas/75.json; its
+# source is about b5e22d49d.
+4.2.0+229=75
+
+# Migration-safe testing candidate shared through Internal App Sharing. Builds
+# carrying this versionCode had databases 77 through 80.
+4.2.0+230=80
+
+# This prepared release. WP-3 adds 80 -> 81; durable endpoint ownership adds
+# 81 -> 82; explicit offline endpoint decisions add 82 -> 83; currency-bound
+# quote identity adds 83 -> 84.
+# Recorded before shipping so 4.2.0 (231) cannot be built below database 84.
+4.2.0+231=84

@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import jp.co.soramitsu.common.compose.component.B1
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -75,6 +80,7 @@ fun StartStakingPoolScreen(
     joinPool: () -> Unit,
     createPool: () -> Unit
 ) {
+    var showOperatorOptions by rememberSaveable { mutableStateOf(false) }
     BottomSheetScreen(
         Modifier
             .fillMaxHeight()
@@ -107,7 +113,9 @@ fun StartStakingPoolScreen(
             MarginVertical(margin = 24.dp)
             SingleValueInfoCard(R.drawable.ic_chart, R.string.staking_pool_rewards_delay_text, state.rewardsPayoutDelay)
             MarginVertical(margin = 8.dp)
-            SingleValueInfoCard(R.drawable.ic_money, R.string.staking_pool_start_apr_text, state.yearlyEstimatedEarnings)
+            SingleValueInfoCard(R.drawable.ic_money, R.string.ux_staking_estimate, state.yearlyEstimatedEarnings)
+            MarginVertical(8.dp)
+            B1(text = stringResource(R.string.ux_staking_variability))
             MarginVertical(margin = 8.dp)
             SingleValueInfoCard(R.drawable.ic_withdrawal, R.string.staking_pool_start_unstake_period_text, state.unstakingPeriod)
             MarginVertical(margin = 8.dp)
@@ -123,12 +131,20 @@ fun StartStakingPoolScreen(
             )
             MarginVertical(margin = 8.dp)
             GrayButton(
-                text = stringResource(id = R.string.staking_pool_start_create_button_title),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                onClick = createPool
+                text = stringResource(R.string.ux_pool_operator_options),
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { showOperatorOptions = !showOperatorOptions }
             )
+            if (showOperatorOptions) {
+                MarginVertical(8.dp)
+                B1(text = stringResource(R.string.ux_pool_operator_description))
+                MarginVertical(8.dp)
+                GrayButton(
+                    text = stringResource(R.string.staking_pool_start_create_button_title),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    onClick = createPool
+                )
+            }
             MarginVertical(margin = 32.dp)
         }
     }

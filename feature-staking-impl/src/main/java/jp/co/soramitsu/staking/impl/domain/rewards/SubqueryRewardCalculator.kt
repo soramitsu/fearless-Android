@@ -6,8 +6,8 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingAllCollatorsApyRequest
@@ -15,6 +15,7 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingCollato
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingLastRoundIdRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -29,6 +30,7 @@ class SubqueryRewardCalculator(
 
     override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
         val chain = stakingParachainScenarioInteractor?.stakingStateFlow()?.first()?.chain
+        if (chain?.id != chainId) throw CancellationException("Staking selection changed")
         val stakingUrl = chain?.externalApi?.staking?.url
         val stakingType = chain?.externalApi?.staking?.type
 
@@ -45,7 +47,7 @@ class SubqueryRewardCalculator(
     }
 
     private suspend fun calculateSubsquidMaxAPY(stakingUrl: String): BigDecimal {
-        return getSubsquidRewards(stakingUrl).maxOf { it.value.orZero() }
+        return maximumRewardOrZero(getSubsquidRewards(stakingUrl))
     }
 
     private suspend fun calculateSubqueryMaxAPY(stakingUrl: String): BigDecimal {
@@ -73,24 +75,31 @@ class SubqueryRewardCalculator(
         return avgApr.fractionToPercentage()
     }
 
+    /** Calculate from the requested chain; another screen cannot replace this quote through avgApr. */
+    suspend fun calculateAvgAPY(chainId: ChainId): BigDecimal = averageRewardFraction(chainId).fractionToPercentage()
+
     override suspend fun getApyFor(targetId: ByteArray): BigDecimal {
         return getApy(listOf(targetId))[targetId.toHexString()].orZero()
     }
 
     override suspend fun calculateReturns(amount: BigDecimal, days: Int, isCompound: Boolean, chainId: ChainId): PeriodReturns {
-        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
-        val staked = stakingParachainScenarioInteractor?.total(chainId)?.getOrNull()
-        val rewardsAmountPart = BigDecimal(0.025)
-        val currentApy = if (staked != null && staked > BigInteger.ZERO) {
-            totalIssuance.toBigDecimal() * rewardsAmountPart / staked.toBigDecimal()
-        } else {
-            BigDecimal.ZERO
-        }
+        val currentApy = averageRewardFraction(chainId)
         avgApr = currentApy
         val apyByPeriod = currentApy * days.toBigDecimal() / DAYS_IN_YEAR.toBigDecimal()
         val gainAmount = amount * apyByPeriod
 
         return PeriodReturns(gainAmount, apyByPeriod.fractionToPercentage())
+    }
+
+    private suspend fun averageRewardFraction(chainId: ChainId): BigDecimal {
+        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
+        val staked = stakingParachainScenarioInteractor?.total(chainId)?.getOrNull()
+        val rewardsAmountPart = BigDecimal(0.025)
+        return if (staked != null && staked > BigInteger.ZERO) {
+            totalIssuance.toBigDecimal() * rewardsAmountPart / staked.toBigDecimal()
+        } else {
+            BigDecimal.ZERO
+        }
     }
 
     override suspend fun calculateReturns(amount: Double, days: Int, isCompound: Boolean, targetIdHex: String): PeriodReturns {
@@ -161,4 +170,11 @@ class SubqueryRewardCalculator(
             emptyMap()
         })
     }
+}
+
+internal fun maximumRewardOrZero(rewards: Map<String, BigDecimal?>): BigDecimal {
+    return rewards.values
+        .maxOfOrNull { it.orZero() }
+        .orZero()
+        .coerceAtLeast(BigDecimal.ZERO)
 }

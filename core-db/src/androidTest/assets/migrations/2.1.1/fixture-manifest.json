@@ -1,0 +1,85 @@
+{
+  "fixture_format": 2,
+  "platform": "android",
+  "purpose": "Room schema version 46 exactly as a fresh install of the released app created it. AllReleasedSchemasUpgradeTest builds a database from it, inserts synthetic rows and upgrades it with the current migration graph.",
+  "db_version": 46,
+  "source_release": {
+    "id": "2.1.1+86",
+    "version": "2.1.1",
+    "versionCode": 86,
+    "tag": "2.1.1",
+    "commit": "b7ed9c3066aa6dfcb0e792616e3403fed5bc632a",
+    "binary": {
+      "kind": "github-apk",
+      "asset_name": "fearless_wallet_2.1.1_86.apk",
+      "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.1.1/fearless_wallet_2.1.1_86.apk",
+      "sha256": "40037bf9fd69c847a1e7f7f2e8a8f8e4e39aca987ef7fa6d98c3351c8698e791",
+      "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+      "size_bytes": 19881902
+    }
+  },
+  "releases_with_this_schema": [
+    {
+      "id": "2.1.1+86",
+      "tag": "2.1.1",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "2.1.2+87",
+      "tag": "2.1.2",
+      "binary_kind": "no-github-apk",
+      "schema_evidence": "core-db/src/main tree identical to tag 2.1.1 (bd2e570191ce); same toolchain (Room 2.4.3, Kotlin 1.7.10)"
+    }
+  ],
+  "generator": {
+    "tier": "T1",
+    "method": "dexdump-createAllTables",
+    "tool": "tools/upgrade-fixtures/android/extract_room_schema.py",
+    "inventory": "tools/upgrade-fixtures/android/releases.json"
+  },
+  "schema_extraction": {
+    "apk_sha256": "40037bf9fd69c847a1e7f7f2e8a8f8e4e39aca987ef7fa6d98c3351c8698e791",
+    "apk_entry": "classes2.dex",
+    "apk_entry_sha256": "a62a3d6bb62495bd7777b81df46fd41eb1ebd2d1da7ec5745d070f7c98bed90f",
+    "class": "jp.co.soramitsu.coredb.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 46,
+    "room_identity_hash": "3bb5c8d34b0a8d8b9010b57406b31b39",
+    "room_legacy_identity_hash": "9b2864ad5ba5ef320f233a067e8a7682",
+    "explicit_table_count_including_room_master": 17,
+    "explicit_index_count": 11,
+    "explicit_view_count": 0,
+    "statements_sha256": "3e4a735d65412cedb7eb58e2a479c34b72da27c489396ed47a78c7e689747356"
+  },
+  "schema_check": {
+    "engine": "sqlite3 (host, in-memory)",
+    "integrity_check": "ok",
+    "tables": [
+      "account_staking_accesses",
+      "address_book",
+      "assets",
+      "chain_accounts",
+      "chain_assets",
+      "chain_explorers",
+      "chain_nodes",
+      "chain_runtimes",
+      "chains",
+      "meta_accounts",
+      "operations",
+      "phishing",
+      "room_master_table",
+      "storage",
+      "token_price",
+      "total_reward",
+      "users"
+    ],
+    "explicit_index_count": 11
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v46.sql",
+    "schema_sql_sha256": "2c4e13cded2bfd62b6128682e30d0096ef7fdde06a767124956f90c8d9af2863"
+  },
+  "synthetic_only": true,
+  "contains_user_material": false
+}

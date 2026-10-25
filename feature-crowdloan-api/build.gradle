@@ -18,11 +18,9 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
-    namespace 'jp.co.soramitsu.feature_crowdloan_api'
+    namespace = 'jp.co.soramitsu.feature_crowdloan_api'
 }
 
 dependencies {

@@ -45,6 +45,8 @@ class ExportJsonConfirmViewModel @Inject constructor(
     private val _showJsonImportTypeEvent = MutableLiveData<Event<Boolean>>()
     val showJsonImportTypeEvent: LiveData<Event<Boolean>> = _showJsonImportTypeEvent
 
+    private var tempExportFile: File? = null
+
     val substrateJson = payload.substrateJson
     val ethereumJson = payload.ethereumJson
 
@@ -65,6 +67,7 @@ class ExportJsonConfirmViewModel @Inject constructor(
     }
 
     fun shareCompleted() {
+        cleanupTempExportFile()
         router.finishExportFlow()
     }
 
@@ -87,12 +90,15 @@ class ExportJsonConfirmViewModel @Inject constructor(
     }
 
     private suspend fun shareFile(fileName: String, json: String) {
+        cleanupTempExportFile()
+
         val result = accountInteractor.createFileInTempStorageAndRetrieveAsset(fileName)
 
         if (result.isSuccess) {
             val file = result.requireValue()
 
             file.writeText(json)
+            tempExportFile = file
 
             _shareEvent.value = Event(file)
         } else {
@@ -116,6 +122,18 @@ class ExportJsonConfirmViewModel @Inject constructor(
             exportEthereumJsonAsFile()
         } else {
             exportSubstrateAsFile()
+        }
+    }
+
+    override fun onCleared() {
+        cleanupTempExportFile()
+        super.onCleared()
+    }
+
+    private fun cleanupTempExportFile() {
+        runCatching {
+            tempExportFile?.delete()
+            tempExportFile = null
         }
     }
 }

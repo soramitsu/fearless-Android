@@ -1,0 +1,15 @@
+> Historical qualification receipts named in this document are retained in the local consolidation recovery archive, outside the public source tree. They are not current release approval. See `docs/public-source-qualification.md` for the published source checks and remaining release gates.
+
+# Retained wallet recovery
+
+The authenticated Recovery Center action inventories retained encrypted preferences, proves each available signing key, and previews its address. Root Substrate/Ethereum/TON, network `ACCESS_SECRETS`, both shipped meta-account `ACCESS_SECRETS` layouts, V1 `security_source_`/`legacy_v1_`, and V0.4 signing records are recognized. Unknown fields, unsupported formats, missing providers, and failed proof leave the original record available rather than consuming it. PIN archives belong to PIN recovery and are excluded.
+
+Each selected proved key becomes an independent new wallet. The existing mutation coordinator reserves a fresh ID, validates the public identity, stages encrypted material, publishes the Room record, and reconciles a process-death journal. The new `RESTORE_ARCHIVE` journal operation preserves stored-key T1 validation through replay, including historical TON spelling and legacy records without a usable recovery phrase. Ordinary `CREATE` keeps its stricter T2/canonical checks. Restored wallets are not marked backed up; later recovery assessment supplies the appropriate advisory. The entire original archive remains unchanged, including siblings not selected for restoration.
+
+Address preview and restoration are distinct reads. Restoration rechecks the exact ciphertext-bound snapshot and decodes/proves it again under the cross-store mutation mutex. Cancellation is checked after synchronous proof and just before staging. A changed record is rejected. The archive is not an active signing slot and is never removed by restoration.
+
+Permanent deletion uses two explicit UI confirmations and a compare-and-set on the exact retained record. It cannot target an active key, remove Room identities, or delete sibling archives. A provider error prevents the action; it does not hide other records.
+
+Exact-data export serializes the complete decrypted original string and storage key as JSON, including malformed/unknown fields and representation details. No projection or rewritten mnemonic is substituted. Empty unreadable values and oversized-ciphertext digest tokens are not exportable as plaintext. Their original ciphertext stays retained. Export contains private material and requires an explicit Share action after a warning. No secret enters navigation arguments, saved state, logs, or the diagnostic `toString` methods. The fragment uses screenshot protection and clears/locks its state when stopped; unlocking runs the existing PIN check again.
+
+Validation evidence is recorded in `k5-archive-validation.json`. Tests use public frozen fixture keys and local Android execution; they do not send transactions. Manual physical-device, biometric lifecycle, signed upgrade, and distribution checks remain separate release gates.

@@ -5,31 +5,37 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.presentation.account.CapturedPortfolioDetail
+import jp.co.soramitsu.account.api.presentation.account.admitRequestPortfolio
+import jp.co.soramitsu.account.api.presentation.account.capturedPortfolioDetailFlow
+import jp.co.soramitsu.account.api.presentation.account.withAllHoldings
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatFiat
-import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import jp.co.soramitsu.walletconnect.impl.presentation.message
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,21 +57,18 @@ class WalletConnectSignMessageViewModel @Inject constructor(
 
     private val recentSession = sessions.takeIf { it.isNotEmpty() }?.sortedByDescending { it.request.id }?.get(0)
 
-    private val requestWalletItemFlow: SharedFlow<WalletItemViewState?> = flowOf {
-        accountRepository.allMetaAccounts()
-    }.map { allMetaAccounts ->
-        val requestChain = walletConnectInteractor.getChains().firstOrNull { chain ->
+    private val requestWalletItemFlow: Flow<WalletItemViewState?> = flow<WalletItemViewState?> {
+        val allMetaAccounts = withContext(Dispatchers.Default) { accountRepository.allMetaAccounts() }
+        val requestChain = withContext(Dispatchers.Default) { walletConnectInteractor.getChains() }.firstOrNull { chain ->
             chain.caip2id == recentSession?.chainId
         }
         val requestAddress = recentSession?.request?.address
-
         val requestedWallet = requestChain?.let {
             allMetaAccounts.firstOrNull { wallet ->
-                wallet.address(requestChain).equals(requestAddress, true)
+                matchesWalletConnectRequestAddress(requestChain.isEthereumBased, wallet.address(requestChain), requestAddress)
             }
         }
-
-        if (requestedWallet == null) {
+        if (requestedWallet == null || requestChain == null) {
             launch(Dispatchers.Main.immediate) {
                 showError(
                     title = resourceManager.getString(R.string.common_error_general_title),
@@ -74,30 +77,64 @@ class WalletConnectSignMessageViewModel @Inject constructor(
                     positiveClick = { walletConnectRouter.back() }
                 )
             }
-            return@map null
+            emit(
+                WalletItemViewState(
+                    id = 0,
+                    title = "",
+                    isSelected = false,
+                    walletIcon = R.drawable.ic_wallet
+                ).withAllHoldings(TotalBalance.Unavailable, resourceManager)
+            )
+            return@flow
         }
 
-        val requestedWalletIcon = addressIconGenerator.createAddressIcon(
-            requestedWallet.substrateAccountId ?: byteArrayOf(),
-            AddressIconGenerator.SIZE_BIG
+        val requestMetaId = requestedWallet.id
+        val admitted = getTotalBalance.observe(requestMetaId).map { source ->
+            admitRequestPortfolio(source, requestMetaId, requestMetaId) { ready ->
+                val chain = ready.chainsById[requestChain.id]
+                chain != null && chain.caip2id == recentSession?.chainId &&
+                    (chain.isEthereumBased || chain.ecosystem == Ecosystem.Substrate) &&
+                    matchesWalletConnectRequestAddress(chain.isEthereumBased, ready.meta.address(chain), requestAddress)
+            }
+        }
+        emitAll(
+            capturedPortfolioDetailFlow(admitted) { source ->
+                val chain = source.chainsById.getValue(requestChain.id)
+                val accountId = walletConnectRequestAccountId(chain.isEthereumBased, source.meta.address(chain))
+                    ?: return@capturedPortfolioDetailFlow null
+                withContext(Dispatchers.Default) {
+                    if (chain.isEthereumBased) {
+                        addressIconGenerator.createEthereumAddressIcon(accountId, AddressIconGenerator.SIZE_BIG)
+                    } else {
+                        addressIconGenerator.createAddressIcon(accountId, AddressIconGenerator.SIZE_BIG)
+                    }
+                }
+            }.catch { failure ->
+                if (failure is CancellationException) throw failure
+                showError(failure)
+                emit(CapturedPortfolioDetail(TotalBalance.Unavailable, null))
+            }.map { captured ->
+                val ready = captured.source as? TotalBalance.Ready
+                WalletItemViewState(
+                    id = requestMetaId,
+                    title = ready?.meta?.name.orEmpty(),
+                    isSelected = false,
+                    walletIcon = captured.detail ?: R.drawable.ic_wallet
+                ).withAllHoldings(captured.source, resourceManager)
+            }
         )
-
-        val balanceModel = getTotalBalance(requestedWallet.id)
-
-        WalletItemViewState(
-            id = requestedWallet.id,
-            title = requestedWallet.name,
-            isSelected = false,
-            walletIcon = requestedWalletIcon,
-            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-            changeBalanceViewState = ChangeBalanceViewState(
-                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-            )
+    }.catch { failure ->
+        if (failure is CancellationException) throw failure
+        showError(failure)
+        emit(
+            WalletItemViewState(
+                id = 0,
+                title = "",
+                isSelected = false,
+                walletIcon = R.drawable.ic_wallet
+            ).withAllHoldings(TotalBalance.Unavailable, resourceManager)
         )
     }
-        .inBackground()
-        .share()
 
     val state = requestWalletItemFlow.map { requestWallet ->
         requestWallet?.let {

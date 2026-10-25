@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">По токенам</string>
+    <string name="portfolio_by_network">По сетям</string>
+    <string name="portfolio_show_zero_networks">Показать популярные сети и сети с нулевым балансом (%1$d)</string>
+    <string name="portfolio_hide_zero_networks">Скрыть сети с нулевым балансом (%1$d)</string>
+    <string name="portfolio_hide_group_title">Скрыть токен во всех сетях?</string>
+    <string name="portfolio_hide_group_message">Эти сетевые активы будут скрыты и исключены из общей суммы портфеля. Балансы и резервная копия останутся доступны в разделе управления активами.</string>
+    <string name="portfolio_choose_network">Выберите сеть</string>
+    <string name="portfolio_price_unavailable">Цена недоступна</string>
+    <string name="portfolio_price_incomplete">Цена неполная — балансы без цены исключены</string>
+    <string name="portfolio_group_networks">В сетях: %1$d</string>
+    <string name="portfolio_group_hidden">Скрытые активы исключены: %1$d</string>
+    <string name="portfolio_value_notice">Общая сумма портфеля включает свободные и зарезервированные средства. Скрытые активы, активы без цены, тестовые сети и стейкинг в пулах не учитываются.</string>
+    <string name="portfolio_hidden_manage">Скрытые активы (%1$d) · Исключено: %2$s · Управление</string>
+    <string name="portfolio_filter_all">Все</string>
+    <string name="portfolio_filter_shown">Видимые</string>
+    <string name="portfolio_filter_hidden">Скрытые</string>
+    <string name="portfolio_preference_auto">Автоматически</string>
+    <string name="portfolio_manage_group_count">Показано %1$d из %2$d</string>
+    <string name="portfolio_no_hidden">Нет скрытых активов</string>
+    <string name="portfolio_only_network">В Fearless этот токен доступен только в сети %1$s.</string>
+</resources>

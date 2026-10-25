@@ -11,7 +11,7 @@ class RemoteAssetsInitializer(
 ) {
     suspend fun invoke() {
         supervisorScope {
-            val syncedChains = dao.getJoinChainInfo().map { mapChainLocalToChain(it) }
+            val syncedChains = dao.getJoinChainInfo().mapNotNull(::mapChainLocalToChainOrNull)
 
             val chainsWithRemoteAssets = syncedChains.filter { it.remoteAssetsSource != null }
 

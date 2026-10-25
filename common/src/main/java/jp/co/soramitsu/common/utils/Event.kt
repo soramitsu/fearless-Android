@@ -20,9 +20,10 @@ open class Event<out T>(private val content: T) {
     fun peekContent(): T = content
 }
 
-class EventObserver<T>(private val onEventUnhandledContent: (T) -> Unit) : Observer<Event<T>> {
-    override fun onChanged(value: Event<T>) {
-        value.getContentIfNotHandled()?.let { content ->
+class EventObserver<T>(private val onEventUnhandledContent: (T) -> Unit) : Observer<Event<T>?> {
+    override fun onChanged(value: Event<T>?) {
+        // MutableLiveData clears its value with null, including during view teardown.
+        value?.getContentIfNotHandled()?.let { content ->
             onEventUnhandledContent(content)
         }
     }

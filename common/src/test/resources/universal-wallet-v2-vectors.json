@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-23",
+  "derivationSpec": "Fearless Universal Wallet V2",
+  "vectors": [
+    {
+      "id": "import12",
+      "mnemonic": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      "wordCount": 12,
+      "expected": {
+        "substrate": {
+          "derivationPath": "",
+          "cryptoType": "sr25519",
+          "publicKeyHex": "66933bd1f37070ef87bd1198af3dacceb095237f803f3d32b173e6b425ed7972",
+          "polkadotAddress": "13KVd4f2a4S5pLp4gTTFezyXdPWx27vQ9vS6xBXJ9yWVd7xo",
+          "ss58Prefix": 0
+        },
+        "evm": {
+          "derivationPath": "m/44'/60'/0'/0/0",
+          "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94"
+        },
+        "bitcoin": {
+          "mainnet": {
+            "accountPath": "m/84'/0'/0'",
+            "firstReceivePath": "m/84'/0'/0'/0/0",
+            "accountXpub": "xpub6CatWdiZiodmUeTDp8LT5or8nmbKNcuyvz7WyksVFkKB4RHwCD3XyuvPEbvqAQY3rAPshWcMLoP2fMFMKHPJ4ZeZXYVUhLv1VMrjPC7PW6V",
+            "firstReceiveAddress": "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu"
+          },
+          "testnet": {
+            "accountPath": "m/84'/1'/0'",
+            "firstReceivePath": "m/84'/1'/0'/0/0",
+            "accountXpub": "xpub6Bm9M1SxZdzL3TxdNV8897FgtTLBgehR1wVNnMyJ5VLRK5n3tFqXxrCVnVQj4zooN4eFSkf6Sma84reWc5ZCXMxPbLXQs3BcaBdTd4YQa3B",
+            "firstReceiveAddress": "tb1q6rz28mcfaxtmd6v789l9rrlrusdprr9pqcpvkl"
+          }
+        },
+        "solana": {
+          "derivationPath": "m/44'/501'/0'/0'",
+          "publicKeyHex": "f036276246a75b9de3349ed42b15e232f6518fc20f5fcd4f1d64e81f9bd258f7",
+          "address": "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk"
+        },
+        "ton": {
+          "derivationPath": "m/44'/607'/0'/0'/0'",
+          "walletVersion": "v4r2",
+          "workchain": 0,
+          "publicKeyHex": "3b5dd9de5a5a4f6b17ecec17135772bea6b132ecaa9413d930aa0dcc75d29fa6",
+          "addressBounceable": "EQDxAUFadQXDd3EXGa3TLF_EF66gMc9h3_aZ0j0zXNoIYR1Z",
+          "addressNonBounceable": "UQDxAUFadQXDd3EXGa3TLF_EF66gMc9h3_aZ0j0zXNoIYUCc",
+          "testnetNonBounceable": "0QDxAUFadQXDd3EXGa3TLF_EF66gMc9h3_aZ0j0zXNoIYfsW"
+        },
+        "iroha": {
+          "derivationPath": "m/44'/617'/0'/0'",
+          "taira": {
+            "publicKeyHex": "8dea60946dd00558e61254c7aadeccabd1e39d5b9a12a45b678e22209f19426f",
+            "canonicalHex": "0x020001208dea60946dd00558e61254c7aadeccabd1e39d5b9a12a45b678e22209f19426f",
+            "i105": "testu\uff9b1Pc\uff852\uff97t\uff89a\uff98L\uff95\uff7d2M\u30f1\uff90\uff8e\uff73\uff93\u30f1\uff77\uff86\uff72M\uff92S\uff8f\uff71\u30f1\uff77J\u30f1FmJ\uff87Ms6YN687Y",
+            "chainDiscriminant": 369
+          },
+          "nexus": {
+            "publicKeyHex": "8dea60946dd00558e61254c7aadeccabd1e39d5b9a12a45b678e22209f19426f",
+            "canonicalHex": "0x020001208dea60946dd00558e61254c7aadeccabd1e39d5b9a12a45b678e22209f19426f",
+            "i105": "sorau\uff9b1Pc\uff852\uff97t\uff89a\uff98L\uff95\uff7d2M\u30f1\uff90\uff8e\uff73\uff93\u30f1\uff77\uff86\uff72M\uff92S\uff8f\uff71\u30f1\uff77J\u30f1FmJ\uff87Ms6YN687Y",
+            "chainDiscriminant": 753
+          }
+        }
+      }
+    },
+    {
+      "id": "default24",
+      "mnemonic": "abandon amount liar amount expire adjust cage candy arch gather drum bullet absurd math era live bid rhythm alien crouch range attend journey unaware",
+      "wordCount": 24,
+      "expected": {
+        "substrate": {
+          "derivationPath": "",
+          "cryptoType": "sr25519",
+          "publicKeyHex": "4a50a9606f3b0c47e0582f9a2dce9da3ec59819c6e15468f6f03f07e7fcfed23",
+          "polkadotAddress": "12gSWHjzeFyd2aSLVCVjByvQ8DVXSVWzQV4jAdjpdzCjExyg",
+          "ss58Prefix": 0
+        },
+        "evm": {
+          "derivationPath": "m/44'/60'/0'/0/0",
+          "address": "0xF9297b542BDb5DA50C364f9AE4Cbe1F3933bA40F"
+        },
+        "bitcoin": {
+          "mainnet": {
+            "accountPath": "m/84'/0'/0'",
+            "firstReceivePath": "m/84'/0'/0'/0/0",
+            "accountXpub": "xpub6BqBNbtUuW88D24ZcyjziejtCDfiqyXsAoXVAoHEQxmyNBxHqomJcqq8sufg8YbyD25ScJeHcENXxUeLPmW9sxt5xyd7Y1HvvpziHQEopcs",
+            "firstReceiveAddress": "bc1qslk39wvggqa0vl8nd6jckaz54dw3vk45c5w60m"
+          },
+          "testnet": {
+            "accountPath": "m/84'/1'/0'",
+            "firstReceivePath": "m/84'/1'/0'/0/0",
+            "accountXpub": "xpub6CTZ93vw865e4ZwMboznYa8vnpCho3kAsqjK6WT5mY9c8yePzWKLAtGHV3ikjdLW1Yf72fmHdoT6bAeUeqVG1HZCENtwvNckQJtCxCuuox9",
+            "firstReceiveAddress": "tb1q2mhcnxyddvq4vxja3mg5t73uknyppfx2u4k54f"
+          }
+        },
+        "solana": {
+          "derivationPath": "m/44'/501'/0'/0'",
+          "publicKeyHex": "41463818479793c75705f6984a7ddd22f83d3e968c5c2c036cec881addfd5cec",
+          "address": "5Pobwp6d9ihN9Nz38f87gVCEBFMgipFiSM2VtUhVit6w"
+        },
+        "ton": {
+          "derivationPath": "m/44'/607'/0'/0'/0'",
+          "walletVersion": "v4r2",
+          "workchain": 0,
+          "publicKeyHex": "c1f91bfd0283d9c25f14488d8d252c8ce74fe05edcaf4f5c2f647f92a08af09c",
+          "addressBounceable": "EQAXzfXU_vaoDQkasgmNRC2gG0cU0bS83sV4bEXVswywW4Lx",
+          "addressNonBounceable": "UQAXzfXU_vaoDQkasgmNRC2gG0cU0bS83sV4bEXVswywW980",
+          "testnetNonBounceable": "0QAXzfXU_vaoDQkasgmNRC2gG0cU0bS83sV4bEXVswywW2S-"
+        },
+        "iroha": {
+          "derivationPath": "m/44'/617'/0'/0'",
+          "taira": {
+            "publicKeyHex": "9a676c350154f7b7183c5b2f44a49f926a75967260840f43062afdcf4259b995",
+            "canonicalHex": "0x020001209a676c350154f7b7183c5b2f44a49f926a75967260840f43062afdcf4259b995",
+            "i105": "testu\uff9b1Pn4Z3\uff81e\uff78ZzXm\uff86Wdh\uff8cy\uff7e\uff93T\uff90T\uff86aU\uff9aS\uff991\uff76\uff9b\uff79C\uff77e8\uff73\uff8b154C93",
+            "chainDiscriminant": 369
+          },
+          "nexus": {
+            "publicKeyHex": "9a676c350154f7b7183c5b2f44a49f926a75967260840f43062afdcf4259b995",
+            "canonicalHex": "0x020001209a676c350154f7b7183c5b2f44a49f926a75967260840f43062afdcf4259b995",
+            "i105": "sorau\uff9b1Pn4Z3\uff81e\uff78ZzXm\uff86Wdh\uff8cy\uff7e\uff93T\uff90T\uff86aU\uff9aS\uff991\uff76\uff9b\uff79C\uff77e8\uff73\uff8b154C93",
+            "chainDiscriminant": 753
+          }
+        }
+      }
+    }
+  ],
+  "negativeCases": [
+    {
+      "id": "bitcoin-wrong-purpose",
+      "reason": "BIP44 m/44 paths must not match BIP84 native SegWit addresses."
+    },
+    {
+      "id": "solana-wrong-path",
+      "reason": "m/44'/501'/0' must not match the default m/44'/501'/0'/0' account."
+    },
+    {
+      "id": "iroha-wrong-discriminant",
+      "reason": "Taira discriminant 369 and Nexus discriminant 753 must not be accepted interchangeably."
+    },
+    {
+      "id": "ton-testnet-flag",
+      "reason": "TON testnet-only address encoding must not be accepted as a mainnet receive address."
+    }
+  ]
+}

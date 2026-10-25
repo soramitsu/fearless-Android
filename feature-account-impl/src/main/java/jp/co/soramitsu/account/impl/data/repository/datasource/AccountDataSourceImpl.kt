@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.data.repository.datasource
 
+import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+
 import com.google.gson.Gson
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.AuthType
@@ -7,11 +9,10 @@ import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.impl.data.mappers.mapChainAccountToAccount
-import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToLightMetaAccount
+import jp.co.soramitsu.account.impl.data.mappers.mapJoinedMetaAccountInfoToLightMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountToAccount
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
-import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.inBackground
@@ -19,14 +20,22 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountPositionUpdate
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -34,7 +43,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val PREFS_AUTH_TYPE = "auth_type"
@@ -47,7 +55,6 @@ class AccountDataSourceImpl(
     private val encryptedPreferences: EncryptedPreferences,
     private val jsonMapper: Gson,
     private val metaAccountDao: MetaAccountDao,
-    private val secretStoreV2: SecretStoreV2,
     secretStoreV1: SecretStoreV1,
     private val chainsRepository: ChainsRepository
 ) : AccountDataSource, SecretStoreV1 by secretStoreV1 {
@@ -98,13 +105,21 @@ class AccountDataSourceImpl(
         }
     }
 
+    override suspend fun getPinHealth(): PinHealth = withContext(Dispatchers.IO) {
+        encryptedPreferences.getPinHealth()
+    }
+
     override suspend fun savePinCode(pinCode: String) = withContext(Dispatchers.IO) {
-        encryptedPreferences.putEncryptedString(PREFS_PIN_CODE, pinCode)
+        encryptedPreferences.savePinCodeDurably(pinCode)
     }
 
     override suspend fun getPinCode(): String? {
         return withContext(Dispatchers.IO) {
-            encryptedPreferences.getDecryptedString(PREFS_PIN_CODE)
+            try {
+                encryptedPreferences.getDecryptedString(PREFS_PIN_CODE)
+            } catch (_: ClassCastException) {
+                ""
+            }
         }
     }
 
@@ -122,21 +137,73 @@ class AccountDataSourceImpl(
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> = selectedMetaAccountFlow
 
+    /**
+     * Revoke before waiting for prior cancellation cleanup or the replacement catalog.
+     * Null is handed off without a buffer; no replacement can become ready until the old
+     * job has ended. Downstream consumers still need their own generation checks.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun selectedMetaAccountStateFlow(): Flow<MetaAccount?> = channelFlow {
+        val generation = AtomicLong()
+        var currentSelection: Job? = null
+        send(null)
+        selectedMetaAccountLocal.collect { local ->
+            val revision = generation.incrementAndGet()
+            val previous = currentSelection
+            previous?.cancel()
+            send(null)
+            previous?.join()
+            currentSelection = if (local == null) null else launch {
+                val publisherJob = currentCoroutineContext().job
+                chainsRepository.chainsByIdFlow().collect { chains ->
+                    val mapped = mapMetaAccountLocalToMetaAccount(chains, local)
+                    if (generation.get() == revision && publisherJob.isActive) {
+                        send(mapped)
+                    }
+                }
+            }
+        }
+    }.buffer(0)
+
+    /** Per-wallet cold observer; keeps TON-only replacements and collector cancellation visible. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun metaAccountStateFlow(metaId: Long): Flow<MetaAccount?> = channelFlow {
+        val generation = AtomicLong()
+        var currentSelection: Job? = null
+        send(null)
+        metaAccountDao.observeJoinedMetaAccountInfo(metaId).collect { local ->
+            val revision = generation.incrementAndGet()
+            val previous = currentSelection
+            previous?.cancel()
+            send(null)
+            previous?.join()
+            currentSelection = if (local == null) null else launch {
+                val publisherJob = currentCoroutineContext().job
+                chainsRepository.chainsByIdFlow().collect { chains ->
+                    val mapped = mapMetaAccountLocalToMetaAccount(chains, local)
+                    if (generation.get() == revision && publisherJob.isActive) {
+                        send(mapped)
+                    }
+                }
+            }
+        }
+    }.buffer(0)
+
     override fun selectedLightMetaAccount(): Flow<LightMetaAccount> {
-        return metaAccountDao.selectedLocalMetaAccountFlow().map { accountLocal ->
-            accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
+        return metaAccountDao.selectedMetaAccountInfoFlow().map { accountLocal ->
+            accountLocal?.let { mapJoinedMetaAccountInfoToLightMetaAccount(it) }
         }.filterNotNull().flowOn(Dispatchers.IO)
     }
 
     override fun lightMetaAccountFlow(metaId: Long): Flow<LightMetaAccount> {
-        return metaAccountDao.observeLocalMetaAccount(metaId).map { accountLocal ->
-            accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
+        return metaAccountDao.observeJoinedMetaAccountInfo(metaId).map { accountLocal ->
+            accountLocal?.let { mapJoinedMetaAccountInfoToLightMetaAccount(it) }
         }.filterNotNull().flowOn(Dispatchers.IO)
     }
 
     override suspend fun getSelectedLightMetaAccount(): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getSelectedLocalMetaAccount() }
-        return mapMetaAccountLocalToLightMetaAccount(local)
+        val local = withContext(Dispatchers.IO) { metaAccountDao.selectedMetaAccountInfo() }
+        return mapJoinedMetaAccountInfoToLightMetaAccount(local)
     }
 
     override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
@@ -165,8 +232,8 @@ class AccountDataSourceImpl(
     }
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
-        return metaAccountDao.metaAccountsFlow().mapList {
-            mapMetaAccountLocalToLightMetaAccount(it)
+        return metaAccountDao.observeOrderedJoinedMetaAccountsInfo().mapList {
+            mapJoinedMetaAccountInfoToLightMetaAccount(it)
         }
     }
 
@@ -205,8 +272,8 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount {
-        val local = withContext(Dispatchers.IO) { metaAccountDao.getLocalMetaAccount(metaId) }
-        return mapMetaAccountLocalToLightMetaAccount(local)
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getJoinedMetaAccountInfo(metaId) }
+        return mapJoinedMetaAccountInfoToLightMetaAccount(local)
     }
 
     override suspend fun updateMetaAccountName(metaId: Long, newName: String) {
@@ -219,21 +286,6 @@ class AccountDataSourceImpl(
 
     override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
         metaAccountDao.clearGoogleBackupInfo(metaId)
-    }
-
-    override suspend fun deleteMetaAccount(metaId: Long) {
-        val joinedMetaAccountInfo = metaAccountDao.getJoinedMetaAccountInfo(metaId)
-        val chainAccountIds = joinedMetaAccountInfo.chainAccounts.map(ChainAccountLocal::accountId)
-
-        metaAccountDao.delete(metaId)
-        metaAccountDao.deleteChainAccounts(metaId)
-        secretStoreV2.clearSecrets(metaId, chainAccountIds)
-    }
-
-    private inline fun async(crossinline action: suspend () -> Unit) {
-        GlobalScope.launch(Dispatchers.Default) {
-            action()
-        }
     }
 
     override fun observeFavoriteChains(metaId: Long) = metaAccountDao.observeFavoriteChains(metaId)

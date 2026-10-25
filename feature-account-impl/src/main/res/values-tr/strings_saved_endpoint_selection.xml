@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">Uç nokta seç</string>
+    <string name="saved_endpoint_selection_refresh">Seçim durumunu yenile</string>
+    <string name="saved_endpoint_selection_checking">Eklenen uç nokta kontrol ediliyor…</string>
+    <string name="saved_endpoint_selection_available">Eklenen bu uç nokta ağ için seçilebilir.</string>
+    <string name="saved_endpoint_selection_unattached">Bu uç noktayı seçmeden önce ekleyin.</string>
+    <string name="saved_endpoint_selection_saving">Seçim kaydediliyor…</string>
+    <string name="saved_endpoint_selection_saved">Seçim kaydedildi</string>
+    <string name="saved_endpoint_selection_failed">Seçim doğrulanamadı. Tekrar denemeden önce yenileyin.</string>
+    <string name="saved_endpoint_selection_stale">Uç nokta veya seçim değişti. Seçmeden önce yenileyin.</string>
+    <string name="saved_endpoint_runtime_preferred">Tercih edilen Solana uç noktası kaydedildi. İstekler başka bir sağlayıcı kullanabilir.</string>
+    <string name="saved_endpoint_runtime_pending">Ağın bu seçimi kullanması bekleniyor.</string>
+    <string name="saved_endpoint_runtime_not_in_use">Bu ağ şu anda kullanılmıyor.</string>
+    <string name="saved_endpoint_runtime_unavailable">Ağ bağlantısı kullanılamıyor.</string>
+    <string name="saved_endpoint_runtime_paused">Ağ bağlantısı duraklatıldı.</string>
+    <string name="saved_endpoint_runtime_connecting">Seçilen uç noktaya bağlanılıyor…</string>
+    <string name="saved_endpoint_runtime_connected">Seçilen uç noktaya bağlanıldı</string>
+</resources>

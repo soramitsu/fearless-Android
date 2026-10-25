@@ -60,7 +60,8 @@ data class Chain(
     override val ecosystem: Ecosystem,
     val androidMinAppVersion: String? = null,
     val remoteAssetsSource: RemoteAssetsSource?,
-    val tonBridgeUrl: String? = null
+    val tonBridgeUrl: String? = null,
+    val xcm: Xcm? = null
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -74,9 +75,9 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, UNKNOWN, GITHUB, TON;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, UNKNOWN, GITHUB, TON, BITCOIN, SOLANA, IROHA;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, TON)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, BLOCKSCOUT, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, TON, BITCOIN, SOLANA, IROHA)
             }
         }
     }
@@ -98,67 +99,73 @@ data class Chain(
         OnChain, OKX
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    data class Xcm(
+        val chainId: String?,
+        val xcmVersion: String?,
+        val availableAssets: List<Asset>?,
+        val availableDestinations: List<Destination>?
+    ) {
+        data class Asset(
+            val id: String?,
+            val symbol: String?,
+            val minAmount: String?,
+            /**
+             * APK-reviewed transaction authority for this exact route asset.
+             * Mutable discovery metadata is never trusted as authority.
+             */
+            val execution: Execution? = null
+        )
 
-        other as Chain
+        data class Destination(
+            val chainId: String?,
+            val assets: List<Asset>?,
+            val bridgeParachainId: String?,
+            /**
+             * Legacy destination-scoped representation. It remains readable so
+             * loaders can reject it explicitly instead of silently ignoring an
+             * ambiguous execution authority.
+             */
+            @Deprecated("Execution authority must be attached to an exact route asset")
+            val execution: Execution? = null
+        )
 
-        if (id != other.id) return false
-        if (paraId != other.paraId) return false
-        if (rank != other.rank) return false
-        if (name != other.name) return false
-        if (minSupportedVersion != other.minSupportedVersion) return false
-        if (assets != other.assets) return false
-        if (explorers != other.explorers) return false
-        if (externalApi != other.externalApi) return false
-        if (icon != other.icon) return false
-        if (addressPrefix != other.addressPrefix) return false
-        if (isEthereumBased != other.isEthereumBased) return false
-        if (isTestNet != other.isTestNet) return false
-        if (hasCrowdloans != other.hasCrowdloans) return false
-        if (parentId != other.parentId) return false
-        if (supportStakingPool != other.supportStakingPool) return false
-        if (isEthereumChain != other.isEthereumChain) return false
-        if (chainlinkProvider != other.chainlinkProvider) return false
-        if (supportNft != other.supportNft) return false
-        if (isUsesAppId != other.isUsesAppId) return false
-        if (identityChain != other.identityChain) return false
+        data class Execution(
+            val palletName: String?,
+            val callName: String?,
+            val transferType: String?,
+            val argumentShape: String? = null,
+            val destinationLocation: MultiLocation?,
+            val assetLocation: MultiLocation?,
+            val beneficiaryLocation: MultiLocation?,
+            val feeAssetLocation: MultiLocation?,
+            val feeAssetItem: Int?,
+            val weightLimit: WeightLimit?,
+            val destinationFee: DestinationFee?,
+            val bridge: Bridge?
+        )
 
-        // custom comparison logic
-        val defaultNodes = nodes.filter { it.isDefault }
-        val otherDefaultNodes = other.nodes.filter { it.isDefault }
-        if (defaultNodes.size != otherDefaultNodes.size) return false
+        data class MultiLocation(
+            val parents: Int?,
+            val interior: String?
+        )
 
-        val equalsWithoutActive = defaultNodes.map { it.name to it.url } == otherDefaultNodes.map { it.name to it.url }
-        if (!equalsWithoutActive) return false
+        data class WeightLimit(
+            val type: String?,
+            val refTime: String?,
+            val proofSize: String?
+        )
 
-        return true
-    }
+        data class DestinationFee(
+            val mode: String?,
+            val assetSymbol: String?,
+            val amount: String?
+        )
 
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + (paraId?.hashCode() ?: 0)
-        result = 31 * result + (rank?.hashCode() ?: 0)
-        result = 31 * result + name.hashCode()
-        result = 31 * result + (minSupportedVersion?.hashCode() ?: 0)
-        result = 31 * result + assets.hashCode()
-        result = 31 * result + explorers.hashCode()
-        result = 31 * result + nodes.map { it.name to it.url }.hashCode()
-        result = 31 * result + (externalApi?.hashCode() ?: 0)
-        result = 31 * result + icon.hashCode()
-        result = 31 * result + addressPrefix
-        result = 31 * result + isEthereumBased.hashCode()
-        result = 31 * result + isTestNet.hashCode()
-        result = 31 * result + hasCrowdloans.hashCode()
-        result = 31 * result + (parentId?.hashCode() ?: 0)
-        result = 31 * result + supportStakingPool.hashCode()
-        result = 31 * result + isEthereumChain.hashCode()
-        result = 31 * result + chainlinkProvider.hashCode()
-        result = 31 * result + supportNft.hashCode()
-        result = 31 * result + isUsesAppId.hashCode()
-        result = 31 * result + (identityChain?.hashCode() ?: 0)
-        return result
+        data class Bridge(
+            val parachainId: String?,
+            val feeAssetLocation: MultiLocation?,
+            val feeAssetItem: Int?
+        )
     }
 }
 

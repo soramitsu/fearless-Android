@@ -2,31 +2,33 @@ package jp.co.soramitsu.wallet.impl.domain
 
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.math.MathContext
-import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.common.data.secrets.v1.Keypair
-import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.isZero
-import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
-import jp.co.soramitsu.core.utils.removedXcPrefix
-import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.core.models.IChain
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair as SigningKeypair
+import jp.co.soramitsu.core.utils.normalizedAssetSymbol
 import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
+import jp.co.soramitsu.wallet.impl.data.repository.CrossChainSubmissionJournal
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
+import jp.co.soramitsu.xcm.domain.XcmAsset
+import jp.co.soramitsu.xcm.domain.CrossChainAssetIdentity
+import jp.co.soramitsu.xcm.domain.CrossChainRouteProviderRegistry
+import jp.co.soramitsu.xcm.domain.CrossChainRouteQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -37,35 +39,18 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 class XcmInteractor(
     private val walletInteractor: WalletInteractor,
     private val chainRegistry: ChainRegistry,
-    private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val xcmEntitiesFetcher: XcmEntitiesFetcher,
     private val accountInteractor: AccountInteractor,
     private val runtimeFilesCache: RuntimeFilesCache,
-    private val xcmService: XcmService
+    private val xcmService: XcmService,
+    private val featureToggleStore: ProductFeatureToggleStore,
+    private val routeProviderRegistry: CrossChainRouteProviderRegistry? = null,
+    private val signingKeypairProvider: KeypairProvider? = null,
+    private val crossChainSubmissions: CrossChainSubmissions? = null
 ) {
 
     suspend fun prepareDataForChains(originChainId: ChainId, destinationChainId: ChainId) = withContext(Dispatchers.Default) {
-        val metaAccount = accountInteractor.selectedMetaAccount()
-        metaAccount.substrateCryptoType ?: throw IllegalStateException("Can't do XCM without susbtrate keypair")
-        val originChain = chainRegistry.getChain(originChainId)
-        val keypairType = if (originChain.isEthereumBased) {
-            EthereumSecrets.EthereumKeypair
-        } else {
-            SubstrateSecrets.SubstrateKeypair
-        }
-        val secrets = accountInteractor.getSubstrateSecrets(metaAccount.id)?.get(keypairType)
-        requireNotNull(secrets)
-        val private = secrets[KeyPairSchema.PrivateKey]
-        val public = secrets[KeyPairSchema.PublicKey]
-        val nonce = secrets[KeyPairSchema.Nonce]
-
-        xcmService.updateKeypairProvider(
-            chainId = originChainId,
-            keypairProvider = SingleKeypairProvider(
-                keypair = Keypair(public, private, nonce),
-                cryptoType = metaAccount.substrateCryptoType!!
-            )
-        )
+        registerQuoteKeypairProvider(originChainId)
         val fromChainMetadata = ChainIdWithMetadata(
             chainId = originChainId,
             metadata = runCatching { runtimeFilesCache.getChainMetadata(originChainId) }.getOrNull()
@@ -78,65 +63,99 @@ class XcmInteractor(
     }
 
     fun getAvailableAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>> {
-        return combineToPair(walletInteractor.assetsFlow(), getAvailableAssetSymbolsFlow(originChainId))
-            .map { (assets, availableXcmAssetSymbols) ->
-                assets.filter {
-                    val assetSymbol = it.asset.token.configuration.symbol.uppercase()
-                    val removedXcAssetSymbol = assetSymbol.removedXcPrefix()
-                    removedXcAssetSymbol in availableXcmAssetSymbols ||
-                        assetSymbol in availableXcmAssetSymbols
+        return combineToPair(walletInteractor.assetsFlow(), getAvailableAssetsFlowInternal(originChainId))
+            .map { (assets, availableRouteAssets) ->
+                assets.filter { assetWithStatus ->
+                    val asset = assetWithStatus.asset.token.configuration
+                    availableRouteAssets.xcmAssets.any { approved ->
+                        asset.chainId == approved.originChainId &&
+                            asset.id == approved.originAssetId &&
+                            asset.precision == approved.originAssetPrecision &&
+                            asset.symbol.normalizedAssetSymbol() == approved.symbol
+                    } || availableRouteAssets.providerAssets.any { reviewed ->
+                        asset.chainId == reviewed.originNetworkId &&
+                            asset.id == reviewed.originAssetId &&
+                            asset.symbol.uppercase() == reviewed.symbol
+                    }
                 }
             }
     }
 
-    private fun getAvailableAssetSymbolsFlow(originChainId: ChainId?): Flow<List<String>> {
-        return flow {
-            val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
-                originChainId = originChainId,
-                destinationChainId = null
-            ).map { it.symbol.uppercase() }
-            emit(availableXcmAssetSymbols)
-        }
+    private fun getAvailableAssetsFlowInternal(originChainId: ChainId?) = flow {
+        val availableXcmAssets = xcmEntitiesFetcher.getAvailableAssets(
+            originChainId = originChainId,
+            destinationChainId = null
+        )
+        val availableProviderAssets = routeProviderRegistry?.capabilities(
+            CrossChainRouteQuery(originNetworkId = originChainId)
+        ).orEmpty().filter { it.hasRoute }.flatMapTo(linkedSetOf()) { it.supportedAssets }
+        emit(AvailableRouteAssets(availableXcmAssets, availableProviderAssets))
     }
 
-    suspend fun performCrossChainTransfer(transfer: CrossChainTransfer): Result<String> {
+    private data class AvailableRouteAssets(
+        val xcmAssets: List<XcmAsset>,
+        val providerAssets: Set<CrossChainAssetIdentity>
+    )
+
+    /** Signs only with [walletId], the wallet whose balances the transfer was validated against. */
+    suspend fun performCrossChainTransfer(transfer: CrossChainTransfer, walletId: Long): Result<String> {
         return runCatching {
+            check(featureToggleStore.xcmMutationsEnabled) {
+                "Cross-chain transfers are temporarily disabled."
+            }
+            val wallet = accountInteractor.selectedMetaAccount()
+            check(wallet.id == walletId) { "The selected wallet changed after the transfer was reviewed" }
             val originChain = chainRegistry.getChain(transfer.originChainId)
             val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
-            val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")
+            val senderAccountId = checkNotNull(wallet.accountId(originChain)) { "No self address" }
 
-            val ksmInSoraMainnetCurrencyId = "0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8"
-            // todo remove this sora ksm check when https://github.com/sora-xor/sora2-network/issues/845 will be fixed
-            // if we transfer ksm asset from sora network - we have to convert precision 18 to 12
-            val roundedAmountInPlanks = if(transfer.originChainId == soraMainChainId && transfer.chainAsset.currencyId == ksmInSoraMainnetCurrencyId) {
-                val roundedAmount = transfer.amount.round(MathContext(12, RoundingMode.HALF_EVEN))
-                transfer.chainAsset.planksFromAmount(roundedAmount)
-            } else {
-                transfer.fullAmountInPlanks
-            }
-
-            xcmService.transfer(
-                originChain = originChain,
-                destinationChain = destinationChain,
-                asset = transfer.chainAsset,
-                senderAccountId = originChain.accountIdOf(selfAddress),
-                address = transfer.recipient,
-                amount = roundedAmountInPlanks
+            val exactAmountInPlanks = exactXcmAmountInPlanks(transfer)
+            val submissions = checkNotNull(crossChainSubmissions) { "Cross-chain submissions cannot be tracked" }
+            val signingProvider = checkNotNull(signingKeypairProvider) { "An authorized signing provider is required" }
+            val details = CrossChainSubmissionJournal.Details(
+                destinationChainId = destinationChain.id,
+                assetId = transfer.chainAsset.id,
+                symbol = transfer.chainAsset.symbol,
+                precision = transfer.chainAsset.precision,
+                recipient = transfer.recipient,
+                amountInPlanks = exactAmountInPlanks
             )
+            submissions.send(submissions.scope(walletId, originChain, senderAccountId), details, signingProvider) { submission ->
+                xcmService.transfer(
+                    originChain = originChain,
+                    destinationChain = destinationChain,
+                    asset = transfer.chainAsset,
+                    senderAccountId = senderAccountId,
+                    address = transfer.recipient,
+                    amount = exactAmountInPlanks,
+                    submission = submission
+                )
+            }
         }
     }
 
     suspend fun getDestinationFee(
+        originChainId: ChainId,
         destinationChainId: ChainId,
         tokenConfiguration: Asset
     ): BigDecimal? {
         return runCatching {
             xcmService.getXcmDestinationFee(
+                originChainId = originChainId,
                 destinationChainId = destinationChainId,
                 asset = tokenConfiguration
             )
         }.getOrNull()
     }
+
+    /** True only for a reviewed route whose destination deducts its fee from the amount; false when unknown. */
+    suspend fun isDestinationFeeIncluded(
+        originChainId: ChainId,
+        destinationChainId: ChainId,
+        tokenConfiguration: Asset
+    ): Boolean = runCatching {
+        xcmService.isXcmDestinationFeeIncluded(originChainId, destinationChainId, tokenConfiguration)
+    }.getOrDefault(false)
 
     suspend fun getOriginFee(
         originNetworkId: ChainId,
@@ -145,15 +164,35 @@ class XcmInteractor(
         amount: BigDecimal
     ): BigDecimal? {
         return runCatching {
-            val chain = chainRegistry.getChain(destinationNetworkId)
+            // Registered here rather than relying on prepareDataForChains, which runs concurrently with the quote.
+            registerQuoteKeypairProvider(originNetworkId)
+            val originChain = chainRegistry.getChain(originNetworkId)
+            val destinationChain = chainRegistry.getChain(destinationNetworkId)
             xcmService.getXcmOriginFee(
-                originChainId = originNetworkId,
+                originChain = originChain,
                 destinationChainId = destinationNetworkId,
                 asset = asset,
-                address = chain.fakeAddress(),
+                address = destinationChain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)
             )
         }.getOrNull()
+    }
+
+    /**
+     * Fee quotes sign a placeholder for an all-zero account, so they need only the selected wallet's public crypto
+     * type, never its keys. Transfers sign through the wallet-bound provider of their tracked submission instead.
+     */
+    private suspend fun registerQuoteKeypairProvider(originChainId: ChainId) {
+        val cryptoType = accountInteractor.selectedMetaAccount().substrateCryptoType
+            ?: throw IllegalStateException("Can't do XCM without susbtrate keypair")
+        xcmService.updateKeypairProvider(
+            chainId = originChainId,
+            keypairProvider = object : KeypairProvider {
+                override suspend fun getCryptoTypeFor(chain: IChain, accountId: ByteArray) = cryptoType
+                override suspend fun getKeypairFor(chain: IChain, accountId: ByteArray): SigningKeypair =
+                    error("A fee quote never reads a key")
+            }
+        )
     }
 
     suspend fun getAmountMinLimit(originChainId: ChainId, destinationChainId: ChainId, asset: Asset) =
@@ -168,3 +207,35 @@ class XcmInteractor(
         return rawAmountInPlanks
     }
 }
+
+/** The SORA KSM destination currently supports twelve fractional digits. Reject, never round. */
+internal fun exactXcmAmountInPlanks(transfer: CrossChainTransfer): BigInteger {
+    if (transfer.originChainId == soraMainChainId &&
+        transfer.chainAsset.currencyId == SORA_KSM_CURRENCY_ID
+    ) {
+        require(transfer.amount.stripTrailingZeros().scale() <= 12 &&
+            transfer.destinationFee.stripTrailingZeros().scale() <= 12) {
+            "SORA KSM XCM amount and destination fee must use at most 12 fractional digits"
+        }
+    }
+    return transfer.exactFullAmountInPlanks()
+}
+
+/** The quoted origin fee is denominated in the origin utility asset, not the transfer asset. */
+internal fun exactXcmOriginFeeInPlanks(
+    originChainId: ChainId,
+    expectedUtilityAssetId: String,
+    utilityAsset: Asset,
+    quotedFee: BigDecimal
+): BigInteger {
+    require(utilityAsset.chainId == originChainId && utilityAsset.id == expectedUtilityAssetId) {
+        "XCM origin fee asset does not match the origin utility asset"
+    }
+    require(utilityAsset.precision >= 0 && quotedFee.signum() >= 0) {
+        "XCM origin fee or precision is invalid"
+    }
+    return quotedFee.scaleByPowerOfTen(utilityAsset.precision).toBigIntegerExact()
+}
+
+private const val SORA_KSM_CURRENCY_ID =
+    "0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8"

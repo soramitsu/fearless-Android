@@ -6,7 +6,15 @@ import java.math.BigDecimal
 data class JettonsBalances(
 
     @SerializedName("balances")
-    val balances: List<JettonBalance>
+    val balances: List<JettonBalance>,
+
+    /**
+     * True when the list may leave out jettons the account holds (TI lists only the jettons it indexes and drops
+     * ones it could not read in time), so a jetton missing from it must not be read as a zero balance.
+     * Never deserialized: a TonAPI list is complete.
+     */
+    @Transient
+    val partial: Boolean = false
 
 )
 

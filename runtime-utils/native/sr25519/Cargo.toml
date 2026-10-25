@@ -1,0 +1,20 @@
+[package]
+name = "sr25519java"
+version = "0.1.0"
+authors = ["Harrm <abrehchs@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+zeroize = { version="<=1.1.1" }
+zeroize_derive = { version="<=1.1.1" }
+jni = { version = "0.17.0", default-features = false }
+schnorrkel = { version="<=0.9.1" }
+
+[profile.release]
+lto = true
+
+[lib]
+name = "sr25519java"
+crate-type = ["cdylib"]

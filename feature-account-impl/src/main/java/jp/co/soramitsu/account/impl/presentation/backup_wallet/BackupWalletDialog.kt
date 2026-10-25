@@ -16,6 +16,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
@@ -50,13 +51,10 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
     private val launcher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        when (result.resultCode) {
-            Activity.RESULT_OK -> viewModel.onGoogleSignInSuccess()
-            Activity.RESULT_CANCELED -> { /* no action */ }
-            else -> {
-                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-                viewModel.onGoogleLoginError(googleSignInStatus.toString())
-            }
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.onGoogleSignInSuccess()
+        } else {
+            viewModel.onGoogleSignInFailed(GoogleSignInResult.parse(result.resultCode, result.data))
         }
     }
 

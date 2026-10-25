@@ -3,21 +3,40 @@ package jp.co.soramitsu.app
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
-import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
-import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.android.Core
+import com.reown.android.CoreClient
+import com.reown.android.relay.ConnectionType
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
 import dagger.hilt.android.HiltAndroidApp
+import jp.co.soramitsu.app.root.domain.SoraCardLeftoverCleanup
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
+import jp.co.soramitsu.common.data.network.config.MutationAuthorizationRefresher
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.utils.initializeTonAddressCode
+import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
+import javax.inject.Inject
 
+/**
+ * Application entry point.
+ *
+ * - Boots Hilt DI via `@HiltAndroidApp`.
+ * - Applies current locale using `ContextManager` and `LanguagesHolder`.
+ * - Publishes build metadata (version, build type) through `OptionsProvider`.
+ * - Deletes storage left by the removed SORA Card feature (`SoraCardLeftoverCleanup`).
+ * - Initializes WalletConnect v2 (Reown SDK) for dApp connections.
+ */
 @HiltAndroidApp
 open class App : Application() {
 
+    @Inject lateinit var mutationAuthorizationRefresher: MutationAuthorizationRefresher
+    @Inject lateinit var soraCardLeftoverCleanup: SoraCardLeftoverCleanup
+
     private val languagesHolder: LanguagesHolder = LanguagesHolder()
+    @Suppress("unused")
+    private val bebiEasterEgg = "B.E.B.I </3"
 
     override fun attachBaseContext(base: Context) {
         val contextManager = ContextManager.getInstanceOrInit(base, languagesHolder)
@@ -33,43 +52,68 @@ open class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        initializeTonAddressCode()
+
         OptionsProvider.APPLICATION_ID = BuildConfig.LIBRARY_PACKAGE_NAME
         OptionsProvider.CURRENT_VERSION_CODE = BuildConfig.VERSION_CODE
         OptionsProvider.CURRENT_VERSION_NAME = BuildConfig.VERSION_NAME
         OptionsProvider.CURRENT_BUILD_TYPE = BuildConfig.BUILD_TYPE
 
+        mutationAuthorizationRefresher.start()
+        soraCardLeftoverCleanup.start()
+
+        // WalletConnect v2 setup (requires BuildConfig.WALLET_CONNECT_PROJECT_ID)
         setupWalletConnect()
     }
 
+    /**
+     * Configure the WalletConnect v2 client.
+     *
+     * Uses the Reown SDK with `AUTOMATIC` connection type and the project ID from
+     * BuildConfig (`WALLET_CONNECT_PROJECT_ID`). When changing the relay or metadata
+     * fields (name, description, icons), ensure they match Brand/App Store guidelines.
+     */
     private fun setupWalletConnect() {
-        val connectionType = ConnectionType.AUTOMATIC // ConnectionType.AUTOMATIC or ConnectionType.MANUAL
-        val projectId = BuildConfig.WALLET_CONNECT_PROJECT_ID // Project ID at https://cloud.walletconnect.com/
-        val relayUrl = "relay.walletconnect.com"
-        val serverUrl = "wss://$relayUrl?projectId=${projectId}"
+        initializeWalletConnectSafely(
+            initialize = {
+                val connectionType = ConnectionType.AUTOMATIC
+                val projectId = BuildConfig.WALLET_CONNECT_PROJECT_ID
+                val relayUrl = "relay.walletconnect.com"
+                val serverUrl = "wss://$relayUrl?projectId=${projectId}"
 
-        val appMetaData = Core.Model.AppMetaData(
-            name = "Fearless wallet",
-            description = "Defi wallet",
-            url = "https://fearlesswallet.io",
-            icons = listOf("https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/FW%20icon%20128.png"),
-            redirect = "fearless-wallet-wc://request"
+                val appMetaData = Core.Model.AppMetaData(
+                    name = "Fearless wallet",
+                    description = "Defi wallet",
+                    url = "https://fearlesswallet.io",
+                    icons = listOf("https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/FW%20icon%20128.png"),
+                    redirect = "fearless-wallet-wc://request"
+                )
+
+                CoreClient.initialize(
+                    relayServerUrl = serverUrl,
+                    connectionType = connectionType,
+                    application = this,
+                    metaData = appMetaData,
+                    onError = {
+                        it.throwable.printStackTrace()
+                    }
+                )
+
+                val initParams = Wallet.Params.Init(core = CoreClient)
+
+                WalletKit.initialize(
+                    params = initParams,
+                    onSuccess = {
+                        WCDelegate.registerDelegatesIfReady()
+                            .onSuccess { WCDelegate.refreshConnections() }
+                    },
+                    onError = { error ->
+                        // Will log exceptions if initialization fails (e.g., invalid project ID, network issues)
+                        error.throwable.printStackTrace()
+                    }
+                )
+            },
+            onFailure = RuntimeException::printStackTrace
         )
-
-        CoreClient.initialize(
-            relayServerUrl = serverUrl,
-            connectionType = connectionType,
-            application = this,
-            metaData = appMetaData,
-            onError = {
-                it.throwable.printStackTrace()
-            }
-        )
-
-        val initParams = Wallet.Params.Init(core = CoreClient)
-
-        Web3Wallet.initialize(initParams) { error ->
-            // Error will be thrown if there's an issue during initialization
-            error.throwable.printStackTrace()
-        }
     }
 }

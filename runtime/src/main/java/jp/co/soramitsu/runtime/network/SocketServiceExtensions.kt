@@ -1,12 +1,12 @@
 package jp.co.soramitsu.runtime.network
 
-import jp.co.soramitsu.shared_utils.wsrpc.SocketService
-import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.ResponseMapper
-import jp.co.soramitsu.shared_utils.wsrpc.request.DeliveryType
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.UnsubscribeMethodResolver
-import jp.co.soramitsu.shared_utils.wsrpc.subscription.response.SubscriptionChange
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.ResponseMapper
+import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.UnsubscribeMethodResolver
+import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow

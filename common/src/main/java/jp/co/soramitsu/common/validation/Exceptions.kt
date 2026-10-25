@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.CallMovedToAssetHubException
 
 class StakeInsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
     resourceManager.getString(R.string.common_not_enough_funds_title),
@@ -39,6 +40,24 @@ class ExistentialDepositCrossedWarning(resourceManager: ResourceManager, edAmoun
 class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationException(
     resourceManager.getString(R.string.common_existential_warning_title),
     resourceManager.getString(R.string.common_existential_error_message, edAmount)
+)
+
+class ExistentialDepositUnknownWarning(resourceManager: ResourceManager, symbols: String) : ValidationWarning(
+    resourceManager.getString(R.string.common_existential_unknown_title),
+    resourceManager.getString(R.string.common_existential_unknown_message, symbols),
+    resourceManager.getString(R.string.common_proceed),
+    resourceManager.getString(R.string.common_cancel),
+    null
+)
+
+class ExistentialDepositUnknownException(resourceManager: ResourceManager, symbol: String) : ValidationException(
+    resourceManager.getString(R.string.common_existential_unknown_title),
+    resourceManager.getString(R.string.common_existential_unknown_retry_message, symbol)
+)
+
+class CrossChainDestinationUnavailableException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_error_general_title),
+    resourceManager.getString(R.string.cross_chain_destination_unavailable_message)
 )
 
 class TransferToTheSameAddressException(resourceManager: ResourceManager) : ValidationWarning(
@@ -98,3 +117,26 @@ class NotEnoughResultedAmountToPayFeeException(resourceManager: ResourceManager)
     message = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_title),
     explanation = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_message)
 )
+
+/**
+ * The relay chain still decodes the call but rejects it at dispatch, after charging the fee, since its pallet moved
+ * to Asset Hub. fearless-utils refuses to build such a call ([CallMovedToAssetHubException]), so nothing was signed.
+ */
+class MovedToAssetHubException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.relay_moved_to_asset_hub_title),
+    resourceManager.getString(R.string.relay_moved_to_asset_hub_message)
+)
+
+class FeeCalculationFailedException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.choose_amount_network_error),
+    resourceManager.getString(R.string.choose_amount_error_fee)
+)
+
+fun Throwable.isCallMovedToAssetHub(): Boolean = generateSequence(this) { it.cause }.any { it is CallMovedToAssetHubException }
+
+/** A failed fee estimation as the user reads it: why a call that moved to Asset Hub can't be sent, otherwise the generic fee error. */
+fun Throwable.toFeeError(resourceManager: ResourceManager): ValidationException = when {
+    isCallMovedToAssetHub() -> MovedToAssetHubException(resourceManager)
+    this is ValidationException -> this
+    else -> FeeCalculationFailedException(resourceManager)
+}

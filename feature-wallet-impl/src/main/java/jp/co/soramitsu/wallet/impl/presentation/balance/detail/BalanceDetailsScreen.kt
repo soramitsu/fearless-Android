@@ -81,8 +81,11 @@ data class BalanceDetailsState(
     val balance: LoadingState<AssetBalanceViewState>,
     val transferableViewState: TitleValueViewState,
     val lockedViewState: TitleValueViewState,
+    val legacyCrowdloanViewState: TitleValueViewState?,
     val transactionHistory: TransactionHistoryUi.State,
-    val filtersEnabled: Boolean
+    val filtersEnabled: Boolean,
+    val nativePaymentAvailable: Boolean = false,
+    val nativeHistoryExplorer: Boolean = false
 )
 
 interface BalanceDetailsScreenInterface {
@@ -94,6 +97,8 @@ interface BalanceDetailsScreenInterface {
     fun transactionsScrolled(index: Int)
     fun tableItemClicked(itemId: Int)
     fun onRefresh()
+    fun onNativePaymentClick() {}
+    fun onNativeHistoryClick() {}
 }
 
 @Composable
@@ -162,12 +167,23 @@ fun BalanceDetailsScreen(
                             state = state.lockedViewState,
                             onClick = callback::tableItemClicked
                         )
+                        state.legacyCrowdloanViewState?.let { legacyCrowdloanState ->
+                            InfoTableItem(
+                                state = legacyCrowdloanState,
+                                onClick = callback::tableItemClicked
+                            )
+                        }
                         Divider(
                             color = white08,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         )
+                        if (state.nativePaymentAvailable) {
+                            androidx.compose.material.TextButton(onClick = callback::onNativePaymentClick, modifier = Modifier.fillMaxWidth()) {
+                                jp.co.soramitsu.common.compose.component.B2(text = stringResource(R.string.send_recent_payment))
+                            }
+                        }
                         ActionBar(
                             actionBarLoadingState = state.actionBarViewState,
                             actionItemClicked = callback::actionItemClicked
@@ -190,7 +206,8 @@ fun BalanceDetailsScreen(
         val dragState = rememberDraggableState(onDelta = {
             nestedScrollConnection.preScrollFromParentLayout(Offset(0f, it))
         })
-        val padding = ((1 - nestedScrollConnection.expandPercent) * 16).dp
+
+        val padding = ((1 - nestedScrollConnection.expandPercent) * 16).coerceAtLeast(0F).dp
         Column(
             modifier = Modifier
                 .height(height.value)
@@ -237,6 +254,11 @@ fun BalanceDetailsScreen(
                             .fillMaxWidth()
                     )
                     MarginVertical(margin = 12.dp)
+                    if (state.nativeHistoryExplorer) {
+                        androidx.compose.material.TextButton(onClick = callback::onNativeHistoryClick, modifier = Modifier.fillMaxWidth()) {
+                            jp.co.soramitsu.common.compose.component.B2(text = stringResource(R.string.send_history_explorer))
+                        }
+                    }
                     TransactionHistory(
                         nestedScrollConnection = nestedScrollConnection,
                         listState = listState,
@@ -452,6 +474,7 @@ private fun PreviewBalanceDetailScreenContent() {
             title = stringResource(R.string.assetdetails_balance_locked),
             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
         ),
+        legacyCrowdloanViewState = null,
         transactionHistory = TransactionHistoryUi.State.Empty(),
         filtersEnabled = true
     )

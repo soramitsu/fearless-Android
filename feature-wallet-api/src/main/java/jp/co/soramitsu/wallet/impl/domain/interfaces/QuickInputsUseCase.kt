@@ -9,7 +9,7 @@ interface QuickInputsUseCase {
     suspend fun calculateStakingQuickInputs(
         chainId: ChainId,
         assetId: String,
-        calculateAvailableAmount: suspend () -> BigDecimal,
+        calculateAvailableAmount: suspend () -> BigDecimal?,
         calculateFee: suspend (amount: BigInteger) -> BigInteger
     ): Map<Double, BigDecimal>
 

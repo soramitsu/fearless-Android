@@ -1,0 +1,102 @@
+{
+  "description": "The TON entries of the chain registry bundled with Fearless Android 4.2.0 (runtime/src/main/assets/local_chains.json at b5e22d49d, the production build), exactly as shipped.",
+  "source": "b5e22d49d16a0207c03ab703559892eaf9d41cf9:runtime/src/main/assets/local_chains.json",
+  "chains": [
+    {
+      "disabled": false,
+      "chainId": "-239",
+      "name": "Ton Mainnet",
+      "ecosystem": "ton",
+      "iosMinAppVersion": "3.8.1",
+      "androidMinAppVersion": "3.8.1",
+      "externalApi": {
+        "history": {
+          "type": "ton",
+          "url": "https://keeper.tonapi.io"
+        },
+        "explorers": [
+          {
+            "type": "tonviewer",
+            "types": [
+              "tonAccount",
+              "tonTransaction"
+            ],
+            "url": "https://tonviewer.com/{type}/{value}"
+          }
+        ]
+      },
+      "assets": [
+        {
+          "isUtility": true,
+          "id": "2ba4723a-74b4-4a6f-a888-e51937773807-239",
+          "name": "toncoin",
+          "symbol": "ton",
+          "precision": 9,
+          "priceId": "the-open-network",
+          "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/TON.svg",
+          "color": "0098EA",
+          "tonType": "normal"
+        }
+      ],
+      "nodes": [
+        {
+          "url": "https://keeper.tonapi.io",
+          "name": "Keeper api"
+        }
+      ],
+      "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/TON.svg",
+      "addressPrefix": 0,
+      "options": [
+        "remoteAssets"
+      ]
+    },
+    {
+      "disabled": false,
+      "chainId": "-3",
+      "name": "Ton Testnet",
+      "ecosystem": "ton",
+      "iosMinAppVersion": "3.8.1",
+      "externalApi": {
+        "history": {
+          "type": "ton",
+          "url": "https://keeper.tonapi.io"
+        },
+        "explorers": [
+          {
+            "type": "tonviewer",
+            "types": [
+              "tonAccount",
+              "tonTransaction"
+            ],
+            "url": "https://tonviewer.com/{type}/{value}"
+          }
+        ]
+      },
+      "assets": [
+        {
+          "isUtility": true,
+          "id": "2ba4723a-74b4-4a6f-a888-e51937773807-239",
+          "name": "toncoin",
+          "symbol": "ton",
+          "precision": 9,
+          "priceId": "the-open-network",
+          "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/TON.svg",
+          "color": "0098EA",
+          "tonType": "normal"
+        }
+      ],
+      "nodes": [
+        {
+          "url": "https://testnet.tonapi.io",
+          "name": "Keeper api testnet"
+        }
+      ],
+      "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/TON.svg",
+      "addressPrefix": 0,
+      "options": [
+        "remoteAssets",
+        "testnet"
+      ]
+    }
+  ]
+}

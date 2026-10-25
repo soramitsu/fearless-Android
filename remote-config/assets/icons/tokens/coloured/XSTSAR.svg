@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 27.7.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 40 40" style="enable-background:new 0 0 40 40;" xml:space="preserve">
+<style type="text/css">
+	.st0{clip-path:url(#SVGID_00000104671773577930321190000010106995780535446687_);}
+	.st1{fill:#6DA544;}
+	.st2{fill:#F0F0F0;}
+	.st3{opacity:0.1;enable-background:new    ;}
+	.st4{fill:#FFFFFF;}
+	.st5{fill:#EE2233;}
+</style>
+<g>
+	<defs>
+		<path id="SVGID_1_" d="M20,0L20,0c11,0,20,9,20,20l0,0c0,11-9,20-20,20l0,0C9,40,0,31,0,20l0,0C0,9,9,0,20,0z"/>
+	</defs>
+	<clipPath id="SVGID_00000128444776707431187050000012212376656618314133_">
+		<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+	</clipPath>
+	<g style="clip-path:url(#SVGID_00000128444776707431187050000012212376656618314133_);">
+		<path class="st1" d="M20,40c11,0,20-9,20-20S31,0,20,0S0,9,0,20S9,40,20,40z"/>
+		<path class="st2" d="M7.1,26.4c0,2.1,1.7,3.7,3.7,3.7h11.2c0,1.7,1.4,3.1,3.1,3.1h3.7c1.7,0,3.1-1.4,3.1-3.1v-3.7H7.1z"/>
+		<path class="st2" d="M32.2,8.4v8.7c0,1.4-1.1,2.5-2.5,2.5v3.7c3.4,0,6.2-2.8,6.2-6.2V8.4H32.2z"/>
+		<path class="st2" d="M5.5,17.1c0,1.4-1.1,2.5-2.5,2.5v3.7c3.4,0,6.2-2.8,6.2-6.2V8.4H5.5V17.1z"/>
+		<path class="st2" d="M26.6,8.4h3.7v8.7h-3.7V8.4z"/>
+		<path class="st2" d="M21,13.3c0,0.3-0.3,0.6-0.6,0.6s-0.6-0.3-0.6-0.6v-5H16v5c0,0.3-0.3,0.6-0.6,0.6s-0.6-0.3-0.6-0.6v-5h-3.7v5
+			c0,2.4,1.9,4.3,4.3,4.3c0.9,0,1.8-0.3,2.5-0.8c0.7,0.5,1.6,0.8,2.5,0.8c0.2,0,0.4,0,0.5,0c-0.3,1.1-1.2,1.9-2.4,1.9v3.7
+			c3.4,0,6.2-2.8,6.2-6.2v-3.7v-5H21L21,13.3L21,13.3z"/>
+		<path class="st2" d="M11.1,19.5h5.6v3.7h-5.6V19.5z"/>
+		<path class="st3" d="M20,40c11,0,20-9,20-20S31,0,20,0S0,9,0,20S9,40,20,40z"/>
+		<path class="st4" d="M26.7,33.2l-6.8-10.8l-6.8,10.8l-7.3,0l9.8-15.4H7.1V5.5h25.8v12.3h-8.5l9.9,15.4L26.7,33.2z"/>
+		<path class="st5" d="M8.6,31.7h3.7l7.7-12.3l7.7,12.3h3.7l-9.9-15.4h9.8v-3h-9.8v-3.1h9.8V7H8.6v3h9.8v3.1H8.6v3h9.8L8.6,31.7z"/>
+	</g>
+</g>
+</svg>

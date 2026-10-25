@@ -8,6 +8,7 @@ import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -19,19 +20,20 @@ import jp.co.soramitsu.common.compose.theme.white08
 fun NavigationIconButton(
     modifier: Modifier = Modifier,
     @DrawableRes navigationIconResId: Int = R.drawable.ic_arrow_left_24,
-    onNavigationClick: () -> Unit = {}
+    onNavigationClick: () -> Unit = {},
+    contentDescription: String = stringResource(toolbarActionLabel(navigationIconResId))
 ) {
     androidx.compose.material.IconButton(
         onClick = onNavigationClick,
         modifier = modifier
             .clip(CircleShape)
             .background(white08)
-            .size(32.dp)
+            .size(48.dp)
     ) {
         Icon(
             painter = painterResource(id = navigationIconResId),
             tint = white,
-            contentDescription = null
+            contentDescription = contentDescription
         )
     }
 }

@@ -7,10 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -46,6 +42,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.detailsToViewState
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
+import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -68,6 +65,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 
 typealias TooltipEvent = Event<Pair<String, String>>
 
@@ -323,7 +324,7 @@ class SwapTokensViewModel @Inject constructor(
 
         viewModelScope.launch {
             observeAvailableSources()
-            initialFee = polkaswapInteractor.calcFakeFee()
+            initialFee = kotlin.runCatching { polkaswapInteractor.calcFakeFee() }.getOrNull().orZero()
         }
 
         combine(
@@ -460,7 +461,7 @@ class SwapTokensViewModel @Inject constructor(
             return AmountInputViewState(
                 tokenName = null,
                 tokenImage = null,
-                totalBalance = resourceManager.getString(totalFormatRes, "0"),
+                totalBalance = resourceManager.getString(totalFormatRes, resourceManager.getString(R.string.portfolio_balance_unavailable)),
                 fiatAmount = null,
                 tokenAmount = amount,
                 title = title,
@@ -469,7 +470,8 @@ class SwapTokensViewModel @Inject constructor(
             )
         }
 
-        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
+        val tokenBalance = asset.transferable?.formatCrypto(asset.token.configuration.symbol)
+            ?: resourceManager.getString(R.string.portfolio_balance_unavailable)
         val fiatAmount =
             amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
@@ -583,35 +585,18 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     private suspend fun validate(): Throwable? {
-        val feeAsset = requireNotNull(polkaswapInteractor.getFeeAsset())
+        val feeAsset = polkaswapInteractor.getFeeAsset() ?: return unavailableSwapBalance(resourceManager)
         val amountToSwap = enteredFromAmountFlow.value
         val toTokenAmount = enteredToAmountFlow.value
-        val available = requireNotNull(fromAssetFlow.value?.transferable)
-        val networkFee = requireNotNull(networkFeeFlow.value.dataOrNull())
+        val available = fromAssetFlow.value?.transferable
+        val networkFee = networkFeeFlow.value.dataOrNull() ?: return WaitForFeeCalculationException(resourceManager)
         val isFromFeeAsset =
             fromAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
         val isToFeeAsset =
             toAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
 
-        return when {
-            amountToSwap > available -> {
-                SpendInsufficientBalanceException(resourceManager)
-            }
-
-            isToFeeAsset.not() && feeAsset.transferable <= networkFee -> {
-                UnableToPayFeeException(resourceManager)
-            }
-
-            isToFeeAsset && feeAsset.transferable + toTokenAmount <= networkFee -> {
-                NotEnoughResultedAmountToPayFeeException(resourceManager)
-            }
-
-            isFromFeeAsset && available <= amountToSwap + networkFee -> {
-                SpendInsufficientBalanceException(resourceManager)
-            }
-
-            else -> null
-        }
+        return validateSwapBalances(available, feeAsset.transferable, amountToSwap, toTokenAmount,
+            networkFee, isFromFeeAsset, isToFeeAsset, resourceManager)
     }
 
     override fun onBackClick() {
@@ -639,14 +624,16 @@ class SwapTokensViewModel @Inject constructor(
     override fun onFromTokenSelect() {
         openSelectAsset(
             selectedAssetIdFlow = fromAssetIdFlow,
-            excludeAssetIdFlow = toAssetIdFlow
+            excludeAssetIdFlow = toAssetIdFlow,
+            purpose = AssetSelectPurpose.SWAP_FROM
         )
     }
 
     override fun onToTokenSelect() {
         openSelectAsset(
             selectedAssetIdFlow = toAssetIdFlow,
-            excludeAssetIdFlow = fromAssetIdFlow
+            excludeAssetIdFlow = fromAssetIdFlow,
+            purpose = AssetSelectPurpose.SWAP_TO
         )
     }
 
@@ -678,13 +665,15 @@ class SwapTokensViewModel @Inject constructor(
 
     private fun openSelectAsset(
         selectedAssetIdFlow: MutableStateFlow<String?>,
-        excludeAssetIdFlow: MutableStateFlow<String?>
+        excludeAssetIdFlow: MutableStateFlow<String?>,
+        purpose: AssetSelectPurpose
     ) {
         observeResultFor(selectedAssetIdFlow)
         polkaswapRouter.openSelectAsset(
             chainId = polkaswapInteractor.polkaswapChainId,
             selectedAssetId = selectedAssetIdFlow.value,
-            excludeAssetId = excludeAssetIdFlow.value
+            excludeAssetId = excludeAssetIdFlow.value,
+            purpose = purpose
         )
     }
 

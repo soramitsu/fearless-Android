@@ -27,20 +27,19 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromByteArrayOrNull
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
-import jp.co.soramitsu.shared_utils.runtime.metadata.module.StorageEntry
-import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageOrNull
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromByteArrayOrNull
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module.StorageEntry
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import jp.co.soramitsu.staking.api.domain.model.Exposure
@@ -197,11 +196,11 @@ class StakingRelayChainScenarioRepository(
     }
 
     fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
-        return localStorage.observeNonNull(
+        return localStorage.observe(
             chainId = chainId,
             keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
-            binding = { scale, runtime -> bindActiveEra(scale, runtime) }
-        )
+            binder = { scale, runtime -> scale?.let { bindActiveEra(it, runtime) } }
+        ).filterNotNull()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -529,6 +528,15 @@ class StakingRelayChainScenarioRepository(
             binder = { scale, runtime ->
                 scale?.let { bindNominations(it, runtime) }
             }
+        )
+    }
+
+    /** Pool observation must distinguish confirmed no nominations from transport failure. */
+    fun observeRemoteAccountNominationsResult(chainId: ChainId, stashId: AccountId): Flow<Result<Nominations?>> {
+        return remoteStorage.observeResult(
+            chainId = chainId,
+            keyBuilder = { it.metadata.staking().storage("Nominators").storageKey(it, stashId) },
+            binder = { scale, runtime -> scale?.let { bindNominations(it, runtime) } }
         )
     }
 

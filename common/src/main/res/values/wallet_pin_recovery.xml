@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">Recover your wallet PIN</string>
+    <string name="pin_recovery_intro">Your stored PIN cannot be read. Your wallets and the original PIN record are retained. Verify ownership to choose a new PIN.</string>
+    <string name="pin_recovery_failed">Recovery could not be completed, or its authorization expired. Your retained data has not been removed. Try again.</string>
+    <string name="pin_recovery_retry">Try again</string>
+    <string name="pin_recovery_biometric">Verify with strong biometrics</string>
+    <string name="pin_recovery_backup_intro">Choose a wallet key and enter its backup. It must match the saved public identity. A matching backup can also repair that key.</string>
+    <string name="pin_recovery_no_identity">No saved wallet identity can currently be verified. Use previously enabled strong biometrics, or device unlock for view-only access.</string>
+    <string name="pin_recovery_view_only_intro">Device unlock opens balances and public addresses only. Sending, signing, and key backups remain locked until you recover the wallet PIN.</string>
+    <string name="pin_recovery_view_only">Unlock device for view-only access</string>
+    <string name="pin_recovery_verified">Ownership verified. Choose a new wallet PIN.</string>
+    <string name="pin_recovery_verify_backup">Verify wallet backup</string>
+    <string name="pin_recovery_reset">Recover wallet PIN</string>
+    <string name="pin_recovery_view_only_title">View-only access</string>
+</resources>

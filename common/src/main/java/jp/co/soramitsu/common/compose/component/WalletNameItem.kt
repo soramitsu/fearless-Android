@@ -4,7 +4,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -19,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,13 +28,15 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class WalletNameItemViewState(
     val id: Long,
     val title: String,
     val walletIcon: Any,
-    val isSelected: Boolean
+    val isSelected: Boolean,
+    val subtitle: String? = null
 )
 
 @Composable
@@ -82,7 +84,7 @@ fun WalletNameItem(
             Box(
                 contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(48.dp)
             ) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
@@ -92,11 +94,21 @@ fun WalletNameItem(
                 )
             }
             MarginHorizontal(margin = 12.dp)
-            B2(
-                text = state.title,
-                color = gray2
-            )
-            Spacer(modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.Start
+            ) {
+                B2(
+                    text = state.title,
+                    color = gray2
+                )
+                state.subtitle?.let { subtitle ->
+                    B3(
+                        text = subtitle,
+                        color = white50
+                    )
+                }
+            }
             onOptionsClick?.let { optionsAction ->
                 Box(
                     contentAlignment = Alignment.CenterEnd
@@ -107,12 +119,12 @@ fun WalletNameItem(
                         },
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(30.dp)
+                            .size(48.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
                             tint = Color.Unspecified,
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.ux_more)
                         )
                     }
                 }
@@ -145,6 +157,13 @@ private fun WalletNameItemPreview() {
         WalletNameItem(
             state = state.copy(
                 isSelected = false
+            ),
+            onSelected = {}
+        )
+        WalletNameItem(
+            state = state.copy(
+                isSelected = false,
+                subtitle = "Backed up from the browser extension"
             ),
             onSelected = {}
         )

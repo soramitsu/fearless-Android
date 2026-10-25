@@ -1,6 +1,9 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import java.math.BigDecimal
+import jp.co.soramitsu.staking.api.data.StakingType
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatCryptoDetail
@@ -13,6 +16,7 @@ import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingVali
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingRewardEstimationBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.Flow
@@ -22,19 +26,29 @@ const val PERIOD_MONTH = 30
 const val PERIOD_YEAR = 365
 
 interface StakingScenarioViewModel {
+    val stakingType: StakingType
+
     companion object {
         val WARNING_ICON = R.drawable.ic_warning_filled
         val WAITING_ICON = R.drawable.ic_time_24
     }
 
-    val stakingStateFlow: Flow<StakingState>
+    val stakingStateFlow: Flow<StakingState?>
 
     @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
     suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld>
 
     val stakingViewStateFlowOld: Flow<StakingViewStateOld>
 
-    suspend fun getStakingViewStateFlow(): Flow<StakingViewState>
+    suspend fun getStakingViewStateFlow(): Flow<StakingViewState?>
+
+    suspend fun rewardEstimationPayload(): StakingRewardEstimationBottomSheet.Payload
+
+    /** Root actions pass their already-validated asset; never read another untagged replay. */
+    suspend fun rewardEstimationPayload(asset: Asset): StakingRewardEstimationBottomSheet.Payload
+
+    /** Preparation stays in the caller's action lifetime; only its owner publishes setup/navigation. */
+    suspend fun startStaking(asset: Asset, isCurrent: () -> Boolean, onReady: (SetupStakingProcess) -> Unit) = Unit
 
     suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>>
     suspend fun alerts(): Flow<LoadingState<List<AlertModel>>>

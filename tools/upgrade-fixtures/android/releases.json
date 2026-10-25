@@ -1,0 +1,2412 @@
+{
+  "format": 1,
+  "description": "Every Fearless Android build distributed as jp.co.soramitsu.fearless (GitHub release assets and Play-only tags), the Room schema version it leaves on a device, and the fixture that reproduces that schema for AllReleasedSchemasUpgradeTest. APKs are not committed: fetch_release_apks.sh downloads them into a local cache and checks every sha256 pinned here.",
+  "repository": "https://github.com/soramitsu/fearless-Android",
+  "package": "jp.co.soramitsu.fearless",
+  "signers": {
+    "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08": "GitHub builds 1.1.0-2.0.1 (CN=Valentin Sergeev, Soramitsu Labs)",
+    "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3": "Google Play app signing (CN=Android, Google Inc.); the -google/Play builds 1.9.14-3.7.4",
+    "40391092f5b97e782c6528cc571adf5dbedfe2d05023babc7c4e339e584a4a9a": "GitHub 4.2.0 asset (CN=Fearless Wallet, Soramitsu)"
+  },
+  "releases": [
+    {
+      "id": "0.4.0+1",
+      "version": "0.4.0",
+      "versionCode": 1,
+      "tag": "v0.4.0",
+      "commit": "66babd85364f00e8dc3431602b20b05dfc0d29b3",
+      "published_at": "2020-10-23",
+      "db_version": 9,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.20",
+      "schema_evidence": "No APK exists. ReleasedV04DatabaseFixture rebuilds the v9 schema from the tag v0.4.0 entities (AppDatabaseMigrationSafetyTest).",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "0.4.1+2",
+      "version": "0.4.1",
+      "versionCode": 2,
+      "tag": "v.0.4.1",
+      "commit": "4f66a6e1139fc233a71076ad60469deda99116d8",
+      "published_at": "2020-10-29",
+      "db_version": 9,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.20",
+      "schema_evidence": "core-db/src/main tree identical to tag v0.4.0 (f7ecc1617242); same toolchain (Room None, Kotlin 1.3.61)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "1.0.0+4",
+      "version": "1.0.0",
+      "versionCode": 4,
+      "tag": "v.1.0.0",
+      "commit": "8bf3bd45c0b37f31977ab639b38d87fc9aeb8129",
+      "published_at": "2020-11-25",
+      "db_version": 9,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.27",
+      "schema_evidence": "Room entity sources and @Database block identical to tag v0.4.0; only DAO, migration or non-entity files differ; same toolchain (Room None, Kotlin 1.3.61)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "1.0.1+5",
+      "version": "1.0.1",
+      "versionCode": 5,
+      "tag": "v1.0.1",
+      "commit": "0b21af8920a074df9ab618a405c0202ec4f320ac",
+      "published_at": "2020-12-01",
+      "db_version": 9,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.27",
+      "schema_evidence": "Room entity sources and @Database block identical to tag v0.4.0; only DAO, migration or non-entity files differ; same toolchain (Room None, Kotlin 1.3.61)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "1.1.0+6",
+      "version": "1.1.0",
+      "versionCode": 6,
+      "tag": "v1.1.0",
+      "commit": "085cbf6a605a719caf2e385aacf83320924292d0",
+      "published_at": "2020-12-18",
+      "db_version": 10,
+      "room_identity_hash": "ca15d8e487079b18dbc76b980e4c7ba7",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.27",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.1.0-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.1.0/Fearless-Wallet-v1.1.0-release.apk",
+        "sha256": "8c0a8c1e05fc588d8ac24ff7b57b9f7f2529e265e8d970fab5470d7097e05ad7",
+        "size_bytes": 25959090,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.1.0/Fearless-Wallet-v1.1.0-release.apk"
+      }
+    },
+    {
+      "id": "1.1.1+7",
+      "version": "1.1.1",
+      "versionCode": 7,
+      "tag": "v1.1.1",
+      "commit": "003bd9667302bb1f1fbd33d33cfb1945aeaa4b23",
+      "published_at": "2020-12-25",
+      "db_version": 10,
+      "room_identity_hash": "ca15d8e487079b18dbc76b980e4c7ba7",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.28",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.1.1-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.1.1/Fearless-Wallet-v1.1.1-release.apk",
+        "sha256": "0165c3155d02e5bff87462502e531a66ccbeb36eef87801a5ce657c76f9c8a68",
+        "size_bytes": 25953130,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.1.1/Fearless-Wallet-v1.1.1-release.apk"
+      }
+    },
+    {
+      "id": "1.2.0+8",
+      "version": "1.2.0",
+      "versionCode": 8,
+      "tag": "v1.2.0",
+      "commit": "362521e4a77f9cfdbce431625b0f5e4dc950897b",
+      "published_at": "2021-01-14",
+      "db_version": 10,
+      "room_identity_hash": "ca15d8e487079b18dbc76b980e4c7ba7",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.30",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.2.0-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.2.0/Fearless-Wallet-v1.2.0-release.apk",
+        "sha256": "6eeb2f1ef51ee1068f2e15ce8826294817cfcfd95a9e61f19d2113b90a68fb03",
+        "size_bytes": 25993272,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.2.0/Fearless-Wallet-v1.2.0-release.apk"
+      }
+    },
+    {
+      "id": "1.2.1+10",
+      "version": "1.2.1",
+      "versionCode": 10,
+      "tag": "v.1.2.1",
+      "commit": "6c76c80550b493400cb081405b4e10704c56421e",
+      "published_at": "2021-02-10",
+      "db_version": 10,
+      "room_identity_hash": "ca15d8e487079b18dbc76b980e4c7ba7",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.48",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.2.1-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v.1.2.1/Fearless-Wallet-v1.2.1-release.apk",
+        "sha256": "2e6bc881e25204f4e4be90216dee52db95b8908acc3fc53278ef1e71fa1d5999",
+        "size_bytes": 25641058,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v.1.2.1/Fearless-Wallet-v1.2.1-release.apk"
+      }
+    },
+    {
+      "id": "1.2.2+11",
+      "version": "1.2.2",
+      "versionCode": 11,
+      "tag": "v1.2.2",
+      "commit": "4482cc8d5f363b6f089570247ec1b2fdb88a920a",
+      "published_at": "2021-04-12",
+      "db_version": 10,
+      "room_identity_hash": "ca15d8e487079b18dbc76b980e4c7ba7",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.48",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.2.2-release.apk.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.2.2/Fearless-Wallet-v1.2.2-release.apk.apk",
+        "sha256": "12c733aba16a8a8318e3c4fbfe0d4e23eb829988763355cef02247571a59c22b",
+        "size_bytes": 25639546,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.2.2/Fearless-Wallet-v1.2.2-release.apk.apk"
+      }
+    },
+    {
+      "id": "1.7-RC1+13",
+      "version": "1.7 RC1",
+      "versionCode": 13,
+      "tag": "v1.7-RC1",
+      "commit": "d4bf6f80a22b4f8cc989b29fa2cd1aad5ca96570",
+      "published_at": "2021-05-17",
+      "db_version": 20,
+      "room_identity_hash": "269e5745f096ffa4681472b6d0136b53",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.61",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.7-RC1-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.7-RC1/Fearless-Wallet-v1.7-RC1-release.apk",
+        "sha256": "7e48e6f87f55f9b00fe54570723470968612bb849a0e10d82c5e5481225bcb17",
+        "size_bytes": 26536505,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.7-RC1/Fearless-Wallet-v1.7-RC1-release.apk"
+      }
+    },
+    {
+      "id": "1.8-RC1+14",
+      "version": "1.8 RC1",
+      "versionCode": 14,
+      "tag": "v1.8-rc1",
+      "commit": "ab68bb7921a145bb19bdcc3476e55ec760940029",
+      "published_at": "2021-05-31",
+      "db_version": 22,
+      "room_identity_hash": "6891ccf8d574ea6a79ba2425e81b7a81",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.61",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.8-RC1-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.8-rc1/Fearless-Wallet-v1.8-RC1-release.apk",
+        "sha256": "e2d117f3f0c913a42df6f71937dd0a7a86e2c551a765529dc6aa739461d42a1c",
+        "size_bytes": 27151896,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.8-rc1/Fearless-Wallet-v1.8-RC1-release.apk"
+      }
+    },
+    {
+      "id": "1.8.1+15",
+      "version": "1.8.1",
+      "versionCode": 15,
+      "tag": "v1.8.1",
+      "commit": "0d36e00d231d7fe3615c639be63b7c82517c416b",
+      "published_at": "2021-06-07",
+      "db_version": 22,
+      "room_identity_hash": "6891ccf8d574ea6a79ba2425e81b7a81",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.61",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.8.1-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.8.1/Fearless-Wallet-v1.8.1-release.apk",
+        "sha256": "88ade6e5a69c20d1afb4f4efb9b2230f5a60f0e1c7aef1f88cd4830c577b6f10",
+        "size_bytes": 27197334,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.8.1/Fearless-Wallet-v1.8.1-release.apk"
+      }
+    },
+    {
+      "id": "1.8.2+17",
+      "version": "1.8.2",
+      "versionCode": 17,
+      "tag": "v1.8.2",
+      "commit": "c33bf77bd7c9c08e997856237e47d392eb0fe46e",
+      "published_at": "2021-06-17",
+      "db_version": 22,
+      "room_identity_hash": "6891ccf8d574ea6a79ba2425e81b7a81",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.61",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.8.2-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.8.2/Fearless-Wallet-v1.8.2-release.apk",
+        "sha256": "9a118e0a8bcd9dd408c596142bdb3ce234ad92316b7350e61cefa1c07f891c68",
+        "size_bytes": 27206940,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.8.2/Fearless-Wallet-v1.8.2-release.apk"
+      }
+    },
+    {
+      "id": "1.8.3+19",
+      "version": "1.8.3",
+      "versionCode": 19,
+      "tag": "v1.8.3",
+      "commit": "de9af8a7bed58c66407d5ed6e40ddf5949a6b96c",
+      "published_at": "2021-06-28",
+      "db_version": 22,
+      "room_identity_hash": "6891ccf8d574ea6a79ba2425e81b7a81",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.61",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.8.3-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.8.3/Fearless-Wallet-v1.8.3-release.apk",
+        "sha256": "1b264d83dfed365bf4d03594c70859d0f61d8de7c75acee342d7e7b045e9d4f8",
+        "size_bytes": 27220216,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.8.3/Fearless-Wallet-v1.8.3-release.apk"
+      }
+    },
+    {
+      "id": "1.9.0+20",
+      "version": "1.9.0",
+      "versionCode": 20,
+      "tag": "v1.9.0",
+      "commit": "5e5a0f8da20a4f449158b08629ac949eb194c3ba",
+      "published_at": "2021-08-27",
+      "db_version": 22,
+      "room_identity_hash": "6891ccf8d574ea6a79ba2425e81b7a81",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.75",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.9.0-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.9.0/Fearless-Wallet-v1.9.0-release.apk",
+        "sha256": "064d8142ebb2b18d4aaf9e4c7c7d66459661601d04861bb623b99185197e3eee",
+        "size_bytes": 27253670,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.9.0/Fearless-Wallet-v1.9.0-release.apk"
+      }
+    },
+    {
+      "id": "1.9.4+24",
+      "version": "1.9.4",
+      "versionCode": 24,
+      "tag": "v1.9.4",
+      "commit": "adcc15ca4a76a44c886063218db8a76802da9b6a",
+      "published_at": "2021-09-16",
+      "db_version": 25,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.77",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "Fearless-Wallet-v1.9.4-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.9.4/Fearless-Wallet-v1.9.4-release.apk",
+        "sha256": "72a93d8a9090b640111193625e413cf0fcaf596454627bc9c485dcae9139a41d",
+        "size_bytes": 27331834,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/v1.9.4/Fearless-Wallet-v1.9.4-release.apk"
+      }
+    },
+    {
+      "id": "1.9.6+26",
+      "version": "1.9.6",
+      "versionCode": 26,
+      "tag": "releases/v.1.9.6",
+      "commit": "626ed14a9cb7c7043213f36e6d00b30f81404d21",
+      "published_at": "2021-10-14",
+      "db_version": 25,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.88",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_release_v1.9.6.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/releases/v.1.9.6/fearless_wallet_release_v1.9.6.apk",
+        "sha256": "755a314a202d623a19cd4a2acdc8281e3f895ba9c5698257dea595fe17d2956d",
+        "size_bytes": 26784485,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/releases_v.1.9.6/fearless_wallet_release_v1.9.6.apk"
+      }
+    },
+    {
+      "id": "1.9.8+34",
+      "version": "1.9.8",
+      "versionCode": 34,
+      "tag": "release/prod/v1.9.8_34",
+      "commit": "831b538c39a151bdd6135d4a126bd077a3a8e592",
+      "published_at": "2021-11-01",
+      "db_version": 25,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.90",
+      "schema_evidence": "core-db/src/main tree identical to tag release/prod/v1.9.9_37 (d45c4598170b); same toolchain (Room 2.3.0, Kotlin 1.4.31)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "1.9.9+38",
+      "version": "1.9.9",
+      "versionCode": 38,
+      "tag": "release/prod/v1.9.9_37",
+      "commit": "05a3a39b42f65829d243b41ee618fb8a4cc681e2",
+      "published_at": "2021-11-06",
+      "db_version": 25,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.90",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_release_v1.9.9_38.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.9_37/fearless_wallet_release_v1.9.9_38.apk",
+        "sha256": "5d286fab943a9dfd513b768abb04b0f7772b13f33319e1d8a239178c5a0b9273",
+        "size_bytes": 27723654,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/release_prod_v1.9.9_37/fearless_wallet_release_v1.9.9_38.apk"
+      }
+    },
+    {
+      "id": "1.9.9+39",
+      "version": "1.9.9",
+      "versionCode": 39,
+      "tag": "release/prod/v1.9.9_39",
+      "commit": "44251d5192053ccbbddf532086b319208e9f67e7",
+      "published_at": "2021-11-09",
+      "db_version": 26,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.91",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_release_v1.9.9_39.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.9_39/fearless_wallet_release_v1.9.9_39.apk",
+        "sha256": "8e733b0740c052d9ccb139aee681c6948b51b0aa2b6a66491f1e2fb8703cbf57",
+        "size_bytes": 31213311,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/release_prod_v1.9.9_39/fearless_wallet_release_v1.9.9_39.apk"
+      }
+    },
+    {
+      "id": "1.9.10+40",
+      "version": "1.9.10",
+      "versionCode": 40,
+      "tag": "release/prod/v1.9.10_40",
+      "commit": "d4cb28b118ed4739ea239968a299aa6131f0dd67",
+      "published_at": "2021-11-16",
+      "db_version": 26,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.92",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_release_v1.9.10_40.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.10_40/fearless_wallet_release_v1.9.10_40.apk",
+        "sha256": "030465ff2f134091cef97932e57eee06edfa93d26c7bca11073ae5b8d1dcb74b",
+        "size_bytes": 27505895,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/release_prod_v1.9.10_40/fearless_wallet_release_v1.9.10_40.apk"
+      }
+    },
+    {
+      "id": "1.9.11+41",
+      "version": "1.9.11",
+      "versionCode": 41,
+      "tag": "release/prod/v1.9.11_41",
+      "commit": "e5b71885fd6823a4d379da5764d3c9732edebca6",
+      "published_at": "2021-11-16",
+      "db_version": 26,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.92",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_release_v1.9.11_41.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.11_41/fearless_wallet_release_v1.9.11_41.apk",
+        "sha256": "3bee42c89f425cb8c478012aae79530c0033c11d99fe9d8939f9e5e148693ff3",
+        "size_bytes": 27505895,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/release_prod_v1.9.11_41/fearless_wallet_release_v1.9.11_41.apk"
+      }
+    },
+    {
+      "id": "1.9.12+42",
+      "version": "1.9.12",
+      "versionCode": 42,
+      "tag": "release/prod/v1.9.12_42",
+      "commit": "d94d9d933212ad62613787c687165285d0d7c47f",
+      "published_at": "2021-12-08",
+      "db_version": 27,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.92",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "app-release-1.9.12.42.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.12_42/app-release-1.9.12.42.apk",
+        "sha256": "f1e8f94a4c8acccc02d168878d5b593f61b9b610b7a44724d0e22a74c0722206",
+        "size_bytes": 27512768,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/release_prod_v1.9.12_42/app-release-1.9.12.42.apk"
+      }
+    },
+    {
+      "id": "1.9.13+45",
+      "version": "1.9.13",
+      "versionCode": 45,
+      "tag": "release/prod/v1.9.13_45",
+      "commit": "0bc785707f445122b3126f0f6025bf33c5b6f3e6",
+      "published_at": "2021-12-15",
+      "db_version": 27,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.92",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_release_v1.9.13_45.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.13_45/fearless_wallet_release_v1.9.13_45.apk",
+        "sha256": "c73c6afefe626deee2ec001f2a912da5edf50a7838204b0ec62e8ad1e6bb81f3",
+        "size_bytes": 27509692,
+        "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+        "cache_path": "files/release_prod_v1.9.13_45/fearless_wallet_release_v1.9.13_45.apk"
+      }
+    },
+    {
+      "id": "1.9.14+46",
+      "version": "1.9.14",
+      "versionCode": 46,
+      "tag": "release/prod/v1.9.14_46",
+      "commit": "55741db0bbe5ab0560bc12e00af091d5bb9f0fbc",
+      "published_at": "2021-12-17",
+      "db_version": 27,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.92",
+      "schema_evidence": "core-db/src/main tree identical to tag release/prod/v1.9.14_47 (5f7131e805d4); same toolchain (Room 2.4.0-beta02, Kotlin 1.6.10)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "1.9.14+47",
+      "version": "1.9.14",
+      "versionCode": 47,
+      "tag": "release/prod/v1.9.14_47",
+      "commit": "ce6afa1309a2f999a014d383373cc1ccc745c8df",
+      "published_at": "2021-12-17",
+      "db_version": 27,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.92",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-1.9.14_47-google.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.14_47/fearless-wallet-1.9.14_47-google.apk",
+        "sha256": "82a63c1725156e48817731bec86a9fae444405448ae852b8b062dcf3e8ce52f7",
+        "size_bytes": 27649351,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/release_prod_v1.9.14_47/fearless-wallet-1.9.14_47-google.apk"
+      },
+      "other_binaries": [
+        {
+          "kind": "github-apk",
+          "asset_name": "fearless-wallet-1.9.14_47-github.apk",
+          "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.14_47/fearless-wallet-1.9.14_47-github.apk",
+          "sha256": "9f60e160b52fa05c2eb44ffd358741056bb1115e308de1b95d93cc0525e93242",
+          "size_bytes": 27536777,
+          "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+          "cache_path": "files/release_prod_v1.9.14_47/fearless-wallet-1.9.14_47-github.apk"
+        }
+      ]
+    },
+    {
+      "id": "1.9.15+48",
+      "version": "1.9.15",
+      "versionCode": 48,
+      "tag": "release/prod/v1.9.15_48",
+      "commit": "553f0bffa67a8a10283e2589610de939cccef100",
+      "published_at": "2021-12-20",
+      "db_version": 27,
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.92",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-1.9.15_48-google.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.15_48/fearless-wallet-1.9.15_48-google.apk",
+        "sha256": "4fe86cbcd5bec942b09adbb0d5b89ab6b4b5cc65a21eeb5660dd262a7d861210",
+        "size_bytes": 27645255,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/release_prod_v1.9.15_48/fearless-wallet-1.9.15_48-google.apk"
+      },
+      "other_binaries": [
+        {
+          "kind": "github-apk",
+          "asset_name": "fearless-wallet-1.9.15_48-github.apk",
+          "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.15_48/fearless-wallet-1.9.15_48-github.apk",
+          "sha256": "5a21626a97a9780049c41e3460c919f06827b414b076db14903002748e97887b",
+          "size_bytes": 27534165,
+          "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+          "cache_path": "files/release_prod_v1.9.15_48/fearless-wallet-1.9.15_48-github.apk"
+        }
+      ]
+    },
+    {
+      "id": "2.0.0+51",
+      "version": "2.0.0",
+      "versionCode": 51,
+      "tag": "release/prod/v2.0.0_51",
+      "commit": "e43832fab8f59bbf57c8ca97d7384c0ad77fd90e",
+      "published_at": "2021-12-30",
+      "db_version": 30,
+      "room_identity_hash": "11b78abe23c541401fca8e23fc427a86",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.96",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.0_51-google.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v2.0.0_51/fearless-wallet-v2.0.0_51-google.apk",
+        "sha256": "c0f889119a416dc904c0033a9f8d596dd9c76da255ae5cb3ea14e361353a04a7",
+        "size_bytes": 27789352,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/release_prod_v2.0.0_51/fearless-wallet-v2.0.0_51-google.apk"
+      },
+      "other_binaries": [
+        {
+          "kind": "github-apk",
+          "asset_name": "fearless-wallet-v2.0.0_51-github.apk",
+          "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v2.0.0_51/fearless-wallet-v2.0.0_51-github.apk",
+          "sha256": "75f6a6f6a457a766906e24268b2859bf3c20d7c3a403f71e1ab5255dc3c602b2",
+          "size_bytes": 27679360,
+          "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+          "cache_path": "files/release_prod_v2.0.0_51/fearless-wallet-v2.0.0_51-github.apk"
+        }
+      ]
+    },
+    {
+      "id": "2.0.1+52",
+      "version": "2.0.1",
+      "versionCode": 52,
+      "tag": "2.0.1",
+      "commit": "454d3a855461e95d7df9250f4a24f6cd28461c3a",
+      "published_at": "2022-01-26",
+      "db_version": 33,
+      "room_identity_hash": "0be422f87f7155a4b63cf160faa48fba",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.97",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.1_52-google.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.1/fearless-wallet-v2.0.1_52-google.apk",
+        "sha256": "0ef5c391bf9ccab5c4e7e648db42702f177b4bc1ce2d37edd259ab072743a4e7",
+        "size_bytes": 27830198,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.1/fearless-wallet-v2.0.1_52-google.apk"
+      },
+      "other_binaries": [
+        {
+          "kind": "github-apk",
+          "asset_name": "fearless-wallet-v2.0.1_52-github.apk",
+          "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.1/fearless-wallet-v2.0.1_52-github.apk",
+          "sha256": "bf6cb44a1dc8f111fd6367814ee50f5f2923ddfd8246dcde8d3dff3228c98dfb",
+          "size_bytes": 27717669,
+          "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+          "cache_path": "files/2.0.1/fearless-wallet-v2.0.1_52-github.apk"
+        }
+      ]
+    },
+    {
+      "id": "2.0.2+54",
+      "version": "2.0.2",
+      "versionCode": 54,
+      "tag": "2.0.2",
+      "commit": "025394cbe46bbd0122e38fc520a3775807130d46",
+      "published_at": "2022-03-04",
+      "db_version": 37,
+      "room_identity_hash": "76524c7caab9d2f5897988928c711785",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.101",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.2_54.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.2/fearless-wallet-v2.0.2_54.apk",
+        "sha256": "2f27f9a9a848409513baecd6e92d76a21d0cb466765857fe0a7db25afd80afda",
+        "size_bytes": 25077771,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.2/fearless-wallet-v2.0.2_54.apk"
+      }
+    },
+    {
+      "id": "2.0.3+55",
+      "version": "2.0.3",
+      "versionCode": 55,
+      "tag": "2.0.3",
+      "commit": "085fb0ab6d942d2cde66e554cc4b57f9fe8d074c",
+      "published_at": "2022-03-10",
+      "db_version": 37,
+      "room_identity_hash": "76524c7caab9d2f5897988928c711785",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.101",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.3_55.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.3/fearless-wallet-v2.0.3_55.apk",
+        "sha256": "0834178ed9782218c585844da30667c022f3244674e659130c3573b1f17f9249",
+        "size_bytes": 25077771,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.3/fearless-wallet-v2.0.3_55.apk"
+      }
+    },
+    {
+      "id": "2.0.4+58",
+      "version": "2.0.4",
+      "versionCode": 58,
+      "tag": "2.0.4",
+      "commit": "35161cff4baf1b784251948693ad2410d01301f2",
+      "published_at": "2022-03-30",
+      "db_version": 40,
+      "room_identity_hash": "84f5a4b2b77334a92e9bda8dbf1fc0eb",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.103",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.4_58.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.4/fearless-wallet-v2.0.4_58.apk",
+        "sha256": "d6ac4d86b651b05815141ca306bd2a86c03f05a0fcaf99ee14d1ccdba9c3267e",
+        "size_bytes": 25184604,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.4/fearless-wallet-v2.0.4_58.apk"
+      }
+    },
+    {
+      "id": "2.0.5+66",
+      "version": "2.0.5",
+      "versionCode": 66,
+      "tag": "2.0.5",
+      "commit": "f66fbaa24314e03dceffd971c5302886cbb7d670",
+      "published_at": "2022-04-20",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.104",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.5_66.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.5/fearless-wallet-v2.0.5_66.apk",
+        "sha256": "70dc284c002fa42fda3e537a234e02b42b5e7c4f34ba5fbda5771826f89c24ee",
+        "size_bytes": 25881315,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.5/fearless-wallet-v2.0.5_66.apk"
+      }
+    },
+    {
+      "id": "2.0.6+67",
+      "version": "2.0.6",
+      "versionCode": 67,
+      "tag": "2.0.6",
+      "commit": "a858d91c66dbfd5ca1186a342def97d80a3e4600",
+      "published_at": "2022-05-24",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.104",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.6_67.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.6/fearless-wallet-v2.0.6_67.apk",
+        "sha256": "265ef747d0b7c073f4d2d586a1d108c3cb48835d431d81c6d5fce7d5dea26e46",
+        "size_bytes": 25934675,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.6/fearless-wallet-v2.0.6_67.apk"
+      }
+    },
+    {
+      "id": "2.0.7+68",
+      "version": "2.0.7",
+      "versionCode": 68,
+      "tag": "2.0.7",
+      "commit": "a55bb86a144dd8ea5c8ccafdd5ee9e78cc4f870c",
+      "published_at": "2022-05-26",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.108",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.7_68.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.7/fearless-wallet-v2.0.7_68.apk",
+        "sha256": "bf8585200abcd8f140198f9954311a3a0342bcf154c1440469b54800f19c9bee",
+        "size_bytes": 25893715,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.7/fearless-wallet-v2.0.7_68.apk"
+      }
+    },
+    {
+      "id": "2.0.8+69",
+      "version": "2.0.8",
+      "versionCode": 69,
+      "tag": "2.0.8",
+      "commit": "a20a28d0ac6610608c1b9d865a32a8be2278cd3c",
+      "published_at": "2022-08-12",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.8_69.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.8/fearless-wallet-v2.0.8_69.apk",
+        "sha256": "e0f12780458609afb3d905775bb634c167eee093e66b8b47681771eed94c268d",
+        "size_bytes": 27641355,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.8/fearless-wallet-v2.0.8_69.apk"
+      }
+    },
+    {
+      "id": "2.0.9+70",
+      "version": "2.0.9",
+      "versionCode": 70,
+      "tag": "2.0.9",
+      "commit": "b139d242d47725f0f8c0898380a24fe103658061",
+      "published_at": "2022-08-24",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.9_70.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.9/fearless-wallet-v2.0.9_70.apk",
+        "sha256": "a1f8a29c6db485e2df97c2f25ed8b57d6d366a5c794ded66e2d52b59549a6c62",
+        "size_bytes": 27645451,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.9/fearless-wallet-v2.0.9_70.apk"
+      }
+    },
+    {
+      "id": "2.0.10+71",
+      "version": "2.0.10",
+      "versionCode": 71,
+      "tag": "2.0.10",
+      "commit": "bde2febcb5b5c4943f31ccb8c77ed0e79116a137",
+      "published_at": "2022-09-12",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-v2.0.10_71.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.10/fearless-wallet-v2.0.10_71.apk",
+        "sha256": "b72580cb8761ab54d5382ccb8877b84bba7ed1c3895d940da243844c7ef648a3",
+        "size_bytes": 27641355,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.10/fearless-wallet-v2.0.10_71.apk"
+      }
+    },
+    {
+      "id": "2.0.11+72",
+      "version": "2.0.11",
+      "versionCode": 72,
+      "tag": "2.0.11",
+      "commit": "11320313a199dc347aefb5b56c4038c8ad29a426",
+      "published_at": "2022-09-20",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.0.11_72.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.11/fearless-wallet-2.0.11_72.apk",
+        "sha256": "1db9decc76b46b44bc370c004904d5b2710dcdfb885eac57406b9f06615ecf4d",
+        "size_bytes": 27641355,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.11/fearless-wallet-2.0.11_72.apk"
+      }
+    },
+    {
+      "id": "2.0.12+73",
+      "version": "2.0.12",
+      "versionCode": 73,
+      "tag": "2.0.12",
+      "commit": "c19725f9af78a222238ac9323217f3098aee6b22",
+      "published_at": "2022-10-26",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.0.12_73.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.12/fearless-wallet-2.0.12_73.apk",
+        "sha256": "b8312c981979a1f33c4ef175d26eff4ef8ba8df78211ebcf97e942fe25fd4b65",
+        "size_bytes": 27641355,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.12/fearless-wallet-2.0.12_73.apk"
+      }
+    },
+    {
+      "id": "2.0.13+74",
+      "version": "2.0.13",
+      "versionCode": 74,
+      "tag": "2.0.13",
+      "commit": "dc22838f0d5902190f7024f2e5525867ed1b4901",
+      "published_at": "2022-11-08",
+      "db_version": 41,
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.0.13_74.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.0.13/fearless-wallet-2.0.13_74.apk",
+        "sha256": "0aaeea7beb1ae54e24adeea154ea4c314be2caa74c2ce283754570613a101b54",
+        "size_bytes": 27641355,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.0.13/fearless-wallet-2.0.13_74.apk"
+      }
+    },
+    {
+      "id": "2.1.0+83",
+      "version": "2.1.0",
+      "versionCode": 83,
+      "tag": "2.1.0",
+      "commit": "00557aa27d8d64f439741e5bf96c1d52680341dd",
+      "published_at": "2022-12-20",
+      "db_version": 45,
+      "room_identity_hash": "3bb5c8d34b0a8d8b9010b57406b31b39",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_2.1.0_83.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.1.0/fearless_wallet_2.1.0_83.apk",
+        "sha256": "53bcfbffbc4ef9dd476bec4d42c2af9c9f81d799a82610ce844b59c72c4777fd",
+        "size_bytes": 19877806,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.1.0/fearless_wallet_2.1.0_83.apk"
+      }
+    },
+    {
+      "id": "2.1.1+86",
+      "version": "2.1.1",
+      "versionCode": 86,
+      "tag": "2.1.1",
+      "commit": "b7ed9c3066aa6dfcb0e792616e3403fed5bc632a",
+      "published_at": "2022-12-28",
+      "db_version": 46,
+      "room_identity_hash": "3bb5c8d34b0a8d8b9010b57406b31b39",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_2.1.1_86.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.1.1/fearless_wallet_2.1.1_86.apk",
+        "sha256": "40037bf9fd69c847a1e7f7f2e8a8f8e4e39aca987ef7fa6d98c3351c8698e791",
+        "size_bytes": 19881902,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.1.1/fearless_wallet_2.1.1_86.apk"
+      }
+    },
+    {
+      "id": "2.1.2+87",
+      "version": "2.1.2",
+      "versionCode": 87,
+      "tag": "2.1.2",
+      "commit": "36ba728f5e42ac8467ba233631393a49d286c518",
+      "published_at": "2023-01-26",
+      "db_version": 46,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "core-db/src/main tree identical to tag 2.1.1 (bd2e570191ce); same toolchain (Room 2.4.3, Kotlin 1.7.10)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "2.2.0+88",
+      "version": "2.2.0",
+      "versionCode": 88,
+      "tag": "2.2.0",
+      "commit": "0a7f2a9e1b3a49790d5936f193899271cf85c0c5",
+      "published_at": "2023-02-24",
+      "db_version": 49,
+      "room_identity_hash": "c095dc486aac5f78f52bbb9839c161cd",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_2.2.0_88.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.2.0/fearless_wallet_2.2.0_88.apk",
+        "sha256": "5af5b434b1087a372685e77bb3bc21d72013ee0fc12b93f07953010cc533e341",
+        "size_bytes": 20282895,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.2.0/fearless_wallet_2.2.0_88.apk"
+      }
+    },
+    {
+      "id": "2.2.1+89",
+      "version": "2.2.1",
+      "versionCode": 89,
+      "tag": "2.2.1",
+      "commit": "75e39b55088c11f44f73495ca847899556c4f559",
+      "published_at": "2023-03-31",
+      "db_version": 49,
+      "room_identity_hash": "c095dc486aac5f78f52bbb9839c161cd",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless_wallet_2.2.1_89.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.2.1/fearless_wallet_2.2.1_89.apk",
+        "sha256": "5338977b7cfbd60e3d2c044db233c63ad7d2ef1b5803f6fc3aa93db2f1097747",
+        "size_bytes": 20282895,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.2.1/fearless_wallet_2.2.1_89.apk"
+      }
+    },
+    {
+      "id": "2.2.2+90",
+      "version": "2.2.2",
+      "versionCode": 90,
+      "tag": "2.2.2",
+      "commit": "7f6a87fddf2da00065a56e93d1622c291a95fe74",
+      "published_at": "2023-04-14",
+      "db_version": 49,
+      "room_identity_hash": "c095dc486aac5f78f52bbb9839c161cd",
+      "minSdk": 24,
+      "crypto_lib": "fearless-utils 1.0.109",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.2.2-90.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.2.2/fearless-wallet-2.2.2-90.apk",
+        "sha256": "34d53134c7bc5aeb2e4129f6b61e892b6546ba704c0f35f9016bad055540ae68",
+        "size_bytes": 20282827,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.2.2/fearless-wallet-2.2.2-90.apk"
+      }
+    },
+    {
+      "id": "2.2.3+92",
+      "version": "2.2.3",
+      "versionCode": 92,
+      "tag": "2.2.3",
+      "commit": "c41fb2a1ec3130f3aaa5b7865eedb058b02423eb",
+      "published_at": "2023-05-22",
+      "db_version": 54,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "shared-features 0.0.24",
+      "schema_evidence": "No APK exists. Room entity sources differ from tag 2.2.4 only by the unique index index_address_book_address_chainId on AddressBookContact, which Migration_54_55 creates; same toolchain (Room 2.5.1, Kotlin 1.8.10). The fixture is the 2.2.4 APK DDL without that index.",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "2.2.4+93",
+      "version": "2.2.4",
+      "versionCode": 93,
+      "tag": "2.2.4",
+      "commit": "bedec9d1e6402e3ff1241101493faea7e84949eb",
+      "published_at": "2023-05-26",
+      "db_version": 55,
+      "room_identity_hash": "0ae6188a0442abd21c6c8c04649b022a",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 0.0.26_snapshot2",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.2.4_93.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.2.4/fearless-wallet-2.2.4_93.apk",
+        "sha256": "0c5c44deeaffbdd573f90603bd29d1e2fa5253281b6c1795840e91fa5d2873b2",
+        "size_bytes": 116491139,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.2.4/fearless-wallet-2.2.4_93.apk"
+      }
+    },
+    {
+      "id": "2.2.5+94",
+      "version": "2.2.5",
+      "versionCode": 94,
+      "tag": "2.2.5(94)",
+      "commit": "fc8e06f6de215dffcc29a27cc2d278b78fe50de2",
+      "published_at": "2023-06-07",
+      "db_version": 55,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "shared-features 0.0.26_snapshot2",
+      "schema_evidence": "core-db/src/main tree identical to tag 2.2.5(95) (b001b2c2e691); same toolchain (Room 2.5.1, Kotlin 1.8.10)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "2.2.5+95",
+      "version": "2.2.5",
+      "versionCode": 95,
+      "tag": "2.2.5(95)",
+      "commit": "01e359fc989ae56d9cc3bd49125000e42f9a3832",
+      "published_at": "2023-06-09",
+      "db_version": 55,
+      "room_identity_hash": "0ae6188a0442abd21c6c8c04649b022a",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 0.0.26_snapshot2",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.2.5_95.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.2.5%2895%29/fearless-wallet-2.2.5_95.apk",
+        "sha256": "2d4ffb9bc71c701061c17acb4d1d49b1165dbac51f9b566cf0fdb1fcc9b4f643",
+        "size_bytes": 116491139,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.2.5_95/fearless-wallet-2.2.5_95.apk"
+      }
+    },
+    {
+      "id": "2.3.1+101",
+      "version": "2.3.1",
+      "versionCode": 101,
+      "tag": "2.3.1",
+      "commit": "393b1227a55718bb524e15a33b88c05c21b64152",
+      "published_at": "2023-07-05",
+      "db_version": 56,
+      "room_identity_hash": "12e71f77c45046879ff21eb071b6e876",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.0.1",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.3.1_101.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.3.1/fearless-wallet-2.3.1_101.apk",
+        "sha256": "c366883bd196b22ab5e2c1796684c253e438f4d228766f692e7fa98e4f8e8951",
+        "size_bytes": 135063158,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.3.1/fearless-wallet-2.3.1_101.apk"
+      }
+    },
+    {
+      "id": "2.4.1+108",
+      "version": "2.4.1",
+      "versionCode": 108,
+      "tag": "2.4.1",
+      "commit": "6dc90d622d2bb03e708cc675cf39db459822e18a",
+      "published_at": "2023-08-17",
+      "db_version": 57,
+      "room_identity_hash": "aff1dd954d7400dff5c1889512cd43d7",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.11-20230811.091740-2",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.4.1_108.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.4.1/fearless-wallet-2.4.1_108.apk",
+        "sha256": "e3056b37ba5c725ed894f7ee41738d502bd2c2a82be964fd8a6652c003c8638d",
+        "size_bytes": 139843991,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.4.1/fearless-wallet-2.4.1_108.apk"
+      }
+    },
+    {
+      "id": "2.4.2+109",
+      "version": "2.4.2",
+      "versionCode": 109,
+      "tag": "2.4.2",
+      "commit": "5aaa0edeb4108d087d1a3b6a2e9c8d56ac529d7c",
+      "published_at": "2023-08-23",
+      "db_version": 57,
+      "room_identity_hash": "aff1dd954d7400dff5c1889512cd43d7",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.11-20230811.091740-2",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-2.4.2_109.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.4.2/fearless-wallet-2.4.2_109.apk",
+        "sha256": "7f2685b35f0cb827829b8189b3b0dabc1ebd7803a5e7527dd9104738bb8c2784",
+        "size_bytes": 139843991,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/2.4.2/fearless-wallet-2.4.2_109.apk"
+      }
+    },
+    {
+      "id": "3.0.1+115",
+      "version": "3.0.1",
+      "versionCode": 115,
+      "tag": "3.0.1",
+      "commit": "84095aed646145a8bc571a43afce043da0a04dae",
+      "published_at": "2023-09-25",
+      "db_version": 58,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.13-SNAPSHOT",
+      "schema_evidence": "core-db/src/main tree identical to tag 3.0.2 (9f47845b4951); same toolchain (Room 2.5.1, Kotlin 1.8.20)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "3.0.2+116",
+      "version": "3.0.2",
+      "versionCode": 116,
+      "tag": "3.0.2",
+      "commit": "fb3d25e66a78386596714d0e48d4eaa42807972e",
+      "published_at": "2023-09-25",
+      "db_version": 58,
+      "room_identity_hash": "54a48ca06d531a73fbf0f94976112a09",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.13-SNAPSHOT",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.0.2_116.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.0.2/fearless-wallet-3.0.2_116.apk",
+        "sha256": "220d50aa08d24758a8c69bc1862c37b85532e6fd20e04bddcc0cc76992474629",
+        "size_bytes": 140783232,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.0.2/fearless-wallet-3.0.2_116.apk"
+      }
+    },
+    {
+      "id": "3.0.3+118",
+      "version": "3.0.3",
+      "versionCode": 118,
+      "tag": "3.0.3",
+      "commit": "290ea4b975d8f7f151575d328a1f4235a543a878",
+      "published_at": "2023-09-29",
+      "db_version": 58,
+      "room_identity_hash": "54a48ca06d531a73fbf0f94976112a09",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.13-SNAPSHOT",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.0.3_118.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.0.3/fearless-wallet-3.0.3_118.apk",
+        "sha256": "fad7770be4eb97f8df7f265ba87d6daa92d8430b7040e36f1acc1f61216cc564",
+        "size_bytes": 140770944,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.0.3/fearless-wallet-3.0.3_118.apk"
+      }
+    },
+    {
+      "id": "3.0.4+131",
+      "version": "3.0.4",
+      "versionCode": 131,
+      "tag": "3.0.4",
+      "commit": "5d2f624206c56a8ed6be0369a5062d2e93b2e25e",
+      "published_at": "2023-11-11",
+      "db_version": 58,
+      "room_identity_hash": "54a48ca06d531a73fbf0f94976112a09",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.13-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.0.4_131.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.0.4/fearless-wallet-3.0.4_131.apk",
+        "sha256": "441b237baf930e9ccd0838d2f6d764c0b60024be2295a89b6acf167b139b7481",
+        "size_bytes": 149471414,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.0.4/fearless-wallet-3.0.4_131.apk"
+      }
+    },
+    {
+      "id": "3.1.1+136",
+      "version": "3.1.1",
+      "versionCode": 136,
+      "tag": "3.1.1",
+      "commit": "cffdbb4b3e919ff133b10c16f6e42652845c8007",
+      "published_at": "2023-12-08",
+      "db_version": 58,
+      "room_identity_hash": "54a48ca06d531a73fbf0f94976112a09",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.16-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.1.1_136.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.1.1/fearless-wallet-3.1.1_136.apk",
+        "sha256": "597faae571048699ef0633a2a903e4d21f87daaa633eab164de8a152fcf8d230",
+        "size_bytes": 149635367,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.1.1/fearless-wallet-3.1.1_136.apk"
+      }
+    },
+    {
+      "id": "3.1.2+137",
+      "version": "3.1.2",
+      "versionCode": 137,
+      "tag": "3.1.2",
+      "commit": "9ec400205f44826fb03305e675b2d065a14ff65d",
+      "published_at": "2023-12-13",
+      "db_version": 58,
+      "room_identity_hash": "54a48ca06d531a73fbf0f94976112a09",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.17-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.1.2_137.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.1.2/fearless-wallet-3.1.2_137.apk",
+        "sha256": "2688d97337601d0bab892e15009a3ee737c5544c963aa486105ba4dcc54f09dd",
+        "size_bytes": 149631271,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.1.2/fearless-wallet-3.1.2_137.apk"
+      }
+    },
+    {
+      "id": "3.2.1+140",
+      "version": "3.2.1",
+      "versionCode": 140,
+      "tag": "3.2.1",
+      "commit": "6732e4c6be65e9945dc879e3e2d3cc9e7832150f",
+      "published_at": "2024-01-15",
+      "db_version": 59,
+      "room_identity_hash": "bf0c20a8e753c17bf18b5fb0662122ad",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.17-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.2.1_140.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.2.1/fearless-wallet-3.2.1_140.apk",
+        "sha256": "1f38395f72fa7601295dec61ac6cde0b480f36c175c3221f87e755d1ed995b61",
+        "size_bytes": 44469230,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.2.1/fearless-wallet-3.2.1_140.apk"
+      }
+    },
+    {
+      "id": "3.2.2+152",
+      "version": "3.2.2",
+      "versionCode": 152,
+      "tag": "3.2.2",
+      "commit": "c307b36c2c711130ef5199a352e30a7de10c4dde",
+      "published_at": "2024-01-31",
+      "db_version": 60,
+      "room_identity_hash": "f478bf4429444be1e791a171242305e9",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.20-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.2.2_152.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.2.2/fearless-wallet-3.2.2_152.apk",
+        "sha256": "b08aaa38239bdf233289b37177dbbac35dafb667751b34313ec389fa2c0aa72c",
+        "size_bytes": 44506094,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.2.2/fearless-wallet-3.2.2_152.apk"
+      }
+    },
+    {
+      "id": "3.3.1+155",
+      "version": "3.3.1",
+      "versionCode": 155,
+      "tag": "3.3.1",
+      "commit": "cad8840b336b2034ed5a623cc1f3dc0fda435cfe",
+      "published_at": "2024-02-14",
+      "db_version": 61,
+      "room_identity_hash": "2191720ea8a605a2cb0d0239e4650392",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.23-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.3.1_155.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.3.1/fearless-wallet-3.3.1_155.apk",
+        "sha256": "7565f66ec8d3e8857cc4660182c736c56b442f928b19a709afe59e391abe7f6a",
+        "size_bytes": 44534766,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.3.1/fearless-wallet-3.3.1_155.apk"
+      }
+    },
+    {
+      "id": "3.4.1+163",
+      "version": "3.4.1",
+      "versionCode": 163,
+      "tag": "3.4.1",
+      "commit": "c00e08f98ce52d8b544aebed3da7519a7cab18eb",
+      "published_at": "2024-03-21",
+      "db_version": 62,
+      "room_identity_hash": "14466d7ec1ee0345e0fd12261f57c256",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.27-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.4.1_163.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.4.1/fearless-wallet-3.4.1_163.apk",
+        "sha256": "f71b4dc3f41a99be215a5824dccc9afb614b44ae3bbe6e0ac5a9563986758fda",
+        "size_bytes": 41367389,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.4.1/fearless-wallet-3.4.1_163.apk"
+      }
+    },
+    {
+      "id": "3.4.2+167",
+      "version": "3.4.2",
+      "versionCode": 167,
+      "tag": "3.4.2",
+      "commit": "8f307d0aad533e07d4d403c08319636d83b0c1ec",
+      "published_at": "2024-03-28",
+      "db_version": 63,
+      "room_identity_hash": "aaa29d906d7cbd014b17e882eec1f36a",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.28-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.4.2_167.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.4.2/fearless-wallet-3.4.2_167.apk",
+        "sha256": "54bacab8610852f18d4f17526c8e46e95a9cc7896e8b607360e97bd8375532fa",
+        "size_bytes": 41367389,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.4.2/fearless-wallet-3.4.2_167.apk"
+      }
+    },
+    {
+      "id": "3.4.3+168",
+      "version": "3.4.3",
+      "versionCode": 168,
+      "tag": "3.4.3",
+      "commit": "f20e08e29a56da08c049e1d8e25d09c4d370c3f7",
+      "published_at": "2024-03-29",
+      "db_version": 63,
+      "room_identity_hash": "aaa29d906d7cbd014b17e882eec1f36a",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.28-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.4.3_168.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.4.3/fearless-wallet-3.4.3_168.apk",
+        "sha256": "71363111fabe50c9592ac1f5d5c4d68045d1a07559ef5bedf5cddf703c0d7233",
+        "size_bytes": 41367389,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.4.3/fearless-wallet-3.4.3_168.apk"
+      }
+    },
+    {
+      "id": "3.4.4+172",
+      "version": "3.4.4",
+      "versionCode": 172,
+      "tag": "3.4.4",
+      "commit": "89559acd37e2fe4d202d715bdc593fa3a7d6e19c",
+      "published_at": "2024-04-26",
+      "db_version": 64,
+      "room_identity_hash": "443cd013a126fc77fdb270f214d7b0a9",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.29-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.4.4_172.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.4.4/fearless-wallet-3.4.4_172.apk",
+        "sha256": "16027dfa4fd765e5182389d38f0762f6757a68d98718dee42fab01b2bac686d0",
+        "size_bytes": 41383773,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.4.4/fearless-wallet-3.4.4_172.apk"
+      }
+    },
+    {
+      "id": "3.4.5+174",
+      "version": "3.4.5",
+      "versionCode": 174,
+      "tag": "3.4.5",
+      "commit": "94ef3c4610f5784b266813e07ba10d19433a7c3c",
+      "published_at": "2024-04-30",
+      "db_version": 65,
+      "room_identity_hash": "443cd013a126fc77fdb270f214d7b0a9",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.29-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.4.5_174.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.4.5/fearless-wallet-3.4.5_174.apk",
+        "sha256": "06e6e962538f55880a7ca19efe87c60fe265fad18e3b1b6a73a4b11a171d494f",
+        "size_bytes": 41383773,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.4.5/fearless-wallet-3.4.5_174.apk"
+      }
+    },
+    {
+      "id": "3.5.1+181",
+      "version": "3.5.1",
+      "versionCode": 181,
+      "tag": "3.5.1",
+      "commit": "333dc6bbc23da3169b0f226c0f6bd54fb5d463cd",
+      "published_at": "2024-05-29",
+      "db_version": 66,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.30-FLW",
+      "schema_evidence": "core-db/src/main tree identical to tag 3.5.2 (2bd6edd48b27); same toolchain (Room 2.6.1, Kotlin 1.9.23)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "3.5.2+183",
+      "version": "3.5.2",
+      "versionCode": 183,
+      "tag": "3.5.2",
+      "commit": "03093dda56c1e314593677c1f33963fc9bfece09",
+      "published_at": "2024-05-30",
+      "db_version": 66,
+      "room_identity_hash": "ec7222bd9a2da5109b8343048a5ae338",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.30-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.5.2_183.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.5.2/fearless-wallet-3.5.2_183.apk",
+        "sha256": "d824def8caebdc52d9fd60b14fff62489e541e77a82c68a816f22ad5906c1114",
+        "size_bytes": 41610149,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.5.2/fearless-wallet-3.5.2_183.apk"
+      }
+    },
+    {
+      "id": "3.5.3+184",
+      "version": "3.5.3",
+      "versionCode": 184,
+      "tag": "3.5.3",
+      "commit": "a29947ba86de2d879616d07040cfd36438b081f0",
+      "published_at": "2024-06-11",
+      "db_version": 66,
+      "room_identity_hash": "ec7222bd9a2da5109b8343048a5ae338",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.31-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.5.3_184.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.5.3/fearless-wallet-3.5.3_184.apk",
+        "sha256": "6ffbcb1f2f53318643508a959c583e2f5604d785d51dfec9b0305d6bf7efd6d0",
+        "size_bytes": 41610149,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.5.3/fearless-wallet-3.5.3_184.apk"
+      }
+    },
+    {
+      "id": "3.5.4+185",
+      "version": "3.5.4",
+      "versionCode": 185,
+      "tag": "3.5.4",
+      "commit": "e1b413d62f562ce77ec260e0892e5ed36c6ae645",
+      "published_at": "2024-06-12",
+      "db_version": 66,
+      "room_identity_hash": null,
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.31-FLW",
+      "schema_evidence": "core-db/src/main tree identical to tag 3.5.5 (2bd6edd48b27); same toolchain (Room 2.6.1, Kotlin 1.9.23)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "3.5.5+186",
+      "version": "3.5.5",
+      "versionCode": 186,
+      "tag": "3.5.5",
+      "commit": "aff0cb4e06d60073ba710c7b6e846c8b2f4c15cf",
+      "published_at": "2024-06-13",
+      "db_version": 66,
+      "room_identity_hash": "ec7222bd9a2da5109b8343048a5ae338",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.31-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.5.5_186.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.5.5/fearless-wallet-3.5.5_186.apk",
+        "sha256": "a40756bbf2daf1d8e91d2c2f1d033b7df71381d2efe5d5278564aded10a8f5b1",
+        "size_bytes": 41610149,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.5.5/fearless-wallet-3.5.5_186.apk"
+      }
+    },
+    {
+      "id": "3.5.6+188",
+      "version": "3.5.6",
+      "versionCode": 188,
+      "tag": "3.5.6",
+      "commit": "f660b3e5b0086034cce830c302dd798e373eaa88",
+      "published_at": "2024-07-02",
+      "db_version": 67,
+      "room_identity_hash": "ec7222bd9a2da5109b8343048a5ae338",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.31-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.5.6_188.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.5.6/fearless-wallet-3.5.6_188.apk",
+        "sha256": "61426054941792575c3d8579de0e718c2a9bc1bc7bb95403c5189d3b20796031",
+        "size_bytes": 41610149,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.5.6/fearless-wallet-3.5.6_188.apk"
+      }
+    },
+    {
+      "id": "3.6.1+192",
+      "version": "3.6.1",
+      "versionCode": 192,
+      "tag": "3.6.1",
+      "commit": "664277d618137eaf0239d6f5d2d3891bb7ae39ce",
+      "published_at": "2024-07-22",
+      "db_version": 67,
+      "room_identity_hash": "ec7222bd9a2da5109b8343048a5ae338",
+      "minSdk": 24,
+      "crypto_lib": "shared-features 1.1.1.35-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.6.1_192.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.6.1/fearless-wallet-3.6.1_192.apk",
+        "sha256": "9420a0fe2448a59a0c87dd95fbcdc69de35e74a91ed3ee52c47816a2260e7762",
+        "size_bytes": 41667493,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.6.1/fearless-wallet-3.6.1_192.apk"
+      }
+    },
+    {
+      "id": "3.6.2+193",
+      "version": "3.6.2",
+      "versionCode": 193,
+      "tag": "3.6.2",
+      "commit": "b2488843ffcc9d32bfd09b645653de483894488a",
+      "published_at": "2024-08-20",
+      "db_version": 69,
+      "room_identity_hash": null,
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.35-FLW",
+      "schema_evidence": "No APK exists. Room entity sources identical to tag 3.7.1 and the same toolchain (Room 2.6.1, Kotlin 1.9.24); the @Database entities list puts NomisWalletScoreLocal after UserPoolLocal, so a fresh 3.6.2 install creates the same tables and columns as 3.7.1 in a different table order.",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "3.7.1+200",
+      "version": "3.7.1",
+      "versionCode": 200,
+      "tag": "3.7.1",
+      "commit": "0776bd2690c20c299aad78767d2578e401e3ddd6",
+      "published_at": "2024-08-24",
+      "db_version": 69,
+      "room_identity_hash": "3be3c2b93b50fd9d8b0b0f898137f5d5",
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.36-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.7.1_200.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.7.1/fearless-wallet-3.7.1_200.apk",
+        "sha256": "6625d16d43613dd91ad88322130ba49114da1ef3dc2effe146f76b6e538e82e7",
+        "size_bytes": 42339760,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.7.1/fearless-wallet-3.7.1_200.apk"
+      }
+    },
+    {
+      "id": "3.7.2+201",
+      "version": "3.7.2",
+      "versionCode": 201,
+      "tag": "3.7.2",
+      "commit": "cd73384ecc675753d5db434100a989906d70011c",
+      "published_at": "2024-08-29",
+      "db_version": 70,
+      "room_identity_hash": "3be3c2b93b50fd9d8b0b0f898137f5d5",
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.36-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.7.2_201.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.7.2/fearless-wallet-3.7.2_201.apk",
+        "sha256": "e50da58b3d28c3e9f5fe7563af2a69564013782cc4f69fd1c2ef8177c9f648fc",
+        "size_bytes": 42356144,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.7.2/fearless-wallet-3.7.2_201.apk"
+      }
+    },
+    {
+      "id": "3.7.3+204",
+      "version": "3.7.3",
+      "versionCode": 204,
+      "tag": "3.7.3",
+      "commit": "b8ff31b7ed07dc20b48bf18d26d8e8060590e3e1",
+      "published_at": "2024-09-17",
+      "db_version": 70,
+      "room_identity_hash": "3be3c2b93b50fd9d8b0b0f898137f5d5",
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.36-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.7.3_204.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.7.3/fearless-wallet-3.7.3_204.apk",
+        "sha256": "d7a8d2d5f61ae8cddcde6a055c69377daa321f41781c8f2dc932ebadc0f0b413",
+        "size_bytes": 42356144,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.7.3/fearless-wallet-3.7.3_204.apk"
+      }
+    },
+    {
+      "id": "3.7.4+209",
+      "version": "3.7.4",
+      "versionCode": 209,
+      "tag": "3.7.4",
+      "commit": "2da66a2cdc5a892270a294a12bcfacbc4b585feb",
+      "published_at": "2025-01-14",
+      "db_version": 71,
+      "room_identity_hash": "64c235aeb5a511d5cb4df675040540b4",
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.40-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-3.7.4_209.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.7.4/fearless-wallet-3.7.4_209.apk",
+        "sha256": "4a1cb6377c5779b697610aa5806965615e79ab1bae92e207f9ee6eeb1bb56ba2",
+        "size_bytes": 42766168,
+        "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+        "cache_path": "files/3.7.4/fearless-wallet-3.7.4_209.apk"
+      }
+    },
+    {
+      "id": "4.0.1+216",
+      "version": "4.0.1",
+      "versionCode": 216,
+      "tag": "4.0.1",
+      "commit": "24fbc9decbf84cf0c06be7ebf3efd11f6b9ae8e9",
+      "published_at": "2025-03-19",
+      "db_version": 73,
+      "room_identity_hash": null,
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.43-FLW",
+      "schema_evidence": "core-db/src/main tree identical to tag 4.0.2 (3870bf557370); same toolchain (Room 2.6.1, Kotlin 1.9.24)",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "4.0.2+217",
+      "version": "4.0.2",
+      "versionCode": 217,
+      "tag": "4.0.2",
+      "commit": "f2f41d5ec630102af558ee4a138ec4d7f3c82ed1",
+      "published_at": "2025-03-24",
+      "db_version": 73,
+      "room_identity_hash": null,
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.43-FLW",
+      "schema_evidence": "No APK exists. core-db/schemas/jp.co.soramitsu.coredb.AppDatabase/73.json (added in 952d3a23c). Its difference from 74.json is exactly the 4.0.2 -> 4.1.1 entity change (sora_card table, chain_assets.coinbaseUrl), and every table whose entity source is unchanged since tag 3.7.4 has the createSql of the 3.7.4 APK.",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "4.1.1+218",
+      "version": "4.1.1",
+      "versionCode": 218,
+      "tag": "4.1.1",
+      "commit": "08629a6a69a28a4c939cb5cfc98f856e0fb9b88d",
+      "published_at": "2025-04-04",
+      "db_version": 74,
+      "room_identity_hash": null,
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.44-FLW",
+      "schema_evidence": "No APK exists. core-db/schemas/jp.co.soramitsu.coredb.AppDatabase/74.json is byte-identical to the file exported at tag v4.2.0 (63e143433), whose Room entity sources equal tag 4.1.1. Every table whose entity source is unchanged since tag 3.7.4 has the createSql of the 3.7.4 APK.",
+      "binary": {
+        "kind": "no-github-apk"
+      }
+    },
+    {
+      "id": "4.2.0+229",
+      "version": "4.2.0",
+      "versionCode": 229,
+      "tag": "v4.2.0",
+      "commit": "63e143433f21cf1d853f8369f68f198a1a04b3ef",
+      "published_at": "2026-03-09",
+      "db_version": 75,
+      "room_identity_hash": "3909ad504e3e6dfada04d2bfca064870",
+      "minSdk": 26,
+      "crypto_lib": "shared-features 1.1.1.44-FLW",
+      "schema_evidence": "apk-extraction",
+      "binary": {
+        "kind": "github-apk",
+        "asset_name": "fearless-wallet-4.2.0-release.apk",
+        "url": "https://github.com/soramitsu/fearless-Android/releases/download/v4.2.0/fearless-wallet-4.2.0-release.apk",
+        "sha256": "3d4a9058f31ca6697275435bbaf788528d8ac37c4043f8ec18c12e77503f6bf7",
+        "size_bytes": 35317632,
+        "signer_sha256": "40391092f5b97e782c6528cc571adf5dbedfe2d05023babc7c4e339e584a4a9a",
+        "cache_path": "files/v4.2.0/fearless-wallet-4.2.0-release.apk"
+      },
+      "source_commit_estimate": "b5e22d49d16a0207c03ab703559892eaf9d41cf9: AppDatabase version 75, versioning/version.properties versionCode 228 (auto-bumped to 229 by the release build); the asset was uploaded one day after this commit",
+      "tag_source_db_version": 74,
+      "notes": "The GitHub asset is versionCode 229 with Room 75, but the tag source declares Room 74. The asset was uploaded 2026-03-26 and was built from a later commit; its Room identity equals core-db/schemas/jp.co.soramitsu.coredb.AppDatabase/75.json."
+    }
+  ],
+  "fixtures": [
+    {
+      "directory": null,
+      "fixture_format": null,
+      "db_version": 9,
+      "source_release": "0.4.0+1",
+      "room_identity_hash": null,
+      "releases": [
+        "0.4.0+1",
+        "0.4.1+2",
+        "1.0.0+4",
+        "1.0.1+5"
+      ],
+      "source": {
+        "kind": "existing-source-fixture",
+        "covered_by": "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/fixtures/ReleasedV04DatabaseFixture.kt"
+      }
+    },
+    {
+      "directory": "1.2.2",
+      "fixture_format": 2,
+      "db_version": 10,
+      "source_release": "1.2.2+11",
+      "room_identity_hash": "ca15d8e487079b18dbc76b980e4c7ba7",
+      "releases": [
+        "1.1.0+6",
+        "1.1.1+7",
+        "1.2.0+8",
+        "1.2.1+10",
+        "1.2.2+11"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "1.2.2+11"
+      }
+    },
+    {
+      "directory": "1.7-RC1",
+      "fixture_format": 2,
+      "db_version": 20,
+      "source_release": "1.7-RC1+13",
+      "room_identity_hash": "269e5745f096ffa4681472b6d0136b53",
+      "releases": [
+        "1.7-RC1+13"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "1.7-RC1+13"
+      }
+    },
+    {
+      "directory": "1.9.0",
+      "fixture_format": 2,
+      "db_version": 22,
+      "source_release": "1.9.0+20",
+      "room_identity_hash": "6891ccf8d574ea6a79ba2425e81b7a81",
+      "releases": [
+        "1.8-RC1+14",
+        "1.8.1+15",
+        "1.8.2+17",
+        "1.8.3+19",
+        "1.9.0+20"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "1.9.0+20"
+      }
+    },
+    {
+      "directory": "1.9.9_38",
+      "fixture_format": 2,
+      "db_version": 25,
+      "source_release": "1.9.9+38",
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "releases": [
+        "1.9.4+24",
+        "1.9.6+26",
+        "1.9.8+34",
+        "1.9.9+38"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "1.9.9+38"
+      }
+    },
+    {
+      "directory": "1.9.11",
+      "fixture_format": 2,
+      "db_version": 26,
+      "source_release": "1.9.11+41",
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "releases": [
+        "1.9.9+39",
+        "1.9.10+40",
+        "1.9.11+41"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "1.9.11+41"
+      }
+    },
+    {
+      "directory": "1.9.13",
+      "fixture_format": 2,
+      "db_version": 27,
+      "source_release": "1.9.13+45",
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "releases": [
+        "1.9.12+42",
+        "1.9.13+45"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "1.9.13+45"
+      }
+    },
+    {
+      "directory": "1.9.15",
+      "fixture_format": 2,
+      "db_version": 27,
+      "source_release": "1.9.15+48",
+      "room_identity_hash": "4398623385060349aacdf135450ede28",
+      "releases": [
+        "1.9.14+46",
+        "1.9.14+47",
+        "1.9.15+48"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "1.9.15+48"
+      }
+    },
+    {
+      "directory": "2.0.0",
+      "fixture_format": 1,
+      "db_version": 30,
+      "source_release": "2.0.0+51",
+      "room_identity_hash": "11b78abe23c541401fca8e23fc427a86",
+      "releases": [
+        "2.0.0+51"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.0.0+51"
+      }
+    },
+    {
+      "directory": "2.0.1",
+      "fixture_format": 2,
+      "db_version": 33,
+      "source_release": "2.0.1+52",
+      "room_identity_hash": "0be422f87f7155a4b63cf160faa48fba",
+      "releases": [
+        "2.0.1+52"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.0.1+52"
+      }
+    },
+    {
+      "directory": "2.0.3",
+      "fixture_format": 2,
+      "db_version": 37,
+      "source_release": "2.0.3+55",
+      "room_identity_hash": "76524c7caab9d2f5897988928c711785",
+      "releases": [
+        "2.0.2+54",
+        "2.0.3+55"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.0.3+55"
+      }
+    },
+    {
+      "directory": "2.0.4",
+      "fixture_format": 2,
+      "db_version": 40,
+      "source_release": "2.0.4+58",
+      "room_identity_hash": "84f5a4b2b77334a92e9bda8dbf1fc0eb",
+      "releases": [
+        "2.0.4+58"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.0.4+58"
+      }
+    },
+    {
+      "directory": "2.0.13",
+      "fixture_format": 2,
+      "db_version": 41,
+      "source_release": "2.0.13+74",
+      "room_identity_hash": "e5d6478d29c802160bc38f007e731c07",
+      "releases": [
+        "2.0.5+66",
+        "2.0.6+67",
+        "2.0.7+68",
+        "2.0.8+69",
+        "2.0.9+70",
+        "2.0.10+71",
+        "2.0.11+72",
+        "2.0.12+73",
+        "2.0.13+74"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.0.13+74"
+      }
+    },
+    {
+      "directory": "2.1.0",
+      "fixture_format": 2,
+      "db_version": 45,
+      "source_release": "2.1.0+83",
+      "room_identity_hash": "3bb5c8d34b0a8d8b9010b57406b31b39",
+      "releases": [
+        "2.1.0+83"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.1.0+83"
+      }
+    },
+    {
+      "directory": "2.1.1",
+      "fixture_format": 2,
+      "db_version": 46,
+      "source_release": "2.1.1+86",
+      "room_identity_hash": "3bb5c8d34b0a8d8b9010b57406b31b39",
+      "releases": [
+        "2.1.1+86",
+        "2.1.2+87"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.1.1+86"
+      }
+    },
+    {
+      "directory": "2.2.2",
+      "fixture_format": 2,
+      "db_version": 49,
+      "source_release": "2.2.2+90",
+      "room_identity_hash": "c095dc486aac5f78f52bbb9839c161cd",
+      "releases": [
+        "2.2.0+88",
+        "2.2.1+89",
+        "2.2.2+90"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.2.2+90"
+      }
+    },
+    {
+      "directory": "2.2.3",
+      "fixture_format": 2,
+      "db_version": 54,
+      "source_release": "2.2.3+92",
+      "room_identity_hash": null,
+      "releases": [
+        "2.2.3+92"
+      ],
+      "source": {
+        "kind": "derived-from-apk",
+        "apk_release": "2.2.4+93",
+        "remove_statements": [
+          "CREATE UNIQUE INDEX IF NOT EXISTS `index_address_book_address_chainId` ON `address_book` (`address`, `chainId`)"
+        ]
+      }
+    },
+    {
+      "directory": "2.2.5",
+      "fixture_format": 2,
+      "db_version": 55,
+      "source_release": "2.2.5+95",
+      "room_identity_hash": "0ae6188a0442abd21c6c8c04649b022a",
+      "releases": [
+        "2.2.4+93",
+        "2.2.5+94",
+        "2.2.5+95"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.2.5+95"
+      }
+    },
+    {
+      "directory": "2.3.1",
+      "fixture_format": 2,
+      "db_version": 56,
+      "source_release": "2.3.1+101",
+      "room_identity_hash": "12e71f77c45046879ff21eb071b6e876",
+      "releases": [
+        "2.3.1+101"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.3.1+101"
+      }
+    },
+    {
+      "directory": "2.4.2",
+      "fixture_format": 2,
+      "db_version": 57,
+      "source_release": "2.4.2+109",
+      "room_identity_hash": "aff1dd954d7400dff5c1889512cd43d7",
+      "releases": [
+        "2.4.1+108",
+        "2.4.2+109"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "2.4.2+109"
+      }
+    },
+    {
+      "directory": "3.1.2",
+      "fixture_format": 2,
+      "db_version": 58,
+      "source_release": "3.1.2+137",
+      "room_identity_hash": "54a48ca06d531a73fbf0f94976112a09",
+      "releases": [
+        "3.0.1+115",
+        "3.0.2+116",
+        "3.0.3+118",
+        "3.0.4+131",
+        "3.1.1+136",
+        "3.1.2+137"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.1.2+137"
+      }
+    },
+    {
+      "directory": "3.2.1",
+      "fixture_format": 2,
+      "db_version": 59,
+      "source_release": "3.2.1+140",
+      "room_identity_hash": "bf0c20a8e753c17bf18b5fb0662122ad",
+      "releases": [
+        "3.2.1+140"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.2.1+140"
+      }
+    },
+    {
+      "directory": "3.2.2",
+      "fixture_format": 2,
+      "db_version": 60,
+      "source_release": "3.2.2+152",
+      "room_identity_hash": "f478bf4429444be1e791a171242305e9",
+      "releases": [
+        "3.2.2+152"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.2.2+152"
+      }
+    },
+    {
+      "directory": "3.3.1",
+      "fixture_format": 2,
+      "db_version": 61,
+      "source_release": "3.3.1+155",
+      "room_identity_hash": "2191720ea8a605a2cb0d0239e4650392",
+      "releases": [
+        "3.3.1+155"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.3.1+155"
+      }
+    },
+    {
+      "directory": "3.4.1",
+      "fixture_format": 2,
+      "db_version": 62,
+      "source_release": "3.4.1+163",
+      "room_identity_hash": "14466d7ec1ee0345e0fd12261f57c256",
+      "releases": [
+        "3.4.1+163"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.4.1+163"
+      }
+    },
+    {
+      "directory": "3.4.3",
+      "fixture_format": 2,
+      "db_version": 63,
+      "source_release": "3.4.3+168",
+      "room_identity_hash": "aaa29d906d7cbd014b17e882eec1f36a",
+      "releases": [
+        "3.4.2+167",
+        "3.4.3+168"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.4.3+168"
+      }
+    },
+    {
+      "directory": "3.4.4",
+      "fixture_format": 2,
+      "db_version": 64,
+      "source_release": "3.4.4+172",
+      "room_identity_hash": "443cd013a126fc77fdb270f214d7b0a9",
+      "releases": [
+        "3.4.4+172"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.4.4+172"
+      }
+    },
+    {
+      "directory": "3.4.5",
+      "fixture_format": 2,
+      "db_version": 65,
+      "source_release": "3.4.5+174",
+      "room_identity_hash": "443cd013a126fc77fdb270f214d7b0a9",
+      "releases": [
+        "3.4.5+174"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.4.5+174"
+      }
+    },
+    {
+      "directory": "3.5.5",
+      "fixture_format": 2,
+      "db_version": 66,
+      "source_release": "3.5.5+186",
+      "room_identity_hash": "ec7222bd9a2da5109b8343048a5ae338",
+      "releases": [
+        "3.5.1+181",
+        "3.5.2+183",
+        "3.5.3+184",
+        "3.5.4+185",
+        "3.5.5+186"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.5.5+186"
+      }
+    },
+    {
+      "directory": "3.6.1",
+      "fixture_format": 2,
+      "db_version": 67,
+      "source_release": "3.6.1+192",
+      "room_identity_hash": "ec7222bd9a2da5109b8343048a5ae338",
+      "releases": [
+        "3.5.6+188",
+        "3.6.1+192"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.6.1+192"
+      }
+    },
+    {
+      "directory": "3.7.1",
+      "fixture_format": 2,
+      "db_version": 69,
+      "source_release": "3.7.1+200",
+      "room_identity_hash": "3be3c2b93b50fd9d8b0b0f898137f5d5",
+      "releases": [
+        "3.6.2+193",
+        "3.7.1+200"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.7.1+200"
+      }
+    },
+    {
+      "directory": "3.7.3",
+      "fixture_format": 2,
+      "db_version": 70,
+      "source_release": "3.7.3+204",
+      "room_identity_hash": "3be3c2b93b50fd9d8b0b0f898137f5d5",
+      "releases": [
+        "3.7.2+201",
+        "3.7.3+204"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.7.3+204"
+      }
+    },
+    {
+      "directory": "3.7.4",
+      "fixture_format": 1,
+      "db_version": 71,
+      "source_release": "3.7.4+209",
+      "room_identity_hash": "64c235aeb5a511d5cb4df675040540b4",
+      "releases": [
+        "3.7.4+209"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "3.7.4+209"
+      }
+    },
+    {
+      "directory": "4.0.2",
+      "fixture_format": 2,
+      "db_version": 73,
+      "source_release": "4.0.2+217",
+      "room_identity_hash": "801c7f0c6b7a8b6fa8f383814ad417fa",
+      "releases": [
+        "4.0.1+216",
+        "4.0.2+217"
+      ],
+      "source": {
+        "kind": "exported-schema-json",
+        "exported_schema": "jp.co.soramitsu.coredb.AppDatabase/73.json",
+        "room_class": "jp.co.soramitsu.coredb.AppDatabase_Impl$1",
+        "unchanged_tables_match_apk": {
+          "apk_release": "3.7.4+209",
+          "tables": [
+            "address_book",
+            "phishing",
+            "storage",
+            "account_staking_accesses",
+            "total_reward",
+            "operations",
+            "chain_nodes",
+            "favorite_chains",
+            "chain_runtimes",
+            "chain_accounts",
+            "chain_explorers",
+            "chain_types",
+            "nomis_wallet_score",
+            "allpools",
+            "userpools"
+          ]
+        }
+      }
+    },
+    {
+      "directory": "4.1.1",
+      "fixture_format": 2,
+      "db_version": 74,
+      "source_release": "4.1.1+218",
+      "room_identity_hash": "76cc9e898252bb6822f7da6d30ce604e",
+      "releases": [
+        "4.1.1+218"
+      ],
+      "source": {
+        "kind": "exported-schema-json",
+        "exported_schema": "jp.co.soramitsu.coredb.AppDatabase/74.json",
+        "room_class": "jp.co.soramitsu.coredb.AppDatabase_Impl$1",
+        "unchanged_tables_match_apk": {
+          "apk_release": "3.7.4+209",
+          "tables": [
+            "address_book",
+            "phishing",
+            "storage",
+            "account_staking_accesses",
+            "total_reward",
+            "operations",
+            "chain_nodes",
+            "favorite_chains",
+            "chain_runtimes",
+            "chain_accounts",
+            "chain_explorers",
+            "chain_types",
+            "nomis_wallet_score",
+            "allpools",
+            "userpools",
+            "sora_card"
+          ]
+        }
+      }
+    },
+    {
+      "directory": "4.2.0",
+      "fixture_format": 2,
+      "db_version": 75,
+      "source_release": "4.2.0+229",
+      "room_identity_hash": "3909ad504e3e6dfada04d2bfca064870",
+      "releases": [
+        "4.2.0+229"
+      ],
+      "source": {
+        "kind": "github-apk",
+        "apk_release": "4.2.0+229"
+      }
+    }
+  ]
+}

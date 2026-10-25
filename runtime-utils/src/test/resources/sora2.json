@@ -1,0 +1,1673 @@
+{
+  "runtime_id": 32,
+  "types": {},
+  "versioning": [
+    {
+      "runtime_range": [
+        1,
+        null
+      ],
+      "types": {
+        "String": "Text",
+        "FixedU128": "u128",
+        "U256": "u256",
+        "SessionKeys2": "(AccountId, AccountId)",
+        "AccountInfo": "AccountInfoWithDualRefCount",
+        "Address": "AccountId",
+        "Amount": "i128",
+        "AmountOf": "Amount",
+        "AssetId": "AssetId32",
+        "AssetId32": "[u8; 32]",
+        "AssetIdOf": "AssetId",
+        "AssetInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "asset_id",
+              "AssetId"
+            ],
+            [
+              "symbol",
+              "AssetSymbolStr"
+            ],
+            [
+              "name",
+              "AssetNameStr"
+            ],
+            [
+              "precision",
+              "u8"
+            ],
+            [
+              "is_mintable",
+              "bool"
+            ]
+          ]
+        },
+        "AssetKind": {
+          "type": "enum",
+          "value_list": [
+            "Thischain",
+            "Sidechain",
+            "SidechainOwned"
+          ]
+        },
+        "AssetName": "Vec<u8>",
+        "AssetNameStr": "String",
+        "AssetRecord": "Null",
+        "AssetSymbol": "Vec<u8>",
+        "AssetSymbolStr": "String",
+        "Balance": "u128",
+        "BalanceInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "balance",
+              "Balance"
+            ]
+          ]
+        },
+        "BalancePrecision": "u8",
+        "BasisPoints": "u16",
+        "BridgeNetworkId": "u32",
+        "BridgeStatus": {
+          "type": "enum",
+          "value_list": [
+            "Initialized",
+            "Migrating"
+          ]
+        },
+        "BridgeTimepoint": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "height",
+              "MultiChainHeight"
+            ],
+            [
+              "index",
+              "u32"
+            ]
+          ]
+        },
+        "ChangePeersContract": {
+          "type": "enum",
+          "value_list": [
+            "XOR",
+            "VAL"
+          ]
+        },
+        "ChargeFeeInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "tip",
+              "Compact<Balance>"
+            ],
+            [
+              "target_asset_id",
+              "AssetId"
+            ]
+          ]
+        },
+        "ContentSource": "Vec<u8>",
+        "CurrencyId": "AssetId",
+        "CurrencyIdEncoded": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "AssetId",
+              "H256"
+            ],
+            [
+              "TokenAddress",
+              "H160"
+            ]
+          ]
+        },
+        "CurrencyIdOf": "AssetId",
+        "CustomInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "amount",
+              "Balance"
+            ]
+          ]
+        },
+        "DEXId": "u32",
+        "DEXIdOf": "DEXId",
+        "DEXInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "base_asset_id",
+              "AssetId"
+            ],
+            [
+              "default_fee",
+              "BasisPoints"
+            ],
+            [
+              "default_protocol_fee",
+              "BasisPoints"
+            ]
+          ]
+        },
+        "Description": "Vec<u8>",
+        "DispatchErrorWithPostInfoTPostDispatchInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "post_info",
+              "PostDispatchInfo"
+            ],
+            [
+              "error",
+              "DispatchError"
+            ]
+          ]
+        },
+        "DispatchResultWithPostInfo": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Ok",
+              "PostDispatchInfo"
+            ],
+            [
+              "Err",
+              "DispatchErrorWithPostInfoTPostDispatchInfo"
+            ]
+          ]
+        },
+        "DistributionAccounts": "Null",
+        "Duration": "Null",
+        "EthBridgeStorageVersion": {
+          "type": "enum",
+          "value_list": [
+            "V1",
+            "V2RemovePendingTransfers"
+          ]
+        },
+        "EthPeersSync": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "is_bridge_ready",
+              "bool"
+            ],
+            [
+              "is_xor_ready",
+              "bool"
+            ],
+            [
+              "is_val_ready",
+              "bool"
+            ]
+          ]
+        },
+        "Farm": "Null",
+        "FarmId": "u64",
+        "Farmer": "Null",
+        "FilterMode": {
+          "type": "enum",
+          "value_list": [
+            "Disabled",
+            "ForbidSelected",
+            "AllowSelected"
+          ]
+        },
+        "Fixed": "FixedU128",
+        "FixedBytes": "Vec<u8>",
+        "HolderId": "AccountId",
+        "IncomingAddToken": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "token_address",
+              "EthereumAddress"
+            ],
+            [
+              "asset_id",
+              "AssetId"
+            ],
+            [
+              "precision",
+              "BalancePrecision"
+            ],
+            [
+              "symbol",
+              "AssetSymbol"
+            ],
+            [
+              "name",
+              "AssetName"
+            ],
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "IncomingCancelOutgoingRequest": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "outgoing_request",
+              "OutgoingRequest"
+            ],
+            [
+              "outgoing_request_hash",
+              "H256"
+            ],
+            [
+              "initial_request_hash",
+              "H256"
+            ],
+            [
+              "tx_input",
+              "Vec<u8>"
+            ],
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "IncomingChangePeers": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "peer_account_id",
+              "AccountId"
+            ],
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "added",
+              "bool"
+            ],
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "IncomingChangePeersCompat": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "peer_account_id",
+              "AccountId"
+            ],
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "added",
+              "bool"
+            ],
+            [
+              "contract",
+              "ChangePeersContract"
+            ],
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "IncomingMarkAsDoneRequest": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "outgoing_request_hash",
+              "H256"
+            ],
+            [
+              "initial_request_hash",
+              "H256"
+            ],
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "IncomingMetaRequestKind": {
+          "type": "enum",
+          "value_list": [
+            "CancelOutgoingRequest",
+            "MarkAsDone"
+          ]
+        },
+        "IncomingMigrate": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "new_contract_address",
+              "EthereumAddress"
+            ],
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "IncomingPrepareForMigration": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "IncomingRequest": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Transfer",
+              "IncomingTransfer"
+            ],
+            [
+              "AddToken",
+              "IncomingAddToken"
+            ],
+            [
+              "ChangePeers",
+              "IncomingChangePeers"
+            ],
+            [
+              "CancelOutgoingRequest",
+              "IncomingCancelOutgoingRequest"
+            ],
+            [
+              "MarkAsDone",
+              "IncomingMarkAsDoneRequest"
+            ],
+            [
+              "PrepareForMigration",
+              "IncomingPrepareForMigration"
+            ],
+            [
+              "Migrate",
+              "IncomingMigrate"
+            ]
+          ]
+        },
+        "IncomingRequestKind": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Transaction",
+              "IncomingTransactionRequestKind"
+            ],
+            [
+              "Meta",
+              "IncomingMetaRequestKind"
+            ]
+          ]
+        },
+        "IncomingTransactionRequestKind": {
+          "type": "enum",
+          "value_list": [
+            "Transfer",
+            "AddAsset",
+            "AddPeer",
+            "RemovePeer",
+            "PrepareForMigration",
+            "Migrate",
+            "AddPeerCompat",
+            "RemovePeerCompat",
+            "TransferXOR"
+          ]
+        },
+        "IncomingTransfer": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "from",
+              "EthereumAddress"
+            ],
+            [
+              "to",
+              "AccountId"
+            ],
+            [
+              "asset_id",
+              "AssetId"
+            ],
+            [
+              "asset_kind",
+              "AssetKind"
+            ],
+            [
+              "amount",
+              "Balance"
+            ],
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "at_height",
+              "u64"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "Keys": "SessionKeys3",
+        "LPRewardsInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "amount",
+              "Balance"
+            ],
+            [
+              "currency",
+              "AssetId"
+            ],
+            [
+              "reason",
+              "RewardReason"
+            ]
+          ]
+        },
+        "LPSwapOutcomeInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "amount",
+              "Balance"
+            ],
+            [
+              "fee",
+              "Balance"
+            ],
+            [
+              "rewards",
+              "Vec<LPRewardsInfo>"
+            ],
+            [
+              "amount_without_impact",
+              "Balance"
+            ]
+          ]
+        },
+        "LiquiditySourceType": {
+          "type": "enum",
+          "value_list": [
+            "XYKPool",
+            "BondingCurvePool",
+            "MulticollateralBondingCurvePool",
+            "MockPool",
+            "MockPool2",
+            "MockPool3",
+            "MockPool4",
+            "XSTPool"
+          ]
+        },
+        "LoadIncomingMetaRequest": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "hash",
+              "H256"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "kind",
+              "IncomingMetaRequestKind"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "LoadIncomingRequest": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Transaction",
+              "LoadIncomingTransactionRequest"
+            ],
+            [
+              "Meta",
+              "(LoadIncomingMetaRequest, H256)"
+            ]
+          ]
+        },
+        "LoadIncomingTransactionRequest": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "hash",
+              "H256"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ],
+            [
+              "kind",
+              "IncomingTransactionRequestKind"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ]
+          ]
+        },
+        "LockInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "pool_tokens",
+              "Balance"
+            ],
+            [
+              "unlocking_block",
+              "BlockNumber"
+            ],
+            [
+              "asset_a",
+              "AssetId"
+            ],
+            [
+              "asset_b",
+              "AssetId"
+            ]
+          ]
+        },
+        "LookupSource": "AccountId",
+        "MarketMakerInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "count",
+              "u32"
+            ],
+            [
+              "volume",
+              "Balance"
+            ]
+          ]
+        },
+        "Mode": {
+          "type": "enum",
+          "value_list": [
+            "Permit",
+            "Forbid"
+          ]
+        },
+        "MultiChainHeight": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Thischain",
+              "BlockNumber"
+            ],
+            [
+              "Sidechain",
+              "u64"
+            ]
+          ]
+        },
+        "MultiCurrencyBalance": "Balance",
+        "MultiCurrencyBalanceOf": "MultiCurrencyBalance",
+        "MultisigAccount": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "signatories",
+              "Vec<AccountId>"
+            ],
+            [
+              "threshold",
+              "u8"
+            ]
+          ]
+        },
+        "OffchainRequest": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Outgoing",
+              "(OutgoingRequest, H256)"
+            ],
+            [
+              "LoadIncoming",
+              "LoadIncomingRequest"
+            ],
+            [
+              "Incoming",
+              "(IncomingRequest, H256)"
+            ]
+          ]
+        },
+        "OracleKey": "AssetId",
+        "OutgoingAddAsset": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "asset_id",
+              "AssetId"
+            ],
+            [
+              "supply",
+              "Balance"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingAddAssetEncoded": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "name",
+              "String"
+            ],
+            [
+              "symbol",
+              "String"
+            ],
+            [
+              "decimal",
+              "u8"
+            ],
+            [
+              "supply",
+              "U256"
+            ],
+            [
+              "sidechain_asset_id",
+              "FixedBytes"
+            ],
+            [
+              "hash",
+              "H256"
+            ],
+            [
+              "network_id",
+              "H256"
+            ],
+            [
+              "raw",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "OutgoingAddPeer": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "peer_account_id",
+              "AccountId"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingAddPeerCompat": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "peer_account_id",
+              "AccountId"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingAddPeerEncoded": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "network_id",
+              "H256"
+            ],
+            [
+              "raw",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "OutgoingAddToken": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "token_address",
+              "EthereumAddress"
+            ],
+            [
+              "ticker",
+              "String"
+            ],
+            [
+              "name",
+              "String"
+            ],
+            [
+              "decimals",
+              "u8"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingAddTokenEncoded": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "token_address",
+              "EthereumAddress"
+            ],
+            [
+              "ticker",
+              "String"
+            ],
+            [
+              "name",
+              "String"
+            ],
+            [
+              "decimals",
+              "u8"
+            ],
+            [
+              "hash",
+              "H256"
+            ],
+            [
+              "network_id",
+              "H256"
+            ],
+            [
+              "raw",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "OutgoingMigrate": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "new_contract_address",
+              "EthereumAddress"
+            ],
+            [
+              "erc20_native_tokens",
+              "Vec<EthereumAddress>"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingMigrateEncoded": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "this_contract_address",
+              "EthereumAddress"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "new_contract_address",
+              "EthereumAddress"
+            ],
+            [
+              "erc20_native_tokens",
+              "Vec<EthereumAddress>"
+            ],
+            [
+              "network_id",
+              "H256"
+            ],
+            [
+              "raw",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "OutgoingPrepareForMigration": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingPrepareForMigrationEncoded": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "this_contract_address",
+              "EthereumAddress"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "network_id",
+              "H256"
+            ],
+            [
+              "raw",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "OutgoingRemovePeer": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "peer_account_id",
+              "AccountId"
+            ],
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingRemovePeerCompat": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "author",
+              "AccountId"
+            ],
+            [
+              "peer_account_id",
+              "AccountId"
+            ],
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingRemovePeerEncoded": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "peer_address",
+              "EthereumAddress"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "network_id",
+              "H256"
+            ],
+            [
+              "raw",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "OutgoingRequest": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Transfer",
+              "OutgoingTransfer"
+            ],
+            [
+              "AddAsset",
+              "OutgoingAddAsset"
+            ],
+            [
+              "AddToken",
+              "OutgoingAddToken"
+            ],
+            [
+              "AddPeer",
+              "OutgoingAddPeer"
+            ],
+            [
+              "RemovePeer",
+              "OutgoingRemovePeer"
+            ],
+            [
+              "PrepareForMigration",
+              "OutgoingPrepareForMigration"
+            ],
+            [
+              "Migrate",
+              "OutgoingMigrate"
+            ]
+          ]
+        },
+        "OutgoingRequestEncoded": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Transfer",
+              "OutgoingTransferEncoded"
+            ],
+            [
+              "AddAsset",
+              "OutgoingAddAssetEncoded"
+            ],
+            [
+              "AddToken",
+              "OutgoingAddTokenEncoded"
+            ],
+            [
+              "AddPeer",
+              "OutgoingAddPeerEncoded"
+            ],
+            [
+              "RemovePeer",
+              "OutgoingRemovePeerEncoded"
+            ],
+            [
+              "PrepareForMigration",
+              "OutgoingPrepareForMigrationEncoded"
+            ],
+            [
+              "Migrate",
+              "OutgoingMigrateEncoded"
+            ]
+          ]
+        },
+        "OutgoingTransfer": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "from",
+              "AccountId"
+            ],
+            [
+              "to",
+              "EthereumAddress"
+            ],
+            [
+              "asset_id",
+              "AssetId"
+            ],
+            [
+              "amount",
+              "Balance"
+            ],
+            [
+              "nonce",
+              "Index"
+            ],
+            [
+              "network_id",
+              "BridgeNetworkId"
+            ],
+            [
+              "timepoint",
+              "BridgeTimepoint"
+            ]
+          ]
+        },
+        "OutgoingTransferEncoded": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "currency_id",
+              "CurrencyIdEncoded"
+            ],
+            [
+              "amount",
+              "U256"
+            ],
+            [
+              "to",
+              "EthereumAddress"
+            ],
+            [
+              "from",
+              "EthereumAddress"
+            ],
+            [
+              "tx_hash",
+              "H256"
+            ],
+            [
+              "network_id",
+              "H256"
+            ],
+            [
+              "raw",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "OwnerId": "AccountId",
+        "PendingMultisigAccount": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "approving_accounts",
+              "Vec<AccountId>"
+            ],
+            [
+              "migrate_at",
+              "Option<BlockNumber>"
+            ]
+          ]
+        },
+        "Permission": "Null",
+        "PermissionId": "u32",
+        "PoolFarmer": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "account",
+              "AccountId"
+            ],
+            [
+              "block",
+              "BlockNumber"
+            ],
+            [
+              "weight",
+              "Balance"
+            ]
+          ]
+        },
+        "PostDispatchInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "actual_weight",
+              "Option<Weight>"
+            ],
+            [
+              "pays_fee",
+              "Pays"
+            ]
+          ]
+        },
+        "PredefinedAssetId": {
+          "type": "enum",
+          "value_list": [
+            "XOR",
+            "DOT",
+            "KSM",
+            "USDT",
+            "VAL",
+            "PSWAP",
+            "DAI",
+            "ETH",
+            "XSTUSD"
+          ]
+        },
+        "PriceInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "price_failures",
+              "u32"
+            ],
+            [
+              "spot_prices",
+              "Vec<Balance>"
+            ],
+            [
+              "average_price",
+              "Balance"
+            ],
+            [
+              "needs_update",
+              "bool"
+            ],
+            [
+              "last_spot_price",
+              "Balance"
+            ]
+          ]
+        },
+        "Public": "[u8; 33]",
+        "QuoteAmount": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "WithDesiredInput",
+              "QuoteWithDesiredInput"
+            ],
+            [
+              "WithDesiredOutput",
+              "QuoteWithDesiredOutput"
+            ]
+          ]
+        },
+        "QuoteWithDesiredInput": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "desired_amount_in",
+              "Balance"
+            ]
+          ]
+        },
+        "QuoteWithDesiredOutput": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "desired_amount_out",
+              "Balance"
+            ]
+          ]
+        },
+        "RefCount": "u32",
+        "RequestStatus": {
+          "type": "enum",
+          "value_list": [
+            "Pending",
+            "Frozen",
+            "ApprovalsReady",
+            "Failed",
+            "Done"
+          ]
+        },
+        "RewardInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "limit",
+              "Balance"
+            ],
+            [
+              "total_available",
+              "Balance"
+            ],
+            [
+              "rewards",
+              "BTreeMap<RewardReason, Balance>"
+            ]
+          ]
+        },
+        "RewardReason": {
+          "type": "enum",
+          "value_list": [
+            "Unspecified",
+            "BuyOnBondingCurve",
+            "LiquidityProvisionFarming",
+            "MarketMakerVolume"
+          ]
+        },
+        "Scope": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Limited",
+              "H512"
+            ],
+            [
+              "Unlimited",
+              "Null"
+            ]
+          ]
+        },
+        "SignatureParams": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "r",
+              "[u8; 32]"
+            ],
+            [
+              "s",
+              "[u8; 32]"
+            ],
+            [
+              "v",
+              "u8"
+            ]
+          ]
+        },
+        "SmoothPriceState": "Null",
+        "StakingInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "deposited",
+              "Balance"
+            ],
+            [
+              "rewards",
+              "Balance"
+            ]
+          ]
+        },
+        "StorageVersion": "Null",
+        "SwapAction": "Null",
+        "SwapAmount": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "WithDesiredInput",
+              "SwapWithDesiredInput"
+            ],
+            [
+              "WithDesiredOutput",
+              "SwapWithDesiredOutput"
+            ]
+          ]
+        },
+        "SwapOutcome": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "amount",
+              "Balance"
+            ],
+            [
+              "fee",
+              "Balance"
+            ]
+          ]
+        },
+        "SwapOutcomeInfo": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "amount",
+              "Balance"
+            ],
+            [
+              "fee",
+              "Balance"
+            ]
+          ]
+        },
+        "SwapVariant": {
+          "type": "enum",
+          "value_list": [
+            "WithDesiredInput",
+            "WithDesiredOutput"
+          ]
+        },
+        "SwapWithDesiredInput": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "desired_amount_in",
+              "Balance"
+            ],
+            [
+              "min_amount_out",
+              "Balance"
+            ]
+          ]
+        },
+        "SwapWithDesiredOutput": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "desired_amount_out",
+              "Balance"
+            ],
+            [
+              "max_amount_in",
+              "Balance"
+            ]
+          ]
+        },
+        "TAssetBalance": "Balance",
+        "TP": "TradingPair",
+        "TechAccountId": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Pure",
+              "(DEXId, TechPurpose)"
+            ],
+            [
+              "Generic",
+              "(Vec<u8>, Vec<u8>)"
+            ],
+            [
+              "Wrapped",
+              "AccountId"
+            ],
+            [
+              "WrappedRepr",
+              "AccountId"
+            ]
+          ]
+        },
+        "TechAmount": "Amount",
+        "TechAssetId": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "Wrapped",
+              "PredefinedAssetId"
+            ],
+            [
+              "Escaped",
+              "AssetId"
+            ]
+          ]
+        },
+        "TechBalance": "Balance",
+        "TechPurpose": {
+          "type": "enum",
+          "type_mapping": [
+            [
+              "FeeCollector",
+              "Null"
+            ],
+            [
+              "FeeCollectorForPair",
+              "TechTradingPair"
+            ],
+            [
+              "LiquidityKeeper",
+              "TechTradingPair"
+            ],
+            [
+              "Identifier",
+              "Vec<u8>"
+            ]
+          ]
+        },
+        "TechTradingPair": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "base_asset_id",
+              "TechAssetId"
+            ],
+            [
+              "target_asset_id",
+              "TechAssetId"
+            ]
+          ]
+        },
+        "TradingPair": {
+          "type": "struct",
+          "type_mapping": [
+            [
+              "base_asset_id",
+              "AssetId"
+            ],
+            [
+              "target_asset_id",
+              "AssetId"
+            ]
+          ]
+        },
+        "ValidationFunction": "Null"
+      }
+    }
+  ]
+}

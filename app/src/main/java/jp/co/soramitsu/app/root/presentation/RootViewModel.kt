@@ -3,7 +3,7 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.AppInitializer
@@ -54,6 +54,7 @@ class RootViewModel @Inject constructor(
     }
 
     private var willBeClearedForLanguageChange = false
+    private var connectionsObserved = false
     private var timeInBackground: Date? = null
 
     private val _showUnsupportedAppVersionAlert = MutableLiveData<Event<Unit>>()
@@ -78,7 +79,12 @@ class RootViewModel @Inject constructor(
     }
 
     private suspend fun startAppInitializer(startFrom: InitializationStep = InitializationStep.All) {
-        val result = appInitializer.invoke()
+        val result = appInitializer.invoke(startFrom)
+        if (result !is InitializeResult.ErrorCanRetry && !connectionsObserved) {
+            connectionsObserved = true
+            observeWalletConnectEvents()
+            observeTonConnectEvents()
+        }
         when(result) {
             is InitializeResult.ErrorCanRetry -> {
                 if(result.error is NotSupportedAppVersionException) {
@@ -87,14 +93,23 @@ class RootViewModel @Inject constructor(
                     _showNoInternetConnectionAlert.value = Event(result.step)
                 }
             }
-            InitializeResult.Success -> {
-                observeWalletConnectEvents()
-                observeTonConnectEvents()
+            InitializeResult.Success -> Unit
+            is InitializeResult.ReadyWithWarnings -> {
+                if (result.unsupportedVersion) {
+                    _showUnsupportedAppVersionAlert.value = Event(Unit)
+                } else {
+                    result.failedSteps.firstOrNull()?.let { _showNoInternetConnectionAlert.value = Event(it) }
+                }
             }
         }
     }
 
     override fun onCleared() {
+        timerTask?.cancel()
+        timerTask = null
+        timer.cancel()
+        timer.purge()
+
         super.onCleared()
 
         externalConnectionRequirementFlow.value = ChainConnection.ExternalRequirement.FORBIDDEN
@@ -144,11 +159,11 @@ class RootViewModel @Inject constructor(
 
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
-        _closeApp.value = Event(Unit)
     }
 
     fun onUserInteractedWithApp() {
         timerTask?.cancel()
+        timer.purge()
         timerTask = createTimerTask()
         timer.schedule(timerTask, IDLE_MINUTES.toDuration(DurationUnit.MINUTES).inWholeMilliseconds)
     }
@@ -213,7 +228,7 @@ class RootViewModel @Inject constructor(
                             }
                     }
                     BridgeMethod.DISCONNECT -> {
-                        tonConnectInteractor.disconnect(event.connection.clientId)
+                        tonConnectInteractor.disconnect(event.connection.identity())
                     }
                     BridgeMethod.UNKNOWN -> {}
                 }
@@ -224,6 +239,9 @@ class RootViewModel @Inject constructor(
     }
 
     private fun observeWalletConnectEvents() {
+        WCDelegate.registerDelegatesIfReady()
+            .onSuccess { WCDelegate.refreshConnections() }
+
         WCDelegate.walletEvents.onEach {
             when (it) {
                 is Wallet.Model.SessionProposal -> {

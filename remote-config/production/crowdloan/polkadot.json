@@ -1,0 +1,443 @@
+[
+  {
+    "paraid": "2000",
+    "name": "Acala",
+    "token": "ACA",
+    "description": "All-in-one DeFi hub of Polkadot",
+    "website": "https://acala.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/acala.png",
+    "flow": {
+      "name": "",
+      "data": {
+        "devApiUrl": "https://crowdloan.aca-dev.network",
+        "prodApiUrl": "https://crowdloan.aca-api.network",
+        "devApiKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiZmVhcmVsZXNzd2FsbGV0IiwiaWF0IjoxNjM0MDg1OTg0fQ.3joSiklSRDNrCtVMQc6ReRnEgtp65QOzRt8IPA4bMtw",
+        "prodApiKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiZmVhcmVsZXNzd2FsbGV0IiwiaWF0IjoxNjM0Nzg2MDc3fQ.zwz3BSD68AKjo1BySkzrh7SfzO8yF-8YBhgiKZyE5lQ",
+        "bonusUrl": "https://wiki.acala.network/acala/acala-crowdloan/crowdloan-rewards",
+        "termsUrl": "https://acala.network/acala/terms",
+        "crowdloanInfoUrl": "https://wiki.acala.network/acala/acala-crowdloan/faq",
+        "fearlessReferral": "",
+        "totalReward": "170000000"
+      }
+    }
+  },
+  {
+     "paraid": "2004",
+     "name": "Moonbeam",
+     "token": "GLMR",
+     "description": "Ethereum-compatible smart contract parachain on Polkadot",
+     "website": "https://moonbeam.network/",
+     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/moonbeam.png",
+     "flow": {
+         "name": "moonbeam",
+         "data": {
+             "devApiUrl": "https://wallet-test.api.purestake.xyz",
+             "prodApiUrl": "https://yy9252r9jh.api.purestake.io",
+             "devApiKey": "JbykAAZTUa8MTggXlb4k03yAW9Ur2DFU1T0rm2Th",
+             "prodApiKey": "oueZPaKtwAEAooqpdafr33i6yqPgU804E06CqeGb",
+             "termsUrl": "https://raw.githubusercontent.com/moonbeam-foundation/crowdloan-self-attestation/main/moonbeam/README.md",
+             "crowdloanInfoUrl": "https://moonbeam.foundation/moonbeam-crowdloan/"
+         }
+     }
+   },
+  {
+     "paraid": "2006",
+     "name": "Astar",
+     "token": "ASTR",
+     "description": "A Multi Chain Polkadot DApp Hub",
+     "website": "https://astar.network/",
+     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/astar.png",
+     "flow": {
+               "name": "astar",
+               "data": {
+                   "devApiUrl": "",
+                   "prodApiUrl": "",
+                   "devApiKey": "",
+                   "prodApiKey": "",
+                   "termsUrl": "",
+                   "fearlessReferral": "14Q22opa2mR3SsCZkHbDoSkN6iQpJPk6dDYwaQibufh41g3k",
+                   "bonusRate": 0,
+                   "referralRate": 0.01
+               }
+           }
+   },
+  {
+    "paraid": "2013",
+    "name": "Litentry",
+    "token": "LIT",
+    "description": "A Decentralised Identity Aggregation protocol across multiple networks",
+    "website": "https://www.litentry.com/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Litentry.png"
+   },
+  {
+    "paraid": "3350",
+    "name": "Parallel Finance",
+    "token": "PARA",
+    "description": "Decentralized money market protocol that offers lending, staking, and borrowing",
+    "website": "https://parallel.fi/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/parallelfinance.png",
+     "disabled": true
+  },
+  {
+    "paraid": "2002",
+    "name": "Clover",
+    "token": "CLV",
+    "description": "A substrate-based smart contract platform built for Polkadot",
+    "website": "https://clover.finance/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/clover.png",
+     "disabled": true
+  },
+  {
+    "paraid": "2015",
+    "name": "Manta",
+    "token": "MANTA",
+    "description": "An interoperable privacy layer for the Polkadot ecosystem",
+    "website": "https://manta.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/manta.png"
+  },
+  {
+    "paraid": "2018",
+    "name": "SubDAO",
+    "token": "GOV",
+    "description": "A Polkadot-based DAO management platform",
+    "website": "https://www.subdao.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/subdao.png"
+  },
+  {
+    "paraid": "2017",
+    "name": "SubGame Gamma",
+    "token": "GSGB",
+    "description": "A public chain focusing on cross-chain interoperability for various applications including gaming",
+    "website": "https://www.subgame.org/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/subgame.png"
+  },
+  {
+    "paraid": "2003",
+    "name": "Darwinia",
+    "token": "RING",
+    "description": "The next generation of Web3.0 Metaverse",
+    "website": "https://darwinia.network/plo",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/darwinia.png"
+  },
+  {
+    "paraid": "2021",
+    "name": "Efinity",
+    "token": "EFI",
+    "description": "A next-generation blockchain to serve as the infrastructure of the decentralized metaverse",
+    "website": "https://enjin.io/products/efinity",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/efinity.png"
+  },
+  {
+    "paraid": "2028",
+    "name": "Ares Protocol",
+    "token": "ARES",
+    "description": "A Decentralized Cross-Chain Oracle Platform",
+    "website": "https://www.aresprotocol.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/ares.png"
+  },
+  {
+    "paraid": "2008",
+    "name": "Crust",
+    "token": "CRU",
+    "description": "A decentralized storage network of Web3.0 ecosystem",
+    "website": "https://crust.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/crust.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2026",
+    "name": "Nodle",
+    "token": "NODL",
+    "description": "The decentralized IoT network of Polkadot, providing secure, low-cost connectivity and data liquidity to billions of IoT devices",
+    "website": "https://www.nodle.com/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/nodle.png",
+    "rewardRate": 20
+  },
+  {
+    "paraid": "2032",
+    "name": "Interlay",
+    "token": "INTR",
+    "description": "A decentralized network dedicated to connecting crypto-currencies like Bitcoin with DeFi platforms like Polkadot and Ethereum",
+    "website": "https://crowdloan.interlay.io",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/interlay.png",
+    "flow": {
+       "name": "interlay",
+       "data": {
+         "fearlessReferral": "0xc9658d8231fbd691a07ced96b295c232622fb503feefe479d686f70b65216c10",
+         "crowdloanInfoUrl": "https://docs.interlay.io/#/interlay/crowdloans",
+         "bonusUrl": "https://docs.interlay.io/#/interlay/crowdloans?id=bonuses"
+       }
+     },
+    "rewardRate": 3.46
+  },
+  {
+    "paraid": "2027",
+    "name": "Coinversation",
+    "token": "CTO",
+    "description": "DEFI 2.0 protocol platform of Polkadot",
+    "website": "https://www.coinversation.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/coinversation.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2019",
+    "name": "Composable Finance",
+    "token": "LAYR",
+    "description": "A multifaceted project that is trying to solve Layer 2's problem in Ethereum and cross-chain interoperability in Polkadot",
+    "website": "https://crowdloan.composable.finance/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/composable.png",
+    "rewardRate": 0.48
+  },
+  {
+    "paraid": "2031",
+    "name": "Centrifuge",
+    "token": "CFG",
+    "description": "A network that provides access to fast, cheap capital for small businesses and stable yield for investors",
+    "website": "https://centrifuge.io/parachain/crowdloan/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/centrifuge.png",
+    "rewardRate": 3.65
+  },
+  {
+    "paraid": "2011",
+    "name": "Equilibrium",
+    "token": "EQ",
+    "description": "A decentralized cross-chain money market protocol",
+    "website": "https://equilibrium.io/en/crowdloan",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/equilibrium.png",
+    "rewardRate": 200
+  },
+  {
+    "paraid": "2035",
+    "name": "Phala",
+    "token": "PHA",
+    "description": "Privacy-enhanced permissionless computing protocol",
+    "website": "https://phala.network/en/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/phala.png",
+    "rewardRate": 12
+  },
+  {
+    "paraid": "2034",
+    "name": "HydraDX",
+    "token": "HDX",
+    "description": "A natural swap solution for all assets built on Substrate",
+    "website": "https://hydradx.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/hydradx.png"
+  },
+  {
+    "paraid": "2038",
+    "name": "Geminis",
+    "token": "GEM",
+    "description": "Geminis takes Ethereum chain support to the next level through WasmEdge",
+    "website": "https://geminis.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Geminis.png",
+    "rewardRate": 10.5
+  },
+  {
+    "paraid": "2037",
+    "name": "Unique Network",
+    "token": "UNQ",
+    "description": "THE UNIQUE CROWDLOAN IS OVER! NO MORE CONTRIBUTIONS WILL BE ACCEPTED!",
+    "website": "https://unique.network/token/crowdloan/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/unique.png",
+    "rewardRate": 5.28,
+    "disabled": true
+  },
+  {
+    "paraid": "2013",
+    "name": "Litentry",
+    "token": "LIT",
+    "description": "THE LITENTRY CROWDLOAN IS OVER! NO MORE CONTRIBUTIONS WILL BE ACCEPTED!",
+    "website": "https://crowdloan.litentry.com",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Litentry.png",
+    "rewardRate": 8.0,
+    "disabled": true
+  },
+  {
+    "paraid": "2040",
+    "name": "Polkadex",
+    "token": "PDEX",
+    "description": "THE POLKADEX CROWDLOAN IS OVER! NO MORE CONTRIBUTIONS WILL BE ACCEPTED!",
+    "website": "https://www.polkadex.trade/crowdloans",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/polkadex.png",
+    "rewardRate": 2.0,
+    "disabled": true
+  },
+  {
+    "paraid": "2030",
+    "name": "Bifrost",
+    "token": "BNC",
+    "description": "A parachain designed for staking's liquidity",
+    "website": "https://bifrost.finance/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/bifrost.png",
+    "rewardRate": 10,
+    "disabled": true
+  },
+  {
+    "paraid": "2043",
+    "name": "OriginTrail",
+    "token": "OTP",
+    "description": "THE ORIGINTRAIL CROWDLOAN IS OVER! NO MORE CONTRIBUTIONS WILL BE ACCEPTED!",
+    "website": "https://parachain.origintrail.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/OriginTrail.png",
+    "rewardRate": 20,
+    "disabled": true
+  },
+  {
+    "paraid": "2007",
+    "name": "Kapex",
+    "token": "KAPEX",
+    "description": "The world's first peer-to-peer accounting consensus protocol in the blockchain space",
+    "website": "https://totemaccounting.com/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Kapex (Totem).png",
+    "rewardRate": 0.1
+  },
+  {
+    "paraid": "2039",
+    "name": "Integritee Shell",
+    "token": "TEER",
+    "description": "The most scalable public blockchain solution for securely processing sensitive business or personal data",
+    "website": "https://dot.crowdloan.integritee.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/integritee.png",
+    "rewardRate": 2.5,
+    "disabled": true
+  },
+  {
+    "paraid": "2053",
+    "name": "OmniBTC",
+    "token": "SO",
+    "description": "The omnichain financial platform for web3, including omnichain swap and BTC omnichain lending",
+    "website": "https://omnibtc.finance/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/OmniBTC.png",
+    "rewardRate": 0.33,
+    "disabled": true
+  },
+  {
+    "paraid": "2052",
+    "name": "Kylin",
+    "token": "KYL",
+    "description": "The native Polkadot Data Blockchain to accelerate the world’s transition to DeData within a Web3.0 context by Building a Cross-chain Platform Powering the Data Economy",
+    "website": "https://kylin.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Kylin Network.png"
+  },
+  {
+    "paraid": "2090",
+    "name": "OAK Network",
+    "token": "OAK",
+    "description": "Payments and finance infrastructure for the Web 3.0",
+    "website": "https://oak.tech/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/OAK.png",
+    "rewardRate": 75.5
+  },
+  {
+    "paraid": "2051",
+    "name": "Ajuna Network",
+    "token": "AJUN",
+    "description": "The fastest way for developers and game studios to create high-quality, decentralized games. It seamlessly integrates industry-leading game engines — Unity and Unreal — with the world of blockchain-based assets.",
+    "website": "https://ajuna.io/crowdloan/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Bajun.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2093",
+    "name": "Hashed Network",
+    "token": "HASH",
+    "description": "Hashed Network enables the full lifecycle for digitally-native organizations and web3-curious businesses seeking benefits of decentralized digital economies.",
+    "website": "https://hashed.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Hashed.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2092",
+    "name": "2092",
+    "token": "",
+    "description": "",
+    "website": "",
+    "icon": "",
+    "disabled": true
+  },
+  {
+    "paraid": "2094",
+    "name": "Pendulum",
+    "token": "PEN",
+    "description": "Pendulum is an open-source blockchain that aims to establish the missing link between the fiat and the DeFi ecosystems through a fiat-optimized smart contract blockchain.",
+    "website": "https://pendulumchain.org/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Pendulum.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2097",
+    "name": "2097",
+    "token": "",
+    "description": "",
+    "website": "",
+    "icon": "",
+    "disabled": true
+  },
+  {
+    "paraid": "2025",
+    "name": "SORA",
+    "token": "Kensetsu Gold, oz",
+    "description": "SORA is building a rational monetary system using decentralized technologies with democratic governance by all participants in order to fulfill humanity's true potential towards the next stage of our evolution.",
+    "website": "https://sora.org/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/sora.png",
+    "rewardRate": 0.0042985
+    
+  },
+  {
+    "paraid": "3340",
+    "name": "InvArch",
+    "token": "VARCH",
+    "description": "The ultimate layer-1 network for the DAO economy, an application-specific blockchain & a service parachain that empowers the Polkadot ecosystem.",
+    "website": "https://invarch.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/invarch.png",
+    "rewardRate": 100,
+    "disabled": true
+  },
+  {
+    "paraid": "3338",
+    "name": "peaq",
+    "token": "PEAQ",
+    "description": "A decentralized Web3 network powering the Economy of Things. Built with Substrate and designed to solve some of our biggest societal and economic challenges, it ensures that the incentives of people and increasingly intelligent machines are aligned.",
+    "website": "https://peaq.network",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/peaq.png",
+    "rewardRate": 140
+  },
+  {
+    "paraid": "3334",
+    "name": "Moonsama",
+    "token": "SAMA",
+    "description": "A pioneer generative NFT collection and the first NFT marketplace constructed on the Moonriver Network.",
+    "website": "https://moonsama.com/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Moonsama.png",
+    "rewardRate": 30,
+    "disabled": true
+  },
+  {
+    "paraid": "3354",
+    "name": "Logion",
+    "token": "LGNT",
+    "description": "Empowring tokens on any blockchain as legal-grade digital assets",
+    "website": "https://logion.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/logion.png",
+    "disabled": true
+  },
+  {
+    "paraid": "3359",
+    "name": "Integritee Polkadot",
+    "token": "TEER",
+    "description": "The most scalable public blockchain solution for securely processing sensitive business or personal data",
+    "website": "https://dot.crowdloan.integritee.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/integritee.png",
+    "rewardRate": 2.5
+  },
+  {
+    "paraid": "3370",
+    "name": "LAOS Network",
+    "token": "LAOS",
+    "description": "LAOS is the first Layer 1 protocol that permits large-scale minting on Ethereum and all EVM chains without incurring native gas fees, and without bridges",
+    "website": "https://laosnetwork.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/laos.png",
+    "rewardRate": 100,
+    "disabled": true
+  }
+]

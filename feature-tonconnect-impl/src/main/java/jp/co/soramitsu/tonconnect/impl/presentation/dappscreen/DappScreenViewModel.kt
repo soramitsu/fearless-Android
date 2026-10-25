@@ -17,6 +17,7 @@ import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectionIdentity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -41,7 +42,11 @@ class DappScreenViewModel @Inject constructor(
         if (version != 2) {
             return JsonBuilder.connectEventError(BridgeError.BAD_REQUEST)
         }
-        val app = interactor.readManifest(request.manifestUrl)
+        val app = kotlin.runCatching {
+            interactor.readManifest(request.manifestUrl)
+        }.getOrElse {
+            return JsonBuilder.connectEventError(BridgeError.UNKNOWN_APP)
+        }
 
         val signedRequest =
             tonConnectRouter.openTonConnectionAndWaitForResult(app, request.proofPayload)
@@ -129,7 +134,15 @@ class DappScreenViewModel @Inject constructor(
 
     fun disconnect() {
         viewModelScope.launch {
-            interactor.disconnect(dapp.identifier)
+            val identity = dapp.connectionIdentityOrNull() ?: run {
+                val url = dapp.url ?: return@launch
+                val connection = interactor.getConnection(
+                    url,
+                    ConnectionSource.WEB
+                ) ?: return@launch
+                TonConnectionIdentity(connection)
+            }
+            interactor.disconnect(identity)
         }
     }
 }

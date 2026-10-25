@@ -1,0 +1,37 @@
+[
+  {
+    "pk": "0x345071da55e5dccefaaa440339415ef9f2663338a38f7da0df21be5ab4e055ef",
+    "ss": "5DFJF7tY4bpbpcKPJcBTQaKuCDEPCpiz8TRjpmLeTtweqmXL",
+    "mnemonic": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+    "path": "",
+    "seed": ""
+  },
+  {
+    "pk": "0xcb8d01a021231c0ffe53afd21c037583ce21033f55f26852dd92558d368a17a7",
+    "ss": "5GfbTwpxUmv7uGFqNiPuBFDtwzUCpwHxAvf2xLVjxdnq3tFT",
+    "mnemonic": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+    "path": "///password",
+    "seed": ""
+  },
+  {
+    "pk": "0x50d2344120caf4fde93682c05e8c29a923145a1ff42acac9b5fd4edb9809d892",
+    "ss": "5Dtg8ay1CqUBzkJuDccrzBzumZyQJHSaCDmPiZ1RFSrqWdra",
+    "mnemonic": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+    "path": "//foo",
+    "seed": ""
+  },
+  {
+    "pk": "0x5445cca32eb89c60c6cb6a447c2a0ee72a5db3b6b8843a0becdde71f26df781c",
+    "ss": "5DyCcaUxW76fKSWCSSH1G7CVEBrkiXzcWnFpxRoPyHvU4Vro",
+    "mnemonic": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+    "path": "//foo//bar",
+    "seed": ""
+  },
+  {
+    "pk": "0x4e5945654a4bdb8a1aa1cedc8b344e36d30f1e0888c87f20b950cdc24b870faf",
+    "ss": "5DqS7QPJxG7vvhPzE5TyJ5dF7G3YhH7k1UFj8qYkYXu1eaeB",
+    "mnemonic": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+    "path": "//foo//bar///password",
+    "seed": ""
+  }
+]

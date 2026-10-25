@@ -19,8 +19,8 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.staking.api.domain.model.Round
@@ -65,6 +65,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -239,7 +240,7 @@ class ValidatorViewState(
     validatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = {
-        relayChainScenarioInteractor.observeValidatorSummary(validatorState)
+        relayChainScenarioInteractor.observeValidatorSummary(validatorState).filterNotNull()
             .shareIn(scope, SharingStarted.Eagerly, replay = 1)
     },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
@@ -277,7 +278,7 @@ class StashNoneViewState(
     stashState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = {
-        relayChainScenarioInteractor.observeStashSummary(stashState)
+        relayChainScenarioInteractor.observeStashSummary(stashState).filterNotNull()
             .shareIn(scope, SharingStarted.Eagerly, replay = 1)
     },
     statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
@@ -313,7 +314,7 @@ open class NominatorViewState(
 ) : StakeViewState<NominatorStatus>(
     nominatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState).filterNotNull() },
     statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
     initialManageActions = ManageStakeAction.entries.toSet()
 ) {

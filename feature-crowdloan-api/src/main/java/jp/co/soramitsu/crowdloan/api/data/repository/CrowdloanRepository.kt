@@ -6,7 +6,7 @@ import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -50,13 +50,13 @@ class ParachainMetadata(
     val flow: ParachainMetadataFlow?
 ) {
     val isMoonbeam: Boolean
-        get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
+        get() = name.lowercase(Locale.getDefault()) == "moonbeam"
     val isAstar: Boolean
-        get() = name.toLowerCase(Locale.getDefault()) == "astar"
+        get() = name.lowercase(Locale.getDefault()) == "astar"
     val isAcala: Boolean
-        get() = name.toLowerCase(Locale.getDefault()) == "acala"
+        get() = name.lowercase(Locale.getDefault()) == "acala"
     val isInterlay: Boolean
-        get() = flow?.name?.toLowerCase(Locale.getDefault()) == "interlay"
+        get() = flow?.name?.lowercase(Locale.getDefault()) == "interlay"
 }
 
 class ParachainMetadataFlow(

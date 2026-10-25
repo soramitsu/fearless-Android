@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">Theo token</string>
+    <string name="portfolio_by_network">Theo mạng</string>
+    <string name="portfolio_show_zero_networks">Hiện mạng phổ biến / có số dư bằng không (%1$d)</string>
+    <string name="portfolio_hide_zero_networks">Ẩn mạng có số dư bằng không (%1$d)</string>
+    <string name="portfolio_hide_group_title">Ẩn token trên tất cả các mạng?</string>
+    <string name="portfolio_hide_group_message">Các tài sản mạng này sẽ bị ẩn và không được tính vào tổng danh mục. Số dư và bản sao lưu vẫn có trong Quản lý tài sản.</string>
+    <string name="portfolio_choose_network">Chọn mạng</string>
+    <string name="portfolio_price_unavailable">Không có giá</string>
+    <string name="portfolio_price_incomplete">Giá chưa đầy đủ — không tính số dư chưa có giá</string>
+    <string name="portfolio_group_networks">Trên %1$d mạng</string>
+    <string name="portfolio_group_hidden">Không tính %1$d tài sản ẩn</string>
+    <string name="portfolio_value_notice">Tổng danh mục bao gồm số dư khả dụng và số dư dự trữ. Tài sản ẩn, tài sản chưa có giá, mạng thử nghiệm và staking trong pool không được tính.</string>
+    <string name="portfolio_hidden_manage">Tài sản ẩn (%1$d) · Không tính %2$s · Quản lý</string>
+    <string name="portfolio_filter_all">Tất cả</string>
+    <string name="portfolio_filter_shown">Đang hiện</string>
+    <string name="portfolio_filter_hidden">Đã ẩn</string>
+    <string name="portfolio_preference_auto">Tự động</string>
+    <string name="portfolio_manage_group_count">Đang hiện %1$d trên %2$d</string>
+    <string name="portfolio_no_hidden">Không có tài sản ẩn</string>
+    <string name="portfolio_only_network">Token này chỉ có trên mạng %1$s trong Fearless.</string>
+</resources>

@@ -7,8 +7,8 @@ import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.EraRewardPoints
 import jp.co.soramitsu.staking.impl.data.repository.HistoricalMapping
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks

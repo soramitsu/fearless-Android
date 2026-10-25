@@ -4,6 +4,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
 import kotlinx.coroutines.flow.Flow
 
 interface PolkaswapRouter {
@@ -11,7 +12,8 @@ interface PolkaswapRouter {
     fun openSelectAsset(
         chainId: ChainId,
         selectedAssetId: String?,
-        excludeAssetId: String?
+        excludeAssetId: String?,
+        purpose: AssetSelectPurpose
     )
 
     fun <T> observeResult(key: String): Flow<T>
@@ -40,4 +42,6 @@ interface PolkaswapRouter {
     fun openWebViewer(title: String, url: String)
 
     fun openPools()
+
+    fun openDemeterFarming()
 }

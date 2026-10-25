@@ -1,0 +1,187 @@
+{
+  "description": "Answers of https://ti.soramitsu.io as deployed, captured with read-only GETs on 2026-10-11T14:29Z for the public address in 'address' (history trimmed to 2 transactions), on the routes TonRemoteSource calls. TI reports TON testnet and has no service-info route. 'sourceMainnetServiceInfo' is the service-info that TI's source (tonswap-org/ton-indexer 2335a09, src/api/routes.ts registerRoutes) returns when configured with network=mainnet and write RPC off.",
+  "capturedAt": "2026-10-11T14:29Z",
+  "address": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+  "deployed": {
+    "serviceInfo": {
+      "status": 404,
+      "body": {
+        "message": "Route GET:/api/indexer/v1/service-info not found",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+    },
+    "balances": {
+      "status": 200,
+      "body": {
+        "address": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+        "ton_raw": "218928460686",
+        "ton": "218.928460686",
+        "assets": [
+          {
+            "kind": "native",
+            "symbol": "TON",
+            "address": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+            "wallet": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+            "balance_raw": "218928460686",
+            "balance": "218.928460686",
+            "decimals": 9
+          }
+        ],
+        "confirmed": true,
+        "updated_at": 1791728944,
+        "network": "testnet"
+      }
+    },
+    "state": {
+      "status": 200,
+      "body": {
+        "address": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+        "last_tx_lt": "101860444000003",
+        "last_tx_hash": "uNUtQk7OhXzX7PvQkdCLC0bLPTn5NeIaPvYbj6uTGG0=",
+        "last_seen_utime": 1791533127,
+        "last_confirmed_seqno": 90569612,
+        "account_state": "uninitialized",
+        "code_boc": null,
+        "data_boc": null,
+        "network": "testnet"
+      }
+    },
+    "txsPage1": {
+      "status": 200,
+      "body": {
+        "page": 1,
+        "page_size": 10,
+        "total_txs": 16,
+        "total_pages": null,
+        "total_pages_min": 2,
+        "history_complete": false,
+        "txs": [
+          {
+            "txId": "101860444000003:uNUtQk7OhXzX7PvQkdCLC0bLPTn5NeIaPvYbj6uTGG0=",
+            "utime": 1791533127,
+            "status": "failed",
+            "reason": "Transaction aborted by contract.",
+            "txType": "Transfer",
+            "inSource": "EQBFHhAQkdbfG82OvnehXnly-vdN7gj08_j4Ooj1UNjDQEQA",
+            "inValue": "100000000",
+            "outCount": 0,
+            "detail": {
+              "kind": "transfer",
+              "asset": "ton",
+              "amount": "100000000"
+            },
+            "kind": "transfer",
+            "actions": [
+              {
+                "kind": "transfer",
+                "asset": {
+                  "kind": "ton"
+                },
+                "amount": "100000000",
+                "from": "EQBFHhAQkdbfG82OvnehXnly-vdN7gj08_j4Ooj1UNjDQEQA",
+                "to": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+                "source": "in"
+              }
+            ],
+            "lt": "101860444000003",
+            "hash": "uNUtQk7OhXzX7PvQkdCLC0bLPTn5NeIaPvYbj6uTGG0=",
+            "inMessage": {
+              "source": "EQBFHhAQkdbfG82OvnehXnly-vdN7gj08_j4Ooj1UNjDQEQA",
+              "destination": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+              "value": "100000000",
+              "op": 0,
+              "body": "te6cckEBAQEACQAADgAAAAB0YWcUT0HA"
+            },
+            "outMessages": []
+          },
+          {
+            "txId": "101743140000005:YlmnQrW5VQ4+IgXj++6+iAbfLkilUX+pWT8bvEESROg=",
+            "utime": 1791486282,
+            "status": "failed",
+            "reason": "Transaction aborted by contract.",
+            "txType": "Transfer",
+            "inSource": "EQD22JQkF5HFnC_mrlKXzk5ScGQLD6wr7k6X280v6K5Mb2MZ",
+            "inValue": "1000000",
+            "outCount": 1,
+            "detail": {
+              "kind": "transfer",
+              "asset": "ton",
+              "amount": "1000000"
+            },
+            "kind": "transfer",
+            "actions": [
+              {
+                "kind": "transfer",
+                "asset": {
+                  "kind": "ton"
+                },
+                "amount": "1000000",
+                "from": "EQD22JQkF5HFnC_mrlKXzk5ScGQLD6wr7k6X280v6K5Mb2MZ",
+                "to": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+                "source": "in"
+              }
+            ],
+            "lt": "101743140000005",
+            "hash": "YlmnQrW5VQ4+IgXj++6+iAbfLkilUX+pWT8bvEESROg=",
+            "inMessage": {
+              "source": "EQD22JQkF5HFnC_mrlKXzk5ScGQLD6wr7k6X280v6K5Mb2MZ",
+              "destination": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+              "value": "1000000",
+              "op": 0,
+              "body": "te6cckEBAQEAHQAANgAAAABIZWxsbyBmcm9tIHRvbnV0aWxzLWdvIWTP67I="
+            },
+            "outMessages": [
+              {
+                "source": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+                "destination": "EQD22JQkF5HFnC_mrlKXzk5ScGQLD6wr7k6X280v6K5Mb2MZ",
+                "value": "933333",
+                "op": 4294967295,
+                "body": "te6cckEBAQEAIQAAPv////8AAAAASGVsbG8gZnJvbSB0b251dGlscy1nbyEKWXI2"
+              }
+            ]
+          }
+        ],
+        "network": "testnet"
+      }
+    },
+    "tonApiMasterchainHead": {
+      "status": 404,
+      "body": {
+        "message": "Route GET:/v2/blockchain/masterchain-head not found",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+    }
+  },
+  "sourceMainnetServiceInfo": {
+    "schemaVersion": 1,
+    "serviceId": "ti.soramitsu.io",
+    "ecosystem": "ton",
+    "chainId": "ton:mainnet",
+    "network": "mainnet",
+    "serviceName": "TON Indexer",
+    "publicBaseUrl": "https://ti.soramitsu.io",
+    "readOnly": true,
+    "capabilities": [
+      "account-balance",
+      "account-balances",
+      "account-assets",
+      "account-transactions",
+      "account-state",
+      "run-get-method",
+      "run-get-methods"
+    ],
+    "endpoints": {
+      "health": "/api/indexer/v1/health",
+      "openapi": "/api/indexer/v1/openapi.json",
+      "balance": "/api/indexer/v1/accounts/{addr}/balance",
+      "balances": "/api/indexer/v1/accounts/{addr}/balances",
+      "assets": "/api/indexer/v1/accounts/{addr}/assets",
+      "transactions": "/api/indexer/v1/accounts/{addr}/txs",
+      "state": "/api/indexer/v1/accounts/{addr}/state",
+      "runGetMethod": "/api/indexer/v1/runGetMethod",
+      "runGetMethods": "/api/indexer/v1/runGetMethods"
+    }
+  }
+}

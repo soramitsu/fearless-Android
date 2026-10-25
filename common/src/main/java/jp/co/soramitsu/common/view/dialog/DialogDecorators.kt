@@ -66,7 +66,8 @@ fun retryDialog(
         title = title,
         message = message,
         isHideable = false,
-        positiveButtonText = context.resources.getString(R.string.common_retry),
+        // Without anything to retry the dialog only offers to leave.
+        positiveButtonText = onRetry?.let { context.resources.getString(R.string.common_retry) },
         negativeButtonText = context.resources.getString(R.string.common_ok),
         positiveClick = { onRetry?.invoke() },
         negativeClick = { onCancel?.invoke() },

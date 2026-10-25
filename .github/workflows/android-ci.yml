@@ -1,0 +1,418 @@
+name: Android CI
+
+on:
+  pull_request:
+  push:
+    branches: [ master, develop ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      CI: true
+      FW_COLOUR_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+      FEARLESS_UTILS_COMMIT: 3d22dad159ca5304d199acd08c5a622dea3c1577
+      BUNDLETOOL_VERSION: "1.18.3"
+      BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
+      # Provide safe stubs to avoid repository/config failures during resolution
+      MOONPAY_TEST_PUBLIC_KEY: pk_test_ci_stub
+      MOONPAY_PRODUCTION_PUBLIC_KEY: pk_live_ci_stub
+      FL_BLAST_API_ETHEREUM_KEY: stub
+      FL_BLAST_API_BSC_KEY: stub
+      FL_BLAST_API_SEPOLIA_KEY: stub
+      FL_BLAST_API_GOERLI_KEY: stub
+      FL_BLAST_API_POLYGON_KEY: stub
+      FL_ANDROID_ETHERSCAN_API_KEY: stub
+      FL_ANDROID_BSCSCAN_API_KEY: stub
+      FL_ANDROID_POLYGONSCAN_API_KEY: stub
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify app-owned Android runtime source
+        run: |
+          python3 ./scripts/test-android-runtime-source-pins.py
+          python3 ./scripts/verify-owned-remote-config.py
+          python3 ./scripts/test-owned-remote-config.py
+          python3 ./scripts/test-owned-native-build.py
+          ./scripts/ensure-fearless-utils.sh
+          ./scripts/verify-android-runtime-sources.sh
+
+      - name: Android source provenance
+        run: |
+          bash ./scripts/test-public-dependency-upstream-delta-export.sh
+          bash ./scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta
+
+      - name: Branch flow audit
+        run: |
+          bash ./scripts/audit-branch-flow.sh
+          bash ./scripts/test-branch-flow-audit.sh
+
+      - name: Rollback base audit
+        run: |
+          bash ./scripts/test-no-destructive-migration-audit.sh
+          bash ./scripts/audit-no-destructive-migration.sh HEAD
+
+      - name: Public artifact audit
+        run: |
+          bash ./scripts/test-public-artifact-provenance-audit.sh
+          ./scripts/audit-public-artifacts.sh --strict-provenance
+
+      - name: Google Play Internal App Sharing publication evidence
+        run: |
+          node ./scripts/test-google-play-internal-app-sharing-handoff-writer.js
+          bash ./scripts/test-google-play-internal-app-sharing-publication-audit.sh
+          bash ./scripts/audit-google-play-internal-app-sharing-publication.sh --manifest-only
+
+      - name: Android Play release guard contracts
+        run: |
+          bash ./scripts/test-android-release-signed-tag-policy.sh
+          bash ./scripts/test-android-release-governance.sh
+          bash ./scripts/test-android-play-release-guards.sh
+          bash ./scripts/test-android-release-build-log.sh
+          bash ./scripts/test-android-google-drive-web-client.sh
+          bash ./scripts/test-android-release-sdk.sh
+          bash ./scripts/test-android-migration-ci-gate.sh
+          bash ./scripts/test-android-migration-instrumentation-results.sh
+          python3 ./scripts/test-android-app-instrumentation.py
+          python3 ./scripts/test-android-migration-evidence-packaging.py
+          bash ./scripts/test-android-aab-native-page-alignment.sh
+          IAS_GRADLE_CONTRACT_ONLY=true \
+            bash ./scripts/test-android-internal-app-sharing.sh
+          bash ./scripts/test-release-overlay-interruption.sh
+          bash ./scripts/test-android-release-media-permissions.sh
+          bash ./scripts/test-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-moonpay-client-secret-policy.sh
+          bash ./scripts/verify-android-release-media-permissions.sh \
+            app/src/main/AndroidManifest.xml
+
+      - name: TODO debt audit
+        run: |
+          bash ./scripts/test-todo-debt-audit.sh
+          bash ./scripts/audit-todo-debt.sh
+
+      - name: XCM registry metadata audit
+        run: |
+          bash ./scripts/test-xcm-registry-metadata-audit.sh
+          bash ./scripts/audit-xcm-registry-metadata.sh \
+            --write-gap-report build/reports/xcm-registry-gap-report.json \
+            --require-route-file scripts/xcm-required-routes.tsv \
+            --require-gap-file scripts/xcm-discovery-only-routes.tsv
+          bash ./scripts/test-xcm-effective-registry-audit.sh
+          bash ./scripts/audit-xcm-effective-registry.sh \
+            --write-report build/reports/xcm-effective-registry-report.json
+          bash ./scripts/test-xcm-production-evidence-template.sh
+          bash ./scripts/test-xcm-production-evidence-audit.sh
+          bash ./scripts/audit-xcm-production-evidence.sh
+
+      # Release XCM submissions need ready, current evidence of live routes (exit 1 means compiled off).
+      - name: XCM release evidence gate
+        run: |
+          set -euo pipefail
+          bash ./scripts/test-xcm-release-submissions-flag.sh
+          status=0
+          bash ./scripts/xcm-release-submissions-enabled.sh || status=$?
+          case "$status" in
+            0)
+              bash ./scripts/audit-xcm-effective-registry.sh \
+                --discovery-url https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/chains/v13/chains.json \
+                --require-all-approved \
+                --write-report build/reports/xcm-effective-registry-live-report.json
+              bash ./scripts/audit-xcm-production-evidence.sh \
+                --effective-registry-report build/reports/xcm-effective-registry-live-report.json \
+                --require-ready
+              ;;
+            1) ;;
+            *) exit "$status" ;;
+          esac
+
+      - name: Upload XCM registry gap report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: xcm-registry-gap-report
+          path: build/reports/xcm-registry-gap-report.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload XCM effective registry report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: xcm-effective-registry-report
+          path: build/reports/xcm-effective-registry-report.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload public dependency handoff
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: public-dependency-upstream-delta
+          path: build/reports/public-dependency-upstream-delta
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Iroha mobile SDK release asset contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IROHA_MOBILE_SDK_RELEASE_TAG: ${{ vars.IROHA_MOBILE_SDK_RELEASE_TAG }}
+          IROHA_MOBILE_SDK_RELEASE_REPO: ${{ vars.IROHA_MOBILE_SDK_RELEASE_REPO }}
+        run: |
+          bash ./scripts/test-iroha-production-send-readiness-audit.sh
+          bash ./scripts/audit-iroha-production-send-readiness.sh
+          bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --self-test
+          if [[ -n "${IROHA_MOBILE_SDK_RELEASE_TAG:-}" ]]; then
+            bash ./scripts/check-iroha-mobile-sdk-release-assets.sh --download --tag "$IROHA_MOBILE_SDK_RELEASE_TAG"
+          else
+            echo "IROHA_MOBILE_SDK_RELEASE_TAG is not configured; real release asset validation skipped."
+          fi
+
+      - name: Private overlay audit self-test
+        run: bash ./scripts/test-private-overlay-boundary.sh
+
+      - name: Unit test task membership audit
+        run: |
+          bash ./scripts/test-unit-test-task-membership-audit.sh
+          bash ./scripts/audit-unit-test-task-membership.sh
+
+      - name: Setup Java 21 (Temurin)
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Android emulator runtime libraries
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0
+          runtime_libraries="$(ldconfig -p)"
+          [[ "$(grep -Fc 'libpulse.so.0' <<<"$runtime_libraries")" -ge 1 ]]
+          unset runtime_libraries
+
+      - name: Install checksum-pinned bundletool
+        run: |
+          set -euo pipefail
+          bundletool_jar="$RUNNER_TEMP/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          curl --fail --location --silent --show-error \
+            --retry 3 \
+            --output "$bundletool_jar" \
+            "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+          actual_sha256="$(sha256sum "$bundletool_jar" | awk '{print $1}')"
+          [[ "$actual_sha256" == "$BUNDLETOOL_SHA256" ]] || {
+            echo "bundletool checksum mismatch" >&2
+            exit 1
+          }
+          chmod 0444 "$bundletool_jar"
+          echo "BUNDLETOOL_JAR=$bundletool_jar" >> "$GITHUB_ENV"
+
+      - name: Setup Android SDK
+        run: |
+          set -euo pipefail
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          export ANDROID_HOME="$ANDROID_SDK_ROOT"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+
+          sdkmanager_bin=""
+          if command -v sdkmanager >/dev/null 2>&1; then
+            sdkmanager_bin="$(command -v sdkmanager)"
+          fi
+          if [[ -z "$sdkmanager_bin" ]]; then
+            for candidate in \
+              "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager" \
+              "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"; do
+              if [[ -x "$candidate" ]]; then
+                sdkmanager_bin="$candidate"
+                break
+              fi
+            done
+          fi
+          if [[ -z "$sdkmanager_bin" ]]; then
+            echo "sdkmanager not found under ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >&2
+            exit 1
+          fi
+          sdkmanager_bin="$(realpath "$sdkmanager_bin")"
+          avdmanager_bin="$(realpath "$(dirname "$sdkmanager_bin")/avdmanager")"
+          case "$sdkmanager_bin:$avdmanager_bin" in
+            "$ANDROID_SDK_ROOT"/*:"$ANDROID_SDK_ROOT"/*) ;;
+            *)
+              echo "Android command-line tools escaped ANDROID_SDK_ROOT" >&2
+              exit 1
+              ;;
+          esac
+          [[ -x "$sdkmanager_bin" && -x "$avdmanager_bin" ]] || {
+            echo "sdkmanager/avdmanager are not executable" >&2
+            exit 1
+          }
+          {
+            echo "SDKMANAGER_BIN=$sdkmanager_bin"
+            echo "AVDMANAGER_BIN=$avdmanager_bin"
+          } >> "$GITHUB_ENV"
+
+          license_answers="$(printf 'y\n%.0s' {1..256})"
+          [[ "$(grep -c '^y$' <<<"$license_answers")" == "256" ]]
+          "$sdkmanager_bin" --sdk_root="$ANDROID_SDK_ROOT" \
+            --licenses >/dev/null <<<"$license_answers"
+          unset license_answers
+          "$sdkmanager_bin" --install \
+            --sdk_root="$ANDROID_SDK_ROOT" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "platform-tools" \
+            "emulator" \
+            "ndk;28.0.12674087" \
+            "ndk;25.2.9519653"
+
+      - name: Export NDK environment
+        run: |
+          {
+            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+          } >> "$GITHUB_ENV"
+
+      - name: NDK revision
+        run: |
+          echo "== NDK (HOME) =="
+          cat "$ANDROID_NDK_HOME/source.properties" || true
+          echo "== Installed NDKs =="
+          ls -1 "$ANDROID_SDK_ROOT/ndk" || true
+
+      - name: Setup Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add \
+            aarch64-linux-android \
+            armv7-linux-androideabi \
+            i686-linux-android \
+            x86_64-linux-android
+
+      - name: Gradle version
+        run: ./gradlew --version --no-daemon --console=plain --stacktrace
+
+      - name: Verify app-owned runtime inventory
+        run: ./scripts/verify-android-runtime-sources.sh
+
+      - name: Polkadot SDK alignment
+        run: ./gradlew printPolkadotSdkAlignment --no-daemon --console=plain --stacktrace
+
+      - name: Static analysis (detekt)
+        run: ./gradlew detektAll --no-daemon --console=plain --stacktrace
+
+      - name: Unit tests + coverage
+        run: ./gradlew runTest --no-daemon --console=plain --stacktrace
+
+      - name: Preserve unit test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-unit-test-results-${{ github.sha }}
+          path: '**/build/test-results/test*UnitTest/TEST-*.xml'
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # runTest runs debug unit tests; these check what only the release build compiles.
+      - name: Release-variant unit tests
+        run: ./gradlew :feature-wallet-impl:testReleaseUnitTest --no-daemon --console=plain --stacktrace
+
+      - name: Staged Iroha core bridge
+        run: bash ./scripts/verify-staged-iroha-core-bridge.sh --download
+
+      - name: Android Lint (app)
+        run: ./gradlew :app:lint --no-daemon --console=plain --stacktrace
+
+      - name: Android 11 migration and restart compatibility
+        run: bash ./scripts/run-android-emulator-ci.sh 30 compatibility
+
+      - name: Android 12 migration and restart compatibility
+        run: bash ./scripts/run-android-emulator-ci.sh 31 compatibility
+
+      - name: Android 16 migration and restart compatibility
+        run: bash ./scripts/run-android-emulator-ci.sh 36 compatibility
+
+      - name: Wallet migration and startup instrumentation
+        run: bash ./scripts/run-android-emulator-ci.sh 34 full
+
+      - name: Verify migration instrumentation results
+        if: always()
+        run: bash ./scripts/verify-android-migration-instrumentation-results.sh
+
+      - name: Prepare portable migration instrumentation evidence
+        id: prepare_migration_evidence
+        if: always()
+        run: python3 ./scripts/prepare-android-migration-evidence.py
+
+      - name: Upload migration instrumentation evidence
+        if: ${{ always() && steps.prepare_migration_evidence.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-migration-instrumentation-${{ github.sha }}
+          path: build/reports/android-migration-upload/**
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Gradle/AGP versions
+        run: |
+          echo "== Gradle =="
+          ./gradlew --version --no-daemon --console=plain || true
+          printf '\n== Android Gradle Plugin (declared) ==\n'
+          grep -E '^android_plugin\s*=\s*"[0-9]+' gradle/libs.versions.toml || true
+
+      - name: Assemble APK and AAB debug artifacts
+        run: |
+          ./gradlew \
+            :app:assembleDebug \
+            :app:bundleDebug \
+            --no-daemon \
+            --console=plain \
+            --stacktrace
+
+      - name: Verify source-bound complete AAB native payload
+        env:
+          AAB_IDENTITY_FIXTURE: ${{ github.workspace }}/app/build/outputs/bundle/debug/app-debug.aab
+          EXPECTED_AAB_SOURCE_COMMIT: development
+          AAB_IDENTITY_R8_POLICY: absent
+        run: |
+          set -euo pipefail
+          EXPECTED_AAB_PACKAGE=jp.co.soramitsu.fearless.debug \
+          EXPECTED_AAB_VERSION_NAME="$(
+            awk -F= '$1 == "versionName" { print $2 "-debug" }' \
+              versioning/version.properties
+          )" \
+          EXPECTED_AAB_VERSION_CODE="$(
+            awk -F= '$1 == "versionCode" { print $2 }' \
+              versioning/version.properties
+          )" \
+            bash ./scripts/test-android-aab-identity.sh
+          python3 ./scripts/verify-android-aab-native-page-alignment.py \
+            "$AAB_IDENTITY_FIXTURE"
+
+      - name: readelf sanity (native libs)
+        run: |
+          if ! command -v readelf >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y binutils
+          fi
+          set +e
+          echo "== Scanning native libraries (.so) =="
+          mapfile -t sos < <(find app/build -type f -name "*.so" | head -n 10)
+          if [ "${#sos[@]}" -eq 0 ]; then echo "No native libs found under app/build"; exit 0; fi
+          for so in "${sos[@]}"; do
+            printf '\n-- %s --\n' "$so"
+            readelf -l "$so" | sed -n '1,120p' || true
+          done

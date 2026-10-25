@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">Архивный краудлоун</string>
+    <string name="legacy_crowdloan_review">Просмотреть</string>
+    <string name="legacy_crowdloan_description">Для этого аккаунта подтверждена история участия в краудлоунах в сети %1$s. Новые взносы больше не принимаются; сохранённое состояние в блокчейне и локальная история заявок на получение по-прежнему доступны здесь.</string>
+    <string name="legacy_crowdloan_current_contributions">Текущие взносы</string>
+    <string name="legacy_crowdloan_historical_locks">История блокировок</string>
+    <string name="legacy_crowdloan_historical_claims">История заявок на получение</string>
+    <string name="legacy_crowdloan_view_locked">Посмотреть заблокированный баланс</string>
+    <string name="legacy_crowdloan_no_evidence">Для этого аккаунта не найдено доступного для восстановления состояния краудлоуна.</string>
+    <string name="cross_chain_route_inventory_title">Провайдеры маршрутов</string>
+    <string name="cross_chain_route_inventory_description">Охват в рабочей среде включает проверенные маршруты и маршруты, только внесённые в каталог. Недоступные маршруты остаются видимыми, но отправлять транзакции через них нельзя.</string>
+    <string name="cross_chain_route_inventory_checking">Проверка охвата провайдеров маршрутов…</string>
+    <string name="cross_chain_route_inventory_status_available">Доступно</string>
+    <string name="cross_chain_route_inventory_status_paused">Проверенный маршрут доступен · действия временно приостановлены</string>
+    <string name="cross_chain_route_inventory_status_setup">Требуется настройка</string>
+    <string name="cross_chain_route_inventory_status_unavailable">Недоступно</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">ID актива: %1$s</string>
+    <string name="cross_chain_route_inventory_summary">Исходные сети: %1$d → Сети назначения: %2$d · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">Для этого провайдера не включён каталог точных маршрутов в рабочей среде.</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">Минимум: выберите конкретную исходную сеть, актив и сеть назначения</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">Минимум: не указан в этом каталоге</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">Минимум: проверенное значение недоступно</string>
+</resources>

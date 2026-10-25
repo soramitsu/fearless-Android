@@ -7,6 +7,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -18,23 +19,27 @@ import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.validation.isCallMovedToAssetHub
+import jp.co.soramitsu.common.validation.toFeeError
 import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.hash.isPositive
+import jp.co.soramitsu.fearless_utils.hash.isPositive
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -75,14 +80,28 @@ class ClaimRewardsViewModel @Inject constructor(
             interactor.assetFlow(chainId, assetId)
         }
 
-    private val feeFlow = flowOf {
-        interactor.estimateClaimRewardsFee(chainId)
+    // Retrying a failed lookup reloads the fee and the locked amount.
+    private val reloadTrigger = MutableStateFlow(0)
+    private var isLoadingErrorShown = false
+
+    // Both lookups start eagerly in viewModelScope, where an uncaught failure would crash the app.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val feeFlow = reloadTrigger.flatMapLatest {
+        flowOf {
+            interactor.estimateClaimRewardsFee(chainId)
+        }.catch { showLoadingError(it.toFeeError(resourceManager), canRetry = !it.isCallMovedToAssetHub()) }
     }.share()
 
-    private val lockedAmountFlow = MutableStateFlow<BigInteger?>(null)
-        .onStart {
-            emit(interactor.getVestingLockedAmount(chainId).orZero())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val lockedAmountFlow = reloadTrigger.flatMapLatest {
+        flowOf<BigInteger?> {
+            interactor.getVestingLockedAmount(chainId).orZero()
+        }.catch {
+            val title = resourceManager.getString(R.string.choose_amount_network_error)
+            val message = resourceManager.getString(R.string.choose_amount_error_balance)
+            showLoadingError(ValidationException(title, message), canRetry = true)
         }
+    }
         .onEach {
             if (it != null && it.isPositive().not()) {
                 showError(
@@ -105,7 +124,7 @@ class ClaimRewardsViewModel @Inject constructor(
 
         val assetModel = mapAssetToAssetModel(asset)
 
-        val transferableAmount: BigDecimal = asset.transferable
+        val transferableAmount = asset.transferable
 
         val lockedDecimal = lockedAmount?.let { assetModel.token.configuration.amountFromPlanks(lockedAmount) }.orZero()
         val lockedInfoItem = TitleValueViewState(
@@ -116,8 +135,9 @@ class ClaimRewardsViewModel @Inject constructor(
 
         val transferableInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.assetdetails_balance_transferable),
-            value = transferableAmount.formatCryptoDetail(assetModel.token.configuration.symbol),
-            additionalValue = transferableAmount.applyFiatRate(assetModel.token.fiatRate)?.formatFiat(assetModel.token.fiatSymbol)
+            value = transferableAmount?.formatCryptoDetail(assetModel.token.configuration.symbol)
+                ?: resourceManager.getString(R.string.portfolio_balance_unavailable),
+            additionalValue = transferableAmount?.applyFiatRate(assetModel.token.fiatRate)?.formatFiat(assetModel.token.fiatSymbol)
         )
 
         val feeDecimal = assetModel.token.configuration.amountFromPlanks(fee)
@@ -138,7 +158,7 @@ class ClaimRewardsViewModel @Inject constructor(
             transferableInfoItem = transferableInfoItem,
             feeInfoItem = feeInfoItem,
             tokenSymbol = asset.token.configuration.symbol.uppercase(),
-            buttonState = buttonState,
+            buttonState = buttonState.copy(enabled = buttonState.enabled && transferableAmount != null),
             isLoading = isRequesting || lockedAmount.isZero()
         )
     }.stateIn(this, SharingStarted.Eagerly, ClaimRewardsViewState.default)
@@ -154,11 +174,46 @@ class ClaimRewardsViewModel @Inject constructor(
     override fun onItemClick(code: Int) {
     }
 
+    // One dialog for both lookups; Retry reloads both.
+    private fun showLoadingError(error: ValidationException, canRetry: Boolean) {
+        if (isLoadingErrorShown) return
+        isLoadingErrorShown = true
+        val (title, message) = error
+
+        if (canRetry) {
+            showError(
+                title = title,
+                message = message,
+                positiveButtonText = resourceManager.getString(R.string.common_retry),
+                negativeButtonText = resourceManager.getString(R.string.common_cancel),
+                positiveClick = {
+                    isLoadingErrorShown = false
+                    reloadTrigger.value++
+                },
+                negativeClick = router::back,
+                onBackClick = router::back,
+                isHideable = false
+            )
+        } else {
+            showError(
+                title = title,
+                message = message,
+                positiveButtonText = resourceManager.getString(R.string.common_close),
+                positiveClick = router::back,
+                onBackClick = router::back,
+                isHideable = false
+            )
+        }
+    }
+
     private fun sendClaimExtrinsic() {
         launch {
             claimRewardsRequestInProgressFlow.value = true
 
             runCatching {
+                requireNotNull(assetFlow.first().transferable) {
+                    resourceManager.getString(R.string.portfolio_balance_unavailable)
+                }
                 interactor.claimRewards(chainId)
             }
                 .onSuccess { result ->
@@ -169,12 +224,14 @@ class ClaimRewardsViewModel @Inject constructor(
                         router.openOperationSuccess(operationHash, chainId)
                     } else {
                         result.exceptionOrNull()?.let {
+                            if (it is CancellationException) throw it
                             showError(it)
                         }
                     }
                 }
                 .onFailure { error ->
                     claimRewardsRequestInProgressFlow.value = false
+                    if (error is CancellationException) throw error
                     showError(error)
                 }
         }

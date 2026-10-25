@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">エンドポイントを選択</string>
+    <string name="saved_endpoint_selection_refresh">選択状態を更新</string>
+    <string name="saved_endpoint_selection_checking">追加済みのエンドポイントを確認中…</string>
+    <string name="saved_endpoint_selection_available">この追加済みのエンドポイントをネットワーク用に選択できます。</string>
+    <string name="saved_endpoint_selection_unattached">選択する前に、このエンドポイントを追加してください。</string>
+    <string name="saved_endpoint_selection_saving">選択を保存中…</string>
+    <string name="saved_endpoint_selection_saved">選択を保存しました</string>
+    <string name="saved_endpoint_selection_failed">選択を確認できませんでした。更新してから再度お試しください。</string>
+    <string name="saved_endpoint_selection_stale">エンドポイントまたは選択が変更されました。更新してから選択してください。</string>
+    <string name="saved_endpoint_runtime_preferred">優先するSolanaエンドポイントを保存しました。リクエストには別のプロバイダーが使われる場合があります。</string>
+    <string name="saved_endpoint_runtime_pending">ネットワークにこの選択が適用されるのを待っています。</string>
+    <string name="saved_endpoint_runtime_not_in_use">このネットワークは現在使用されていません。</string>
+    <string name="saved_endpoint_runtime_unavailable">ネットワーク接続を利用できません。</string>
+    <string name="saved_endpoint_runtime_paused">ネットワーク接続は一時停止中です。</string>
+    <string name="saved_endpoint_runtime_connecting">選択したエンドポイントに接続中…</string>
+    <string name="saved_endpoint_runtime_connected">選択したエンドポイントに接続しています</string>
+</resources>

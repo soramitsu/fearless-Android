@@ -12,7 +12,7 @@ import java.math.BigDecimal
 
 class EnoughToPayFeesValidation<P, E>(
     private val feeExtractor: AmountProducer<P>,
-    private val availableBalanceProducer: AmountProducer<P>,
+    private val availableBalanceProducer: suspend (P) -> BigDecimal?,
     private val errorProducer: () -> E,
     private val extraAmountExtractor: AmountProducer<P> = { BigDecimal.ZERO }
 ) : Validation<P, E> {
@@ -20,7 +20,8 @@ class EnoughToPayFeesValidation<P, E>(
     companion object;
 
     override suspend fun validate(value: P): ValidationStatus<E> {
-        val result = if (extraAmountExtractor(value) + feeExtractor(value) < availableBalanceProducer(value)) {
+        val available = availableBalanceProducer(value)
+        val result = if (available != null && extraAmountExtractor(value) + feeExtractor(value) < available) {
             ValidationStatus.Valid()
         } else {
             ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer())
@@ -35,12 +36,12 @@ fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
     chainProducer: suspend () -> Chain,
     originAddressExtractor: (P) -> String,
     chainAssetExtractor: (P) -> Asset
-): AmountProducer<P> = { payload ->
+): suspend (P) -> BigDecimal? = { payload ->
     val chain = chainProducer()
     val accountId = chain.accountIdOf(originAddressExtractor(payload))
     val meta = accountRepository.getSelectedMetaAccount()
 
-    val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload), chain.minSupportedVersion)!!
+    val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload), chain.minSupportedVersion)
 
-    asset.availableForStaking
+    asset?.availableForStaking
 }

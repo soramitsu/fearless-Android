@@ -1,0 +1,4 @@
+{
+  "min_supported_version": "3.0.2",
+  "excluded_versions": ["3.0.1"]
+}

@@ -5,8 +5,8 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
@@ -53,13 +53,21 @@ class RewardCalculatorFactory(
     ): RewardCalculator {
         val chainId = asset.chainId
 
+        require(asset.precision in 0..255) { "SORA asset precision is invalid" }
         val validatorsPayouts =
             relayChainRepository.getErasValidatorRewards(chainId).values.filterNotNull()
-                .map { asset.amountFromPlanks(it).toDouble() }
-
+                .map {
+                    require(it.signum() >= 0) { "SORA validator payout is invalid" }
+                    asset.amountFromPlanks(it).toDouble().also { payout ->
+                        require(payout.isFinite()) { "SORA validator payout is not representable" }
+                    }
+                }
+        require(validatorsPayouts.isNotEmpty()) { "SORA validator payouts are unavailable" }
         val averageValidatorPayout: Double = validatorsPayouts.average()
+        require(averageValidatorPayout.isFinite()) { "SORA average validator payout is not representable" }
         val rateInPlanks = soraStakingRewardsScenario.mainAssetToRewardAssetRate()
         val rate = asset.amountFromPlanks(rateInPlanks).toDouble()
+        require(rate.isFinite() && rate > 0.0) { "SORA conversion rate is invalid" }
         val historicalRewardDistribution = relayChainRepository.retrieveEraPointsDistribution(chainId)
 
         return SoraRewardCalculator(

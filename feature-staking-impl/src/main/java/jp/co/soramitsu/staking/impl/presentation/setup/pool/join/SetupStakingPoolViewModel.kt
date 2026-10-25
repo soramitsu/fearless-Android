@@ -1,5 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.setup.pool.join
 
+import jp.co.soramitsu.staking.impl.presentation.common.requireStakingBalance
+
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
@@ -26,8 +28,8 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
+import jp.co.soramitsu.common.validation.ExistentialDepositUnknownException
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
-import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -36,6 +38,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStatePr
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeEstimation
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -64,14 +67,19 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val chain: Chain
     private val asset: Asset
+    private val address: String
     private val initialAmount: BigDecimal
+    private val joinScreen = stakingPoolSharedStateProvider.joinFlowState.capture()
+    private val mainReview = joinScreen.value?.context ?: stakingPoolSharedStateProvider.mainState.capture()
+    private var reviewActive = true
     private var quickInputs: Map<Double, BigDecimal> = emptyMap()
 
     init {
-        val mainState = stakingPoolSharedStateProvider.requireMainState
+        val mainState = requireNotNull(mainReview.value)
 
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
+        address = mainState.requireAddress
         initialAmount = mainState.requireAmount
 
         viewModelScope.launch {
@@ -79,7 +87,7 @@ class SetupStakingPoolViewModel @Inject constructor(
                 chain.id,
                 asset.token.configuration.id,
                 calculateAvailableAmount = { asset.transferable },
-                calculateFee = { stakingPoolInteractor.estimateJoinFee(it) })
+                calculateFee = { stakingPoolInteractor.estimateJoinFee(chain, address, it, asset.metaId) })
         }
     }
 
@@ -87,7 +95,7 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val accountInfoViewStateFlow: Flow<AccountInfoViewState> = flow {
         val meta = stakingInteractor.getCurrentMetaAccount()
-        val address = meta.address(chain) ?: ""
+        if (!stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) || meta.id != asset.metaId || meta.address(chain) != address) return@flow
         val icon = iconGenerator.createAddressIcon(
             chain.isEthereumBased,
             address,
@@ -105,7 +113,8 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
-        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
+        val tokenBalance = asset.transferable?.formatCrypto(asset.token.configuration.symbol)
+            ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable)
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
@@ -118,9 +127,13 @@ class SetupStakingPoolViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInPlanksFlow = enteredAmountFlow.map { amount ->
+    private val feeEstimation = FeeEstimation(resourceManager)
+
+    // Runs eagerly in viewModelScope for every amount: a failed estimation (on Polkadot and Kusama pools moved to
+    // Asset Hub) must neither crash the app nor stop later ones.
+    private val feeInPlanksFlow = combine(enteredAmountFlow, feeEstimation.retryFlow) { amount, _ ->
         val inPlanks = asset.token.planksFromAmount(amount)
-        stakingPoolInteractor.estimateJoinFee(inPlanks)
+        feeEstimation.estimate { stakingPoolInteractor.estimateJoinFee(chain, address, inPlanks, asset.metaId) }
     }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
@@ -131,11 +144,11 @@ class SetupStakingPoolViewModel @Inject constructor(
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
-    private val buttonStateFlow = enteredAmountFlow.map { amount ->
+    private val buttonStateFlow = combine(enteredAmountFlow, stakingPoolSharedStateProvider.joinFlowState.submissionInProgress) { amount, pending ->
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
             resourceManager.getString(R.string.pool_staking_join_button_title),
-            amountInPlanks != BigInteger.ZERO
+            asset.transferable != null && amountInPlanks != BigInteger.ZERO && !pending
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -155,7 +168,14 @@ class SetupStakingPoolViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
     fun onNavigationClick() {
+        if (!reviewActive) return
+        onDismissed()
         router.back()
+    }
+
+    /** Discards callbacks from a dismissed setup screen without consuming its editable draft. */
+    fun onDismissed() {
+        reviewActive = false
     }
 
     fun onAmountEntered(amount: BigDecimal?) {
@@ -163,16 +183,23 @@ class SetupStakingPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val setupFlow = stakingPoolSharedStateProvider.requireJoinState
+        if (!reviewActive) return
+        val joinFlow = stakingPoolSharedStateProvider.joinFlowState
+        val review = joinFlow.capture()
+        val setupFlow = review.value ?: return router.returnToMain()
+        if (!stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) || !review.isSameFlowAs(joinScreen) || !joinFlow.isEditable(review)) return
         val amount = enteredAmountFlow.value
 
         viewModelScope.launch {
             isValid(amount).fold(
                 onSuccess = {
-                    stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
-                    router.openSelectPool()
+                    if (reviewActive && stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) && joinFlow.setIfCurrent(review, setupFlow.copy(amount = amount))) {
+                        router.openSelectPool()
+                    }
                 },
                 onFailure = { throwable ->
+                    if (throwable is kotlinx.coroutines.CancellationException) throw throwable
+                    if (!reviewActive || !stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) || !joinFlow.isEditable(review)) return@fold
                     val message =
                         throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
                     val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
@@ -195,21 +222,25 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private suspend fun isValid(amount: BigDecimal): Result<Any> {
         return runCatching {
+            // Checked before the pool limits are read: where pools moved to Asset Hub the relay chain no longer
+            // stores them, and that lookup would fail instead of the explanation.
+            val feeInPlanks = feeInPlanksFlow.value ?: throw feeEstimation.missingFeeError()
             val amountInPlanks = asset.token.planksFromAmount(amount)
-            val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
+            val transferableInPlanks = asset.token.planksFromAmount(requireStakingBalance(asset.transferable, resourceManager))
             val minToJoinInPlanks = stakingPoolInteractor.getMinToJoinPool(chain.id)
             val minToJoinFormatted = minToJoinInPlanks.formatCryptoDetailFromPlanks(asset.token.configuration)
-            val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
-            val feeInPlanks = feeInPlanksFlow.value
+            val existentialDeposit = existentialDepositUseCase(asset.token.configuration).getOrElse {
+                if (it is kotlinx.coroutines.CancellationException) throw it
+                throw ExistentialDepositUnknownException(resourceManager, asset.token.configuration.symbol.uppercase())
+            }
 
             when {
-                feeInPlanks == null -> throw WaitForFeeCalculationException(resourceManager)
                 amountInPlanks + feeInPlanks > transferableInPlanks -> throw StakeInsufficientBalanceException(resourceManager)
                 transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> throw ExistentialDepositCrossedWarning(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration))
                 amountInPlanks < minToJoinInPlanks -> throw AmountTooLowToStakeException(resourceManager, minToJoinFormatted)
                 else -> Unit
             }
-        }
+        }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it }
     }
 
     fun onQuickAmountInput(value: Double) {

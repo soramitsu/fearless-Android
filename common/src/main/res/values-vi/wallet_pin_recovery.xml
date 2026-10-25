@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">Khôi phục mã PIN ví</string>
+    <string name="pin_recovery_intro">Không đọc được mã PIN đã lưu. Ví và bản ghi PIN gốc vẫn được giữ lại. Xác minh quyền sở hữu để chọn PIN mới.</string>
+    <string name="pin_recovery_failed">Không thể hoàn tất khôi phục hoặc quyền xác thực đã hết hạn. Dữ liệu được giữ lại chưa bị xóa. Hãy thử lại.</string>
+    <string name="pin_recovery_retry">Thử lại</string>
+    <string name="pin_recovery_biometric">Xác minh bằng sinh trắc học mạnh</string>
+    <string name="pin_recovery_backup_intro">Chọn khóa ví và nhập bản sao lưu. Bản sao lưu phải khớp với danh tính công khai đã lưu. Bản sao lưu phù hợp cũng có thể sửa khóa đó.</string>
+    <string name="pin_recovery_no_identity">Hiện không thể xác minh danh tính ví đã lưu nào. Dùng sinh trắc học mạnh đã bật trước đó, hoặc mở khóa thiết bị để chỉ xem.</string>
+    <string name="pin_recovery_view_only_intro">Mở khóa thiết bị chỉ cho phép xem số dư và địa chỉ công khai. Gửi, ký và sao lưu khóa vẫn bị khóa cho đến khi bạn khôi phục PIN ví.</string>
+    <string name="pin_recovery_view_only">Mở khóa thiết bị để chỉ xem</string>
+    <string name="pin_recovery_verified">Đã xác minh quyền sở hữu. Chọn PIN ví mới.</string>
+    <string name="pin_recovery_verify_backup">Xác minh bản sao lưu ví</string>
+    <string name="pin_recovery_reset">Khôi phục PIN ví</string>
+    <string name="pin_recovery_view_only_title">Quyền chỉ xem</string>
+</resources>

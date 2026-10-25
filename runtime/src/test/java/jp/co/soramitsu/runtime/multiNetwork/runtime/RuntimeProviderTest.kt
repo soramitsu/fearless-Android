@@ -4,23 +4,31 @@ import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.testshared.any
 import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.thenThrowUnsafe
 import jp.co.soramitsu.testshared.whenever
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mock
+import org.mockito.Mockito.after
 import org.mockito.Mockito.times
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 
@@ -62,10 +70,34 @@ class RuntimeProviderTest {
             chainSyncFlow = MutableSharedFlow()
 
             whenever(constructedRuntime.runtime).thenReturn(runtime)
-            whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenReturn(constructedRuntime)
+            whenever(runtimeFactory.constructRuntime(any(), any(), anyInt())).thenReturn(constructedRuntime)
 
             whenever(runtimeSyncService.syncResultFlow(eq(chain.id))).thenAnswer { chainSyncFlow }
+            whenever(chainDao.runtimeInfo(any())).thenAnswer {
+                ChainRuntimeInfoLocal(it.arguments.first() as String, syncedVersion = 1, remoteVersion = 1)
+            }
+            whenever(runtimeFilesCache.getChainMetadata(any())).thenReturn("metadata")
+            whenever(chainDao.getTypes(any())).thenReturn("types")
         }
+    }
+
+    @Test
+    fun `should handle sync event emitted immediately after construction`() {
+        val testScheduler = TestCoroutineScheduler()
+        chainSyncFlow = MutableSharedFlow(extraBufferCapacity = 1)
+        currentChainTypesHash("Hash")
+        currentMetadataHash("Hash")
+
+        initProvider(StandardTestDispatcher(testScheduler))
+        chainSyncFlow.tryEmit(
+            SyncResult(chain.id, metadataHash = "Hash Changed", typesHash = "Hash")
+        )
+
+        testScheduler.advanceUntilIdle()
+
+        verify(runtimeFactory, times(2)).constructRuntime(any(), any(), anyInt())
+
+        runtimeProvider.finish()
     }
 
     @Test
@@ -73,13 +105,13 @@ class RuntimeProviderTest {
         runBlocking {
             initProvider()
 
-            verify(runtimeFactory, times(1)).constructRuntime(eq(chain.id), any(), any())
-
-            val returnedRuntime = withTimeout(timeMillis = 10) {
+            val returnedRuntime = withTimeout(timeMillis = 1_000) {
                 runtimeProvider.get()
             }
 
             assertEquals(returnedRuntime, runtime)
+
+            verify(runtimeFactory, times(1)).constructRuntime(any(), any(), anyInt())
         }
     }
 
@@ -143,8 +175,8 @@ class RuntimeProviderTest {
     @Test
     fun `should wait until current job is finished before consider reconstructing runtime on runtime sync event`() {
         runBlocking {
-            whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenAnswer {
-                runBlocking { chainSyncFlow.first() }  // ensure runtime wont be returned until chainSyncFlow event
+            whenever(runtimeFactory.constructRuntime(any(), any(), anyInt())).thenAnswer {
+                runBlocking { chainSyncFlow.first() }  // ensure runtime will not be returned until chainSyncFlow event
 
                 constructedRuntime
             }
@@ -162,10 +194,18 @@ class RuntimeProviderTest {
 
     @Test
     fun `should report missing cache for chain types or metadata`() {
-        runBlocking {
-            withRuntimeFactoryFailing(ChainInfoNotInCacheException) {
-                verify(runtimeSyncService, times(1)).cacheNotFound(eq(chain.id))
-            }
+        val testScheduler = TestCoroutineScheduler()
+        whenever(runtimeFactory.constructRuntime(any(), any(), anyInt()))
+            .thenThrowUnsafe(ChainInfoNotInCacheException)
+
+        initProvider(StandardTestDispatcher(testScheduler))
+
+        try {
+            testScheduler.advanceUntilIdle()
+
+            verify(runtimeSyncService, times(1)).cacheNotFound(eq(chain.id))
+        } finally {
+            runtimeProvider.finish()
         }
     }
 
@@ -178,7 +218,7 @@ class RuntimeProviderTest {
     }
 
     private suspend fun withRuntimeFactoryFailing(exception: Exception = ChainInfoNotInCacheException, block: suspend () -> Unit) {
-        whenever(runtimeFactory.constructRuntime(any(), any(), any())).thenThrowUnsafe(exception)
+        whenever(runtimeFactory.constructRuntime(any(), any(), anyInt())).thenThrowUnsafe(exception)
 
         initProvider()
 
@@ -188,10 +228,15 @@ class RuntimeProviderTest {
     }
 
     private suspend fun verifyReconstructionAfterInit(times: Int) {
-        delay(10)
-
         // + 1 since it is called once in init (cache)
-        verify(runtimeFactory, times(times + 1)).constructRuntime(eq(chain.id), any(), any())
+        val expectedCalls = times + 1
+        val verification = if (times == 0) {
+            after(100).times(expectedCalls)
+        } else {
+            timeout(5_000).times(expectedCalls)
+        }
+
+        verify(runtimeFactory, verification).constructRuntime(any(), any(), anyInt())
     }
 
     private fun currentMetadataHash(hash: String?) {
@@ -202,14 +247,15 @@ class RuntimeProviderTest {
         whenever(constructedRuntime.ownTypesHash).thenReturn(hash)
     }
 
-    private fun initProvider() {
+    private fun initProvider(coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default) {
         runtimeProvider = RuntimeProvider(
             runtimeFactory,
             runtimeSyncService,
             runtimeFilesCache,
             chainDao,
             networkStateService,
-            chain
+            chain,
+            coroutineDispatcher
         )
     }
 }

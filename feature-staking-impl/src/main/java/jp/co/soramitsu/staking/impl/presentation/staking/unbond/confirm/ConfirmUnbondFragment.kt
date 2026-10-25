@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm
 
 import android.os.Bundle
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,14 +64,17 @@ class ConfirmUnbondFragment : BaseFragment<ConfirmUnbondViewModel>(R.layout.frag
         binding.confirmUnbondAmount.amountInput.setText(viewModel.amount)
 
         viewModel.amountFiatFLow.observe {
-            it?.let(binding.confirmUnbondAmount::setAssetBalanceFiatAmount)
+            binding.confirmUnbondAmount.setAssetBalanceFiatAmount(it)
         }
 
         viewModel.feeStatusLiveData.observe(binding.confirmUnbondFee::setFeeStatus)
 
         viewModel.originAddressModelLiveData.observe {
-            binding.confirmUnbondOriginAccount.setMessage(it.nameOrAddress)
-            binding.confirmUnbondOriginAccount.setTextIcon(it.image)
+            binding.confirmUnbondOriginAccount.isVisible = it != null
+            it?.let { model ->
+                binding.confirmUnbondOriginAccount.setMessage(model.nameOrAddress)
+                binding.confirmUnbondOriginAccount.setTextIcon(model.image)
+            }
         }
     }
 }

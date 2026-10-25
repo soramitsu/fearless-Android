@@ -13,16 +13,20 @@ import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -63,7 +67,7 @@ class AccountDetailsInteractor(
             chains.flatMap { chain ->
                 chain.assets.map { chainAsset ->
                     val markedNotNeed = assetsMarkedNotNeed.contains(
-                        AssetKey(metaId, chain.id, emptyAccountIdValue, chainAsset.id)
+                        WalletAssetKey(metaId, chain.id, emptyAccountIdValue, chainAsset.id)
                     )
                     createAccountInChain(metaAccount, chain, markedNotNeed)
                 }
@@ -79,16 +83,16 @@ class AccountDetailsInteractor(
             flowOf { getMetaAccount(metaId) },
             flowOf { chainRegistry.getChains() }//.map { it.sortedWith(chainSort()) },
         ) { metaAccount, chains ->
-            chains.filter { chain ->
-                chain.ecosystem == Ecosystem.Ton && type == WalletEcosystem.Ton
-                        || chain.ecosystem == Ecosystem.Ethereum && type == WalletEcosystem.Ethereum
-                        || chain.ecosystem == Ecosystem.EthereumBased && type == WalletEcosystem.Ethereum
-                        || chain.ecosystem == Ecosystem.Substrate && type == WalletEcosystem.Substrate
+            val offlineAccount = offlineNexusAccount(metaAccount)?.takeIf { type == WalletEcosystem.Iroha }
+            val chainAccounts = chains.filter { chain ->
+                chain.walletEcosystem() == type &&
+                    chain.id.lowercase() !in setOf(UniversalWalletRegistry.nexus.id, UniversalWalletRegistry.nexus.chainId)
             }.map { chain ->
                 createAccountInChain(metaAccount, chain, false)
             }.filter {
                 it.hasAccount
-            }.groupBy(AccountInChain::from)
+            }
+            (chainAccounts + listOfNotNull(offlineAccount)).groupBy(AccountInChain::from)
                 .toSortedMap(compareBy { it.name })
         }
     }
@@ -98,33 +102,34 @@ class AccountDetailsInteractor(
             flowOf { getMetaAccount(metaId) },
             flowOf { chainRegistry.getChains() }
         ) { metaAccount, chains ->
-            metaAccount to chains.filter { chain ->
-                when (chain.ecosystem) {
-                    Ecosystem.Substrate -> metaAccount.hasSubstrate
-                    Ecosystem.EthereumBased,
-                    Ecosystem.Ethereum -> metaAccount.hasEthereum
-
-                    Ecosystem.Ton -> metaAccount.hasTon
+            metaAccount to chains.filterNot { chain ->
+                chain.id.lowercase() in setOf(UniversalWalletRegistry.nexus.id, UniversalWalletRegistry.nexus.chainId)
+            }.filter { chain ->
+                when (chain.walletEcosystem()) {
+                    WalletEcosystem.Substrate -> metaAccount.hasSubstrate
+                    WalletEcosystem.Ethereum -> metaAccount.hasEthereum
+                    WalletEcosystem.Ton -> metaAccount.hasTon
+                    WalletEcosystem.Bitcoin,
+                    WalletEcosystem.Solana,
+                    WalletEcosystem.Iroha -> false
                 } || metaAccount.hasChainAccount(chain.id)
             }.groupBy { chain ->
-                when (chain.ecosystem) {
-                    Ecosystem.Substrate -> WalletEcosystem.Substrate
-                    Ecosystem.EthereumBased,
-                    Ecosystem.Ethereum -> WalletEcosystem.Ethereum
-
-                    Ecosystem.Ton -> WalletEcosystem.Ton
-                }
+                chain.walletEcosystem()
             }
         }.mapNotNull { (metaAccount, grouped) ->
-            if (metaAccount.hasEthereum || metaAccount.hasSubstrate) {
-                return@mapNotNull listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum).map {
-                    it to grouped[it].orEmpty().size
+            val supported = metaAccount.supportedEcosystems()
+            val needsOfflineNexus = offlineNexusAccount(metaAccount) != null
+            val summary = WALLET_ECOSYSTEM_SORT_ORDER.mapNotNull { ecosystem ->
+                val count = grouped[ecosystem].orEmpty().size +
+                    if (ecosystem == WalletEcosystem.Iroha && needsOfflineNexus) 1 else 0
+                when {
+                    ecosystem in supported -> ecosystem to count
+                    count > 0 -> ecosystem to count
+                    else -> null
                 }
             }
-            if (metaAccount.hasTon) {
-                return@mapNotNull listOf(WalletEcosystem.Ton to grouped[WalletEcosystem.Ton].orEmpty().size)
-            }
-            null
+
+            summary.takeIf { it.isNotEmpty() }
         }
     }
 
@@ -146,7 +151,7 @@ class AccountDetailsInteractor(
                 chains.any { chain ->
                     chain.assets.any { chainAsset ->
                         val markedNotNeed = assetsMarkedNotNeed.contains(
-                            AssetKey(metaAccount.id, chain.id, emptyAccountIdValue, chainAsset.id)
+                            WalletAssetKey(metaAccount.id, chain.id, emptyAccountIdValue, chainAsset.id)
                         )
                         val hasAccount = !chain.isEthereumBased || metaAccount.ethereumPublicKey != null || metaAccount.hasChainAccount(chain.id)
                         hasAccount.not() && markedNotNeed.not()
@@ -184,4 +189,26 @@ class AccountDetailsInteractor(
 
     private fun chainSort() = compareBy<Chain> { it.id.defaultChainSort() }
         .thenBy { it.name }
+
+    private fun Chain.walletEcosystem(): WalletEcosystem {
+        return when {
+            isUniversalWalletBitcoin() -> WalletEcosystem.Bitcoin
+            isUniversalWalletSolana() -> WalletEcosystem.Solana
+            isUniversalWalletIroha() -> WalletEcosystem.Iroha
+            ecosystem == Ecosystem.Ton -> WalletEcosystem.Ton
+            ecosystem == Ecosystem.Ethereum || ecosystem == Ecosystem.EthereumBased -> WalletEcosystem.Ethereum
+            else -> WalletEcosystem.Substrate
+        }
+    }
+
+    private companion object {
+        val WALLET_ECOSYSTEM_SORT_ORDER = listOf(
+            WalletEcosystem.Substrate,
+            WalletEcosystem.Ethereum,
+            WalletEcosystem.Ton,
+            WalletEcosystem.Bitcoin,
+            WalletEcosystem.Solana,
+            WalletEcosystem.Iroha
+        )
+    }
 }
