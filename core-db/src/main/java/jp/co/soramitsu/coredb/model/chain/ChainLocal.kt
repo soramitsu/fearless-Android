@@ -31,6 +31,11 @@ data class ChainLocal(
     val tonBridgeUrl: String?,
     val xcm: String?
 ) {
+    companion object {
+        // An unsupported ecosystem spelling keeps retained wallet parents out of runtime catalogs.
+        // Keep the previous supported family as provenance; only a fetched definition re-enables it.
+        const val UNAVAILABLE_CATALOG_PREFIX = "CatalogUnavailable:"
+    }
 
     class ExternalApi(
         @Embedded(prefix = "staking_")

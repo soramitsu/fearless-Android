@@ -662,42 +662,46 @@ class ConnectionPoolConvergenceTest {
 
     @Test
     fun explicitUnknownFreshTargetCannotCreateSubstrateTransport() = runBlocking<Unit> {
-        Fixture().use { f ->
-            val caller = mapChainLocalToChain(local())
-            f.latest["a"] = local().let { it.copy(chain = it.chain.copy(ecosystem = "FUTURE_UNSUPPORTED")) }
-            val failure = runCatching { f.pool.setupConnection(caller) }.exceptionOrNull()
-            assertTrue(failure is IllegalStateException)
-            assertTrue(f.peers.isEmpty())
-            assertNull(f.pool.getConnectionOrNull("a"))
+        for (ecosystem in listOf("FUTURE_UNSUPPORTED", ChainLocal.UNAVAILABLE_CATALOG_PREFIX + "Substrate")) {
+            Fixture().use { f ->
+                val caller = mapChainLocalToChain(local())
+                f.latest["a"] = local().let { it.copy(chain = it.chain.copy(ecosystem = ecosystem)) }
+                val failure = runCatching { f.pool.setupConnection(caller) }.exceptionOrNull()
+                assertTrue(failure is IllegalStateException)
+                assertTrue(f.peers.isEmpty())
+                assertNull(f.pool.getConnectionOrNull("a"))
+            }
         }
     }
 
     @Test
     fun unsupportedCommittedEcosystemRetiresTransportWithoutDisconnectingHealthyPeer() = runBlocking<Unit> {
-        Fixture().use { f ->
-            f.latest["a"] = local()
-            f.latest["b"] = local("b")
-            val retired = f.setup("a")
-            f.connected()
-            val retiredPeer = f.peers.last()
-            val healthy = f.setup("b")
-            f.connected()
-            val healthyPeer = f.peers.last()
-            val lane = f.dao.endpointMutationLane
-            val operation = lane.admit(listOf("a"))
-            lane.withOperation(operation) {
-                f.latest["a"] = local().let { it.copy(chain = it.chain.copy(ecosystem = "FUTURE_UNSUPPORTED")) }
-                grantFixtureFinal(lane, operation)
+        for (ecosystem in listOf("FUTURE_UNSUPPORTED", ChainLocal.UNAVAILABLE_CATALOG_PREFIX + "Substrate")) {
+            Fixture().use { f ->
+                f.latest["a"] = local()
+                f.latest["b"] = local("b")
+                val retired = f.setup("a")
+                f.connected()
+                val retiredPeer = f.peers.last()
+                val healthy = f.setup("b")
+                f.connected()
+                val healthyPeer = f.peers.last()
+                val lane = f.dao.endpointMutationLane
+                val operation = lane.admit(listOf("a"))
+                lane.withOperation(operation) {
+                    f.latest["a"] = local().let { it.copy(chain = it.chain.copy(ecosystem = ecosystem)) }
+                    grantFixtureFinal(lane, operation)
+                }
+                withTimeout(5000) {
+                    while (retired.runtime.value.phase != EndpointRuntimeStatus.Phase.UNAVAILABLE ||
+                        healthy.runtime.value.phase != EndpointRuntimeStatus.Phase.CONNECTED) yield()
+                }
+                verify(retiredPeer.socket, timeout(5000)).disconnect()
+                verify(healthyPeer.socket, never()).disconnect()
+                assertSame(healthy, f.pool.getConnectionOrNull("b"))
+                assertTrue(healthy.runtime.value.isCurrentFor(healthy.selectedNode!!))
+                assertEquals(2, f.peers.size)
             }
-            withTimeout(5000) {
-                while (retired.runtime.value.phase != EndpointRuntimeStatus.Phase.UNAVAILABLE ||
-                    healthy.runtime.value.phase != EndpointRuntimeStatus.Phase.CONNECTED) yield()
-            }
-            verify(retiredPeer.socket, timeout(5000)).disconnect()
-            verify(healthyPeer.socket, never()).disconnect()
-            assertSame(healthy, f.pool.getConnectionOrNull("b"))
-            assertTrue(healthy.runtime.value.isCurrentFor(healthy.selectedNode!!))
-            assertEquals(2, f.peers.size)
         }
     }
 }

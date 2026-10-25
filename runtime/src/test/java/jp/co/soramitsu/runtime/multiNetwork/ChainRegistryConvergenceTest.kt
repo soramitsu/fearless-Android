@@ -148,15 +148,17 @@ class ChainRegistryConvergenceTest {
 
     @Test
     fun explicitUnsupportedTransitionRetiresOnlyThatChainAndPublishesEmpty() = runBlocking<Unit> {
-        Fixture().use { f ->
-            f.registry.syncUp()
-            f.rows.emit(listOf(f.local.copy(chain = f.local.chain.copy(ecosystem = "FUTURE_UNSUPPORTED"))))
-            verify(f.connection).removeConnection("a")
-            verify(f.providers).removeRuntimeProvider("a")
-            verify(f.subscriptions).removeSubscription("a")
-            verify(f.sync).unregisterChain("a")
-            verify(f.environment, times(1)).configure(f.chain)
-            assertEquals(emptyList<jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain>(), f.registry.currentChains.replayCache.single())
+        for (ecosystem in listOf("FUTURE_UNSUPPORTED", ChainLocal.UNAVAILABLE_CATALOG_PREFIX + "Substrate")) {
+            Fixture().use { f ->
+                f.registry.syncUp()
+                f.rows.emit(listOf(f.local.copy(chain = f.local.chain.copy(ecosystem = ecosystem))))
+                verify(f.connection).removeConnection("a")
+                verify(f.providers).removeRuntimeProvider("a")
+                verify(f.subscriptions).removeSubscription("a")
+                verify(f.sync).unregisterChain("a")
+                verify(f.environment, times(1)).configure(f.chain)
+                assertEquals(emptyList<jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain>(), f.registry.currentChains.replayCache.single())
+            }
         }
     }
 }

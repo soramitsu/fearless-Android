@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.coredb.dao.AssetDao.Companion.xcPrefix
 import jp.co.soramitsu.coredb.model.AssetWithToken
@@ -80,6 +81,20 @@ abstract class ChainDao {
         endpointMutationLane.requireOwnedTargets(operation, local.map { it.chain.id } + remoteIds)
         val localParents = local.associateBy { it.chain.id }
         require(localParents.keys.containsAll(input.preservedCatalogChains)) { "Catalog preservation requires an existing parent" }
+        val omittedParents = local.filter { it.chain.id !in remoteIds }
+        val retainedIds = omittedParents.map { it.chain.id }.chunked(64)
+            .flatMap { referencedCatalogChainIds(it) }.toSet()
+        // Wallet balances, account keys and favorites outlive catalog availability. Preserve their
+        // parent and catalog children while the unsupported family revokes runtime/staking access.
+        for (item in omittedParents.filter { it.chain.id in retainedIds }) {
+            if (Ecosystem.entries.any { it.name.equals(item.chain.ecosystem, ignoreCase = true) }) {
+                check(updateUnsupportedCatalogEcosystem(item.chain.id,
+                    ChainLocal.UNAVAILABLE_CATALOG_PREFIX + item.chain.ecosystem) == 1) {
+                    "Retained catalog parent disappeared"
+                }
+            }
+        }
+        val replaceableLocal = local.filter { it.chain.id !in retainedIds }
         val replacements = remote.filter { it.chain.id !in input.preservedCatalogChains }
         // Projected optional text can be absent even when stored bytes exist. Complete fetched
         // values must therefore replace existing rows without comparing against that projection.
@@ -89,15 +104,21 @@ abstract class ChainDao {
             check(updateUnsupportedCatalogEcosystem(chainId, ecosystem) == 1) { "Unsupported ecosystem parent disappeared" }
         }
         replaceCatalogNodes(input)
-        val addedAssets = replaceCatalogAssets(local, input)
-        replaceCatalogExplorers(local.filter { it.chain.id !in input.preservedCatalogChains }, replacements)
-        deleteChainsInside(local.filter { it.chain.id !in remoteIds }.map { it.chain })
+        val addedAssets = replaceCatalogAssets(replaceableLocal, input)
+        replaceCatalogExplorers(replaceableLocal.filter { it.chain.id !in input.preservedCatalogChains }, replacements)
+        deleteChainsInside(omittedParents.filter { it.chain.id !in retainedIds }.map { it.chain })
         endpointMutationLane.grantFinal(operation) {}
         return addedAssets
     }
 
     @Query("UPDATE chains SET ecosystem = :ecosystem WHERE id = :chainId")
     protected abstract suspend fun updateUnsupportedCatalogEcosystem(chainId: String, ecosystem: String): Int
+
+    @Query("SELECT id FROM chains WHERE id IN (:chainIds) AND (" +
+        "EXISTS(SELECT 1 FROM assets WHERE assets.chainId = chains.id) OR " +
+        "EXISTS(SELECT 1 FROM favorite_chains WHERE favorite_chains.chainId = chains.id) OR " +
+        "EXISTS(SELECT 1 FROM chain_accounts WHERE chain_accounts.chainId = chains.id))")
+    protected abstract suspend fun referencedCatalogChainIds(chainIds: List<String>): List<String>
 
     private suspend fun replaceCatalogNodes(input: EndpointCatalogSnapshot) {
         for (item in input.chains) {
