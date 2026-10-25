@@ -37,52 +37,54 @@ class IrohaHistorySource(
         val page = cursor?.toIntOrNull()?.takeIf { it >= 0 } ?: 0
         val limit = pageSize.coerceAtMost(IrohaToriiRoutes.MAX_LIMIT)
 
-        return runCatching {
-            val response = toriiClient.mcpJsonRpc(
-                request = IrohaMcpJsonRpcRequest(
-                    id = "history-$page",
-                    method = "tools/call",
-                    params = mapOf(
-                        "name" to "iroha.instructions.list",
-                        "arguments" to mapOf(
-                            "account" to normalizedAddress,
-                            "asset_id" to chainAsset.id,
-                            "kind" to "Transfer",
-                            "page" to page,
-                            "per_page" to limit,
-                            "transaction_status" to "committed",
-                            "accept" to "application/json"
-                        )
+        val response = toriiClient.mcpJsonRpc(
+            request = IrohaMcpJsonRpcRequest(
+                id = "history-$page",
+                method = "tools/call",
+                params = mapOf(
+                    "name" to "iroha.instructions.list",
+                    "arguments" to mapOf(
+                        "account" to normalizedAddress,
+                        "asset_id" to chainAsset.id,
+                        "kind" to "Transfer",
+                        "page" to page,
+                        "per_page" to limit,
+                        "transaction_status" to "committed",
+                        "accept" to "application/json"
                     )
-                ),
-                network = network,
-                baseUrl = historyUrl.takeIf(String::isNotBlank)
-            )
-
-            if (response.error != null) return@runCatching CursorPage(null, emptyList())
-
-            val items = response.result.extractInstructionItems()
-            val operations = items.flatMapIndexed { index, item ->
-                item.toTransferOperations(
-                    index = index,
-                    accountAddress = normalizedAddress,
-                    chainAsset = chainAsset
                 )
-            }
+            ),
+            network = network,
+            baseUrl = historyUrl.takeIf(String::isNotBlank)
+        )
 
-            CursorPage(
-                nextCursor = if (items.size >= limit) (page + 1).toString() else null,
-                items = operations
+        check(response.error == null) { "Iroha history request failed (${response.error?.code})" }
+
+        val items = response.result.extractInstructionItems()
+        val operations = items.flatMapIndexed { index, item ->
+            item.toTransferOperations(
+                index = index,
+                accountAddress = normalizedAddress,
+                chainAsset = chainAsset
             )
-        }.getOrDefault(CursorPage(null, emptyList()))
+        }
+
+        return CursorPage(
+            nextCursor = if (items.size >= limit) (page + 1).toString() else null,
+            items = operations
+        )
     }
 
     private fun Any?.extractInstructionItems(): List<Map<*, *>> {
-        val result = this as? Map<*, *> ?: return emptyList()
-        val body = result["body"] as? Map<*, *> ?: result
-        val items = body["items"] as? List<*> ?: return emptyList()
+        val result = checkNotNull(this as? Map<*, *>) { "Iroha history result is not an object" }
+        val body = if (result.containsKey("body")) {
+            checkNotNull(result["body"] as? Map<*, *>) { "Iroha history body is not an object" }
+        } else {
+            result
+        }
+        val items = checkNotNull(body["items"] as? List<*>) { "Iroha history items is not an array" }
 
-        return items.mapNotNull { it as? Map<*, *> }
+        return items.map { checkNotNull(it as? Map<*, *>) { "Iroha history item is not an object" } }
     }
 
     private fun Map<*, *>.toTransferOperations(

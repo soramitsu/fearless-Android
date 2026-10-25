@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.iroha
 
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 data class IrohaPageMetadata(
@@ -159,6 +160,7 @@ data class IrohaMcpJsonRpcRequest(
     val params: Map<String, Any?>? = null
 )
 
+@JsonAdapter(IrohaMcpJsonRpcResponseAdapter::class, nullSafe = false)
 data class IrohaMcpJsonRpcResponse(
     @SerializedName("jsonrpc")
     val jsonrpc: String = "2.0",

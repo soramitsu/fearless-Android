@@ -97,7 +97,11 @@ object IrohaToriiRoutes {
         }
         val isLocal = parsed.host == "localhost" || parsed.host == "127.0.0.1"
 
-        if (parsed.protocol != "https" && !isLocal) {
+        if (
+            parsed.host.isNullOrEmpty() ||
+            (parsed.protocol != "https" && !(parsed.protocol == "http" && isLocal)) ||
+            parsed.userInfo != null || parsed.query != null || parsed.ref != null
+        ) {
             throw IrohaToriiRouteException(ErrorCode.INVALID_BASE_URL)
         }
 

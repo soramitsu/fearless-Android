@@ -6,8 +6,8 @@ MATERIALIZER="$ROOT_DIR/scripts/materialize-iroha-core-jvm.sh"
 MATERIALIZER_TEST="$ROOT_DIR/scripts/test-iroha-core-jvm-materializer.sh"
 HASH_VECTOR="$ROOT_DIR/iroha-sdk-bridge/src/test/resources/iroha-compact-hash-vector.properties"
 HASH_VECTOR_VERIFIER="$ROOT_DIR/scripts/verify-iroha-compact-hash-vector.py"
-UTILS_DERIVED_TREE_TEST="$ROOT_DIR/scripts/test-fearless-utils-derived-tree.sh"
-UTILS_GUARD="$ROOT_DIR/scripts/ensure-fearless-utils.sh"
+NATIVE_SOURCE_TEST="$ROOT_DIR/scripts/test-android-runtime-source-pins.py"
+NATIVE_SOURCE_GUARD="$ROOT_DIR/scripts/verify-android-runtime-sources.py"
 
 fail() {
   echo "[iroha-core-bridge][error] $*" >&2
@@ -22,10 +22,10 @@ fail() {
   fail "compact hash vector is missing or is a symlink"
 [[ -f "$HASH_VECTOR_VERIFIER" && ! -L "$HASH_VECTOR_VERIFIER" ]] ||
   fail "compact hash vector verifier is missing or is a symlink"
-[[ -f "$UTILS_DERIVED_TREE_TEST" && ! -L "$UTILS_DERIVED_TREE_TEST" ]] ||
-  fail "fearless-utils derived-tree test is missing or is a symlink"
-[[ -f "$UTILS_GUARD" && ! -L "$UTILS_GUARD" ]] ||
-  fail "fearless-utils guard is missing or is a symlink"
+[[ -f "$NATIVE_SOURCE_TEST" && ! -L "$NATIVE_SOURCE_TEST" ]] ||
+  fail "native source ownership test is missing or is a symlink"
+[[ -f "$NATIVE_SOURCE_GUARD" && ! -L "$NATIVE_SOURCE_GUARD" ]] ||
+  fail "native source ownership guard is missing or is a symlink"
 command -v python3 >/dev/null 2>&1 || fail "python3 is required for independent hash-vector verification"
 
 source_args=("$@")
@@ -44,8 +44,6 @@ case "${source_args[0]}" in
 esac
 
 cd "$ROOT_DIR"
-export FORCE_LOCAL_UTILS="${FORCE_LOCAL_UTILS:-true}"
-export FEARLESS_UTILS_LIBRARY_ONLY="${FEARLESS_UTILS_LIBRARY_ONLY:-true}"
 
 echo "[iroha-core-bridge] verifying the independent Rust/native compact-hash diagnostic vector"
 python3 "$HASH_VECTOR_VERIFIER" --self-test "$HASH_VECTOR"
@@ -56,9 +54,9 @@ bash "$MATERIALIZER_TEST"
 echo "[iroha-core-bridge] materializing the checksum-pinned core-jvm coordinate"
 bash "$MATERIALIZER" "${source_args[@]}"
 
-echo "[iroha-core-bridge] preparing the pinned fearless-utils library-only tree"
-bash "$UTILS_DERIVED_TREE_TEST"
-bash "$UTILS_GUARD"
+echo "[iroha-core-bridge] verifying app-owned native runtime sources"
+python3 "$NATIVE_SOURCE_TEST"
+python3 "$NATIVE_SOURCE_GUARD"
 
 gradle_tasks=(
   :iroha-sdk-bridge:check

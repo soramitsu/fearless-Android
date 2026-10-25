@@ -2,6 +2,32 @@
 
 # Status Summary
 
+## Iroha read response validation and CI ownership — 25 October 2026
+
+Iroha MCP decoding now checks explicit wire version and string request identity
+before Gson can supply defaults or coerce numeric IDs. Responses require exactly
+one object result/error; MCP null success is deliberately rejected. History
+propagates transport, cancellation, server and malformed-payload failures while
+preserving valid empty pages. Base URLs reject missing hosts, userinfo, query or
+fragment and allow plaintext only for local HTTP. Pagination, row mapping,
+network/asset profiles and production signing admission are unchanged.
+
+Six baseline regressions reproduced the prior behavior; actual Gson decoding
+also reproduced missing-version and numeric-ID acceptance. All 24 focused
+read-path tests now pass, including five raw JSON adapter tests. Aggregate
+`runTest` and Detekt pass: task XML records 6,460 passed, no failures/errors and
+18 unchanged skips (runtime-sync/runtime-fetch fixtures, unsupported JVM sr25519
+cases and opt-in live RPC checks). The 765 common and 713 wallet tests have no skips.
+Unchanged Gradle tasks may reuse validated results. Receipts and failed baseline
+runs remain in the local consolidation archive.
+
+The staged-Iroha CI verifier now runs app-owned runtime source/digest checks and
+their adversarial suite instead of removed external-utils preparation. Complete
+staged bridge checks pass online then offline, including 70 materializer cases,
+15 source-ownership cases, 29 compact-vector negatives and 11 boundary cases;
+readiness and task-membership audits pass. Production Iroha deployment, live
+provider and signed-device qualification remain separate open gates.
+
 ## CI fixture scheduling — 25 October 2026
 
 The send-screen fixture now drives a serial Main test dispatcher while awaiting

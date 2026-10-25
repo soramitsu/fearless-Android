@@ -222,6 +222,46 @@ rm -f "$fixture/scripts/verify-staged-iroha-core-bridge.sh.bak"
 expect_failure "independent hash verifier gate removed" "$fixture" \
   "independent compact hash verifier gate"
 
+fixture="$(new_fixture native-source-suite-removed)"
+python3 - "$fixture/scripts/verify-staged-iroha-core-bridge.sh" <<'PYFIX'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+p.write_text("\n".join(line for line in s.splitlines() if 'test-android-runtime-source-pins.py' not in line) + "\n")
+PYFIX
+expect_failure "native-source-suite-removed" "$fixture" "native source ownership adversarial suite"
+
+fixture="$(new_fixture native-source-guard-removed)"
+python3 - "$fixture/scripts/verify-staged-iroha-core-bridge.sh" <<'PYFIX'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+p.write_text("\n".join(line for line in s.splitlines() if 'verify-android-runtime-sources.py' not in line) + "\n")
+PYFIX
+expect_failure "native-source-guard-removed" "$fixture" "native source ownership verification"
+
+fixture="$(new_fixture native-source-suite-call-removed)"
+python3 - "$fixture/scripts/verify-staged-iroha-core-bridge.sh" <<'PYFIX'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+p.write_text("\n".join(line for line in s.splitlines() if 'python3 "$NATIVE_SOURCE_TEST"' not in line) + "\n")
+PYFIX
+expect_failure "native-source-suite-call-removed" "$fixture" "native source ownership adversarial invocation"
+
+fixture="$(new_fixture native-source-guard-call-removed)"
+python3 - "$fixture/scripts/verify-staged-iroha-core-bridge.sh" <<'PYFIX'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+p.write_text("\n".join(line for line in s.splitlines() if 'python3 "$NATIVE_SOURCE_GUARD"' not in line) + "\n")
+PYFIX
+expect_failure "native-source-guard-call-removed" "$fixture" "native source ownership guard invocation"
+
 fixture="$(new_fixture app-runtime-boundary-removed)"
 sed -i.bak 's/verifyStagedIrohaSdkExcluded/verifyOnlyDebugMetadata/' \
   "$fixture/iroha-sdk-bridge-kotlin-smoke/build.gradle"

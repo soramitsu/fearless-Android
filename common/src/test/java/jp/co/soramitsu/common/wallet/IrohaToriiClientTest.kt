@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcError
 import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
 import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatus
@@ -122,7 +123,39 @@ class IrohaToriiClientTest {
         assertEquals("https://nexus.example/v1/accounts/$ENCODED_NEXUS_ACCOUNT", api.lastUrl)
     }
 
+    @Test
+    fun `rejects unbound or ambiguous mcp responses`() {
+        val request = IrohaToriiRoutes.mcpJsonRpcRequest("tools/list", "expected")
+        val result = mapOf("tools" to emptyList<String>())
+        val error = IrohaMcpJsonRpcError(-32000, "unavailable")
+        val invalid = listOf(
+            IrohaMcpJsonRpcResponse(jsonrpc = "1.0", id = request.id, result = result),
+            IrohaMcpJsonRpcResponse(id = "stale", result = result),
+            IrohaMcpJsonRpcResponse(result = result),
+            IrohaMcpJsonRpcResponse(id = request.id),
+            IrohaMcpJsonRpcResponse(id = request.id, result = result, error = error)
+        )
+        invalid.forEach { response ->
+            val client = RetrofitIrohaToriiClient(FakeIrohaToriiApi().apply { mcpResponse = response })
+            assertThrows(IllegalStateException::class.java) { runBlocking { client.mcpJsonRpc(request) } }
+        }
+    }
+
+    @Test
+    fun `preserves bound mcp result and server error responses`() = runBlocking {
+        val request = IrohaToriiRoutes.mcpJsonRpcRequest("tools/list", "expected")
+        val valid = listOf(
+            IrohaMcpJsonRpcResponse(id = request.id, result = mapOf("tools" to emptyList<String>())),
+            IrohaMcpJsonRpcResponse(id = request.id, error = IrohaMcpJsonRpcError(-32000, "unavailable"))
+        )
+        valid.forEach { response ->
+            val client = RetrofitIrohaToriiClient(FakeIrohaToriiApi().apply { mcpResponse = response })
+            assertEquals(response, client.mcpJsonRpc(request))
+        }
+    }
+
     private class FakeIrohaToriiApi : IrohaToriiApi {
+        var mcpResponse: IrohaMcpJsonRpcResponse? = null
         var lastUrl: String? = null
             private set
         var lastRequestBody: RequestBody? = null
@@ -211,7 +244,7 @@ class IrohaToriiClientTest {
         ): IrohaMcpJsonRpcResponse {
             lastUrl = url
             lastJsonRpcRequest = body
-            return IrohaMcpJsonRpcResponse(id = body.id, result = mapOf("ok" to true))
+            return mcpResponse ?: IrohaMcpJsonRpcResponse(id = body.id, result = mapOf("ok" to true))
         }
     }
 

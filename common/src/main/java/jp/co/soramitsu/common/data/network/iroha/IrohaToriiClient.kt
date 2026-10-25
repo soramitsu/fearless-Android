@@ -186,7 +186,12 @@ class RetrofitIrohaToriiClient(
         network: UniversalWalletRegistry.IrohaNetwork,
         baseUrl: String?
     ): IrohaMcpJsonRpcResponse {
-        return api.mcpJsonRpc(IrohaToriiRoutes.mcpUrl(network, resolveBaseUrl(baseUrl, network)), request)
+        val response = api.mcpJsonRpc(IrohaToriiRoutes.mcpUrl(network, resolveBaseUrl(baseUrl, network)), request)
+        val hasExactlyOnePayload = (response.result == null) != (response.error == null)
+        check(response.jsonrpc == "2.0" && response.id == request.id && hasExactlyOnePayload) {
+            "Torii returned an unbound or ambiguous JSON-RPC response"
+        }
+        return response
     }
 
     private fun normalizeWalletAccountId(

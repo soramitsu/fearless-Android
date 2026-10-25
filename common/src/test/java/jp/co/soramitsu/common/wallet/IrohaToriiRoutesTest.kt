@@ -71,6 +71,17 @@ class IrohaToriiRoutesTest {
     }
 
     @Test
+    fun `rejects base urls whose authority or suffix can change endpoint routing`() {
+        listOf(
+            "https:///missing-host", "https://user@taira.sora.org", "https://taira.sora.org?query=1",
+            "https://taira.sora.org#fragment", "ftp://localhost", "file://localhost/path"
+        ).forEach { url ->
+            assertRouteError(ErrorCode.INVALID_BASE_URL) { IrohaToriiRoutes.normalizeBaseUrl(url) }
+        }
+        assertEquals("https://taira.sora.org/base", IrohaToriiRoutes.normalizeBaseUrl(" https://taira.sora.org/base/ "))
+    }
+
+    @Test
     fun `rejects malformed iroha route inputs before network calls`() {
         assertRouteError(ErrorCode.INVALID_ACCOUNT_ID) {
             IrohaToriiRoutes.accountUrl("../bad")

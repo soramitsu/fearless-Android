@@ -1,6 +1,8 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
 import java.math.BigInteger
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinTransactionHistorySync
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListResponse
@@ -31,6 +33,8 @@ import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.Histor
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -153,7 +157,7 @@ class IrohaHistorySourceTest {
     }
 
     @Test
-    fun `fails closed when torii mcp returns an error`() = runBlocking {
+    fun `propagates torii server errors instead of empty history`() {
         val client = FakeIrohaToriiClient(
             response = IrohaMcpJsonRpcResponse(
                 id = "history-0",
@@ -162,19 +166,45 @@ class IrohaHistorySourceTest {
         )
         val source = IrohaHistorySource(client, INDEXER_URL)
 
-        val page = source.getOperations(
-            pageSize = 25,
-            cursor = null,
-            filters = setOf(TransactionFilter.TRANSFER),
-            accountId = byteArrayOf(),
-            chain = irohaChain(),
-            chainAsset = irohaAsset(),
-            accountAddress = ADDRESS
-        )
-
+        assertThrows(IllegalStateException::class.java) { runBlocking { historyPage(source) } }
         assertEquals(1, client.mcpCalls)
-        assertTrue(page.items.isEmpty())
     }
+
+    @Test
+    fun `propagates transport failure without replacing history`() {
+        val failure = IOException("offline")
+        val source = IrohaHistorySource(FakeIrohaToriiClient(failure = failure), INDEXER_URL)
+        val observed = assertThrows(IOException::class.java) { runBlocking { historyPage(source) } }
+        assertSame(failure, observed)
+    }
+
+    @Test
+    fun `propagates cancellation without completing history`() {
+        val failure = CancellationException("cancelled")
+        val source = IrohaHistorySource(FakeIrohaToriiClient(failure = failure), INDEXER_URL)
+        val observed = assertThrows(CancellationException::class.java) { runBlocking { historyPage(source) } }
+        assertSame(failure, observed)
+    }
+
+    @Test
+    fun `accepts successful empty history while rejecting malformed result shapes`() {
+        val empty = IrohaMcpJsonRpcResponse(id = "history-0", result = mapOf("body" to mapOf("items" to emptyList<Any>())))
+        val page = runBlocking { historyPage(IrohaHistorySource(FakeIrohaToriiClient(empty), INDEXER_URL)) }
+        assertTrue(page.items.isEmpty())
+        assertNull(page.nextCursor)
+        listOf(
+            null, "not an object", mapOf("body" to "invalid"), mapOf("items" to "invalid"),
+            mapOf("items" to listOf("invalid"))
+        ).forEach { result ->
+            val source = IrohaHistorySource(FakeIrohaToriiClient(IrohaMcpJsonRpcResponse(id = "history-0", result = result)), INDEXER_URL)
+            assertThrows(IllegalStateException::class.java) { runBlocking { historyPage(source) } }
+        }
+    }
+
+    private suspend fun historyPage(source: IrohaHistorySource) = source.getOperations(
+        pageSize = 25, cursor = null, filters = setOf(TransactionFilter.TRANSFER), accountId = byteArrayOf(),
+        chain = irohaChain(), chainAsset = irohaAsset(), accountAddress = ADDRESS
+    )
 
     @Test
     fun `provider routes iroha history type to iroha source`() {
@@ -192,7 +222,8 @@ class IrohaHistorySourceTest {
     }
 
     private class FakeIrohaToriiClient(
-        private val response: IrohaMcpJsonRpcResponse = mcpResponse(instruction())
+        private val response: IrohaMcpJsonRpcResponse = mcpResponse(instruction()),
+        private val failure: Throwable? = null
     ) : IrohaToriiClient {
         var mcpCalls = 0
             private set
@@ -259,6 +290,7 @@ class IrohaHistorySourceTest {
             lastNetwork = network
             lastBaseUrl = baseUrl
 
+            failure?.let { throw it }
             return response
         }
     }

@@ -441,10 +441,14 @@ require_fixed "$BRIDGE_GATE" 'verify-iroha-compact-hash-vector.py' \
   "independent compact hash verifier gate"
 require_fixed "$BRIDGE_GATE" '--self-test "$HASH_VECTOR"' \
   "compact hash adversarial self-test gate"
-require_fixed "$BRIDGE_GATE" 'test-fearless-utils-derived-tree.sh' \
-  "fearless-utils derived-tree preparation"
-require_fixed "$BRIDGE_GATE" 'ensure-fearless-utils.sh' \
-  "fearless-utils guard preparation"
+require_fixed "$BRIDGE_GATE" 'test-android-runtime-source-pins.py' \
+  "native source ownership adversarial suite"
+require_fixed "$BRIDGE_GATE" 'verify-android-runtime-sources.py' \
+  "native source ownership verification"
+require_fixed "$BRIDGE_GATE" 'python3 "$NATIVE_SOURCE_TEST"' \
+  "native source ownership adversarial invocation"
+require_fixed "$BRIDGE_GATE" 'python3 "$NATIVE_SOURCE_GUARD"' \
+  "native source ownership guard invocation"
 require_fixed "$BRIDGE_GATE" ':iroha-sdk-bridge:check' \
   "Java bridge check gate"
 require_fixed "$BRIDGE_GATE" ':iroha-sdk-bridge-kotlin-smoke:check' \
