@@ -603,7 +603,17 @@ class WalletChainAccountEcosystemMigrationTest {
             76
         ).use { database ->
             database.insertWalletOwner(META_ID)
-            WalletSecretIntegrityMigration(preferences).migrate(database)
+            // Room owns this transaction in production. Simulate losing its SQL
+            // commit after the independently durable preference write.
+            database.beginTransaction()
+            try {
+                WalletSecretIntegrityMigration(preferences).migrate(database)
+            } finally {
+                database.endTransaction()
+            }
+            assertEquals(76, database.version)
+            assertFalse(ModernEndpointArchive.requireSafe(database))
+            assertFalse(EndpointArchiveFormat.UPGRADE_ENTRY.requireSafe(database))
         }
         assertOrphanArchived(
             preferences = preferences,
@@ -1235,9 +1245,26 @@ class WalletChainAccountEcosystemMigrationTest {
         helper.runMigrationsAndValidate(
             databaseName,
             77,
-            true,
+            false,
             WalletSecretIntegrityMigration(preferences)
-        ).close()
+        ).use { database ->
+            // Room still validates every version-77 entity. Its dropped-table
+            // check cannot admit the intentional, independently validated raw
+            // endpoint archives, so check the complete table inventory here.
+            val expectedTables = RELEASED_ROOM_SCHEMA_V76.map { it.name }.toSet() +
+                ModernEndpointArchive.schemaObjects.map { it.name } +
+                UpgradeEntryEndpointArchive.schemaObjects.map { it.name }
+            val actualTables = database.query(
+                "SELECT name FROM sqlite_master WHERE type='table' " +
+                    "AND name != 'android_metadata' " +
+                    "AND name NOT LIKE 'sqlite_%'"
+            ).use { cursor ->
+                buildSet { while (cursor.moveToNext()) add(cursor.getString(0)) }
+            }
+            assertEquals(expectedTables, actualTables)
+            assertTrue(ModernEndpointArchive.requireSafe(database))
+            assertTrue(EndpointArchiveFormat.UPGRADE_ENTRY.requireSafe(database))
+        }
     }
 
     private fun ethereumFixture(variant: Int): EthereumFixture {

@@ -298,6 +298,17 @@ class ReleasedPortfolioUpgradeTest {
             openHelper.writableDatabase.let { database ->
                 database.setForeignKeyConstraintsEnabled(true)
                 assertEquals(RELEASED_374_DATABASE_VERSION, database.version)
+                // The frozen artifact contains the released schema, not any
+                // user's wallet. Seed the public owner of the portfolio rows.
+                database.execSQL(
+                    """
+                    INSERT INTO meta_accounts(
+                        id, substratePublicKey, substrateCryptoType, substrateAccountId,
+                        name, isSelected, position, isBackedUp, initialized
+                    ) VALUES(?, ?, 'SR25519', ?, 'Released portfolio fixture', 1, 0, 1, 1)
+                    """.trimIndent(),
+                    arrayOf<Any>(WALLET_META_ID, WALLET_ACCOUNT_ID, WALLET_ACCOUNT_ID)
+                )
                 block(database)
             }
         } finally {

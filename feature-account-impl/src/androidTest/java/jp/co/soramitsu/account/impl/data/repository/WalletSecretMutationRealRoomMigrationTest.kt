@@ -1077,7 +1077,7 @@ class WalletSecretMutationRealRoomMigrationTest {
         const val DATABASE_NAME = "app.db"
         const val SOURCE_DATABASE_VERSION = 76
         // core-db's internal APP_DATABASE_VERSION; raise it with every bump.
-        const val TARGET_DATABASE_VERSION = 81
+        const val TARGET_DATABASE_VERSION = 84
         const val META_ID = 4_242L
         const val SECOND_META_ID = 4_243L
         const val WALLET_NAME = "Interrupted ADD_EVM wallet"
