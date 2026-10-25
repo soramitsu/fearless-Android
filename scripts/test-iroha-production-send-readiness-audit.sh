@@ -117,9 +117,24 @@ expect_failure "provider bypass" "$fixture" "fail-closed provider default"
 
 fixture="$(new_fixture production-di-injection)"
 perl -0pi -e \
-  's/            solanaBalanceSync,\n            irohaToriiClient\n        \)/            solanaBalanceSync,\n            irohaToriiClient,\n            ReviewedIrohaTransferSigner\n        )/g' \
+  's/            irohaToriiClient,\n/            irohaToriiClient,\n            irohaTransferSigner = ReviewedIrohaTransferSigner,\n/g' \
   "$fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt"
 expect_failure "production DI signer injection" "$fixture" "production DI construction must use the audited unavailable-signer default"
+
+fixture="$(new_fixture production-di-send-controls-removed)"
+node - "$fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/di/WalletFeatureModule.kt" <<'NODE'
+const fs = require('node:fs');
+const path = process.argv[2];
+const source = fs.readFileSync(path, 'utf8');
+const controls = `            irohaToriiClient,
+            sendPausePolicy = sendPausePolicy,
+            quoteStore = quoteStore,
+            sendJournal = jp.co.soramitsu.common.data.network.send.WalletSendJournal(preferences),
+            currentChain = { chainRegistry.getChain(it) }`;
+if (!source.includes(controls)) throw new Error('Expected production send controls were not found');
+fs.writeFileSync(path, source.replace(controls, '            irohaToriiClient'));
+NODE
+expect_failure "production DI send controls removed" "$fixture" "production DI construction must use the audited unavailable-signer default"
 
 fixture="$(new_fixture signer-no-longer-fails)"
 sed -i.bak 's/Iroha transfer signing codec is unavailable/temporary fallback/' \

@@ -290,7 +290,11 @@ const expected = `return TransferServiceProvider(
             bitcoinIndexerClient,
             solanaRpcClient,
             solanaBalanceSync,
-            irohaToriiClient
+            irohaToriiClient,
+            sendPausePolicy = sendPausePolicy,
+            quoteStore = quoteStore,
+            sendJournal = jp.co.soramitsu.common.data.network.send.WalletSendJournal(preferences),
+            currentChain = { chainRegistry.getChain(it) }
         )`;
 
 if (calls.length !== 1 || !source.includes(expected)) {
