@@ -56,7 +56,7 @@
       "commit": "ca1c2655ff541ae5942d820423962d34fd29d7f9",
       "sourcePath": "chains/v13/chains.json",
       "upstreamSha256": "79a583f08f71139a31e00c825c746891cef50c04aa81318aaa492807757b9cec",
-      "ownedSha256": "d6eea99426eb8dc1686e5895255ac3e13229d238ac6a06ecdfb7d80bc3bc1b0f"
+      "ownedSha256": "4c3f3889de54a2ed38b686df381b9dcb746645830ff560d87f2a83b66234d556"
     },
     {
       "path": "production/fiat/fiats.json",
@@ -4336,7 +4336,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev.json",
       "upstreamSha256": "5726b01a5364d955e250939c71082c03f97da0dc9512ac9d120c6a2085173d05",
-      "ownedSha256": "1db1490561bc097fff6d02b2ed3fdd671d28738cb71c4d3bf28b46dfe8414a7b"
+      "ownedSha256": "6df36415997822828dc70484e688bca18a9beac5e84d27c40d94d279c262e69a"
     },
     {
       "path": "development/chains/v13/chains_dev_prod.json",
@@ -4344,7 +4344,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev_prod.json",
       "upstreamSha256": "8c7f01cd1ee0866df13ac3faa1315007361c96ce067cc062aea2d6e48ccc3235",
-      "ownedSha256": "dd481ff148fcf5f9fdb5f390d6b28c80486b4f0c1d054bf36480b4d7c125b417"
+      "ownedSha256": "1c33c1d44cb07db8861a150f51ccd03840bcf89ce3925438b9557aaf794ca1e2"
     },
     {
       "path": "development/fiat/fiats.json",
@@ -5165,6 +5165,7 @@
     "remote-config/development/chains/v13/chains_dev.json: omit unavailable optional Rootstock icon",
     "remote-config/production/crowdloan/polkadot.json: canonical filename case remote-config/production/crowdloan/icons/Litentry.png",
     "Omit unavailable optional Rootstock icon from bundled local_chains",
-    "Correct bundled Latest Mainnet icon to latestchain.svg"
+    "Correct bundled Latest Mainnet icon to latestchain.svg",
+    "Disable unreachable Reef Mainnet in app-owned catalogs after retaining unavailable chain parents and clearing stale staking selection; configured RPC returned HTTP502 on 2026-10-25. Legacy shared feeds remain unchanged."
   ]
 }
