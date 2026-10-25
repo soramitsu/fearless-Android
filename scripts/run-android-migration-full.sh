@@ -17,12 +17,23 @@ if [[ -e "$RESULTS_MARKER_RELATIVE" || -L "$RESULTS_MARKER_RELATIVE" ]]; then
 fi
 (umask 077; : >"$RESULTS_MARKER_RELATIVE")
 
+trap 'python3 scripts/android-app-instrumentation.py restore' EXIT
+python3 scripts/android-app-instrumentation.py prepare
+APP_TEST_ARGUMENTS=()
+while IFS= read -r argument; do
+  [[ "$argument" == -Pandroid.testInstrumentationRunnerArguments.*=* ]] || exit 1
+  APP_TEST_ARGUMENTS+=("$argument")
+done < build/reports/android-app-profiles/arguments.txt
+
 ./gradlew \
   :common:connectedDebugAndroidTest \
   :core-db:connectedDebugAndroidTest \
   :app:connectedDebugAndroidTest \
   :feature-account-impl:connectedDebugAndroidTest \
+  "${APP_TEST_ARGUMENTS[@]}" \
   --continue \
   --no-daemon \
   --console=plain \
   --stacktrace
+
+python3 scripts/android-app-instrumentation.py qualify

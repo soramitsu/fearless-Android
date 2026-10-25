@@ -396,7 +396,7 @@ class WalletLargeCacheStartupInstrumentedTest {
 
     companion object {
         // Exact current schema pinned for this source-bound historical fixture.
-        private const val EXPECTED_DATABASE_VERSION = 83
+        private const val EXPECTED_DATABASE_VERSION = 84
         private const val META_ID = 42L
         private const val WALLET_NAME = "Shipped large cache fixture 雪"
         private const val SENTINEL_KEY = "gate_fixture_unrelated_encrypted"

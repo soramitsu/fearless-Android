@@ -187,7 +187,7 @@ class WalletUnknownEcosystemInstrumentedTest {
             }
             expected[id] = mapChainLocalToChain(stored)
         }
-        for (id in listOf("bitcoin-mainnet", "solana-mainnet")) {
+        for (id in listOf("bitcoin-mainnet", "solana-mainnet", "bitcoin-testnet")) {
             expected[id] = mapChainLocalToChain(checkNotNull(dao.getJoinChainInfo(id)))
         }
         measure(f, "generated-dao-projection") {
@@ -206,6 +206,9 @@ class WalletUnknownEcosystemInstrumentedTest {
     private fun assertDomain(expected: Map<String, Chain>, actual: List<Chain>) {
         assertEquals(expected.keys, actual.map { it.id }.toSet())
         assertEquals(expected.size, actual.size)
+        val retainedTestnet = actual.single { it.id == "bitcoin-testnet" }
+        assertTrue(retainedTestnet.isTestNet)
+        assertTrue(retainedTestnet.assets.isEmpty() && retainedTestnet.nodes.isEmpty())
         for (chain in actual) {
             val prior = expected.getValue(chain.id)
             assertEquals(Gson().toJson(prior), Gson().toJson(chain))
@@ -314,7 +317,7 @@ class WalletUnknownEcosystemInstrumentedTest {
                         "THEN RAISE(ABORT,'FW_ECOSYSTEM_LATE_ABORT') ELSE RAISE(ABORT,'FW_ECOSYSTEM_EARLY_ABORT') END; END"
                 )
             }
-            assertEquals(83, sql.version)
+            assertEquals(84, sql.version)
             assertEquals(0, sql.query("PRAGMA foreign_key_check").use { it.count })
             protected = protectedRows(sql)
         } finally {

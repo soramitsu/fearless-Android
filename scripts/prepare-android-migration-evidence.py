@@ -21,6 +21,7 @@ DEFAULT_MODULE_SOURCES = (
 DEFAULT_FIXED_SOURCES = (
     ("build/reports/android-migration-compatibility", "compatibility"),
     ("build/reports/android-emulator-lifecycle", "emulator-lifecycle"),
+    ("build/reports/android-app-profiles", "app-profiles"),
 )
 WINDOWS_FORBIDDEN = frozenset('"*/:<>?\\|')
 WINDOWS_RESERVED = frozenset(

@@ -78,6 +78,17 @@ class PoolJoinJournalProcessInstrumentedTest {
         report("acknowledged-after-restart", retained)
     }
 
+    @Test fun prepareHistoricalUnanchoredAcknowledgement() {
+        prepare("acknowledged")
+        // The supported v1 encoder produces the pre-anchor storage format. Only the isolated
+        // public process-fixture preference file is written; this is not an old-APK claim.
+        val original = journal.retain(scope, BigInteger.TEN, BigInteger.ONE, signed, intent)
+        journal.acknowledge(original)
+        assertTrue(checkNotNull(shared.getString(scope.key, null)).startsWith("1\n"))
+        assertNull(checkNotNull(journal.read(scope)).anchor)
+        report("historical-unanchored-before-restart", checkNotNull(journal.read(scope)))
+    }
+
     @Test fun readHistoricalUnanchoredAcknowledgementAfterUpgrade() {
         assertEquals("acknowledged", shared.getString("fixture.phase", null))
         val before = shared.all.toMap()
@@ -140,7 +151,7 @@ class PoolJoinJournalProcessInstrumentedTest {
             .put("writerPid", shared.getInt("fixture.pid", -1)).put("recordSha256", digest)
             .put("transactionHash", archive.payment.transactionHash).put("attemptId", attemptId)
             .put("pendingAbsent", journal.read(scope) == null).put("fixtureOnly", true).put("networkRequests", 0)
-        val directory = File(context.getExternalFilesDir(null), "pool-join-process-evidence-v1").apply { mkdirs() }
+        val directory = File(context.cacheDir, "pool-join-process-evidence-v1").apply { mkdirs() }
         File(directory, "$phase.json").writeText(value.toString(2))
     }
 
@@ -168,7 +179,7 @@ class PoolJoinJournalProcessInstrumentedTest {
             .put("writerPid", shared.getInt("fixture.pid", -1)).put("recordSha256", digest)
             .put("transactionHash", payment.transactionHash).put("acknowledged", payment.acknowledged)
             .put("fixtureOnly", true).put("networkRequests", 0)
-        val directory = File(context.getExternalFilesDir(null), "pool-join-process-evidence-v1").apply { mkdirs() }
+        val directory = File(context.cacheDir, "pool-join-process-evidence-v1").apply { mkdirs() }
         File(directory, "$phase.json").writeText(value.toString(2))
     }
 }

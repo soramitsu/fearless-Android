@@ -86,6 +86,7 @@ jobs:
           bash ./scripts/test-android-release-sdk.sh
           bash ./scripts/test-android-migration-ci-gate.sh
           bash ./scripts/test-android-migration-instrumentation-results.sh
+          python3 ./scripts/test-android-app-instrumentation.py
           python3 ./scripts/test-android-migration-evidence-packaging.py
           bash ./scripts/test-android-aab-native-page-alignment.sh
           IAS_GRADLE_CONTRACT_ONLY=true \

@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-android-migration-ci-gate.sh"
 EXPECTED_POSITIVE_COUNT=1
-EXPECTED_NEGATIVE_COUNT=107
+EXPECTED_NEGATIVE_COUNT=112
 
 tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$tmp_root"
@@ -33,6 +33,8 @@ make_fixture() {
     "$fixture/scripts/run-android-migration-compatibility.sh"
   cp "$ROOT_DIR/scripts/run-android-migration-full.sh" \
     "$fixture/scripts/run-android-migration-full.sh"
+  cp "$ROOT_DIR/scripts/android-app-instrumentation.py" \
+    "$fixture/scripts/android-app-instrumentation.py"
   cp "$ROOT_DIR/scripts/prepare-android-migration-evidence.py" \
     "$fixture/scripts/prepare-android-migration-evidence.py"
   cp "$ROOT_DIR/scripts/test-android-migration-evidence-packaging.py" \
@@ -936,6 +938,26 @@ expect_failure \
   "suppressed compatibility result verification" \
   "must not filter tests or suppress failures" \
   "$fixture"
+
+for phase in prepare qualify; do
+  fixture="$(make_fixture "missing-app-$phase")"
+  replace_once "$fixture/scripts/run-android-migration-full.sh" \
+    "python3 scripts/android-app-instrumentation.py $phase" "echo disabled-$phase"
+  expect_failure "missing app $phase" "full migration runner line" "$fixture"
+done
+fixture="$(make_fixture missing-app-arguments)"
+replace_once "$fixture/scripts/run-android-migration-full.sh" \
+  '  "${APP_TEST_ARGUMENTS[@]}" \' '  --info \'
+expect_failure "missing app arguments" "full migration runner line" "$fixture"
+fixture="$(make_fixture missing-owned-device-contract)"
+replace_once "$fixture/scripts/run-android-emulator-ci.sh" \
+  'export ANDROID_APP_OWNED_DEVICE=exclusively-owned-disposable-emulator' 'echo disabled-admission'
+expect_failure "missing owned device admission" "lifecycle runner line" "$fixture"
+fixture="$(make_fixture missing-process-kill)"
+replace_once "$fixture/scripts/android-app-instrumentation.py" \
+  '                shell("run-as", PACKAGE, "kill", "-9", str(before["pid"]))' \
+  '                print("kill disabled")'
+expect_failure "missing actual process kill" "app profile evidence line" "$fixture"
 
 [[ "$positive_count" == "$EXPECTED_POSITIVE_COUNT" ]] ||
   fail "expected $EXPECTED_POSITIVE_COUNT positive case; got $positive_count"

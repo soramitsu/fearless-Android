@@ -428,6 +428,7 @@ observed_spellchecker="$(timeout "$COMMAND_TIMEOUT_SECONDS" \
   fail "failed to disable the Android spell checker"
 
 export ANDROID_SERIAL="$EMULATOR_SERIAL"
+export ANDROID_APP_OWNED_DEVICE=exclusively-owned-disposable-emulator
 test_status=0
 if [[ "$TEST_MODE" == "compatibility" ]]; then
   if MIGRATION_COMPAT_API="$API_LEVEL" \

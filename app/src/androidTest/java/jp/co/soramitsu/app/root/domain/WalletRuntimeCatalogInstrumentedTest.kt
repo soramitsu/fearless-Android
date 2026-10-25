@@ -350,7 +350,7 @@ class WalletRuntimeCatalogInstrumentedTest {
                     "'wss://public.invalid/archived',?,?,'SUBSTRATE',NULL,'PENDING')",
                     arrayOf("1".repeat(64), damaged, "2".repeat(64)))
             }
-            assertEquals(83, sql.version)
+            assertEquals(84, sql.version)
             assertEquals(0, sql.query("PRAGMA foreign_key_check").use { it.count })
             before = protectedRows(sql)
         } finally { seed.close() }

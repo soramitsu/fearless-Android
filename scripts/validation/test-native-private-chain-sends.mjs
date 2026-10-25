@@ -13,7 +13,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const exec = promisify(execFile);
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const webDir = path.resolve(process.env.FEARLESS_WEB_CHECKOUT || path.join(rootDir, '../fearless-wallet-web-E4-design'));
+const webDir = path.resolve(process.env.FEARLESS_WEB_CHECKOUT || path.join(rootDir, '../fearless-wallet-web'));
 const helperDir = path.join(webDir, 'scripts/local-chains');
 const { createBitcoindRpc, waitForBitcoind } = await import(pathToFileURL(path.join(helperDir, 'bitcoind-rpc.mjs')));
 const { startEsploraShim, toRegtestAddress, toTestnetAddress } = await import(pathToFileURL(path.join(helperDir, 'esplora-regtest-shim.mjs')));

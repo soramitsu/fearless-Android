@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.SharedPreferences
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.view.View
 import android.view.WindowManager
@@ -302,8 +303,13 @@ class WalletEmergencyPagingInstrumentedTest {
             source = checkNotNull(args.getString("fearlessEmergencyPagingSource"))
             check(nonce.matches(Regex("[0-9a-f]{32}")) && source.matches(Regex("[0-9a-f]{40}")))
             check(args.getString("fearlessEmergencyPagingSerial")?.matches(Regex("emulator-[0-9]+")) == true)
-            check(args.getString("fearlessEmergencyPagingAvd") == "FearlessEmergencyPagingApi${Build.VERSION.SDK_INT}_$nonce")
             check(Build.VERSION.SDK_INT in setOf(26, 34, 36) && Build.HARDWARE in setOf("ranchu", "goldfish"))
+            val actualAvd = ParcelFileDescriptor.AutoCloseInputStream(
+                InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("getprop ro.boot.qemu.avd_name")
+            ).bufferedReader().use { it.readText().trim() }
+            check(actualAvd.isNotEmpty() && args.getString("fearlessEmergencyPagingAvd") == actualAvd)
+            check(args.getString("fearlessEmergencyPagingUid") == Process.myUid().toString())
+            check(context.packageName == "jp.co.soramitsu.fearless.debug")
             check(Process.myUid() == context.applicationInfo.uid)
             namespace = "emergency-paging-$nonce-$label-${UUID.randomUUID()}"
             scope = FixtureContext(context, namespace)

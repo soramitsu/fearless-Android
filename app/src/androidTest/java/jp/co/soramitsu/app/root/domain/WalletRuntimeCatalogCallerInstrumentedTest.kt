@@ -86,7 +86,7 @@ class WalletRuntimeCatalogCallerInstrumentedTest {
     }
 
     private suspend fun qualifyCaller(room: AppDatabase, directory: File, damaged: String, omitted: Field?) {
-        val nativeBefore = listOf("bitcoin-mainnet", "solana-mainnet").map { id ->
+        val nativeBefore = listOf("bitcoin-mainnet", "solana-mainnet", "bitcoin-testnet").map { id ->
             mapChainLocalToChain(checkNotNull(room.chainDao().getJoinChainInfo(id)))
         }
         val expected = (listOf("a", "b").map { id ->
@@ -115,6 +115,9 @@ class WalletRuntimeCatalogCallerInstrumentedTest {
     private fun assertDomain(expected: Map<String, Chain>, actual: List<Chain>) {
         assertEquals(expected.keys, actual.map { it.id }.toSet())
         assertEquals(expected.size, actual.size)
+        val retainedTestnet = actual.single { it.id == "bitcoin-testnet" }
+        assertTrue(retainedTestnet.isTestNet)
+        assertTrue(retainedTestnet.assets.isEmpty() && retainedTestnet.nodes.isEmpty())
         for (chain in actual) {
             val original = expected.getValue(chain.id)
             assertEquals(original, chain)
@@ -211,7 +214,7 @@ class WalletRuntimeCatalogCallerInstrumentedTest {
                     "'wss://public.invalid/archived',?,?,'SUBSTRATE',NULL,'PENDING')",
                     arrayOf("1".repeat(64), damaged, "2".repeat(64)))
             }
-            assertEquals(83, sql.version)
+            assertEquals(84, sql.version)
             assertEquals(0, sql.query("PRAGMA foreign_key_check").use { it.count })
             before = protectedRows(sql)
         } finally { seed.close() }

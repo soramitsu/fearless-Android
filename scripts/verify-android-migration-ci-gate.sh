@@ -7,6 +7,7 @@ WORKFLOW="$ROOT_DIR/.github/workflows/android-ci.yml"
 EMULATOR_RUNNER="$ROOT_DIR/scripts/run-android-emulator-ci.sh"
 COMPATIBILITY_RUNNER="$ROOT_DIR/scripts/run-android-migration-compatibility.sh"
 FULL_RUNNER="$ROOT_DIR/scripts/run-android-migration-full.sh"
+APP_PROFILE_RUNNER="$ROOT_DIR/scripts/android-app-instrumentation.py"
 EVIDENCE_PREPARER="$ROOT_DIR/scripts/prepare-android-migration-evidence.py"
 EVIDENCE_PREPARER_TEST="$ROOT_DIR/scripts/test-android-migration-evidence-packaging.py"
 
@@ -31,6 +32,8 @@ fail() {
   fail "Android full migration runner must be a regular non-symlink file"
 [[ "$(wc -c < "$FULL_RUNNER" | tr -d '[:space:]')" -le 32768 ]] ||
   fail "Android full migration runner exceeds the 32 KiB review limit"
+[[ -f "$APP_PROFILE_RUNNER" && ! -L "$APP_PROFILE_RUNNER" ]] ||
+  fail "Android app profile runner must be a regular non-symlink file"
 [[ -f "$EVIDENCE_PREPARER" && ! -L "$EVIDENCE_PREPARER" ]] ||
   fail "Android migration evidence preparer must be a regular non-symlink file"
 [[ "$(wc -c < "$EVIDENCE_PREPARER" | tr -d '[:space:]')" -le 40960 ]] ||
@@ -112,6 +115,9 @@ require_block_line "$build_job" \
 require_block_line "$build_job" \
   "          bash ./scripts/test-android-migration-instrumentation-results.sh" \
   "migration result-parser adversarial guard invocation"
+require_block_line "$build_job" \
+  "          python3 ./scripts/test-android-app-instrumentation.py" \
+  "app profile evidence adversarial guard invocation"
 require_block_line "$build_job" \
   "          python3 ./scripts/test-android-migration-evidence-packaging.py" \
   "migration evidence-packaging adversarial guard invocation"
@@ -294,6 +300,7 @@ required_emulator_runner_lines=(
   '  fail "expected exactly one Android transport; found $transport_count"'
   '  fail "an Android transport is already attached before emulator startup"'
   'export ANDROID_SERIAL="$EMULATOR_SERIAL"'
+  'export ANDROID_APP_OWNED_DEVICE=exclusively-owned-disposable-emulator'
   '  if MIGRATION_COMPAT_API="$API_LEVEL" \'
   '    bash "$ROOT_DIR/scripts/run-android-migration-compatibility.sh"; then'
   '  if bash "$ROOT_DIR/scripts/run-android-migration-full.sh"; then'
@@ -454,6 +461,9 @@ for module in common core-db app; do
 done
 
 required_full_runner_lines=(
+  'python3 scripts/android-app-instrumentation.py prepare'
+  'python3 scripts/android-app-instrumentation.py qualify'
+  '  "${APP_TEST_ARGUMENTS[@]}" \'
   'RESULTS_MARKER_RELATIVE="build/reports/android-migration-results/full-start.marker"'
   'rm -rf common/build/outputs/androidTest-results/connected'
   'rm -rf core-db/build/outputs/androidTest-results/connected'
@@ -481,6 +491,16 @@ for required_line in "${required_full_runner_lines[@]}"; do
   [[ "$(grep -Fxc -- "$required_line" "$FULL_RUNNER" || true)" == "1" ]] ||
     fail "Android full migration runner line '$required_line' must appear exactly once"
 done
+for required_line in \
+  '        process_profiles(value)' \
+  '        verify_v1(EVIDENCE / "v1")' \
+  '                shell("run-as", PACKAGE, "kill", "-9", str(before["pid"]))' \
+  '        verify_pair(before, after)' \
+  '            verify_pair(before, after, archived=archived)' \
+  '    if len(pairs) != 7:'; do
+  [[ "$(grep -Fxc -- "$required_line" "$APP_PROFILE_RUNNER" || true)" == "1" ]] ||
+    fail "Android app profile evidence line '$required_line' must appear exactly once"
+done
 
 required_evidence_preparer_lines=(
   'OUTPUT_RELATIVE = "build/reports/android-migration-upload"'
@@ -488,6 +508,7 @@ required_evidence_preparer_lines=(
   '    ("build/reports/androidTests/connected", "android-test-reports"),'
   '    ("build/reports/android-migration-compatibility", "compatibility"),'
   '    ("build/reports/android-emulator-lifecycle", "emulator-lifecycle"),'
+  '    ("build/reports/android-app-profiles", "app-profiles"),'
   "WINDOWS_FORBIDDEN = frozenset('\"*/:<>?\\\\|')"
   'MAX_COMPONENT_BYTES = 108'
   'MAX_RELATIVE_PATH_BYTES = 220'
@@ -526,6 +547,10 @@ for module in common core-db app feature-account-impl; do
 done
 ((full_marker_line < full_gradle_line)) ||
   fail "Android full marker must be created after every cleanup and before Gradle"
+full_prepare_line="$(grep -Fnx 'python3 scripts/android-app-instrumentation.py prepare' "$FULL_RUNNER" | cut -d: -f1)"
+full_qualify_line="$(grep -Fnx 'python3 scripts/android-app-instrumentation.py qualify' "$FULL_RUNNER" | cut -d: -f1)"
+((full_marker_line < full_prepare_line && full_prepare_line < full_gradle_line && full_gradle_line < full_qualify_line)) ||
+  fail "Android app profile preparation and qualification ordering is malformed"
 
 instrumentation_step="$({
   extract_step "$build_job" "Wallet migration and startup instrumentation"

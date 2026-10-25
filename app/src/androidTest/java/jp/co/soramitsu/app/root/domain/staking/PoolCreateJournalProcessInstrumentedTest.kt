@@ -128,7 +128,7 @@ class PoolCreateJournalProcessInstrumentedTest {
             .put("poolName", archive.payment.create?.poolName).put("nominatorAddress", archive.payment.create?.nominatorAddress)
             .put("stateTogglerAddress", archive.payment.create?.stateTogglerAddress).put("fieldCount", encoded.split('\n').size)
             .put("pendingAbsent", journal.read(scope) == null).put("fixtureOnly", true).put("networkRequests", 0)
-        val directory = File(context.getExternalFilesDir(null), "pool-create-process-evidence-v1").apply { mkdirs() }
+        val directory = File(context.cacheDir, "pool-create-process-evidence-v1").apply { mkdirs() }
         File(directory, "$phase.json").writeText(value.toString(2))
     }
 
@@ -159,7 +159,7 @@ class PoolCreateJournalProcessInstrumentedTest {
             .put("poolName", payment.create?.poolName).put("nominatorAddress", payment.create?.nominatorAddress)
             .put("stateTogglerAddress", payment.create?.stateTogglerAddress).put("fieldCount", encoded.split('\n').size)
             .put("fixtureOnly", true).put("networkRequests", 0)
-        val directory = File(context.getExternalFilesDir(null), "pool-create-process-evidence-v1").apply { mkdirs() }
+        val directory = File(context.cacheDir, "pool-create-process-evidence-v1").apply { mkdirs() }
         File(directory, "$phase.json").writeText(value.toString(2))
     }
 }

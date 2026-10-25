@@ -3,6 +3,9 @@ package jp.co.soramitsu.app.root.presentation.main
 import android.Manifest
 import android.app.ActivityManager
 import android.app.UiModeManager
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.PowerManager
@@ -62,6 +65,11 @@ class WalletEffectsModeInstrumentedTest {
             .bufferedReader().use { it.readText().trim() }
         val originalContrast = shell("settings get secure $contrastKey")
         check(originalContrast == "null" || originalContrast.matches(Regex("[-+0-9.eE]+")))
+        check(Build.HARDWARE in setOf("ranchu", "goldfish")) { "System effects qualification requires a disposable emulator" }
+        check(!shell("dumpsys battery").contains("UPDATES STOPPED")) { "Refuse to replace an existing battery override" }
+        val originalPlugged = checkNotNull(context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)))
+            .getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
+        var batteryOverrideStarted = false
         assertFalse("This qualification device must support the Full tier", context.getSystemService(ActivityManager::class.java).isLowRamDevice)
         var legacy by mutableStateOf(false)
         val observed = AtomicReference<Observation>()
@@ -85,6 +93,14 @@ class WalletEffectsModeInstrumentedTest {
         }
         automation.adoptShellPermissionIdentity(Manifest.permission.WRITE_SECURE_SETTINGS)
         try {
+            // A charging emulator refuses battery saver. Exercise the real OS callback while
+            // disconnected, then restore hardware-backed battery reporting in the finally block.
+            batteryOverrideStarted = true
+            shell("cmd battery unplug")
+            compose.waitUntil(10_000) {
+                context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                    ?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) == 0
+            }
             assertTrue(appearance.save(FwAppearance()))
             shell("settings put secure $contrastKey 0")
             setPowerSave(false)
@@ -130,8 +146,16 @@ class WalletEffectsModeInstrumentedTest {
                 }.commit())
                 setPowerSave(originalPowerSave)
             } finally {
-                automation.dropShellPermissionIdentity()
+                try {
+                    if (batteryOverrideStarted) shell("cmd battery reset")
+                } finally {
+                    automation.dropShellPermissionIdentity()
+                }
             }
+        }
+        compose.waitUntil(10_000) {
+            context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                ?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) == originalPlugged
         }
         assertEquals(originalPreferences, raw.all)
         assertEquals(originalContrast, shell("settings get secure $contrastKey"))

@@ -2,6 +2,22 @@
 
 # Roadmap & Technical Debt
 
+## Local app instrumentation profiles — 26 October 2026
+
+The full local runner now distinguishes ordinary portable tests, mandatory
+host-driven journal process transitions, and a separate v1 presentation artifact.
+Historical installed-device and private-validator qualifications remain explicitly
+inventoried and unqualified by the migration run. Safety admission, zero-skip
+verification, required identities and count floors remain enforced. See
+`docs/android-app-instrumentation-profiles.md` for invocation and evidence scope.
+
+Current-schema fixture expectations use schema 84 and preserve the address-only
+Bitcoin testnet catalog row. Disposable fixtures bind the real emulator AVD and
+UID; system effects tests disconnect and restore emulator battery reporting.
+The focused 36 app regressions pass with zero failures/errors/skips. Final
+release validation additionally requires the complete local wrapper, the five
+v1 UI checks and seven actual process transitions with exact source/APK digests.
+
 ## Iroha read response validation and CI ownership — 25 October 2026
 
 Iroha MCP decoding now checks explicit wire version and string request identity

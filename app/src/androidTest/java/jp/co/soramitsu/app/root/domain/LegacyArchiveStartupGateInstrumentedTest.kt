@@ -8,6 +8,7 @@ import android.database.Cursor
 import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.os.Process
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -281,11 +282,18 @@ class LegacyArchiveStartupGateInstrumentedTest {
         check(args.getString("fearlessArchiveGateOwnedUid") == "exclusively-owned-disposable-app-uid") {
             "This suite requires an explicitly owned disposable app UID; it must never run on a personal wallet install"
         }
-        val expectedSerial = mapOf(26 to "emulator-5724", 34 to "emulator-5720", 36 to "emulator-5722")[Build.VERSION.SDK_INT]
-        check(expectedSerial != null && args.getString("fearlessArchiveGateOwnedSerial") == expectedSerial) {
+        check(Build.VERSION.SDK_INT in setOf(26, 34, 36) && Build.HARDWARE in setOf("ranchu", "goldfish"))
+        check(args.getString("fearlessArchiveGateOwnedSerial")?.matches(Regex("emulator-[0-9]+")) == true) {
             "Runner must bind the owned serial argument to its actual adb target"
         }
-        check(Process.myUid() == InstrumentationRegistry.getInstrumentation().targetContext.applicationInfo.uid)
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val actualAvd = ParcelFileDescriptor.AutoCloseInputStream(
+            instrumentation.uiAutomation.executeShellCommand("getprop ro.boot.qemu.avd_name")
+        ).bufferedReader().use { it.readText().trim() }
+        check(actualAvd.isNotEmpty() && args.getString("fearlessArchiveGateOwnedAvd") == actualAvd)
+        check(args.getString("fearlessArchiveGateUid") == Process.myUid().toString())
+        check(instrumentation.targetContext.packageName == "jp.co.soramitsu.fearless.debug")
+        check(Process.myUid() == instrumentation.targetContext.applicationInfo.uid)
     }
 
     private class FixtureContext(base: Context, val namespace: String) : ContextWrapper(base) {
@@ -355,7 +363,7 @@ class LegacyArchiveStartupGateInstrumentedTest {
 
     companion object {
         // Exact current schema pinned for this source-bound historical fixture.
-        private const val EXPECTED_DATABASE_VERSION = 81
+        private const val EXPECTED_DATABASE_VERSION = 84
         private const val META_ID = 42L
         private const val WALLET_NAME = "Startup archive fixture 雪"
         private const val NODE_LABEL = "Retained endpoint 雪"
