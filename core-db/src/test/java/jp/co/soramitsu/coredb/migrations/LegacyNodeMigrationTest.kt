@@ -1,6 +1,7 @@
 package jp.co.soramitsu.coredb.migrations
 
 import android.database.Cursor
+import com.google.gson.JsonParser
 import androidx.sqlite.db.SupportSQLiteDatabase
 import java.security.MessageDigest
 import org.junit.Assert.assertEquals
@@ -14,6 +15,33 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 
 class LegacyNodeMigrationTest {
+    @Test
+    fun `new parent seed metadata only relocates legacy URLs and preserves released identities`() {
+        val stream = checkNotNull(javaClass.getResourceAsStream("/migrations/legacy-node-parent-seeds-v1.json"))
+        val historical = stream.bufferedReader().use { JsonParser.parseReader(it).asJsonObject.getAsJsonArray("rows") }
+        var relocated = 0
+        historical.forEachIndexed { index, value ->
+            value.asJsonArray.forEachIndexed { column, cell ->
+                val original = if (cell.isJsonNull) null else cell.asString
+                val expected = original
+                    ?.replace(
+                        "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/",
+                        "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/"
+                    )
+                    ?.replace(
+                        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/",
+                        "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/"
+                    )
+                if (expected != original) {
+                    assertTrue(column in listOf(3, 8, 14))
+                    relocated++
+                }
+                assertEquals("Seed $index column $column", expected, legacyNodeParentRows[index][column]?.toString())
+            }
+        }
+        assertEquals(16, relocated)
+    }
+
     @Test
     fun `all sixteen released ordinals and thirteen complete parent seeds are pinned`() {
         assertEquals(16, legacyNodeNetworkChainIds.size)
@@ -29,7 +57,7 @@ class LegacyNodeMigrationTest {
         val canonical = legacyNodeParentRows.joinToString("\n") { row ->
             row.joinToString("\u0000") { it?.toString() ?: "<null>" }
         }
-        assertEquals("0bf2930fd008c080b4f48c8353ade671a45f239d31cf7c2704d49921da2460bc", sha256(canonical.toByteArray()))
+        assertEquals("69bb3e72704bc7817e440f0345442277a7b88bbcba8c8f36e5474c85c5c24de1", sha256(canonical.toByteArray()))
         val fixture = checkNotNull(javaClass.getResourceAsStream("/migrations/legacy-node-parent-seeds-v1.json"))
         fixture.use {
             assertEquals("3ea197a9c584abdd13617ec1aff3672c793b7361676c9006cadc3ae22471b99e", sha256(it.readBytes()))

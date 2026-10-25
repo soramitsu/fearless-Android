@@ -100,6 +100,21 @@ class OwnedConfigTest(unittest.TestCase):
         (self.root / 'build.gradle').write_text('url = "' + VERIFY.PREFIX + 'icon.svg"')
         self.assertEqual(2, VERIFY.verify(self.root))
 
+    def test_legacy_runtime_consumer_rejected(self):
+        path = self.root / 'core-db/src/main/java/Seeds.kt'
+        path.parent.mkdir(parents=True)
+        path.write_text('val icon = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icon.svg"')
+        self.rejected()
+
+    def test_historical_source_exception_does_not_allow_active_asset_url(self):
+        path = self.root / 'runtime/src/main/assets/canonical-asset-groups.v1.json'
+        path.parent.mkdir(parents=True)
+        old = 'https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json'
+        path.write_text(json.dumps({'registry': {'source': old}}))
+        self.assertEqual(2, VERIFY.verify(self.root))
+        path.write_text(json.dumps({'registry': {'source': old}, 'icon': old}))
+        self.rejected()
+
     def test_imported_repository(self):
         self.assertGreater(VERIFY.verify(ROOT), 600)
 

@@ -9,6 +9,11 @@ from urllib.parse import unquote, urlsplit
 
 PREFIX = 'https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/'
 LEGACY = ('shared-features-utils', 'raw.githubusercontent.com/soramitsu/fearless-utils/', 'cdn.jsdelivr.net/gh/soramitsu/fearless-utils@')
+PROVENANCE_ASSETS = {
+    'runtime/src/main/assets/canonical-asset-groups.v1.json',
+    'runtime/src/main/assets/default-visible-at-zero.v1.json',
+    'runtime/src/main/assets/testnet-chain-ids.v1.json',
+}
 
 
 def values(value):
@@ -41,6 +46,19 @@ def verify_consumers(root, listed):
         paths.update(path for path in root.glob(pattern) if path.is_file())
     for path in paths:
         text = path.read_text()
+        if path.suffix == '.json':
+            document = json.loads(text)
+            # These snapshots name their historical input; the URL is metadata,
+            # never a request target. Only this exact field is exempted.
+            if path.relative_to(root).as_posix() in PROVENANCE_ASSETS:
+                registry = document.get('registry', {})
+                registry.pop('source', None)
+            urls = values(document)
+        else:
+            urls = re.findall(r"https?://[^\s\"'\\<>]+", text)
+        for value in urls:
+            if value.startswith(('http://', 'https://')) and any(old in value for old in LEGACY):
+                raise ValueError('Legacy runtime consumer URL in ' + str(path) + ': ' + value)
         for value in re.findall(re.escape(PREFIX) + r"[^\s\"'\\<>]+", text):
             suffix = unquote(value[len(PREFIX):])
             if suffix not in listed:
