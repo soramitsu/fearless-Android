@@ -176,7 +176,7 @@ class RuntimeProviderTest {
     fun `should wait until current job is finished before consider reconstructing runtime on runtime sync event`() {
         runBlocking {
             whenever(runtimeFactory.constructRuntime(any(), any(), anyInt())).thenAnswer {
-                runBlocking { chainSyncFlow.first() }  // ensure runtime wont be returned until chainSyncFlow event
+                runBlocking { chainSyncFlow.first() }  // ensure runtime will not be returned until chainSyncFlow event
 
                 constructedRuntime
             }

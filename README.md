@@ -32,7 +32,7 @@ MOONPAY_TEST_PUBLIC_KEY=stub
 MOONPAY_PRODUCTION_PUBLIC_KEY=stub
 ```
 
-Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
+MoonPay purchases require valid keys; stub keys let you build and use the other parts of the application.
 The Android artifact accepts only MoonPay publishable keys. It intentionally
 does not prefill `walletAddress`, because MoonPay requires that parameter to be
 signed by a backend-held API secret. Never add a MoonPay secret or client-side
