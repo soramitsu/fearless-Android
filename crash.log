@@ -1,0 +1,1008 @@
+08-04 15:06:31.593 E/AndroidRuntime( 2759): FATAL EXCEPTION: main
+08-04 15:06:31.593 E/AndroidRuntime( 2759): Process: com.instagram.android, PID: 2759
+08-04 15:06:31.593 E/AndroidRuntime( 2759): android.view.InflateException: Binary XML file line #97: Binary XML file line #97: You must supply a layout_height attribute., theme={InheritanceMap=[id=0x7f1402a2com.instagram.android:style/IgdsPrismIndigoBadgeIndigoTextLinkExperiment, id=0x7f1402a1com.instagram.android:style/IgdsPrismIndigoBadgeIndigoTextLinkDark, id=0x7f1402a6com.instagram.android:style/IgdsPrismIndigoBrightTextLinkExperimentDark, id=0x7f1402aacom.instagram.android:style/IgdsPrismSemanticColorsExperimentDark, id=0x7f1402adcom.instagram.android:style/IgdsSemanticColorsDark], Themes=[com.instagram.android:style/IgdsPrismIndigoBadgeIndigoTextLinkExperiment, forced, com.instagram.android:style/BrowserFullscreen, forced, com.instagram.android:style/ExoStyledControls, forced, android:style/Theme.DeviceDefault.Light.DarkActionBar, forced]}
+08-04 15:06:31.593 E/AndroidRuntime( 2759): Caused by: java.lang.UnsupportedOperationException: Binary XML file line #97: You must supply a layout_height attribute., theme={InheritanceMap=[id=0x7f1402a2com.instagram.android:style/IgdsPrismIndigoBadgeIndigoTextLinkExperiment, id=0x7f1402a1com.instagram.android:style/IgdsPrismIndigoBadgeIndigoTextLinkDark, id=0x7f1402a6com.instagram.android:style/IgdsPrismIndigoBrightTextLinkExperimentDark, id=0x7f1402aacom.instagram.android:style/IgdsPrismSemanticColorsExperimentDark, id=0x7f1402adcom.instagram.android:style/IgdsSemanticColorsDark], Themes=[com.instagram.android:style/IgdsPrismIndigoBadgeIndigoTextLinkExperiment, forced, com.instagram.android:style/BrowserFullscreen, forced, com.instagram.android:style/ExoStyledControls, forced, android:style/Theme.DeviceDefault.Light.DarkActionBar, forced]}
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.content.res.TypedArray.getLayoutDimension(TypedArray.java:843)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.view.ViewGroup$LayoutParams.setBaseAttributes(ViewGroup.java:8754)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.view.ViewGroup$MarginLayoutParams.<init>(ViewGroup.java:8951)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.widget.RelativeLayout$LayoutParams.<init>(RelativeLayout.java:1325)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.widget.RelativeLayout.generateLayoutParams(RelativeLayout.java:1139)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.widget.RelativeLayout.generateLayoutParams(RelativeLayout.java:100)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.view.LayoutInflater.rInflate(LayoutInflater.java:1029)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.view.LayoutInflater.inflate(LayoutInflater.java:546)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.5pU.inflate(:268435460)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.view.LayoutInflater.inflate(LayoutInflater.java:468)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.5pU.inflate(:8)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.5pT.inflate(:262)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.view.LayoutInflater.inflate(LayoutInflater.java:419)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at com.facebook.browser.lite.chrome.container.DefaultBrowserLiteChrome.D4m(:57)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.PrT.Feg(:24)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at com.facebook.browser.lite.BrowserLiteFragment.onActivityCreated(:1653)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at androidx.fragment.app.Fragment.performActivityCreated(:11)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.0Im.A03(:475)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.0Ic.A0l(:56)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.0Ic.A0C(:33)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.0Ic.A0Y(:11)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at androidx.fragment.app.FragmentActivity.onStart(:29)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at androidx.appcompat.app.AppCompatActivity.onStart(:7)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at com.instagram.base.activity.IgFragmentActivity.onStart(:122)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.Instrumentation.callActivityOnStart(Instrumentation.java:1701)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.Activity.performStart(Activity.java:9406)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.ActivityThread.handleStartActivity(ActivityThread.java:4488)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.servertransaction.TransactionExecutor.performLifecycleSequence(TransactionExecutor.java:270)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.servertransaction.TransactionExecutor.cycleToPath(TransactionExecutor.java:250)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.servertransaction.TransactionExecutor.executeLifecycleItem(TransactionExecutor.java:222)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:107)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:81)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2895)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.0ea.A00(:13)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.265.A89(:87)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at X.0ea.handleMessage(:37)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.os.Handler.dispatchMessage(Handler.java:103)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.os.Looper.loopOnce(Looper.java:257)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.os.Looper.loop(Looper.java:342)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at android.app.ActivityThread.main(ActivityThread.java:9634)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at java.lang.reflect.Method.invoke(Native Method)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:619)
+08-04 15:06:31.593 E/AndroidRuntime( 2759): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+08-14 19:07:05.733 E/AndroidRuntime(14912): FATAL EXCEPTION: main
+08-14 19:07:05.733 E/AndroidRuntime(14912): Process: com.instagram.android, PID: 14912
+08-14 19:07:05.733 E/AndroidRuntime(14912): java.lang.ClassCastException: X.7gN cannot be cast to X.8Ai
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5vB.A07(:63)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5vB.A04(:6)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5vB.A06(:110)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5vB.A05(:40)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5vB.bindView(:156)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5AX.A0q(:133)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5AU.A0q(:259)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.5AX.A0d(:2)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.3eO.A0T(:179)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.3b0.A02(:67)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.3b0.A05(:239)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.3yN.A00(:64)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at X.3yN.run(:242)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at android.os.Handler.handleCallback(Handler.java:959)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at android.os.Handler.dispatchMessage(Handler.java:100)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at android.os.Looper.loopOnce(Looper.java:257)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at android.os.Looper.loop(Looper.java:342)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at android.app.ActivityThread.main(ActivityThread.java:9634)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at java.lang.reflect.Method.invoke(Native Method)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:619)
+08-14 19:07:05.733 E/AndroidRuntime(14912): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+08-14 19:07:16.950 E/AndroidRuntime(15564): FATAL EXCEPTION: main
+08-14 19:07:16.950 E/AndroidRuntime(15564): Process: com.instagram.android, PID: 15564
+08-14 19:07:16.950 E/AndroidRuntime(15564): java.lang.ClassCastException: X.7gN cannot be cast to X.8Ai
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5vB.A07(:63)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5vB.A04(:6)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5vB.A06(:110)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5vB.A05(:40)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5vB.bindView(:156)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5AX.A0q(:133)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5AU.A0q(:259)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.5AX.A0d(:2)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.3eO.A0T(:179)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.3b0.A02(:67)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.3b0.A05(:239)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.3yN.A00(:64)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at X.3yN.run(:242)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at android.os.Handler.handleCallback(Handler.java:959)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at android.os.Handler.dispatchMessage(Handler.java:100)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at android.os.Looper.loopOnce(Looper.java:257)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at android.os.Looper.loop(Looper.java:342)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at android.app.ActivityThread.main(ActivityThread.java:9634)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at java.lang.reflect.Method.invoke(Native Method)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:619)
+08-14 19:07:16.950 E/AndroidRuntime(15564): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+08-14 19:07:34.198 E/AndroidRuntime(16026): FATAL EXCEPTION: main
+08-14 19:07:34.198 E/AndroidRuntime(16026): Process: com.instagram.android, PID: 16026
+08-14 19:07:34.198 E/AndroidRuntime(16026): java.lang.ClassCastException: X.7gN cannot be cast to X.8Ai
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5vB.A07(:63)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5vB.A04(:6)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5vB.A06(:110)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5vB.A05(:40)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5vB.bindView(:156)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5AX.A0q(:133)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5AU.A0q(:259)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.5AX.A0d(:2)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.3eO.A0T(:179)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.3b0.A02(:67)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.3b0.A05(:239)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.3yN.A00(:64)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at X.3yN.run(:242)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at android.os.Handler.handleCallback(Handler.java:959)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at android.os.Handler.dispatchMessage(Handler.java:100)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at android.os.Looper.loopOnce(Looper.java:257)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at android.os.Looper.loop(Looper.java:342)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at android.app.ActivityThread.main(ActivityThread.java:9634)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at java.lang.reflect.Method.invoke(Native Method)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:619)
+08-14 19:07:34.198 E/AndroidRuntime(16026): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): FATAL EXCEPTION: main
+08-14 20:26:29.568 E/AndroidRuntime( 7820): Process: com.instagram.android, PID: 7820
+08-14 20:26:29.568 E/AndroidRuntime( 7820): java.lang.ClassCastException: X.7gN cannot be cast to X.8Ai
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5vB.A07(:63)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5vB.A04(:6)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5vB.A06(:110)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5vB.A05(:40)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5vB.bindView(:156)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5AX.A0q(:133)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5AU.A0q(:259)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.5AX.A0d(:2)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.3eO.A0T(:179)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.3b0.A02(:67)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.3b0.A05(:239)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.3yN.A00(:64)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at X.3yN.run(:242)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at android.os.Handler.handleCallback(Handler.java:959)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at android.os.Handler.dispatchMessage(Handler.java:100)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at android.os.Looper.loopOnce(Looper.java:257)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at android.os.Looper.loop(Looper.java:342)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at android.app.ActivityThread.main(ActivityThread.java:9634)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at java.lang.reflect.Method.invoke(Native Method)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:619)
+08-14 20:26:29.568 E/AndroidRuntime( 7820): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+08-25 18:22:31.466 E/AndroidRuntime(14579): FATAL EXCEPTION: main
+08-25 18:22:31.466 E/AndroidRuntime(14579): Process: jp.co.soramitsu.fearless.debug, PID: 14579
+08-25 18:22:31.466 E/AndroidRuntime(14579): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	at java.lang.Thread.run(Thread.java:1012)
+08-25 18:22:31.466 E/AndroidRuntime(14579): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@ffd4b88, Dispatchers.Main.immediate]
+08-25 18:22:58.421 E/AndroidRuntime(21574): FATAL EXCEPTION: main
+08-25 18:22:58.421 E/AndroidRuntime(21574): Process: jp.co.soramitsu.fearless.debug, PID: 21574
+08-25 18:22:58.421 E/AndroidRuntime(21574): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	at java.lang.Thread.run(Thread.java:1012)
+08-25 18:22:58.421 E/AndroidRuntime(21574): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@e4502ab, Dispatchers.Main.immediate]
+08-25 18:23:31.672 E/AndroidRuntime(23042): FATAL EXCEPTION: main
+08-25 18:23:31.672 E/AndroidRuntime(23042): Process: jp.co.soramitsu.fearless.debug, PID: 23042
+08-25 18:23:31.672 E/AndroidRuntime(23042): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	at java.lang.Thread.run(Thread.java:1012)
+08-25 18:23:31.672 E/AndroidRuntime(23042): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@7b3cb01, Dispatchers.Main.immediate]
+08-25 18:23:53.075 E/AndroidRuntime(24193): FATAL EXCEPTION: main
+08-25 18:23:53.075 E/AndroidRuntime(24193): Process: jp.co.soramitsu.fearless.debug, PID: 24193
+08-25 18:23:53.075 E/AndroidRuntime(24193): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	at java.lang.Thread.run(Thread.java:1012)
+08-25 18:23:53.075 E/AndroidRuntime(24193): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@a77aed9, Dispatchers.Main.immediate]
+08-25 18:25:27.940 E/AndroidRuntime(25249): FATAL EXCEPTION: main
+08-25 18:25:27.940 E/AndroidRuntime(25249): Process: jp.co.soramitsu.fearless.debug, PID: 25249
+08-25 18:25:27.940 E/AndroidRuntime(25249): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	at java.lang.Thread.run(Thread.java:1012)
+08-25 18:25:27.940 E/AndroidRuntime(25249): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@2e063be, Dispatchers.Main.immediate]
+08-26 11:11:33.808 E/AndroidRuntime(31384): FATAL EXCEPTION: main
+08-26 11:11:33.808 E/AndroidRuntime(31384): Process: jp.co.soramitsu.fearless, PID: 31384
+08-26 11:11:33.808 E/AndroidRuntime(31384): java.lang.IllegalStateException: cannot find accountId
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at gh.a$x.invokeSuspend(Unknown Source:35)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at gh.a$x.a(Unknown Source:13)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at gh.a$x.invoke(Unknown Source:6)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.FlowKt__ZipKt$combine$1$1.invokeSuspend(Unknown Source:57)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.FlowKt__ZipKt$combine$1$1.invoke(SourceFile:2)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.FlowKt__ZipKt$combine$1$1.invoke(SourceFile:1)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.internal.CombineKt$combineInternal$2.invokeSuspend(Unknown Source:267)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at hk.a.resumeWith(Unknown Source:11)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.DispatchedTaskKt.resume(Unknown Source:61)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.DispatchedTaskKt.resumeUnconfined(Unknown Source:24)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.DispatchedTaskKt.dispatch(Unknown Source:47)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.CancellableContinuationImpl.dispatchResume(Unknown Source:7)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.CancellableContinuationImpl.completeResume(Unknown Source:2)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.channels.BufferedChannelKt.tryResume0(Unknown Source:7)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.channels.BufferedChannelKt.access$tryResume0(Unknown Source:0)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.channels.BufferedChannel.tryResumeReceiver(Unknown Source:49)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.channels.BufferedChannel.updateCellSend(Unknown Source:52)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.channels.BufferedChannel.access$updateCellSend(Unknown Source:0)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.channels.BufferedChannel.send$suspendImpl(Unknown Source:70)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.channels.BufferedChannel.send(Unknown Source:0)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.internal.CombineKt$combineInternal$2$1$1.emit(Unknown Source:70)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.FlowKt__ChannelsKt.emitAllImpl$FlowKt__ChannelsKt(Unknown Source:141)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.FlowKt__ChannelsKt.access$emitAllImpl$FlowKt__ChannelsKt(Unknown Source:0)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.flow.FlowKt__ChannelsKt$emitAllImpl$1.invokeSuspend(Unknown Source:11)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at hk.a.resumeWith(Unknown Source:11)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at kotlinx.coroutines.DispatchedTask.run(Unknown Source:128)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at android.os.Handler.handleCallback(Handler.java:959)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at android.os.Handler.dispatchMessage(Handler.java:100)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at android.os.Looper.loopOnce(Looper.java:257)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at android.os.Looper.loop(Looper.java:342)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at android.app.ActivityThread.main(ActivityThread.java:9634)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at java.lang.reflect.Method.invoke(Native Method)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:619)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+08-26 11:11:33.808 E/AndroidRuntime(31384): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@6bb2ed2, Dispatchers.Main.immediate]
+08-26 11:22:27.268 E/AndroidRuntime(12523): FATAL EXCEPTION: main
+08-26 11:22:27.268 E/AndroidRuntime(12523): Process: jp.co.soramitsu.fearless.debug, PID: 12523
+08-26 11:22:27.268 E/AndroidRuntime(12523): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 11:22:27.268 E/AndroidRuntime(12523): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@5eef2c, Dispatchers.Main.immediate]
+08-26 11:38:50.150 E/AndroidRuntime(23881): FATAL EXCEPTION: main
+08-26 11:38:50.150 E/AndroidRuntime(23881): Process: jp.co.soramitsu.fearless.debug, PID: 23881
+08-26 11:38:50.150 E/AndroidRuntime(23881): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 11:38:50.150 E/AndroidRuntime(23881): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@f77270e, Dispatchers.Main.immediate]
+08-26 11:39:18.388 E/AndroidRuntime(29388): FATAL EXCEPTION: main
+08-26 11:39:18.388 E/AndroidRuntime(29388): Process: jp.co.soramitsu.fearless.debug, PID: 29388
+08-26 11:39:18.388 E/AndroidRuntime(29388): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 11:39:18.388 E/AndroidRuntime(29388): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@904a5e8, Dispatchers.Main.immediate]
+08-26 12:11:16.085 E/AndroidRuntime(10366): FATAL EXCEPTION: main
+08-26 12:11:16.085 E/AndroidRuntime(10366): Process: jp.co.soramitsu.fearless.debug, PID: 10366
+08-26 12:11:16.085 E/AndroidRuntime(10366): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 12:11:16.085 E/AndroidRuntime(10366): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@3a2c776, Dispatchers.Main.immediate]
+08-26 12:11:40.777 E/AndroidRuntime(15331): FATAL EXCEPTION: main
+08-26 12:11:40.777 E/AndroidRuntime(15331): Process: jp.co.soramitsu.fearless.debug, PID: 15331
+08-26 12:11:40.777 E/AndroidRuntime(15331): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 12:11:40.777 E/AndroidRuntime(15331): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@1c2aca, Dispatchers.Main.immediate]
+08-26 13:11:45.776 E/AndroidRuntime(16148): FATAL EXCEPTION: main
+08-26 13:11:45.776 E/AndroidRuntime(16148): Process: jp.co.soramitsu.fearless.debug, PID: 16148
+08-26 13:11:45.776 E/AndroidRuntime(16148): java.lang.IllegalStateException: The query result was empty, but expected a single row to return a NON-NULL object of type <jp.co.soramitsu.coredb.model.chain.JoinedChainInfo>.
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.getJoinChainInfo$lambda$20(ChainDao_Impl.kt:1369)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$4awxuWkKLShxb1EsW8cg_jUSPaA(Unknown Source:0)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda23.invoke(D8$$SyntheticClass:0)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 13:11:45.776 E/AndroidRuntime(16148): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@a07ec31, Dispatchers.Main.immediate]
+08-26 13:11:58.444 E/AndroidRuntime(20317): FATAL EXCEPTION: main
+08-26 13:11:58.444 E/AndroidRuntime(20317): Process: jp.co.soramitsu.fearless.debug, PID: 20317
+08-26 13:11:58.444 E/AndroidRuntime(20317): java.lang.IllegalStateException: The query result was empty, but expected a single row to return a NON-NULL object of type <jp.co.soramitsu.coredb.model.chain.JoinedChainInfo>.
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.getJoinChainInfo$lambda$20(ChainDao_Impl.kt:1369)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$4awxuWkKLShxb1EsW8cg_jUSPaA(Unknown Source:0)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda23.invoke(D8$$SyntheticClass:0)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 13:11:58.444 E/AndroidRuntime(20317): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@f0bf189, Dispatchers.Main.immediate]
+08-26 13:12:17.957 E/AndroidRuntime(21036): FATAL EXCEPTION: main
+08-26 13:12:17.957 E/AndroidRuntime(21036): Process: jp.co.soramitsu.fearless.debug, PID: 21036
+08-26 13:12:17.957 E/AndroidRuntime(21036): java.lang.IllegalStateException: The query result was empty, but expected a single row to return a NON-NULL object of type <jp.co.soramitsu.coredb.model.chain.JoinedChainInfo>.
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.getJoinChainInfo$lambda$20(ChainDao_Impl.kt:1369)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$4awxuWkKLShxb1EsW8cg_jUSPaA(Unknown Source:0)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda23.invoke(D8$$SyntheticClass:0)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 13:12:17.957 E/AndroidRuntime(21036): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@68b98c1, Dispatchers.Main.immediate]
+08-26 13:43:22.813 E/AndroidRuntime( 4023): FATAL EXCEPTION: main
+08-26 13:43:22.813 E/AndroidRuntime( 4023): Process: jp.co.soramitsu.fearless.debug, PID: 4023
+08-26 13:43:22.813 E/AndroidRuntime( 4023): java.lang.SecurityException: [9510274] Apps with uid 9510655 cannot masquerade as package jp.co.soramitsu.fearless.debug in uid 10655. [isClientAllowedToMasquerade? false]
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3257)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at android.os.Parcel.createException(Parcel.java:3241)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at android.os.Parcel.readException(Parcel.java:3224)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at android.os.Parcel.readException(Parcel.java:3166)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.internal.auth.zza.zzb(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.internal.auth.zzd.zze(com.google.android.gms:play-services-auth-base@@18.0.4:5)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.zzl.zzb(com.google.android.gms:play-services-auth-base@@18.0.4:2)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.zzf.zza(Unknown Source:6)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.zzl.zzh(com.google.android.gms:play-services-auth-base@@18.0.4:6)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.zzl.zza(com.google.android.gms:play-services-auth-base@@18.0.4:15)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:1)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:6)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.android.gms.auth.GoogleAuthUtil.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential.getToken(GoogleAccountCredential.java:267)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential$RequestHandler.intercept(GoogleAccountCredential.java:292)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.api.client.http.HttpRequest.execute(HttpRequest.java:880)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.executeUnparsed(AbstractGoogleClientRequest.java:476)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.executeUnparsed(AbstractGoogleClientRequest.java:409)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.execute(AbstractGoogleClientRequest.java:526)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage.getParentFolder(GoogleDriveStorage.kt:226)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage.access$getParentFolder(GoogleDriveStorage.kt:32)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage$getListOfFileHeads$2.invokeSuspend(GoogleDriveStorage.kt:126)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+08-26 13:43:22.813 E/AndroidRuntime( 4023): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@4bea9a9, Dispatchers.Main.immediate]
+08-26 13:43:32.795 E/AndroidRuntime( 9603): FATAL EXCEPTION: main
+08-26 13:43:32.795 E/AndroidRuntime( 9603): Process: jp.co.soramitsu.fearless.debug, PID: 9603
+08-26 13:43:32.795 E/AndroidRuntime( 9603): java.lang.SecurityException: [9510274] Apps with uid 9510655 cannot masquerade as package jp.co.soramitsu.fearless.debug in uid 10655. [isClientAllowedToMasquerade? false]
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3257)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at android.os.Parcel.createException(Parcel.java:3241)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at android.os.Parcel.readException(Parcel.java:3224)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at android.os.Parcel.readException(Parcel.java:3166)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.internal.auth.zza.zzb(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.internal.auth.zzd.zze(com.google.android.gms:play-services-auth-base@@18.0.4:5)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.zzl.zzb(com.google.android.gms:play-services-auth-base@@18.0.4:2)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.zzf.zza(Unknown Source:6)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.zzl.zzh(com.google.android.gms:play-services-auth-base@@18.0.4:6)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.zzl.zza(com.google.android.gms:play-services-auth-base@@18.0.4:15)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:1)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:6)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.android.gms.auth.GoogleAuthUtil.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential.getToken(GoogleAccountCredential.java:267)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential$RequestHandler.intercept(GoogleAccountCredential.java:292)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.api.client.http.HttpRequest.execute(HttpRequest.java:880)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.executeUnparsed(AbstractGoogleClientRequest.java:476)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.executeUnparsed(AbstractGoogleClientRequest.java:409)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.execute(AbstractGoogleClientRequest.java:526)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage.getParentFolder(GoogleDriveStorage.kt:226)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage.access$getParentFolder(GoogleDriveStorage.kt:32)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage$getListOfFileHeads$2.invokeSuspend(GoogleDriveStorage.kt:126)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+08-26 13:43:32.795 E/AndroidRuntime( 9603): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@6eda4ab, Dispatchers.Main.immediate]
+08-26 13:43:49.072 E/AndroidRuntime(10574): FATAL EXCEPTION: main
+08-26 13:43:49.072 E/AndroidRuntime(10574): Process: jp.co.soramitsu.fearless.debug, PID: 10574
+08-26 13:43:49.072 E/AndroidRuntime(10574): java.lang.SecurityException: [9510274] Apps with uid 9510655 cannot masquerade as package jp.co.soramitsu.fearless.debug in uid 10655. [isClientAllowedToMasquerade? false]
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3257)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at android.os.Parcel.createException(Parcel.java:3241)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at android.os.Parcel.readException(Parcel.java:3224)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at android.os.Parcel.readException(Parcel.java:3166)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.internal.auth.zza.zzb(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.internal.auth.zzd.zze(com.google.android.gms:play-services-auth-base@@18.0.4:5)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.zzl.zzb(com.google.android.gms:play-services-auth-base@@18.0.4:2)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.zzf.zza(Unknown Source:6)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.zzl.zzh(com.google.android.gms:play-services-auth-base@@18.0.4:6)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.zzl.zza(com.google.android.gms:play-services-auth-base@@18.0.4:15)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:1)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.zzl.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:6)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.android.gms.auth.GoogleAuthUtil.getToken(com.google.android.gms:play-services-auth-base@@18.0.4:3)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential.getToken(GoogleAccountCredential.java:267)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential$RequestHandler.intercept(GoogleAccountCredential.java:292)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.api.client.http.HttpRequest.execute(HttpRequest.java:880)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.executeUnparsed(AbstractGoogleClientRequest.java:476)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.executeUnparsed(AbstractGoogleClientRequest.java:409)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at com.google.api.client.googleapis.services.AbstractGoogleClientRequest.execute(AbstractGoogleClientRequest.java:526)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage.getParentFolder(GoogleDriveStorage.kt:226)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage.access$getParentFolder(GoogleDriveStorage.kt:32)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at jp.co.soramitsu.backup.data.repository.GoogleDriveStorage$getListOfFileHeads$2.invokeSuspend(GoogleDriveStorage.kt:126)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+08-26 13:43:49.072 E/AndroidRuntime(10574): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@eab9b65, Dispatchers.Main.immediate]
+08-26 13:52:12.124 E/AndroidRuntime(16667): FATAL EXCEPTION: main
+08-26 13:52:12.124 E/AndroidRuntime(16667): Process: jp.co.soramitsu.fearless.debug, PID: 16667
+08-26 13:52:12.124 E/AndroidRuntime(16667): java.lang.IllegalStateException: The query result was empty, but expected a single row to return a NON-NULL object of type <jp.co.soramitsu.coredb.model.chain.JoinedChainInfo>.
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.getJoinChainInfo$lambda$20(ChainDao_Impl.kt:1369)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$4awxuWkKLShxb1EsW8cg_jUSPaA(Unknown Source:0)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda23.invoke(D8$$SyntheticClass:0)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 13:52:12.124 E/AndroidRuntime(16667): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@b791886, Dispatchers.Main.immediate]
+08-26 13:52:35.887 E/AndroidRuntime(21712): FATAL EXCEPTION: main
+08-26 13:52:35.887 E/AndroidRuntime(21712): Process: jp.co.soramitsu.fearless.debug, PID: 21712
+08-26 13:52:35.887 E/AndroidRuntime(21712): java.lang.IllegalStateException: The query result was empty, but expected a single row to return a NON-NULL object of type <jp.co.soramitsu.coredb.model.chain.JoinedChainInfo>.
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.getJoinChainInfo$lambda$20(ChainDao_Impl.kt:1369)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$4awxuWkKLShxb1EsW8cg_jUSPaA(Unknown Source:0)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda23.invoke(D8$$SyntheticClass:0)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 13:52:35.887 E/AndroidRuntime(21712): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@3bc27ba, Dispatchers.Main.immediate]
+08-26 14:03:55.893 I/ActivityManager( 2921): android.util.AndroidRuntimeException: Activity could not be started for Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 pkg=com.adobe.scan.android cmp=com.adobe.scan.android/.SplashActivity }
+08-26 14:05:06.696 I/MultimediaHelper(10856): (Jelly)(2.1.05) handleDecoderStatusUpdated() : decoder status is updated to true
+08-26 14:05:06.719 I/MultimediaHelper(10856): (Jelly)(2.1.05) handleDecoderStatusUpdated() : decoder status is updated to true
+08-26 14:05:18.347 V/NuPlayer( 2537): setDecoderBooster enable = No
+08-26 14:05:18.347 V/NuPlayer( 2537): performDecoderFlush audio=2, video=2
+08-26 14:05:18.386 I/qr_barcode_jni(28872): Java_com_samsung_android_qrengine_QRBarcodeDecoder_initEngine
+08-26 14:05:18.386 I/qr_barcode_jni(28872): Java_com_samsung_android_qrengine_QRBarcodeDecoder_initEngine: Version of QR Wrapper =2024.10.4.0
+08-26 14:05:18.386 I/qr_barcode_jni(28872): Java_com_samsung_android_qrengine_QRBarcodeDecoder_initEngine qrbarcode_decoder_init handle 0
+08-26 14:05:21.711 I/native  ( 8019): I0000 00:00:1756209921.711141   29023 oned_decoder_client.cc:696] barhopper::deep_learning::OnedDecoderClient is created successfully.
+08-26 14:05:21.796 I/native  ( 8019): I0000 00:00:1756209921.796097   29026 oned_decoder_client.cc:696] barhopper::deep_learning::OnedDecoderClient is created successfully.
+08-26 14:05:21.856 I/native  ( 8019): I0000 00:00:1756209921.856281   29028 oned_decoder_client.cc:696] barhopper::deep_learning::OnedDecoderClient is created successfully.
+08-26 14:05:21.908 I/native  ( 8019): I0000 00:00:1756209921.908311   29030 oned_decoder_client.cc:696] barhopper::deep_learning::OnedDecoderClient is created successfully.
+08-26 14:05:22.262 I/SRCB/QRBarcodeDecoder(28872): barcodeRecognizeRGB mResultRoi: 0, 0, 0, 0, 0, 0, 0, 0
+08-26 14:05:22.263 I/qr_barcode_jni(28872): Java_com_samsung_android_qrengine_QRBarcodeDecoder_releaseEngine engineId 0 
+08-26 14:05:22.263 I/qr_barcode_jni(28872): Java_com_samsung_android_qrengine_QRBarcodeDecoder_releaseEngine qrbarcode_decoder_release ret 1
+08-26 14:05:28.056 I/MultimediaHelper(10856): (Jelly)(2.1.05) handleDecoderStatusUpdated() : decoder status is updated to false
+08-26 14:05:30.089 I/Unihal  ( 2079): BaseFilter.cpp: PostInitialize: 208: BaseFilter(FUNC_SCALER,0xb4000077b5dace00) starts the post init.
+08-26 14:05:30.183 I/Unihal  ( 2079): BaseFilter.cpp: PostInitialize: 218: BaseFilter(FUNC_SCALER,0xb4000077b5dace00) finishes the post init. state(1).
+08-26 14:05:30.183 I/Unihal  ( 2079): BaseFilter.cpp: PostInitialize: 208: BaseFilter(FUNC_SCALER_SUB,0xb4000077b5e7d000) starts the post init.
+08-26 14:05:30.184 I/Unihal  ( 2079): BaseFilter.cpp: PostInitialize: 218: BaseFilter(FUNC_SCALER_SUB,0xb4000077b5e7d000) finishes the post init. state(1).
+08-26 14:05:32.421 I/Unihal  ( 2079): BaseFilter.cpp: Destroy: 61: [FUNC_SCALER_SUB,0xb4000077b5e7d000] Destroying.
+08-26 14:05:32.421 I/Unihal  ( 2079): BaseFilter.cpp: Destroy: 70: [FUNC_SCALER_SUB,0xb4000077b5e7d000] Destroyed.
+08-26 14:05:32.421 I/Unihal  ( 2079): BaseFilter.cpp: Destroy: 61: [FUNC_SCALER,0xb4000077b5dace00] Destroying.
+08-26 14:05:32.427 I/Unihal  ( 2079): BaseFilter.cpp: Destroy: 70: [FUNC_SCALER,0xb4000077b5dace00] Destroyed.
+08-26 14:05:40.512 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:05:40.513 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:05:40.518 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:05:40.527 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:09:59.400 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:09:59.434 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:14.791 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:14.797 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:15.569 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:15.570 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:18.192 D/ChainRegistry(32508): chains sync completed 
+08-26 14:10:25.958 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:25.962 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:25.967 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:10:25.984 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:11:12.679 D/ChainRegistry(32508): chains sync completed 
+08-26 14:11:13.965 E/AndroidRuntime(32508): FATAL EXCEPTION: main
+08-26 14:11:13.965 E/AndroidRuntime(32508): Process: jp.co.soramitsu.fearless.debug, PID: 32508
+08-26 14:11:13.965 E/AndroidRuntime(32508): java.lang.IllegalStateException: Chain 3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17 not available locally yet; sync pending or failed
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository$getChain$2.invokeSuspend(ChainsRepository.kt:55)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+08-26 14:11:13.965 E/AndroidRuntime(32508): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@e761776, Dispatchers.Main.immediate]
+08-26 14:11:23.918 D/ChainRegistry( 6894): chains sync completed 
+08-26 14:11:47.173 E/AndroidRuntime( 6894): FATAL EXCEPTION: main
+08-26 14:11:47.173 E/AndroidRuntime( 6894): Process: jp.co.soramitsu.fearless.debug, PID: 6894
+08-26 14:11:47.173 E/AndroidRuntime( 6894): java.lang.IllegalStateException: Chain 3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17 not available locally yet; sync pending or failed
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository$getChain$2.invokeSuspend(ChainsRepository.kt:55)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+08-26 14:11:47.173 E/AndroidRuntime( 6894): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@bdf538d, Dispatchers.Main.immediate]
+08-26 14:11:58.426 D/ChainRegistry( 8273): chains sync completed 
+08-26 14:12:08.588 E/AndroidRuntime( 8273): FATAL EXCEPTION: main
+08-26 14:12:08.588 E/AndroidRuntime( 8273): Process: jp.co.soramitsu.fearless.debug, PID: 8273
+08-26 14:12:08.588 E/AndroidRuntime( 8273): java.lang.IllegalStateException: The column(s) of the map value object of type 'AssetWithToken' are NULL but the map's value type argument expect it to be NON-NULL
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.observeChainsWithBalanceByName$lambda$30(ChainDao_Impl.kt:2049)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl.$r8$lambda$RSup2l_urbwP6K6x9Zq6VEdSTQM(Unknown Source:0)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at jp.co.soramitsu.coredb.dao.ChainDao_Impl$$ExternalSyntheticLambda17.invoke(D8$$SyntheticClass:0)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invokeSuspend(DBUtil.kt:61)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:8)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1$1.invoke(Unknown Source:4)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.driver.SupportSQLitePooledConnection.transaction(SupportSQLiteConnectionPool.android.kt:83)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.driver.SupportSQLitePooledConnection.withTransaction(SupportSQLiteConnectionPool.android.kt:66)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invokeSuspend(DBUtil.kt:59)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:8)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$lambda$1$$inlined$internalPerform$1.invoke(Unknown Source:4)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.driver.SupportSQLiteConnectionPool.useConnection(SupportSQLiteConnectionPool.android.kt:42)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:126)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.RoomDatabase.useConnection$room_runtime_release(RoomDatabase.android.kt:593)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:113)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.TransactionExecutor.$r8$lambda$FZWr2PGmP3sgXLCiri-DCcePXSs(Unknown Source:0)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at androidx.room.TransactionExecutor$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	at java.lang.Thread.run(Thread.java:1012)
+08-26 14:12:08.588 E/AndroidRuntime( 8273): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@653f55, Dispatchers.Main.immediate]
+08-26 14:12:43.493 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:43.502 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:43.570 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:43.577 V/NuPlayer( 2537): make Decoder (audio)
+08-26 14:12:43.577 V/NuPlayer( 2537): instantiateDecoder audio Decoder
+08-26 14:12:43.582 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:43.904 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:43.906 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:43.910 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:43.919 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:44.433 I/NuPlayerDecoder( 2537): End of Stream
+08-26 14:12:44.434 I/NuPlayerDecoder( 2537): End of Stream
+08-26 14:12:44.921 V/NuPlayer( 2537): setDecoderBooster enable = No
+08-26 14:12:44.921 V/NuPlayer( 2537): performDecoderFlush audio=2, video=2
+08-26 14:12:44.921 V/NuPlayer( 2537): [audio] flushDecoder needShutdown=1
+08-26 14:12:44.935 I/NuPlayerDecoder( 2537): kWhatAsyncReleaseComplete
+08-26 14:12:45.007 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:45.008 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:45.014 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:45.019 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:45.035 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:45.040 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:48.865 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:48.867 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:48.872 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:48.905 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:52.041 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:12:52.049 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.351 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.352 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.353 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.371 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.556 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.556 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.559 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:03.574 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:34.056 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:34.058 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:34.062 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:34.085 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:54.371 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:54.373 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:54.377 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:13:54.402 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:24.879 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:24.880 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:24.883 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:24.905 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.177 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.178 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.180 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.191 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.402 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.403 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.405 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:44.425 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:49.429 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:49.430 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:49.432 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:14:49.442 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:04.683 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:04.684 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:04.690 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:04.718 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:25.081 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:25.082 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:25.095 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:25.115 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:35.221 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:35.224 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:35.228 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:35.256 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.191 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.192 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.207 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.260 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.395 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.397 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.399 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:45.425 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:55.539 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:55.541 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:55.543 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:15:55.565 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:05.764 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:05.767 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:05.773 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:05.805 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:15.933 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:15.935 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:15.941 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:15.973 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:26.109 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:26.111 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:26.115 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:26.141 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:36.251 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:36.253 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:36.259 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:36.284 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:46.413 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:46.415 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:46.419 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:46.441 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.380 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.381 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.383 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.402 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.581 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.585 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.587 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:16:56.607 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:06.749 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:06.750 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:06.753 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:06.773 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:16.904 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:16.905 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:16.914 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:16.943 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:27.094 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:27.095 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:27.098 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:27.118 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:37.270 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:37.271 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:37.274 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:37.295 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:47.425 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:47.427 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:47.434 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:47.463 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:57.584 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:57.585 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:57.587 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:17:57.602 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.565 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.566 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.567 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.576 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.790 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.791 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.793 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:07.813 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:17.922 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:17.924 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:17.928 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:17.952 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:28.088 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:28.089 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:28.093 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:28.114 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:38.261 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:38.262 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:38.264 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:38.299 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:48.410 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:48.411 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:48.416 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:48.459 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:58.576 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:58.577 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:58.578 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:18:58.586 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:08.790 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:08.791 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:08.798 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:08.827 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.707 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.707 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.710 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.719 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.922 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.923 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.924 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:18.940 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:19.168 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:19.184 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:29.081 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:29.082 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:29.086 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:29.108 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:39.267 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:39.269 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:39.273 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:39.303 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:49.452 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:49.454 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:49.457 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:49.476 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:59.630 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:59.631 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:59.634 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:19:59.652 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:09.783 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:09.783 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:09.787 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:09.810 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:19.976 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:19.977 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:19.980 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:19.997 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:29.991 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:29.991 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:29.993 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:30.006 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:30.196 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:30.197 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:30.199 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:30.217 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:40.333 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:40.336 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:40.337 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:40.353 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:50.502 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:50.504 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:50.507 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:20:50.532 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:21:00.692 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:21:00.693 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:21:00.701 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+08-26 14:21:00.732 D/LocalImageResolver( 4865): Couldn't use ImageDecoder for drawable, falling back to non-resized load.

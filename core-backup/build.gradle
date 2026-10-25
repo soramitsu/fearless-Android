@@ -1,0 +1,72 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlinx-serialization'
+
+android {
+    namespace = 'jp.co.soramitsu.shared_features.backup'
+    compileSdkVersion rootProject.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_21.toString()
+    }
+
+    sourceSets {
+        // Public synthetic protocol vector only; never production wallet material.
+        androidTest.assets.srcDirs += files("$projectDir/src/test/resources")
+    }
+
+    packaging {
+        resources {
+            // Duplicate JVM multi-release metadata is not consumed by Android.
+            excludes += ["META-INF/versions/**"]
+        }
+    }
+}
+
+// The Drive client only uses NetHttpTransport. Apache HttpClient duplicates platform classes on
+// Android, and guava-jdk5 duplicates Guava.
+def withoutUnusedGoogleHttpTransports = {
+    exclude group: 'org.apache.httpcomponents'
+    exclude group: 'com.google.guava', module: 'guava-jdk5'
+}
+
+dependencies {
+    api libs.kotlin.stdlib.jdk7
+    api libs.activity
+    api libs.credentials
+    api libs.credentials.play.services.auth
+    implementation libs.coroutines.core
+    implementation libs.gson
+    implementation libs.okhttp
+    implementation libs.play.services.auth
+    implementation libs.play.integrity
+    implementation libs.google.api.services.drive, withoutUnusedGoogleHttpTransports
+    implementation libs.google.api.client.android, withoutUnusedGoogleHttpTransports
+    implementation libs.google.http.client.gson, withoutUnusedGoogleHttpTransports
+    api project(':core-api')
+
+    testImplementation libs.junit
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.mockito.kotlin
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.ext.junit
+}
+
+// Child JVMs exercise process crashes and OS file locking without relying on Gradle's worker classloader shape.
+tasks.withType(Test).configureEach {
+    doFirst {
+        systemProperty 'fearless.backup.journal.testClasspath', classpath.asPath
+    }
+}

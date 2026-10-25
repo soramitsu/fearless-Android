@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">Crowdloan histórico</string>
+    <string name="legacy_crowdloan_review">Rever</string>
+    <string name="legacy_crowdloan_description">Esta conta tem atividade histórica de Crowdloan verificada em %1$s. Já não são aceites novas contribuições; o estado on-chain preservado e o histórico local de reivindicações continuam disponíveis aqui.</string>
+    <string name="legacy_crowdloan_current_contributions">Contribuições atuais</string>
+    <string name="legacy_crowdloan_historical_locks">Histórico de bloqueios</string>
+    <string name="legacy_crowdloan_historical_claims">Histórico de reivindicações</string>
+    <string name="legacy_crowdloan_view_locked">Ver saldo bloqueado</string>
+    <string name="legacy_crowdloan_no_evidence">Não foi encontrado estado de Crowdloan recuperável para esta conta.</string>
+    <string name="cross_chain_route_inventory_title">Prestadores de rotas</string>
+    <string name="cross_chain_route_inventory_description">A cobertura em produção inclui rotas revistas e rotas apenas incluídas no catálogo. As rotas indisponíveis continuam visíveis, mas não permitem enviar transações.</string>
+    <string name="cross_chain_route_inventory_checking">A verificar a cobertura dos prestadores de rotas…</string>
+    <string name="cross_chain_route_inventory_status_available">Disponível</string>
+    <string name="cross_chain_route_inventory_status_paused">Rota revista disponível · ações temporariamente suspensas</string>
+    <string name="cross_chain_route_inventory_status_setup">Configuração necessária</string>
+    <string name="cross_chain_route_inventory_status_unavailable">Indisponível</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">ID do ativo: %1$s</string>
+    <string name="cross_chain_route_inventory_summary">%1$d redes de origem → %2$d redes de destino · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">Não está incluído um catálogo de rotas de produção específicas para este prestador.</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">Mínimo: selecione a rede de origem, o ativo e a rede de destino específicos</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">Mínimo: não fornecido por este catálogo</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">Mínimo: não está disponível um valor revisto</string>
+</resources>

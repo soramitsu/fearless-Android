@@ -202,7 +202,7 @@ private fun TonConnectionsPreview() {
             name = "Kusama",
             description = null,
             background = null,
-            icon = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+            icon = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonriver.svg",
             metaId = null
         ),
         DappModel(
@@ -212,7 +212,7 @@ private fun TonConnectionsPreview() {
             name = "Fearless",
             description = "Fearless DeFi dapp for TON",
             background = null,
-            icon = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+            icon = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonriver.svg",
             metaId = null
         ),
     )

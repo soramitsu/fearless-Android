@@ -1,8 +1,8 @@
 package jp.co.soramitsu.account.api.presentation.exporting
 
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
-import jp.co.soramitsu.shared_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.Schema
 
 
 fun <T : Schema<T>> EncodableStruct<T>?.buildChainAccountOptions(

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -75,6 +76,10 @@ fun ChainSelectContent(
             onInput = contract::onSearchInput
         )
 
+        state.onlyNetworkName?.let {
+            jp.co.soramitsu.common.compose.component.B2(text = stringResource(R.string.portfolio_only_network, it), color = white64,
+                modifier = Modifier.padding(vertical = 8.dp))
+        }
         val chains = state.chains
 
         if (state is ChainSelectScreenContract.State.Impl.FilteringDecorator) {
@@ -301,7 +306,7 @@ fun ChainItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
-            .height(48.dp)
+            .heightIn(min = 48.dp).padding(vertical = 8.dp)
             .fillMaxWidth()
             .clickableWithNoIndication { contract.onChainSelected(state) }
     ) {
@@ -313,10 +318,10 @@ fun ChainItem(
                 .size(24.dp)
         )
 
-        H4(
-            text = state.title,
-            modifier = Modifier.weight(1f)
-        )
+        Column(Modifier.weight(1f)) {
+            H4(text = state.title)
+            state.balance?.let { jp.co.soramitsu.common.compose.component.B2(text = it, color = white64) }
+        }
 
         if (state.isSelected) {
             val selectedChainIconTint =
@@ -374,12 +379,12 @@ private fun SelectChainScreenPreview() {
     val items = listOf(
         ChainSelectScreenContract.State.ItemState.Impl(
             id = "1",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonriver.svg",
             title = "Kusama"
         ).toFilteredDecorator(false),
         ChainSelectScreenContract.State.ItemState.Impl(
             id = "2",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
             title = "Moonriver"
         ).toFilteredDecorator(true)
     )

@@ -1,0 +1,500 @@
+[
+  {
+    "paraid": "2000",
+    "name": "Karura",
+    "token": "KAR",
+    "description": "All-in-one DeFi hub of Kusama",
+    "website": "https://acala.network/karura",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/karura.png",
+    "rewardRate": 12,
+    "customFlow": "Karura",
+    "flow": {
+      "name": "karura",
+      "data": {
+        "fearlessReferral": "0x9642d0db9f3b301b44df74b63b0b930011e3f52154c5ca24b4dc67b3c7322f15",
+        "devApiUrl": "",
+        "prodApiUrl": "",
+        "devApiKey":"",
+        "prodApiKey": "",
+        "termsUrl": ""
+      }
+    }
+  },
+  {
+    "paraid": "2007",
+    "name": "Shiden",
+    "token": "SDN",
+    "description": "Multi-chain decentralized application layer on Kusama",
+    "website": "https://shiden.astar.network",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/shiden.png",
+    "rewardRate": 25
+  },
+  {
+    "paraid": "2001",
+    "name": "Bifrost",
+    "token": "BNC",
+    "description": "A parachain designed for staking's liquidity",
+    "website": "https://bifrost.finance/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/bifrost.png",
+    "rewardRate": 22,
+    "customFlow": "Bifrost",
+    "flow": {
+      "name": "bifrost",
+      "data": {
+        "fearlessReferral": "FRLS69",
+        "devApiUrl": "",
+        "prodApiUrl": "",
+        "devApiKey":"",
+        "prodApiKey": "",
+        "termsUrl": "https://docs.google.com/document/d/1PDpgHnIcAmaa7dEFusmLYgjlvAbk2VKtMd755bdEsf4"
+      }
+    }
+  },
+  {
+    "paraid": "2013",
+    "name": "SherpaX",
+    "token": "KSX",
+    "description": "Crypto Asset Gateway for Kusama Ecosystem",
+    "website": "https://chainx-org.medium.com/chainx-kusama-parachain-sherpax-light-paper-5341ff855c9c",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/sherpax.png",
+    "rewardRate": 10
+  },
+  {
+    "paraid": "2012",
+    "name": "Crust Shadow",
+    "token": "CRU",
+    "description": "Incentives decentralized storage & cloud ecosystem on Kusama",
+    "website": "https://crust.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/crustshadow.png",
+    "rewardRate": 1
+  },
+  {
+    "paraid": "2023",
+    "name": "Moonriver",
+    "token": "MOVR",
+    "description": "Please use Moonriver DApp for contribution",
+    "website": "https://moonbeam.network/networks/moonriver/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/moonriver.png",
+    "rewardRate": 4.5
+  },
+  {
+    "paraid": "2004",
+    "name": "Khala",
+    "token": "PHA",
+    "description": "Transparent and Private Global Computation Cloud on Kusama",
+    "website": "https://phala.network/khala/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/khala.png",
+    "rewardRate": 150
+  },
+  {
+    "paraid": "2006",
+    "name": "Darwinia Crab",
+    "token": "CRING",
+    "description": "Cross-chain communication, smart contracts and NFT on Kusama",
+    "website": "https://crab.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/crab.png",
+    "rewardRate": 25
+  },
+  {
+    "paraid": "2009",
+    "name": "Polkasmith",
+    "token": "PKS",
+    "description": "Production hub for creating DeFi & NFT apps on Kusama",
+    "website": "https://polkasmith.polkafoundry.com/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/polkasmith.png",
+    "rewardRate": 350
+  },
+  {
+    "paraid": "2016",
+    "name": "Sakura",
+    "token": "SKU",
+    "description": "A foundational layer for cross-chain compatibility.",
+    "website": "https://auction.clover.finance/#/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/sakura.png",
+    "rewardRate": 200
+  },
+  {
+    "paraid": "2018",
+    "name": "SubGame",
+    "token": "SGB",
+    "description": "Blockchain infrastructure for distributed games & mobile applications.",
+    "website": "http://subgame.org/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/subgame.png",
+    "rewardRate": 28
+  },
+  {
+    "paraid": "2008",
+    "name": "Mars",
+    "token": "AMAS",
+    "description": "A Decentralized Cross-chain Oracle Service Protocol.",
+    "website": "https://www.aresprotocol.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/ares.png"
+  },
+  {
+    "paraid": "2089",
+    "name": "Genshiro",
+    "token": "GENS",
+    "description": "The boldest DeFi one-stop-shop and R&D hub",
+    "website": "https://genshiro.equilibrium.io/en/plo",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/genshiro.png",
+    "rewardRate": 2000
+  },
+  {
+    "paraid": "2077",
+    "name": "Robonomics",
+    "token": "XRT",
+    "description": "Futuristic, secure, and server-less IoT platform on top of Ethereum && Polkadot",
+    "website": "https://robonomics.network",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/robonomics.png",
+    "rewardRate": 3.5
+  },
+  {
+    "paraid": "2088",
+    "name": "Altair",
+    "token": "AIR",
+    "description": "The home for tokenizing experimental assets",
+    "website": "https://centrifuge.io/altair",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/altair.png",
+    "rewardRate": 400
+  },
+  {
+    "paraid": "2019",
+    "name": "Kpron",
+    "token": "KPN",
+    "description": "Decentralized infrastructure service network",
+    "website": "https://apron-network.medium.com/apron-network-will-compete-the-kusama-parachain-slot-auction-14c13de5a645",
+    "icon": "https://raw.githubusercontent.com/polkadot-js/apps/master/packages/apps-config/src/ui/logos/nodes/apron.png",
+    "rewardRate": 80
+  },
+  {
+    "paraid": "2090",
+    "name": "Basilisk",
+    "token": "BSX",
+    "description": "Liquidity protocol build on Kusama",
+    "website": "https://bsx.fi/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/basilisk.png",
+    "rewardRate": 67500
+  },
+  {
+    "paraid": "2080",
+    "name": "Loom",
+    "token": "LOOM",
+    "description": "Multichain Interoperability Platform",
+    "website": "https://medium.com/loom-network/loom-kusama-crowdloan-launch-3a40a14cba76",
+    "icon": "https://raw.githubusercontent.com/polkadot-js/apps/master/packages/apps-config/src/ui/logos/nodes/loom_network.png",
+    "rewardRate": 100
+  },
+  {
+    "paraid": "2086",
+    "name": "KILT Spiritnet",
+    "token": "KILT",
+    "description": "Blockchain identity protocol for issuing self-sovereign, anonymous, verifiable credentials",
+    "website": "https://www.kilt.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/kilt.png",
+    "rewardRate": 25
+  },
+  {
+    "paraid": "2015",
+    "name": "Integritee Network",
+    "token": "TEER",
+    "description": "Scalable solution for securely processing sensitive data",
+    "website": "https://www.integritee.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/integritee.png",
+    "rewardRate": 10
+  },
+  {
+    "paraid": "2092",
+    "name": "Kintsugi BTC",
+    "token": "KINT",
+    "description": "Radically open Bitcoin on Kusama",
+    "website": "https://interlay.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/kintsugi.png",
+    "rewardRate": 3.75
+  },
+  {
+    "paraid": "2084",
+    "name": "Calamari",
+    "token": "KMA",
+    "description": "Private layer built for the entire Kusama ecosystem",
+    "website": "https://www.calamari.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/calamari.png",
+    "rewardRate": 0
+  },
+  {
+    "paraid": "2087",
+    "name": "Picasso",
+    "token": "PICA",
+    "description": "Cross-chain interoperable infrastructure",
+    "website": "https://picasso.composable.finance/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/picasso.png",
+    "rewardRate": 20000
+  },
+  {
+    "paraid": "2085",
+    "name": "Parallel Heiko",
+    "token": "HKO",
+    "description": "Decentralized money market protocol that offers lending, staking, and borrowing",
+    "website": "https://parallel.fi/index.html",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/parallelfinance.png",
+    "rewardRate": 200
+  },
+  {
+    "paraid": "2096",
+    "name": "Bit.Country Pioneer",
+    "token": "NEER",
+    "description": "An open protocol for managing & incentivizing communities using gamification",
+    "website": "https://bit.country/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/bitcountry.png",
+    "rewardRate": 68
+  },
+  {
+    "paraid": "2095",
+    "name": "Quartz",
+    "token": "QTZ",
+    "description": "A scalable blockchain for composable NFTs with advanced economies",
+    "website": "https://unique.network/quartz/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/quartz.png",
+    "rewardRate": 237
+  },
+  {
+    "paraid": "2024",
+    "name": "Genshiro",
+    "token": "GENS",
+    "description": "The boldest DeFi one-stop-shop and R&D hub",
+    "website": "https://genshiro.equilibrium.io/en/plo",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/genshiro.png",
+    "rewardRate": 2000
+  },
+  {
+    "paraid": "2100",
+    "name": "Subsocial",
+    "token": "SUB",
+    "description": "Subsocial - Decentralized social network on Polkadot & IPFS",
+    "website": "https://subsocial.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/subsocial.png"
+  },
+  {
+    "paraid": "2101",
+    "name": "Zeitgeist",
+    "token": "ZTG",
+    "description": "A decentralized network for creating, betting on, and resolving prediction markets",
+    "website": "https://zeitgeist.pm/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/zeitgeist.png"
+  },
+  {
+    "paraid": "2048",
+    "name": "Robonomics",
+    "token": "XRT",
+    "description": "An open-source platform for IoT applications",
+    "website": "https://robonomics.network",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/robonomics.png"
+  },
+  {
+    "paraid": "2102",
+    "name": "Pichiu",
+    "token": "PCHU",
+    "description": "A cross-chain platform powering the data economy on Kusama",
+    "website": "https://kylin.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/pichiu.png",
+    "rewardRate": 350
+  },
+  {
+    "paraid": "2105",
+    "name": "Darwinia Crab",
+    "token": "CRAB",
+    "description": "Cross-chain communication, smart contracts and NFT on Kusama",
+    "website": "https://crab.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/crab.png"
+  },
+  {
+    "paraid": "2011",
+    "name": "SORA",
+    "token": "TBCD",
+    "description": "SORA is building a rational monetary system using decentralized technologies with democratic governance by all participants in order to fulfill humanity's true potential towards the next stage of our evolution.",
+    "website": "https://sora.org/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/sora.png",
+    "rewardRate": 8,
+    "disabled": true
+  },
+  {
+    "paraid": "2106",
+    "name": "Litmus",
+    "token": "LIT",
+    "description": "A companion canary network to Litentry. Litentry is a Decentralized Identity Aggregation protocol across multiple networks",
+    "website": "https://kusama-crowdloan.litentry.com",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/litmus.png",
+    "rewardRate": 30
+  },
+  {
+    "paraid": "2107",
+    "name": "KICO",
+    "token": "KICO",
+    "description": "ICO platform for decentralized auto organization",
+    "website": "https://dico.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/kico.png",
+    "rewardRate": 20000
+  },
+  {
+    "paraid": "2110",
+    "name": "Mangata X",
+    "token": "MGX",
+    "description": "A community-owned exchange for experienced traders & experimental tokens",
+    "website": "https://x.mangata.finance/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/MagnataX.png",
+    "rewardRate": 6250
+  },
+  {
+    "paraid": "2114",
+    "name": "Turing Network",
+    "token": "TUR",
+    "description": "A Web 3.0 hub for automated DeFi and payments",
+    "website": "https://oak.tech/turing/crowdloan/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/TUR.png",
+    "rewardRate": 1150
+  },
+  {
+    "paraid": "2115",
+    "name": "Dora Factory",
+    "token": "DORA",
+    "description": "The DAO infrastructure of the Kusama ecosystem",
+    "website": "https://dorafactory.org/kusama/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/DoraFactory.png",
+    "rewardRate": 3,
+    "disabled": true
+  },
+  {
+    "paraid": "2116",
+    "name": "Tanganika Network",
+    "token": "DHX",
+    "description": "Inter-Chain Data Market and LPWAN",
+    "website": "https://dev.datahighway.com/docs/crowdloans/crowdloan-tanganika",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/DataHighway.png",
+    "rewardRate": 20,
+    "disabled": true
+  },
+  {
+    "paraid": "2118",
+    "name": "Listen",
+    "token": "LT",
+    "description": "Voice social software based on decentralized data storage technology and blockchain technology",
+    "website": "https://listen.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Listen.png",
+    "rewardRate": 1,
+    "disabled": true
+  },
+   {
+    "paraid": "2113",
+    "name": "Kabocha",
+    "token": "KAB",
+    "description": "Kabocha is a holistic self-evolving grass-roots parachain project spawned from Edgeware, funding and incubating teams to build new public infrastructure",
+    "website": "https://crowdloan.kabocha.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Kabocha.png",
+    "rewardRate": 160.0,
+    "disabled": true
+  },
+  {
+    "paraid": "2120",
+    "name": "Shiden Crowdloan 2",
+    "token": "SDN",
+    "description": "Multi-chain decentralized application layer on Kusama Network",
+    "website": "https://shiden.astar.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/shiden.png",
+    "rewardRate": 23.33,
+    "disabled": true
+  },
+  {
+    "paraid": "2119",
+    "name": "Bajun Network",
+    "token": "BAJUN",
+    "description": "The Bajun Network will be the Canary Network for Ajuna. Ajuna Network makes the world’s leading game development engines fully integrated with the world of blockchain-based assets",
+    "website": "https://ajuna.io/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Bajun.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2121",
+    "name": "Imbue Network",
+    "token": "IMBU",
+    "description": "Imbue Network is a decentralised crowdfunding DAO built on top of the Polkadot blockchain platform",
+    "website": "https://www.imbue.network/",
+    "rewardRate": 50.0,
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Imbue.png"
+  },
+   {
+    "paraid": "2125",
+    "name": "Tinkernet Parachain",
+    "token": "TNKR",
+    "description": "The IP Asset & accelerated development staging grounds for the Kusama ecosystem",
+    "website": "https://invarch.network/tinkernet",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Name%3DTinkernet.png",
+    "disabled": true
+  },
+   {
+    "paraid": "2124",
+    "name": "Amplitude",
+    "token": "AMPE",
+    "description": "Pioneering the internet of fiat. Amplitude is the sister network of Pendulum on Kusama. It will act as a testing ground for Pendulum applications and network parameters and be powered by the AMPE token. Developed by Satoshipay",
+    "website": "https://pendulumchain.org/amplitude?utm_source=fearless&utm_medium=social&utm_campaign=crowdloan_live",
+    "rewardRate": 600,
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Amplitude.png",
+    "disabled": true
+  },
+   {
+    "paraid": "2126",
+    "name": "Parallel Heiko 2",
+    "token": "HKO",
+    "description": "Decentralized lending, staking, and borrowing built on Kusama",
+    "website": "https://crowdloan-kusama.parallel.fi/",
+    "rewardRate": 200,
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/parallelfinance.png"
+  },
+  {
+    "paraid": "2123",
+    "name": "GM Parachain",
+    "token": "FREN",
+    "description": "GM solves the problem of the cold and isolated nature of crypto at large by encouraging the exchange of GMs and GNs across Dotsama, improving QOL for all participants",
+    "website": "https://www.gmordie.com/crowdloan.html",
+    "rewardRate": 21693,
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/GM%20Parachain.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2129",
+    "name": "SNOW",
+    "token": "ICZ",
+    "description": "SNOW is the canary network for ICE Network. SNOW supports cross-chain communication across both the internal Kusama ecosystem, ICON's BTP network along with being EVM and eWASM-compatible",
+    "website": "https://icenetwork.io/",
+    "rewardRate": 4000,
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/Name%3DSNOW.png",
+    "disabled": true
+  },
+  {
+    "paraid": "2225",
+    "name": "Crust Shadow 2",
+    "token": "CRU",
+    "description": "Incentives decentralized storage & cloud ecosystem on Kusama",
+    "website": "https://crust.network/",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/crustshadow.png",
+    "rewardRate": 100,
+    "disabled": true
+  },
+  {
+    "paraid": "2240",
+    "name": "Robonomics",
+    "token": "XRT",
+    "description": "Futuristic, secure, and server-less IoT platform on top of Ethereum & Polkadot",
+    "website": "https://robonomics.network",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/icons/robonomics.png",
+    "rewardRate": 2.8
+  },
+  {
+    "paraid": "2241",
+    "name": "2241",
+    "token": "",
+    "description": "",
+    "website": "",
+    "icon": "",
+    "disabled": true
+  }
+  
+]

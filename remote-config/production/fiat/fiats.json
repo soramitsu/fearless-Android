@@ -1,0 +1,278 @@
+[
+  {
+    "id": "usd",
+    "symbol": "$",
+    "name": "US Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/usd.svg"
+  },
+  {
+    "id": "rub",
+    "symbol": "₽",
+    "name": "Russian Ruble",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/rub.svg"
+  },
+  {
+    "id": "eur",
+    "symbol": "€",
+    "name": "Euro",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/eur.svg"
+  },
+  {
+    "id": "cny",
+    "symbol": "¥",
+    "name": "Chinese yuan",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/cny.svg"
+  },
+  {
+    "id": "aed",
+    "symbol": "د.إ",
+    "name": "United Arab Emirates Dirham",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/aed.svg"
+  },
+  {
+    "id": "idr",
+    "symbol": "Rp",
+    "name": "Indonesian Rupiah",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/idr.svg"
+  },
+  {
+    "id": "jpy",
+    "symbol": "¥",
+    "name": "Japanese Yen",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/jpy.svg"
+  },
+  {
+    "id": "krw",
+    "symbol": "₩",
+    "name": "South Korean Won",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/krw.svg"
+  },
+  {
+    "id": "twd",
+    "symbol": "$",
+    "name": "New Taiwan Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/twd.svg"
+  },
+  {
+    "id": "ars",
+    "symbol": "$",
+    "name": "Argentine Peso",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/ars.svg"
+  },
+  {
+    "id": "aud",
+    "symbol": "$",
+    "name": "Australian Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/aud.svg"
+  },
+  {
+    "id": "bdt",
+    "symbol": "৳",
+    "name": "Bangladeshi Taka",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/bdt.svg"
+  },
+  {
+    "id": "bhd",
+    "symbol": ".د.ب",
+    "name": "Bahraini Dinar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/bhd.svg"
+  },
+  {
+    "id": "bmd",
+    "symbol": "$",
+    "name": "Bermudian Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/bmd.svg"
+  },
+  {
+    "id": "brl",
+    "symbol": "$",
+    "name": "Brazil Real",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/brl.svg"
+  },
+  {
+    "id": "cad",
+    "symbol": "$",
+    "name": "Canadian Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/cad.svg"
+  },
+  {
+    "id": "chf",
+    "symbol": "F",
+    "name": "Swiss Franc",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/chf.svg"
+  },
+  {
+    "id": "clp",
+    "symbol": "$",
+    "name": "Chilean Peso",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/clp.svg"
+  },
+  {
+    "id": "czk",
+    "symbol": "Kč",
+    "name": "Czech Koruna",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/czk.svg"
+  },
+  {
+    "id": "dkk",
+    "symbol": "kr",
+    "name": "Danish Krone",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/dkk.svg"
+  },
+  {
+    "id": "gbp",
+    "symbol": "£",
+    "name": "British Pound Sterling",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/gbp.svg"
+  },
+  {
+    "id": "hkd",
+    "symbol": "$",
+    "name": "Hong Kong Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/hkd.svg"
+  },
+  {
+    "id": "huf",
+    "symbol": "Ft",
+    "name": "Hungarian Forint",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/huf.svg"
+  },
+  {
+    "id": "ils",
+    "symbol": "₪",
+    "name": "Israel New Shekel",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/ils.svg"
+  },
+  {
+    "id": "inr",
+    "symbol": "₹",
+    "name": "Indian Rupee",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/inr.svg"
+  },
+  {
+    "id": "kwd",
+    "symbol": "د.ك",
+    "name": "Kuwaiti Dinar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/kwd.svg"
+  },
+  {
+    "id": "lkr",
+    "symbol": "₨",
+    "name": "Sri Lankan Rupee",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/lkr.svg"
+  },
+  {
+    "id": "mmk",
+    "symbol": "K",
+    "name": "Burmese Kyat",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/mmk.svg"
+  },
+  {
+    "id": "mxn",
+    "symbol": "$",
+    "name": "Mexican Peso",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/mxn.svg"
+  },
+  {
+    "id": "myr",
+    "symbol": "RM",
+    "name": "Malaysian Ringgit",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/myr.svg"
+  },
+  {
+    "id": "ngn",
+    "symbol": "₦",
+    "name": "Nigerian Naira",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/ngn.svg"
+  },
+  {
+    "id": "nok",
+    "symbol": "kr",
+    "name": "Norwegian Krone",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/nok.svg"
+  },
+  {
+    "id": "nzd",
+    "symbol": "$",
+    "name": "New Zealand Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/nzd.svg"
+  },
+  {
+    "id": "php",
+    "symbol": "₱",
+    "name": "Philippine Pesso",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/php.svg"
+  },
+  {
+    "id": "pkr",
+    "symbol": "₨",
+    "name": "Pakistani Rupee",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/pkr.svg"
+  },
+  {
+    "id": "pln",
+    "symbol": "zł",
+    "name": "Polish Zloty",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/pln.svg"
+  },
+  {
+    "id": "sar",
+    "symbol": "ر.س",
+    "name": "Saudi Riyal",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/sar.svg"
+  },
+  {
+    "id": "sek",
+    "symbol": "kr",
+    "name": "Swedish Krona",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/sek.svg"
+  },
+  {
+    "id": "sgd",
+    "symbol": "$",
+    "name": "Singapore Dollar",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/sgd.svg"
+  },
+  {
+    "id": "thb",
+    "symbol": "฿",
+    "name": "Thai Baht",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/thb.svg"
+  },
+  {
+    "id": "try",
+    "symbol": "₺",
+    "name": "Turkish Lira",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/try.svg"
+  },
+  {
+    "id": "uah",
+    "symbol": "₴",
+    "name": "Ukrainian hryvnia",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/uah.svg"
+  },
+  {
+    "id": "vef",
+    "symbol": "Bs.S.",
+    "name": "Venezuelan bolivar fuerte",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/vef.svg"
+  },
+  {
+    "id": "vnd",
+    "symbol": "₫",
+    "name": "Vietnamese dong",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/vnd.svg"
+  },
+  {
+    "id": "zar",
+    "symbol": "R",
+    "name": "South African Rand",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/zar.svg"
+  },
+  {
+    "id": "xdr",
+    "symbol": "SDR",
+    "name": "IMF Special Drawing Rights",
+    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/fiat/xdr.svg"
+  }
+]

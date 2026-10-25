@@ -173,7 +173,8 @@ class CBDCSendSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
+            val tokenBalance = asset.transferable?.formatCrypto(asset.token.configuration.symbol)
+            ?: resourceManager.getString(R.string.portfolio_balance_unavailable)
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
@@ -239,13 +240,14 @@ class CBDCSendSetupViewModel @Inject constructor(
     ) { feeAmount, utilityAsset, asset ->
         asset ?: return@combine FeeInfoViewState.default
         feeAmount ?: return@combine FeeInfoViewState.default
-        val showFeeAsset = if (utilityAsset.transferable > feeAmount) {
+        val utilityAvailable = utilityAsset.transferable ?: return@combine FeeInfoViewState.default
+        val showFeeAsset = if (utilityAvailable > feeAmount) {
             utilityAsset
         } else {
             asset
         }
 
-        val assetFeeAmount = if (utilityAsset.transferable > feeAmount) {
+        val assetFeeAmount = if (utilityAvailable > feeAmount) {
             feeAmount
         } else {
             val swapDetails = polkaswapInteractor.calcDetails(

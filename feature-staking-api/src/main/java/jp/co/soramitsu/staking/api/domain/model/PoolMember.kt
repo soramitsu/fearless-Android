@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.api.domain.model
 
 import android.os.Parcelable
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import java.math.BigInteger
 
 data class PoolUnbonding(
@@ -23,17 +23,29 @@ data class PoolInfo(
 ) : Parcelable {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as PoolInfo
-
-        if (poolId != other.poolId) return false
-
-        return true
+        if (other !is PoolInfo) return false
+        return poolId == other.poolId &&
+            name == other.name &&
+            stakedInPlanks == other.stakedInPlanks &&
+            state == other.state &&
+            members == other.members &&
+            depositor.contentEquals(other.depositor) &&
+            root.contentEquals(other.root) &&
+            nominator.contentEquals(other.nominator) &&
+            stateToggler.contentEquals(other.stateToggler)
     }
 
     override fun hashCode(): Int {
-        return poolId.hashCode()
+        var result = poolId.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + stakedInPlanks.hashCode()
+        result = 31 * result + state.hashCode()
+        result = 31 * result + members.hashCode()
+        result = 31 * result + depositor.contentHashCode()
+        result = 31 * result + root.contentHashCode()
+        result = 31 * result + nominator.contentHashCode()
+        result = 31 * result + stateToggler.contentHashCode()
+        return result
     }
 }
 
@@ -55,27 +67,38 @@ data class OwnPool(
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as OwnPool
-
-        if (poolId != other.poolId) return false
-
-        return true
+        if (other !is OwnPool) return false
+        return poolId == other.poolId &&
+            name == other.name &&
+            myStakeInPlanks == other.myStakeInPlanks &&
+            totalStakedInPlanks == other.totalStakedInPlanks &&
+            lastRecordedRewardCounter == other.lastRecordedRewardCounter &&
+            state == other.state &&
+            redeemable == other.redeemable &&
+            unbonding == other.unbonding &&
+            pendingRewards == other.pendingRewards &&
+            members == other.members &&
+            depositor.contentEquals(other.depositor) &&
+            root.contentEquals(other.root) &&
+            nominator.contentEquals(other.nominator) &&
+            stateToggler.contentEquals(other.stateToggler)
     }
 
     override fun hashCode(): Int {
         var result = poolId.hashCode()
+        result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + myStakeInPlanks.hashCode()
+        result = 31 * result + totalStakedInPlanks.hashCode()
         result = 31 * result + lastRecordedRewardCounter.hashCode()
         result = 31 * result + state.hashCode()
         result = 31 * result + redeemable.hashCode()
+        result = 31 * result + unbonding.hashCode()
+        result = 31 * result + pendingRewards.hashCode()
         result = 31 * result + members.hashCode()
         result = 31 * result + depositor.contentHashCode()
         result = 31 * result + root.contentHashCode()
         result = 31 * result + nominator.contentHashCode()
         result = 31 * result + stateToggler.contentHashCode()
-        result = 31 * result + unbonding.hashCode()
         return result
     }
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">Recuperar o PIN da carteira</string>
+    <string name="pin_recovery_intro">O PIN guardado não pode ser lido. As carteiras e o registo original do PIN são preservados. Verifique a propriedade para escolher um novo PIN.</string>
+    <string name="pin_recovery_failed">A recuperação não foi concluída ou a autorização expirou. Os dados preservados não foram removidos. Tente novamente.</string>
+    <string name="pin_recovery_retry">Tentar novamente</string>
+    <string name="pin_recovery_biometric">Verificar com biometria forte</string>
+    <string name="pin_recovery_backup_intro">Escolha uma chave da carteira e introduza a cópia de segurança. Deve corresponder à identidade pública guardada. Uma cópia correspondente também pode reparar essa chave.</string>
+    <string name="pin_recovery_no_identity">Nenhuma identidade de carteira guardada pode ser verificada neste momento. Use a biometria forte ativada anteriormente ou desbloqueie o dispositivo para acesso apenas de leitura.</string>
+    <string name="pin_recovery_view_only_intro">O desbloqueio do dispositivo permite ver apenas saldos e endereços públicos. Envios, assinaturas e cópias das chaves ficam bloqueados até recuperar o PIN da carteira.</string>
+    <string name="pin_recovery_view_only">Desbloquear para acesso apenas de leitura</string>
+    <string name="pin_recovery_verified">Propriedade verificada. Escolha um novo PIN da carteira.</string>
+    <string name="pin_recovery_verify_backup">Verificar cópia da carteira</string>
+    <string name="pin_recovery_reset">Recuperar PIN da carteira</string>
+    <string name="pin_recovery_view_only_title">Acesso apenas de leitura</string>
+</resources>

@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 
 class StakingAssetSelector(
     private val stakingSharedState: StakingSharedState,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val unavailableText: String = "—"
 ) : CoroutineScope by scope {
 
     val showAssetChooser = MutableLiveData<Event<DynamicListBottomSheet.Payload<StakingAssetSelectorModel>>>()
@@ -27,16 +28,20 @@ class StakingAssetSelector(
         stakingSharedState.selectionItem,
         stakingSharedState.currentAssetFlow()
     ) { selectedItem, asset ->
-        val assetBalance = if (selectedItem.type == StakingType.POOL) {
+        val matchesSelection = asset.token.configuration.chainId == selectedItem.chainId &&
+            asset.token.configuration.id == selectedItem.chainAssetId
+        val assetBalance = if (!matchesSelection) {
+            null
+        } else if (selectedItem.type == StakingType.POOL) {
             asset.transferable
         } else {
             asset.availableForStaking
         }
         StakingAssetSelectorModel(
             selectedItem,
-            asset.token.configuration.iconUrl,
-            asset.token.configuration.chainName,
-            assetBalance.formatCrypto(asset.token.configuration.symbol)
+            asset.token.configuration.iconUrl.takeIf { matchesSelection }.orEmpty(),
+            asset.token.configuration.chainName.takeIf { matchesSelection }.orEmpty(),
+            assetBalance?.formatCrypto(asset.token.configuration.symbol) ?: unavailableText
         )
     }
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
@@ -47,7 +52,10 @@ class StakingAssetSelector(
             val availableAssetsToSelect = stakingSharedState.availableAssetsToSelect()
 
             val models = availableToSelect.mapNotNull { selection ->
-                val asset = availableAssetsToSelect.firstOrNull { it.token.configuration.id == selection.chainAssetId } ?: return@mapNotNull null
+                val asset = availableAssetsToSelect.firstOrNull {
+                    it.token.configuration.chainId == selection.chainId &&
+                        it.token.configuration.id == selection.chainAssetId
+                } ?: return@mapNotNull null
                 val assetBalance = if (selection.type == StakingType.POOL) {
                     asset.transferable
                 } else {
@@ -57,7 +65,7 @@ class StakingAssetSelector(
                     selection,
                     asset.token.configuration.iconUrl,
                     asset.token.configuration.chainName,
-                    assetBalance.formatCrypto(asset.token.configuration.symbol)
+                    assetBalance?.formatCrypto(asset.token.configuration.symbol) ?: unavailableText
                 )
             }
 

@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
 import jp.co.soramitsu.common.data.network.ton.totalFees
 import jp.co.soramitsu.common.utils.TON_BASE_FORWARD_AMOUNT
 import jp.co.soramitsu.common.utils.base64
-import jp.co.soramitsu.common.utils.lessThanOrEquals
 import jp.co.soramitsu.common.utils.putTransferParams
 import jp.co.soramitsu.common.utils.toWalletAddress
 import jp.co.soramitsu.common.utils.tonAccountId
@@ -18,6 +17,7 @@ import jp.co.soramitsu.common.utils.v4r2tonAddress
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.coredb.model.cache.CachedNumericState
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
@@ -33,7 +33,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -75,24 +75,30 @@ class TonTransferService(
 ) : TransferService {
 
     @SuppressLint("LogNotTimber")
-    override suspend fun getTransferFee(transfer: Transfer): BigDecimal = withContext(Dispatchers.Default + SupervisorJob()) {
+    override suspend fun getTransferFee(transfer: Transfer): BigDecimal = withContext(Dispatchers.Default) {
         val selectedMetaAccount = async { accountRepository.getSelectedMetaAccount() }
+        val metaAccount = selectedMetaAccount.await()
+        val tonPublicKey = metaAccount.tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
+        val senderAccountId = tonPublicKey.tonAccountId(chain.isTestNet)
 
-        val senderAccountId =
-            selectedMetaAccount.await().tonPublicKey?.tonAccountId(chain.isTestNet) ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
+        requireMatchingSender(transfer, tonPublicKey, senderAccountId)
 
         val utilityAsset = chain.utilityAsset ?: throw IllegalStateException(
             "Can't find utility asset for ${chain.name}"
         )
 
-        val accountId = selectedMetaAccount.await().tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
-        val tonAsset = assetDao.getAsset(selectedMetaAccount.await().id, accountId, chain.id, utilityAsset.id)
+        val tonAsset = assetDao.getAsset(metaAccount.id, tonPublicKey, chain.id, utilityAsset.id)
 
-        if (transfer.chainAsset.type == ChainAssetType.Jetton && tonAsset?.asset?.freeInPlanks.lessThanOrEquals(BigInteger.ZERO)) {
-            throw RuntimeException("Can't calculate fee: Not enough tokens for fee")
+        if (transfer.chainAsset.type == ChainAssetType.Jetton) {
+            val free = (tonAsset?.asset?.free as? CachedNumericState.Known<BigInteger>)?.value
+                ?.takeIf { it.signum() >= 0 }
+                ?: error("TON fee balance is unavailable")
+            if (free == BigInteger.ZERO) {
+                throw RuntimeException("Can't calculate fee: Not enough tokens for fee")
+            }
         }
 
-        val senderSmartContract = V4R2WalletContract(selectedMetaAccount.await().tonPublicKey!!)
+        val senderSmartContract = V4R2WalletContract(tonPublicKey)
 
         val seqnoDeferred = async { tonRemoteSource.getSeqno(chain, senderAccountId) }
 
@@ -124,7 +130,8 @@ class TonTransferService(
             transfer.copy(recipient = fakeRecipientAddress),
             stateInit,
             seqno,
-            senderSmartContract
+            senderSmartContract,
+            senderAccountId
         )
         val info = ExtInMsgInfo(
             src = AddrNone,
@@ -169,10 +176,12 @@ class TonTransferService(
         val request = EmulateMessageToWalletRequest(transferMessageCellBase64, params, false)
         val fees = try {
             tonRemoteSource.emulateBlockchainMessageRequest(chain, request).totalFees
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Throwable) {
             val account = tonRemoteSource.loadAccountData(
                 chain,
-                selectedMetaAccount.await().tonPublicKey!!.tonAccountId(chain.isTestNet)
+                senderAccountId
             )
             val initializedAccount =
                 account.status != AccountStatus.uninit && account.status != AccountStatus.nonexist
@@ -197,13 +206,17 @@ class TonTransferService(
 
     override suspend fun transfer(transfer: Transfer): String = withContext(Dispatchers.Default) {
         val selectedMetaAccount = async { accountRepository.getSelectedMetaAccount() }
-        val senderAccountId =
-            selectedMetaAccount.await().tonPublicKey?.tonAccountId(chain.isTestNet) ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
-        val senderSmartContract = V4R2WalletContract(selectedMetaAccount.await().tonPublicKey!!)
+        val metaAccount = selectedMetaAccount.await()
+        val tonPublicKey = metaAccount.tonPublicKey ?: throw IllegalStateException(KEYPAIR_REQUIRED_MESSAGE)
+        val senderAccountId = tonPublicKey.tonAccountId(chain.isTestNet)
+
+        requireMatchingSender(transfer, tonPublicKey, senderAccountId)
+
+        val senderSmartContract = V4R2WalletContract(tonPublicKey)
         val seqnoDeferred = async { tonRemoteSource.getSeqno(chain, senderAccountId) }
 
         val keypair =
-            keyPairRepository.getKeypairFor(chain, selectedMetaAccount.await().tonPublicKey!!)
+            keyPairRepository.getKeypairFor(chain, tonPublicKey)
         val privateKey = PrivateKeyEd25519.of(keypair.privateKey)
 
         val seqno = seqnoDeferred.await()
@@ -226,7 +239,7 @@ class TonTransferService(
             customPayloadStateInit
         }
 
-        val transferUnsignedBody = createUnsignedBody(transfer, stateInit, seqno, senderSmartContract)
+        val transferUnsignedBody = createUnsignedBody(transfer, stateInit, seqno, senderSmartContract, senderAccountId)
 
         val info = ExtInMsgInfo(
             src = AddrNone,
@@ -275,14 +288,28 @@ class TonTransferService(
         return@withContext hashHex
     }
 
+    private fun requireMatchingSender(transfer: Transfer, tonPublicKey: ByteArray, senderAccountId: String) {
+        val sender = transfer.sender.trim()
+        val matchesSelectedAccount =
+            sender == tonPublicKey.v4r2tonAddress(chain.isTestNet) ||
+                sender == tonPublicKey.v4r2tonAddress(chain.isTestNet, bounceable = true) ||
+                sender.equals(senderAccountId, ignoreCase = true)
+
+        require(matchesSelectedAccount) {
+            "Transfer sender does not match selected TON account"
+        }
+    }
+
     private suspend fun createUnsignedBody(
         transfer: Transfer,
         stateInit: StateInit?,
         seqno: Int,
         senderSmartContract: V4R2WalletContract,
+        senderAccountId: String
     ): Cell = coroutineScope {
         val validUntilDeferred = async {
-            val time = runCatching { tonRemoteSource.getRawTime(chain) }.getOrNull()
+            val time = runCatching { tonRemoteSource.getRawTime(chain, senderAccountId) }
+                .onFailure { if (it is CancellationException) throw it }.getOrNull()
                 ?: (System.currentTimeMillis() / 1000).toInt()
             time + (5 * 30L)
         }

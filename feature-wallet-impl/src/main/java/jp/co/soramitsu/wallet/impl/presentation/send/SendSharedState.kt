@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 
 class SendSharedState {
+    private val changes = java.util.concurrent.atomic.AtomicLong()
+
+    /** Synchronous revision detects A-to-B-to-A changes even when StateFlow conflates them. */
+    val revision: Long get() = changes.get()
     private val _assetIdToChainIdFlow = MutableStateFlow<Pair<String, ChainId>?>(null)
     private val _addressFlow = MutableStateFlow<String?>(null)
 
@@ -21,20 +25,24 @@ class SendSharedState {
         get() = _assetIdToChainIdFlow.value?.second
 
     fun update(chainId: ChainId, assetId: String) {
+        if (_assetIdToChainIdFlow.value != assetId to chainId) changes.incrementAndGet()
         _assetIdToChainIdFlow.value = assetId to chainId
     }
 
     fun updateAddress(address: String) {
+        changes.incrementAndGet()
         clearAddress()
         _addressFlow.value = address.trim()
     }
 
     fun clear() {
+        changes.incrementAndGet()
         _assetIdToChainIdFlow.value = null
         _addressFlow.value = null
     }
 
     fun clearAddress() {
+        changes.incrementAndGet()
         _addressFlow.value = null
     }
 }

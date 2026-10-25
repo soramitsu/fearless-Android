@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Soramitsu.Fearless.Starting" parent="Theme.Soramitsu.Fearless">
+        <item name="android:windowSplashScreenBackground">#0A0C1B</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/fw_brand_badge</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+    </style>
+</resources>

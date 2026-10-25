@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.impl.domain
 
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
 import kotlinx.coroutines.flow.first
 import java.math.BigInteger

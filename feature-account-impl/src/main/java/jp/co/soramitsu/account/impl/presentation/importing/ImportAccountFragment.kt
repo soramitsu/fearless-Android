@@ -6,6 +6,8 @@ import android.text.method.DigitsKeyListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import androidx.core.view.isVisible
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +27,8 @@ import jp.co.soramitsu.account.impl.presentation.importing.source.view.SeedImpor
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.EthereumDerivationPathTransformer
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
+import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
+import jp.co.soramitsu.account.impl.presentation.recovery.excludeRecoveryInputFromPersistence
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.presentation.ErrorDialog
@@ -43,6 +47,14 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         const val IMPORT_ACCOUNT_TYPE_KEY = "IMPORT_ACCOUNT_TYPE_KEY"
         const val IMPORT_MODE_KEY = "IMPORT_MODE_KEY"
         const val IMPORT_WALLET_ID_KEY = "IMPORT_WALLET_ID_KEY"
+        const val IMPORT_REBIND_KEY = "IMPORT_REBIND_KEY"
+        const val PIN_RECOVERY_CHALLENGE = "PIN_RECOVERY_CHALLENGE"
+
+        fun getPinRecoveryBundle(target: RecoveryTarget, mode: ImportMode, challenge: String): Bundle =
+            getRebindBundle(target, mode).apply { putString(PIN_RECOVERY_CHALLENGE, challenge) }
+
+        fun getRebindBundle(target: RecoveryTarget, mode: ImportMode): Bundle =
+            getBundle(null, target.ecosystem(), mode).apply { putParcelable(IMPORT_REBIND_KEY, target) }
 
         fun getBundle(
             walletId: Long?,
@@ -58,6 +70,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private lateinit var binding: FragmentImportAccountBinding
+    private var hadSecureFlag = false
 
     override val viewModel: ImportAccountViewModel by viewModels()
 
@@ -67,12 +80,32 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentImportAccountBinding.inflate(inflater, container, false)
+        if (viewModel.isRebinding) {
+            hadSecureFlag = requireActivity().window.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE != 0
+            requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            binding.root.excludeRecoveryInputFromPersistence()
+        }
         return binding.root
+    }
+
+    override fun onStop() {
+        viewModel.recoveryScreenStopped()
+        super.onStop()
+    }
+
+    override fun onDestroyView() {
+        if (viewModel.isRebinding && !hadSecureFlag) requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        super.onDestroyView()
     }
 
     override fun initViews() {
         with(binding) {
             toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
+            if (viewModel.isRebinding) {
+                toolbar.setTitle(getString(if (viewModel.pinRecoveryChallenge == null) R.string.wallet_recovery_restore_key else R.string.pin_recovery_verify_backup))
+                nextBtn.setText(if (viewModel.pinRecoveryChallenge == null) R.string.wallet_recovery_restore_key else R.string.pin_recovery_verify_backup)
+                recoveryExplanation.isVisible = true
+            }
 
             if (viewModel.initialWalletEcosystem == WalletEcosystem.Ton) {
                 sourceTypeInput.isEnabled = false
@@ -95,6 +128,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {
+        viewModel.recoveryError.observe {
+            binding.recoveryError.isVisible = it != null
+            binding.recoveryError.text = it
+        }
         viewModel.showSourceSelectorChooserLiveData.observeEvent(::showTypeChooser)
 
         viewModel.encryptionTypeChooserEvent.observeEvent {
@@ -131,6 +168,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     private fun buildSourceTypesViews(blockchainType: WalletEcosystem) = viewModel.sourceTypes.map {
         val view = createSourceView(it, blockchainType)
+        if (viewModel.isRebinding) view.excludeRecoveryInputFromPersistence()
 
         view.observeSource(it, blockchainType, viewLifecycleOwner)
         view.observeCommon(viewModel, viewLifecycleOwner)
@@ -154,6 +192,17 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     private fun setupAdvancedBlock(blockchainType: WalletEcosystem, sourceType: ImportSource) {
         binding.advancedBlockView.makeVisible()
         binding.advancedBlockView.apply {
+            if (viewModel.isRebinding) {
+                configure(FieldState.HIDDEN)
+                if (blockchainType == WalletEcosystem.Ton || sourceType is JsonImportSource ||
+                    (blockchainType == WalletEcosystem.Ethereum && sourceType is RawSeedImportSource)) {
+                    makeGone()
+                } else {
+                    val field = if (blockchainType == WalletEcosystem.Ethereum) ethereumDerivationPathField else substrateDerivationPathField
+                    configure(field, FieldState.NORMAL)
+                }
+                return
+            }
             when {
                 blockchainType == WalletEcosystem.Ton -> {
                     binding.advancedBlockView.makeGone()

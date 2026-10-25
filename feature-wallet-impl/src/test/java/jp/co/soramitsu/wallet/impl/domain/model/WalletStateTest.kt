@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.domain.model
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
@@ -22,16 +21,8 @@ class WalletStateTest {
         assertEquals(null, s.scrollToBottomEvent)
         assertEquals(true, s.isBackedUp)
         assertEquals(false, s.hasNetworkIssues)
-        assertEquals(
-            AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
-            s.balance,
-        )
+        assertEquals(AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")), s.balance)
 //        assertEquals(WalletAssetsState.Assets(AssetsLoadingState.Loading(), isHideVisible = true), s.assetsState)
-        assertEquals(
-            MultiToggleButtonState(
-                AssetType.Currencies,
-                listOf(AssetType.Currencies, AssetType.NFTs)
-            ), s.multiToggleButtonState
-        )
+        assertEquals(MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)), s.multiToggleButtonState)
     }
 }

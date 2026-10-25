@@ -8,9 +8,11 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
+import jp.co.soramitsu.account.api.presentation.account.withPortfolioBalance
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -18,7 +20,6 @@ import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLa
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
@@ -26,18 +27,14 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -57,15 +54,8 @@ class ProfileViewModel @Inject constructor(
     resourceManager: ResourceManager
 ) : BaseViewModel(), ProfileScreenInterface, ExternalAccountActions by externalAccountActions {
 
-    private val selectedAccountFlow: SharedFlow<MetaAccount> =
-        interactor.selectedMetaAccountFlow().shareIn(viewModelScope, SharingStarted.Eagerly)
-
-    private val accountIconFlow = selectedAccountFlow.map { wallet ->
-        addressIconGenerator.createAddressIcon(
-            wallet.supportedEcosystemWithIconAddress(),
-            AddressIconGenerator.SIZE_BIG
-        )
-    }
+    private var profileSource: TotalBalance = TotalBalance.AwaitingSelection
+    private var latestScore: NomisScoreData? = null
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
@@ -93,46 +83,29 @@ class ProfileViewModel @Inject constructor(
     )
 
     init {
-        combine(getTotalBalance.observe(), selectedFiat.flow()) { balance, fiat ->
-            val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
-            val formattedBalance =
-                balance.balance.formatFiat(selectedFiatSymbol ?: balance.fiatSymbol)
-
-            state.update { prevState ->
-                val newWalletState = prevState.walletState.copy(
-                    balance = formattedBalance,
-                    changeBalanceViewState = ChangeBalanceViewState(
-                        percentChange = balance.rateChange?.formatAsChange().orEmpty(),
-                        fiatChange = balance.balanceChange.abs().formatFiat(balance.fiatSymbol)
-                    )
-                )
-                prevState.copy(
-                    walletState = newWalletState,
-                    currency = fiat.uppercase(),
-                )
-            }
+        capturedProfileIconFlow(getTotalBalance.observe()) { wallet ->
+            addressIconGenerator.createAddressIcon(
+                wallet.supportedEcosystemWithIconAddress(),
+                AddressIconGenerator.SIZE_BIG
+            )
+        }.catch { failure ->
+            if (failure is CancellationException) throw failure
+            emit(CapturedProfileIcon(TotalBalance.Unavailable, null))
+        }.onEach { presentation ->
+            profileSource = presentation.source
+            val ready = presentation.source as? TotalBalance.Ready
+            val wallet = defaultWalletItemViewState.copy(
+                id = ready?.meta?.id ?: (presentation.source as? TotalBalance.Loading)?.metaId ?: 0,
+                title = ready?.meta?.name.orEmpty(),
+                walletIcon = presentation.icon ?: defaultWalletItemViewState.walletIcon,
+                supportedEcosystems = ready?.meta?.supportedEcosystems().orEmpty(),
+                score = latestScore?.takeIf { it.metaId == ready?.meta?.id }?.score
+            ).withPortfolioBalance(presentation.source, resourceManager)
+            state.update { it.copy(walletState = wallet) }
         }.launchIn(viewModelScope)
 
-        selectedAccountFlow
-            .onEach { account ->
-                state.update { prevState ->
-                    val newWalletState = prevState.walletState.copy(
-                        id = account.id,
-                        title = account.name,
-                        supportedEcosystems = account.supportedEcosystems()
-                    )
-                    prevState.copy(walletState = newWalletState)
-                }
-            }.launchIn(viewModelScope)
-
-        accountIconFlow.onEach { icon ->
-            state.update { prevState ->
-                val newWalletState = prevState.walletState.copy(
-                    walletIcon = icon
-                )
-                prevState.copy(walletState = newWalletState)
-            }
-
+        selectedFiat.flow().onEach { fiat ->
+            state.update { it.copy(currency = fiat.uppercase()) }
         }.launchIn(viewModelScope)
 
         nomisScoreInteractor.observeNomisMultichainScoreEnabled()
@@ -143,12 +116,13 @@ class ProfileViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
 
-        nomisScoreInteractor.observeCurrentAccountScore().onEach {
-            state.update { prevState ->
-                val newWalletState = prevState.walletState.copy(
-                    score = it?.score
-                )
-                prevState.copy(walletState = newWalletState)
+        nomisScoreInteractor.observeCurrentAccountScore().onEach { score ->
+            latestScore = score
+            val ready = profileSource as? TotalBalance.Ready
+            state.update { previous ->
+                previous.copy(walletState = previous.walletState.copy(
+                    score = score?.takeIf { it.metaId == ready?.meta?.id }?.score
+                ))
             }
         }.launchIn(viewModelScope)
 
@@ -173,6 +147,11 @@ class ProfileViewModel @Inject constructor(
                 prevState.copy(language = mapped.displayName)
             }
         }
+
+    }
+
+    override fun recoveryClicked() {
+        router.openRecoveryCenter()
     }
 
     override fun aboutClicked() {
@@ -180,7 +159,8 @@ class ProfileViewModel @Inject constructor(
     }
 
     override fun onWalletOptionsClick(item: WalletItemViewState) {
-        router.openAccountDetails(item.id)
+        val ready = profileSource as? TotalBalance.Ready ?: return
+        if (item.id == ready.meta.id) router.openAccountDetails(item.id)
     }
 
     override fun walletsClicked() {
@@ -197,10 +177,6 @@ class ProfileViewModel @Inject constructor(
 
     fun beaconQrScanned(qrContent: String) {
         router.openBeacon(qrContent)
-    }
-
-    override fun crowdloansClicked() {
-        router.openCrowdloansScreen()
     }
 
     override fun currencyClicked() {
@@ -229,11 +205,27 @@ class ProfileViewModel @Inject constructor(
     }
 
     override fun onWalletConnectClick() {
-        router.openConnectionsScreen()
+        if (profileSource !is TotalBalance.Ready) return
+        val wallet = state.value.walletState
+        if (wallet.supportedEcosystems.any { it == WalletEcosystem.Substrate || it == WalletEcosystem.Ethereum }) {
+            router.openConnectionsScreen()
+        } else {
+            router.openOptionsAddAccount(wallet.id, WalletEcosystem.Substrate)
+        }
     }
 
     override fun onTonConnectClick() {
-        router.openTonConnectionsScreen()
+        if (profileSource !is TotalBalance.Ready) return
+        val wallet = state.value.walletState
+        if (wallet.supportsTon) {
+            router.openTonConnectionsScreen()
+        } else {
+            router.openOptionsAddAccount(wallet.id, WalletEcosystem.Ton)
+        }
+    }
+
+    override fun onManageAssetsClick() {
+        router.openManageAssets()
     }
 
     override fun onNomisMultichainScoreContainerClick() {
@@ -242,6 +234,8 @@ class ProfileViewModel @Inject constructor(
     }
 
     override fun onScoreClick(item: WalletItemViewState) {
-        router.openScoreDetailsScreen(item.id)
+        val ready = profileSource as? TotalBalance.Ready ?: return
+        if (item.id == ready.meta.id) router.openScoreDetailsScreen(item.id)
     }
+
 }

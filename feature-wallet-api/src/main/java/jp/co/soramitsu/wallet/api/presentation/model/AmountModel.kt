@@ -6,12 +6,11 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
 data class AmountModel(
-    val amount: BigDecimal,
+    val amount: BigDecimal?,
     val token: String,
     val fiat: String?,
     @StringRes val titleResId: Int? = null
@@ -22,22 +21,25 @@ fun mapAmountToAmountModel(
     asset: Asset,
     @StringRes titleResId: Int? = null
 ): AmountModel = mapAmountToAmountModel(
-    amount = asset.token.amountFromPlanks(amountInPlanks).orZero(),
+    amount = asset.token.amountFromPlanks(amountInPlanks),
     asset = asset,
     titleResId = titleResId
 )
 
 fun mapAmountToAmountModel(
-    amount: BigDecimal,
+    amount: BigDecimal?,
     asset: Asset,
     @StringRes titleResId: Int? = null,
-    useDetailCryptoFormat: Boolean = false
+    useDetailCryptoFormat: Boolean = false,
+    unavailableText: String = "—"
 ): AmountModel {
     val token = asset.token
 
-    val fiatAmount = token.fiatAmount(amount)
+    val fiatAmount = amount?.let(token::fiatAmount)
 
-    val tokenAmount = if (useDetailCryptoFormat) {
+    val tokenAmount = if (amount == null) {
+        unavailableText
+    } else if (useDetailCryptoFormat) {
         amount.formatCryptoDetail(token.configuration.symbol)
     } else {
         amount.formatCrypto(token.configuration.symbol)

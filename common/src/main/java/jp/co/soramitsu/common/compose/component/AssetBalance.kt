@@ -1,9 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,10 +20,11 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class AssetBalanceViewState(
-    val transferableBalance: String,
+    val transferableBalance: String?,
     val address: String,
     val isInfoEnabled: Boolean = false,
-    val changeViewState: ChangeBalanceViewState
+    val changeViewState: ChangeBalanceViewState?,
+    val balanceCaption: String? = null
 )
 
 @Composable
@@ -41,20 +38,14 @@ fun AssetBalance(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        if (state.changeViewState.fiatChange.isNotEmpty()) {
-            AnimatedContent(state.changeViewState) {
-                ChangeBalance(it)
-            }
-        }
+        state.changeViewState?.takeIf { it.fiatChange.isNotEmpty() }?.let { ChangeBalance(it) }
         Row(
             verticalAlignment = CenterVertically,
             modifier = Modifier
                 .testTag("balance_fiat")
                 .clickableWithNoIndication(onBalanceClick)
         ) {
-            AnimatedContent(state.transferableBalance) {
-                H1(text = it)
-            }
+            H1(text = state.transferableBalance ?: "—")
 
             if (state.isInfoEnabled) {
                 MarginHorizontal(margin = 5.dp)
@@ -68,11 +59,11 @@ fun AssetBalance(
             }
         }
 
-        AnimatedVisibility(
-            visible = state.address.isNotEmpty(),
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
+        state.balanceCaption?.let {
+            B2(text = it, modifier = Modifier.testTag("balance_caption"))
+        }
+
+        if (state.address.isNotEmpty()) {
             Address(
                 address = state.address,
                 onClick = onAddressClick,

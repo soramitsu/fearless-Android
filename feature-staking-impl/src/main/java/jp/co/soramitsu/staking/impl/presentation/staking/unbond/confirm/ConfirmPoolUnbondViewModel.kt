@@ -1,56 +1,88 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.stakingBalanceUnavailable
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ExistentialDepositUnknownException
 import jp.co.soramitsu.common.validation.FeeInsufficientBalanceException
-import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
+import jp.co.soramitsu.staking.impl.presentation.common.PoolManageConfirmationReview
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 
 @HiltViewModel
-class ConfirmPoolUnbondViewModel @Inject constructor(
+class ConfirmPoolUnbondViewModel private constructor(
     walletInteractor: WalletInteractor,
     private val existentialDepositUseCase: ExistentialDepositUseCase,
-    poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val resourceManager: ResourceManager,
-    private val router: StakingRouter
+    private val router: StakingRouter,
+    private val review: PoolManageConfirmationReview
 ) : StakingConfirmViewModel(
     walletInteractor = walletInteractor,
     existentialDepositUseCase = existentialDepositUseCase,
-    chain = poolSharedStateProvider.requireMainState.requireChain,
+    chain = review.main.requireChain,
     router = router,
-    address = poolSharedStateProvider.requireMainState.requireAddress,
+    address = review.main.requireAddress,
     resourceManager = resourceManager,
-    asset = poolSharedStateProvider.requireMainState.requireAsset,
-    amountInPlanks = requireNotNull(poolSharedStateProvider.manageState.get()?.amountInPlanks),
-    feeEstimator = { stakingPoolInteractor.estimateUnstakeFee(poolSharedStateProvider.requireMainState.requireAddress, requireNotNull(it)) },
-    executeOperation = { address, amount -> stakingPoolInteractor.unstake(address, requireNotNull(amount)) },
+    asset = review.main.requireAsset,
+    amountInPlanks = requireNotNull(review.fields.amountInPlanks),
+    feeEstimator = { amount ->
+        review.requireCurrent()
+        stakingPoolInteractor.estimateUnstakeFee(review.main.requireAddress, requireNotNull(amount)).also { review.requireCurrent() }
+    },
+    executeOperation = { address, amount -> review.execute { stakingPoolInteractor.unstake(address, requireNotNull(amount)) } },
     onOperationSuccess = { router.returnToManagePoolStake() },
     accountNameProvider = { stakingPoolInteractor.getAccountName(it) },
     titleRes = R.string.staking_unbond_v1_9_0,
-    additionalMessageRes = R.string.pool_staking_unstake_alert
+    additionalMessageRes = R.string.pool_staking_unstake_alert,
+    withCurrentPresentation = review::present,
+    withSuccessPresentation = review::withSuccessPresentation
 ) {
+    @Inject constructor(
+        walletInteractor: WalletInteractor,
+        existentialDepositUseCase: ExistentialDepositUseCase,
+        poolSharedStateProvider: StakingPoolSharedStateProvider,
+        stakingPoolInteractor: StakingPoolInteractor,
+        resourceManager: ResourceManager,
+        router: StakingRouter
+    ) : this(walletInteractor, existentialDepositUseCase, stakingPoolInteractor,
+        resourceManager, router, poolSharedStateProvider.manageConfirmationReview())
+
     fun onBackClick() {
-        router.back()
+        if (review.revoke()) router.back()
     }
 
     override suspend fun isValid(): Result<Any> {
-        val fee = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
+        review.requireCurrent()
+        val fee = feeInPlanksFlow.value ?: return Result.failure(missingFeeError())
 
-        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+        val existentialDeposit = existentialDepositUseCase(asset.token.configuration).getOrElse {
+            if (it is kotlinx.coroutines.CancellationException) throw it
+            return Result.failure(ExistentialDepositUnknownException(resourceManager, asset.token.configuration.symbol.uppercase()))
+        }
 
-        val resultBalance = asset.transferableInPlanks - fee
+        review.requireCurrent()
+        val available = asset.transferableInPlanks ?: return Result.failure(stakingBalanceUnavailable(resourceManager))
+        val resultBalance = available - fee
         if (resultBalance < existentialDeposit || resultBalance <= BigInteger.ZERO) {
             return Result.failure(FeeInsufficientBalanceException(resourceManager))
         }
         return Result.success(Unit)
+    }
+
+    /** A dismissed sheet must not retain submit or callback authority. */
+    fun onDismissed() { review.revoke() }
+
+    override fun onCleared() {
+        review.revoke()
+        super.onCleared()
     }
 }

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "scope": "Approved existing iOS/web font and OFL bytes reused without modification; legacy Android Inter/Sora remain unchanged",
+  "files": [
+    {
+      "path": "common/src/main/res/font/jetbrains_mono_regular.ttf",
+      "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f",
+      "sourceRepository": "fearless-iOS-integration",
+      "sourceCommit": "a6161d8f572ba7bb0c5ad9faac9a89ee3ed4d7d2",
+      "sourcePath": "fearless/Fonts/JetBrainsMono-Regular.ttf"
+    },
+    {
+      "path": "common/src/main/res/font/jetbrains_mono_medium.ttf",
+      "sha256": "31c92d01a8a08528b718a43addf0ad3df0af2ca4b7b3290a452f70f358e14d3d",
+      "sourceRepository": "fearless-iOS-integration",
+      "sourceCommit": "a6161d8f572ba7bb0c5ad9faac9a89ee3ed4d7d2",
+      "sourcePath": "fearless/Fonts/JetBrainsMono-Medium.ttf"
+    },
+    {
+      "path": "common/src/main/res/raw/fw_jetbrains_mono_ofl.txt",
+      "sha256": "30f0c136e3c88e422d0791acd97238870f9054a9729bc34cf2ff0d4ed8cac4ad",
+      "sourceRepository": "fearless-iOS-integration",
+      "sourceCommit": "a6161d8f572ba7bb0c5ad9faac9a89ee3ed4d7d2",
+      "sourcePath": "fearless/Fonts/JetBrainsMono-OFL.txt"
+    },
+    {
+      "path": "common/src/main/res/raw/fw_sora_ofl.txt",
+      "sha256": "1ec9623d38c445eb4dfe5fcc783e0f0ee728cc97ca157ce1f8cb2b3bf9d9b0d9",
+      "sourceRepository": "fearless-iOS-integration",
+      "sourceCommit": "a6161d8f572ba7bb0c5ad9faac9a89ee3ed4d7d2",
+      "sourcePath": "fearless/Fonts/Sora-OFL.txt"
+    },
+    {
+      "path": "common/src/main/res/raw/fw_inter_ofl.txt",
+      "sha256": "426ef06df3fa0af49e84ec5c89908fa9234a756e6872deeae0016bb1822f0544",
+      "sourceRepository": "fearless-wallet-web-integration",
+      "sourceCommit": "609eafdbefa0213b4e713e050f9e6b66895e7ca4",
+      "sourcePath": "src/assets/fonts/inter/OFL.txt"
+    }
+  ]
+}

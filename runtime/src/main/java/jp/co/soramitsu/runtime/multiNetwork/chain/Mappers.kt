@@ -1,6 +1,8 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
+import com.google.gson.JsonParseException
+import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
@@ -16,6 +18,14 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmAssetRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmBridgeRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmDestinationFeeRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmDestinationRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmExecutionRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmMultiLocationRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainXcmWeightLimitRemote
 
 private const val ETHEREUM_BASED_OPTION = "ethereumBased"
 private const val ETHEREUM_OPTION = "ethereum"
@@ -42,6 +52,9 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "vicscan" -> Chain.ExternalApi.Section.Type.VICSCAN
     "zchain" -> Chain.ExternalApi.Section.Type.ZCHAINS
     "ton" -> Chain.ExternalApi.Section.Type.TON
+    "bitcoin" -> Chain.ExternalApi.Section.Type.BITCOIN
+    "solana" -> Chain.ExternalApi.Section.Type.SOLANA
+    "iroha" -> Chain.ExternalApi.Section.Type.IROHA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
@@ -125,7 +138,8 @@ private fun mapSubstrateType(type: String): ChainAssetType {
 }
 
 private fun mapStakingTypeToLocal(stakingType: Asset.StakingType): String = stakingType.name
-private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = enumValueOf(stakingTypeLocal)
+private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType =
+    Asset.StakingType.entries.firstOrNull { it.name == stakingTypeLocal } ?: Asset.StakingType.UNSUPPORTED
 
 private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
     type = mapExplorerTypeRemoteToExplorerType(type),
@@ -156,9 +170,76 @@ private fun mapSectionToSectionLocal(sectionLocal: Chain.ExternalApi.Section?) =
     )
 }
 
-private const val DEFAULT_PRECISION = 10
+private fun ChainXcmAssetRemote.toXcmAsset() = Chain.Xcm.Asset(
+    id = id,
+    symbol = symbol,
+    minAmount = minAmount,
+    execution = execution?.toXcmExecution()
+)
+
+private fun ChainXcmMultiLocationRemote.toXcmMultiLocation() =
+    Chain.Xcm.MultiLocation(
+        parents = parents,
+        interior = interior
+    )
+
+private fun ChainXcmWeightLimitRemote.toXcmWeightLimit() =
+    Chain.Xcm.WeightLimit(
+        type = type,
+        refTime = refTime,
+        proofSize = proofSize
+    )
+
+private fun ChainXcmDestinationFeeRemote.toXcmDestinationFee() =
+    Chain.Xcm.DestinationFee(
+        mode = mode,
+        assetSymbol = assetSymbol,
+        amount = amount
+    )
+
+private fun ChainXcmBridgeRemote.toXcmBridge() =
+    Chain.Xcm.Bridge(
+        parachainId = parachainId,
+        feeAssetLocation = feeAssetLocation?.toXcmMultiLocation(),
+        feeAssetItem = feeAssetItem
+    )
+
+private fun ChainXcmExecutionRemote.toXcmExecution() =
+    Chain.Xcm.Execution(
+        palletName = palletName,
+        callName = callName,
+        transferType = transferType,
+        argumentShape = argumentShape,
+        destinationLocation = destinationLocation?.toXcmMultiLocation(),
+        assetLocation = assetLocation?.toXcmMultiLocation(),
+        beneficiaryLocation = beneficiaryLocation?.toXcmMultiLocation(),
+        feeAssetLocation = feeAssetLocation?.toXcmMultiLocation(),
+        feeAssetItem = feeAssetItem,
+        weightLimit = weightLimit?.toXcmWeightLimit(),
+        destinationFee = destinationFee?.toXcmDestinationFee(),
+        bridge = bridge?.toXcmBridge()
+    )
+
+private fun ChainXcmDestinationRemote.toXcmDestination() = Chain.Xcm.Destination(
+    chainId = chainId,
+    assets = assets?.map { it.toXcmAsset() },
+    bridgeParachainId = bridgeParachainId,
+    execution = execution?.toXcmExecution()
+)
+
+private fun ChainXcmRemote.toXcm() = Chain.Xcm(
+    chainId = chainId,
+    xcmVersion = xcmVersion,
+    availableAssets = availableAssets?.map { it.toXcmAsset() },
+    availableDestinations = availableDestinations?.map { it.toXcmDestination() }
+)
+
+/** Null is the historical absent-field Substrate contract; explicit unknown values are unsupported. */
+fun operationalEcosystemOrNull(value: String?): Ecosystem? =
+    if (value == null) Ecosystem.Substrate else Ecosystem.entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
 
 fun ChainRemote.toChain(): Chain {
+    val admittedEcosystem = requireNotNull(operationalEcosystemOrNull(ecosystem)) { "Unsupported chain ecosystem" }
     val nodes = this.nodes?.mapIndexed { index, node ->
         ChainNode(
             url = node.url,
@@ -195,7 +276,7 @@ fun ChainRemote.toChain(): Chain {
         explorers = explorers.orEmpty(),
         icon = this.icon.orEmpty(),
         externalApi = externalApi,
-        addressPrefix = this.addressPrefix,
+        addressPrefix = requireNotNull(this.addressPrefix) { "Remote chain $chainId has no address prefix" },
         isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty || ETHEREUM_BASED_OPTION in optionsOrEmpty,
         isTestNet = TESTNET_OPTION in optionsOrEmpty,
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
@@ -210,8 +291,9 @@ fun ChainRemote.toChain(): Chain {
             REMOTE_ASSETS_OPTION in optionsOrEmpty -> Chain.RemoteAssetsSource.OnChain
             else -> null
         },
-        ecosystem = Ecosystem.fromString(ecosystem),
-        tonBridgeUrl = tonBridgeUrl
+        ecosystem = admittedEcosystem,
+        tonBridgeUrl = tonBridgeUrl,
+        xcm = xcm?.toXcm()
     )
 }
 
@@ -229,7 +311,8 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                     chainIcon = this.icon,
                     isTestNet = TESTNET_OPTION in this.options.orEmpty(),
                     priceId = chainAsset.priceId,
-                    precision = chainAsset.precision ?: DEFAULT_PRECISION,
+                    // No guessed precision: an asset without one is dropped rather than mis-scaled.
+                    precision = requireNotNull(chainAsset.precision) { "Remote asset ${chainAsset.id} has no precision" },
                     staking = mapStakingStringToStakingType(chainAsset.staking),
                     purchaseProviders = chainAsset.purchaseProviders,
                     supportStakingPool = NOMINATION_POOL_OPTION in this.options.orEmpty(),
@@ -239,7 +322,8 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                     existentialDeposit = chainAsset.existentialDeposit,
                     color = chainAsset.color,
                     isNative = chainAsset.isNative,
-                    priceProvider = chainAsset.priceProvider?.mapRemoteToModel()
+                    priceProvider = chainAsset.priceProvider?.mapRemoteToModel(),
+                    coinbaseUrl = chainAsset.coinbaseUrl
                 )
             }
         }.getOrNull()
@@ -253,7 +337,13 @@ fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = ChainNode(
     isDefault = nodeLocal.isDefault
 )
 
+/** Unsupported cached parents remain stored, but cannot supply transport, signing or address semantics. */
+fun mapChainLocalToChainOrNull(chainLocal: JoinedChainInfo): Chain? =
+    if (operationalEcosystemOrNull(chainLocal.chain.ecosystem) == null) null else mapChainLocalToChain(chainLocal)
+
 fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
+    val admittedEcosystem = requireNotNull(operationalEcosystemOrNull(chainLocal.chain.ecosystem)) { "Unsupported chain ecosystem" }
+    val gson by lazy { Gson() }
     val nodes = chainLocal.nodes.map(::mapNodeLocalToNode)
 
     val assets = chainLocal.assets.map {
@@ -272,12 +362,15 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isTestNet = chainLocal.chain.isTestNet,
             supportStakingPool = chainLocal.chain.supportStakingPool,
             isUtility = it.isUtility ?: false,
-            type = it.type?.let { runCatching { ChainAssetType.valueOf(it) }.getOrNull() },
+            type = it.type?.let { type ->
+                ChainAssetType.entries.firstOrNull { known -> known.name == type } ?: ChainAssetType.Unknown
+            },
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative,
-            priceProvider = mapToPriceProvider(it.priceProvider)
+            priceProvider = mapToPriceProvider(it.priceProvider),
+            coinbaseUrl = it.coinbaseUrl
         )
     }
 
@@ -320,9 +413,12 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             supportNft = supportNft,
             isUsesAppId = isUsesAppId,
             identityChain = identityChain,
-            remoteAssetsSource = remoteAssetsSource?.let { Chain.RemoteAssetsSource.valueOf(it) },
-            ecosystem = Ecosystem.fromString(ecosystem),
-            tonBridgeUrl = tonBridgeUrl
+            remoteAssetsSource = remoteAssetsSource?.let { source ->
+                Chain.RemoteAssetsSource.entries.firstOrNull { it.name == source }
+            },
+            ecosystem = admittedEcosystem,
+            tonBridgeUrl = tonBridgeUrl,
+            xcm = xcm?.let { decodeOptionalCachedJson { gson.fromJson(it, Chain.Xcm::class.java) } }
         )
     }
 }
@@ -357,7 +453,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative,
-            priceProvider = it.priceProvider?.let { priceProvider ->  gson.toJson(priceProvider) }
+            priceProvider = it.priceProvider?.let { priceProvider ->  gson.toJson(priceProvider) },
+            coinbaseUrl = it.coinbaseUrl
         )
     }
 
@@ -401,7 +498,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             remoteAssetsSource = remoteAssetsSource?.name,
             ecosystem = ecosystem.name,
             androidMinAppVersion = null,
-            tonBridgeUrl = tonBridgeUrl
+            tonBridgeUrl = tonBridgeUrl,
+            xcm = xcm?.let { gson.toJson(it) }
         )
     }
 
@@ -413,8 +511,28 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     )
 }
 
-private fun mapToList(json: String?) =
-    json?.let { Gson().fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type) }
+private fun mapToList(json: String?) = json?.let {
+    decodeOptionalCachedJson { Gson().fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type) }
+}
 
-fun mapToPriceProvider(json: String?) =
-    json?.let { Gson().fromJson<Asset.PriceProvider>(it, object : TypeToken<Asset.PriceProvider>() {}.type) }
+// Gson can otherwise populate Kotlin non-null fields with null for absent or unknown values.
+private data class CachedPriceProvider(
+    @SerializedName("id") val id: String? = null,
+    @SerializedName("type") val type: String? = null,
+    @SerializedName("precision") val precision: Int = 0
+)
+
+fun mapToPriceProvider(json: String?): Asset.PriceProvider? = json?.let {
+    val cached = decodeOptionalCachedJson { Gson().fromJson(it, CachedPriceProvider::class.java) } ?: return@let null
+    val id = cached.id ?: return@let null
+    val type = Asset.PriceProviderType.entries.firstOrNull { it.name == cached.type } ?: return@let null
+    Asset.PriceProvider(id, type, cached.precision)
+}
+
+// Optional remote metadata must not prevent an otherwise healthy chain from being read.
+// Keep this boundary around JSON decoding only: cancellation and other failures must propagate.
+internal inline fun <T> decodeOptionalCachedJson(decode: () -> T): T? = try {
+    decode()
+} catch (_: JsonParseException) {
+    null
+}

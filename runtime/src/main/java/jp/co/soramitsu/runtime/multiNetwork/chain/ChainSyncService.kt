@@ -6,162 +6,125 @@ import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.accountId
-import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
-import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
-import jp.co.soramitsu.coredb.model.chain.ChainLocal
-import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
+import jp.co.soramitsu.coredb.recovery.selection.EndpointCatalogSnapshot
+import jp.co.soramitsu.runtime.ext.withBitcoinTestnetAccountChain
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ChainSyncService(
     private val dao: ChainDao,
     private val chainFetcher: ChainFetcher,
     private val metaAccountDao: MetaAccountDao,
     private val assetsDao: AssetDao,
+    private val contextManager: ContextManager,
+    private val logger: (String) -> Unit = {}
+) : XcmDiscoverySnapshotProvider {
 
-    private val contextManager: ContextManager
-) {
+    private val xcmDiscoveryRefreshMutex = Mutex()
+    @Volatile
+    private var currentProcessXcmDiscoveryChains: List<Chain>? = null
 
-    suspend fun syncUp() {
-        kotlin.runCatching { configChainsSyncUp() }.onFailure { it.printStackTrace() }.getOrNull() ?: return
+    suspend fun syncUp() = xcmDiscoveryRefreshMutex.withLock {
+        // Clear before every attempt. A failed refresh must never leave a
+        // previously fetched or persisted route eligible for XCM discovery.
+        currentProcessXcmDiscoveryChains = null
+        val remoteChains = configChainsSyncUp()
+        currentProcessXcmDiscoveryChains = remoteChains.toList()
     }
 
-    private suspend fun configChainsSyncUp(): List<Chain> = supervisorScope {
-        val localChainsJoinedInfo = dao.getJoinChainInfo()
-        val localChainsJoinedInfoMap = localChainsJoinedInfo.associateBy { it.chain.id }
+    override suspend fun getCurrentProcessXcmDiscoveryChains(): List<Chain> =
+        currentProcessXcmDiscoveryChains?.toList().orEmpty()
 
-        val remoteChains = chainFetcher.getChains()
-            .filter {
-                !it.disabled && (it.assets?.isNotEmpty() == true)
-            }
-            .map {
-                it.toChain()
-            }
-
-        val remoteMapping = remoteChains.associateBy(Chain::id)
-
-        val mappedRemoteChains = remoteChains.map { mapChainToChainLocal(it) }
-        val chainsSyncDeferred = async {
-            val chainsToUpdate: MutableList<ChainLocal> = mutableListOf()
-            val chainsToAdd: MutableList<ChainLocal> = mutableListOf()
-            val chainsToRemove =
-                localChainsJoinedInfo.filter { it.chain.id !in remoteMapping.keys }
-                    .map { it.chain }
-
-            mappedRemoteChains.forEach { remoteChainInfo ->
-                val remoteChain = remoteChainInfo.chain
-                val localChain = localChainsJoinedInfoMap[remoteChain.id]?.chain
-
-                when {
-                    localChain == null -> chainsToAdd.add(remoteChain) // new
-                    localChain != remoteChain -> chainsToUpdate.add(remoteChain) // updated
-                }
-            }
-            dao.updateChains(chainsToAdd, chainsToUpdate)
-            chainsToRemove
+    private suspend fun configChainsSyncUp(): List<Chain> {
+        var fetchFailure: Exception? = null
+        var unsupportedEcosystems: Map<String, String> = emptyMap()
+        val malformedIds = mutableSetOf<String>()
+        val fetchedChains = try {
+            val fetched = chainFetcher.getChains()
+            require(fetched.map { it.chainId }.toSet().size == fetched.size) { "Remote catalog parent identity is ambiguous" }
+            val enabled = fetched.filter { !it.disabled }
+            val (supported, unsupported) = enabled.partition { operationalEcosystemOrNull(it.ecosystem) != null }
+            // Retain unambiguous unsupported observations even if another supported entry cannot map.
+            // The offline fallback then preserves cached rows but still quarantines these exact IDs.
+            unsupportedEcosystems = unsupported.associate { it.chainId to it.ecosystem }
+            supported.mapNotNull { remote -> remote.toChainOrSkip(malformedIds) }
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: Exception) {
+            fetchFailure = failure
+            null
         }
-
-        val chainsToDelete = chainsSyncDeferred.await()
-        coroutineScope {
-            chainsSyncDeferred.join()
-            launch {
-                val localAssets =
-                    localChainsJoinedInfo.map { it.assets }.flatten()
-                val remoteAssets =
-                    mappedRemoteChains.map { it.assets }.flatten()
-
-                val chainsWithRemoteAssetsIds = remoteChains.filter { it.remoteAssetsSource != null }.map { it.id }.toSet()
-
-                val assetsToAdd: MutableList<ChainAssetLocal> = mutableListOf()
-                val assetsToUpdate: MutableList<ChainAssetLocal> = mutableListOf()
-                val assetsToRemove = localAssets.asSequence()
-                    .filter { it.chainId !in chainsWithRemoteAssetsIds }.filter { local ->
-                        val remoteAssetsIds = remoteAssets.map { it.id to it.chainId }
-
-                        local.id to local.chainId !in remoteAssetsIds
-                    }.toList()
-
-                remoteAssets.forEach { remoteAsset ->
-                    val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId }
-
-                    when {
-                        localAsset == null -> {
-                            assetsToAdd.add(remoteAsset)
-                        } // new
-                        localAsset != remoteAsset -> {
-                            assetsToUpdate.add(remoteAsset)
-                        } // updated
-                    }
-                }
-                dao.updateAssets(assetsToAdd, assetsToUpdate, assetsToRemove)
-
-                val metaAccounts = metaAccountDao.getMetaAccounts()
-                if(metaAccounts.isEmpty()) return@launch
-                val newLocalAssets = metaAccounts.map { metaAccount ->
-                    assetsToAdd.mapNotNull {
-                        val chain = remoteMapping[it.chainId] ?: return@mapNotNull null
-                        val accountId = metaAccount.accountId(chain) ?: return@mapNotNull null
-
-                        AssetLocal(
-                            accountId = accountId,
-                            id = it.id,
-                            chainId = it.chainId,
-                            metaId = metaAccount.id,
-                            tokenPriceId = it.priceId,
-                            enabled = false
-                        )
-                    }
-                }.flatten()
-
-                assetsDao.insertAssets(newLocalAssets)
-                assetsDao.deleteAssets(assetsToRemove.map { it.id})
+        val accountChainIds = metaAccountDao.getJoinedMetaAccountsInfo()
+            .flatMap { account -> account.chainAccounts.map { it.chainId } }
+        val operation = dao.endpointMutationLane.admitCatalogReplacement()
+        var remoteChains: List<Chain> = emptyList()
+        var nativeIds: Set<String> = emptySet()
+        var catalogSize = 0
+        val assetsToAdd = dao.replaceCatalog(operation) { freshLocal ->
+            // Both fallback data and removals come from this transaction's fresh snapshot.
+            // Network fetch and account reads have already finished outside the writer lane.
+            val preservedIds = freshLocal.map { it.chain.id } + accountChainIds + fetchedChains.orEmpty().map(Chain::id) +
+                unsupportedEcosystems.keys + malformedIds
+            val nativeChains = nativeWalletChains(preservedIds.toSet())
+            nativeIds = nativeChains.map(Chain::id).toSet()
+            // Cached operational metadata can omit oversized values or contain unknown cached enums.
+            // Keep it out of the domain round trip and preserve its stored catalog rows as a unit.
+            val preservedCatalog = freshLocal.filter {
+                it.chain.id !in nativeIds &&
+                    (fetchedChains == null || it.chain.id in unsupportedEcosystems || it.chain.id in malformedIds)
             }
-            launch {
-                val remoteNodes = mappedRemoteChains.map { it.nodes }.flatten()
-                val localNodes = localChainsJoinedInfo.map { it.nodes }.flatten()
-                val nodesToUpdate: MutableList<ChainNodeLocal> = mutableListOf()
-                val nodesToAdd: MutableList<ChainNodeLocal> = mutableListOf()
-                val nodesToRemove =
-                    localNodes.filter { local -> local.url !in remoteNodes.map { it.url } }.filter { it.isDefault }
-
-                remoteNodes.forEach { remoteNode ->
-                    val localNode = localNodes.find { it.url == remoteNode.url }
-
-                    when {
-                        localNode == null -> nodesToAdd.add(remoteNode) // new
-                        localNode != remoteNode -> nodesToUpdate.add(remoteNode) // updated
-                    }
-                }
-                dao.updateNodes(nodesToAdd, nodesToUpdate, nodesToRemove)
+            val preservedCatalogIds = preservedCatalog.map { it.chain.id }.toSet()
+            remoteChains = (fetchedChains.orEmpty().filter { it.id !in nativeIds } + nativeChains)
+                .withBitcoinTestnetAccountChain(preservedIds.toSet())
+                .filter { it.id !in preservedCatalogIds }
+            val unsupportedOverrides = unsupportedEcosystems.filterKeys { it in preservedCatalogIds }
+            val catalog = preservedCatalog + remoteChains.map(::mapChainToChainLocal)
+            catalogSize = catalog.size
+            EndpointCatalogSnapshot(catalog, remoteChains.filter {
+                it.remoteAssetsSource != null || it.isUniversalWalletSolana() || it.isUniversalWalletIroha()
+            }.map(Chain::id).toSet(), preservedCatalogChains = preservedCatalogIds,
+                unsupportedEcosystemOverrides = unsupportedOverrides)
+        }
+        val remoteMapping = remoteChains.associateBy(Chain::id)
+        val newLocalAssets = metaAccountDao.getJoinedMetaAccountsInfo().flatMap { accountInfo ->
+            val metaAccount = accountInfo.metaAccount
+            assetsToAdd.mapNotNull { asset ->
+                val chain = remoteMapping[asset.chainId] ?: return@mapNotNull null
+                val chainAccount = accountInfo.chainAccounts.firstOrNull { it.chainId == chain.id }
+                val native = chain.isUniversalWalletBitcoin() || chain.isUniversalWalletSolana() || chain.isUniversalWalletIroha()
+                val accountId = chainAccount?.accountId ?: if (native) null else metaAccount.accountId(chain)
+                if (accountId == null) return@mapNotNull null
+                AssetLocal(accountId = accountId, id = asset.id, chainId = asset.chainId, metaId = metaAccount.id,
+                    tokenPriceId = asset.priceId, enabled = null)
             }
-            launch {
-                val remoteExplorers = mappedRemoteChains.map { it.explorers }.flatten()
-                val localExplorers = localChainsJoinedInfo.map { it.explorers }.flatten()
-                val explorersToUpdate: MutableList<ChainExplorerLocal> = mutableListOf()
-                val explorersToAdd: MutableList<ChainExplorerLocal> = mutableListOf()
-                val explorersToRemove =
-                    localExplorers.filter { local -> local.type to local.chainId !in remoteExplorers.map { it.type to it.chainId } }
+        }
+        // Preserve automatic visibility and existing wallet hide tombstones. Definition removal
+        // never deletes a wallet-scoped balance/preference row by its non-unique asset identifier.
+        assetsDao.insertAssets(newLocalAssets)
+        logger("catalog replacement committed: $catalogSize")
+        fetchFailure?.let { throw it }
+        // Only a successful current-process fetch supplies XCM discovery data.
+        return checkNotNull(fetchedChains).filter { it.id !in nativeIds }
+    }
 
-                remoteExplorers.forEach { remoteExplorer ->
-                    val localExplorer = localExplorers.find { it.chainId == remoteExplorer.chainId && it.type == remoteExplorer.type }
-
-                    when {
-                        localExplorer == null -> explorersToAdd.add(remoteExplorer) // new
-                        localExplorer != remoteExplorer -> explorersToUpdate.add(remoteExplorer) // updated
-                    }
-                }
-                dao.updateExplorers(explorersToAdd, explorersToUpdate, explorersToRemove)
-            }
-            coroutineContext.job
-        }.join()
-
-        dao.deleteChains(chainsToDelete)
-
-        remoteChains
+    // One malformed catalog entry (a missing name or address prefix, say) must not stop every chain from syncing:
+    // it is skipped and logged, and the caller keeps its cached catalog row as it was.
+    private fun ChainRemote.toChainOrSkip(malformedIds: MutableSet<String>): Chain? = try {
+        toChain()
+    } catch (failure: CancellationException) {
+        throw failure
+    } catch (failure: Exception) {
+        // Gson leaves required fields null when the entry lacks them.
+        val id: String? = chainId
+        id?.let(malformedIds::add)
+        logger("skipped malformed remote chain $id: ${failure.message}")
+        null
     }
 }

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import java.math.BigInteger
 
 typealias BlockNumber = BigInteger

@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">按代币</string>
+    <string name="portfolio_by_network">按网络</string>
+    <string name="portfolio_show_zero_networks">显示热门或零余额网络（%1$d）</string>
+    <string name="portfolio_hide_zero_networks">隐藏零余额网络（%1$d）</string>
+    <string name="portfolio_hide_group_title">在所有网络上隐藏此代币？</string>
+    <string name="portfolio_hide_group_message">这些网络资产将被隐藏，并从投资组合总额中排除。余额和备份仍可在“管理资产”中查看。</string>
+    <string name="portfolio_choose_network">选择网络</string>
+    <string name="portfolio_price_unavailable">暂无价格</string>
+    <string name="portfolio_price_incomplete">价格不完整 — 不计入无价格的余额</string>
+    <string name="portfolio_group_networks">位于 %1$d 个网络</string>
+    <string name="portfolio_group_hidden">已排除 %1$d 项隐藏资产</string>
+    <string name="portfolio_value_notice">投资组合总额包含可用余额和预留余额。隐藏资产、无价格的资产、测试网资产和池质押余额不计入总额。</string>
+    <string name="portfolio_hidden_manage">隐藏资产（%1$d）· 已排除 %2$s · 管理</string>
+    <string name="portfolio_filter_all">全部</string>
+    <string name="portfolio_filter_shown">已显示</string>
+    <string name="portfolio_filter_hidden">已隐藏</string>
+    <string name="portfolio_preference_auto">自动</string>
+    <string name="portfolio_manage_group_count">已显示 %1$d / %2$d</string>
+    <string name="portfolio_no_hidden">没有隐藏资产</string>
+    <string name="portfolio_only_network">在 Fearless 中，此代币仅可在 %1$s 上使用。</string>
+</resources>

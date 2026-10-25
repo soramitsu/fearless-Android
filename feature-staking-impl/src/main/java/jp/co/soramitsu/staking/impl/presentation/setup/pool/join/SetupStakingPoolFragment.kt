@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.setup.pool.join
 
+import android.content.DialogInterface
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -11,6 +12,16 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 @AndroidEntryPoint
 class SetupStakingPoolFragment : BaseComposeBottomSheetDialogFragment<SetupStakingPoolViewModel>() {
     override val viewModel: SetupStakingPoolViewModel by viewModels()
+
+    override fun onCancel(dialog: DialogInterface) {
+        viewModel.onDismissed()
+        super.onCancel(dialog)
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        if (activity?.isChangingConfigurations != true) viewModel.onDismissed()
+        super.onDismiss(dialog)
+    }
 
     @Composable
     override fun Content(padding: PaddingValues) {

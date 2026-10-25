@@ -24,7 +24,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
-import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.redeem.RedeemInteractor
@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
@@ -68,7 +67,7 @@ class RedeemViewModel @Inject constructor(
     val stakingUnlockAmount = MutableSharedFlow<String>().apply {
         launch {
             stakingScenarioInteractor.getStakingBalanceFlow(payload.collatorAddress?.fromHex()).onEach {
-                emit(it.redeemable.amount.formatCryptoFull())
+                emit(it.redeemable.amount?.formatCryptoFull() ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable))
             }.share()
         }
     }
@@ -79,12 +78,12 @@ class RedeemViewModel @Inject constructor(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    private val parsedAmountFlow = stakingUnlockAmount.mapNotNull {
+    private val parsedAmountFlow = stakingUnlockAmount.map {
         it.toBigDecimalOrNull()
     }
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
+        amount?.let(asset.token::fiatAmount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()

@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.labelRes
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletNameItemViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
@@ -104,7 +105,10 @@ internal fun EnterBackupPasswordScreen(
             )
             MarginVertical(margin = 16.dp)
             WalletNameItem(
-                state = CompactWalletNameItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
+                state = CompactWalletNameItemViewState(
+                    title = state.wallet?.backupMeta?.name.orEmpty(),
+                    subtitle = state.wallet?.origin?.labelRes?.let { stringResource(it) }
+                ),
                 onSelected = {}
             )
             MarginVertical(margin = 16.dp)

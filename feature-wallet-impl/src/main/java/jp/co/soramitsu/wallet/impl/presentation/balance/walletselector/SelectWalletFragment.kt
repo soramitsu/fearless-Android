@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
@@ -30,13 +31,10 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        when (result.resultCode) {
-            Activity.RESULT_OK -> viewModel.openAddWalletThroughGoogleScreen()
-            Activity.RESULT_CANCELED -> { /* no action */ }
-            else -> {
-                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-                viewModel.onGoogleLoginError(googleSignInStatus.toString())
-            }
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.openAddWalletThroughGoogleScreen()
+        } else {
+            viewModel.onGoogleSignInFailed(GoogleSignInResult.parse(result.resultCode, result.data))
         }
     }
 

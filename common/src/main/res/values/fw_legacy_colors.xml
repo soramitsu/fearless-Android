@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GENERATED from design/fw.legacy.android.json; do not edit. -->
+<!-- sha256 cd51c6671d63003f32caee3e772fbdca26e273925d19bd2967b2fe6bdc2c075c -->
+<resources>
+    <color name="fw_legacy_colorPrimary">#004CB7</color>
+    <color name="fw_legacy_colorSelected">#66FF009A</color>
+    <color name="fw_legacy_colorPrimaryDark">#80004CB7</color>
+    <color name="fw_legacy_colorAccent">#FF009A</color>
+    <color name="fw_legacy_colorAccentDark">#EE0077</color>
+    <color name="fw_legacy_colorAccent_50">#80FF009A</color>
+    <color name="fw_legacy_white">#fff</color>
+    <color name="fw_legacy_colorHint">#ccc</color>
+    <color name="fw_legacy_black">#000</color>
+    <color name="fw_legacy_gray1">#CCCCCC</color>
+    <color name="fw_legacy_gray2">#888888</color>
+    <color name="fw_legacy_gray3">#444444</color>
+    <color name="fw_legacy_gray4">#181818</color>
+    <color name="fw_legacy_bottom_bar_grey">#F71F1D1E</color>
+    <color name="fw_legacy_gray_disabled">#D0D0D0</color>
+    <color name="fw_legacy_colorGreyText">#888888</color>
+    <color name="fw_legacy_green">#0ED33B</color>
+    <color name="fw_legacy_dividerGray">#444444</color>
+    <color name="fw_legacy_bottomSheetBackground">#80838383</color>
+    <color name="fw_legacy_red">#F00004</color>
+    <color name="fw_legacy_blurColorDark">#B3000000</color>
+    <color name="fw_legacy_blurColor">#8C000000</color>
+    <color name="fw_legacy_blurColorLight">#66000000</color>
+    <color name="fw_legacy_backgroundBlurColor">#0AFFFFFF</color>
+    <color name="fw_legacy_white_10">#1AFFFFFF</color>
+    <color name="fw_legacy_white_16">#29FFFFFF</color>
+    <color name="fw_legacy_white_20">#33FFFFFF</color>
+    <color name="fw_legacy_white_30">#4DFFFFFF</color>
+    <color name="fw_legacy_white_24">#3DFFFFFF</color>
+    <color name="fw_legacy_white_40">#66FFFFFF</color>
+    <color name="fw_legacy_white_50">#80FFFFFF</color>
+    <color name="fw_legacy_white_64">#A6FFFFFF</color>
+    <color name="fw_legacy_black_70">#B3000000</color>
+    <color name="fw_legacy_black1">@color/fw_legacy_gray1</color>
+    <color name="fw_legacy_black2">@color/fw_legacy_gray2</color>
+    <color name="fw_legacy_black3">@color/fw_legacy_gray3</color>
+    <color name="fw_legacy_black4">@color/fw_legacy_gray4</color>
+    <color name="fw_legacy_black80">#80000000</color>
+    <color name="fw_legacy_account_icon_light">#eeeeee</color>
+    <color name="fw_legacy_account_icon_dark">@color/fw_legacy_black</color>
+    <color name="fw_legacy_error_red">#FF3B30</color>
+    <color name="fw_legacy_warning_orange">#EE7700</color>
+</resources>

@@ -160,6 +160,12 @@ class AdvancedBlockView @JvmOverloads constructor(
                 configureSubstrate(FieldState.HIDDEN)
                 configureEthereum(FieldState.HIDDEN)
             }
+            WalletEcosystem.Bitcoin,
+            WalletEcosystem.Solana,
+            WalletEcosystem.Iroha -> {
+                configureSubstrate(FieldState.HIDDEN)
+                configureEthereum(FieldState.HIDDEN)
+            }
         }
     }
 

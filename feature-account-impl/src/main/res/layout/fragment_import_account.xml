@@ -36,6 +36,15 @@
             android:fitsSystemWindows="true"
             android:orientation="vertical">
 
+            <TextView
+                android:id="@+id/recoveryExplanation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/x2"
+                android:text="@string/wallet_recovery_restore_explanation"
+                android:textAppearance="@style/TextAppearance.Soramitsu.Body1"
+                android:visibility="gone" />
+
             <jp.co.soramitsu.common.view.LabeledTextView
                 android:id="@+id/sourceTypeInput"
                 android:layout_width="match_parent"
@@ -63,6 +72,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/x2" />
+
+            <TextView
+                android:id="@+id/recoveryError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/x2"
+                android:accessibilityLiveRegion="polite"
+                android:textAppearance="@style/TextAppearance.Soramitsu.Body1"
+                android:visibility="gone" />
 
         </LinearLayout>
 

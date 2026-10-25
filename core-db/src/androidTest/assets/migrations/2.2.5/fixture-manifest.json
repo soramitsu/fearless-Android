@@ -1,0 +1,93 @@
+{
+  "fixture_format": 2,
+  "platform": "android",
+  "purpose": "Room schema version 55 exactly as a fresh install of the released app created it. AllReleasedSchemasUpgradeTest builds a database from it, inserts synthetic rows and upgrades it with the current migration graph.",
+  "db_version": 55,
+  "source_release": {
+    "id": "2.2.5+95",
+    "version": "2.2.5",
+    "versionCode": 95,
+    "tag": "2.2.5(95)",
+    "commit": "01e359fc989ae56d9cc3bd49125000e42f9a3832",
+    "binary": {
+      "kind": "github-apk",
+      "asset_name": "fearless-wallet-2.2.5_95.apk",
+      "url": "https://github.com/soramitsu/fearless-Android/releases/download/2.2.5%2895%29/fearless-wallet-2.2.5_95.apk",
+      "sha256": "2d4ffb9bc71c701061c17acb4d1d49b1165dbac51f9b566cf0fdb1fcc9b4f643",
+      "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+      "size_bytes": 116491139
+    }
+  },
+  "releases_with_this_schema": [
+    {
+      "id": "2.2.4+93",
+      "tag": "2.2.4",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "2.2.5+94",
+      "tag": "2.2.5(94)",
+      "binary_kind": "no-github-apk",
+      "schema_evidence": "core-db/src/main tree identical to tag 2.2.5(95) (b001b2c2e691); same toolchain (Room 2.5.1, Kotlin 1.8.10)"
+    },
+    {
+      "id": "2.2.5+95",
+      "tag": "2.2.5(95)",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    }
+  ],
+  "generator": {
+    "tier": "T1",
+    "method": "dexdump-createAllTables",
+    "tool": "tools/upgrade-fixtures/android/extract_room_schema.py",
+    "inventory": "tools/upgrade-fixtures/android/releases.json"
+  },
+  "schema_extraction": {
+    "apk_sha256": "2d4ffb9bc71c701061c17acb4d1d49b1165dbac51f9b566cf0fdb1fcc9b4f643",
+    "apk_entry": "classes2.dex",
+    "apk_entry_sha256": "3037bf6034a7050d477e3da2293f2d1dbb3e1d256d8698a9fc5b310f107c9235",
+    "class": "jp.co.soramitsu.coredb.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 55,
+    "room_identity_hash": "0ae6188a0442abd21c6c8c04649b022a",
+    "room_legacy_identity_hash": "08372d26a2a28b88fe54d0081639301d",
+    "explicit_table_count_including_room_master": 19,
+    "explicit_index_count": 12,
+    "explicit_view_count": 0,
+    "statements_sha256": "d4c02bf6e2532e1478def937734947f5961ac1a1c5115343d065d683b3c2d326"
+  },
+  "schema_check": {
+    "engine": "sqlite3 (host, in-memory)",
+    "integrity_check": "ok",
+    "tables": [
+      "account_staking_accesses",
+      "address_book",
+      "assets",
+      "chain_accounts",
+      "chain_assets",
+      "chain_explorers",
+      "chain_nodes",
+      "chain_runtimes",
+      "chain_types",
+      "chains",
+      "meta_accounts",
+      "operations",
+      "phishing",
+      "room_master_table",
+      "sora_card",
+      "storage",
+      "token_price",
+      "total_reward",
+      "users"
+    ],
+    "explicit_index_count": 12
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v55.sql",
+    "schema_sql_sha256": "491e2bff1362f68717f02f593556c0abc5b2bfe67c989246f6a92d50c8aafd35"
+  },
+  "synthetic_only": true,
+  "contains_user_material": false
+}

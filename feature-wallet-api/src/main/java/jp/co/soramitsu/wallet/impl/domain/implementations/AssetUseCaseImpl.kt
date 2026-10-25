@@ -7,9 +7,9 @@ import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
 class AssetUseCaseImpl(
@@ -18,19 +18,19 @@ class AssetUseCaseImpl(
     private val sharedState: SingleAssetSharedState
 ) : AssetUseCase {
 
-    override fun currentAssetFlow() = sharedState.assetWithChain
-        .map { chainAndAsset ->
-            val meta = accountRepository.getSelectedMetaAccount()
-            meta.accountId(chainAndAsset.chain)?.let {
-                Pair(meta, chainAndAsset)
-            }
-        }.mapNotNull { it }
-        .flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
+    override fun currentAssetFlow() = combine(
+        sharedState.assetWithChainAvailability,
+        accountRepository.selectedMetaAccountFlow()
+    ) { chainAndAsset, account -> chainAndAsset to account }
+        .flatMapLatest { (chainAndAsset, selectedMetaAccount) ->
+            if (chainAndAsset == null) return@flatMapLatest emptyFlow()
+
             val (chain, chainAsset) = chainAndAsset
+            val accountId = selectedMetaAccount.accountId(chain) ?: return@flatMapLatest emptyFlow()
 
             walletRepository.assetFlow(
                 metaId = selectedMetaAccount.id,
-                accountId = selectedMetaAccount.accountId(chain)!!,
+                accountId = accountId,
                 chainAsset = chainAsset,
                 minSupportedVersion = chain.minSupportedVersion
             )

@@ -1,0 +1,100 @@
+{
+  "fixture_format": 1,
+  "purpose": "Verbatim SQL of the shipped 4.x 71 -> 72 TonMigration and 72 -> 73, 73 -> 74, 74 -> 75 migrations, replayed by upgrade tests instead of the release candidate's rewritten migrations",
+  "refs": [
+    "4.0.1",
+    "4.0.2",
+    "4.1.1",
+    "v4.2.0",
+    "b5e22d49d"
+  ],
+  "database_version_by_ref": {
+    "4.0.1": 73,
+    "4.0.2": 73,
+    "4.1.1": 74,
+    "v4.2.0": 74,
+    "b5e22d49d": 75
+  },
+  "source_blobs": {
+    "4.0.1": {
+      "TonMigration.kt": "da5238cf4c8ea8ff6557a7dba9a63e638010d6ba",
+      "Migrations.kt": "f09ea81f787437a3891ce74b01701028ebfde51e"
+    },
+    "4.0.2": {
+      "TonMigration.kt": "da5238cf4c8ea8ff6557a7dba9a63e638010d6ba",
+      "Migrations.kt": "f09ea81f787437a3891ce74b01701028ebfde51e"
+    },
+    "4.1.1": {
+      "TonMigration.kt": "da5238cf4c8ea8ff6557a7dba9a63e638010d6ba",
+      "Migrations.kt": "59d912228f09466c564155568fb61fb1acd9df69"
+    },
+    "v4.2.0": {
+      "TonMigration.kt": "da5238cf4c8ea8ff6557a7dba9a63e638010d6ba",
+      "Migrations.kt": "59d912228f09466c564155568fb61fb1acd9df69"
+    },
+    "b5e22d49d": {
+      "TonMigration.kt": "da5238cf4c8ea8ff6557a7dba9a63e638010d6ba",
+      "Migrations.kt": "b02a1549856401003e215ce6aa0650f089f445f6"
+    }
+  },
+  "migrations": [
+    {
+      "from": 71,
+      "to": 72,
+      "refs": [
+        "4.0.1",
+        "4.0.2",
+        "4.1.1",
+        "v4.2.0",
+        "b5e22d49d"
+      ],
+      "statement_count": 27
+    },
+    {
+      "from": 72,
+      "to": 73,
+      "refs": [
+        "4.0.1",
+        "4.0.2",
+        "4.1.1",
+        "v4.2.0",
+        "b5e22d49d"
+      ],
+      "statement_count": 3
+    },
+    {
+      "from": 73,
+      "to": 74,
+      "refs": [
+        "4.1.1",
+        "v4.2.0"
+      ],
+      "statement_count": 3
+    },
+    {
+      "from": 73,
+      "to": 74,
+      "refs": [
+        "b5e22d49d"
+      ],
+      "statement_count": 2
+    },
+    {
+      "from": 74,
+      "to": 75,
+      "refs": [
+        "b5e22d49d"
+      ],
+      "statement_count": 1
+    }
+  ],
+  "shipped_room_identity_hashes": {
+    "73": "801c7f0c6b7a8b6fa8f383814ad417fa",
+    "74": "76cc9e898252bb6822f7da6d30ce604e",
+    "75": "3909ad504e3e6dfada04d2bfca064870"
+  },
+  "frozen_assets": {
+    "sql": "shipped-71-to-75.sql",
+    "sql_sha256": "37ef46bab7a1e1e5f776c5a1f5cfbfc685cf4e05ee6bb967ca1fdc20475d0884"
+  }
+}

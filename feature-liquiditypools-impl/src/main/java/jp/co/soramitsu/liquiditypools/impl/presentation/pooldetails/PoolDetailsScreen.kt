@@ -149,7 +149,7 @@ fun PoolDetailsScreen(state: PoolDetailsState, callbacks: PoolDetailsCallbacks) 
                     InfoTableItemAsset(
                         TitleIconValueState(
                             title = stringResource(id = R.string.lp_reward_token_title),
-                            iconUrl = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PSWAP.svg",
+                            iconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PSWAP.svg",
                             value = "PSWAP"
                         )
                     )

@@ -1,0 +1,306 @@
+{
+    "iOS": [
+        {
+            "minVersion": "3.6.1",
+            "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/background.png",
+            "en-EN": {
+                "new":[
+                    {
+                        "title": {"text": "Take Control with a Tap", "color": ""},
+                        "description": "Discover and manage your assets effortlessly from the main dashboard",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/1.png"
+                    },
+                    {
+                        "title": {"text": "Customize Your View", "color": ""},
+                        "description": "Easily hide or showcase your assets, tailoring the wallet interface to your preferences",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/2.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/3.png"
+                    }
+                ],
+                "regular":[
+                    {
+                        "title": {"text": "Take Control with a Tap", "color": ""},
+                        "description": "Discover and manage your assets effortlessly from the main dashboard",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/1.png"
+                    },
+                    {
+                        "title": {"text": "Customize Your View", "color": ""},
+                        "description": "Easily hide or showcase your assets, tailoring the wallet interface to your preferences",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/2.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/3.png"
+                    }
+                ]
+            }
+        },
+        {
+            "minVersion": "3.7.1",
+            "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/background.png",
+            "en-EN": {
+                "new":[
+                    {
+                        "title": {"text": "Unlock Rewards with Liquidity Pools", "color": ""},
+                        "description": "Dive into liquidity pools and unleash the potential of your assets. Earn rewards effortlessly and grow your portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/1.png"
+                    },
+                    {
+                        "title": {"text": "Effortless Liquidity Provision", "color": ""},
+                        "description": "Select your assets and input amounts with a few taps. Instantly access APY details and contribute to the pool with confidence.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/2.png"
+                    },
+                    {
+                        "title": {"text": "Monitor and Adjust Your Liquidity", "color": ""},
+                        "description": "Stay informed about your pool allocations and benefits. Seamlessly supply more or withdraw to maintain peak performance.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/3.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/4.png"
+                    }
+                ],
+                "regular":[
+                    {
+                        "title": {"text": "Unlock Rewards with Liquidity Pools", "color": ""},
+                        "description": "Dive into liquidity pools and unleash the potential of your assets. Earn rewards effortlessly and grow your portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/1.png"
+                    },
+                    {
+                        "title": {"text": "Effortless Liquidity Provision", "color": ""},
+                        "description": "Select your assets and input amounts with a few taps. Instantly access APY details and contribute to the pool with confidence.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/2.png"
+                    },
+                    {
+                        "title": {"text": "Monitor and Adjust Your Liquidity", "color": ""},
+                        "description": "Stay informed about your pool allocations and benefits. Seamlessly supply more or withdraw to maintain peak performance.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/3.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/4.png"
+                    }
+                ]
+            }
+        },
+        {
+            "minVersion": "4.0.4",
+            "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/background.png",
+            "en-EN": {
+                "new":[
+                    {
+                        "title": {"text": "Step into the World of TON", "color": ""},
+                        "description": "The Fearless Wallet now supports TON! Seamlessly manage your TON assets alongside your multi-chain portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/1.png"
+                    },
+                    {
+                        "title": {"text": "Connect and Explore TON dApps", "color": ""},
+                        "description": "With TON Connect, effortlessly link to the growing TON ecosystem. Discover endless dApps and decentralized possibilities, right at your fingertips.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/2.png"
+                    },
+                    {
+                        "title": {"text": "Seamless dApp Browsing", "color": ""},
+                        "description": "Experience decentralized apps smoothly within Fearless Wallet’s integrated dApp browser—your gateway to all things DeFi on TON.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/3.png"
+                    },
+                    {
+                        "title": {"text": "Full Control at Your Fingertips", "color": ""},
+                        "description": "Keep tabs on every detail with updated balances, transfers, and transaction histories for TON and JETTON. Security and transparency, all in one place.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/4.png"
+                    },
+                    {
+                        "title": {"text": "Power Up Your DeFi Journey", "color": ""},
+                        "description": "The new Fearless Wallet update is packed with essential tools and security, helping you explore DeFi securely and confidently.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/5.png"
+                    }
+                ],
+                "regular":[
+                    {
+                        "title": {"text": "Step into the World of TON", "color": ""},
+                        "description": "The Fearless Wallet now supports TON! Seamlessly manage your TON assets alongside your multi-chain portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/1.png"
+                    },
+                    {
+                        "title": {"text": "Connect and Explore TON dApps", "color": ""},
+                        "description": "With TON Connect, effortlessly link to the growing TON ecosystem. Discover endless dApps and decentralized possibilities, right at your fingertips.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/2.png"
+                    },
+                    {
+                        "title": {"text": "Seamless dApp Browsing", "color": ""},
+                        "description": "Experience decentralized apps smoothly within Fearless Wallet’s integrated dApp browser—your gateway to all things DeFi on TON.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/3.png"
+                    },
+                    {
+                        "title": {"text": "Full Control at Your Fingertips", "color": ""},
+                        "description": "Keep tabs on every detail with updated balances, transfers, and transaction histories for TON and JETTON. Security and transparency, all in one place.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/4.png"
+                    },
+                    {
+                        "title": {"text": "Power Up Your DeFi Journey", "color": ""},
+                        "description": "The new Fearless Wallet update is packed with essential tools and security, helping you explore DeFi securely and confidently.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/5.png"
+                    }
+                ]
+            }
+        }
+    ],
+    "Android": [
+        {
+            "minVersion": "3.5.1",
+            "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/background.png",
+            "en-EN": {
+                "new":[
+                    {
+                        "title": {"text": "Take Control with a Tap", "color": ""},
+                        "description": "Discover and manage your assets effortlessly from the main dashboard",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/1.png"
+                    },
+                    {
+                        "title": {"text": "Customize Your View", "color": ""},
+                        "description": "Easily hide or showcase your assets, tailoring the wallet interface to your preferences",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/2.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/3.png"
+                    }
+                ],
+                "regular":[
+                    {
+                        "title": {"text": "Take Control with a Tap", "color": ""},
+                        "description": "Discover and manage your assets effortlessly from the main dashboard",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/1.png"
+                    },
+                    {
+                        "title": {"text": "Customize Your View", "color": ""},
+                        "description": "Easily hide or showcase your assets, tailoring the wallet interface to your preferences",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/2.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile_v2/3.png"
+                    }
+                ]
+            }
+        },
+        {
+            "minVersion": "3.7.1",
+            "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/background.png",
+            "en-EN": {
+                "new":[
+                    {
+                        "title": {"text": "Unlock Rewards with Liquidity Pools", "color": ""},
+                        "description": "Dive into liquidity pools and unleash the potential of your assets. Earn rewards effortlessly and grow your portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/1.png"
+                    },
+                    {
+                        "title": {"text": "Effortless Liquidity Provision", "color": ""},
+                        "description": "Select your assets and input amounts with a few taps. Instantly access APY details and contribute to the pool with confidence.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/2.png"
+                    },
+                    {
+                        "title": {"text": "Monitor and Adjust Your Liquidity", "color": ""},
+                        "description": "Stay informed about your pool allocations and benefits. Seamlessly supply more or withdraw to maintain peak performance.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/3.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/4.png"
+                    }
+                ],
+                "regular":[
+                    {
+                        "title": {"text": "Unlock Rewards with Liquidity Pools", "color": ""},
+                        "description": "Dive into liquidity pools and unleash the potential of your assets. Earn rewards effortlessly and grow your portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/1.png"
+                    },
+                    {
+                        "title": {"text": "Effortless Liquidity Provision", "color": ""},
+                        "description": "Select your assets and input amounts with a few taps. Instantly access APY details and contribute to the pool with confidence.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/2.png"
+                    },
+                    {
+                        "title": {"text": "Monitor and Adjust Your Liquidity", "color": ""},
+                        "description": "Stay informed about your pool allocations and benefits. Seamlessly supply more or withdraw to maintain peak performance.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/3.png"
+                    },
+                    {
+                        "title": {"text": "#StayFearless", "color": "#EE0077"},
+                        "description": "With our DeFi Wallet anywhere you go",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/4.png"
+                    }
+                ]
+            }
+        },
+        {
+            "minVersion": "4.0.1",
+            "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v371/background.png",
+            "en-EN": {
+                "new":[
+                    {
+                        "title": {"text": "Step into the World of TON", "color": ""},
+                        "description": "The Fearless Wallet now supports TON! Seamlessly manage your TON assets alongside your multi-chain portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/1.png"
+                    },
+                    {
+                        "title": {"text": "Connect and Explore TON dApps", "color": ""},
+                        "description": "With TON Connect, effortlessly link to the growing TON ecosystem. Discover endless dApps and decentralized possibilities, right at your fingertips.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/2.png"
+                    },
+                    {
+                        "title": {"text": "Seamless dApp Browsing", "color": ""},
+                        "description": "Experience decentralized apps smoothly within Fearless Wallet’s integrated dApp browser—your gateway to all things DeFi on TON.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/3.png"
+                    },
+                    {
+                        "title": {"text": "Full Control at Your Fingertips", "color": ""},
+                        "description": "Keep tabs on every detail with updated balances, transfers, and transaction histories for TON and JETTON. Security and transparency, all in one place.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/4.png"
+                    },
+                    {
+                        "title": {"text": "Power Up Your DeFi Journey", "color": ""},
+                        "description": "The new Fearless Wallet update is packed with essential tools and security, helping you explore DeFi securely and confidently.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/5.png"
+                    }
+                ],
+                "regular":[
+                    {
+                        "title": {"text": "Step into the World of TON", "color": ""},
+                        "description": "The Fearless Wallet now supports TON! Seamlessly manage your TON assets alongside your multi-chain portfolio.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/1.png"
+                    },
+                    {
+                        "title": {"text": "Connect and Explore TON dApps", "color": ""},
+                        "description": "With TON Connect, effortlessly link to the growing TON ecosystem. Discover endless dApps and decentralized possibilities, right at your fingertips.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/2.png"
+                    },
+                    {
+                        "title": {"text": "Seamless dApp Browsing", "color": ""},
+                        "description": "Experience decentralized apps smoothly within Fearless Wallet’s integrated dApp browser—your gateway to all things DeFi on TON.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/3.png"
+                    },
+                    {
+                        "title": {"text": "Full Control at Your Fingertips", "color": ""},
+                        "description": "Keep tabs on every detail with updated balances, transfers, and transaction histories for TON and JETTON. Security and transparency, all in one place.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/4.png"
+                    },
+                    {
+                        "title": {"text": "Power Up Your DeFi Journey", "color": ""},
+                        "description": "The new Fearless Wallet update is packed with essential tools and security, helping you explore DeFi securely and confidently.",
+                        "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/mob_v401/5.png"
+                    }
+                ]
+            }
+        }
+    ]
+}

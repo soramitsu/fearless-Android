@@ -1,0 +1,178 @@
+{
+  "format": "fearless.default-visible-at-zero",
+  "version": 1,
+  "registry": {
+    "source": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json",
+    "snapshot": "config/portfolio/registry/chains-v13-20261009.json",
+    "snapshotSha256": "fa6f0e23cd87dfb3e5536980591dd22ae30e49bf59d04dc2a0b31fc53237ea66",
+    "appOwnedChains": "config/portfolio/app-owned-chains.v1.json",
+    "appOwnedChainsSha256": "79aae5e781447ef5476acfbc910818a134330a0cfbcea11a75a64fa96b6777ba",
+    "reviewedAt": "2026-10-10",
+    "reviewedBy": "Fearless 4.2.0 release lead decision record (Portfolio / token grouping); issuer lists checked 2026-10-10"
+  },
+  "rule": "An Auto asset at zero balance is shown only if: the network is not a testnet; the wallet holds an account in the entry's ecosystem; sending on that network is not vetoed; and either (chainId, assetId) is listed here, or the asset is the primary utility asset (first isUtility, else first isNative) of a network the user pinned as favourite or selected as the only network. Explicit Shown always shows (also at zero); explicit Hidden never shows.",
+  "entries": [
+    {
+      "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+      "assetId": "b774c386-5cce-454a-a845-1ec0381538ec",
+      "symbol": "xor",
+      "network": "SORA Mainnet",
+      "ecosystem": "substrate",
+      "reason": "ranked-mainnet-utility",
+      "rank": 0
+    },
+    {
+      "chainId": "1",
+      "assetId": "c2a6c062-d511-4bde-9ce6-ea775d2a302c",
+      "symbol": "eth",
+      "network": "Ethereum",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 1
+    },
+    {
+      "chainId": "56",
+      "assetId": "6e43f1b7-1ec3-48a7-8ecd-8d680578d2b8",
+      "symbol": "BNB",
+      "network": "BNB Smart Chain",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 2
+    },
+    {
+      "chainId": "137",
+      "assetId": "0x0000000000000000000000000000000000001010",
+      "symbol": "pol",
+      "network": "Polygon",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 3
+    },
+    {
+      "chainId": "42161",
+      "assetId": "37b6375a-0708-4728-bec9-bf15b8680aff",
+      "symbol": "eth",
+      "network": "Arbitrum One",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 4
+    },
+    {
+      "chainId": "10",
+      "assetId": "08bb34b8-8027-4fea-948d-5243f5cbd6ba",
+      "symbol": "eth",
+      "network": "OP Mainnet",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 5
+    },
+    {
+      "chainId": "43114",
+      "assetId": "870f6877-c917-48bc-aa64-723416c94ebb",
+      "symbol": "avax",
+      "network": "Avalanche C-Chain",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 6
+    },
+    {
+      "chainId": "1101",
+      "assetId": "8f85b561-18f5-4cf0-9077-305ebc84d015",
+      "symbol": "eth",
+      "network": "Polygon zkEVM",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 7
+    },
+    {
+      "chainId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+      "assetId": "887a17c7-1370-4de0-97dd-5422e294fa75",
+      "symbol": "dot",
+      "network": "Polkadot",
+      "ecosystem": "substrate",
+      "reason": "ranked-mainnet-utility",
+      "rank": 8
+    },
+    {
+      "chainId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
+      "assetId": "1e0c2ec6-935f-49bd-a854-5e12ee6c9f1b",
+      "symbol": "ksm",
+      "network": "Kusama",
+      "ecosystem": "substrate",
+      "reason": "ranked-mainnet-utility",
+      "rank": 9
+    },
+    {
+      "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+      "assetId": "ebf2822f-2dd4-4f59-aeb3-ae7defa53932",
+      "symbol": "pen",
+      "network": "Pendulum",
+      "ecosystem": "substrate",
+      "reason": "ranked-mainnet-utility",
+      "rank": 10
+    },
+    {
+      "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
+      "assetId": "35346815-009a-4cf9-a5ad-85a0167e594d",
+      "symbol": "movr",
+      "network": "Moonriver",
+      "ecosystem": "ethereumBased",
+      "reason": "ranked-mainnet-utility",
+      "rank": 11
+    },
+    {
+      "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
+      "assetId": "e40c8161-9fc9-4749-a3b8-ed1c0ad16475",
+      "symbol": "glmr",
+      "network": "Moonbeam",
+      "ecosystem": "ethereumBased",
+      "reason": "ranked-mainnet-utility",
+      "rank": 12
+    },
+    {
+      "chainId": "196",
+      "assetId": "dcf40e8d-f041-45b8-8cc8-e5b95bedb86e",
+      "symbol": "okb",
+      "network": "X Layer Mainnet",
+      "ecosystem": "ethereum",
+      "reason": "ranked-mainnet-utility",
+      "rank": 13
+    },
+    {
+      "chainId": "1459b0204b92719ffc978c5da3d6a2057973916bd548f8076df2064bc1cb4cfc",
+      "assetId": "fea07922-2a3c-4a61-947e-a10c1a371c88",
+      "symbol": "anlog",
+      "network": "Analog Timechain",
+      "ecosystem": "substrate",
+      "reason": "ranked-mainnet-utility",
+      "rank": 14
+    },
+    {
+      "chainId": "-239",
+      "assetId": "2ba4723a-74b4-4a6f-a888-e51937773807-239",
+      "symbol": "ton",
+      "network": "TON Mainnet",
+      "ecosystem": "ton",
+      "reason": "ecosystem-primary",
+      "rank": null
+    },
+    {
+      "chainId": "bitcoin:mainnet",
+      "assetId": "BTC",
+      "symbol": "BTC",
+      "network": "Bitcoin",
+      "ecosystem": "bitcoin",
+      "reason": "ecosystem-primary",
+      "rank": null
+    },
+    {
+      "chainId": "solana:mainnet",
+      "assetId": "SOL",
+      "symbol": "SOL",
+      "network": "Solana",
+      "ecosystem": "solana",
+      "reason": "ecosystem-primary",
+      "rank": null
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+<resources>
+    <string name="portfolio_by_token">Tokena göre</string>
+    <string name="portfolio_by_network">Ağa göre</string>
+    <string name="portfolio_show_zero_networks">Popüler / sıfır bakiyeli ağları göster (%1$d)</string>
+    <string name="portfolio_hide_zero_networks">Sıfır bakiyeli ağları gizle (%1$d)</string>
+    <string name="portfolio_hide_group_title">Token tüm ağlarda gizlensin mi?</string>
+    <string name="portfolio_hide_group_message">Bu ağ varlıkları gizlenecek ve portföy toplamından çıkarılacaktır. Bakiyeler ve yedek, Varlıkları yönet bölümünde kullanılabilir olmaya devam eder.</string>
+    <string name="portfolio_choose_network">Ağ seçin</string>
+    <string name="portfolio_price_unavailable">Fiyat mevcut değil</string>
+    <string name="portfolio_price_incomplete">Fiyat eksik — fiyatı olmayan bakiyeler hariç</string>
+    <string name="portfolio_group_networks">%1$d ağda</string>
+    <string name="portfolio_group_hidden">%1$d gizli varlık hariç</string>
+    <string name="portfolio_value_notice">Portföy toplamı, serbest ve ayrılmış bakiyeleri içerir. Gizli varlıklar, fiyatı olmayan varlıklar, test ağları ve havuz staking bakiyeleri dahil edilmez.</string>
+    <string name="portfolio_hidden_manage">Gizli varlıklar (%1$d) · %2$s hariç · Yönet</string>
+    <string name="portfolio_filter_all">Tümü</string>
+    <string name="portfolio_filter_shown">Gösterilen</string>
+    <string name="portfolio_filter_hidden">Gizli</string>
+    <string name="portfolio_preference_auto">Otomatik</string>
+    <string name="portfolio_manage_group_count">%2$d varlığın %1$d tanesi gösteriliyor</string>
+    <string name="portfolio_no_hidden">Gizli varlık yok</string>
+    <string name="portfolio_only_network">Bu token Fearless içinde yalnızca %1$s ağında kullanılabilir.</string>
+</resources>

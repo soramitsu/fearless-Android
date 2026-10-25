@@ -7,10 +7,11 @@ import com.neovisionaries.ws.client.WebSocketException
 import com.neovisionaries.ws.client.WebSocketFactory
 import jp.co.soramitsu.common.base.errors.FearlessException
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
-import jp.co.soramitsu.shared_utils.wsrpc.mappers.ResponseMapper
-import jp.co.soramitsu.shared_utils.wsrpc.request.base.RpcRequest
-import jp.co.soramitsu.shared_utils.wsrpc.response.RpcResponse
+import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.ResponseMapper
+import jp.co.soramitsu.fearless_utils.wsrpc.request.base.RpcRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
+import jp.co.soramitsu.fearless_utils.wsrpc.socket.SocketTransportPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -23,7 +24,8 @@ class SocketSingleRequestExecutor(
     private val jsonMapper: Gson,
     private val logger: Logger,
     private val wsFactory: WebSocketFactory,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val transportPolicy: SocketTransportPolicy = SocketTransportPolicy.Platform
 ) {
 
     suspend fun <R> executeRequest(
@@ -54,7 +56,7 @@ class SocketSingleRequestExecutor(
         url: String
     ): RpcResponse = suspendCancellableCoroutine { cont ->
 
-        val webSocket: WebSocket = wsFactory.createSocket(url)
+        val webSocket: WebSocket = SocketTransportPolicy.createSocket(wsFactory, url, transportPolicy)
 
         cont.invokeOnCancellation {
             webSocket.clearListeners()
@@ -63,7 +65,7 @@ class SocketSingleRequestExecutor(
 
         webSocket.addListener(object : WebSocketAdapter() {
             override fun onTextMessage(websocket: WebSocket, text: String) {
-                logger.log("[RECEIVED] $text")
+                logger.log("[RECEIVED] RPC message")
 
                 val response = jsonMapper.fromJson(text, RpcResponse::class.java)
 
@@ -77,8 +79,14 @@ class SocketSingleRequestExecutor(
             }
         })
 
-        webSocket.connect()
-
-        webSocket.sendText(jsonMapper.toJson(request))
+        try {
+            SocketTransportPolicy.requireAllowed(url, transportPolicy)
+            webSocket.connect()
+            webSocket.sendText(jsonMapper.toJson(request))
+        } catch (failure: Exception) {
+            webSocket.clearListeners()
+            webSocket.disconnect()
+            if (cont.isActive) cont.resumeWithException(failure)
+        }
     }
 }

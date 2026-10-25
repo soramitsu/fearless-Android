@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- fw_colors.xml: GENERATED from config/design/fw.tokens.json; do not edit. -->
+<!-- sha256 18180aa767b87b8ac0bb767622e172328d95145817a1475a840905eec55b4315 -->
+<!-- Regenerate with the Android target of scripts/design/gen-fw-tokens.mjs. -->
+<resources>
+    <color name="fw_bg_base">#FF0A0C1B</color>
+    <color name="fw_surface_raised">#FF12152B</color>
+    <color name="fw_surface_raised2">#FF1A1E3A</color>
+    <color name="fw_surface_pressed">#FF242A4D</color>
+    <color name="fw_surface_sunken">#FF06070F</color>
+    <color name="fw_glass">#B8141833</color>
+    <color name="fw_glass_sheen">#0AFFFFFF</color>
+    <color name="fw_glass_elevated">#DB1A1E3A</color>
+    <color name="fw_glass_elevated_sheen">#0DFFFFFF</color>
+    <color name="fw_chrome">#E00E1126</color>
+    <color name="fw_chrome_sheen">#08FFFFFF</color>
+    <color name="fw_chrome_solid">#F50E1126</color>
+    <color name="fw_scrim">#B804050D</color>
+    <color name="fw_text_primary">#FFEDF0FA</color>
+    <color name="fw_text_secondary">#FFB8BEDB</color>
+    <color name="fw_text_tertiary">#FF9198BC</color>
+    <color name="fw_text_disabled">#FF5E6487</color>
+    <color name="fw_text_on_accent">#FFFFFFFF</color>
+    <color name="fw_text_link">#FF2EE6FF</color>
+    <color name="fw_text_brand">#FFFF4DB8</color>
+    <color name="fw_text_promo">#FFA99BFF</color>
+    <color name="fw_brand">#FFFF009A</color>
+    <color name="fw_fill_top">#FFD6007F</color>
+    <color name="fw_fill_bottom">#FFA3006A</color>
+    <color name="fw_accent_edge">#8CFF4DB8</color>
+    <color name="fw_focus">#FF2EE6FF</color>
+    <color name="fw_violet">#FF8B5CFF</color>
+    <color name="fw_price_up">#FF38E8E0</color>
+    <color name="fw_price_down">#FFFFA057</color>
+    <color name="fw_success">#FF3DF2B0</color>
+    <color name="fw_warning">#FFFFC452</color>
+    <color name="fw_danger">#FFFF7466</color>
+    <color name="fw_info">#FF2EE6FF</color>
+    <color name="fw_danger_fill">#FFB3302A</color>
+    <color name="fw_select_fill">#29FF009A</color>
+    <color name="fw_select_edge">#FFFF4DB8</color>
+    <color name="fw_row_selected">#1AFF009A</color>
+    <color name="fw_divider">#14FFFFFF</color>
+    <color name="fw_stroke_strong">#47FFFFFF</color>
+    <color name="fw_stroke_control">#66FFFFFF</color>
+    <color name="fw_hud_tick">#992EE6FF</color>
+    <color name="fw_hud_trace">#662EE6FF</color>
+    <color name="fw_thumb_off">#FFC9CEE8</color>
+    <color name="fw_qr_module">#FF0A0C1B</color>
+    <color name="fw_qr_field">#FFFFFFFF</color>
+</resources>

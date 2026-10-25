@@ -15,8 +15,8 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 
 @HiltViewModel
 class ExportMnemonicViewModel @Inject constructor(

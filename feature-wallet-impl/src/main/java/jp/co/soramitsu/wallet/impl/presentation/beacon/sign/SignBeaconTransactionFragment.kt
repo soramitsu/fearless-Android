@@ -132,13 +132,10 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
 
         viewModel.feeLiveData.observe(binding.signBeaconTransactionFee::setFeeStatus)
 
-        viewModel.currentAccountAddressModel.observe {
-            binding.signBeaconTransactionOrigin.setTitle(it.name ?: "")
-            binding.signBeaconTransactionOrigin.setAccountIcon(it.image)
-        }
-
-        viewModel.totalBalanceLiveData.observe {
-            binding.signBeaconTransactionOrigin.setText(it)
+        viewModel.portfolioOrigin.observe { origin ->
+            binding.signBeaconTransactionOrigin.setTitle(origin.name)
+            binding.signBeaconTransactionOrigin.setAccountIcon(origin.icon)
+            binding.signBeaconTransactionOrigin.setText(origin.balanceText)
         }
 
         viewModel.receiver.observe {

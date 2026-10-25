@@ -26,6 +26,10 @@ import jp.co.soramitsu.staking.impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import java.util.concurrent.atomic.AtomicLong
+import jp.co.soramitsu.staking.impl.presentation.staking.main.model.RewardEstimation
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -47,6 +51,8 @@ class RewardDestinationProvider(
     private val accountDisplayUseCase: AddressDisplayUseCase,
     private val soraStakingRewardsScenario: SoraStakingRewardsScenario
 ) : RewardDestinationMixin.Presentation {
+
+    private val returnsGeneration = AtomicLong()
 
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
     override val showDestinationChooserEvent =
@@ -142,20 +148,41 @@ class RewardDestinationProvider(
         rewardDestinationModelFlow.emit(rewardDestinationModel)
     }
 
+    override fun invalidateReturns() {
+        clearReturns()
+    }
+
+    private fun clearReturns(): Long {
+        val generation = returnsGeneration.incrementAndGet()
+        val unavailable = resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable)
+        val estimate = RewardEstimation(unavailable, null, unavailable)
+        rewardReturnsLiveData.value = RewardDestinationEstimations(estimate, estimate)
+        return generation
+    }
+
     override suspend fun updateReturns(
         rewardCalculator: RewardCalculator,
         asset: Asset,
         amount: BigDecimal
     ) {
-        val chainId = sharedState.chainId()
+        currentCoroutineContext().ensureActive()
+        val generation = clearReturns()
+        if (returnsGeneration.get() != generation) return
+        val chainId = asset.token.configuration.chainId
         val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true, chainId)
 
+        currentCoroutineContext().ensureActive()
+        if (returnsGeneration.get() != generation) return
         val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false, chainId)
+        currentCoroutineContext().ensureActive()
+        if (returnsGeneration.get() != generation) return
         val rewardAsset = if (rewardCalculator is SoraRewardCalculator) {
             soraStakingRewardsScenario.getRewardAsset()
         } else {
             asset.token
         }
+        currentCoroutineContext().ensureActive()
+        if (returnsGeneration.get() != generation) return
         val restakeEstimations = mapPeriodReturnsToRewardEstimation(
             restakeReturns,
             rewardAsset,
@@ -169,6 +196,8 @@ class RewardDestinationProvider(
             RewardSuffix.APR
         )
 
+        currentCoroutineContext().ensureActive()
+        if (returnsGeneration.get() != generation) return
         rewardReturnsLiveData.value =
             RewardDestinationEstimations(restakeEstimations, payoutEstimations)
     }

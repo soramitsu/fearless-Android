@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">Cüzdan PIN kodunu kurtarın</string>
+    <string name="pin_recovery_intro">Kayıtlı PIN okunamıyor. Cüzdanlarınız ve özgün PIN kaydı korunuyor. Yeni PIN seçmek için sahipliği doğrulayın.</string>
+    <string name="pin_recovery_failed">Kurtarma tamamlanamadı veya yetkinin süresi doldu. Korunan veriler silinmedi. Tekrar deneyin.</string>
+    <string name="pin_recovery_retry">Tekrar dene</string>
+    <string name="pin_recovery_biometric">Güçlü biyometri ile doğrula</string>
+    <string name="pin_recovery_backup_intro">Bir cüzdan anahtarı seçip yedeğini girin. Kayıtlı açık kimlikle eşleşmelidir. Eşleşen yedek bu anahtarı da onarabilir.</string>
+    <string name="pin_recovery_no_identity">Şu anda kayıtlı hiçbir cüzdan kimliği doğrulanamıyor. Önceden etkinleştirilmiş güçlü biyometriyi veya yalnızca görüntüleme için cihaz kilidini kullanın.</string>
+    <string name="pin_recovery_view_only_intro">Cihaz kilidini açmak yalnızca bakiyeleri ve açık adresleri gösterir. Cüzdan PIN kodunu kurtarana kadar gönderme, imzalama ve anahtar yedekleme kilitli kalır.</string>
+    <string name="pin_recovery_view_only">Yalnızca görüntüleme için cihazı aç</string>
+    <string name="pin_recovery_verified">Sahiplik doğrulandı. Yeni bir cüzdan PIN kodu seçin.</string>
+    <string name="pin_recovery_verify_backup">Cüzdan yedeğini doğrula</string>
+    <string name="pin_recovery_reset">Cüzdan PIN kodunu kurtar</string>
+    <string name="pin_recovery_view_only_title">Yalnızca görüntüleme</string>
+</resources>

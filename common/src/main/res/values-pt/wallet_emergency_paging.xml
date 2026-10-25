@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">Escolha uma chave armazenada para ver. Apenas a chave selecionada é descriptografada.</string>
+    <string name="wallet_emergency_view_key">Ver esta chave</string>
+    <string name="wallet_emergency_next_page">Próxima página</string>
+    <string name="wallet_emergency_first_page">Atualizar a partir da primeira página</string>
+    <string name="wallet_emergency_back_to_list">Voltar a esta página</string>
+    <string name="wallet_emergency_inventory_changed">A lista de chaves armazenadas mudou. Atualize a partir da primeira página para continuar.</string>
+    <string name="wallet_emergency_no_more_keys">Não há mais chaves após esta página.</string>
+    <string name="wallet_emergency_key_identifier">Chave armazenada: %1$s</string>
+</resources>

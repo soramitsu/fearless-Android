@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.onboarding.api.data.OnboardingConfig
 import jp.co.soramitsu.onboarding.api.data.OnboardingRepository
@@ -60,6 +61,12 @@ class OnboardingFeatureModule {
     fun provideImportPreInstalledAccount(
         accountRepository: AccountRepository,
         preferences: Preferences,
-        remoteConfigFetcher: RemoteConfigFetcher
-    ) = PendulumPreInstalledAccountsScenario(accountRepository, preferences, remoteConfigFetcher)
+        remoteConfigFetcher: RemoteConfigFetcher,
+        productFeatureToggleStore: ProductFeatureToggleStore
+    ) = PendulumPreInstalledAccountsScenario(
+        accountRepository,
+        preferences,
+        remoteConfigFetcher,
+        productFeatureToggleStore
+    )
 }

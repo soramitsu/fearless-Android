@@ -1,93 +1,877 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.remote
 
+import android.util.Log
+import com.google.gson.JsonElement
 import com.google.gson.Gson
+import java.math.BigInteger
+import java.net.URLEncoder
+import java.net.URI
+import java.nio.charset.StandardCharsets
+import java.util.Locale
+import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.data.network.ton.AccountAddress
+import jp.co.soramitsu.common.data.network.ton.AccountEvent
+import jp.co.soramitsu.common.data.network.ton.AccountEventAction
 import jp.co.soramitsu.common.data.network.ton.AccountEvents
+import jp.co.soramitsu.common.data.network.ton.AccountStatus
+import jp.co.soramitsu.common.data.network.ton.ActionSimplePreview
 import jp.co.soramitsu.common.data.network.ton.EmulateMessageToWalletRequest
+import jp.co.soramitsu.common.data.network.ton.JettonBalance
+import jp.co.soramitsu.common.data.network.ton.JettonPreview
+import jp.co.soramitsu.common.data.network.ton.JettonTransferAction
 import jp.co.soramitsu.common.data.network.ton.JettonTransferPayloadRemote
 import jp.co.soramitsu.common.data.network.ton.JettonsBalances
 import jp.co.soramitsu.common.data.network.ton.MessageConsequences
 import jp.co.soramitsu.common.data.network.ton.PublicKeyResponse
 import jp.co.soramitsu.common.data.network.ton.RawTime
+import jp.co.soramitsu.common.data.network.ton.Risk
 import jp.co.soramitsu.common.data.network.ton.SendBlockchainMessageRequest
 import jp.co.soramitsu.common.data.network.ton.Seqno
 import jp.co.soramitsu.common.data.network.ton.TokenRate
 import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.common.data.network.ton.TonApi
+import jp.co.soramitsu.common.data.network.ton.TonIndexerBalancesResponse
+import jp.co.soramitsu.common.data.network.ton.TonIndexerJsonRpcRequest
+import jp.co.soramitsu.common.data.network.ton.TonIndexerMessage
+import jp.co.soramitsu.common.data.network.ton.TonIndexerRunGetMethodRequest
+import jp.co.soramitsu.common.data.network.ton.TonIndexerRunGetMethodResponse
+import jp.co.soramitsu.common.data.network.ton.TonIndexerStateResponse
+import jp.co.soramitsu.common.data.network.ton.TonIndexerTransaction
+import jp.co.soramitsu.common.data.network.ton.TonIndexerTransactionDetail
+import jp.co.soramitsu.common.data.network.ton.TonIndexerTransactionsResponse
+import jp.co.soramitsu.common.data.network.ton.TonNetwork
+import jp.co.soramitsu.common.data.network.ton.TonNetworkMismatchException
+import jp.co.soramitsu.common.data.network.ton.TonTransferAction
+import jp.co.soramitsu.common.data.network.ton.Trace
+import jp.co.soramitsu.common.data.network.ton.Transaction
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.model.JettonTransferPayload
+import kotlinx.coroutines.CancellationException
 
+/**
+ * TON reads and sends. TI (`https://ti.soramitsu.io`, the TONSWAP indexer) is used for a network only after its
+ * service-info has proven that it serves that network, and every balance, state and history answer it gives must
+ * name the requested network again or it is rejected and never shown. Until TI proves TON mainnet, the registry's
+ * TON node (a TonAPI server, proven by its masterchain head) answers instead, so TON holders keep their balances
+ * and can send; that fallback is logged and is switched off with `FL_ANDROID_TON_REGISTRY_NODE_FALLBACK=false`.
+ * See [TonProviderSelector].
+ */
 class TonRemoteSource(
     private val tonApi: TonApi,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
-    private val gson: Gson
+    private val gson: Gson,
+    private val tonIndexerUrl: String = BuildConfig.TON_INDEXER_URL,
+    private val registryNodeFallback: Boolean = BuildConfig.TON_REGISTRY_NODE_FALLBACK,
+    now: () -> Long = System::currentTimeMillis,
+    log: (String) -> Unit = { message -> Log.w(LOG_TAG, message) }
 ) {
+    companion object {
+        private const val LOG_TAG = "TonRemoteSource"
+        private const val TON_API_HOST = "tonapi.io"
+        private const val TESTNET_TON_API_HOST = "testnet.$TON_API_HOST"
+        private const val MAX_JETTON_DECIMALS = 255
+    }
+
+    private val providers = TonProviderSelector(tonApi, registryNodeFallback, now, log)
+
     suspend fun loadAccountData(chain: Chain, accountId: String): TonAccountData {
-        val baseUrl = getActiveUrl(chain)
-        return tonApi.getAccountData("${baseUrl}/v2/accounts/$accountId")
+        return withProvider(
+            chain = chain,
+            indexer = { indexer ->
+                val encodedAccountId = encodePathSegment(accountId)
+                val balances = tonApi.getIndexerBalances("${indexer.baseUrl}/api/indexer/v1/accounts/$encodedAccountId/balances")
+                balances.network.requireNetworkOf(indexer)
+                val state = tonApi.getIndexerState("${indexer.baseUrl}/api/indexer/v1/accounts/$encodedAccountId/state")
+                state.network.requireNetworkOf(indexer)
+                balances.toTonAccountData(state, accountId)
+            },
+            registryNode = { baseUrl ->
+                tonApi.getAccountData("$baseUrl/v2/accounts/$accountId")
+            }
+        )
     }
 
     suspend fun loadJettonBalances(chain: Chain, accountId: String): JettonsBalances {
-        val baseUrl = getActiveUrl(chain)
-        val currencies = availableFiatCurrencies.invoke().joinToString(",") { it.id.uppercase() }
-        return tonApi.getJettonBalances("${baseUrl}/v2/accounts/$accountId/jettons", listOf(currencies))
+        return withProvider(
+            chain = chain,
+            indexer = { indexer ->
+                val encodedAccountId = encodePathSegment(accountId)
+                val balances = tonApi.getIndexerBalances("${indexer.baseUrl}/api/indexer/v1/accounts/$encodedAccountId/balances")
+                balances.network.requireNetworkOf(indexer)
+                balances.toJettonsBalances()
+            },
+            registryNode = { baseUrl ->
+                val currencies = availableFiatCurrencies.invoke().joinToString(",") { it.id.uppercase() }
+                tonApi.getJettonBalances("$baseUrl/v2/accounts/$accountId/jettons", listOf(currencies))
+            }
+        )
     }
 
     suspend fun getSeqno(chain: Chain, accountId: String): Int {
-        val baseUrl = getActiveUrl(chain)
+        return withProvider(
+            chain = chain,
+            indexer = { indexer ->
+                val encodedAccountId = encodePathSegment(accountId)
+                val state = tonApi.getIndexerState("${indexer.baseUrl}/api/indexer/v1/accounts/$encodedAccountId/state")
+                state.network.requireNetworkOf(indexer)
+                // The wallet's own seqno, from its contract. TI's `last_confirmed_seqno` is a masterchain seqno.
+                if (state.accountState == "uninitialized") return@withProvider 0
 
-        val response = tonApi.getRequest("${baseUrl}/v2/wallet/$accountId/seqno")
-        val seqnoKeyResponse = gson.fromJson(response, Seqno::class.java)
-        return seqnoKeyResponse.seqno
+                val response = tonApi.runIndexerGetMethod(
+                    "${indexer.baseUrl}/api/indexer/v1/runGetMethod",
+                    TonIndexerRunGetMethodRequest(address = accountId, method = "seqno")
+                )
+                parseFirstStackNumber(response).toInt()
+            },
+            registryNode = { baseUrl ->
+                val response = tonApi.getRequest("$baseUrl/v2/wallet/$accountId/seqno")
+                val seqnoKeyResponse = gson.fromJson(response, Seqno::class.java)
+                seqnoKeyResponse.seqno
+            }
+        )
     }
 
-    suspend fun getRawTime(chain: Chain): Int {
-        val baseUrl = getActiveUrl(chain)
-
-        val response = tonApi.getRequest("${baseUrl}/v2/liteserver/get_time")
-        val timeKeyResponse = gson.fromJson(response, RawTime::class.java)
-        return timeKeyResponse.time
-    }
-
-    private fun getActiveUrl(chain: Chain): String {
-        return chain.nodes.first().url
+    suspend fun getRawTime(chain: Chain, accountId: String? = null): Int {
+        return withProvider(
+            chain = chain,
+            indexer = { indexer ->
+                val resolvedAccountId = accountId.takeIfNotBlank()
+                    ?: error("Account id is required for indexer time lookup")
+                val result = callIndexerJsonRpc(
+                    indexerBase = indexer.baseUrl,
+                    method = "getAddressInformation",
+                    params = mapOf("address" to resolvedAccountId)
+                )
+                parseJsonLong(result.objectField("sync_utime"))
+                    ?.coerceAtMost(Int.MAX_VALUE.toLong())
+                    ?.toInt()
+                    ?: error("Indexer getAddressInformation response does not contain sync_utime")
+            },
+            registryNode = { baseUrl ->
+                val response = tonApi.getRequest("$baseUrl/v2/liteserver/get_time")
+                val timeKeyResponse = gson.fromJson(response, RawTime::class.java)
+                timeKeyResponse.time
+            }
+        )
     }
 
     suspend fun getPublicKey(chain: Chain, accountId: String): String {
-        val baseUrl = getActiveUrl(chain)
-        val response = tonApi.getRequest("${baseUrl}/v2/accounts/$accountId/publickey")
+        return withProvider(
+            chain = chain,
+            indexer = { indexer ->
+                val response = tonApi.runIndexerGetMethod(
+                    "${indexer.baseUrl}/api/indexer/v1/runGetMethod",
+                    TonIndexerRunGetMethodRequest(address = accountId, method = "get_public_key")
+                )
+                parseFirstStackNumber(response).toString(16).padStart(64, '0')
+            },
+            registryNode = { baseUrl ->
+                val response = tonApi.getRequest("$baseUrl/v2/accounts/$accountId/publickey")
 
-        val publicKeyResponse = gson.fromJson(response, PublicKeyResponse::class.java)
+                val publicKeyResponse = gson.fromJson(response, PublicKeyResponse::class.java)
 
-        return publicKeyResponse.publicKey
+                publicKeyResponse.publicKey
+            }
+        )
     }
 
     suspend fun getJettonTransferPayload(chain: Chain, accountId: String, jettonId: String): JettonTransferPayload {
-        val baseUrl = getActiveUrl(chain)
-        val response = tonApi.getRequest("${baseUrl}/v2/jettons/$jettonId/transfer/$accountId/payload")
-        val jettonPayload = gson.fromJson(response, JettonTransferPayloadRemote::class.java)
-
-        return JettonTransferPayload(accountId, jettonPayload)
+        return withProvider(
+            chain = chain,
+            indexer = { indexer ->
+                val encodedJettonId = encodePathSegment(jettonId)
+                val encodedAccountId = encodePathSegment(accountId)
+                val jettonPayload = tonApi.getIndexerJettonTransferPayload(
+                    "${indexer.baseUrl}/api/indexer/v1/jettons/$encodedJettonId/transfer/$encodedAccountId/payload"
+                )
+                JettonTransferPayload(jettonId, jettonPayload)
+            },
+            registryNode = { baseUrl ->
+                val response = tonApi.getRequest("$baseUrl/v2/jettons/$jettonId/transfer/$accountId/payload")
+                val jettonPayload = gson.fromJson(response, JettonTransferPayloadRemote::class.java)
+                JettonTransferPayload(jettonId, jettonPayload)
+            }
+        )
     }
 
+    /**
+     * Broadcasts only through an endpoint that has proven the chain's network: TI when its service-info says it
+     * accepts transactions, otherwise the verified registry node. Never through an unverified endpoint.
+     */
     suspend fun sendBlockchainMessage(chain: Chain, request: SendBlockchainMessageRequest): String {
-        val baseUrl = getActiveUrl(chain)
-        val response = tonApi.sendBlockchainMessage("${baseUrl}/v2/blockchain/message", request)
-        return response
+        val endpoints = endpointsOf(chain)
+        val provider = providers.provider(endpoints)
+
+        val registryNode = when (provider) {
+            is TonProvider.RegistryNode -> provider
+            is TonProvider.Indexer -> {
+                if (provider.acceptsTransactions) {
+                    try {
+                        return sendViaIndexer(provider, request)
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (exception: Exception) {
+                        providers.passOverIndexer(endpoints, exception)
+                        if (!registryNodeFallback) throw exception
+                        // The same signed message: the wallet's seqno lets the network accept it at most once.
+                        providers.registryNode(endpoints, "TI failed to broadcast: ${exception.message}")
+                    }
+                } else {
+                    providers.registryNode(endpoints, "TI service-info says it does not accept transactions")
+                }
+            }
+        }
+
+        return tonApi.sendBlockchainMessage("${registryNode.baseUrl}/v2/blockchain/message", request)
+    }
+
+    private suspend fun sendViaIndexer(indexer: TonProvider.Indexer, request: SendBlockchainMessageRequest): String {
+        val bocs = request.batch.orEmpty().mapNotNull { it.takeIfNotBlank() }
+            .ifEmpty { listOfNotNull(request.boc.takeIfNotBlank()) }
+        if (bocs.isEmpty()) error("sendBlockchainMessage request does not contain boc payload")
+
+        bocs.forEach { boc ->
+            callIndexerJsonRpc(
+                indexerBase = indexer.baseUrl,
+                method = "sendBoc",
+                params = mapOf("boc" to boc)
+            )
+        }
+        return "{\"ok\":true}"
     }
 
     suspend fun emulateBlockchainMessageRequest(chain: Chain, request: EmulateMessageToWalletRequest): MessageConsequences {
-        val baseUrl = getActiveUrl(chain)
-
-        return tonApi.emulateBlockchainMessage("${baseUrl}/v2/wallet/emulate", request)
+        return withProvider(
+            chain = chain,
+            indexer = { indexer ->
+                val estimate = estimateMessageFeeViaIndexer(indexer.baseUrl, request)
+                buildSyntheticMessageConsequences(
+                    totalFees = estimate.totalFees,
+                    accountId = estimate.address
+                )
+            },
+            registryNode = { baseUrl ->
+                tonApi.emulateBlockchainMessage("$baseUrl/v2/wallet/emulate", request)
+            }
+        )
     }
 
-    suspend fun getAccountEvents(historyUrl: String, accountId: String, beforeLt: Long?, limit: Int = 100): AccountEvents {
-        return  tonApi.getAccountEvents("${historyUrl}/v2/accounts/$accountId/events", limit = limit, beforeLt = beforeLt)
+    suspend fun getAccountEvents(
+        chain: Chain,
+        historyUrl: String,
+        accountId: String,
+        beforeLt: Long?,
+        beforeHash: String? = null,
+        limit: Int = 100
+    ): AccountEvents {
+        return withProvider(
+            chain = chain,
+            // The registry's history URL when it is a TonAPI server for this network; verified like the node.
+            registryNodeBaseUrl = historyUrl.tonApiBaseUrlOrNull()?.takeIf { it.isTonApiUrlFor(chain.tonNetwork()) },
+            indexer = { indexer ->
+                val transactions = loadIndexerTransactions(
+                    indexer = indexer,
+                    accountId = accountId,
+                    beforeLt = beforeLt,
+                    beforeHash = beforeHash,
+                    limit = limit
+                )
+                AccountEvents(transactions.map { it.toAccountEvent(accountId) })
+            },
+            registryNode = { baseUrl ->
+                tonApi.getAccountEvents("$baseUrl/v2/accounts/$accountId/events", limit = limit, beforeLt = beforeLt)
+            }
+        )
     }
 
     suspend fun getTonCoinPrices(): TokenRate {
         val currencies = availableFiatCurrencies.invoke().joinToString(",") { it.id.uppercase() }
         return tonApi.getTonCoinPrice(listOf(currencies)).rates["TON"]!!
+    }
+
+    private data class IndexerFeeEstimate(
+        val address: String,
+        val totalFees: BigInteger
+    )
+
+    private suspend fun estimateMessageFeeViaIndexer(
+        indexerBase: String,
+        request: EmulateMessageToWalletRequest
+    ): IndexerFeeEstimate {
+        val address = request.params?.firstOrNull()?.address.takeIfNotBlank()
+            ?: error("estimateFee requires sender address in request params")
+        val boc = request.boc.takeIfNotBlank()
+            ?: error("estimateFee requires non-empty boc")
+        val estimateResult = callIndexerJsonRpc(
+            indexerBase = indexerBase,
+            method = "estimateFee",
+            params = mapOf(
+                "address" to address,
+                "body" to boc,
+                "ignore_chksig" to true
+            )
+        )
+
+        val totalFees = parseEstimateTotalFees(estimateResult)
+            ?: error("Indexer estimateFee response does not contain source_fees")
+
+        return IndexerFeeEstimate(
+            address = address,
+            totalFees = totalFees
+        )
+    }
+
+    private suspend fun callIndexerJsonRpc(
+        indexerBase: String,
+        method: String,
+        params: Map<String, Any?>
+    ): JsonElement {
+        val response = tonApi.callIndexerJsonRpc(
+            "$indexerBase/jsonRPC",
+            TonIndexerJsonRpcRequest(method = method, params = params)
+        )
+
+        val error = response.error
+        if (error != null) {
+            val message = error.message?.takeIf { it.isNotBlank() } ?: "Unknown jsonRPC error"
+            error("Indexer jsonRPC method '$method' failed: $message")
+        }
+
+        return response.result ?: error("Indexer jsonRPC method '$method' returned empty result")
+    }
+
+    private fun parseEstimateTotalFees(result: JsonElement): BigInteger? {
+        val sourceFees = result.objectField("source_fees") ?: return null
+        val total = listOf("in_fwd_fee", "storage_fee", "gas_fee", "fwd_fee")
+            .mapNotNull { key -> parseJsonBigInteger(sourceFees.objectField(key)) }
+            .fold(BigInteger.ZERO, BigInteger::add)
+
+        return total.takeIf { it > BigInteger.ZERO }
+    }
+
+    private fun buildSyntheticMessageConsequences(totalFees: BigInteger, accountId: String): MessageConsequences {
+        val now = System.currentTimeMillis() / 1000L
+        val accountAddress = accountId.toAccountAddress()
+        val normalizedTotalFees = totalFees.coerceAtLeast(BigInteger.ZERO)
+        val clampedTonRisk = normalizedTotalFees
+            .coerceAtMost(BigInteger.valueOf(Long.MAX_VALUE))
+            .toLong()
+
+        return MessageConsequences(
+            trace = Trace(
+                transaction = Transaction(
+                    hash = null,
+                    lt = 0L,
+                    account = accountAddress,
+                    success = true,
+                    utime = now,
+                    origStatus = AccountStatus.active,
+                    endStatus = AccountStatus.active,
+                    totalFees = normalizedTotalFees,
+                    endBalance = 0L,
+                    transactionType = "EstimateFee",
+                    stateUpdateOld = "",
+                    stateUpdateNew = "",
+                    outMsgs = emptyList(),
+                    block = "",
+                    aborted = false,
+                    destroyed = false
+                ),
+                interfaces = emptyList(),
+                children = emptyList(),
+                emulated = true
+            ),
+            risk = Risk(
+                transferAllRemainingBalance = false,
+                ton = clampedTonRisk,
+                jettons = emptyList()
+            ),
+            event = AccountEvent(
+                eventId = "indexer_estimate_fee",
+                account = accountAddress,
+                timestamp = now,
+                actions = emptyList(),
+                isScam = false,
+                lt = 0L,
+                inProgress = false,
+                extra = 0L
+            )
+        )
+    }
+
+    private suspend fun loadIndexerTransactions(
+        indexer: TonProvider.Indexer,
+        accountId: String,
+        beforeLt: Long?,
+        beforeHash: String?,
+        limit: Int
+    ): List<TonIndexerTransaction> {
+        val encodedAccountId = encodePathSegment(accountId)
+        val requestLimit = limit.coerceAtLeast(1)
+        val normalizedBeforeHash = beforeHash?.trim()?.takeIf { it.isNotEmpty() }
+
+        if (beforeLt != null && normalizedBeforeHash != null) {
+            val response = tonApi.getIndexerTransactions(
+                "${indexer.baseUrl}/api/indexer/v1/accounts/$encodedAccountId/txs",
+                cursorLt = beforeLt.toString(),
+                cursorHash = normalizedBeforeHash
+            )
+            response.network.requireNetworkOf(indexer)
+            return response.txs
+                .filterNot { entry ->
+                    entry.ltAsLongOrNull() == beforeLt && entry.hash == normalizedBeforeHash
+                }
+                .take(requestLimit)
+        }
+
+        val transactions = mutableListOf<TonIndexerTransaction>()
+        val seenIds = mutableSetOf<String>()
+        var page = 1
+        var stagnantPageCount = 0
+        var previousFirstKey: String? = null
+        val pageSafetyLimit = if (beforeLt != null) 30 else maxOf(3, minOf(12, requestLimit / 10 + 3))
+
+        while (transactions.size < requestLimit && page <= pageSafetyLimit) {
+            val response = tonApi.getIndexerTransactions(
+                "${indexer.baseUrl}/api/indexer/v1/accounts/$encodedAccountId/txs",
+                page = page
+            )
+            response.network.requireNetworkOf(indexer)
+
+            val entries = response.txs
+            if (entries.isEmpty()) break
+
+            val filteredEntries = entries.filter { entry ->
+                beforeLt == null || entry.ltAsLongOrNull() < beforeLt
+            }
+
+            val beforeCount = transactions.size
+            filteredEntries.forEach { entry ->
+                val key = entry.uniqueKey()
+                if (key in seenIds) return@forEach
+
+                seenIds += key
+                transactions += entry
+                if (transactions.size >= requestLimit) return@forEach
+            }
+
+            val firstKey = entries.firstOrNull()?.uniqueKey()
+            stagnantPageCount = if (transactions.size == beforeCount || firstKey == previousFirstKey) {
+                stagnantPageCount + 1
+            } else {
+                0
+            }
+            previousFirstKey = firstKey
+
+            if (stagnantPageCount >= 2) break
+            if (response.shouldStopPaging(entries, page, transactions.size)) break
+
+            page += 1
+        }
+
+        return transactions.take(requestLimit)
+    }
+
+    private fun TonIndexerBalancesResponse.toTonAccountData(
+        state: TonIndexerStateResponse,
+        fallbackAddress: String
+    ): TonAccountData {
+        // A balance TI cannot state is a failure, never a zero.
+        val balance = tonRaw?.trim()?.toBigIntegerOrNull()
+            ?.takeIf { it.signum() >= 0 }
+            ?.min(BigInteger.valueOf(Long.MAX_VALUE))
+            ?.toLong()
+            ?: error("TI balances response has no valid ton_raw amount: $tonRaw")
+
+        return TonAccountData(
+            address = state.address.ifBlank { address.ifBlank { fallbackAddress } },
+            balance = balance,
+            lastActivity = state.lastSeenUtime ?: updatedAt,
+            status = state.accountState.toAccountStatus(),
+            getMethods = emptyList(),
+            isWallet = true,
+            currenciesBalance = null,
+            interfaces = null,
+            name = null,
+            isScam = null,
+            icon = null,
+            memoRequired = null,
+            isSuspended = null
+        )
+    }
+
+    private fun TonIndexerBalancesResponse.toJettonsBalances(): JettonsBalances {
+        val balances = assets.mapNotNull { asset ->
+            if (asset.kind != "jetton") return@mapNotNull null
+
+            // An entry TI cannot fully state is left out (the list is partial anyway), never guessed: without its
+            // amount it would read as zero, without decimals it would be shown wrongly, and without its jetton
+            // wallet a transfer would be addressed to the jetton master.
+            val jettonAddress = asset.address?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            val balanceRaw = asset.balanceRaw?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            val walletAddress = asset.wallet?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            val decimals = asset.decimals?.takeIf { it in 0..MAX_JETTON_DECIMALS } ?: return@mapNotNull null
+            val jettonSymbol = asset.symbol?.takeIf { it.isNotBlank() } ?: jettonAddress.take(6)
+
+            JettonBalance(
+                balance = balanceRaw,
+                walletAddress = AccountAddress(
+                    address = walletAddress,
+                    isScam = false,
+                    isWallet = true,
+                    name = null,
+                    icon = null
+                ),
+                jetton = JettonPreview(
+                    address = jettonAddress,
+                    name = jettonSymbol,
+                    symbol = jettonSymbol,
+                    decimals = decimals,
+                    image = "",
+                    verification = "none"
+                ),
+                price = null,
+                extensions = null,
+                lock = null
+            )
+        }
+
+        // TI lists only the jettons it indexes, so a jetton missing here is unknown, not zero.
+        return JettonsBalances(balances = balances, partial = true)
+    }
+
+    private fun TonIndexerTransactionsResponse.shouldStopPaging(
+        entries: List<TonIndexerTransaction>,
+        page: Int,
+        loadedCount: Int
+    ): Boolean {
+        val resolvedPageSize = if (this.pageSize > 0) this.pageSize else entries.size
+        val resolvedTotalPages = totalPages
+        if (resolvedPageSize <= 0 || entries.size < resolvedPageSize) return true
+        if (resolvedTotalPages != null && page >= resolvedTotalPages) return true
+        if (historyComplete && totalTxs > 0 && loadedCount >= totalTxs) return true
+
+        return false
+    }
+
+    private fun TonIndexerTransaction.toAccountEvent(fallbackAccountId: String): AccountEvent {
+        val transferAction = toTonTransferAction(fallbackAccountId)
+        val jettonAction = toJettonTransferAction(fallbackAccountId)
+        val resolvedTonTransfer = if (jettonAction != null) null else transferAction
+        val actionType = when {
+            jettonAction != null -> AccountEventAction.Type.jettonTransfer
+            resolvedTonTransfer != null -> AccountEventAction.Type.tonTransfer
+            else -> AccountEventAction.Type.unknown
+        }
+        val actionStatus = if (status.equals("failed", ignoreCase = true)) {
+            AccountEventAction.Status.failed
+        } else {
+            AccountEventAction.Status.ok
+        }
+        val title = txType.takeIfNotBlank() ?: "Transaction"
+        val sender = resolvedTonTransfer?.sender ?: jettonAction?.sender
+        val recipient = resolvedTonTransfer?.recipient ?: jettonAction?.recipient
+        val previewAccounts = listOfNotNull(sender, recipient).distinctBy { it.address }
+
+        val feeAmount = feeAmount()
+
+        return AccountEvent(
+            eventId = uniqueKey(),
+            account = fallbackAccountId.toAccountAddress(),
+            timestamp = utime,
+            actions = listOf(
+                AccountEventAction(
+                    type = actionType,
+                    status = actionStatus,
+                    simplePreview = ActionSimplePreview(
+                        name = title,
+                        description = reason.takeIfNotBlank() ?: (status.takeIfNotBlank() ?: "Indexer"),
+                        accounts = previewAccounts
+                    ),
+                    baseTransactions = listOfNotNull(hash.takeIfNotBlank()),
+                    tonTransfer = resolvedTonTransfer,
+                    jettonTransfer = jettonAction
+                )
+            ),
+            isScam = false,
+            lt = ltAsLongOrNull(),
+            inProgress = status.equals("pending", ignoreCase = true),
+            extra = feeAmount?.takeIf { it > 0 }?.let { -it } ?: 0L
+        )
+    }
+
+    private fun TonIndexerTransaction.toTonTransferAction(fallbackAccountId: String): TonTransferAction? {
+        val message = primaryMessage() ?: return null
+        val sender = message.source.orEmpty().ifBlank { inSource.orEmpty().ifBlank { fallbackAccountId } }
+        val recipient = message.destination.orEmpty().ifBlank { fallbackAccountId }
+        val amountRaw = message.value.takeIfNotBlank()
+            ?: inValue.takeIfNotBlank()
+            ?: outMessages?.firstOrNull()?.value.takeIfNotBlank()
+            ?: "0"
+        val amount = parseLongAmount(amountRaw)
+
+        if (sender.isBlank() && recipient.isBlank() && amount == 0L) return null
+
+        return TonTransferAction(
+            sender = sender.toAccountAddress(),
+            recipient = recipient.toAccountAddress(),
+            amount = amount
+        )
+    }
+
+    private fun TonIndexerTransaction.toJettonTransferAction(fallbackAccountId: String): JettonTransferAction? {
+        val transferDetail = detail ?: return null
+        if (!transferDetail.isJettonTransferDetail()) return null
+
+        val message = primaryMessage()
+        val sender = message?.source.orEmpty().ifBlank { inSource.orEmpty().ifBlank { fallbackAccountId } }
+        val recipient = message?.destination.orEmpty().ifBlank { fallbackAccountId }
+        val amount = transferDetail.amount.takeIfNotBlank() ?: "0"
+        val jettonAddress = transferDetail.asset!!.trim()
+        val symbol = jettonAddress.take(6)
+
+        return JettonTransferAction(
+            sendersWallet = sender,
+            recipientsWallet = recipient,
+            amount = amount,
+            jetton = JettonPreview(
+                address = jettonAddress,
+                name = symbol,
+                symbol = symbol,
+                decimals = 0,
+                image = "",
+                verification = "none"
+            ),
+            sender = sender.toAccountAddress(),
+            recipient = recipient.toAccountAddress()
+        )
+    }
+
+    private fun TonIndexerTransaction.primaryMessage(): TonIndexerMessage? {
+        return inMessage ?: outMessages?.firstOrNull()
+    }
+
+    private fun TonIndexerTransaction.ltAsLongOrNull(): Long {
+        return lt.toLongOrNull() ?: txId?.substringBefore(':')?.toLongOrNull() ?: 0L
+    }
+
+    private fun TonIndexerTransaction.uniqueKey(): String {
+        return txId.takeIfNotBlank() ?: "${ltAsLongOrNull()}:${hash.takeIfNotBlank().orEmpty()}"
+    }
+
+    private fun TonIndexerTransaction.feeAmount(): Long? {
+        val feeCandidate = fee.takeIfNotBlank() ?: totalFees.takeIfNotBlank()
+        return parseLongAmountOrNull(feeCandidate)
+    }
+
+    private fun TonIndexerTransactionDetail.isJettonTransferDetail(): Boolean {
+        return kind.equals("transfer", ignoreCase = true) &&
+            asset.takeIfNotBlank()?.isTonAssetSymbol() == false
+    }
+
+    private fun String.toAccountAddress(): AccountAddress {
+        return AccountAddress(
+            address = this,
+            isScam = false,
+            isWallet = true,
+            name = null,
+            icon = null
+        )
+    }
+
+    private fun String?.takeIfNotBlank(): String? {
+        val value = this?.trim() ?: return null
+        return value.takeIf { it.isNotEmpty() }
+    }
+
+    private fun String.isTonAssetSymbol(): Boolean {
+        return uppercase() in setOf("TON", "NATIVE", "TONCOIN")
+    }
+
+    private fun String?.toAccountStatus(): AccountStatus {
+        return when (this) {
+            "active" -> AccountStatus.active
+            "frozen" -> AccountStatus.frozen
+            "uninitialized" -> AccountStatus.uninit
+            else -> AccountStatus.nonexist
+        }
+    }
+
+    private fun JsonElement?.objectField(key: String): JsonElement? {
+        if (this == null || !this.isJsonObject) return null
+        return this.asJsonObject.get(key)
+    }
+
+    private fun parseJsonLong(value: JsonElement?): Long? {
+        if (value == null || !value.isJsonPrimitive) return null
+        val primitive = value.asJsonPrimitive
+        return when {
+            primitive.isNumber -> primitive.asLong
+            primitive.isString -> primitive.asString.toLongOrNull()
+            else -> null
+        }
+    }
+
+    private fun parseJsonBigInteger(value: JsonElement?): BigInteger? {
+        if (value == null || !value.isJsonPrimitive) return null
+        val primitive = value.asJsonPrimitive
+        return when {
+            primitive.isNumber -> runCatching { BigInteger(primitive.asString) }.getOrNull()
+            primitive.isString -> parseNumberString(primitive.asString)
+            else -> null
+        }
+    }
+
+    private fun parseFirstStackNumber(response: TonIndexerRunGetMethodResponse): BigInteger {
+        if (response.exitCode != 0) {
+            error("Indexer get method failed with exit code ${response.exitCode}")
+        }
+
+        val value = response.stack.firstOrNull()?.getOrNull(1)
+            ?: error("Indexer get method stack is empty")
+
+        return parseNumber(value) ?: error("Indexer get method returned unsupported stack value: $value")
+    }
+
+    private fun parseNumber(value: Any?): BigInteger? {
+        return when (value) {
+            is Number -> BigInteger.valueOf(value.toLong())
+            is String -> parseNumberString(value)
+            else -> null
+        }
+    }
+
+    private fun parseNumberString(value: String): BigInteger? {
+        val trimmed = value.trim()
+        if (trimmed.isEmpty()) return null
+
+        return runCatching {
+            when {
+                trimmed.startsWith("-0x", ignoreCase = true) -> {
+                    BigInteger(trimmed.drop(3), 16).negate()
+                }
+
+                trimmed.startsWith("0x", ignoreCase = true) -> {
+                    BigInteger(trimmed.drop(2), 16)
+                }
+
+                else -> {
+                    BigInteger(trimmed)
+                }
+            }
+        }.getOrNull()
+    }
+
+    private fun parseLongAmount(value: String): Long {
+        return parseLongAmountOrNull(value) ?: 0L
+    }
+
+    private fun parseLongAmountOrNull(value: String?): Long? {
+        val normalized = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+
+        return runCatching {
+            BigInteger(normalized)
+                .coerceAtLeast(BigInteger.ZERO)
+                .coerceAtMost(BigInteger.valueOf(Long.MAX_VALUE))
+                .toLong()
+        }.getOrNull()
+    }
+
+    private fun encodePathSegment(value: String): String {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
+    }
+
+    private fun Chain.tonNetwork(): TonNetwork {
+        val testnet = isTestNet ||
+            id == TonNetwork.Testnet.globalId.toString() ||
+            id.equals(TonNetwork.Testnet.chainId, ignoreCase = true)
+        return if (testnet) TonNetwork.Testnet else TonNetwork.Mainnet
+    }
+
+    private fun endpointsOf(chain: Chain, registryNodeBaseUrl: String? = null): TonEndpoints {
+        val network = chain.tonNetwork()
+        return TonEndpoints(
+            network = network,
+            indexerBaseUrl = indexerBaseUrlOrNull(network),
+            registryNodeBaseUrl = registryNodeBaseUrl ?: registryNodeBaseUrl(chain, network)
+        )
+    }
+
+    // TON mainnet is TI's public URL only; the configurable URL serves testnet and local testing.
+    private fun indexerBaseUrlOrNull(network: TonNetwork): String? {
+        if (network == TonNetwork.Mainnet) {
+            return UniversalWalletRegistry.TON_INDEXER_BASE_URL
+        }
+
+        val normalized = tonIndexerUrl.trim().removeSuffix("/")
+        return normalized.takeIf { it.isNotEmpty() }
+    }
+
+    /**
+     * The registry's TON node for [network]: its first TonAPI node for that network. When the registry lists none
+     * (the 4.2.x bundled registry lists TI, which does not serve TonAPI routes), TonAPI's public host for the
+     * network, which 4.2.0 used too. Whichever it is, it is used only after its masterchain head proves the network.
+     */
+    private fun registryNodeBaseUrl(chain: Chain, network: TonNetwork): String {
+        return chain.nodes
+            .mapNotNull { it.url.tonApiBaseUrlOrNull() }
+            .firstOrNull { it.isTonApiUrlFor(network) }
+            ?: when (network) {
+                TonNetwork.Mainnet -> "https://$TON_API_HOST"
+                TonNetwork.Testnet -> "https://$TESTNET_TON_API_HOST"
+            }
+    }
+
+    private fun String.isTonApiUrlFor(network: TonNetwork): Boolean {
+        val isTestnetHost = URI(this).host == TESTNET_TON_API_HOST
+        return isTestnetHost == (network == TonNetwork.Testnet)
+    }
+
+    // Data from an answer that names another network (or none) is never mapped, shown or used to sign.
+    private fun String?.requireNetworkOf(indexer: TonProvider.Indexer) {
+        if (this != indexer.network.id) {
+            throw TonNetworkMismatchException(indexer.network, this, indexer.baseUrl)
+        }
+    }
+
+    private fun String.tonApiBaseUrlOrNull(): String? {
+        val parsed = runCatching { URI(this.trim()) }.getOrNull() ?: return null
+        val host = parsed.host?.lowercase(Locale.ROOT) ?: return null
+        if (host != TON_API_HOST && !host.endsWith(".$TON_API_HOST")) return null
+        val scheme = parsed.scheme?.lowercase(Locale.ROOT)
+        if (scheme != null && scheme != "https") return null
+        val resolvedScheme = scheme ?: "https"
+        val resolvedPort = if (parsed.port == -1) 443 else parsed.port
+        if (resolvedPort != 443) return null
+        return "$resolvedScheme://$host"
+    }
+
+    /**
+     * Runs [indexer] against TI when TI has proven the chain's network, else [registryNode] against the verified
+     * registry node. A TI request that fails or answers for another network is not retried against TI for a while;
+     * it is answered by the verified registry node if the fallback is on, and fails otherwise.
+     */
+    private suspend fun <T> withProvider(
+        chain: Chain,
+        indexer: suspend (TonProvider.Indexer) -> T,
+        registryNode: suspend (baseUrl: String) -> T,
+        registryNodeBaseUrl: String? = null
+    ): T {
+        val endpoints = endpointsOf(chain, registryNodeBaseUrl)
+
+        return when (val provider = providers.provider(endpoints)) {
+            is TonProvider.RegistryNode -> registryNode(provider.baseUrl)
+            is TonProvider.Indexer -> try {
+                indexer(provider)
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                providers.passOverIndexer(endpoints, exception)
+                if (!registryNodeFallback) throw exception
+                registryNode(providers.registryNode(endpoints, "TI failed a request: ${exception.message}").baseUrl)
+            }
+        }
     }
 }

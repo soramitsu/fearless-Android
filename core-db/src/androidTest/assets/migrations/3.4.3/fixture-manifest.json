@@ -1,0 +1,88 @@
+{
+  "fixture_format": 2,
+  "platform": "android",
+  "purpose": "Room schema version 63 exactly as a fresh install of the released app created it. AllReleasedSchemasUpgradeTest builds a database from it, inserts synthetic rows and upgrades it with the current migration graph.",
+  "db_version": 63,
+  "source_release": {
+    "id": "3.4.3+168",
+    "version": "3.4.3",
+    "versionCode": 168,
+    "tag": "3.4.3",
+    "commit": "f20e08e29a56da08c049e1d8e25d09c4d370c3f7",
+    "binary": {
+      "kind": "github-apk",
+      "asset_name": "fearless-wallet-3.4.3_168.apk",
+      "url": "https://github.com/soramitsu/fearless-Android/releases/download/3.4.3/fearless-wallet-3.4.3_168.apk",
+      "sha256": "71363111fabe50c9592ac1f5d5c4d68045d1a07559ef5bedf5cddf703c0d7233",
+      "signer_sha256": "cc17cbd4304322c58e27890345e6009b2817b77ea23d85ffdbe3338c57f362c3",
+      "size_bytes": 41367389
+    }
+  },
+  "releases_with_this_schema": [
+    {
+      "id": "3.4.2+167",
+      "tag": "3.4.2",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "3.4.3+168",
+      "tag": "3.4.3",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    }
+  ],
+  "generator": {
+    "tier": "T1",
+    "method": "dexdump-createAllTables",
+    "tool": "tools/upgrade-fixtures/android/extract_room_schema.py",
+    "inventory": "tools/upgrade-fixtures/android/releases.json"
+  },
+  "schema_extraction": {
+    "apk_sha256": "71363111fabe50c9592ac1f5d5c4d68045d1a07559ef5bedf5cddf703c0d7233",
+    "apk_entry": "classes2.dex",
+    "apk_entry_sha256": "07ddc512fa31597c8ad2e9872a65cd3bcc46a9bb09b9b5de5019d7c9a1b27711",
+    "class": "jp.co.soramitsu.coredb.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 63,
+    "room_identity_hash": "aaa29d906d7cbd014b17e882eec1f36a",
+    "room_legacy_identity_hash": "938c2ae2aa5db7f2072938eba4057132",
+    "explicit_table_count_including_room_master": 20,
+    "explicit_index_count": 12,
+    "explicit_view_count": 0,
+    "statements_sha256": "324afa9f68d04754b14d8a9dcdab5320ff3250c2470255c83303858114cb8d8e"
+  },
+  "schema_check": {
+    "engine": "sqlite3 (host, in-memory)",
+    "integrity_check": "ok",
+    "tables": [
+      "account_staking_accesses",
+      "address_book",
+      "assets",
+      "chain_accounts",
+      "chain_assets",
+      "chain_explorers",
+      "chain_nodes",
+      "chain_runtimes",
+      "chain_types",
+      "chains",
+      "favorite_chains",
+      "meta_accounts",
+      "operations",
+      "phishing",
+      "room_master_table",
+      "sora_card",
+      "storage",
+      "token_price",
+      "total_reward",
+      "users"
+    ],
+    "explicit_index_count": 12
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v63.sql",
+    "schema_sql_sha256": "e623e94128293b4b06d9ad23ae0f1f95f3a5fd27ce719fa6c398134eb6048453"
+  },
+  "synthetic_only": true,
+  "contains_user_material": false
+}

@@ -5,10 +5,11 @@ import jp.co.soramitsu.common.utils.Event
 
 typealias Action = () -> Unit
 
+/** @param onRetry null when retrying cannot help; the dialog then only offers to leave */
 class RetryPayload(
     val title: String,
     val message: String,
-    val onRetry: Action,
+    val onRetry: Action?,
     val onCancel: Action? = null
 )
 

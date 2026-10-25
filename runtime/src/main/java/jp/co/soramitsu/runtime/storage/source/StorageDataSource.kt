@@ -4,8 +4,9 @@ import jp.co.soramitsu.common.data.network.runtime.binding.Binder
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithKey
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinder
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.io.OutputStream
 
 typealias StorageKey = String
@@ -32,6 +33,21 @@ interface StorageDataSource {
         keyBuilder: (RuntimeSnapshot) -> StorageKey?,
         binder: Binder<T>
     ): Flow<T>
+
+    /** A successful nullable value distinguishes confirmed absence from unavailable storage. */
+    suspend fun <T> queryResult(
+        chainId: String,
+        keyBuilder: (RuntimeSnapshot) -> StorageKey?,
+        at: BlockHash? = null,
+        binding: Binder<T>
+    ): Result<T> = Result.failure(UnsupportedOperationException("Acknowledged storage reads are unavailable"))
+
+    /** Only sources retaining transport and decoding failures may establish confirmed absence. */
+    fun <T> observeResult(
+        chainId: String,
+        keyBuilder: (RuntimeSnapshot) -> StorageKey?,
+        binder: Binder<T>
+    ): Flow<Result<T>> = flowOf(Result.failure(UnsupportedOperationException("Acknowledged storage observations are unavailable")))
 
     suspend fun <K, T> queryByPrefix(
         chainId: String,

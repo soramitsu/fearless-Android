@@ -16,17 +16,29 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 
+/**
+ * The old "networks of this asset" screen. It stays in the navigation graph so a restored back
+ * stack still resolves, but nothing opens it: Search and the portfolio list open the exact
+ * (network, asset) detail.
+ */
+@Deprecated("Open the exact network-scoped asset with WalletRouter.openAssetDetails")
 @AndroidEntryPoint
 class AssetDetailsFragment : BaseComposeFragment<AssetDetailsViewModel>() {
 
     companion object {
-        const val KEY_ASSET_ID = "KEY_ASSET_ID"
+        const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
-        fun getBundle(assetId: String) = bundleOf(KEY_ASSET_ID to assetId)
+        fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     override val viewModel: AssetDetailsViewModel by viewModels()
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.onLegacyDestinationResumed()
+    }
 
 
     @Composable

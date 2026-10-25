@@ -1,0 +1,101 @@
+{
+  "fixture_format": 2,
+  "platform": "android",
+  "purpose": "Room schema version 73 exactly as a fresh install of the released app created it. AllReleasedSchemasUpgradeTest builds a database from it, inserts synthetic rows and upgrades it with the current migration graph.",
+  "db_version": 73,
+  "source_release": {
+    "id": "4.0.2+217",
+    "version": "4.0.2",
+    "versionCode": 217,
+    "tag": "4.0.2",
+    "commit": "f2f41d5ec630102af558ee4a138ec4d7f3c82ed1",
+    "binary": {
+      "kind": "no-github-apk"
+    }
+  },
+  "releases_with_this_schema": [
+    {
+      "id": "4.0.1+216",
+      "tag": "4.0.1",
+      "binary_kind": "no-github-apk",
+      "schema_evidence": "core-db/src/main tree identical to tag 4.0.2 (3870bf557370); same toolchain (Room 2.6.1, Kotlin 1.9.24)"
+    },
+    {
+      "id": "4.0.2+217",
+      "tag": "4.0.2",
+      "binary_kind": "no-github-apk",
+      "schema_evidence": "No APK exists. core-db/schemas/jp.co.soramitsu.coredb.AppDatabase/73.json (added in 952d3a23c). Its difference from 74.json is exactly the 4.0.2 -> 4.1.1 entity change (sora_card table, chain_assets.coinbaseUrl), and every table whose entity source is unchanged since tag 3.7.4 has the createSql of the 3.7.4 APK."
+    }
+  ],
+  "generator": {
+    "tier": "T1",
+    "method": "room-exported-schema",
+    "tool": "tools/upgrade-fixtures/android/extract_room_schema.py",
+    "inventory": "tools/upgrade-fixtures/android/releases.json"
+  },
+  "schema_extraction": {
+    "exported_schema": "core-db/schemas/jp.co.soramitsu.coredb.AppDatabase/73.json",
+    "exported_schema_sha256": "ee9f438793c324fa93cb77c9cc21a9a0ffc9675640cebba7f1df9b9498c1e7b7",
+    "class": "jp.co.soramitsu.coredb.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 73,
+    "room_identity_hash": "801c7f0c6b7a8b6fa8f383814ad417fa",
+    "statements_sha256": "b87edbedac5b8a4a30d36cefa872564c50730700f67975d45f749197a51f516e",
+    "tables_byte_equal_to_apk": {
+      "release": "3.7.4+209",
+      "apk_sha256": "4a1cb6377c5779b697610aa5806965615e79ab1bae92e207f9ee6eeb1bb56ba2",
+      "tables": [
+        "address_book",
+        "phishing",
+        "storage",
+        "account_staking_accesses",
+        "total_reward",
+        "operations",
+        "chain_nodes",
+        "favorite_chains",
+        "chain_runtimes",
+        "chain_accounts",
+        "chain_explorers",
+        "chain_types",
+        "nomis_wallet_score",
+        "allpools",
+        "userpools"
+      ]
+    }
+  },
+  "schema_check": {
+    "engine": "sqlite3 (host, in-memory)",
+    "integrity_check": "ok",
+    "tables": [
+      "account_staking_accesses",
+      "address_book",
+      "allpools",
+      "assets",
+      "chain_accounts",
+      "chain_assets",
+      "chain_explorers",
+      "chain_nodes",
+      "chain_runtimes",
+      "chain_types",
+      "chains",
+      "favorite_chains",
+      "meta_accounts",
+      "nomis_wallet_score",
+      "operations",
+      "phishing",
+      "room_master_table",
+      "storage",
+      "token_price",
+      "ton_connection",
+      "total_reward",
+      "userpools"
+    ],
+    "explicit_index_count": 14
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v73.sql",
+    "schema_sql_sha256": "5cd0070c35ad171af05c1c4402102197e012acbdddd2f4d6b9209edf6563b8bc"
+  },
+  "synthetic_only": true,
+  "contains_user_material": false
+}

@@ -21,16 +21,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.transformLatest
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 enum class StakingType {
@@ -57,11 +58,11 @@ fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
 private const val STAKING_SHARED_STATE = "STAKING_CURRENT_ASSET_TYPE"
 
 class StakingSharedState(
-    private val chainRegistry: ChainRegistry,
+    @Suppress("UNUSED_PARAMETER") chainRegistry: ChainRegistry,
     private val preferences: Preferences,
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
-    private val chainsRepository: ChainsRepository,
+    chainsRepository: ChainsRepository,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 ) : ChainIdHolder, TokenUseCase {
 
@@ -69,108 +70,98 @@ class StakingSharedState(
         private const val DELIMITER = ":"
     }
 
-    private val cachedStakingAssetsFlow = accountRepository.selectedMetaAccountFlow()
-        .map { metaAccount ->
-            val chains = chainsRepository.getChains()
-            val relevantChains = chains.filter { metaAccount.accountId(it) != null }
-            val assets = walletRepository.getAssets(metaAccount.id)
-            
-            assets.mapNotNull { asset ->
-                val chain = relevantChains.find { chain ->
-                    chain.assets.any { chainAsset ->
-                        chainAsset.id == asset.token.configuration.id &&
-                        chain.id == asset.token.configuration.chainId &&
-                        chainAsset.staking != CoreAsset.StakingType.UNSUPPORTED
-                    }
-                }
-                if (chain != null) asset to chain else null
-            }.sortedBy { (asset, _) -> 
-                asset.token.configuration.orderInStaking 
-            }
-        }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
+    val selectionRevision = StakingSelectionRevision().apply { catalogChanged() }
 
+    private data class AvailableAsset(
+        val storedAsset: Asset,
+        val chain: Chain,
+        val configuration: CoreAsset
+    )
+
+    private data class ObservedSelection(
+        val assets: List<AvailableAsset>,
+        val options: List<StakingAssetSelection>,
+        val selected: StakingAssetSelection?,
+        val selectedAsset: AvailableAsset?
+    )
+
+    /** Null revokes the previous observation while a changed catalog or account is being read. */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val selectionItem: Flow<StakingAssetSelection> = accountRepository.selectedMetaAccountFlow()
-        .flatMapLatest {
-            preferences.stringFlow(
-                field = STAKING_SHARED_STATE,
-                initialValueProducer = {
-                    val defaultAsset = availableToSelect().first()
-
-                    encode(defaultAsset)
-                }
-            )
-        }
-        .map { encoded ->
-            encoded?.let { decode(it) }
-        }
-        .distinctUntilChanged()
-        .filterNotNull()
-        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
-
-    val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.map { (chainId, chainAssetId) ->
-        val (asset, chain) = cachedStakingAssetsFlow.first().find { it.first.chainId == chainId && it.first.id == chainAssetId }!!
-        SingleAssetSharedState.AssetWithChain(chain, asset.token.configuration)
-    }
-        .distinctUntilChanged()
-        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
-
-    suspend fun assetWithChain(selectionItem: StakingAssetSelection) {
-        val (asset, chain) = cachedStakingAssetsFlow.first().find { it.first.chainId == selectionItem.chainId && it.first.id == selectionItem.chainAssetId }!!
-        SingleAssetSharedState.AssetWithChain(chain, asset.token.configuration)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun currentAssetFlow() = combine(
-        assetWithChain,
+    private val observation = combine(
+        preferences.stringFlow(field = STAKING_SHARED_STATE),
         accountRepository.selectedMetaAccountFlow(),
-        cachedStakingAssetsFlow
-    ) { chainAndAsset, meta, cachedAssets ->
-        meta.accountId(chainAndAsset.chain)?.let {
-            cachedAssets.find { (asset, _) ->
-                asset.token.configuration.chainId == chainAndAsset.chain.id &&
-                asset.token.configuration.id == chainAndAsset.asset.id
-            }?.first
+        chainsRepository.chainsFlow()
+    ) { encoded, account, catalog -> Triple(encoded, account, catalog) }
+        .transformLatest { (encoded, account, catalog) ->
+            selectionRevision.catalogChanged()
+            emit(null)
+            val relevantChains = catalog.filter { account.accountId(it) != null }.associateBy { it.id }
+            val assets = if (relevantChains.isEmpty()) {
+                emptyList()
+            } else {
+                walletRepository.getAssets(account.id).mapNotNull { stored ->
+                    val chain = relevantChains[stored.token.configuration.chainId] ?: return@mapNotNull null
+                    val accountId = account.accountId(chain) ?: return@mapNotNull null
+                    if (stored.metaId != account.id || !stored.accountId.contentEquals(accountId)) return@mapNotNull null
+                    val configuration = chain.assetsById[stored.token.configuration.id] ?: return@mapNotNull null
+                    if (configuration.staking == CoreAsset.StakingType.UNSUPPORTED && !configuration.supportStakingPool) {
+                        return@mapNotNull null
+                    }
+                    val currentAsset = stored.copy(token = stored.token.copy(configuration = configuration))
+                    AvailableAsset(currentAsset, chain, configuration)
+                }.sortedBy { it.configuration.orderInStaking }
+            }
+            val options = assets.flatMap { available ->
+                buildList {
+                    val chainId = available.chain.id
+                    val asset = available.configuration
+                    when (asset.staking) {
+                        CoreAsset.StakingType.PARACHAIN -> add(StakingAssetSelection.ParachainStaking(chainId, asset.id))
+                        CoreAsset.StakingType.RELAYCHAIN -> add(StakingAssetSelection.RelayChainStaking(chainId, asset.id))
+                        CoreAsset.StakingType.UNSUPPORTED -> Unit
+                    }
+                    if (asset.supportStakingPool) add(StakingAssetSelection.Pool(chainId, asset.id))
+                }
+            }.distinct()
+            // Only an absent preference permits an ephemeral default. Invalid or unavailable bytes stay stored.
+            val selected = if (encoded == null) options.firstOrNull() else decodeStored(encoded)?.takeIf { it in options }
+            val selectedAsset = selected?.let { choice ->
+                assets.firstOrNull { it.chain.id == choice.chainId && it.configuration.id == choice.chainAssetId }
+            }
+            currentCoroutineContext().ensureActive()
+            selectionRevision.catalogSelected(selected)
+            emit(ObservedSelection(assets, options, selected, selectedAsset))
         }
-    }
-        .mapNotNull { it }
-        .distinctUntilChanged()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    suspend fun availableAssetsToSelect(): List<Asset> {
-        return cachedStakingAssetsFlow.first().map { it.first }
-    }
+    val selectionItemAvailability: Flow<StakingAssetSelection?> = observation
+        .map { it?.selected }
+        .distinctUntilChanged()
 
-    suspend fun availableToSelect(): List<StakingAssetSelection> {
-//        val wallet = accountRepository.getSelectedMetaAccount()
+    val selectionItem: Flow<StakingAssetSelection> = selectionItemAvailability.filterNotNull()
 
-        val allChains = cachedStakingAssetsFlow.first().map { it.second }
+    val assetWithChainAvailability: Flow<SingleAssetSharedState.AssetWithChain?> = observation
+        .map { state ->
+            state?.selectedAsset?.let { SingleAssetSharedState.AssetWithChain(it.chain, it.configuration) }
+        }
+        .distinctUntilChanged()
 
-        return allChains.map { chain ->
-            val staking = chain.assets.filter { chainAsset ->
-                chainAsset.staking != CoreAsset.StakingType.UNSUPPORTED
-            }.map {
-                when (it.staking) {
-                    CoreAsset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(
-                        chain.id,
-                        it.id
-                    )
+    val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = assetWithChainAvailability.filterNotNull()
 
-                    CoreAsset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(
-                        chain.id,
-                        it.id
-                    )
+    val currentAssetAvailability: Flow<Asset?> = observation
+        .map { it?.selectedAsset?.storedAsset }
+        .distinctUntilChanged()
 
-                    else -> error("StakingSharedState.availableToSelect wrong staking type: ${it.staking}")
-                }
-            }
-            val pools = chain.assets.filter { it.supportStakingPool }
-                .map { StakingAssetSelection.Pool(chain.id, it.id) }
-            staking + pools
-        }.flatten()
-    }
+    fun currentAssetFlow(): Flow<Asset> = currentAssetAvailability.filterNotNull()
+
+    val currentTokenAvailability: Flow<Token?> = currentAssetAvailability.map { it?.token }.distinctUntilChanged()
+
+    suspend fun availableAssetsToSelect(): List<Asset> = observation.filterNotNull().first().assets.map { it.storedAsset }
+
+    suspend fun availableToSelect(): List<StakingAssetSelection> = observation.filterNotNull().first().options
 
     fun update(item: StakingAssetSelection) {
+        selectionRevision.changed(item)
         preferences.putString(STAKING_SHARED_STATE, encode(item))
     }
 
@@ -186,10 +177,18 @@ class StakingSharedState(
         return "${item.chainId}$DELIMITER${item.chainAssetId}$DELIMITER${item.type.name}"
     }
 
-    private fun decode(value: String): StakingAssetSelection {
-        val (chainId, chainAssetRaw, type) = value.split(DELIMITER)
-
-        return StakingAssetSelection.from(chainId, chainAssetRaw, type)
+    private fun decodeStored(value: String): StakingAssetSelection? {
+        val first = value.indexOf(DELIMITER)
+        val last = value.lastIndexOf(DELIMITER)
+        if (first <= 0 || last <= first + 1 || last == value.lastIndex) return null
+        val chainId = value.substring(0, first)
+        val assetId = value.substring(first + 1, last)
+        return when (value.substring(last + 1)) {
+            StakingType.RELAYCHAIN.name -> StakingAssetSelection.RelayChainStaking(chainId, assetId)
+            StakingType.PARACHAIN.name -> StakingAssetSelection.ParachainStaking(chainId, assetId)
+            StakingType.POOL.name -> StakingAssetSelection.Pool(chainId, assetId)
+            else -> null
+        }
     }
 
     override suspend fun currentToken(): Token {

@@ -17,7 +17,7 @@ sealed interface WelcomeEvent {
         object PagerScreen: Onboarding {
             override val route: String = "PagerScreen"
         }
-        class WelcomeScreen(val accountType: AccountType): Onboarding by Companion {
+        class WelcomeScreen(val accountType: AccountType? = null): Onboarding by Companion {
             companion object: Onboarding {
                 override val route: String = "WelcomeScreen?accountType={accountType}"
             }

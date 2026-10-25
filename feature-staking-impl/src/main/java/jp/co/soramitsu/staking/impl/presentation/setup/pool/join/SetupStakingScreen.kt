@@ -108,7 +108,7 @@ private fun SetupStakingScreenPreview() {
         ),
         AmountInputViewState(
             tokenName = "KSM",
-            tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+            tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",
             fiatAmount = "$120.0",
             tokenAmount = BigDecimal.ONE

@@ -1,0 +1,4688 @@
+{
+  "schema": "fearless-android-parity/v1",
+  "family": "13-asset-currency-chains",
+  "title": "Balance keys and transfer calls Play 4.2.0 built on live runtimes",
+  "generator": {
+    "tool": "AL-9 generator (scratch; compiles 4.2.0 sources, never committed)",
+    "prodSharedFeatures": "7508bc83627b7068cfd0f4498ca5f0540205257d core/models Asset.kt + ChainAssetType.kt, shared-utils",
+    "prodApp420": "b5e22d49d16a0207c03ab703559892eaf9d41cf9 Mappers.kt, SubstrateBalanceLoader.constructBalanceKey, WssSubstrateSource.transfer (transcribed)",
+    "registry": {
+      "file": "fearless-Android runtime/src/main/assets/local_chains.json",
+      "sha256": "0xaee46cd72ca4355f4dccfcc1385a92167a1a9b6e1ddc4b4960ef4a14a8186977"
+    },
+    "types": {
+      "file": "shared-features-utils chains/all_chains_types_android.json",
+      "sha256": "0xe914a5c8302faaad15d087ff84e53f6c36f9d575952668f2440d8753486f4452"
+    }
+  },
+  "notes": [
+    "Runtime built like core-api RuntimeFactory.buildV14Registry from live metadata (read-only RPC at the recorded finalized block) plus the app's chain types JSON.",
+    "balanceKey: SubstrateBalanceLoader.constructBalanceKey for account 0xbceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac.",
+    "callBytes/extrinsic: WssSubstrateSource.transfer of 1 planck to 0xbceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac, signed by the fixed unfunded ED25519 key sha256(\"fearless-android-parity-oracle ed25519 v1\"), nonce 0, immortal era, tip 0.",
+    "The SORA bokolo-cash token uses LiquidityProxy.xorless_transfer, which does not read Asset.currency; it has a balance key but no transfer vector."
+  ],
+  "signerSeed": "0x12465515d1a7850c9d5a60f9d03e6872328ff27c6f8bd622388ca1942019a2a2",
+  "recipient": "0xbceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+  "chains": [
+    {
+      "chain": "sora",
+      "name": "SORA Mainnet",
+      "genesis": "0x7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+      "block": "0x11b60ae5437ed444d314395ef9df633f8fb858415468c7b86c21e84f71bd586f",
+      "specVersion": 133,
+      "transactionVersion": 131,
+      "signedExtensions": [
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment"
+      ],
+      "runtime": {
+        "file": "runtime/sora.json.gz",
+        "sha256": "0x1114184ebf9ece1dc0536d7cfea6039bfce7f12d97137dc551c069179236d765"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "b774c386-5cce-454a-a845-1ec0381538ec",
+            "symbol": "xor",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": true,
+            "type": "SoraAsset",
+            "currencyId": "0x0200000000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraUtilityAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "System.Account",
+          "balanceKey": "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da92e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010200000000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500dda6a9feb7682299a31487ffe5f27997ba56879f81b97a54539d24fdfc02a6c86e33417f487350780cd830169e7e82401cb1b0f2b2ae4acd7d95ead5cda92b0500000015010200000000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "24d0809e-0a4c-42ea-bdd8-dc7a518f389c",
+            "symbol": "val",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0200040000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "4"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac16571b92ccca49120200040000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010200040000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500b5409e3ae6929ba8cad7f763f07400bae64fca1af9e5a338744237a9b7b4fc0ee0967f5a6b997dba005f440acfcb6c965d2a0e7b5da880d2f208b10f15ffe50800000015010200040000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "37a999a2-5e90-4448-8b0e-98d06ac8f9d4",
+            "symbol": "pswap",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0200050000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "5"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacc202f1fcc5334c1a0200050000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010200050000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5005d34080de5f69f8acaf26b48c4fb2de490c5753651a53fdb4bfd688e6067f6ed841f614434d92ee2fe549b4ee83c9d721fbd7c7808b1982c40689a05daf79d0400000015010200050000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "75a0bc9b-a1fb-446e-8781-621036bfd979",
+            "symbol": "xst",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0200090000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "9"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac3f4afd9ac772ec0c0200090000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010200090000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5001935d26f0abbc9ddbb9587b5757cdfec61e8e4aa298d33bb94a23eff30115e43539145ca13e04f485fb62c5d363e53e1da43080e08784084ca420aedfb2c8d0b00000015010200090000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "217925d8-c529-4480-98e5-b8bf651129ef",
+            "symbol": "xstusd",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0200080000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "8"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacbfe74a8ed5fb32b40200080000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010200080000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50013f9c86099a497957aa753f6aa279b5188adafd2014b5fcdfa6bd08ba56bf14b1447e25159016821fd4134a8c6478ba80356e6254dfa6c9d32704711d3a0a60000000015010200080000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "5e3de486-789e-4e47-8f49-870852cfebb6",
+            "symbol": "deo",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00f2f4fda40a4bf1fc3769d156fa695532eec31e265d75068524462c0b80f674"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-14"
+                  },
+                  {
+                    "number": "-12"
+                  },
+                  {
+                    "number": "-3"
+                  },
+                  {
+                    "number": "-92"
+                  },
+                  {
+                    "number": "10"
+                  },
+                  {
+                    "number": "75"
+                  },
+                  {
+                    "number": "-15"
+                  },
+                  {
+                    "number": "-4"
+                  },
+                  {
+                    "number": "55"
+                  },
+                  {
+                    "number": "105"
+                  },
+                  {
+                    "number": "-47"
+                  },
+                  {
+                    "number": "86"
+                  },
+                  {
+                    "number": "-6"
+                  },
+                  {
+                    "number": "105"
+                  },
+                  {
+                    "number": "85"
+                  },
+                  {
+                    "number": "50"
+                  },
+                  {
+                    "number": "-18"
+                  },
+                  {
+                    "number": "-61"
+                  },
+                  {
+                    "number": "30"
+                  },
+                  {
+                    "number": "38"
+                  },
+                  {
+                    "number": "93"
+                  },
+                  {
+                    "number": "117"
+                  },
+                  {
+                    "number": "6"
+                  },
+                  {
+                    "number": "-123"
+                  },
+                  {
+                    "number": "36"
+                  },
+                  {
+                    "number": "70"
+                  },
+                  {
+                    "number": "44"
+                  },
+                  {
+                    "number": "11"
+                  },
+                  {
+                    "number": "-128"
+                  },
+                  {
+                    "number": "-10"
+                  },
+                  {
+                    "number": "116"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac41035dee0a1ea0cf00f2f4fda40a4bf1fc3769d156fa695532eec31e265d75068524462c0b80f674",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100f2f4fda40a4bf1fc3769d156fa695532eec31e265d75068524462c0b80f674bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5008611343f58e606e5652dc3e087152a317f5c2eef4ab0e16ed9caadfaeae2a9f4467d7ba2bacc4ad65cf147c4ef95a2f171b2b63e1dd001affec94bb34573cc07000000150100f2f4fda40a4bf1fc3769d156fa695532eec31e265d75068524462c0b80f674bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "8fe0cbf4-7ece-45f6-968b-5c1b77accff0",
+            "symbol": "ceres",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x008bcfd2387d3fc453333557eecb0efe59fcba128769b2feefdd306e98e66440"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-117"
+                  },
+                  {
+                    "number": "-49"
+                  },
+                  {
+                    "number": "-46"
+                  },
+                  {
+                    "number": "56"
+                  },
+                  {
+                    "number": "125"
+                  },
+                  {
+                    "number": "63"
+                  },
+                  {
+                    "number": "-60"
+                  },
+                  {
+                    "number": "83"
+                  },
+                  {
+                    "number": "51"
+                  },
+                  {
+                    "number": "53"
+                  },
+                  {
+                    "number": "87"
+                  },
+                  {
+                    "number": "-18"
+                  },
+                  {
+                    "number": "-53"
+                  },
+                  {
+                    "number": "14"
+                  },
+                  {
+                    "number": "-2"
+                  },
+                  {
+                    "number": "89"
+                  },
+                  {
+                    "number": "-4"
+                  },
+                  {
+                    "number": "-70"
+                  },
+                  {
+                    "number": "18"
+                  },
+                  {
+                    "number": "-121"
+                  },
+                  {
+                    "number": "105"
+                  },
+                  {
+                    "number": "-78"
+                  },
+                  {
+                    "number": "-2"
+                  },
+                  {
+                    "number": "-17"
+                  },
+                  {
+                    "number": "-35"
+                  },
+                  {
+                    "number": "48"
+                  },
+                  {
+                    "number": "110"
+                  },
+                  {
+                    "number": "-104"
+                  },
+                  {
+                    "number": "-26"
+                  },
+                  {
+                    "number": "100"
+                  },
+                  {
+                    "number": "64"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac9711564b95b0ddba008bcfd2387d3fc453333557eecb0efe59fcba128769b2feefdd306e98e66440",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x1501008bcfd2387d3fc453333557eecb0efe59fcba128769b2feefdd306e98e66440bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500bded8c9db63f0ed4a3c4582ea698c40e593452219863f172c310cfbdc5cd00d5b9a7fc16359e0a0c12110abde3746688b33eda7ff13caec5fd61a92c06128d0c0000001501008bcfd2387d3fc453333557eecb0efe59fcba128769b2feefdd306e98e66440bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "079f2a74-1440-440c-b826-6d85a7dd3a91",
+            "symbol": "noir",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0044aee0776cfb826434af8ef0f8e2c7e9e6644cfda0ae0f02c471b1eebc2483"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "68"
+                  },
+                  {
+                    "number": "-82"
+                  },
+                  {
+                    "number": "-32"
+                  },
+                  {
+                    "number": "119"
+                  },
+                  {
+                    "number": "108"
+                  },
+                  {
+                    "number": "-5"
+                  },
+                  {
+                    "number": "-126"
+                  },
+                  {
+                    "number": "100"
+                  },
+                  {
+                    "number": "52"
+                  },
+                  {
+                    "number": "-81"
+                  },
+                  {
+                    "number": "-114"
+                  },
+                  {
+                    "number": "-16"
+                  },
+                  {
+                    "number": "-8"
+                  },
+                  {
+                    "number": "-30"
+                  },
+                  {
+                    "number": "-57"
+                  },
+                  {
+                    "number": "-23"
+                  },
+                  {
+                    "number": "-26"
+                  },
+                  {
+                    "number": "100"
+                  },
+                  {
+                    "number": "76"
+                  },
+                  {
+                    "number": "-3"
+                  },
+                  {
+                    "number": "-96"
+                  },
+                  {
+                    "number": "-82"
+                  },
+                  {
+                    "number": "15"
+                  },
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "-60"
+                  },
+                  {
+                    "number": "113"
+                  },
+                  {
+                    "number": "-79"
+                  },
+                  {
+                    "number": "-18"
+                  },
+                  {
+                    "number": "-68"
+                  },
+                  {
+                    "number": "36"
+                  },
+                  {
+                    "number": "-125"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac765b27ec4a2d113d0044aee0776cfb826434af8ef0f8e2c7e9e6644cfda0ae0f02c471b1eebc2483",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010044aee0776cfb826434af8ef0f8e2c7e9e6644cfda0ae0f02c471b1eebc2483bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500e7ff0e8a247a0f81e84a3fc44da0b952533edbb2c4f13de66beb2593e17f4f8c51e9400a7a44fa95afe70810b3e683ebe3a4e2b2c497fdf4092fa1ccdbd3b00a00000015010044aee0776cfb826434af8ef0f8e2c7e9e6644cfda0ae0f02c471b1eebc2483bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "2de2b668-33cd-4e85-a501-4921481e618f",
+            "symbol": "umi",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x003252667a82d2dd70fa046eea663eaec1f2e37c20879f113b880b04c5ebd805"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "50"
+                  },
+                  {
+                    "number": "82"
+                  },
+                  {
+                    "number": "102"
+                  },
+                  {
+                    "number": "122"
+                  },
+                  {
+                    "number": "-126"
+                  },
+                  {
+                    "number": "-46"
+                  },
+                  {
+                    "number": "-35"
+                  },
+                  {
+                    "number": "112"
+                  },
+                  {
+                    "number": "-6"
+                  },
+                  {
+                    "number": "4"
+                  },
+                  {
+                    "number": "110"
+                  },
+                  {
+                    "number": "-22"
+                  },
+                  {
+                    "number": "102"
+                  },
+                  {
+                    "number": "62"
+                  },
+                  {
+                    "number": "-82"
+                  },
+                  {
+                    "number": "-63"
+                  },
+                  {
+                    "number": "-14"
+                  },
+                  {
+                    "number": "-29"
+                  },
+                  {
+                    "number": "124"
+                  },
+                  {
+                    "number": "32"
+                  },
+                  {
+                    "number": "-121"
+                  },
+                  {
+                    "number": "-97"
+                  },
+                  {
+                    "number": "17"
+                  },
+                  {
+                    "number": "59"
+                  },
+                  {
+                    "number": "-120"
+                  },
+                  {
+                    "number": "11"
+                  },
+                  {
+                    "number": "4"
+                  },
+                  {
+                    "number": "-59"
+                  },
+                  {
+                    "number": "-21"
+                  },
+                  {
+                    "number": "-40"
+                  },
+                  {
+                    "number": "5"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbaccaa6f3ccb58de514003252667a82d2dd70fa046eea663eaec1f2e37c20879f113b880b04c5ebd805",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x1501003252667a82d2dd70fa046eea663eaec1f2e37c20879f113b880b04c5ebd805bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50040c17c3c856ce45b6e59f18edba8b9cee453ce9508fe18e561c36481916a0873637e2af1c87e6bb95aed8863dee285216f5bf54a5b3a02f7d1aefffdcee92c0d0000001501003252667a82d2dd70fa046eea663eaec1f2e37c20879f113b880b04c5ebd805bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "4c7b8da9-b297-4093-b8bc-28d477e7b5ad",
+            "symbol": "usdt",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0083a6b3fbc6edae06f115c8953ddd7cbfba0b74579d6ea190f96853073b76f4"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-125"
+                  },
+                  {
+                    "number": "-90"
+                  },
+                  {
+                    "number": "-77"
+                  },
+                  {
+                    "number": "-5"
+                  },
+                  {
+                    "number": "-58"
+                  },
+                  {
+                    "number": "-19"
+                  },
+                  {
+                    "number": "-82"
+                  },
+                  {
+                    "number": "6"
+                  },
+                  {
+                    "number": "-15"
+                  },
+                  {
+                    "number": "21"
+                  },
+                  {
+                    "number": "-56"
+                  },
+                  {
+                    "number": "-107"
+                  },
+                  {
+                    "number": "61"
+                  },
+                  {
+                    "number": "-35"
+                  },
+                  {
+                    "number": "124"
+                  },
+                  {
+                    "number": "-65"
+                  },
+                  {
+                    "number": "-70"
+                  },
+                  {
+                    "number": "11"
+                  },
+                  {
+                    "number": "116"
+                  },
+                  {
+                    "number": "87"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "110"
+                  },
+                  {
+                    "number": "-95"
+                  },
+                  {
+                    "number": "-112"
+                  },
+                  {
+                    "number": "-7"
+                  },
+                  {
+                    "number": "104"
+                  },
+                  {
+                    "number": "83"
+                  },
+                  {
+                    "number": "7"
+                  },
+                  {
+                    "number": "59"
+                  },
+                  {
+                    "number": "118"
+                  },
+                  {
+                    "number": "-12"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac772c82cc54c4b94e0083a6b3fbc6edae06f115c8953ddd7cbfba0b74579d6ea190f96853073b76f4",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010083a6b3fbc6edae06f115c8953ddd7cbfba0b74579d6ea190f96853073b76f4bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5002cd98e0e6172fab1530674dea3c440fbe64eaec4cf2965a4045b889721a70f59606d5afb85b9df3da9d34ee1c83dddce375b551371c5b82dbd2ee144c94dff0c00000015010083a6b3fbc6edae06f115c8953ddd7cbfba0b74579d6ea190f96853073b76f4bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "23c41bbb-2e1a-4d64-bbab-5080975ecc1c",
+            "symbol": "busd",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00567d096a736f33bf78cad7b01e33463923b9c933ee13ab7e3fb7b23f5f953a"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "86"
+                  },
+                  {
+                    "number": "125"
+                  },
+                  {
+                    "number": "9"
+                  },
+                  {
+                    "number": "106"
+                  },
+                  {
+                    "number": "115"
+                  },
+                  {
+                    "number": "111"
+                  },
+                  {
+                    "number": "51"
+                  },
+                  {
+                    "number": "-65"
+                  },
+                  {
+                    "number": "120"
+                  },
+                  {
+                    "number": "-54"
+                  },
+                  {
+                    "number": "-41"
+                  },
+                  {
+                    "number": "-80"
+                  },
+                  {
+                    "number": "30"
+                  },
+                  {
+                    "number": "51"
+                  },
+                  {
+                    "number": "70"
+                  },
+                  {
+                    "number": "57"
+                  },
+                  {
+                    "number": "35"
+                  },
+                  {
+                    "number": "-71"
+                  },
+                  {
+                    "number": "-55"
+                  },
+                  {
+                    "number": "51"
+                  },
+                  {
+                    "number": "-18"
+                  },
+                  {
+                    "number": "19"
+                  },
+                  {
+                    "number": "-85"
+                  },
+                  {
+                    "number": "126"
+                  },
+                  {
+                    "number": "63"
+                  },
+                  {
+                    "number": "-73"
+                  },
+                  {
+                    "number": "-78"
+                  },
+                  {
+                    "number": "63"
+                  },
+                  {
+                    "number": "95"
+                  },
+                  {
+                    "number": "-107"
+                  },
+                  {
+                    "number": "58"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbaca2ec31dc7accc63c00567d096a736f33bf78cad7b01e33463923b9c933ee13ab7e3fb7b23f5f953a",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100567d096a736f33bf78cad7b01e33463923b9c933ee13ab7e3fb7b23f5f953abceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5007aa5501929c783d6d159e7ebb86115f62e700de8817049ab80b762c01a54f77f0aef23d0ca5313e0a847ce816d78cdd3255d358e98037dde8d0b329483aec701000000150100567d096a736f33bf78cad7b01e33463923b9c933ee13ab7e3fb7b23f5f953abceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "c8ce20ed-8690-4b46-9b3d-872e325ae636",
+            "symbol": "usdc",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00ef6658f79d8b560f77b7b20a5d7822f5bc22539c7b4056128258e5829da517"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-17"
+                  },
+                  {
+                    "number": "102"
+                  },
+                  {
+                    "number": "88"
+                  },
+                  {
+                    "number": "-9"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "-117"
+                  },
+                  {
+                    "number": "86"
+                  },
+                  {
+                    "number": "15"
+                  },
+                  {
+                    "number": "119"
+                  },
+                  {
+                    "number": "-73"
+                  },
+                  {
+                    "number": "-78"
+                  },
+                  {
+                    "number": "10"
+                  },
+                  {
+                    "number": "93"
+                  },
+                  {
+                    "number": "120"
+                  },
+                  {
+                    "number": "34"
+                  },
+                  {
+                    "number": "-11"
+                  },
+                  {
+                    "number": "-68"
+                  },
+                  {
+                    "number": "34"
+                  },
+                  {
+                    "number": "83"
+                  },
+                  {
+                    "number": "-100"
+                  },
+                  {
+                    "number": "123"
+                  },
+                  {
+                    "number": "64"
+                  },
+                  {
+                    "number": "86"
+                  },
+                  {
+                    "number": "18"
+                  },
+                  {
+                    "number": "-126"
+                  },
+                  {
+                    "number": "88"
+                  },
+                  {
+                    "number": "-27"
+                  },
+                  {
+                    "number": "-126"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "-91"
+                  },
+                  {
+                    "number": "23"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac5798544ecde8948500ef6658f79d8b560f77b7b20a5d7822f5bc22539c7b4056128258e5829da517",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100ef6658f79d8b560f77b7b20a5d7822f5bc22539c7b4056128258e5829da517bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50052a3a43363afdcd3d5c8c0bec370f18970842daadeafd206ac0c3accfbfb5d6b4faaf30c6e552a8d2d845022b693a9ce9cba6ac815e1c9e0bdc0e10b18eda50e000000150100ef6658f79d8b560f77b7b20a5d7822f5bc22539c7b4056128258e5829da517bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "1e6f8ba3-5aeb-41d8-b80e-a44ce0f33716",
+            "symbol": "dai",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0200060000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "6"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac4765674f535871810200060000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010200060000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500cea341b6913aea8f6dc4039a3c15153ec29164e80ee78b8b654abacc471dd8d0b927f94279c041f293cf965abf45f6af7222d37575f21929381d2175afd4b30a00000015010200060000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "82f45df3-b6d8-43e7-a440-c0e73ab59785",
+            "symbol": "eth",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0200070000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "7"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbaca8e60d92a839136c0200070000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010200070000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5001983dae40ae7c276ba3fa43d95f2eafa0178fa623b48b263ba5750ea36f8f6aad60dd31264b3203ab8e151eb3dd1d325dd7459224e6ef018026fef0e93d0780900000015010200070000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "94e573f3-a9f3-4f7e-9244-8492288ca558",
+            "symbol": "soshiba",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x005aa73d7a4a3fdbe830c7d0ee26c09ba7f1db119da86d5b4dcb6609dac5ceb5"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "90"
+                  },
+                  {
+                    "number": "-89"
+                  },
+                  {
+                    "number": "61"
+                  },
+                  {
+                    "number": "122"
+                  },
+                  {
+                    "number": "74"
+                  },
+                  {
+                    "number": "63"
+                  },
+                  {
+                    "number": "-37"
+                  },
+                  {
+                    "number": "-24"
+                  },
+                  {
+                    "number": "48"
+                  },
+                  {
+                    "number": "-57"
+                  },
+                  {
+                    "number": "-48"
+                  },
+                  {
+                    "number": "-18"
+                  },
+                  {
+                    "number": "38"
+                  },
+                  {
+                    "number": "-64"
+                  },
+                  {
+                    "number": "-101"
+                  },
+                  {
+                    "number": "-89"
+                  },
+                  {
+                    "number": "-15"
+                  },
+                  {
+                    "number": "-37"
+                  },
+                  {
+                    "number": "17"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "-88"
+                  },
+                  {
+                    "number": "109"
+                  },
+                  {
+                    "number": "91"
+                  },
+                  {
+                    "number": "77"
+                  },
+                  {
+                    "number": "-53"
+                  },
+                  {
+                    "number": "102"
+                  },
+                  {
+                    "number": "9"
+                  },
+                  {
+                    "number": "-38"
+                  },
+                  {
+                    "number": "-59"
+                  },
+                  {
+                    "number": "-50"
+                  },
+                  {
+                    "number": "-75"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacd9debba34ba7fda4005aa73d7a4a3fdbe830c7d0ee26c09ba7f1db119da86d5b4dcb6609dac5ceb5",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x1501005aa73d7a4a3fdbe830c7d0ee26c09ba7f1db119da86d5b4dcb6609dac5ceb5bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5001341e369aec1a98b694d8436ad9aaf45c686535f3dd24eb2554d0264c0e96ad7b64467b34ce13322367886aec0a72623d0b8b0977f162f1e7c3fcc05d5bc460e0000001501005aa73d7a4a3fdbe830c7d0ee26c09ba7f1db119da86d5b4dcb6609dac5ceb5bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "68a46965-94e8-4a03-af65-6237f83d482f",
+            "symbol": "tbcd",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x02000a0000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "10"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac2de3febcb50b470702000a0000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150102000a0000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500da46717b68dfb6ca9aa7a19cf4ef5f80ef6575f545dc9e5f87ee82e85a46912fb39963a811714d267a0f978e8af800746a2c541de893278bcd5013538d19250f000000150102000a0000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "61f864b5-9fe0-4ba5-b5b6-c338ceaeee91",
+            "symbol": "hmx",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x002d4e9e03f192cc33b128319a049f353db98fbf4d98f717fd0b7f66a0462142"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "45"
+                  },
+                  {
+                    "number": "78"
+                  },
+                  {
+                    "number": "-98"
+                  },
+                  {
+                    "number": "3"
+                  },
+                  {
+                    "number": "-15"
+                  },
+                  {
+                    "number": "-110"
+                  },
+                  {
+                    "number": "-52"
+                  },
+                  {
+                    "number": "51"
+                  },
+                  {
+                    "number": "-79"
+                  },
+                  {
+                    "number": "40"
+                  },
+                  {
+                    "number": "49"
+                  },
+                  {
+                    "number": "-102"
+                  },
+                  {
+                    "number": "4"
+                  },
+                  {
+                    "number": "-97"
+                  },
+                  {
+                    "number": "53"
+                  },
+                  {
+                    "number": "61"
+                  },
+                  {
+                    "number": "-71"
+                  },
+                  {
+                    "number": "-113"
+                  },
+                  {
+                    "number": "-65"
+                  },
+                  {
+                    "number": "77"
+                  },
+                  {
+                    "number": "-104"
+                  },
+                  {
+                    "number": "-9"
+                  },
+                  {
+                    "number": "23"
+                  },
+                  {
+                    "number": "-3"
+                  },
+                  {
+                    "number": "11"
+                  },
+                  {
+                    "number": "127"
+                  },
+                  {
+                    "number": "102"
+                  },
+                  {
+                    "number": "-96"
+                  },
+                  {
+                    "number": "70"
+                  },
+                  {
+                    "number": "33"
+                  },
+                  {
+                    "number": "66"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac513bd24aaa1591a1002d4e9e03f192cc33b128319a049f353db98fbf4d98f717fd0b7f66a0462142",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x1501002d4e9e03f192cc33b128319a049f353db98fbf4d98f717fd0b7f66a0462142bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500825b5b116008b77324a96ced33f12bd6cbe4fb3d6e624ea75a9e4406af8a871867f651de5c00823b6b2e1eeb58683d24f98859b18a46f398374eebefc09096080000001501002d4e9e03f192cc33b128319a049f353db98fbf4d98f717fd0b7f66a0462142bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "a13169a1-32fa-4b44-aecb-c404c5f3cdbc",
+            "symbol": "BCSI",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-22"
+                  },
+                  {
+                    "number": "-54"
+                  },
+                  {
+                    "number": "-22"
+                  },
+                  {
+                    "number": "101"
+                  },
+                  {
+                    "number": "-103"
+                  },
+                  {
+                    "number": "-96"
+                  },
+                  {
+                    "number": "67"
+                  },
+                  {
+                    "number": "88"
+                  },
+                  {
+                    "number": "-3"
+                  },
+                  {
+                    "number": "-87"
+                  },
+                  {
+                    "number": "-122"
+                  },
+                  {
+                    "number": "56"
+                  },
+                  {
+                    "number": "-114"
+                  },
+                  {
+                    "number": "-16"
+                  },
+                  {
+                    "number": "-69"
+                  },
+                  {
+                    "number": "12"
+                  },
+                  {
+                    "number": "23"
+                  },
+                  {
+                    "number": "-91"
+                  },
+                  {
+                    "number": "83"
+                  },
+                  {
+                    "number": "-20"
+                  },
+                  {
+                    "number": "-127"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "93"
+                  },
+                  {
+                    "number": "-30"
+                  },
+                  {
+                    "number": "-112"
+                  },
+                  {
+                    "number": "12"
+                  },
+                  {
+                    "number": "10"
+                  },
+                  {
+                    "number": "-16"
+                  },
+                  {
+                    "number": "-122"
+                  },
+                  {
+                    "number": "37"
+                  },
+                  {
+                    "number": "2"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacb12077ec1883fe0a00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502",
+          "balanceKeyError": null,
+          "transferCall": null,
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "5416b261-a759-4ba6-bc83-ea79a83c5101",
+            "symbol": "ksm",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "17"
+                  },
+                  {
+                    "number": "123"
+                  },
+                  {
+                    "number": "15"
+                  },
+                  {
+                    "number": "-89"
+                  },
+                  {
+                    "number": "60"
+                  },
+                  {
+                    "number": "70"
+                  },
+                  {
+                    "number": "114"
+                  },
+                  {
+                    "number": "-32"
+                  },
+                  {
+                    "number": "58"
+                  },
+                  {
+                    "number": "125"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "119"
+                  },
+                  {
+                    "number": "78"
+                  },
+                  {
+                    "number": "59"
+                  },
+                  {
+                    "number": "63"
+                  },
+                  {
+                    "number": "-111"
+                  },
+                  {
+                    "number": "-66"
+                  },
+                  {
+                    "number": "-72"
+                  },
+                  {
+                    "number": "-109"
+                  },
+                  {
+                    "number": "-23"
+                  },
+                  {
+                    "number": "61"
+                  },
+                  {
+                    "number": "-102"
+                  },
+                  {
+                    "number": "-115"
+                  },
+                  {
+                    "number": "4"
+                  },
+                  {
+                    "number": "48"
+                  },
+                  {
+                    "number": "41"
+                  },
+                  {
+                    "number": "95"
+                  },
+                  {
+                    "number": "68"
+                  },
+                  {
+                    "number": "34"
+                  },
+                  {
+                    "number": "93"
+                  },
+                  {
+                    "number": "-72"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbaccf392e1e27d4aac900117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50060b62e60c4c83aa56ce9ca1a5d62b0a115519249c8f441e996675db47d150b91716d6969c0c26765fac6f54f03a54817d02b966704005546ef97a9f1e053000d000000150100117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "cd092a5a-4eb6-4318-9f11-4bf8454d67a2",
+            "symbol": "dot",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x0003b1dbee890acfb1b3bc12d1bb3b4295f52755423f84d1751b2545cebf000b"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "3"
+                  },
+                  {
+                    "number": "-79"
+                  },
+                  {
+                    "number": "-37"
+                  },
+                  {
+                    "number": "-18"
+                  },
+                  {
+                    "number": "-119"
+                  },
+                  {
+                    "number": "10"
+                  },
+                  {
+                    "number": "-49"
+                  },
+                  {
+                    "number": "-79"
+                  },
+                  {
+                    "number": "-77"
+                  },
+                  {
+                    "number": "-68"
+                  },
+                  {
+                    "number": "18"
+                  },
+                  {
+                    "number": "-47"
+                  },
+                  {
+                    "number": "-69"
+                  },
+                  {
+                    "number": "59"
+                  },
+                  {
+                    "number": "66"
+                  },
+                  {
+                    "number": "-107"
+                  },
+                  {
+                    "number": "-11"
+                  },
+                  {
+                    "number": "39"
+                  },
+                  {
+                    "number": "85"
+                  },
+                  {
+                    "number": "66"
+                  },
+                  {
+                    "number": "63"
+                  },
+                  {
+                    "number": "-124"
+                  },
+                  {
+                    "number": "-47"
+                  },
+                  {
+                    "number": "117"
+                  },
+                  {
+                    "number": "27"
+                  },
+                  {
+                    "number": "37"
+                  },
+                  {
+                    "number": "69"
+                  },
+                  {
+                    "number": "-50"
+                  },
+                  {
+                    "number": "-65"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "11"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0dd3af479299d96a0003b1dbee890acfb1b3bc12d1bb3b4295f52755423f84d1751b2545cebf000b",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x15010003b1dbee890acfb1b3bc12d1bb3b4295f52755423f84d1751b2545cebf000bbceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5007ec595545b73e09c63e105f609ba7cf2d42b35a8db8ae45819587d3528b29eff78f0baaca65c04abc3489c8b32d6d03fe45923feb307642f1c4ec23f6a9f9f0600000015010003b1dbee890acfb1b3bc12d1bb3b4295f52755423f84d1751b2545cebf000bbceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "fb88fa55-b8c8-4ff1-afa8-f72a86a238a4",
+            "symbol": "aca",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x001ddbe1a880031da72f7ea421260bec635fa7d1aa72593d5412795408b6b2ba"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "29"
+                  },
+                  {
+                    "number": "-37"
+                  },
+                  {
+                    "number": "-31"
+                  },
+                  {
+                    "number": "-88"
+                  },
+                  {
+                    "number": "-128"
+                  },
+                  {
+                    "number": "3"
+                  },
+                  {
+                    "number": "29"
+                  },
+                  {
+                    "number": "-89"
+                  },
+                  {
+                    "number": "47"
+                  },
+                  {
+                    "number": "126"
+                  },
+                  {
+                    "number": "-92"
+                  },
+                  {
+                    "number": "33"
+                  },
+                  {
+                    "number": "38"
+                  },
+                  {
+                    "number": "11"
+                  },
+                  {
+                    "number": "-20"
+                  },
+                  {
+                    "number": "99"
+                  },
+                  {
+                    "number": "95"
+                  },
+                  {
+                    "number": "-89"
+                  },
+                  {
+                    "number": "-47"
+                  },
+                  {
+                    "number": "-86"
+                  },
+                  {
+                    "number": "114"
+                  },
+                  {
+                    "number": "89"
+                  },
+                  {
+                    "number": "61"
+                  },
+                  {
+                    "number": "84"
+                  },
+                  {
+                    "number": "18"
+                  },
+                  {
+                    "number": "121"
+                  },
+                  {
+                    "number": "84"
+                  },
+                  {
+                    "number": "8"
+                  },
+                  {
+                    "number": "-74"
+                  },
+                  {
+                    "number": "-78"
+                  },
+                  {
+                    "number": "-70"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac3fb69d5cc42d5e75001ddbe1a880031da72f7ea421260bec635fa7d1aa72593d5412795408b6b2ba",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x1501001ddbe1a880031da72f7ea421260bec635fa7d1aa72593d5412795408b6b2babceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5000d961ce7cb5d35fce65aa30b4f3a0566c4f7138e599fb6f0431e4792ee254f69473f9cfb186fae8326913a078738fff0f8ced74264308aac1ed81a8f0a3bcc010000001501001ddbe1a880031da72f7ea421260bec635fa7d1aa72593d5412795408b6b2babceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "acc32ee0-8fdc-4743-91e1-f70cc4f3069b",
+            "symbol": "astr",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x009dd037fcb32f4fe17c513abd4641a2ece844d106e30788124f0c0acc6e748e"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "-48"
+                  },
+                  {
+                    "number": "55"
+                  },
+                  {
+                    "number": "-4"
+                  },
+                  {
+                    "number": "-77"
+                  },
+                  {
+                    "number": "47"
+                  },
+                  {
+                    "number": "79"
+                  },
+                  {
+                    "number": "-31"
+                  },
+                  {
+                    "number": "124"
+                  },
+                  {
+                    "number": "81"
+                  },
+                  {
+                    "number": "58"
+                  },
+                  {
+                    "number": "-67"
+                  },
+                  {
+                    "number": "70"
+                  },
+                  {
+                    "number": "65"
+                  },
+                  {
+                    "number": "-94"
+                  },
+                  {
+                    "number": "-20"
+                  },
+                  {
+                    "number": "-24"
+                  },
+                  {
+                    "number": "68"
+                  },
+                  {
+                    "number": "-47"
+                  },
+                  {
+                    "number": "6"
+                  },
+                  {
+                    "number": "-29"
+                  },
+                  {
+                    "number": "7"
+                  },
+                  {
+                    "number": "-120"
+                  },
+                  {
+                    "number": "18"
+                  },
+                  {
+                    "number": "79"
+                  },
+                  {
+                    "number": "12"
+                  },
+                  {
+                    "number": "10"
+                  },
+                  {
+                    "number": "-52"
+                  },
+                  {
+                    "number": "110"
+                  },
+                  {
+                    "number": "116"
+                  },
+                  {
+                    "number": "-114"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac3c10b9197a9215d3009dd037fcb32f4fe17c513abd4641a2ece844d106e30788124f0c0acc6e748e",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x1501009dd037fcb32f4fe17c513abd4641a2ece844d106e30788124f0c0acc6e748ebceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500050576fc1b277e25c31543c82e26b5c56f0569b052db03d33f3a808a5983509d13df0cfa0ea0ca0039416ec157663b8ce34959eb2cf4da91f30a855a5a73930b0000001501009dd037fcb32f4fe17c513abd4641a2ece844d106e30788124f0c0acc6e748ebceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "0ef3afdc-cdd3-47cc-bd52-817c54ae65b5",
+            "symbol": "llm",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00073edd278e1bd6a7f9d0b27d4f3e93b73c8f0832b58a4df13c69611a99f156"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "7"
+                  },
+                  {
+                    "number": "62"
+                  },
+                  {
+                    "number": "-35"
+                  },
+                  {
+                    "number": "39"
+                  },
+                  {
+                    "number": "-114"
+                  },
+                  {
+                    "number": "27"
+                  },
+                  {
+                    "number": "-42"
+                  },
+                  {
+                    "number": "-89"
+                  },
+                  {
+                    "number": "-7"
+                  },
+                  {
+                    "number": "-48"
+                  },
+                  {
+                    "number": "-78"
+                  },
+                  {
+                    "number": "125"
+                  },
+                  {
+                    "number": "79"
+                  },
+                  {
+                    "number": "62"
+                  },
+                  {
+                    "number": "-109"
+                  },
+                  {
+                    "number": "-73"
+                  },
+                  {
+                    "number": "60"
+                  },
+                  {
+                    "number": "-113"
+                  },
+                  {
+                    "number": "8"
+                  },
+                  {
+                    "number": "50"
+                  },
+                  {
+                    "number": "-75"
+                  },
+                  {
+                    "number": "-118"
+                  },
+                  {
+                    "number": "77"
+                  },
+                  {
+                    "number": "-15"
+                  },
+                  {
+                    "number": "60"
+                  },
+                  {
+                    "number": "105"
+                  },
+                  {
+                    "number": "97"
+                  },
+                  {
+                    "number": "26"
+                  },
+                  {
+                    "number": "-103"
+                  },
+                  {
+                    "number": "-15"
+                  },
+                  {
+                    "number": "86"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac7c3cc0cb90a5daa300073edd278e1bd6a7f9d0b27d4f3e93b73c8f0832b58a4df13c69611a99f156",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100073edd278e1bd6a7f9d0b27d4f3e93b73c8f0832b58a4df13c69611a99f156bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500e83eae6f52f6b62c4be5e6d339d57bcc74853e8d8f3d08b6c016e8e78808fea34042e51b299d0028f46957a6aa3aef45da1610492a5f48ebd3bd9c857fcdc006000000150100073edd278e1bd6a7f9d0b27d4f3e93b73c8f0832b58a4df13c69611a99f156bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "1c3b4fcb-5a5f-4319-9dce-d178006eb9bf",
+            "symbol": "lld",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00513be65493a7fc3e2128d4230061a530acf40478a4affa20bbba27a310673e"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "81"
+                  },
+                  {
+                    "number": "59"
+                  },
+                  {
+                    "number": "-26"
+                  },
+                  {
+                    "number": "84"
+                  },
+                  {
+                    "number": "-109"
+                  },
+                  {
+                    "number": "-89"
+                  },
+                  {
+                    "number": "-4"
+                  },
+                  {
+                    "number": "62"
+                  },
+                  {
+                    "number": "33"
+                  },
+                  {
+                    "number": "40"
+                  },
+                  {
+                    "number": "-44"
+                  },
+                  {
+                    "number": "35"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "97"
+                  },
+                  {
+                    "number": "-91"
+                  },
+                  {
+                    "number": "48"
+                  },
+                  {
+                    "number": "-84"
+                  },
+                  {
+                    "number": "-12"
+                  },
+                  {
+                    "number": "4"
+                  },
+                  {
+                    "number": "120"
+                  },
+                  {
+                    "number": "-92"
+                  },
+                  {
+                    "number": "-81"
+                  },
+                  {
+                    "number": "-6"
+                  },
+                  {
+                    "number": "32"
+                  },
+                  {
+                    "number": "-69"
+                  },
+                  {
+                    "number": "-70"
+                  },
+                  {
+                    "number": "39"
+                  },
+                  {
+                    "number": "-93"
+                  },
+                  {
+                    "number": "16"
+                  },
+                  {
+                    "number": "103"
+                  },
+                  {
+                    "number": "62"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacaa57d7134e50947900513be65493a7fc3e2128d4230061a530acf40478a4affa20bbba27a310673e",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100513be65493a7fc3e2128d4230061a530acf40478a4affa20bbba27a310673ebceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500fb4fb0c9a48e83de5c691578c95252a700ff781642e8823c2b437f08d28aaa292d5fe9ca2d15bceaa1196514ae11569aeffabd7e1aca3b44cc31ba8e2986b805000000150100513be65493a7fc3e2128d4230061a530acf40478a4affa20bbba27a310673ebceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "a543b9a2-f85a-4974-92fc-435d6bc418e5",
+            "symbol": "toncoin",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00e8c8923623335128807857dfa38f9212e9803394a2c976e97245d7063bbe10"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-24"
+                  },
+                  {
+                    "number": "-56"
+                  },
+                  {
+                    "number": "-110"
+                  },
+                  {
+                    "number": "54"
+                  },
+                  {
+                    "number": "35"
+                  },
+                  {
+                    "number": "51"
+                  },
+                  {
+                    "number": "81"
+                  },
+                  {
+                    "number": "40"
+                  },
+                  {
+                    "number": "-128"
+                  },
+                  {
+                    "number": "120"
+                  },
+                  {
+                    "number": "87"
+                  },
+                  {
+                    "number": "-33"
+                  },
+                  {
+                    "number": "-93"
+                  },
+                  {
+                    "number": "-113"
+                  },
+                  {
+                    "number": "-110"
+                  },
+                  {
+                    "number": "18"
+                  },
+                  {
+                    "number": "-23"
+                  },
+                  {
+                    "number": "-128"
+                  },
+                  {
+                    "number": "51"
+                  },
+                  {
+                    "number": "-108"
+                  },
+                  {
+                    "number": "-94"
+                  },
+                  {
+                    "number": "-55"
+                  },
+                  {
+                    "number": "118"
+                  },
+                  {
+                    "number": "-23"
+                  },
+                  {
+                    "number": "114"
+                  },
+                  {
+                    "number": "69"
+                  },
+                  {
+                    "number": "-41"
+                  },
+                  {
+                    "number": "6"
+                  },
+                  {
+                    "number": "59"
+                  },
+                  {
+                    "number": "-66"
+                  },
+                  {
+                    "number": "16"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacba10fc8ff09ce17500e8c8923623335128807857dfa38f9212e9803394a2c976e97245d7063bbe10",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100e8c8923623335128807857dfa38f9212e9803394a2c976e97245d7063bbe10bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500c636557e720691e87008b8debd67bb3c6b32a213f7572d18e13451bb67e4261ee0a156893d3ed75e136dcb843ad2ff9d4349fb87e44a5fcbf55f9218198d3203000000150100e8c8923623335128807857dfa38f9212e9803394a2c976e97245d7063bbe10bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "59a87850-0194-4040-b92e-b869ee3dd3fa",
+            "symbol": "ken",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x02000b0000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "11"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac1b42fb269906871702000b0000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150102000b0000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500ee921f35005910bc54b3d4f45a0ea29cc37c1c3831c2ed1739c2259820b0f45e7efe7386f32e047e3a8e0997965d11f3206a2c3c8f28d5131cdaaca6dfcc9a0e000000150102000b0000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "ffc85c62-c970-4cb4-900c-f7d4831c3695",
+            "symbol": "kusd",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x02000c0000000000000000000000000000000000000000000000000000000000"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "2"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "12"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "0"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac345abd3977bdb9cc02000c0000000000000000000000000000000000000000000000000000000000",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150102000c0000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500bd05c18536d91ed245a2875c394593f337269eaf116fa25296ca1d0da0541554a7cd0418af68b6da75b2f257349a3af117b3364e1ac7028e9be5386914afb302000000150102000c0000000000000000000000000000000000000000000000000000000000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "46e8a947-ade7-4c87-83b5-d724a35da919",
+            "symbol": "apollo",
+            "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+            "chainName": "SORA Mainnet",
+            "isUtility": false,
+            "type": "SoraAsset",
+            "currencyId": "0x00efe45135018136733be626b380a87ae663ccf6784a25fe9d9d2be64acecb9d"
+          },
+          "typeExtra": "SoraAsset",
+          "currency": {
+            "struct": {
+              "code": {
+                "list": [
+                  {
+                    "number": "0"
+                  },
+                  {
+                    "number": "-17"
+                  },
+                  {
+                    "number": "-28"
+                  },
+                  {
+                    "number": "81"
+                  },
+                  {
+                    "number": "53"
+                  },
+                  {
+                    "number": "1"
+                  },
+                  {
+                    "number": "-127"
+                  },
+                  {
+                    "number": "54"
+                  },
+                  {
+                    "number": "115"
+                  },
+                  {
+                    "number": "59"
+                  },
+                  {
+                    "number": "-26"
+                  },
+                  {
+                    "number": "38"
+                  },
+                  {
+                    "number": "-77"
+                  },
+                  {
+                    "number": "-128"
+                  },
+                  {
+                    "number": "-88"
+                  },
+                  {
+                    "number": "122"
+                  },
+                  {
+                    "number": "-26"
+                  },
+                  {
+                    "number": "99"
+                  },
+                  {
+                    "number": "-52"
+                  },
+                  {
+                    "number": "-10"
+                  },
+                  {
+                    "number": "120"
+                  },
+                  {
+                    "number": "74"
+                  },
+                  {
+                    "number": "37"
+                  },
+                  {
+                    "number": "-2"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "-99"
+                  },
+                  {
+                    "number": "43"
+                  },
+                  {
+                    "number": "-26"
+                  },
+                  {
+                    "number": "74"
+                  },
+                  {
+                    "number": "-50"
+                  },
+                  {
+                    "number": "-53"
+                  },
+                  {
+                    "number": "-99"
+                  }
+                ]
+              }
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacbf64dff4b44ffda900efe45135018136733be626b380a87ae663ccf6784a25fe9d9d2be64acecb9d",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x150100efe45135018136733be626b380a87ae663ccf6784a25fe9d9d2be64acecb9dbceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "extrinsic": "0xdd02840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5000dab692c0869a7fd64c3d09ea912c74feea145890d3b5b811615c44860a7ae72d93b23d6b5eb77ca44ce02f096f1d50106c592673329bdd62f751395b4bbe50a000000150100efe45135018136733be626b380a87ae663ccf6784a25fe9d9d2be64acecb9dbceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01000000000000000000000000000000",
+          "transferError": null
+        }
+      ]
+    },
+    {
+      "chain": "acala",
+      "name": "Acala",
+      "genesis": "0xfc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+      "block": "0x21efdf9d3928c69959bc05dde5e1cbfcbe8618820f945fb3d584384233a47ff1",
+      "specVersion": 2370,
+      "transactionVersion": 3,
+      "signedExtensions": [
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "CheckMetadataHash",
+        "SetEvmOrigin",
+        "ChargeTransactionPayment"
+      ],
+      "runtime": {
+        "file": "runtime/acala.json.gz",
+        "sha256": "0xb851a1551b31b4b407932e5b584d4967ffff6ba433bf45171de961cd1c0746c2"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "c801d6c1-3edf-41a9-9aea-da705eab249b",
+            "symbol": "aca",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": true,
+            "type": "Normal",
+            "currencyId": null
+          },
+          "typeExtra": "Normal",
+          "currency": null,
+          "balanceStorage": "System.Account",
+          "balanceKey": "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da92e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Balances.transfer_allow_death",
+          "callBytes": "0x0a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x2d0284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500404ab08eb98d1938e9df64a500ad5566b451bbe7c10488a5198a47df719bfab6ca8c0786471930aea2d60f269f7fb6ba0c7ba23bbc4df483dfdd020c047ebf03000000000a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "cfe26eae-f566-4b8d-a44c-bd4380c27bc5",
+            "symbol": "ausd",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": "kusd"
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "KUSD",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacd62f83b2dd5937360081",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac008104",
+          "extrinsic": "0x350284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5006561d52e38f95b7063070756f5903c250c400525a4739a0bc894722588d4349318bed8a0f1afdd785029aacbf0fe719f5c352d62fd94f43e13a6703977e58706000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac008104",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "70a69d25-a4ba-4c6b-a15d-09f3c2814ddf",
+            "symbol": "tdot",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "StableAssetPoolToken",
+            "currencyId": "0"
+          },
+          "typeExtra": "StableAssetPoolToken",
+          "currency": {
+            "enum": "StableAssetPoolToken",
+            "value": {
+              "number": "0"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbace8d2a526a4a22d1e0300000000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac030000000004",
+          "extrinsic": "0x410284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500efbbb3e6f5899fb7f111165ca861de61cd8ade6015c016bf2e73617c633d082e0373faad8a5860869c27dfbf6fa1ebd33a495f33c09c0af31092ffba85f6c00d000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac030000000004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "fe07f6c5-2b90-4e1a-81e3-8ed85f5a80b9",
+            "symbol": "para",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "ForeignAsset",
+            "currencyId": "1"
+          },
+          "typeExtra": "ForeignAsset",
+          "currency": {
+            "enum": "ForeignAsset",
+            "value": {
+              "number": "1"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac413d99cbf956331c050100",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05010004",
+          "extrinsic": "0x390284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50087195b240accaf836c9dbde737b9b32dfed59be54e559ff0c501cd742b6596f365d03cd262f7cb8dd3011d6615a832488d627575d9364bf3340062fc599a530e000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05010004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "b6c22f93-be25-426b-b921-18bf19c49667",
+            "symbol": "glmr",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "ForeignAsset",
+            "currencyId": "0"
+          },
+          "typeExtra": "ForeignAsset",
+          "currency": {
+            "enum": "ForeignAsset",
+            "value": {
+              "number": "0"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbace864249bdfc20767050000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05000004",
+          "extrinsic": "0x390284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50012e7cefa0fff6d1895e865c098bbb24c771e1b22c910522a18f6471d263efcf1983a315d2b1f363e30ee3685fee8502c72e6ebdf15cdb32d5ba7bdc8f212c803000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05000004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "471bfcd1-9680-4ba9-a25d-3e9f777ee2c9",
+            "symbol": "ldot",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "LDOT",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac88730a11ad01953f0003",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000304",
+          "extrinsic": "0x350284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5006e59d14ca0cd1c25490c101a6818a200d0c9f10982cf036b9e1227215b90a9add4147296b064032b36054532eecd7f223601373c25ea794c71e0ed8aea7d7a01000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000304",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "ffb814ea-c92c-4a1e-8e24-437c93ecd8ff",
+            "symbol": "tai",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "TAI",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacb5605e1962c08fd20084",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac008404",
+          "extrinsic": "0x350284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500ea58d4a6ad3bb9d1e84a2f4f3e5a705e655522cf13e2e08f2822908a826745856e8389c4ab0eb801f61f4ffd4db303c829fbe8162a493edb7b360b28000e4b09000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac008404",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "ed98bee1-34ce-4aa2-896e-508380dea1c2",
+            "symbol": "dot",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "DOT",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacc483de2de1246ea70002",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000204",
+          "extrinsic": "0x350284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5007c70bc3eac696cbb98c65c43be74d21c694ee7632dc0daef19370a1388b283d2843abcaae71695487d350d0db60eea4d7c566a8d2cd363eb010689bdeeba3106000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000204",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "a7b48fb1-5741-487a-98fd-c45f958dd4fd",
+            "symbol": "lcdot",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "LiquidCrowdloan",
+            "currencyId": "13"
+          },
+          "typeExtra": "LiquidCrowdloan",
+          "currency": {
+            "enum": "LiquidCrowdloan",
+            "value": {
+              "number": "13"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbaceffe45280fe0639f040d000000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac040d00000004",
+          "extrinsic": "0x410284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500ad6abeff57b95ba8edd757bab0e0c22cd81e23c4bd7c074c10b8cb198ce86732db24a9cbe1552cb4c5e727429db3f9af0d5d48a26e747444a568b10da79eb101000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac040d00000004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "402c606d-691f-4889-a48d-a459a0e37c56",
+            "symbol": "ibtc",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "ForeignAsset",
+            "currencyId": "3"
+          },
+          "typeExtra": "ForeignAsset",
+          "currency": {
+            "enum": "ForeignAsset",
+            "value": {
+              "number": "3"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0d3e21de2aa61491050300",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05030004",
+          "extrinsic": "0x390284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50076546fa67b46db76458dcbbec819c9a003970be996746f57a6eea66eb32607c01d3491b16666a5f644b5ed128450052b07573c5232bd92dcb61803b5c76d630a000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05030004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "7fffd65a-d971-4bdc-a6bd-216674b83a97",
+            "symbol": "weth",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "ForeignAsset",
+            "currencyId": "6"
+          },
+          "typeExtra": "ForeignAsset",
+          "currency": {
+            "enum": "ForeignAsset",
+            "value": {
+              "number": "6"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac85dca6a5c877b5c7050600",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05060004",
+          "extrinsic": "0x390284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500bdd9c53f297cac563ae3c805e7a7f0c93a2a9e632f04ae5d8b964b7a4990b0f7d5b70e6fdfdab3a376eb560beb5f51b0e5b4c1ecb8369cbcda1fbb2d95928e01000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05060004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "184a1b21-d512-4de9-ab54-6c014e24f90c",
+            "symbol": "astr",
+            "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+            "chainName": "Acala",
+            "isUtility": false,
+            "type": "ForeignAsset",
+            "currencyId": "2"
+          },
+          "typeExtra": "ForeignAsset",
+          "currency": {
+            "enum": "ForeignAsset",
+            "value": {
+              "number": "2"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacdb5ca4dc8fa10c82050200",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x0c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05020004",
+          "extrinsic": "0x390284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500a01e8eb03eea45996388610d96752b2c0003cb70b801026867e9ba7bafec0c3de6267e48215da423602d4920fc0a5537260a5e1625f94106d3d44cd3bb416409000000000c0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac05020004",
+          "transferError": null
+        }
+      ]
+    },
+    {
+      "chain": "bifrost-kusama",
+      "name": "Bifrost",
+      "genesis": "0x9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+      "block": "0x9cd6e8a58a762d86518216bbfbb2e1b518a39bafc2182dbc5060a9ba45f8079b",
+      "specVersion": 26000,
+      "transactionVersion": 1,
+      "signedExtensions": [
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment",
+        "CheckMetadataHash"
+      ],
+      "runtime": {
+        "file": "runtime/bifrost-kusama.json.gz",
+        "sha256": "0x57e52d0a53113438059b814da24a7d01963fcd60a366d41e3dc731763f00a7ee"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "559e80d6-fb38-4dd5-bbd6-c0a7c2f600e1",
+            "symbol": "bnc",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": true,
+            "type": "Normal",
+            "currencyId": null
+          },
+          "typeExtra": "Normal",
+          "currency": null,
+          "balanceStorage": "System.Account",
+          "balanceKey": "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da92e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Balances.transfer_allow_death",
+          "callBytes": "0x0a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x2d0284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500137cac10b40703fb0c2cfb6b3fe5082a69b6cfd55cd2d617274a9d9cd4635b08a79a6bfa72e4b23b1ac36c150d8a31ee5e20b2f7cdfc9253dc5ea7ea2561ec06000000000a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "922c191c-4cb8-407e-8b81-2cfc52170c3b",
+            "symbol": "ksm",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "KSM",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac1dab0d33717892710204",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "75206b90-456e-48ae-a118-0bf9ab861115",
+            "symbol": "rmrk",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "RMRK",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac3aabf5b1eec116df0209",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "5c31c8ae-c045-43f2-849a-88a17ee7b302",
+            "symbol": "kar",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "KAR",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacca82739c8129d4d20206",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "07f2a7fc-9b0a-4583-9267-57b68ecd4350",
+            "symbol": "vksm",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "VToken",
+            "currencyId": "ksm"
+          },
+          "typeExtra": "VToken",
+          "currency": {
+            "enum": "VToken",
+            "value": {
+              "enum": "KSM",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac93f03176dc140a1b0104",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "dd0efecb-51a1-481d-a949-80cb7663c105",
+            "symbol": "vsksm",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "VSToken",
+            "currencyId": "ksm"
+          },
+          "typeExtra": "VSToken",
+          "currency": {
+            "enum": "VSToken",
+            "value": {
+              "enum": "KSM",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacd397003ec57bed650404",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "94d5e2d9-c2d7-40e6-8893-5832a784b2ea",
+            "symbol": "ausd",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "Stable",
+            "currencyId": "kusd"
+          },
+          "typeExtra": "Stable",
+          "currency": {
+            "enum": "Stable",
+            "value": {
+              "enum": "KUSD",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac1a26444d9b883b480302",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "2bd78b68-8bd7-4859-928a-1a7b8b57a734",
+            "symbol": "usdt",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "ForeignAsset",
+            "currencyId": "0"
+          },
+          "typeExtra": "ForeignAsset",
+          "currency": {
+            "enum": "ForeignAsset",
+            "value": {
+              "number": "0"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac28050c469b832c1e0700000000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "e6f78e19-80c7-4e8c-8499-91e03df504a8",
+            "symbol": "movr",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "MOVR",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacac435ba151a0ded6020a",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "fe2c5a55-aff7-4d00-af5c-e90082a5a11e",
+            "symbol": "zlk",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "ZLK",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacb682815e8b9cd45d0207",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "33746c72-6806-47d0-a1c4-7b433df862f1",
+            "symbol": "pha",
+            "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+            "chainName": "Bifrost",
+            "isUtility": false,
+            "type": "OrmlAsset",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlAsset",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "PHA",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacc3413250cf88fd430208",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        }
+      ]
+    },
+    {
+      "chain": "bifrost-polkadot",
+      "name": "Bifrost Polkadot",
+      "genesis": "0x262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+      "block": "0xa3cd62224fc905252f53616341fdd2c6c69296f2ecfba299a67baf8d9b4861b3",
+      "specVersion": 26000,
+      "transactionVersion": 1,
+      "signedExtensions": [
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment",
+        "CheckMetadataHash"
+      ],
+      "runtime": {
+        "file": "runtime/bifrost-polkadot.json.gz",
+        "sha256": "0x49966f69247cd07eb409f8c288725b9db17528e1e294a375492784b0d0787565"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "dc9e23e8-f4bf-4864-9f2c-c2fbd4b03886",
+            "symbol": "bnc",
+            "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+            "chainName": "Bifrost Polkadot",
+            "isUtility": true,
+            "type": "Normal",
+            "currencyId": null
+          },
+          "typeExtra": "Normal",
+          "currency": null,
+          "balanceStorage": "System.Account",
+          "balanceKey": "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da92e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Balances.transfer_allow_death",
+          "callBytes": "0x0a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x2d0284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5009a917c4d1b60dc7652f099087267e66a9db2226164cf75dc6a47b546bb11241e5cdc91dfc6ee1a4e11bd407630bf3d268321eaa0d48b69f407f8d975546fb706000000000a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "fd62d09e-cfae-44f8-81a0-bf99732643fc",
+            "symbol": "dot",
+            "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+            "chainName": "Bifrost Polkadot",
+            "isUtility": false,
+            "type": "Token2",
+            "currencyId": "0"
+          },
+          "typeExtra": "Token2",
+          "currency": {
+            "enum": "Token2",
+            "value": {
+              "number": "0"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac54f36929f3f011430800",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "9ff3dbb1-5986-44b9-b247-db82ae3584a1",
+            "symbol": "glmr",
+            "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+            "chainName": "Bifrost Polkadot",
+            "isUtility": false,
+            "type": "Token2",
+            "currencyId": "1"
+          },
+          "typeExtra": "Token2",
+          "currency": {
+            "enum": "Token2",
+            "value": {
+              "number": "1"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac6b0eee53168ff3720801",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        },
+        {
+          "input": {
+            "assetId": "8dc39b21-04c9-4d1d-b9ec-8ea111052e77",
+            "symbol": "usdt",
+            "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+            "chainName": "Bifrost Polkadot",
+            "isUtility": false,
+            "type": "Token2",
+            "currencyId": "2"
+          },
+          "typeExtra": "Token2",
+          "currency": {
+            "enum": "Token2",
+            "value": {
+              "number": "2"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac339d509dfbdcc4be0802",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": null,
+          "extrinsic": null,
+          "transferError": "java.util.NoSuchElementException"
+        }
+      ]
+    },
+    {
+      "chain": "interlay",
+      "name": "Interlay",
+      "genesis": "0xbf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72",
+      "block": "0x4e836258494abbe5fd3b3d366723cd8c2f066203dd03616ff8310d85bc3ac7ed",
+      "specVersion": 1025008,
+      "transactionVersion": 4,
+      "signedExtensions": [
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment"
+      ],
+      "runtime": {
+        "file": "runtime/interlay.json.gz",
+        "sha256": "0x24fe951a9c465ee216f2c4f8acb3d9ab472af36623f0919fb4e7d387cc20187c"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "7a77b6b0-f015-4ccc-a5bb-3456e17775dd",
+            "symbol": "intr",
+            "chainId": "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72",
+            "chainName": "Interlay",
+            "isUtility": true,
+            "type": "OrmlChain",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlChain",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "INTR",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacc483de2de1246ea70002",
+          "balanceKeyError": null,
+          "transferCall": "Tokens.transfer",
+          "callBytes": "0x1500bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000204",
+          "extrinsic": "0x2902840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50097d9cd9782e8fa195577760820bfe36c29a5772a63f327bd4fc0b6acc7580a92d96446977313a3c214a116a84dd609ad45c348ec576a704957c46ec707086d0a0000001500bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000204",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "2a45aeb9-f585-4f1b-9558-ee3aa186a809",
+            "symbol": "dot",
+            "chainId": "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72",
+            "chainName": "Interlay",
+            "isUtility": false,
+            "type": "OrmlChain",
+            "currencyId": "DOT"
+          },
+          "typeExtra": "OrmlChain",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "DOT",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac01a12dfa1fa4ab9a0000",
+          "balanceKeyError": null,
+          "transferCall": "Tokens.transfer",
+          "callBytes": "0x1500bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000004",
+          "extrinsic": "0x2902840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50069d045cf87a317381d12c902e75422e37981b563dc25462177212468ce641e2665574e32ff7bc15881d432b8604fc0fcf450ce2ec741adeec4767d52b9abc20a0000001500bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "fdb17d7c-ca72-4ed7-9fc8-728aa366c843",
+            "symbol": "ibtc",
+            "chainId": "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72",
+            "chainName": "Interlay",
+            "isUtility": false,
+            "type": "OrmlChain",
+            "currencyId": null
+          },
+          "typeExtra": "OrmlChain",
+          "currency": {
+            "enum": "Token",
+            "value": {
+              "enum": "IBTC",
+              "value": null
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacd67c5ba80ba065480001",
+          "balanceKeyError": null,
+          "transferCall": "Tokens.transfer",
+          "callBytes": "0x1500bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000104",
+          "extrinsic": "0x2902840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500b18568159cb97c023c9152d82b6db3a313055fbc551c8195ff2910a77e2d83e573f323e8d4fcc55606952da1aa88b085c8670cad37b791e42316ccd3c450960f0000001500bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac000104",
+          "transferError": null
+        }
+      ]
+    },
+    {
+      "chain": "hydradx",
+      "name": "HydraDX",
+      "genesis": "0xafdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+      "block": "0xb83a56d4256cddbb11a18d962d267de470062986f94cc64320e23042b9a6b2cc",
+      "specVersion": 447,
+      "transactionVersion": 1,
+      "signedExtensions": [
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment",
+        "ValidateClaim",
+        "CheckMetadataHash",
+        "StorageWeightReclaim"
+      ],
+      "runtime": {
+        "file": "runtime/hydradx.json.gz",
+        "sha256": "0x779dd179ac4d4d13fa0b0c8528c425175f838af6e5f18fef3a8e69a0b565bee3"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "fce79b6c-e071-4271-837e-6ec87a719390",
+            "symbol": "hdx",
+            "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+            "chainName": "HydraDX",
+            "isUtility": true,
+            "type": "Normal",
+            "currencyId": null
+          },
+          "typeExtra": "Normal",
+          "currency": null,
+          "balanceStorage": "System.Account",
+          "balanceKey": "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da92e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Balances.transfer_allow_death",
+          "callBytes": "0x0700bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x2502840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5002eefac26e52f3117399a958a69b456ee78d9ec4145dd2cd820301303ebcb491c15e57444c538b9df92e7afd0d0164ff33e254dcf6ca9616abb0c9fa788a20d07000000000700bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "4697396b-37c4-426f-a36a-fda1935f365a",
+            "symbol": "dot",
+            "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+            "chainName": "HydraDX",
+            "isUtility": false,
+            "type": "AssetId",
+            "currencyId": "5"
+          },
+          "typeExtra": "AssetId",
+          "currency": {
+            "number": "5"
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac39b9d2792f8bd4c305000000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x4f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0500000004",
+          "extrinsic": "0x3502840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5008836b419fac8fcb2f9754caa3297ed631801c501c33944dcb958b8086e039d273429f06831d1977c525e9cb93425d16e7ba56c2d207d81da6632e7cddd259704000000004f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0500000004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "0de05a52-3686-486c-a80e-f7feb6e228d7",
+            "symbol": "ibtc",
+            "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+            "chainName": "HydraDX",
+            "isUtility": false,
+            "type": "AssetId",
+            "currencyId": "11"
+          },
+          "typeExtra": "AssetId",
+          "currency": {
+            "number": "11"
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbacbe93d8a4ce7799c00b000000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x4f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0b00000004",
+          "extrinsic": "0x3502840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500c75ef256ce22f5852a2b2f2574a8baf952cda751aa4f39ab973a66554890917e325fbc3e44980bbe79a7e1d2385ee6170cdd25f1d7731aab710e106e866e4c04000000004f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0b00000004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "880664d6-71f6-473e-95ba-4cc697429578",
+            "symbol": "glmr",
+            "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+            "chainName": "HydraDX",
+            "isUtility": false,
+            "type": "AssetId",
+            "currencyId": "16"
+          },
+          "typeExtra": "AssetId",
+          "currency": {
+            "number": "16"
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac66ccada06515787c10000000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x4f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac1000000004",
+          "extrinsic": "0x3502840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50053df50f4bca658167801e0686fd39a3da31486f35cf91e41e4a1118f5e8b6cdde33a6c99e685563ca9c0e27322784f8cf71e9d48159d08b0456d2632a817c506000000004f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac1000000004",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "53bd7f6e-b8eb-468f-a2ec-2bf347e702a7",
+            "symbol": "usdt",
+            "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+            "chainName": "HydraDX",
+            "isUtility": false,
+            "type": "AssetId",
+            "currencyId": "10"
+          },
+          "typeExtra": "AssetId",
+          "currency": {
+            "number": "10"
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbaca6b274250e6753f00a000000",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x4f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0a00000004",
+          "extrinsic": "0x3502840aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500ed9f5a1177ef671473a938158c3bd95901acd307a12462a8eee2f1f043da247f81a72927a3ecaf705417effc021d28ecc98cd2f2c242347d2430d84de7720309000000004f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac0a00000004",
+          "transferError": null
+        }
+      ]
+    },
+    {
+      "chain": "pendulum",
+      "name": "Pendulum",
+      "genesis": "0x5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+      "block": "0xc395d47c8b74292daafdb205a9d5c276eecc55cd9755949c5f537b7080862c00",
+      "specVersion": 26,
+      "transactionVersion": 11,
+      "signedExtensions": [
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment",
+        "CheckBuyout",
+        "CheckMetadataHash"
+      ],
+      "runtime": {
+        "file": "runtime/pendulum.json.gz",
+        "sha256": "0x216ca12c588ee635edfd270df518bee819bb7bac948292196e7d8a0c851d223a"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "ebf2822f-2dd4-4f59-aeb3-ae7defa53932",
+            "symbol": "pen",
+            "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+            "chainName": "Pendulum",
+            "isUtility": true,
+            "type": "Normal",
+            "currencyId": null
+          },
+          "typeExtra": "Normal",
+          "currency": null,
+          "balanceStorage": "System.Account",
+          "balanceKey": "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da92e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Balances.transfer_allow_death",
+          "callBytes": "0x0a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x2d0284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500537e5b60f733d81d3264fc09e3a4a7f8f9ebe4bfa221d9146325734bb758f29055b046896d1dcc24f8c2dcbca9f36bbc01953b65d189a454aca4c038082a5a09000000000a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "bc55b3f0-2b34-4561-aeb6-bd4ca9c88b7e",
+            "symbol": "usdt",
+            "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+            "chainName": "Pendulum",
+            "isUtility": false,
+            "type": "Xcm",
+            "currencyId": "1"
+          },
+          "typeExtra": "Xcm",
+          "currency": {
+            "enum": "XCM",
+            "value": {
+              "number": "1"
+            }
+          },
+          "balanceStorage": "Tokens.Accounts",
+          "balanceKey": "0x99971b5749ac43e0235e41b0d37869188ee7418a6531173d60d1f6a82d8f4d512e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac7a993ca12348fc520101",
+          "balanceKeyError": null,
+          "transferCall": "Currencies.transfer",
+          "callBytes": "0x340000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac010104",
+          "extrinsic": "0x350284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500853f4f2441291290cb1d869ec003f120cafcffcdf8f7a2df709e0d9db204fa4b87f699bc3d3aed4e61b658865522a34cefa46ad5e97f6127c2026aa95293aa0200000000340000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac010104",
+          "transferError": null
+        }
+      ]
+    },
+    {
+      "chain": "asset-hub-polkadot",
+      "name": "Polkadot AssetHub",
+      "genesis": "0x68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+      "block": "0xdd19dedebd1744036458abb0d129540e27e5da0b2bb7bc97637a06529143d345",
+      "specVersion": 2005000,
+      "transactionVersion": 15,
+      "signedExtensions": [
+        "AuthorizeCall",
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeAssetTxPayment",
+        "PrevalidateAttests",
+        "CheckMetadataHash",
+        "EthSetOrigin",
+        "StorageWeightReclaim"
+      ],
+      "runtime": {
+        "file": "runtime/asset-hub-polkadot.json.gz",
+        "sha256": "0x17652e5b5a4f69b7b4bb6e6ccac8895b30e7a10a09da74d016a4a63dd681d73b"
+      },
+      "assets": [
+        {
+          "input": {
+            "assetId": "887a17c7-1370-4de0-97dd-5422e294fa75",
+            "symbol": "dot",
+            "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+            "chainName": "Polkadot AssetHub",
+            "isUtility": true,
+            "type": "Normal",
+            "currencyId": null
+          },
+          "typeExtra": "Normal",
+          "currency": null,
+          "balanceStorage": "System.Account",
+          "balanceKey": "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da92e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Balances.transfer_allow_death",
+          "callBytes": "0x0a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x310284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e50008c94cfc9a176a3f2e2707173b8d2ed8c27f4d55048189d8a3ac1c3bcdf3d07a3861002bd418482bb50da3608013cc16f6365af75161e37b0f5a5279feea140800000000000a0000bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "ea33432f-9bd9-4d42-93bc-cd45a0e8a44c",
+            "symbol": "usdt",
+            "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+            "chainName": "Polkadot AssetHub",
+            "isUtility": false,
+            "type": "Assets",
+            "currencyId": "1984"
+          },
+          "typeExtra": "Assets",
+          "currency": {
+            "number": "1984"
+          },
+          "balanceStorage": "Assets.Account",
+          "balanceKey": "0x682a59d51ab9e48a8c8cc418ff9708d2b99d880ec681799c0cf30e8886371da9a319d0e87221ca1ee751c1529f201522c00700002e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x3208011f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x390284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500c532387e20588d584806506c7de5e443fcf984fc93f1a84a1faa340024b6bb4bd886770e64db49e882393805f9d24d89aecbe5e3b48b63abee27772070402d0000000000003208011f00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "951ca8aa-c390-4512-a35c-d3851440b580",
+            "symbol": "usdc",
+            "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+            "chainName": "Polkadot AssetHub",
+            "isUtility": false,
+            "type": "Assets",
+            "currencyId": "1337"
+          },
+          "typeExtra": "Assets",
+          "currency": {
+            "number": "1337"
+          },
+          "balanceStorage": "Assets.Account",
+          "balanceKey": "0x682a59d51ab9e48a8c8cc418ff9708d2b99d880ec681799c0cf30e8886371da9e0956573baada8dd69fae1cff092d737390500002e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x3208e51400bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x390284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500a39972063cc4f4dc692e6d595f617bc6ee902af4b29a92d31ed4a71eb3c25bd4f2b4d9d777f9bf4bb20146b8c35438cab59113fdbd1f795da2bc38fb143c120d00000000003208e51400bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "8f79aa5a-9f31-442c-ac96-01ff80b105e0",
+            "symbol": "ded",
+            "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+            "chainName": "Polkadot AssetHub",
+            "isUtility": false,
+            "type": "Assets",
+            "currencyId": "30"
+          },
+          "typeExtra": "Assets",
+          "currency": {
+            "number": "30"
+          },
+          "balanceStorage": "Assets.Account",
+          "balanceKey": "0x682a59d51ab9e48a8c8cc418ff9708d2b99d880ec681799c0cf30e8886371da928210239547ef1b1a87a0b1c87bd80bc1e0000002e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x32087800bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x350284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e5007bbabaed0d35c9aa0ee18336030a3df2c30b741ddbc9e279635ebe36602555fb21a428f278eaca01197f4bf74dd1d09e5ce6f09f17ab3f4caf8f0b6b8106d503000000000032087800bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        },
+        {
+          "input": {
+            "assetId": "44587704-7da8-45c3-9541-be7b81de76ee",
+            "symbol": "pink",
+            "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+            "chainName": "Polkadot AssetHub",
+            "isUtility": false,
+            "type": "Assets",
+            "currencyId": "23"
+          },
+          "typeExtra": "Assets",
+          "currency": {
+            "number": "23"
+          },
+          "balanceStorage": "Assets.Account",
+          "balanceKey": "0x682a59d51ab9e48a8c8cc418ff9708d2b99d880ec681799c0cf30e8886371da9e9687713e18188d35299dc9fb7238984170000002e635484d104f8b8307344f7c339dc58bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac",
+          "balanceKeyError": null,
+          "transferCall": "Assets.transfer",
+          "callBytes": "0x32085c00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "extrinsic": "0x350284000aff83241c985d18e79bb3c194af998ad08b6867517eed24954646e86c45b4e500da91f3164618c701a7d995cf3f68c551dd527e5ed8602dbbf8d976db8def098abb65dba573d8d252f5b66880ae0c83d2ceca2fa13a0717713c3c559f811c800b000000000032085c00bceab1e9a34d054262d1f7823a1544ef001d7d0cab4b7783d30fb0d1452afbac04",
+          "transferError": null
+        }
+      ]
+    }
+  ]
+}

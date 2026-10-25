@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Test UID only: the peer fixtures bind/connect loopback while radios remain offline. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:networkSecurityConfig="@xml/endpoint_probe_test_network_security" />
+</manifest>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">Crowdloan trước đây</string>
+    <string name="legacy_crowdloan_review">Xem lại</string>
+    <string name="legacy_crowdloan_description">Hoạt động Crowdloan trước đây của tài khoản này trên %1$s đã được xác minh. Không còn tiếp nhận đóng góp mới; trạng thái trên chuỗi được lưu giữ và lịch sử yêu cầu nhận trên thiết bị vẫn có thể xem tại đây.</string>
+    <string name="legacy_crowdloan_current_contributions">Các khoản đóng góp hiện tại</string>
+    <string name="legacy_crowdloan_historical_locks">Lịch sử khóa</string>
+    <string name="legacy_crowdloan_historical_claims">Lịch sử yêu cầu nhận</string>
+    <string name="legacy_crowdloan_view_locked">Xem số dư đã khóa</string>
+    <string name="legacy_crowdloan_no_evidence">Không tìm thấy trạng thái Crowdloan có thể khôi phục cho tài khoản này.</string>
+    <string name="cross_chain_route_inventory_title">Nhà cung cấp tuyến</string>
+    <string name="cross_chain_route_inventory_description">Phạm vi hỗ trợ trên môi trường vận hành bao gồm các tuyến đã được xem xét và các tuyến chỉ có trong danh mục. Các tuyến không khả dụng vẫn hiển thị nhưng không thể gửi giao dịch.</string>
+    <string name="cross_chain_route_inventory_checking">Đang kiểm tra phạm vi hỗ trợ của nhà cung cấp tuyến…</string>
+    <string name="cross_chain_route_inventory_status_available">Khả dụng</string>
+    <string name="cross_chain_route_inventory_status_paused">Có tuyến đã được xem xét · các thao tác tạm dừng</string>
+    <string name="cross_chain_route_inventory_status_setup">Cần thiết lập</string>
+    <string name="cross_chain_route_inventory_status_unavailable">Không khả dụng</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">ID tài sản: %1$s</string>
+    <string name="cross_chain_route_inventory_summary">%1$d mạng nguồn → %2$d mạng đích · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">Không có danh mục tuyến vận hành cụ thể được tích hợp cho nhà cung cấp này.</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">Tối thiểu: chọn mạng nguồn, tài sản và mạng đích cụ thể</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">Tối thiểu: danh mục này không cung cấp</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">Tối thiểu: không có giá trị đã được xem xét</string>
+</resources>

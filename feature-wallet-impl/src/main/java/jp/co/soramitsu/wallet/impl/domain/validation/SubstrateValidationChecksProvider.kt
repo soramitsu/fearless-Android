@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -24,7 +25,9 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks as tokenAmountFromPlanks
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
+import kotlinx.coroutines.CancellationException
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -43,6 +46,10 @@ class SubstrateValidationChecksProvider(
         destinationAddress: String,
         fee: BigInteger
     ): Map<TransferValidationResult, Boolean> {
+        val transferable = asset.transferableInPlanks
+            ?: return mapOf(TransferValidationResult.BalanceUnavailable to true)
+        val available = asset.sendAvailableInPlanks
+            ?: return mapOf(TransferValidationResult.BalanceUnavailable to true)
         val chainId = asset.token.configuration.chainId
         val chain = chainsRepository.getChain(chainId)
 
@@ -51,11 +58,13 @@ class SubstrateValidationChecksProvider(
 
         val totalDestinationBalanceInPlanks = kotlin.runCatching {
             walletRepository.getTotalBalance(asset.token.configuration, chain, destinationAddress)
-        }.getOrNull().orZero()
+        }.onFailure { if (it is CancellationException) throw it }.getOrNull().orZero()
         val totalDestinationBalanceDecimal =
             asset.token.configuration.amountFromPlanks(totalDestinationBalanceInPlanks).orZero()
 
-        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+        val existentialDepositResult = existentialDepositUseCase(asset.token.configuration)
+            .onFailure { if (it is CancellationException) throw it }
+        val existentialDeposit = existentialDepositResult.getOrNull().orZero()
         val edFormatted = existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)
         val existentialDepositDecimal =
             asset.token.configuration.amountFromPlanks(existentialDeposit).orZero()
@@ -85,6 +94,7 @@ class SubstrateValidationChecksProvider(
                     amountInPlanks,
                     fee,
                     tip,
+                    existentialDepositResult,
                     existentialDepositDecimal,
                     asset.token.configuration.symbol
                 )
@@ -92,10 +102,11 @@ class SubstrateValidationChecksProvider(
 
             asset.token.configuration.isUtility -> {
                 val resultedBalance = (asset.freeInPlanks.positiveOrNull()
-                    ?: asset.transferableInPlanks) - (amountInPlanks + fee + tip)
+                    ?: transferable) - (amountInPlanks + fee + tip)
 
                 mapOf(
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > asset.sendAvailableInPlanks),
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > available),
+                    existentialDepositUnknownCheck(asset.token.configuration to existentialDepositResult),
                     TransferValidationResult.ExistentialDepositWarning(edFormatted) to (resultedBalance < existentialDeposit),
                     TransferValidationResult.DeadRecipient(
                         destinationResultFormatted,
@@ -116,36 +127,28 @@ class SubstrateValidationChecksProvider(
                 }
 
 
-                val feeRequiredTokenInPlanks =
-                    if (utilityAsset?.transferableInPlanks.orZero() < fee) {
-                        val swapDetails = utilityAsset?.let {
-                            polkaswapInteractor.calcDetails(
-                                availableDexPaths = listOf(0),
-                                tokenFrom = asset,
-                                tokenTo = utilityAsset,
-                                amount = asset.token.configuration.amountFromPlanks(fee),
-                                desired = WithDesired.OUTPUT,
-                                slippageTolerance = 1.5,
-                                market = Market.SMART
-                            )
-                        }?.onFailure {
-//                        if (it is InsufficientLiquidityException) {
-//                            return TransferValidationResult.InsufficientBalance
-
-//                        }
-                        }
-                        swapDetails?.getOrNull()?.amount?.let {
-                            utilityAsset.token.planksFromAmount(
-                                it * FEE_RESERVE_TOLERANCE
-                            )
-                        }
-                    } else {
-                        null
-                    }
+                val utilityAvailable = utilityAsset?.transferableInPlanks
+                    ?: return mapOf(TransferValidationResult.BalanceUnavailable to true)
+                val feeRequiredTokenInPlanks = if (utilityAvailable < fee) {
+                    val swapDetails = polkaswapInteractor.calcDetails(
+                        availableDexPaths = listOf(0),
+                        tokenFrom = asset,
+                        tokenTo = utilityAsset,
+                        amount = utilityAsset.token.tokenAmountFromPlanks(fee),
+                        desired = WithDesired.OUTPUT,
+                        slippageTolerance = 1.5,
+                        market = Market.SMART
+                    ).getOrThrow()
+                    val quote = requireNotNull(swapDetails) { "Fee conversion quote is unavailable" }
+                    asset.token.planksFromAmount(quote.amount * FEE_RESERVE_TOLERANCE)
+                } else {
+                    BigInteger.ZERO
+                }
 
                 mapOf(
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks + feeRequiredTokenInPlanks.orZero() > asset.sendAvailableInPlanks),
-                    TransferValidationResult.ExistentialDepositWarning(edFormatted) to (asset.transferableInPlanks - amountInPlanks - feeRequiredTokenInPlanks.orZero() < existentialDeposit),
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + feeRequiredTokenInPlanks > available),
+                    existentialDepositUnknownCheck(asset.token.configuration to existentialDepositResult),
+                    TransferValidationResult.ExistentialDepositWarning(edFormatted) to (transferable - amountInPlanks - feeRequiredTokenInPlanks < existentialDeposit),
                     TransferValidationResult.DeadRecipient(
                         destinationResultFormatted,
                         edFormatted,
@@ -163,17 +166,22 @@ class SubstrateValidationChecksProvider(
                         chain.minSupportedVersion
                     )
                 }
-                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
-                val utilityAssetExistentialDeposit =
-                    chain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
+                val utilityAssetBalance = utilityAsset?.transferableInPlanks
+                    ?: return mapOf(TransferValidationResult.BalanceUnavailable to true)
+                val utilityAssetExistentialDepositResult = chain.utilityAsset?.let { existentialDepositUseCase(it).onFailure { error -> if (error is CancellationException) throw error } }
+                val utilityAssetExistentialDeposit = utilityAssetExistentialDepositResult?.getOrNull().orZero()
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let {
                     utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it)
                 }.orEmpty()
 
                 mapOf(
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks > asset.sendAvailableInPlanks),
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks > available),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
-                    TransferValidationResult.ExistentialDepositWarning(edFormatted) to (asset.transferableInPlanks - amountInPlanks < existentialDeposit),
+                    existentialDepositUnknownCheck(
+                        asset.token.configuration to existentialDepositResult,
+                        chain.utilityAsset to utilityAssetExistentialDepositResult
+                    ),
+                    TransferValidationResult.ExistentialDepositWarning(edFormatted) to (transferable - amountInPlanks < existentialDeposit),
                     TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
                     TransferValidationResult.DeadRecipient(
                         destinationResultFormatted,
@@ -192,11 +200,12 @@ class SubstrateValidationChecksProvider(
         amountInPlanks: BigInteger,
         originFee: BigInteger,
         tip: BigInteger,
+        originAssetExistentialDepositResult: Result<BigInteger>,
         destinationExistentialDepositDecimal: BigDecimal,
         destinationAssetSymbol: String?
     ): Map<TransferValidationResult, Boolean> {
         val originAssetConfig = originAsset.token.configuration
-        val originAssetExistentialDeposit = existentialDepositUseCase(originAssetConfig)
+        val originAssetExistentialDeposit = originAssetExistentialDepositResult.getOrNull().orZero()
 
         val destinationAccountInfo =
             walletRepository.getEquilibriumAccountInfo(originAssetConfig, destinationAccountId)
@@ -268,6 +277,7 @@ class SubstrateValidationChecksProvider(
         val destinationExtraFormatted = destinationExtra.formatCryptoDetail(destinationAssetSymbol)
 
         return mapOf(
+            existentialDepositUnknownCheck(originAssetConfig to originAssetExistentialDepositResult),
             TransferValidationResult.ExistentialDepositWarning(originAssetEdFormatted) to (originNewTotalInPlanks < originAssetExistentialDeposit),
             TransferValidationResult.DeadRecipient(
                 destinationResultFormatted,
@@ -276,4 +286,22 @@ class SubstrateValidationChecksProvider(
             ) to (destinationNewTotal < destinationExistentialDepositDecimal)
         )
     }
+}
+
+/**
+ * Comes before the existential deposit checks of a validation: those read an unknown minimum as zero, so they
+ * cannot fire for it, and the user is told instead that the minimum was not checked.
+ */
+internal fun existentialDepositUnknownCheck(
+    vararg existentialDeposits: Pair<CoreAsset?, Result<BigInteger>?>
+): Pair<TransferValidationResult, Boolean> {
+    existentialDeposits.forEach { (_, result) ->
+        (result?.exceptionOrNull() as? CancellationException)?.let { throw it }
+    }
+    val unknownSymbols = existentialDeposits
+        .filter { (asset, result) -> asset != null && result?.isFailure == true }
+        .map { (asset, _) -> asset!!.symbol.uppercase() }
+        .distinct()
+
+    return TransferValidationResult.ExistentialDepositUnknown(unknownSymbols.joinToString()) to unknownSymbols.isNotEmpty()
 }

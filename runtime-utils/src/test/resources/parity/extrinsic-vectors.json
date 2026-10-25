@@ -1,0 +1,591 @@
+{
+  "provenance": {
+    "capturedAt": "2026-10-10",
+    "metadataSource": "state_getMetadata, state_getRuntimeVersion and chain_getBlockHash(0) over the public read-only RPC listed per chain; metadataSha256 is over the hex text",
+    "oracle": "soramitsu/shared-features-android@7508bc83627b7068cfd0f4498ca5f0540205257d shared-utils (jp.co.soramitsu.shared_utils 1.1.1.44-FLW, resolved by Play 4.2.0)",
+    "independentCheck": "@polkadot/types 16.5.6 rebuilt every case byte-for-byte (fearless-wallet-web node_modules)",
+    "keys": "Synthetic public ED25519 test fixture; nothing was submitted to any network."
+  },
+  "keypair": {
+    "note": "Existing public ED25519 test fixture from ExtrinsicBuilderTest; never a wallet key.",
+    "publicKey": "0xfdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168",
+    "privateKey": "0xf3923eea431177cd21906d4308aea61c037055fb00575cae687217c6d8b2397f"
+  },
+  "chains": [
+    {
+      "name": "polkadot",
+      "rpc": "https://rpc.polkadot.io",
+      "specName": "polkadot",
+      "specVersion": 2005000,
+      "transactionVersion": 26,
+      "genesisHash": "0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+      "metadata": "parity/polkadot_metadata_v14.hex.gz",
+      "metadataSha256": "2986ea3657f25db11c1883d1f4c364b041323aefd33c20777632c276fe322b46",
+      "types": "parity/polkadot_parity_types.json",
+      "signedExtensions": [
+        "AuthorizeCall",
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment",
+        "PrevalidateAttests",
+        "CheckMetadataHash"
+      ],
+      "cases": [
+        {
+          "name": "transfer_keep_alive immortal nonce 7",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c000008981e001a00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c391b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c300",
+          "signedMessage": "0x050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c000008981e001a00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c391b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c300",
+          "extrinsic": "0x41028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168004e4502ad1af059899a5de666b453f981a9105d69c038ff79b3dff7511427fd2731a2477450222520d104ffc1c74c133e1751bc65d29cbe6c176741d8d2adf70e001c0000050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive mortal 64/59 nonce 34",
+          "nonce": 34,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b50388000008981e001a00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c31b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b50388000008981e001a00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c31b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "extrinsic": "0x45028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168006f87252b5dee656c2c903c40392413a7f4b6708fd681b3ff8203f3bd78c2f8dd6c647c48ae99e0fa2d4d216ed1889af8b72e032d030b5544908fed83e15ae20ab503880000050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "batch_all of 6 transfer_keep_alive (hashed payload)",
+          "nonce": 7,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": true,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0101010101010101010101010101010101010101010101010101010101010101",
+              "value": "1000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0202020202020202020202020202020202020202020202020202020202020202",
+              "value": "2000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0303030303030303030303030303030303030303030303030303030303030303",
+              "value": "3000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0404040404040404040404040404040404040404040404040404040404040404",
+              "value": "4000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0505050505050505050505050505050505050505050505050505050505050505",
+              "value": "5000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0606060606060606060606060606060606060606060606060606060606060606",
+              "value": "6000000000"
+            }
+          ],
+          "signingPayload": "0x1a0218050300010101010101010101010101010101010101010101010101010101010101010102286bee05030002020202020202020202020202020202020202020202020202020202020202020300943577050300030303030303030303030303030303030303030303030303030303030303030303005ed0b205030004040404040404040404040404040404040404040404040404040404040404040300286bee05030005050505050505050505050505050505050505050505050505050505050505050700f2052a0105030006060606060606060606060606060606060606060606060606060606060606060700bca06501b5031c000008981e001a00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c31b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x9bf5b1bb0f0907d95ced46cfee66a29242f76fb0b1ad482594a1490beab9c1b9",
+          "extrinsic": "0x71058400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168002bca567be406506f643b6c84cddf218282f3013c176da6e3639313fa86ea0bb65825a416e8e50223f118b249822ddbae83dd912ec6fdf3df7e17561e022b7302b5031c00001a0218050300010101010101010101010101010101010101010101010101010101010101010102286bee05030002020202020202020202020202020202020202020202020202020202020202020300943577050300030303030303030303030303030303030303030303030303030303030303030303005ed0b205030004040404040404040404040404040404040404040404040404040404040404040300286bee05030005050505050505050505050505050505050505050505050505050505050505050700f2052a0105030006060606060606060606060606060606060606060606060606060606060606060700bca06501",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive immortal tip 1000000",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "1000000",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d000008981e001a00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c391b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c300",
+          "signedMessage": "0x050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d000008981e001a00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c391b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c300",
+          "extrinsic": "0x4d028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168002b471746984bf488589c6ab3aa819462a1f94b94a7563668aa5cff23a794a0465fb95e15b42725e101abc55755b24cb0b8f29c8aff13f78129dcc004bff06d07001c02093d0000050300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        }
+      ]
+    },
+    {
+      "name": "kusama",
+      "rpc": "https://kusama-rpc.polkadot.io",
+      "specName": "kusama",
+      "specVersion": 2003002,
+      "transactionVersion": 26,
+      "genesisHash": "0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
+      "metadata": "parity/kusama_metadata_v14.hex.gz",
+      "metadataSha256": "d66cefa12abd92dd0b77597845c79ca43a6d2fc9a98f4855254b8c0963ef9ef0",
+      "types": "parity/kusama_parity_types.json",
+      "signedExtensions": [
+        "AuthorizeCall",
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment",
+        "CheckMetadataHash"
+      ],
+      "cases": [
+        {
+          "name": "transfer_keep_alive immortal nonce 7",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c00003a901e001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafeb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe00",
+          "signedMessage": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c00003a901e001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafeb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe00",
+          "extrinsic": "0x41028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168005922921d15b48427e940088fa9680231bc60731f271edb38aed6bc6c2d2bba6f200ae21eb36e891adbfe1431ced888bc13f9d1b09905213b2dc54057ddf16d09001c0000040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive mortal 64/59 nonce 34",
+          "nonce": 34,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b5038800003a901e001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b5038800003a901e001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "extrinsic": "0x45028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d16800be904eaf3abd83319804bf8fb95c1b5c6785c7904e066f30035bd75bc76009feeb6c52952c111e78c2ccbeb4b93d8d19343079bea95206f01a252d9a16eb790ab503880000040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "batch_all of 6 transfer_keep_alive (hashed payload)",
+          "nonce": 7,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": true,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0101010101010101010101010101010101010101010101010101010101010101",
+              "value": "1000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0202020202020202020202020202020202020202020202020202020202020202",
+              "value": "2000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0303030303030303030303030303030303030303030303030303030303030303",
+              "value": "3000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0404040404040404040404040404040404040404040404040404040404040404",
+              "value": "4000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0505050505050505050505050505050505050505050505050505050505050505",
+              "value": "5000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0606060606060606060606060606060606060606060606060606060606060606",
+              "value": "6000000000"
+            }
+          ],
+          "signingPayload": "0x180218040300010101010101010101010101010101010101010101010101010101010101010102286bee04030002020202020202020202020202020202020202020202020202020202020202020300943577040300030303030303030303030303030303030303030303030303030303030303030303005ed0b204030004040404040404040404040404040404040404040404040404040404040404040300286bee04030005050505050505050505050505050505050505050505050505050505050505050700f2052a0104030006060606060606060606060606060606060606060606060606060606060606060700bca06501b5031c00003a901e001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x9604e39ade5607bdd6a961ef9c5ddd66ed920e190b807e04f5a9eb363c22a9db",
+          "extrinsic": "0x71058400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d16800a3ac08f3e3e6f7241364942598453d1add393146fa4274dd7372d75fa295edfef674a21c96f6a81c3eaa307f2b3d7ce152e1eeb5868536f5e1a62d21225db50eb5031c0000180218040300010101010101010101010101010101010101010101010101010101010101010102286bee04030002020202020202020202020202020202020202020202020202020202020202020300943577040300030303030303030303030303030303030303030303030303030303030303030303005ed0b204030004040404040404040404040404040404040404040404040404040404040404040300286bee04030005050505050505050505050505050505050505050505050505050505050505050700f2052a0104030006060606060606060606060606060606060606060606060606060606060606060700bca06501",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive immortal tip 1000000",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "1000000",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d00003a901e001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafeb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe00",
+          "signedMessage": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d00003a901e001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafeb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe00",
+          "extrinsic": "0x4d028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168007446ec14a20da1df804fcc7901222a6f8fbd0e9b3505e456db93bed23a98956f4385514fdf3c49234137675c99d072a830e1e8ff163f9100702efdca58252a00001c02093d0000040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        }
+      ]
+    },
+    {
+      "name": "statemint",
+      "rpc": "https://polkadot-asset-hub-rpc.polkadot.io",
+      "specName": "statemint",
+      "specVersion": 2005000,
+      "transactionVersion": 15,
+      "genesisHash": "0x68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+      "metadata": "parity/statemint_metadata_v14.hex.gz",
+      "metadataSha256": "0e724eacc12cf80b23f8087c68cbe8c78a999906c38a8672bf86188b69391245",
+      "types": "parity/statemint_parity_types.json",
+      "signedExtensions": [
+        "AuthorizeCall",
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeAssetTxPayment",
+        "PrevalidateAttests",
+        "CheckMetadataHash",
+        "EthSetOrigin",
+        "StorageWeightReclaim"
+      ],
+      "cases": [
+        {
+          "name": "transfer_keep_alive immortal nonce 7",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c00000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f00",
+          "signedMessage": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c00000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f00",
+          "extrinsic": "0x45028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d1680054d96da80220eeb0a732b13d39062d9659d0b0d1e8d26a8df8223ed31a414bd2a0ffaba1ec8051992da43337720550851610a8ed993667a0f5a132302a1abe03001c0000000a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive mortal 64/59 nonce 34",
+          "nonce": 34,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b5038800000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b5038800000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "extrinsic": "0x49028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168007894a41be38d98591b918b6de2d8ca8415275b989429708809bc116d0ace7b5fadfd6d4ebb29748f7c3d94622670aef3e738a14c24894c19c08bcefcf1351906b503880000000a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "batch_all of 6 transfer_keep_alive (hashed payload)",
+          "nonce": 7,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": true,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0101010101010101010101010101010101010101010101010101010101010101",
+              "value": "1000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0202020202020202020202020202020202020202020202020202020202020202",
+              "value": "2000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0303030303030303030303030303030303030303030303030303030303030303",
+              "value": "3000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0404040404040404040404040404040404040404040404040404040404040404",
+              "value": "4000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0505050505050505050505050505050505050505050505050505050505050505",
+              "value": "5000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0606060606060606060606060606060606060606060606060606060606060606",
+              "value": "6000000000"
+            }
+          ],
+          "signingPayload": "0x2802180a0300010101010101010101010101010101010101010101010101010101010101010102286bee0a0300020202020202020202020202020202020202020202020202020202020202020203009435770a0300030303030303030303030303030303030303030303030303030303030303030303005ed0b20a030004040404040404040404040404040404040404040404040404040404040404040300286bee0a030005050505050505050505050505050505050505050505050505050505050505050700f2052a010a030006060606060606060606060606060606060606060606060606060606060606060700bca06501b5031c00000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x796cc132588e99c9baf0c5ec0255d4ffa37dfe6c3fc4af0614a874cf3f7682aa",
+          "extrinsic": "0x75058400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d1680076fedb74db2210f51043e02516b6d4757b3123f5844b4f59f8e0312b716efdca3bdce5527d01acad2b9bcfe29822afeb0a3aed22f93d7c9ce2decba6aa359000b5031c0000002802180a0300010101010101010101010101010101010101010101010101010101010101010102286bee0a0300020202020202020202020202020202020202020202020202020202020202020203009435770a0300030303030303030303030303030303030303030303030303030303030303030303005ed0b20a030004040404040404040404040404040404040404040404040404040404040404040300286bee0a030005050505050505050505050505050505050505050505050505050505050505050700f2052a010a030006060606060606060606060606060606060606060606060606060606060606060700bca06501",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive immortal tip 1000000",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "1000000",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d00000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f00",
+          "signedMessage": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d00000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f00",
+          "extrinsic": "0x51028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d16800a8306a7a4712388da281df19cc0aec6b8209a9defea41f2e343f98f1bb32be42c885308ea40a5c1dff468633690500c03055d9e62051fc043d4ba25cabe5990d001c02093d0000000a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: expectation (production differs, see production)",
+          "production": {
+            "signingPayload": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c00000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f00",
+            "signedMessage": "0x0a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c00000008981e000f00000068d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f00",
+            "extrinsic": "0x45028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d1680054d96da80220eeb0a732b13d39062d9659d0b0d1e8d26a8df8223ed31a414bd2a0ffaba1ec8051992da43337720550851610a8ed993667a0f5a132302a1abe03001c0000000a0300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+            "note": "Play 4.2.0 dropped the tip from ChargeAssetTxPayment; AL-6 keeps it (intentional delta)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "westend",
+      "rpc": "https://westend-rpc.polkadot.io",
+      "specName": "westend",
+      "specVersion": 1025001,
+      "transactionVersion": 27,
+      "genesisHash": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+      "metadata": "parity/westend_metadata_v14.hex.gz",
+      "metadataSha256": "c784c84a19101eda63ea7e53d928f46b86cb5c804ab5f82dc2fc8dd49ca9348c",
+      "types": "parity/westend_parity_types.json",
+      "signedExtensions": [
+        "AuthorizeCall",
+        "CheckNonZeroSender",
+        "CheckSpecVersion",
+        "CheckTxVersion",
+        "CheckGenesis",
+        "CheckMortality",
+        "CheckNonce",
+        "CheckWeight",
+        "ChargeTransactionPayment",
+        "CheckMetadataHash",
+        "WeightReclaim"
+      ],
+      "cases": [
+        {
+          "name": "transfer_keep_alive immortal nonce 7",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c0000e9a30f001b000000e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423ee143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e00",
+          "signedMessage": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c0000e9a30f001b000000e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423ee143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e00",
+          "extrinsic": "0x41028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d16800e82633aabfa5cfccbe60640e45977b53a73eaeed314ad47eefcdb1665909f0b634f635f39c85b012f5155066c212dbb122e51a0e005dffdee6b9ebcbda838809001c0000040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive mortal 64/59 nonce 34",
+          "nonce": 34,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b503880000e9a30f001b000000e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402b503880000e9a30f001b000000e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "extrinsic": "0x45028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168008c47b4ae35c909758222448d724bb7f07c4fd4c607da83ad102d0af3cd87a0fa6d8719ed59dcd7d2a9fee7c1ddc3d3b7c66dd1adac454ac1a0c319d0a5e0e703b503880000040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "batch_all of 6 transfer_keep_alive (hashed payload)",
+          "nonce": 7,
+          "era": [
+            64,
+            59
+          ],
+          "blockHash": "0x1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb",
+          "tip": "0",
+          "batchAll": true,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0101010101010101010101010101010101010101010101010101010101010101",
+              "value": "1000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0202020202020202020202020202020202020202020202020202020202020202",
+              "value": "2000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0303030303030303030303030303030303030303030303030303030303030303",
+              "value": "3000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0404040404040404040404040404040404040404040404040404040404040404",
+              "value": "4000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0505050505050505050505050505050505050505050505050505050505050505",
+              "value": "5000000000"
+            },
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x0606060606060606060606060606060606060606060606060606060606060606",
+              "value": "6000000000"
+            }
+          ],
+          "signingPayload": "0x100218040300010101010101010101010101010101010101010101010101010101010101010102286bee04030002020202020202020202020202020202020202020202020202020202020202020300943577040300030303030303030303030303030303030303030303030303030303030303030303005ed0b204030004040404040404040404040404040404040404040404040404040404040404040300286bee04030005050505050505050505050505050505050505050505050505050505050505050700f2052a0104030006060606060606060606060606060606060606060606060606060606060606060700bca06501b5031c0000e9a30f001b000000e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e1b876104c68b4a8924c098d61d2ad798761bb6fff55cca2885939ffc27ef5ecb00",
+          "signedMessage": "0x3dfb2ee034016b1c821ccf48dcbf74df16a17e88350ae47a9bc9cb53ab43ca55",
+          "extrinsic": "0x71058400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d16800a4ead38d311c1c428a6a39670b2848ecca4b6dfa4c2369773f2d91630340a55f2eadd79fe6a37e6d2751aff3562ceefdba4178143dc945c9186332a884daa906b5031c0000100218040300010101010101010101010101010101010101010101010101010101010101010102286bee04030002020202020202020202020202020202020202020202020202020202020202020300943577040300030303030303030303030303030303030303030303030303030303030303030303005ed0b204030004040404040404040404040404040404040404040404040404040404040404040300286bee04030005050505050505050505050505050505050505050505050505050505050505050700f2052a0104030006060606060606060606060606060606060606060606060606060606060606060700bca06501",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        },
+        {
+          "name": "transfer_keep_alive immortal tip 1000000",
+          "nonce": 7,
+          "era": null,
+          "blockHash": null,
+          "tip": "1000000",
+          "batchAll": false,
+          "calls": [
+            {
+              "module": "Balances",
+              "call": "transfer_keep_alive",
+              "dest": "0x340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c63",
+              "value": "10000000000"
+            }
+          ],
+          "signingPayload": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d0000e9a30f001b000000e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423ee143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e00",
+          "signedMessage": "0x040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402001c02093d0000e9a30f001b000000e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423ee143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e00",
+          "extrinsic": "0x4d028400fdc41550fb5186d71cae699c31731b3e1baa10680c7bd6b3831a6d222cf4d168006bb1d0f38cbd9fa86b12a5c4192979af7089b379fac4546e3b80e75e9867fd2a70006c0eca69eaee19cab89e55afc6a998d96d85b35b8b90ceb769397d05a204001c02093d0000040300340a806419d5e278172e45cb0e50da1b031795366c99ddfe0a680bd53b142c630700e40b5402",
+          "independentCheck": "@polkadot/types 16.5.6: identical"
+        }
+      ]
+    }
+  ]
+}

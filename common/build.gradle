@@ -1,9 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'kotlinx-serialization'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../scripts/secrets.gradle'
 
 android {
@@ -13,13 +14,13 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
         buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
 
-        buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/polkaswapSettings.json\""
-        buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/feature_toggle\""
+        buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/polkaswapSettings.json\""
+        buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/appConfigs/feature_toggle\""
 
         buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
         buildConfigField "String", "TWITTER_URL", "\"https://twitter.com/fearlesswallet\""
@@ -45,43 +46,39 @@ android {
         buildConfigField "String", "STAKING_POOL_WIKI", "\"https://wiki.polkadot.network/docs/learn-nomination-pools\""
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"https://polkagate.xyz/\""
 
-        buildConfigField "String", "SORA_CARD_BLACKLIST",  "\"https://soracard.com/blacklist/\""
-
         buildConfigField "String", "BLAST_API_ETHEREUM_KEY", readSecretInQuotes("FL_BLAST_API_ETHEREUM_KEY")
         buildConfigField "String", "BLAST_API_BSC_KEY", readSecretInQuotes("FL_BLAST_API_BSC_KEY")
         buildConfigField "String", "BLAST_API_SEPOLIA_KEY", readSecretInQuotes("FL_BLAST_API_SEPOLIA_KEY")
         buildConfigField "String", "BLAST_API_GOERLI_KEY", readSecretInQuotes("FL_BLAST_API_GOERLI_KEY")
         buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("FL_BLAST_API_POLYGON_KEY")
         buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
-        buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_BSCSCAN_API_KEY")
-        buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_POLYGONSCAN_API_KEY")
         buildConfigField "String", "OKLINK_API_KEY", readSecretInQuotes("FL_ANDROID_OKLINK_API_KEY")
-        buildConfigField "String", "OPMAINNET_API_KEY", readSecretInQuotes("FL_ANDROID_OPMAINNET_API_KEY")
+        buildConfigField "String", "KAIASCAN_API_KEY", readSecretInQuotes("FL_ANDROID_KAIASCAN_API_KEY")
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
         buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")
+        def tonIndexerUrl = readOptionalSecret("FL_ANDROID_TON_INDEXER_URL") ?: "https://ti.soramitsu.io"
+        buildConfigField "String", "TON_INDEXER_URL", "\"${tonIndexerUrl}\""
+        // TON uses TI only after TI's service-info proves the network. Until then the registry's TON node answers
+        // (verified the same way) so TON holders keep balances and sends. Set to false once TI serves TON mainnet.
+        def tonRegistryNodeFallback = readOptionalSecret("FL_ANDROID_TON_REGISTRY_NODE_FALLBACK")?.trim()?.toLowerCase() != "false"
+        buildConfigField "boolean", "TON_REGISTRY_NODE_FALLBACK", "${tonRegistryNodeFallback}"
 
-        buildConfigField("String", "DAPPS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/refs/heads/develop-free/appConfigs/dapps.json\"")
+        buildConfigField("String", "DAPPS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appConfigs/dapps.json\"")
     }
 
     buildTypes {
         debug {
-            buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/fiat/fiats.json\""
-
-            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_DEBUG")
-            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_DEBUG")
+            buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/fiat/fiats.json\""
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
-            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support_dev.json\""
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appVersionSupport/android_app_support_dev.json\""
         }
         release {
-            buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/fiat/fiats.json\""
-
-            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_RELEASE")
-            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_RELEASE")
+            buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/fiat/fiats.json\""
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
-            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support.json\""
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appVersionSupport/android_app_support.json\""
         }
     }
 
@@ -97,14 +94,45 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
+
+    packaging {
+        resources {
+            // JVM multi-release metadata is duplicated by transitive crypto
+            // dependencies but is not used by the Android runtime.
+            excludes += ["META-INF/versions/**"]
+        }
     }
-    namespace 'jp.co.soramitsu.common'
+
+    sourceSets {
+        // Released-secret golden vectors, shared by the JVM and device suites.
+        androidTest.assets.srcDirs += files("src/test/resources/wallet-secret-vectors")
+        // Validate SR25519 secrets with the library shipped by the production app.
+        androidTest.jniLibs.srcDirs += files("$rootDir/app/src/main/jniLibs")
+    }
+
+    namespace = 'jp.co.soramitsu.common'
+}
+
+apply from: '../scripts/fw-appearance.gradle'
+
+// The colour guard reads other modules and a Git-bound allowlist. Model those
+// inputs explicitly so an unchanged common classpath cannot cache away a new
+// literal elsewhere in the repository.
+def colourSourceRevision = providers.exec {
+    workingDir rootProject.projectDir
+    commandLine 'git', 'rev-parse', 'HEAD'
+}.standardOutput.asText.map { it.trim() }
+
+tasks.withType(Test).configureEach {
+    inputs.files(rootProject.fileTree(rootProject.projectDir) {
+        include '*/src/**/*.kt', '*/src/**/*.java'
+    }).withPropertyName('rawColourSources').withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file(rootProject.file('design/fw.raw-colour-baseline.android.json'))
+        .withPropertyName('rawColourBaseline').withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property('rawColourSourceRevision', colourSourceRevision)
+    inputs.property('rawColourBaseRef', providers.environmentVariable('FW_COLOUR_BASE_REF').orElse('HEAD^'))
 }
 
 dependencies {
@@ -129,11 +157,11 @@ dependencies {
     implementation libs.lifecycle.runtime.ktx
     implementation libs.lifecycle.viewmodel.ktx
     implementation libs.lifecycle.process
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     implementation libs.hilt.android
     implementation libs.navigation.fragment.ktx
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.play.services.base
 
@@ -147,24 +175,28 @@ dependencies {
     implementation libs.bundles.ton
     implementation libs.progressbutton
 
-    implementation libs.nv.websocket.client
-    implementation libs.xnetworking.lib.android
+    implementation project(':runtime-websocket')
+    implementation project(':core-networking')
 
     implementation libs.middle.ellipsis.text
 
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug
 
-    implementation libs.sora.ui
-    implementation libs.soramitsu.android.foundation
-
+    implementation project(':core-ui')
+    implementation project(':core-foundation')
     api libs.coil
     api libs.coil.gif
     api libs.coil.svg
 
     testImplementation libs.junit
+    testImplementation libs.arch.core.testing
     testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
 
-    api libs.sharedFeaturesCoreDep
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
+
+    api project(':core-chain')
 }

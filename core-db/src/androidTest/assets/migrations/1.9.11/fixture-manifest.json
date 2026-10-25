@@ -1,0 +1,85 @@
+{
+  "fixture_format": 2,
+  "platform": "android",
+  "purpose": "Room schema version 26 exactly as a fresh install of the released app created it. AllReleasedSchemasUpgradeTest builds a database from it, inserts synthetic rows and upgrades it with the current migration graph.",
+  "db_version": 26,
+  "source_release": {
+    "id": "1.9.11+41",
+    "version": "1.9.11",
+    "versionCode": 41,
+    "tag": "release/prod/v1.9.11_41",
+    "commit": "e5b71885fd6823a4d379da5764d3c9732edebca6",
+    "binary": {
+      "kind": "github-apk",
+      "asset_name": "fearless_wallet_release_v1.9.11_41.apk",
+      "url": "https://github.com/soramitsu/fearless-Android/releases/download/release/prod/v1.9.11_41/fearless_wallet_release_v1.9.11_41.apk",
+      "sha256": "3bee42c89f425cb8c478012aae79530c0033c11d99fe9d8939f9e5e148693ff3",
+      "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+      "size_bytes": 27505895
+    }
+  },
+  "releases_with_this_schema": [
+    {
+      "id": "1.9.9+39",
+      "tag": "release/prod/v1.9.9_39",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "1.9.10+40",
+      "tag": "release/prod/v1.9.10_40",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "1.9.11+41",
+      "tag": "release/prod/v1.9.11_41",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    }
+  ],
+  "generator": {
+    "tier": "T1",
+    "method": "dexdump-createAllTables",
+    "tool": "tools/upgrade-fixtures/android/extract_room_schema.py",
+    "inventory": "tools/upgrade-fixtures/android/releases.json"
+  },
+  "schema_extraction": {
+    "apk_sha256": "3bee42c89f425cb8c478012aae79530c0033c11d99fe9d8939f9e5e148693ff3",
+    "apk_entry": "classes2.dex",
+    "apk_entry_sha256": "f61eb2264ae5e678f2ab0a014146143ac9d054a2f07e741f64db730bcebab871",
+    "class": "jp.co.soramitsu.core_db.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 26,
+    "room_identity_hash": "4398623385060349aacdf135450ede28",
+    "room_legacy_identity_hash": "ecdd3f19e7ed346f6557cf5c239a0433",
+    "explicit_table_count_including_room_master": 11,
+    "explicit_index_count": 1,
+    "explicit_view_count": 0,
+    "statements_sha256": "bfffb24e9f9f6b4677270d24cac7c27b3e157affc4255e333a6af8fb1456fc04"
+  },
+  "schema_check": {
+    "engine": "sqlite3 (host, in-memory)",
+    "integrity_check": "ok",
+    "tables": [
+      "account_staking_accesses",
+      "assets",
+      "nodes",
+      "operations",
+      "phishing_addresses",
+      "room_master_table",
+      "runtimeCache",
+      "storage",
+      "tokens",
+      "total_reward",
+      "users"
+    ],
+    "explicit_index_count": 1
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v26.sql",
+    "schema_sql_sha256": "530278bbec2c934407ce368ca0f49582fb493a653e2774dbd914ae2e6500c22e"
+  },
+  "synthetic_only": true,
+  "contains_user_material": false
+}

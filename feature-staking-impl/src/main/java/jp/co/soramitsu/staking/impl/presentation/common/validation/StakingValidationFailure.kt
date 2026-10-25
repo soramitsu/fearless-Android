@@ -14,6 +14,10 @@ fun stakingValidationFailure(
 ): TitleAndMessage {
     val (title, message) = with(resourceManager) {
         when (reason) {
+            SetupStakingValidationFailure.BalanceUnavailable -> {
+                getString(R.string.common_error_general_title) to getString(R.string.portfolio_balance_unavailable)
+            }
+
             SetupStakingValidationFailure.CannotPayFee -> {
                 getString(R.string.common_not_enough_funds_title) to getString(R.string.choose_amount_error_too_big)
             }

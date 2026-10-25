@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class OptionsWalletViewModel @Inject constructor(
@@ -51,7 +52,7 @@ class OptionsWalletViewModel @Inject constructor(
         OptionsWalletScreenViewState(
             isSelected = selectedWallet.id == walletId,
             showScoreButton = chosenWallet.ethereumAddress != null,
-            showDetailsButton = chosenWallet.tonPublicKey == null && allowWalletDetails
+            showDetailsButton = walletDetailsAvailable(chosenWallet, allowWalletDetails)
         )
     }.stateIn(
         viewModelScope,
@@ -94,3 +95,8 @@ class OptionsWalletViewModel @Inject constructor(
         router.openScoreDetailsScreen(walletId)
     }
 }
+
+internal fun walletDetailsAvailable(wallet: LightMetaAccount, allowWalletDetails: Boolean): Boolean =
+    allowWalletDetails && (
+        wallet.tonPublicKey == null || wallet.substrateAccountId != null || wallet.ethereumAddress != null
+    )

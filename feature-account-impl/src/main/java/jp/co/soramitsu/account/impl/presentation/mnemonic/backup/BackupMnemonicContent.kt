@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AdvancedExpandableText
@@ -36,7 +37,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.model.WalletEcosystem
-import jp.co.soramitsu.shared_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 
 data class BackupMnemonicState(
     val mnemonicWords: List<MnemonicWordModel>,
@@ -64,7 +65,7 @@ interface BackupMnemonicCallback {
 
     fun onBackClick()
 
-    fun onGoogleLoginError(message: String)
+    fun onGoogleSignInFailed(result: GoogleSignInResult)
 
     fun onGoogleSignInSuccess()
 
@@ -171,13 +172,10 @@ internal fun BackupMnemonicContent(
         val launcher = rememberLauncherForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            when (result.resultCode) {
-                Activity.RESULT_OK -> callback.onGoogleSignInSuccess()
-                Activity.RESULT_CANCELED -> { /* no action */ }
-                else -> {
-                    val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-                    callback.onGoogleLoginError(googleSignInStatus.toString())
-                }
+            if (result.resultCode == Activity.RESULT_OK) {
+                callback.onGoogleSignInSuccess()
+            } else {
+                callback.onGoogleSignInFailed(GoogleSignInResult.parse(result.resultCode, result.data))
             }
         }
 
@@ -229,7 +227,7 @@ private fun PreviewBackupMnemonicContent() {
             callback = object : BackupMnemonicCallback {
                 override fun onNextClick(launcher: ActivityResultLauncher<Intent>) {}
                 override fun onBackClick() {}
-                override fun onGoogleLoginError(message: String) {}
+                override fun onGoogleSignInFailed(result: GoogleSignInResult) {}
                 override fun onGoogleSignInSuccess() {}
                 override fun onSubstrateDerivationPathChange(path: String) {}
                 override fun onEthereumDerivationPathChange(path: String) {}

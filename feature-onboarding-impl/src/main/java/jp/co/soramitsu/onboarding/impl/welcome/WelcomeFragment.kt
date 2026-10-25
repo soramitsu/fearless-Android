@@ -21,10 +21,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -57,13 +57,10 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        when (result.resultCode) {
-            Activity.RESULT_OK -> viewModel.openAddWalletThroughGoogleScreen()
-            Activity.RESULT_CANCELED -> { /* no action */ }
-            else -> {
-                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-                viewModel.onGoogleLoginError(googleSignInStatus.toString())
-            }
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.openAddWalletThroughGoogleScreen()
+        } else {
+            viewModel.onGoogleSignInFailed(GoogleSignInResult.parse(result.resultCode, result.data))
         }
     }
 
@@ -106,12 +103,18 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                         is WelcomeEvent.Onboarding ->
                             when (event) {
                                 is WelcomeEvent.Onboarding.WelcomeScreen -> {
-                                    navController.navigate(route = event.route.replace("{accountType}", event.accountType.name))
+                                    navController.navigate(route = event.route.replace("{accountType}", event.accountType?.name.orEmpty()))
                                 }
                                 else -> navController.navigate(event.route)
                             }
 
-                        WelcomeEvent.Back -> navController.popBackStack()
+                        WelcomeEvent.Back -> {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.popBackStack()
+                            } else {
+                                viewModel.exitOnboarding()
+                            }
+                        }
                     }
                 }.launchIn(this)
         }

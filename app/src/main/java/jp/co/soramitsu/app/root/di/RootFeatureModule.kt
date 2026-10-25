@@ -1,5 +1,9 @@
 package jp.co.soramitsu.app.root.di
 
+import jp.co.soramitsu.account.impl.domain.LegacyNetworkAccountUpgrade
+import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
+import jp.co.soramitsu.coredb.dao.MetaAccountDao
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -8,12 +12,15 @@ import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.domain.WalletSyncService
 import jp.co.soramitsu.app.root.domain.AppInitializer
+import jp.co.soramitsu.app.root.domain.AssetDiscoveryService
+import jp.co.soramitsu.app.root.domain.ProductionAssetDiscoverySweep
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsInitializer
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.wallet.impl.data.repository.PricesSyncService
@@ -32,6 +39,12 @@ class RootFeatureModule {
 
     @Provides
     @Singleton
+    fun provideAssetDiscoveryService(
+        productionAssetDiscoverySweep: ProductionAssetDiscoverySweep
+    ): AssetDiscoveryService = productionAssetDiscoverySweep
+
+    @Provides
+    @Singleton
     fun provideAppInitializer(
         chainRegistry: ChainRegistry,
         chainSyncService: ChainSyncService,
@@ -44,7 +57,11 @@ class RootFeatureModule {
         remoteAssetsInitializer: RemoteAssetsInitializer,
         preferences: Preferences,
         getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
-        pricesService: PricesSyncService
+        pricesService: PricesSyncService,
+        productionAssetDiscoverySweep: AssetDiscoveryService,
+        chainsRepository: ChainsRepository,
+        metaAccountDao: MetaAccountDao,
+        mutationCoordinator: WalletSecretMutationCoordinator
     ): AppInitializer {
         return AppInitializer(
             chainRegistry,
@@ -58,7 +75,12 @@ class RootFeatureModule {
             remoteAssetsInitializer,
             preferences,
             getAvailableFiatCurrencies,
-            pricesService
+            pricesService,
+            productionAssetDiscoverySweep,
+            chainsRepository,
+            legacyNetworkAccountUpgrade = LegacyNetworkAccountUpgrade(accountRepository, metaAccountDao, mutationCoordinator) {
+                chainsRepository.getChains().map { it.id }.toSet()
+            }
         )
     }
 }

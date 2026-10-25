@@ -1,8 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../tests.gradle'
 
 android {
@@ -12,7 +13,7 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -27,15 +28,44 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
+
+    sourceSets {
+        androidTest.assets.srcDirs += files(
+                "$rootDir/core-db/schemas",
+                "$rootDir/common/src/test/resources",
+                // The frozen database of the released 3.7.4 APK, for upgrade-path tests that start
+                // from what shipped code wrote.
+                "$rootDir/core-db/src/androidTest/assets"
+        )
+        // Exercise the same SR25519 implementation shipped by the production
+        // app when validating signing-key routing from this library module.
+        androidTest.jniLibs.srcDirs += files("$rootDir/app/src/main/jniLibs")
+        // Google Drive backups written by the production 4.2.0 and 2.3.1 code (legacy-backup/),
+        // so the importer is tested against exactly what users have on Drive.
+        test.resources.srcDirs += files("$rootDir/core-backup/src/test/resources")
+        // Frozen historical crypto outputs, shared with the storage-validation tests.
+        test.resources.srcDirs += files("$rootDir/common/src/test/resources")
     }
 
-    namespace 'jp.co.soramitsu.feature_account_impl'
+    packaging {
+        resources {
+            // JVM-only metadata is duplicated across the transitive
+            // instrumentation-test dependencies and is not used on Android.
+            excludes += [
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE-notice.md",
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                    "META-INF/AL2.0",
+                    "META-INF/LGPL2.1",
+                    "META-INF/versions/**"
+            ]
+        }
+    }
+
+    namespace = 'jp.co.soramitsu.feature_account_impl'
 }
 
 dependencies {
@@ -76,24 +106,32 @@ dependencies {
     implementation libs.navigation.ui.ktx
 
     implementation libs.hilt.android
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.room.runtime
-    kapt libs.room.compiler
+    ksp libs.room.compiler
 
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
+    testImplementation libs.arch.core.testing
+
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.room.testing
+    androidTestImplementation project(':test-shared')
 
     implementation libs.gson
 
-    api libs.sharedFeaturesCoreDep
-    implementation libs.soramitsu.android.foundation
+    api project(':core-chain')
+    implementation project(':core-foundation')
 
-    implementation libs.sharedFeaturesBackupDep
+    implementation project(':core-backup')
     implementation libs.web3jDep
 }

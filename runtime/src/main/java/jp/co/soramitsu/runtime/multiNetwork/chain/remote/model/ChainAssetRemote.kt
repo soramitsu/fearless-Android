@@ -19,5 +19,6 @@ class ChainAssetRemote(
     val type: String?,
     val ethereumType: String?,
     val tonType: String?,
-    val priceProvider: PriceProvider?
+    val priceProvider: PriceProvider?,
+    val coinbaseUrl: String?
 )

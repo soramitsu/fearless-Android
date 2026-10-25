@@ -3,16 +3,18 @@ package jp.co.soramitsu.account.api.domain
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 
 class PendulumPreInstalledAccountsScenario(
     private val accountRepository: AccountRepository,
     private val preferences: Preferences,
     private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val productFeatureToggleStore: ProductFeatureToggleStore,
 ) {
 
     companion object {
@@ -61,7 +63,7 @@ class PendulumPreInstalledAccountsScenario(
             remoteConfigFetcher.getFeatureToggle()
         }.getOrNull() ?: return
 
-        val (pendulumCaseEnabled) = configResult
-        preferences.putBoolean(PENDULUM_FEATURE_TOGGLE_KEY, pendulumCaseEnabled)
+        preferences.putBoolean(PENDULUM_FEATURE_TOGGLE_KEY, configResult.pendulumCaseEnabled)
+        productFeatureToggleStore.update(configResult)
     }
 }

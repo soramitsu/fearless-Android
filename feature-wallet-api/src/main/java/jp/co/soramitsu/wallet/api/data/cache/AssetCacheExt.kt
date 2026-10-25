@@ -13,9 +13,9 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAccoun
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccountData
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.coredb.model.AssetLocal
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.coredb.model.cache.FreshAssetCacheUpdate
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import java.math.BigInteger
 
 suspend fun AssetCache.updateAsset(
@@ -24,69 +24,18 @@ suspend fun AssetCache.updateAsset(
     asset: Asset,
     balanceData: AssetBalanceData?
 ) {
-    when (balanceData) {
-        null, is EmptyBalance -> {
-            updateAsset(metaId, accountId, asset) {
-                it.copy(
-                    accountId = accountId,
-                    freeInPlanks = BigInteger.ZERO
-                )
-            }
-        }
-
-        is AccountInfo -> updateAsset(metaId, accountId, asset, accountInfoUpdater(balanceData))
-        is OrmlTokensAccountData -> {
-            updateAsset(metaId, accountId, asset) {
-                it.copy(
-                    accountId = accountId,
-                    freeInPlanks = balanceData.free,
-                    miscFrozenInPlanks = balanceData.frozen,
-                    reservedInPlanks = balanceData.reserved
-                )
-            }
-        }
-
-        is EqAccountInfo -> {
-            updateAsset(metaId, accountId, asset) {
-                it.copy(
-                    accountId = accountId,
-                    freeInPlanks = balanceData.data.balances[asset.currency].orZero()
-                )
-            }
-        }
-
-        is AssetsAccountInfo -> {
-            updateAsset(metaId, accountId, asset) {
-                it.copy(
-                    accountId = accountId,
-                    freeInPlanks = balanceData.balance,
-                    status = balanceData.status
-                )
-            }
-        }
-
-        is SimpleBalanceData -> {
-            updateAsset(metaId, accountId, asset) {
-                it.copy(
-                    accountId = accountId,
-                    freeInPlanks = balanceData.balance
-                )
-            }
-        }
-
-        else -> Unit
+    val fresh = when (balanceData) {
+        null, is EmptyBalance -> FreshAssetCacheUpdate.Free(BigInteger.ZERO)
+        is AccountInfo -> FreshAssetCacheUpdate.AccountInfo(
+            balanceData.data.free, balanceData.data.reserved, balanceData.data.miscFrozen, balanceData.data.feeFrozen
+        )
+        is OrmlTokensAccountData -> FreshAssetCacheUpdate.Orml(balanceData.free, balanceData.reserved, balanceData.frozen)
+        is EqAccountInfo -> FreshAssetCacheUpdate.Free(balanceData.data.balances[asset.currency].orZero())
+        is AssetsAccountInfo -> FreshAssetCacheUpdate.FreeAndStatus(balanceData.balance, balanceData.status)
+        is SimpleBalanceData -> FreshAssetCacheUpdate.Free(balanceData.balance)
+        else -> return
     }
-}
-
-private fun accountInfoUpdater(accountInfo: AccountInfo) = { asset: AssetLocal ->
-    val data = accountInfo.data
-
-    asset.copy(
-        freeInPlanks = data.free,
-        reservedInPlanks = data.reserved,
-        miscFrozenInPlanks = data.miscFrozen,
-        feeFrozenInPlanks = data.feeFrozen
-    )
+    updateAsset(metaId, accountId, asset, fresh)
 }
 
 fun bindAccountInfoOrDefault(hex: String?, runtime: RuntimeSnapshot): AccountInfo {

@@ -23,12 +23,10 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
-    namespace 'jp.co.soramitsu.feature_account_api'
+    namespace = 'jp.co.soramitsu.feature_account_api'
 }
 
 dependencies {
@@ -47,6 +45,8 @@ dependencies {
 
     api project(':core-api')
 
-    api libs.sharedFeaturesCoreDep
-    api libs.sharedFeaturesBackupDep
+    testImplementation project(':test-shared')
+
+    api project(':core-chain')
+    api project(':core-backup')
 }

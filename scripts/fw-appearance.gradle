@@ -1,0 +1,27 @@
+// Appearance is compiled into the artifact. Never read wallet state or remote configuration here.
+def surfaces = [
+    'RECOVERY', 'PORTFOLIO', 'MANAGE_ASSETS', 'SEND', 'RECEIVE', 'PICKERS',
+    'UNAVAILABLE', 'SIGNING', 'WELCOME', 'APPEARANCE', 'NAVIGATION', 'MNEMONIC', 'STAKING', 'LOADING'
+]
+def palette = providers.gradleProperty('FW_PALETTE').getOrElse('legacy')
+if (!(palette in ['legacy', 'v1'])) {
+    throw new GradleException('FW_PALETTE must be exactly legacy or v1')
+}
+def knownFlags = surfaces.collect { "FW_RESTYLE_${it}".toString() }
+def unknownFlags = project.properties.keySet().findAll {
+    it.startsWith('FW_RESTYLE_') && !(it in knownFlags)
+}
+if (!unknownFlags.isEmpty()) {
+    throw new GradleException("Unknown appearance flags: ${unknownFlags.sort().join(', ')}")
+}
+def flags = knownFlags.collectEntries { name ->
+    def value = providers.gradleProperty(name).getOrElse('false')
+    if (!(value in ['true', 'false'])) {
+        throw new GradleException("${name} must be exactly true or false")
+    }
+    [(name): value]
+}
+android.defaultConfig {
+    buildConfigField 'String', 'FW_PALETTE', "\"${palette}\""
+    flags.each { name, value -> buildConfigField 'boolean', name, value }
+}

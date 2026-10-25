@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
-apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'dagger.hilt.android.plugin'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -26,15 +26,55 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
+        // Exercise the same SR25519 implementation shipped by the production
+        // app when running migration integrity tests from this library module.
+        androidTest.jniLibs.srcDirs += files("$rootDir/app/src/main/jniLibs")
+        // Secrets exactly as released builds stored them (common's golden
+        // vectors), so the migration validators are checked against them too.
+        test.resources.srcDirs += files("$rootDir/common/src/test/resources/wallet-secret-vectors")
+        androidTest.assets.srcDirs += files("$rootDir/common/src/test/resources/wallet-secret-vectors")
+        // Verbatim replicas of released secret writers, shared by the JVM and
+        // device upgrade tests so both start from what shipped builds stored.
+        test.java.srcDirs += files("$projectDir/src/sharedTest/java")
+        androidTest.java.srcDirs += files("$projectDir/src/sharedTest/java")
     }
-    namespace 'jp.co.soramitsu.core_db'
+
+    packaging {
+        resources {
+            // JVM-only license/notice and multi-release metadata is duplicated
+            // across transitive JUnit/BouncyCastle/jspecify artifacts. None of
+            // it is consumed at Android runtime, but duplicates otherwise make
+            // the migration instrumentation APK impossible to assemble.
+            excludes += [
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE-notice.md",
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                    "META-INF/AL2.0",
+                    "META-INF/LGPL2.1",
+                    "META-INF/versions/**"
+            ]
+        }
+    }
+
+    namespace = 'jp.co.soramitsu.core_db'
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+// AppDatabaseVersionFloorTest reads these directly; a changed ledger, version
+// code or schema export must rerun it instead of reusing a cached result.
+tasks.withType(Test).configureEach {
+    inputs.file("$projectDir/released-database-versions.txt")
+    inputs.file("$rootDir/versioning/version.properties")
+    inputs.dir("$projectDir/schemas")
 }
 
 dependencies {
@@ -47,11 +87,13 @@ dependencies {
     implementation libs.coroutines.core
 
     implementation libs.hilt.android
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.room.runtime
     implementation libs.room.ktx
-    kapt libs.room.compiler
+    implementation libs.ton.crypto
+    implementation libs.ton.tonapi
+    ksp libs.room.compiler
 
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules

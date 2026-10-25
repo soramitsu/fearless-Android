@@ -2,7 +2,7 @@ plugins {
     id("com.android.library")
     id("dagger.hilt.android.plugin")
     id("kotlin-android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("kotlin-parcelize")
 }
 
@@ -26,10 +26,11 @@ android {
 
 dependencies {
     implementation(projects.common)
+    implementation(projects.coreDb)
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
@@ -38,4 +39,6 @@ dependencies {
     implementation(libs.security.crypto)
     implementation(libs.bundles.ton)
     implementation(libs.okhttp.sse)
+
+    testImplementation(libs.junit)
 }

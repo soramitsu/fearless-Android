@@ -81,7 +81,7 @@ fun InfoTableItemAsset(state: TitleIconValueState) {
 private fun InfoTableCustomPreview() {
     val state = TitleIconValueState(
         "From",
-        "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PSWAP.svg",
+        "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PSWAP.svg",
         "PSWAP",
     )
     FearlessTheme {

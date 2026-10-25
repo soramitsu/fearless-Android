@@ -6,12 +6,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.account.api.presentation.account.CapturedPortfolioDetail
+import jp.co.soramitsu.account.api.presentation.account.presentPortfolioOrigin
+import jp.co.soramitsu.account.api.presentation.account.portfolioBalanceCaption
+import jp.co.soramitsu.account.api.presentation.account.capturedPortfolioOriginFlow
+import jp.co.soramitsu.common.address.AddressModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
@@ -77,7 +86,22 @@ class SignBeaconTransactionViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance.observe().map { it.balance.formatCryptoDetail() }.asLiveData()
+    private val _portfolioOrigin = MutableStateFlow(presentPortfolioOrigin(
+        CapturedPortfolioDetail<AddressModel>(TotalBalance.AwaitingSelection, null)
+    ) { portfolioBalanceCaption(it, resourceManager) })
+    val portfolioOrigin = _portfolioOrigin.asStateFlow()
+
+    init {
+        capturedPortfolioOriginFlow(totalBalance.observe(), polkadotChainId, iconGenerator)
+            .catch { failure ->
+                if (failure is CancellationException) throw failure
+                emit(CapturedPortfolioDetail(TotalBalance.Unavailable, null))
+            }
+            .onEach { origin ->
+                _portfolioOrigin.value = presentPortfolioOrigin(origin) { portfolioBalanceCaption(it, resourceManager) }
+            }
+            .launchIn(viewModelScope)
+    }
 
     private val decodedOperation = flow {
         val result = when {

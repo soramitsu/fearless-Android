@@ -164,6 +164,14 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         modalBottomSheetState: ModalBottomSheetState
     ) {
         val state by viewModel.state.collectAsStateWithLifecycle()
+        val recovery by viewModel.nativeRecoveryUi.collectAsStateWithLifecycle()
+        recovery?.let { pending ->
+            jp.co.soramitsu.wallet.impl.presentation.send.NativeSendRecoveryDialog(pending,
+                close = viewModel::closeNativePayment,
+                check = { viewModel.refreshNativePayment(false) },
+                retry = { viewModel.refreshNativePayment(true) },
+                explorer = viewModel::openNativePaymentExplorer)
+        }
         val detailsBottomSheetState by viewModel.transactionDetailsBottomSheet.collectAsStateWithLifecycle()
 
         LaunchedEffect(Unit) {

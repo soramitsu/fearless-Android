@@ -11,10 +11,10 @@ import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Identity
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
@@ -37,17 +37,16 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 
 class StakingPoolInteractor(
@@ -61,74 +60,93 @@ class StakingPoolInteractor(
     private val currentValidatorsInteractor: CurrentValidatorsInteractor
 ) {
 
+    /** Null withdraws a prior membership while the current selection is unavailable or loading. */
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun stakingStateFlow(): Flow<StakingState> {
-        val currentChainFlow = stakingInteractor.selectedChainFlow().filter { it.supportStakingPool }
-        val selectedAccountFlow = accountRepository.selectedMetaAccountFlow()
-
-        return combine(currentChainFlow, selectedAccountFlow) { chain, metaAccount ->
-            val accountId = metaAccount.accountId(chain) ?: error("cannot find accountId")
-            stakingPoolStateFlow(chain, accountId)
-        }.flattenMerge()
-    }
-
-    private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
-        return observeCurrentPool(chain, accountId).map {
-            when (it) {
-                null -> StakingState.Pool.None(chain, accountId)
-                else -> StakingState.Pool.Member(chain, accountId, it)
-            }
-        }.runCatching { this }.getOrDefault(emptyFlow())
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeCurrentPool(
-        chain: Chain,
-        accountId: AccountId
-    ): Flow<OwnPool?> {
-        return dataSource.observePoolMembers(chain.id, accountId).distinctUntilChanged().flatMapLatest { poolMember ->
-            poolMember ?: return@flatMapLatest flowOf(null)
-            observePoolInfo(chain, poolMember.poolId).map { poolInfo ->
-                val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrNull().orZero()
-                val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
-                val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
-                val redeemable = unbondingEras.filter { it.era <= currentEra }.sumOf { it.amount }
-                val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
-                poolInfo.toOwnPool(poolMember, redeemable, unbonding, pendingRewards)
-            }
+    fun stakingStateFlow(): Flow<StakingState?> {
+        return combine(
+            stakingInteractor.selectedChainFlow(),
+            accountRepository.selectedMetaAccountFlow()
+        ) { chain, metaAccount -> chain to metaAccount }.flatMapLatest { (chain, metaAccount) ->
+            flow<StakingState?> {
+                emit(null)
+                if (!chain.supportStakingPool) return@flow
+                val accountId = metaAccount.accountId(chain)?.copyOf() ?: return@flow
+                emitAll(stakingPoolStateFlow(chain, accountId))
+            }.catch { emit(null) }
+        }.onStart {
+            // Metadata can still be loading before combine receives both selection inputs.
+            emit(null)
         }
     }
 
-    private suspend fun observePoolInfo(chain: Chain, poolId: BigInteger): Flow<PoolInfo> {
-        val poolStashAccount = generatePoolStashAccount(chain, poolId)
-        return combine(
-            dataSource.observePool(chain.id, poolId),
-            relayChainRepository.observeRemoteAccountNominations(chain.id, poolStashAccount)
-        ) { bondedPool, nominations ->
-            bondedPool ?: return@combine null
-
-            val name = dataSource.getPoolMetadata(chain.id, poolId) ?: "Pool #$poolId"
-
-            val hasValidators = nominations?.targets?.isNotEmpty() == true
-            val bondedPoolState = NominationPoolState.from(bondedPool.state.name)
-            val state = when {
-                bondedPoolState == NominationPoolState.Open &&
-                    hasValidators.not() -> NominationPoolState.HasNoValidators
-                else -> NominationPoolState.from(bondedPool.state.name)
-            }
-            PoolInfo(
-                poolId,
-                name,
-                bondedPool.points,
-                state,
-                bondedPool.memberCounter,
-                bondedPool.depositor,
-                bondedPool.root,
-                bondedPool.nominator,
-                bondedPool.bouncer
+    private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState?> {
+        return observeCurrentPool(chain, accountId).map { result ->
+            result.fold(
+                onSuccess = { pool ->
+                    if (pool == null) StakingState.Pool.None(chain, accountId)
+                    else StakingState.Pool.Member(chain, accountId, pool)
+                },
+                onFailure = { null }
             )
-        }.filterNotNull()
+        }
     }
+
+    /** Success(null) is confirmed nonmembership; failures withdraw stale pool authority. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeCurrentPool(chain: Chain, accountId: AccountId): Flow<Result<OwnPool?>> = flow {
+        emit(Result.failure(IllegalStateException("Pool membership is loading")))
+        emitAll(dataSource.observePoolMembers(chain.id, accountId).distinctUntilChanged().flatMapLatest { membership ->
+            flow<Result<OwnPool?>> {
+                emit(Result.failure(IllegalStateException("Pool membership is loading")))
+                val poolMember = membership.getOrThrow()
+                if (poolMember == null) {
+                    emit(Result.success(null))
+                } else {
+                    emitAll(observePoolInfo(chain, poolMember.poolId).flatMapLatest { observation ->
+                        flow<Result<OwnPool?>> {
+                            emit(Result.failure(IllegalStateException("Pool details are loading")))
+                            val poolInfo = observation.getOrThrow()
+                            val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrThrow()
+                            val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
+                            val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
+                            val redeemable = unbondingEras.filter { it.era <= currentEra }.sumOf { it.amount }
+                            val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
+                            emit(Result.success(poolInfo.toOwnPool(poolMember, redeemable, unbonding, pendingRewards)))
+                        }.catch { error -> emit(Result.failure(error)) }
+                    })
+                }
+            }.catch { error -> emit(Result.failure(error)) }
+        })
+    }.catch { error -> emit(Result.failure(error)) }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observePoolInfo(chain: Chain, poolId: BigInteger): Flow<Result<PoolInfo>> = flow {
+        emit(Result.failure(IllegalStateException("Pool information is loading")))
+        val poolStashAccount = generatePoolStashAccount(chain, poolId)
+        emitAll(combine(
+            dataSource.observePool(chain.id, poolId),
+            relayChainRepository.observeRemoteAccountNominationsResult(chain.id, poolStashAccount)
+        ) { bondedPool, nominations -> bondedPool to nominations }.flatMapLatest { (bondedObservation, nominationsObservation) ->
+            flow<Result<PoolInfo>> {
+                emit(Result.failure(IllegalStateException("Pool information is unavailable")))
+                val bondedPool = bondedObservation.getOrThrow()
+                val nominations = nominationsObservation.getOrThrow()
+                if (bondedPool != null) {
+                    val name = dataSource.getPoolMetadata(chain.id, poolId) ?: "Pool #$poolId"
+                    val hasValidators = nominations?.targets?.isNotEmpty() == true
+                    val bondedPoolState = NominationPoolState.from(bondedPool.state.name)
+                    val state = when {
+                        bondedPoolState == NominationPoolState.Open && !hasValidators -> NominationPoolState.HasNoValidators
+                        else -> bondedPoolState
+                    }
+                    emit(Result.success(PoolInfo(
+                        poolId, name, bondedPool.points, state, bondedPool.memberCounter,
+                        bondedPool.depositor, bondedPool.root, bondedPool.nominator, bondedPool.bouncer
+                    )))
+                }
+            }.catch { error -> emit(Result.failure(error)) }
+        })
+    }.catch { error -> emit(Result.failure(error)) }
 
     @Deprecated("Manual calculating is deprecated", replaceWith = ReplaceWith("dataSource.getPendingRewards"))
     private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
@@ -275,11 +293,20 @@ class StakingPoolInteractor(
 
     suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)
 
-    suspend fun estimateJoinFee(amount: BigInteger, poolId: BigInteger = BigInteger.ZERO) = api.estimateJoinFee(amount, poolId)
+    suspend fun estimateJoinFee(chain: Chain, address: String, amount: BigInteger, walletId: Long, poolId: BigInteger = BigInteger.ZERO) =
+        api.estimateJoinFee(chain, address, amount, walletId, poolId)
 
-    suspend fun joinPool(address: String, amount: BigInteger, poolId: BigInteger) = api.joinPool(address, amount, poolId)
+    suspend fun joinPool(chain: Chain, address: String, amount: BigInteger, poolId: BigInteger, walletId: Long,
+        authorize: (String) -> jp.co.soramitsu.core.extrinsic.MutationExecutionGuard, onSubmitted: () -> Unit) =
+        api.joinPool(chain, address, amount, poolId, walletId, authorize, onSubmitted)
 
-    suspend fun estimateBondMoreFee(amount: BigInteger) = api.estimateBondExtraFee(amount)
+    suspend fun pendingJoin(chain: Chain, address: String, walletId: Long) = api.pendingJoin(chain, address, walletId)
+
+    suspend fun reconcileJoin(chain: Chain, address: String, walletId: Long, attemptId: String,
+        beforeHeight: BigInteger?, onFinalized: () -> Unit) =
+        api.reconcileJoin(chain, address, walletId, attemptId, beforeHeight, onFinalized)
+
+    suspend fun estimateBondMoreFee(address: String, amount: BigInteger) = api.estimateBondExtraFee(address, amount)
 
     suspend fun bondMore(address: String, amount: BigInteger) = api.bondExtra(address, amount)
 
@@ -291,32 +318,39 @@ class StakingPoolInteractor(
 
     suspend fun redeem(address: String) = api.withdrawUnbonded(address)
 
-    suspend fun estimateClaimFee() = api.estimateClaimPayoutFee()
+    suspend fun estimateClaimFee(address: String) = api.estimateClaimPayoutFee(address)
 
     suspend fun claim(address: String) = api.claimPayout(address)
 
     suspend fun estimateCreateFee(
+        chain: Chain,
+        walletId: Long,
         poolId: BigInteger,
         name: String,
         amountInPlanks: BigInteger,
         rootAddress: String,
         nominatorAddress: String,
         stateToggler: String
-    ) = api.estimateCreatePoolFee(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
+    ) = api.estimateCreatePoolFee(chain, walletId, name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
 
     suspend fun createPool(
+        chain: Chain,
+        walletId: Long,
         poolId: BigInteger,
         name: String,
         amountInPlanks: BigInteger,
         rootAddress: String,
         nominatorAddress: String,
-        stateToggler: String
-    ) = api.createPool(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
+        stateToggler: String,
+        authorize: (String) -> jp.co.soramitsu.core.extrinsic.MutationExecutionGuard,
+        onSubmitted: () -> Unit
+    ) = api.createPool(chain, walletId, name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler, authorize, onSubmitted)
 
     suspend fun estimateNominateFee(
+        address: String,
         poolId: BigInteger,
         vararg validators: AccountId
-    ) = api.estimateNominatePoolFee(poolId, *validators)
+    ) = api.estimateNominatePoolFee(address, poolId, *validators)
 
     suspend fun nominate(
         poolId: BigInteger,
@@ -324,7 +358,7 @@ class StakingPoolInteractor(
         vararg validators: AccountId
     ) = api.nominatePool(poolId, accountAddress, *validators)
 
-    suspend fun estimateEditFee(state: EditPoolFlowState) = api.estimateEditPool(state)
+    suspend fun estimateEditFee(state: EditPoolFlowState, address: String) = api.estimateEditPool(state, address)
 
     suspend fun edit(state: EditPoolFlowState, address: String) = api.editPool(state, address)
 }

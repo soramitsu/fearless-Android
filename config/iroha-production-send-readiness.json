@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "platform": "android",
+  "status": "blocked",
+  "releaseEnabled": false,
+  "nexusEnabledByDefault": false,
+  "upstream": {
+    "repository": "hyperledger-iroha/iroha",
+    "tag": "v2.0.0-rc.2.1-fearless-mobile-sdk.3",
+    "releaseUrl": "https://github.com/hyperledger-iroha/iroha/releases/tag/v2.0.0-rc.2.1-fearless-mobile-sdk.3"
+  },
+  "artifact": {
+    "name": "iroha-mobile-sdk-android-v2.0.0-rc.2.1-fearless-mobile-sdk.3.zip",
+    "sha256": "24bb47552977cc2610512f59b8bccfd0b047b179302ed972600a66ddc1a01de6",
+    "bytes": 116992564,
+    "reviewThresholdBytes": 100000000,
+    "delivery": "release-zip-with-local-maven-repository"
+  },
+  "stagedIntegration": {
+    "archiveReview": "passed",
+    "materializedCoordinate": "org.hyperledger.iroha.sdk:core-jvm:2.0.0-rc.2.1-fearless-mobile-sdk.3",
+    "coreJarSha256": "33f449700948641c73eeaa4e4a8ab9e39d3d6a642a50b6b7d8c30a9f6aff19ce",
+    "materializationOutput": "ignored-build-directory",
+    "ordinaryBuildFetch": false,
+    "applicationRuntimeDependency": false,
+    "nativeArtifactsAllowed": false,
+    "bridge": "java-only-test-stage",
+    "supportedNetwork": "taira",
+    "canonicalAssetDefinitionRequired": true,
+    "fixtureAssetDefinitionId": "61CtjvNd9T3THAR65GsMVHr82Bjc",
+    "liveTairaObservedNativeXorDefinitionId": "6TEAJqbb8oEPmLncoNiMRbLEK6tw",
+    "productionAssetMappingStatus": "authoritative-live-registry-required-no-hardcoded-id",
+    "liveTairaNodeVersionObserved": "2.0.0-rc.2.0",
+    "liveTairaNodeCommitPrefixObserved": "039af2d",
+    "sdkReleaseTagCommit": "4f8cfbdd17aa6a3b049e619f23ec02501e5297b6",
+    "sdkDeployedNodeCompatibility": "not-proven",
+    "feePolicy": "not-recorded",
+    "hashParity": {
+      "canonicalCompactHash": "2332d0004eb24d97fd965fe68f6f31b0e51339764b4dd80f3ea50a3b6f7e5003",
+      "releaseTagRustFramingInspection": "passed",
+      "currentLocalNativeHostDiagnostic": "passed-unproven-build-provenance",
+      "pinnedSdkHasherStatus": "known-defective-fixed-u64-length",
+      "pinnedSdkDefectiveHash": "2b5e69a0a3d333756f4ac2a54bf7eaff88a2c87484d89e6e7da98abea659662d",
+      "liveTairaReceiptParity": "not-recorded"
+    }
+  },
+  "blocker": {
+    "code": "android_staged_bridge_production_gates_required",
+    "defaultSigner": "UnavailableIrohaTransferSigner",
+    "reason": "The reviewed core-only bridge is staged outside the app; production DI and Android release proof, authoritative live-registry asset/precision/fee mapping without hard-coded IDs, Bouncy Castle private-key copy risk acceptance, upstream source and binary provenance including the known SDK hasher defect and local native-host build provenance, SDK-to-deployed-node compatibility, live Taira receipt hash parity, and funded Taira/Nexus evidence remain incomplete."
+  },
+  "exitCriteria": [
+    "publish-and-review-upstream-core-sources-licenses-sbom-and-provenance",
+    "implement-and-test-authoritative-live-registry-asset-precision-and-fee-policy-mapping-without-hardcoded-ids",
+    "accept-or-remove-bouncy-castle-non-destroyable-private-key-copy-risk",
+    "wire-reviewed-bridge-through-production-di-and-pass-android-device-and-r8-release-tests",
+    "publish-fixed-reviewed-sdk-and-prove-sdk-deployed-node-and-live-receipt-hash-compatibility",
+    "record-funded-taira-and-nexus-live-broadcast-evidence-before-enablement"
+  ]
+}

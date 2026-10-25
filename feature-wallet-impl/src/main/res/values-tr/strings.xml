@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">Geçmiş Crowdloan</string>
+    <string name="legacy_crowdloan_review">İncele</string>
+    <string name="legacy_crowdloan_description">Bu hesabın %1$s üzerindeki geçmiş Crowdloan etkinliği doğrulanmıştır. Yeni katkılar artık kabul edilmiyor; saklanan zincir üstü durum ve yerel talep geçmişi burada erişilebilir olmaya devam eder.</string>
+    <string name="legacy_crowdloan_current_contributions">Mevcut katkılar</string>
+    <string name="legacy_crowdloan_historical_locks">Geçmiş kilitlemeler</string>
+    <string name="legacy_crowdloan_historical_claims">Geçmiş talepler</string>
+    <string name="legacy_crowdloan_view_locked">Kilitli bakiyeyi görüntüle</string>
+    <string name="legacy_crowdloan_no_evidence">Bu hesap için kurtarılabilir Crowdloan durumu bulunamadı.</string>
+    <string name="cross_chain_route_inventory_title">Rota sağlayıcıları</string>
+    <string name="cross_chain_route_inventory_description">Üretim ortamı kapsamı, incelenmiş rotaları ve yalnızca katalogda listelenen rotaları içerir. Kullanılamayan rotalar görünür kalır ancak işlem gönderemez.</string>
+    <string name="cross_chain_route_inventory_checking">Rota sağlayıcılarının kapsamı kontrol ediliyor…</string>
+    <string name="cross_chain_route_inventory_status_available">Mevcut</string>
+    <string name="cross_chain_route_inventory_status_paused">İncelenmiş rota mevcut · işlemler geçici olarak duraklatıldı</string>
+    <string name="cross_chain_route_inventory_status_setup">Kurulum gerekli</string>
+    <string name="cross_chain_route_inventory_status_unavailable">Kullanılamıyor</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">Varlık kimliği: %1$s</string>
+    <string name="cross_chain_route_inventory_summary">%1$d kaynak ağ → %2$d hedef ağ · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">Bu sağlayıcı için belirli üretim rotalarını içeren bir katalog eklenmemiş.</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">Minimum: belirli bir kaynak ağ, varlık ve hedef ağ seçin</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">Minimum: bu katalog tarafından belirtilmemiş</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">Minimum: incelenmiş bir değer mevcut değil</string>
+</resources>

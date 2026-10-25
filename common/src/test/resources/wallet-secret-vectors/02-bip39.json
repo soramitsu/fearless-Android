@@ -1,0 +1,516 @@
+{
+  "schema": "fearless-android-parity/v1",
+  "family": "02-bip39",
+  "title": "BIP39 entropy/words",
+  "generator": {
+    "tool": "build/oracle (AL-4 production-parity oracle)",
+    "inputs": {
+      "prodSharedFeatures": "7508bc83627b7068cfd0f4498ca5f0540205257d",
+      "prodApp420": "b5e22d49d16a0207c03ab703559892eaf9d41cf9",
+      "rcUtils": {
+        "head": "1c80a2bf3fa1f996cf1328873e09f282ee29b69e",
+        "dirty": false
+      },
+      "rcAndroid": {
+        "head": "5e8b36a96c07e5fd28ac9761d497896a3cbdeae8",
+        "dirty": false
+      }
+    },
+    "prngSeed": 20261010
+  },
+  "notes": [
+    "fromEntropy over 16/20/24/28/32-byte inputs: all-zero, 0x7f, 0x80, 0xff, Trezor vectors and 500 PRNG entropies.",
+    "Prod MnemonicCreator.fromEntropy zero-fills the caller's entropy array (Arrays.fill in generateWords); vectors are generated from copies and the quirk is recorded as INFO."
+  ],
+  "count": 63,
+  "vectors": [
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x00000000000000000000000000000000",
+      "words": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f",
+      "words": "legal winner thank year wave sausage worth useful legal winner thank yellow"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x80808080808080808080808080808080",
+      "words": "letter advice cage absurd amount doctor acoustic avoid letter advice cage above"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xffffffffffffffffffffffffffffffff",
+      "words": "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x0000000000000000000000000000000000000000",
+      "words": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon address"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f",
+      "words": "legal winner thank year wave sausage worth useful legal winner thank year wave sausage wise"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x8080808080808080808080808080808080808080",
+      "words": "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor accident"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xffffffffffffffffffffffffffffffffffffffff",
+      "words": "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrist"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x000000000000000000000000000000000000000000000000",
+      "words": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon agent"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f",
+      "words": "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x808080808080808080808080808080808080808080808080",
+      "words": "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter always"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xffffffffffffffffffffffffffffffffffffffffffffffff",
+      "words": "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x00000000000000000000000000000000000000000000000000000000",
+      "words": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon admit"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f",
+      "words": "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal winner thank year viable"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x80808080808080808080808080808080808080808080808080808080",
+      "words": "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd apart"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "words": "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo veteran"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "words": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f",
+      "words": "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth title"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x8080808080808080808080808080808080808080808080808080808080808080",
+      "words": "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "words": "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo vote"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x9e885d952ad362caeb4efe34a8e91bd2",
+      "words": "ozone drill grab fiber curtain grace pudding thank cruise elder eight picnic"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x6610b25967cdcca9d59875f5cb50b0ea75433311869e930b",
+      "words": "gravity machine north sort system female filter attitude volume fold club stay feature office ecology stable narrow fog"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x68a79eaca2324873eacc50cb9c6eca8cc68ea5d936f98787c60c7ebc74e6ce7c",
+      "words": "hamster diagram private dutch cause delay private meat slide toddler razor book happy fancy gospel tennis maple dilemma loan word shrug inflict delay length"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xa2202519c3ae37e52b41f5a5cff18aed",
+      "words": "peasant abuse edit mansion toddler verb public dirt place legend glance swift"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5",
+      "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xa1fe4be78e3b886a06b918faea7e5e557df77a124e4375e0",
+      "words": "peanut venture wheat broccoli review crush brain cart wife fault nurse priority term rug empty silent invest advice"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xb52a207d8800463a0a50b2b8d666dcbbe049aefd5577a9deb9fd5c3b",
+      "words": "release extra buyer avoid afford brown citizen bind rhythm rebel rescue jelly afraid student vocal puzzle prefer volume leg reveal relax"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x8c9ee1065323c71c9a8774224ba8f3320955408655ae93541608874b0931f453",
+      "words": "milk warfare dose play detect mixture head update car front devote goat next park bone remind nation pass lion attend rack ocean spend increase"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xc3e6073fac0415861e5d474a67fcd8ae",
+      "words": "sentence coral soup fix donor seek just pottery engine divide curtain frozen"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x793553a0653566f62965705e7be633e0e6ee978e",
+      "words": "junior pride trend skill filter kitchen pitch puppy fury tennis mind scrub humble envelope desk"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x1c68cd169804cee90c22e383df78e8d8ade90f3ac8b4d6bf",
+      "words": "broccoli edit east copy erupt innocent correct fragile long wink demand rally teach maple twenty bird stove width"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xcaeec1bc97d426cf3ec3071ef58a4f6826e9aaf905385e17e6a8a480",
+      "words": "slab invite hundred cook draw guide wild genius bus proof need space hub step tomato poem fun sand pretty empower alpha"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xc1fd33937fca0b0ddb069f06a5a008d2c37ae9d980b5190f495536b834f1ff79",
+      "words": "sea trumpet tooth zebra pass manage hire stadium allow code acquire pitch dash insane gravity birth boil kid fetch hope local jump worth depart"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x69c646a480edcae705055976efcd1970",
+      "words": "hawk cram powder achieve syrup inform beef private ivory lazy edge thumb"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x49194b4d81e8d744975358918fadd65c19c1c8d3",
+      "words": "empower ski square adult miracle pelican front help muscle latin intact return orchard tongue ethics"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xb1e548ac57ea3e3109c4cb4452e92faa05c631ce72020f98",
+      "words": "rapid clean climb quit physical blush check offer dust nuclear episode favorite fragile body degree doctor auto shaft"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x00f17890b36fef16e4d08dc202d7b6bfab00c6e48f0644b005bbd769",
+      "words": "abstract mesh category grocery year merge nation balance search birth unit leg quote gloom mutual this dwarf lens humble put noodle"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xbac1ae6c54f2330bd8d5b9f3c47dadb5bf7bdb8b63af24cc47515b319442b265",
+      "words": "river aspect only prepare case magnet globe rescue video catalog hidden hidden waste universe collect invest cave giraffe stairs reopen bone candy sister picture"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0xcb89de57e3b4e11c21ae50cf8572965f",
+      "words": "slide exclude nominee shuffle evoke mix mammal skate sort clog pitch salt"
+    },
+    {
+      "kind": "fromEntropy",
+      "entropy": "0x1dab586cb6defb75512f346172c7d124a478293c",
+      "words": "buffalo food brass horror use rival dwarf track gesture normal violin enable elegant behind vacuum"
+    },
+    {
+      "kind": "fromWords",
+      "case": "canonical",
+      "input": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "upper",
+      "input": "SLIM SUN HUGE CANYON FUTURE BLOUSE COME ORPHAN CITIZEN VOID DAMP MERRY BLAST MESSAGE STOOL",
+      "prod": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "double-space",
+      "input": "slim  sun  huge  canyon  future  blouse  come  orphan  citizen  void  damp  merry  blast  message  stool",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "tabs",
+      "input": "slim\tsun\thuge\tcanyon\tfuture\tblouse\tcome\torphan\tcitizen\tvoid\tdamp\tmerry\tblast\tmessage\tstool",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "newlines",
+      "input": "slim\nsun\nhuge\ncanyon\nfuture\nblouse\ncome\norphan\ncitizen\nvoid\ndamp\nmerry\nblast\nmessage\nstool",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "commas",
+      "input": "slim,sun,huge,canyon,future,blouse,come,orphan,citizen,void,damp,merry,blast,message,stool",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "comma-space",
+      "input": "slim, sun, huge, canyon, future, blouse, come, orphan, citizen, void, damp, merry, blast, message, stool",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "leading-trailing-space",
+      "input": "  slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool  ",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "leading-trailing-punctuation",
+      "input": "...slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool!!",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "fullwidth-nfkd",
+      "input": "ｓｌｉｍ ｓｕｎ ｈｕｇｅ ｃａｎｙｏｎ ｆｕｔｕｒｅ ｂｌｏｕｓｅ ｃｏｍｅ ｏｒｐｈａｎ ｃｉｔｉｚｅｎ ｖｏｉｄ ｄａｍｐ ｍｅｒｒｙ ｂｌａｓｔ ｍｅｓｓａｇｅ ｓｔｏｏｌ",
+      "prod": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rc": {
+        "words": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool",
+        "entropy": "0xcbdb29ba90e5e8304b84e6295eb0dcc5d17717f5"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "bad-checksum",
+      "input": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message abandon",
+      "prod": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "unknown-word",
+      "input": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message xyzzy",
+      "prod": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "eleven-words",
+      "input": "slim sun huge canyon future blouse come orphan citizen void damp",
+      "prod": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "thirteen-words",
+      "input": "slim sun huge canyon future blouse come orphan citizen void damp merry blast message stool abandon",
+      "prod": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "empty",
+      "input": "",
+      "prod": {
+        "error": "java.lang.StringIndexOutOfBoundsException"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rcEqual": false
+    },
+    {
+      "kind": "fromWords",
+      "case": "only-spaces",
+      "input": "   ",
+      "prod": {
+        "error": "java.lang.StringIndexOutOfBoundsException"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      },
+      "rcEqual": false
+    },
+    {
+      "kind": "fromWords",
+      "case": "dev-phrase",
+      "input": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+      "prod": {
+        "words": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+        "entropy": "0x1a486a5fbe53639984cb64b070755f7b"
+      },
+      "rc": {
+        "words": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+        "entropy": "0x1a486a5fbe53639984cb64b070755f7b"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromWords",
+      "case": "abandon",
+      "input": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      "prod": {
+        "words": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        "entropy": "0x00000000000000000000000000000000"
+      },
+      "rc": {
+        "words": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        "entropy": "0x00000000000000000000000000000000"
+      },
+      "rcEqual": true
+    },
+    {
+      "kind": "fromEntropy-invalid-length",
+      "size": 0,
+      "prod": {
+        "error": "java.lang.RuntimeException"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      }
+    },
+    {
+      "kind": "fromEntropy-invalid-length",
+      "size": 15,
+      "prod": {
+        "error": "java.lang.RuntimeException"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      }
+    },
+    {
+      "kind": "fromEntropy-invalid-length",
+      "size": 17,
+      "prod": {
+        "error": "java.lang.RuntimeException"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      }
+    },
+    {
+      "kind": "fromEntropy-invalid-length",
+      "size": 33,
+      "prod": {
+        "error": "java.lang.RuntimeException"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      }
+    },
+    {
+      "kind": "fromEntropy-invalid-length",
+      "size": 64,
+      "prod": {
+        "error": "java.lang.RuntimeException"
+      },
+      "rc": {
+        "error": "exceptions.Bip39Exception"
+      }
+    }
+  ]
+}

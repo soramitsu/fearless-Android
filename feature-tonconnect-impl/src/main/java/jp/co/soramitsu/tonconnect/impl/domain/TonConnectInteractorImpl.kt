@@ -1,7 +1,6 @@
 package jp.co.soramitsu.tonconnect.impl.domain
 
 import android.util.Base64
-import androidx.core.net.toUri
 import io.ktor.util.encodeBase64
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.Keypair
@@ -12,6 +11,10 @@ import jp.co.soramitsu.common.utils.tonAccountId
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
+import jp.co.soramitsu.fearless_utils.encrypt.json.copyBytes
+import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.Keys
+import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.SecretBox
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
@@ -31,10 +34,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeOpCode
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeQueryId
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeSeqAndValidUntil
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeStringTail
-import jp.co.soramitsu.shared_utils.encrypt.json.copyBytes
-import jp.co.soramitsu.shared_utils.encrypt.xsalsa20poly1305.Keys
-import jp.co.soramitsu.shared_utils.encrypt.xsalsa20poly1305.SecretBox
-import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRepository
 import jp.co.soramitsu.tonconnect.api.model.AppEntity
@@ -47,6 +46,8 @@ import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.api.model.Security.secureRandom
 import jp.co.soramitsu.tonconnect.api.model.TONProof
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectUrlValidator
+import jp.co.soramitsu.tonconnect.api.model.TonConnectionIdentity
 import jp.co.soramitsu.tonconnect.api.model.optStringCompat
 import jp.co.soramitsu.tonconnect.api.model.optStringCompatJS
 import jp.co.soramitsu.tonconnect.api.model.post
@@ -88,7 +89,6 @@ import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
-import java.net.URL
 import javax.inject.Named
 
 @Suppress("LargeClass")
@@ -203,15 +203,23 @@ class TonConnectInteractorImpl(
             address = AddrStd(wallet.tonPublicKey!!.tonAccountId(chain.isTestNet)),
             secretKey = privateKey,
             payload = proofPayload,
-            domain = app.url.toUri().host!!
+            domain = TonConnectUrlValidator.host(app.url) ?: error("Invalid dApp URL")
         )
     }
 
     override suspend fun readManifest(url: String): AppEntity {
-        val response = tonApi.getManifest(url)
+        val normalizedManifestUrl = TonConnectUrlValidator.normalizeManifestUrl(url)
+        val manifestOrigin = TonConnectUrlValidator.origin(normalizedManifestUrl)
+        val response = tonApi.getManifest(normalizedManifestUrl)
+
+        val trustedDappUrl = runCatching {
+            TonConnectUrlValidator.normalizeDappUrl(response.url)
+        }.getOrNull()?.takeIf {
+            TonConnectUrlValidator.isSameOrigin(it, manifestOrigin)
+        } ?: manifestOrigin
 
         return AppEntity(
-            response.url,
+            trustedDappUrl,
             response.name,
             response.iconUrl,
             response.termsOfUseUrl,
@@ -219,21 +227,26 @@ class TonConnectInteractorImpl(
         )
     }
 
-    override suspend fun disconnect(clientId: String) = withContext(Dispatchers.IO) {
-        tonConnectRepository.deleteConnection(clientId)
+    override suspend fun disconnect(identity: TonConnectionIdentity) = withContext(Dispatchers.IO) {
+        tonConnectRepository.deleteConnection(identity)
     }
 
     override fun getConnectedDappsFlow(source: ConnectionSource): Flow<DappConfig> {
-        return tonConnectRepository.observeConnections(source).map { list ->
-            DappConfig(
-                type = null,
-                apps = list.map { DappModel(it) }
-            )
-        }
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest { metaAccount ->
+                tonConnectRepository.observeConnections(metaAccount.id, source)
+            }
+            .map { list ->
+                DappConfig(
+                    type = null,
+                    apps = list.map { DappModel(it) }
+                )
+            }
     }
 
     override suspend fun getConnectedDapps(source: ConnectionSource): DappConfig = withContext(Dispatchers.Default) {
-        val connections = tonConnectRepository.getConnections(source)
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val connections = tonConnectRepository.getConnections(metaAccount.id, source)
         return@withContext DappConfig(
             type = null,
             apps = connections.map { DappModel(it) }
@@ -241,11 +254,17 @@ class TonConnectInteractorImpl(
     }
 
     override fun eventsFlow(lastEventId: Long): Flow<BridgeEvent> {
-        return tonConnectRepository.observeConnections(ConnectionSource.QR)
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest { metaAccount ->
+                tonConnectRepository.observeConnections(
+                    metaId = metaAccount.id,
+                    source = ConnectionSource.QR
+                )
+            }
             .flatMapLatest { connections ->
                 val chain = getChain()
                 val clientIdParams = connections.mapNotNull {
-                    val keypair = tonConnectRepository.getConnectionKeypair(it.clientId)
+                    val keypair = tonConnectRepository.getConnectionKeypair(it.identity())
                     keypair?.publicKey?.toHexString(false)
                 }.joinToString(",")
                 val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
@@ -257,10 +276,14 @@ class TonConnectInteractorImpl(
                         val message =
                             event.json.optStringCompatJS("message") ?: return@mapNotNull null
                         val connection =
-                            connections.find { it.clientId == from } ?: return@mapNotNull null
+                            connections.singleOrNull {
+                                it.clientId == from
+                            } ?: return@mapNotNull null
 
                         val messageJsonObject = runCatching {
-                            val keyPair = tonConnectRepository.getConnectionKeypair(connection.clientId)
+                            val keyPair = tonConnectRepository.getConnectionKeypair(
+                                connection.identity()
+                            )
                                 ?: error("There is no keypair for clientId: ${connection.clientId}")
 
                             val decryptedMessage = decryptEventMessage(
@@ -487,7 +510,9 @@ class TonConnectInteractorImpl(
             put("result", boc)
             put("id", event.message.id)
         }.toString()
-        val keypair = tonConnectRepository.getConnectionKeypair(event.connection.clientId)
+        val keypair = tonConnectRepository.getConnectionKeypair(
+            event.connection.identity()
+        )
             ?: error("There is no keypair for this dapp connection")
         val encryptedMessage = encryptMessage(
             event.connection.clientId.hex(),
@@ -516,9 +541,17 @@ class TonConnectInteractorImpl(
     }
 
     override suspend fun getConnection(url: String, source: ConnectionSource): TonConnectionLocal? {
-        val formatted = URL(url).host
+        TonConnectUrlValidator.host(url) ?: return null
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        return tonConnectRepository.getConnection(metaAccount.id, formatted, source)
+        val sameOriginConnections = tonConnectRepository
+            .getConnections(metaAccount.id, source)
+            .filter { connection ->
+                TonConnectUrlValidator.isSameOrigin(connection.url, url)
+            }
+        if (sameOriginConnections.size != 1) return null
+        return tonConnectRepository.getConnection(
+            sameOriginConnections.single().identity()
+        )
     }
 
     override suspend fun respondDappError(event: BridgeEvent, error: BridgeError): Unit =
@@ -527,7 +560,9 @@ class TonConnectInteractorImpl(
             val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
             val unsignedMessage = JsonBuilder.responseError(event.eventId, error).toString()
 
-            val keypair = tonConnectRepository.getConnectionKeypair(event.connection.clientId)
+            val keypair = tonConnectRepository.getConnectionKeypair(
+                event.connection.identity()
+            )
                 ?: error("There is no keypair for this dapp connection")
             val encryptedMessage = encryptMessage(
                 event.connection.clientId.hex(),

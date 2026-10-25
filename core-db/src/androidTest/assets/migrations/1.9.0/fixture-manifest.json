@@ -1,0 +1,98 @@
+{
+  "fixture_format": 2,
+  "platform": "android",
+  "purpose": "Room schema version 22 exactly as a fresh install of the released app created it. AllReleasedSchemasUpgradeTest builds a database from it, inserts synthetic rows and upgrades it with the current migration graph.",
+  "db_version": 22,
+  "source_release": {
+    "id": "1.9.0+20",
+    "version": "1.9.0",
+    "versionCode": 20,
+    "tag": "v1.9.0",
+    "commit": "5e5a0f8da20a4f449158b08629ac949eb194c3ba",
+    "binary": {
+      "kind": "github-apk",
+      "asset_name": "Fearless-Wallet-v1.9.0-release.apk",
+      "url": "https://github.com/soramitsu/fearless-Android/releases/download/v1.9.0/Fearless-Wallet-v1.9.0-release.apk",
+      "sha256": "064d8142ebb2b18d4aaf9e4c7c7d66459661601d04861bb623b99185197e3eee",
+      "signer_sha256": "ddd81ed376613465396c238be542c03bc5f7aee66c1020923c13b327f987cf08",
+      "size_bytes": 27253670
+    }
+  },
+  "releases_with_this_schema": [
+    {
+      "id": "1.8-RC1+14",
+      "tag": "v1.8-rc1",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "1.8.1+15",
+      "tag": "v1.8.1",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "1.8.2+17",
+      "tag": "v1.8.2",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "1.8.3+19",
+      "tag": "v1.8.3",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    },
+    {
+      "id": "1.9.0+20",
+      "tag": "v1.9.0",
+      "binary_kind": "github-apk",
+      "schema_evidence": "apk-extraction"
+    }
+  ],
+  "generator": {
+    "tier": "T1",
+    "method": "dexdump-createAllTables",
+    "tool": "tools/upgrade-fixtures/android/extract_room_schema.py",
+    "inventory": "tools/upgrade-fixtures/android/releases.json"
+  },
+  "schema_extraction": {
+    "apk_sha256": "064d8142ebb2b18d4aaf9e4c7c7d66459661601d04861bb623b99185197e3eee",
+    "apk_entry": "classes2.dex",
+    "apk_entry_sha256": "25b5ed29b4b222d6803830f8ed29d73010e6c25406ef8e5a1be2ec7d8b2e067b",
+    "class": "jp.co.soramitsu.core_db.AppDatabase_Impl$1",
+    "method": "createAllTables",
+    "room_version": 22,
+    "room_identity_hash": "6891ccf8d574ea6a79ba2425e81b7a81",
+    "room_legacy_identity_hash": "4605afcc203f7714b0cf50c14cc08989",
+    "explicit_table_count_including_room_master": 12,
+    "explicit_index_count": 3,
+    "explicit_view_count": 0,
+    "statements_sha256": "b7dd0968a50b28b5b79a3eaefeb200cfef305c25bd8e4d278697da5857145544"
+  },
+  "schema_check": {
+    "engine": "sqlite3 (host, in-memory)",
+    "integrity_check": "ok",
+    "tables": [
+      "account_staking_accesses",
+      "assets",
+      "nodes",
+      "phishing_addresses",
+      "room_master_table",
+      "runtimeCache",
+      "staking_rewards",
+      "storage",
+      "tokens",
+      "total_reward",
+      "transactions",
+      "users"
+    ],
+    "explicit_index_count": 3
+  },
+  "frozen_assets": {
+    "schema_sql": "app-database-v22.sql",
+    "schema_sql_sha256": "1fccead011ff1fb8bc18f41adeb6a21688d6c61442400c13abbcec889ec8b54f"
+  },
+  "synthetic_only": true,
+  "contains_user_material": false
+}

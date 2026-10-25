@@ -65,9 +65,9 @@ private const val BANNER_DELAY_ANIMATION_MILLIS = 3000L
 interface DiscoverDappScreenInterface {
     fun onButtonToggleChanged(type: DappListType)
     fun onSeeAllClick(type: String)
-    fun onDappClick(dappId: String)
-    fun onDappLongClick(dappId: String)
-    fun bottomSheetDappSelected(dappId: String)
+    fun onDappClick(dapp: DappModel)
+    fun onDappLongClick(dapp: DappModel)
+    fun bottomSheetDappSelected(dapp: DappModel)
     fun onBottomSheetDappClose()
 }
 
@@ -132,8 +132,8 @@ fun EmptySumimasen() {
 fun DappsGroup(
     data: DappConfig,
     onMoreClick: (() -> Unit)?,
-    onDappClick: ((String) -> Unit)?,
-    onDappLongClick: ((String) -> Unit)?
+    onDappClick: ((DappModel) -> Unit)?,
+    onDappLongClick: ((DappModel) -> Unit)?
 ) {
     BackgroundCornered {
         Column {
@@ -200,8 +200,8 @@ private fun DappGroupHeaderItem(title: String, onMoreClick: (() -> Unit)?) {
 @Composable
 fun DappItem(
     dapp: DappModel,
-    onDappClick: ((String) -> Unit)?,
-    onDappLongClick: ((String) -> Unit)?
+    onDappClick: ((DappModel) -> Unit)?,
+    onDappLongClick: ((DappModel) -> Unit)?
 ) {
     Row(
         modifier = Modifier
@@ -210,17 +210,17 @@ fun DappItem(
 //            .clickable {
 //                onDappClick?.invoke(dapp.identifier)
 //            }
-            .pointerInput(Unit) {
+            .pointerInput(dapp) {
                 detectTapGestures(
                     onPress = { /* Called when the gesture starts */ },
                     onDoubleTap = { /* Called on Double Tap */ },
                     onLongPress = {
                         // Called on Long Press
-                        onDappLongClick?.invoke(dapp.identifier)
+                        onDappLongClick?.invoke(dapp)
                     },
                     onTap = {
                         // Called on Tap
-                        onDappClick?.invoke(dapp.identifier)
+                        onDappClick?.invoke(dapp)
                     }
                 )
             }
@@ -264,8 +264,8 @@ fun PreviewDappsGroup() {
                     name = "FW dapp example",
                     url = "https://ton-connect.example.fearless.soramitsu.co.jp",
                     description = "FW dapp example description",
-                    background = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/icons/dapps/defaultbg.png",
-                    icon = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/FW_icon_288.png",
+                    background = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/defaultbg.png",
+                    icon = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/FW_icon_288.png",
                     metaId = null
                 )
             )
@@ -282,7 +282,7 @@ private fun Banners(dapps: List<DappModel>, callback: DiscoverDappScreenInterfac
         {
             BannerDApp(
                 dApp = it,
-                onClick = { callback.onDappClick(it.identifier) }
+                onClick = { callback.onDappClick(it) }
             )
         }
     }
@@ -332,15 +332,15 @@ private fun PreviewDiscoverDappScreen() {
     val emptyCallback = object : DiscoverDappScreenInterface {
         override fun onButtonToggleChanged(type: DappListType) {}
         override fun onSeeAllClick(type: String) {}
-        override fun onDappClick(dappId: String) {}
-        override fun onDappLongClick(dappId: String) {}
-        override fun bottomSheetDappSelected(dappId: String) {}
+        override fun onDappClick(dapp: DappModel) {}
+        override fun onDappLongClick(dapp: DappModel) {}
+        override fun bottomSheetDappSelected(dapp: DappModel) {}
         override fun onBottomSheetDappClose() {}
     }
 
     val dapps: List<DappConfig> = listOf()
 
-    FearlessAppTheme(true) {
+    FearlessAppTheme {
         Column {
             DiscoverDappScreen(
                 data = DiscoverDappState(

@@ -98,6 +98,9 @@
   <string name="backup_now">今すぐバックアップ</string>
   <string name="backup_wallet_backup_to_google">Googleへバックアップ</string>
   <string name="backup_wallet_delete_alert_message">Googleのバックアップを削除した場合、ウォレットを復元できるのは、あなたが手動でバックアップしたパスフレーズのみとなります</string>
+  <plurals name="backup_wallet_delete_copies_alert_message">
+    <item quantity="other">このウォレットのGoogleバックアップ%d件をすべて削除します。他の端末から保存したものや、別のパスワードで保存したものも含まれます。削除後にウォレットを復元できるのは、あなたが手動でバックアップしたパスフレーズのみとなります</item>
+  </plurals>
   <string name="backup_wallet_delete_google_backup">Googleバックアップの削除</string>
   <string name="backup_wallet_export_json">JSONファイルのエクスポート</string>
   <string name="backup_wallet_replace_accounts_alert" formatted="false">あなたは現在、メインのキー・ペアを置き換えて追加した%s個のチェーンアカウントと%sアドレスを持っており、それぞれに特定のキー・ペアを所有しています。しかし、現在のウォレットのバックアップ(エクスポート)機能は、複数のキー・ペアの保存をサポートしていないのでご注意ください。現状、保存できるのはメインのキー・ペアのみとなります。 \n \n チェーンアカウントの安全性を確保するため、現在のフローを進める前に、まず別個にバックアップすることをお勧めします。置き換えたチェーンアカウントのバックアップに成功したら、何の心配もなくフローを進むことができます。</string>
@@ -110,9 +113,6 @@
   <string name="balance_locks_nomination_pools_row_title">ノミネーションプール</string>
   <string name="balance_locks_screen_title">ロックされた詳細</string>
   <string name="banners_backup_description">デバイスを失くすと、永久に資金も失います</string>
-  <string name="banners_buy_xor">XORを買う</string>
-  <string name="banners_buy_xor_description">ユーロでXORトークンを売買</string>
-  <string name="banners_buy_xor_title">XORトークンの購入</string>
   <string name="banners_liquidity_pools_title">流動性プール</string>
   <string name="beacon_connect_warning">警告：「接続」をタップすると、このDappがあなたのパブリック・アドレスを参照できるようになります。これは、潜在的なフィッシングのリスクからデータを保護するための重要なセキュリティの手順です。</string>
   <string name="beacon_connected">%sに接続しました</string>
@@ -235,6 +235,9 @@
   <string name="common_error_network">リモートサーバーとの通信中にエラーが発生しました</string>
   <string name="common_event">イベント</string>
   <string name="common_existential_error_message">このトランザクションにより、アカウント存続預金を下回るため(%s)、「刈り取られる」ことになります(スペースを節約するためにブロックチェーンの状態からアカウントは消去されます)。</string>
+  <string name="common_existential_unknown_message">Fearless Walletは、ネットワークが%sに求める最低残高(アカウント存続預金)を確認できませんでした。この送金後にどちらかのアカウントの残高が最低額を下回ると、ネットワークはそのアカウントを残額ごと削除することがあります。両方のアカウントに十分な残高が残ることが確かな場合のみ続行してください。そうでない場合はキャンセルし、後でもう一度お試しください。</string>
+  <string name="common_existential_unknown_retry_message">Fearless Walletは、ネットワークが%sに求める最低残高(アカウント存続預金)を確認できなかったため、何も送信していません。接続を確認して、もう一度お試しください。</string>
+  <string name="common_existential_unknown_title">最低残高を確認できません</string>
   <string name="common_existential_warning_message">このトランザクションにより、アカウント存続預金を下回るため (%s)、「刈り取られる」ことになります(スペースを節約するためにブロックチェーンの状態からアカウントは消去されます)。継続を選択した場合、ネットワークによって設定された存続預金額を下回る資金を失うことになります。詳細な情報については、ネットワークの公式ドキュメント(例：Polkadot Wiki)を参照してください。フィアレス・ウォレットは完全な非管理的なアプリであり、ネットワークでのあなたの行動については一切判らないし制御もできません。あなたが、その意味を理解して完全に同意した場合のみ、続行してください</string>
   <string name="common_existential_warning_title">操作によりアカウントが削除されます</string>
   <string name="common_filter_sort_header">並び替え：</string>
@@ -273,6 +276,8 @@
   <string name="common_not_enough_funds_title">残高不足です</string>
   <string name="common_note">注記：</string>
   <string name="common_ok">OK</string>
+  <string name="update_security_notice_title">モバイルウォレットは安全です</string>
+  <string name="update_security_notice_message">iOS版およびAndroid版のFearlessは、旧Fearless Chrome拡張機能のセキュリティ問題の影響を受けていません。\n\n2026年10月23日より前にこのChrome拡張機能を使用していた場合は、新しいウォレットを作成し、資金をそのウォレットに移してください。</string>
   <string name="common_options">オプション</string>
   <string name="common_options_title">オプションを選択</string>
   <string name="common_origin_network">元ネットワーク</string>
@@ -359,6 +364,50 @@
   <string name="connection_methods_not_supported_warning">ウォレット・コネクトからリクエストされた特定のメソッドは、現在アプリではサポートされていません。接続は確立できますが、dAppの特定の機能が利用できない場合があります</string>
   <string name="connection_optional_networks">オプションのネットワーク</string>
   <string name="connection_problems_alert_message">アプリの起動に必要なデータの読み込みに失敗しました。インターネット接続を確認して、後でもう一度お試しください</string>
+  <string name="wallet_secure_storage_unavailable_title">ウォレットデータは保護されています</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless は Android の安全なストレージにアクセスできませんでした。暗号化されたウォレットデータは保持され、リセットされていません。デバイスのロックを解除して、もう一度お試しください。問題が解決しない場合は、Fearless サポートにお問い合わせください。</string>
+  <string name="wallet_database_unavailable_title">ウォレットデータを開けませんでした</string>
+  <string name="wallet_database_unavailable_message">Fearless はウォレットデータを削除またはリセットしていません。ウォレットをもう一度開いてください。問題が解決しない場合は、Fearless サポートにお問い合わせください。</string>
+  <string name="wallet_recovery_required_title">ウォレットの復旧が必要です</string>
+  <string name="wallet_recovery_required_message">このウォレットのキーの1つに確認が必要です。他のキーや他のウォレットは引き続き使用できます。ウォレットの復元を開き、アクセスを復元するかバックアップを確認してください。</string>
+  <string name="wallet_startup_recovery_required_message">Fearless はウォレットを開く処理を完了できませんでした。何も変更・削除されていません。今すぐ PINコードを入力して、保存されているすべての鍵を確認し、書き留めることができます。アプリデータの消去や Fearless のアンインストールは行わないでください。この端末から鍵が消えてしまいます。診断コード: %1$s</string>
+  <string name="wallet_startup_restart_required_title">Fearless を終了して再度開く</string>
+  <string name="wallet_startup_restart_required_message">Android がウォレットストレージへの書き込みを確認できなかったため、Fearless は停止しました。このプロセスでは、これ以上ウォレットの変更を試行しません。アプリを終了してから再度開き、保存された状態を安全に確認してください。アプリデータの消去や再インストールは行わないでください。</string>
+  <string name="wallet_recovery_scoped_title">確認が必要な鍵があります</string>
+  <string name="wallet_emergency_open">保存されている鍵を表示</string>
+  <string name="wallet_emergency_title">保存されている鍵</string>
+  <string name="wallet_emergency_intro">Fearless の PINコードを入力すると、この端末に保存されているすべてのニーモニックと鍵を、保存されたとおりに表示します。何も変更・削除されません。</string>
+  <string name="wallet_emergency_pin_hint">6桁のPINコード</string>
+  <string name="wallet_emergency_unlock">鍵を表示</string>
+  <string name="wallet_emergency_wrong_pin">PINコードが正しくありません</string>
+  <string name="wallet_emergency_locked">試行回数が多すぎます。%1$d 秒後にもう一度お試しください。</string>
+  <string name="wallet_emergency_unavailable">この端末では PINコードを読み取れなくなったため、保存されている鍵を表示できません。何も削除されていません。ニーモニックを書き留めている場合は、それを使ってウォレットを復元できます。</string>
+  <string name="wallet_emergency_read_failed">現在、保存されている鍵を読み取れませんでした。何も変更・削除されていません。もう一度お試しください。</string>
+  <string name="wallet_emergency_warning">これらの単語や鍵を見た人は誰でもあなたの資産を奪えます。紙に書き留めてオフラインで保管し、決して他人に共有しないでください。</string>
+  <string name="wallet_emergency_empty">この端末にはウォレットの鍵が保存されていません。</string>
+  <string name="wallet_emergency_wallet">ウォレット %1$d</string>
+  <string name="wallet_emergency_wallet_unknown">初期バージョンのウォレット</string>
+  <string name="wallet_emergency_kind_substrate">Polkadot・Substrate の鍵</string>
+  <string name="wallet_emergency_kind_ethereum">Ethereum の鍵</string>
+  <string name="wallet_emergency_kind_ton">TON の鍵</string>
+  <string name="wallet_emergency_kind_legacy">ウォレットの鍵（4.0 より前の形式）</string>
+  <string name="wallet_emergency_kind_network">単一ネットワーク用の鍵</string>
+  <string name="wallet_emergency_kind_early">ウォレットの鍵（初期の形式）</string>
+  <string name="wallet_emergency_state_active">使用中</string>
+  <string name="wallet_emergency_state_set_aside">退避済み（署名には使用されません）</string>
+  <string name="wallet_emergency_state_archived">以前のバージョンから保管（署名には使用されません）</string>
+  <string name="wallet_emergency_field_phrase">ニーモニック</string>
+  <string name="wallet_emergency_field_ton_phrase">TON のニーモニック（表示どおり正確に入力してください）</string>
+  <string name="wallet_emergency_field_entropy">エントロピー</string>
+  <string name="wallet_emergency_field_seed">シード</string>
+  <string name="wallet_emergency_field_path">派生パス(Derivation Path)</string>
+  <string name="wallet_emergency_field_ethereum_path">Ethereum の派生パス(Derivation Path)</string>
+  <string name="wallet_emergency_field_private_key">秘密鍵</string>
+  <string name="wallet_emergency_field_ethereum_private_key">Ethereum の秘密鍵</string>
+  <string name="wallet_emergency_field_ton_private_key">TON の秘密鍵</string>
+  <string name="wallet_emergency_field_nonce">ノンス</string>
+  <string name="wallet_emergency_field_stored">保存データ（見つかったとおり）</string>
+  <string name="wallet_emergency_unreadable">この値はこの端末では復号できません。変更せずに保持されています。</string>
   <string name="connection_reject">拒否</string>
   <string name="connection_required_networks">必要なネットワーク</string>
   <string name="connection_review_optional_permissions">オプションの権限を確認する</string>
@@ -463,6 +512,42 @@
   <string name="fearless_wallet">フィアレス・ウォレット</string>
   <string name="fee_not_yet_loaded_message">料金が計算されるまでお待ちください</string>
   <string name="fee_not_yet_loaded_title">料金計算中</string>
+  <string name="google_backup_already_imported_message">このウォレットはすでにこの端末のFearlessにあるため、再度インポートしていません。</string>
+  <string name="google_backup_already_imported_title">この端末にすでにあります</string>
+  <string name="google_backup_back_up_later">後でバックアップ</string>
+  <string name="google_backup_ethereum_only_message">このブラウザ拡張機能のバックアップにはEthereumの鍵しか含まれておらず、それだけでは新しいウォレットを作成できません。何も変更されていません。ニーモニックフレーズ、シード、またはJSONファイルでこのウォレットをインポートしてください。</string>
+  <string name="google_backup_ethereum_only_title">Ethereumの鍵のみ</string>
+  <string name="google_backup_failed_message">Googleドライブとの接続中に問題が発生しました。もう一度お試しください。</string>
+  <string name="google_backup_failed_title">Googleドライブのバックアップが完了しませんでした</string>
+  <string name="google_backup_import_another_way">別の方法でインポート</string>
+  <string name="google_backup_import_with_json">JSONファイルでインポート</string>
+  <string name="google_backup_import_with_phrase">ニーモニックフレーズでインポート</string>
+  <string name="google_backup_no_connection_message">インターネット接続を確認して、もう一度お試しください。</string>
+  <string name="google_backup_no_connection_title">Googleドライブに接続できません</string>
+  <string name="google_backup_none_found_message">このGoogleアカウントにはウォレットのバックアップが見つかりませんでした。別のGoogleアカウントでバックアップした場合は、そのアカウントでログインしてください。ニーモニックフレーズ、シード、またはJSONファイルでインポートすることもできます。</string>
+  <string name="google_backup_none_found_title">このGoogleアカウントにバックアップがありません</string>
+  <string name="google_backup_not_found_message">このバックアップは、別の端末などからGoogleドライブで削除されました。一覧を更新して、現在あるバックアップを確認してください。</string>
+  <string name="google_backup_not_found_title">Googleドライブにバックアップがありません</string>
+  <string name="google_backup_not_verified_message">このウォレットに保存されているニーモニックフレーズまたはシードでは、このウォレットそのものを復元できないため、何もアップロードしておらず、この端末でも何も変更していません。代わりに「JSONファイルのエクスポート」でバックアップしてください。ウォレットが現在使っている鍵が保存されます。</string>
+  <string name="google_backup_not_verified_title">バックアップはアップロードされていません</string>
+  <string name="google_backup_open_wallet">ウォレットを開く</string>
+  <string name="google_backup_origin_extension">ブラウザ拡張機能でバックアップ</string>
+  <string name="google_backup_refresh">一覧を更新</string>
+  <string name="google_backup_saved_without_phrase_message">このウォレットに保存されているニーモニックフレーズまたはシードでは、このウォレットそのものを復元できないため、含めていません。Googleドライブのバックアップは、ウォレットが現在使っている鍵からこのウォレットを復元します。</string>
+  <string name="google_backup_saved_without_phrase_title">ニーモニックフレーズなしでバックアップしました</string>
+  <string name="google_backup_sign_in">ログイン</string>
+  <string name="google_backup_sign_in_message">FearlessにはGoogleドライブのバックアップフォルダへのアクセスが必要です。続けるには、もう一度ログインしてアクセスを許可してください。</string>
+  <string name="google_backup_sign_in_title">Googleに再度ログインしてください</string>
+  <string name="google_backup_storage_full_message">Googleアカウントの空き容量がないため、バックアップを保存できませんでした。容量を空けてもう一度お試しください。</string>
+  <string name="google_backup_storage_full_title">Googleドライブの容量が不足しています</string>
+  <string name="google_backup_unavailable_message">このFearlessではGoogleログインを利用できません。この端末のウォレットには影響ありません。ウォレットのバックアップやインポートには、ニーモニックフレーズ、シード、またはJSONファイルを使ってください。</string>
+  <string name="google_backup_unavailable_title">Googleドライブのバックアップは利用できません</string>
+  <string name="google_backup_unsupported_message">このバックアップは新しいバージョンのFearlessで作成されたか、破損しています。何も変更されていません。代わりにニーモニックフレーズ、シード、またはJSONファイルでこのウォレットをインポートできます。</string>
+  <string name="google_backup_unsupported_title">このバックアップを読み込めません</string>
+  <string name="google_backup_use_another_account">別のGoogleアカウントを使う</string>
+  <string name="google_backup_wallet_created_not_backed_up">新しいウォレットは作成されましたが、まだバックアップされていません。後でウォレットのバックアップ設定からバックアップできます。</string>
+  <string name="google_backup_wrong_password_message">このパスワードではバックアップを開けません。バックアップ作成時に設定したパスワードを入力して、もう一度お試しください。</string>
+  <string name="google_backup_wrong_password_title">バックアップのパスワードが正しくありません</string>
   <string name="hash">ハッシュ</string>
   <string name="hidden_assets">隠されたアセット</string>
   <string name="history_v1.9.0">履歴</string>
@@ -609,6 +694,17 @@
   <string name="parachain_staking_unbonding_period_template">%2$sの中の%1$s - それは%3$s</string>
   <string name="parachain_staking_unlock">ロック解除</string>
   <string name="parachain_staking_unlock_title">トークンのロック解除</string>
+  <string name="paused_cross_chain_message">以前のバージョンで利用できたクロス・チェーン送金は、最近の Polkadot ネットワークの変更に対する安全確認が完了するまで、このバージョンでは一時停止しています。トークンと残高には影響ありません。各ネットワーク内での送金と受け取りは引き続き利用できます。</string>
+  <string name="paused_cross_chain_send_on_network">%1$s で送る</string>
+  <string name="paused_cross_chain_send_within_network">1つのネットワーク内で送る</string>
+  <string name="paused_cross_chain_title">クロス・チェーン送金は一時停止中です</string>
+  <string name="paused_farming_message">ファーミングの操作は現在一時停止しています。ファーミングのポジションと残高には影響なく、送金と受け取りは引き続き利用できます。</string>
+  <string name="paused_liquidity_message">流動性プールの操作は現在一時停止しています。プールのポジションと残高には影響なく、送金と受け取りは引き続き利用できます。</string>
+  <string name="paused_polkamarkt_message">このバージョンでは Polkamarkt の取引は一時停止しています。ポジションと残高には影響ありません。</string>
+  <string name="paused_send_message">問題を確認しているため、%1$s での送金は現在一時停止しています。残高には影響なく、受け取りは引き続き利用できます。</string>
+  <string name="paused_send_title">送金は一時停止中です</string>
+  <string name="paused_swap_message">スワップは現在一時停止しています。トークンと残高には影響なく、送金と受け取りは引き続き利用できます。</string>
+  <string name="paused_swap_title">スワップは一時停止中です</string>
   <string name="pincode_biometry_dialog_title">バイオメトリー</string>
   <string name="pincode_changed_message">PINコードは正常に変更されました</string>
   <string name="pincode_confirm_pin_code">PINコードの確認</string>
@@ -730,7 +826,6 @@
   <string name="profile_network_title">通信網</string>
   <string name="profile_pincode_change_title">PINコードを変更する</string>
   <string name="profile_settings_title">設定</string>
-  <string name="profile_soracard_title">SORAカード</string>
   <string name="profile_title">アカウント</string>
   <string name="profile_walletconnect_title">ウォレットコネクト</string>
   <string name="profile_wallets_title">ウォレット</string>
@@ -746,6 +841,8 @@
   <string name="recovery_raw_seed_hint">プライベート・キー(秘密鍵)</string>
   <string name="recovery_source_type">ソースの種類</string>
   <string name="referral_email_acala">アカラ(Acala)からのメール受信に同意する</string>
+  <string name="relay_moved_to_asset_hub_message">2025年のAsset Hub移行以降、このネットワークのステーキング、ノミネーションプール、ベスティング、クラウドローンへの拠出はPolkadot Asset HubまたはKusama Asset Hubで扱われます。このバージョンのFearlessでは、そこでの操作には対応していません。リレーチェーンではこの操作の手数料が請求されたうえで拒否されるため、何も署名・送信していません。Asset Hub上のアカウントは同じアドレスで、このウォレットに表示されます。</string>
+  <string name="relay_moved_to_asset_hub_title">Asset Hubに移行しました</string>
   <string name="remove_backup_extension_error_message">バックアップは、フィアレス・ウォレット・ブラウザ拡張機能によって作成されました。モバイル・アプリケーションでは、認証情報が不足しているため削除できません</string>
   <string name="rename_account_description">例：貯蓄、投資、クラウドローン、ステーキング。このニックネームはあなたにのみ表示され、あなたのデバイスの中に保存されます</string>
   <string name="replace_account">アカウントを置き換える</string>
@@ -801,13 +898,6 @@
   <string name="sora_bridge_amount_less_fee">転送しようとしている金額は、%s ネットワーク上の取引手数料をカバーするには不十分です。トランザクションは処理されませんが、それでも Sora ネットワークの手数料が請求されます。</string>
   <string name="sora_bridge_low_amount_format_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低%sが設定されています。ご理解のほどよろしくお願いいたします。</string>
   <string name="sora_bridge_low_amount_format_alert_2">現在、安定性と安全性を確保するために、ブリッジングには最低限の額%sが必要です。ご了承ください。</string>
-  <string name="sora_card_annual_service_fee">年間サービス料€0</string>
-  <string name="sora_card_blacklisted_countires_title">適用除外</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[現在SORAカードは<b>特定の国</b>の居住者は<b>申請できません</b><br><a href=\"https://soracard.com/blacklist/\">特定の国を見る</a>]]></string>
-  <string name="sora_card_enable_card_title">カードを有効にする</string>
-  <string name="sora_card_get_sora_card">SORAカードを入手</string>
-  <string name="sora_card_title">SORAカードに法定通貨や暗号資産を補充し、オンラインや店舗で支払ったり、ATMで引き出すことができます</string>
-  <string name="sora_card_verification_successful">カードは準備中です</string>
   <string name="specify_network">ネットワークの指定</string>
   <string name="specify_network_description">アドレスの冒頭文字列が複数のネットワークに一致するため、ネットワークを指定してください</string>
   <string name="sr25519_selection_subtitle">sr25519（推奨）</string>
@@ -865,7 +955,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">選択したものを表示： %d (最大 %d)</string>
   <string name="staking_custom_validators_list_title">バリデーターの選択</string>
   <string name="staking_custom_validators_settings_filters">表示</string>
-  <string name="staking_custom_validators_settings_sort_apy">推定報酬 (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy" formatted="false">推定報酬 (% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">総ステーク (%s)</string>
   <string name="staking_custom_validators_title">カスタム・バリデーターを選択する</string>
   <string name="staking_custom_validators_update_list">リストを更新</string>
@@ -1036,7 +1126,7 @@
   <string name="staking_unbonding_limit_reached_title">ステーキング解除リクエストの制限に達しました</string>
   <string name="staking_unbondings_placeholder">ステーキング解除トランザクション履歴がここに表示されます</string>
   <string name="staking_unstaking_period">ステーキング解除期間</string>
-  <string name="staking_validator_apy_percent">推定報酬 (% APY)</string>
+  <string name="staking_validator_apy_percent" formatted="false">推定報酬 (% APY)</string>
   <string name="staking_validator_estimated_reward">推定報酬</string>
   <string name="staking_validator_info_title">バリデーター情報</string>
   <string name="staking_validator_my_oversubscribed_message">申し込み殺到、この時代ではバリデーターから報酬を受け取れません</string>
@@ -1131,7 +1221,7 @@
   <string name="view_in">%sで見る</string>
   <string name="view_wallet">ウォレットを見る</string>
   <string name="wallet_all_assets_hidden">全アセットを非表示にしました</string>
-  <string name="wallet_asset_buy_with">で購入</string>
+  <string name="wallet_asset_buy_with">%1$sで購入</string>
   <string name="wallet_asset_receive">受け取る</string>
   <string name="wallet_asset_receive_template">受信 %s</string>
   <string name="wallet_asset_send">送る</string>
@@ -1186,4 +1276,441 @@
   <string name="what_accounts_for_export">ウォレット内のどのアカウントをエクスポートしますか?</string>
   <string name="yesterday">昨日</string>
   <string name="your_collator">あなたのコレーター</string>
+
+
+  <string name="banner_addwallet_regular_button_title">Сreate or import</string>
+
+  <string name="banner_addwallet_regular_subtitle">Join the ecosystems with more than 90+ chains and fascinating features</string>
+
+  <string name="banner_addwallet_regular_title">EVM/Substrate accounts</string>
+
+  <string name="banner_addwallet_ton_button_title">Join now</string>
+
+  <string name="banner_addwallet_ton_title">Join the fastest growing ecosystem ever</string>
+
+  <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
+
+  <string name="banners_demeter_title">Demeter Protocol</string>
+
+  <plurals name="common_months_format">
+    <item quantity="one">%d month</item>
+    <item quantity="other">%d months</item>
+  </plurals>
+
+  <string name="common_network_hash">%s Hash</string>
+
+  <string name="common_refund">Refund</string>
+
+  <string name="common_see_all">See all</string>
+
+  <string name="connected_accounts_common">Connected Accounts</string>
+
+  <string name="connected_accounts_ethereum_title">EVM chain accounts</string>
+
+  <string name="connected_accounts_substrate_title">Substrate chain accounts</string>
+
+  <string name="connected_accounts_ton_title">TON chain accounts</string>
+
+  <string name="connected_accounts_bitcoin_title">Bitcoinチェーンアカウント</string>
+
+  <string name="connected_accounts_solana_title">Solanaチェーンアカウント</string>
+
+  <string name="connected_accounts_iroha_title">Irohaチェーンアカウント</string>
+
+  <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
+
+  <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
+
+  <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>
+
+  <string name="cross_chain_tx_status_done_title">All done</string>
+
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
+
+  <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
+
+  <string name="cross_chain_tx_status_source_fail_description">Transaction failed on the %s network. Please, try again.</string>
+
+  <string name="cross_chain_tx_status_source_fail_title">Transaction failed</string>
+
+  <string name="dapp_category_connected_title">Connected</string>
+
+  <string name="dapp_category_defi_title">DeFi</string>
+
+  <string name="dapp_category_featured_title">Featured</string>
+
+  <string name="dapp_category_nft_title">NFT</string>
+
+  <string name="dapp_category_utilities_title">Utilities</string>
+
+  <string name="dapp_connected_title">Connected</string>
+
+  <string name="dapp_discover_title">Discover dApp</string>
+
+  <string name="dapp_no_connected_dapps_title">No connected dApps</string>
+
+  <string name="dapp_not_found_title">No dApps were found</string>
+
+  <string name="ecosystem_options_backup_title">Backup chain accounts</string>
+
+  <string name="ecosystem_options_details_title">Chain accounts</string>
+
+  <string name="ecosystem_options_title">Account options</string>
+
+  <string name="fee_calculation_error">Something went wrong while calculating the fee. Please try again later.</string>
+
+  <string name="fee_calculation_error_inactive_account">Your account is inactive. Top up your balance to calculate the fee.</string>
+
+  <string name="onboarding_banner_regular_ecosystem_button_title">Join EVM or Substrate</string>
+
+  <string name="onboarding_banner_regular_ecosystem_title">Create or import Substrate or EVM accounts</string>
+
+  <string name="onboarding_banner_ton_ecosystem_button_title">Join TON</string>
+
+  <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
+
+  <string name="profile_tonconnect_title">Ton connect</string>
+
+  <string name="tc_connected_dapp">Connected</string>
+
+  <string name="tc_discover_dapp">Discover dApp</string>
+
+  <string name="tc_review_dapp_info">Review dApp info</string>
+
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="tc_see_all">See all</string>
+
+  <string name="tc_service_address">Service address</string>
+
+  <string name="ton_connect_alert_description">Service address</string>
+
+  <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="ton_connect_alert_title">Review dApp info</string>
+
+  <string name="ton_tonviewer_action_title">View in Tonviewer</string>
+
+  <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">アドレスを共有</string>
+  <string name="portfolio_sync_catalog_only">一部のトークンが表示されない場合があります</string>
+  <string name="portfolio_balance_update_failed">残高の更新に失敗しました</string>
+  <string name="portfolio_balances_outdated">残高が最新ではない可能性があります</string>
+  <string name="portfolio_balances_not_loaded">残高が読み込まれていません</string>
+  <string name="portfolio_balance_incl_hidden">非表示分を含む</string>
+  <plurals name="portfolio_hidden_assets_not_included">
+    <item quantity="other">非表示のアセット%1$d件は含まれていません</item>
+  </plurals>
+  <plurals name="portfolio_hidden_assets_not_included_manage">
+    <item quantity="other">非表示のアセット%1$d件は含まれていません · 管理</item>
+  </plurals>
+  <plurals name="portfolio_assets_without_price_not_included">
+    <item quantity="other">価格のないアセット%1$d件は含まれていません</item>
+  </plurals>
+  <string name="portfolio_pool_stakes_not_included">ノミネーションプールのステークは含まれていません</string>
+  <plurals name="portfolio_hidden_assets_hold_funds">
+    <item quantity="other">非表示のアセット%1$d件に残高があります</item>
+  </plurals>
+  <string name="portfolio_hidden_assets_hold_funds_description">非表示のアセットは合計に含まれていません。内容を確認するか、非表示のままにできます。</string>
+  <string name="portfolio_hidden_assets_review">確認する</string>
+  <string name="portfolio_hidden_assets_keep_hidden">非表示のままにする</string>
+  <string name="portfolio_hidden_in_previous_version">以前のバージョンで非表示</string>
+  <string name="portfolio_asset_hidden">非表示</string>
+  <string name="portfolio_show_testnets">テストネットを表示</string>
+  <string name="portfolio_show_testnets_description">テスト用トークンに価値はなく、合計には含まれません。</string>
+  <string name="portfolio_testnet_no_value">価値なし</string>
+  <string name="search_assets_hint">トークンまたはネットワークで検索</string>
+  <string name="search_assets_section_portfolio">ポートフォリオ内</string>
+  <string name="search_assets_section_other">その他のアセット</string>
+  <string name="search_assets_section_other_description">まだポートフォリオにありません。受け取るにはアセットを開いてください。</string>
+  <string name="asset_select_nothing_to_send">送信できるものはまだありません。送信可能な残高のあるアセットがここに表示されます。</string>
+  <string name="wallet_recovery_center">ウォレットの復元</string>
+  <string name="wallet_recovery_center_intro">ウォレットへのアクセスを復元するか、バックアップを確認します。他のキーを復元している間も、使用可能なキーは引き続き利用できます。</string>
+  <string name="wallet_recovery_inventory_failed">復元情報の一部を読み取れませんでした。もう一度試すか、保存済みデータをエクスポートしてください。</string>
+  <string name="wallet_recovery_identity_issue">保存済みのキーは別のアカウントに属しています。そのバックアップを別のウォレットとしてインポートしてください。この項目は閲覧専用のまま保持されます。</string>
+  <string name="wallet_recovery_missing_key">このデバイスに署名キーがありません。このアカウントに一致するキーを復元してください。</string>
+  <string name="wallet_recovery_unusable_key">この署名キーはこのデバイスでは使用できません。元のデータは保持されています。</string>
+  <string name="wallet_recovery_import_corrected">修正済みの新しいウォレットとしてインポート</string>
+  <string name="wallet_recovery_use_phrase">リカバリーフレーズで復元</string>
+  <string name="wallet_recovery_use_seed">生のシードまたは秘密鍵で復元</string>
+  <string name="wallet_recovery_use_json">JSONファイルで復元</string>
+  <string name="wallet_recovery_as_typed">このフレーズは、スペースや大文字も含めて保存時と完全に同じように入力した場合のみ、アカウントを復元できます。完全に同じ内容のバックアップを保管してください。</string>
+  <string name="wallet_recovery_backup_advisory">保存済みのリカバリーフレーズまたはシードから、この署名キーを再現できません。使用可能なキーをJSONまたは秘密鍵としてバックアップしてください。</string>
+  <string name="wallet_recovery_no_attention">現在、復元が必要なウォレットキーはありません。</string>
+  <string name="wallet_recovery_retained">保持されているウォレットデータ</string>
+  <string name="wallet_recovery_retained_intro">削除済みのウォレットや以前の修復のデータがここに保持されています。復元する前に、導出されたアカウントを確認してください。</string>
+  <string name="wallet_recovery_keep_view_only">今は閲覧専用のままにする</string>
+  <string name="wallet_recovery_restore">復元</string>
+  <string name="wallet_recovery_restore_key">ウォレットキーを復元</string>
+  <string name="wallet_recovery_restore_explanation">このアカウントのバックアップを入力してください。一致することを確認してからアクセスを復元します。既存の保存済みデータは保持されます。</string>
+  <string name="wallet_recovery_restored">ウォレットキーを復元しました</string>
+  <string name="wallet_recovery_different_key">このバックアップはこのアカウントと一致しません。フレーズ、パスワード、導出パスを確認してください。</string>
+  <string name="wallet_recovery_restore_failed">キーを復元できませんでした。保存済みデータは保持されています。バックアップを確認して、もう一度お試しください。</string>
+  <string name="wallet_recovery_fix_now">今すぐ修復</string>
+  <string name="wallet_recovery_backup_key">使用可能なキーをバックアップ</string>
+
+    <!-- Retained wallet data: authenticated preview, restore and explicit purge. -->
+    <string name="wallet_archive_open">保持されたウォレットデータを開く</string>
+    <string name="wallet_archive_intro">復元前にアドレスを確認してください。各キーは別のウォレットとして復元されます。元の保持データは残ります。ネットワークの再選択が必要な場合があります。</string>
+    <string name="wallet_archive_unlock">保持データのロックを解除</string>
+    <string name="wallet_archive_empty">保持されたウォレットデータはありません。</string>
+    <string name="wallet_archive_unproved">保存された情報の一部は使用可能であることを確認できませんでした。元の保存データとしてエクスポートできます。</string>
+    <string name="wallet_archive_exact_data">元の保存データを表示</string>
+    <string name="wallet_archive_unreadable">このデバイスではこの記録を読み取れません。保持データは変更されていません。</string>
+    <string name="wallet_archive_delete">完全に削除</string>
+    <string name="wallet_archive_delete_first">表示できないキーも含め、この保持記録全体が削除されます。別の使用可能なバックアップがある場合のみ続行してください。</string>
+    <string name="wallet_archive_delete_final">最終確認：この保持記録を完全に削除しますか？元に戻せません。他のウォレットと保持記録は残ります。</string>
+    <string name="wallet_archive_restore_confirm">このアドレスを別のウォレットとして復元しますか？元の記録は保持されます。保存済みの復元フレーズは検証が必要な場合があります。</string>
+    <string name="wallet_archive_continue_delete">最終確認へ進む</string>
+    <string name="wallet_archive_export_warning">秘密鍵や不完全な復元情報が含まれる場合があります。受け取った人が資産を操作できる可能性があります。信頼できる保存先にのみ共有してください。</string>
+    <string name="wallet_archive_share">保存データを共有</string>
+    <string name="wallet_archive_restored_name">復元したウォレット</string>
+    <string name="wallet_archive_purged">保持記録を削除しました</string>
+
+  <string name="wallet_keyloss_title">安全なストレージを復旧</string>
+  <string name="wallet_keyloss_intro">この端末では、以前の安全なストレージを現在開けません。ウォレットの記録と暗号化された鍵は保持されています。まず再試行してください。アプリを削除しないでください。</string>
+  <string name="wallet_keyloss_retry">以前の安全なストレージを試す</string>
+  <string name="wallet_keyloss_start">新しい安全なストレージを開始</string>
+  <string name="wallet_keyloss_view">保存済みウォレットを閲覧のみ</string>
+  <string name="wallet_keyloss_restart_device">以前の鍵はまだ利用できません。端末を再起動し、Fearlessを開いて再試行してください。再起動の前後で再試行に失敗した場合のみ、新しいストレージを開始できます。</string>
+  <string name="wallet_keyloss_retry_later">安全なストレージが利用できないか、復旧確認の状態が変わりました。何も削除していません。再試行してください。</string>
+  <string name="wallet_keyloss_can_start">端末の再起動後も以前の鍵を利用できません。復旧用のバックアップがあれば、新しいストレージを開始してウォレットを復元できます。以前のデータはこの端末に保持されます。</string>
+  <string name="wallet_keyloss_backup_confirmation">復元するウォレットの復旧フレーズ、シード、またはJSONバックアップを持っています。</string>
+  <string name="wallet_keyloss_consent">新しい暗号鍵では、以前の暗号化データを開けません。署名を復元するには、一致する復旧用バックアップが必要です。以前のラップされた鍵、端末内の別名、暗号化されたすべてのウォレット値を保持します。Fearlessは以前の鍵を引き続き試し、利用可能になれば再び使用します。新しいウォレットとその鍵も保持されます。</string>
+  <string name="wallet_keyloss_authenticate">続行するには端末の認証情報を確認してください。</string>
+  <string name="wallet_keyloss_cached_warning">これは保存済みの公開ウォレット記録であり、現在のネットワーク残高ではありません。ここでは署名やウォレットの変更はできません。トークン名のない金額は最小単位です。公開鍵は受取アドレスではありません。</string>
+  <string name="wallet_keyloss_incomplete">一部の保存済み記録または残高を表示できません。元のデータは保持されています。安全なストレージを再試行して完全なアクセスを復旧してください。</string>
+  <string name="wallet_keyloss_no_cached">読み取り可能な保存済みウォレットが見つかりません。保存データは変更していません。</string>
+  <string name="wallet_keyloss_working">保持データを確認中…</string>
+  <string name="wallet_keyloss_back">復旧に戻る</string>
+  <string name="wallet_keyloss_substrate_id">SubstrateアカウントID：%1$s</string>
+  <string name="wallet_keyloss_evm_address">Ethereumアドレス：%1$s</string>
+  <string name="wallet_keyloss_ton_public">TON公開鍵：%1$s</string>
+  <string name="wallet_keyloss_address">アドレス：%1$s</string>
+  <string name="wallet_keyloss_public">公開鍵：%1$s</string>
+  <string name="wallet_keyloss_balance">ネットワーク %1$s · 資産 %2$s：%3$s</string>
+    <string name="send_max">最大</string>
+    <string name="send_account_creation">アカウント作成</string>
+    <string name="send_fee_rate">手数料率</string>
+    <string name="send_sat_per_vbyte">%1$s sat/vB</string>
+    <string name="send_recent_payment">最近の送金</string>
+    <string name="send_pending_message">この送金の結果はまだ確定していません。状態を確認するか、同じ送金を再送してください。代わりの送金を作成しないでください。</string>
+    <string name="send_pending_expired">この送金のブロックハッシュは期限切れですが、すでに処理された可能性があります。状態やエクスプローラーを確認してください。結果が不明な間、Fearlessは代わりの送金に署名しません。</string>
+    <string name="send_confirmed_message">この送金はネットワークで承認されました。</string>
+    <string name="send_failed_message">ネットワークから送金失敗が報告されました。元のトランザクションは保持されています。</string>
+    <string name="send_check_status">状態を確認</string>
+    <string name="send_retry_same_payment">同じ送金を再送</string>
+    <string name="send_view_explorer">エクスプローラーで表示</string>
+    <string name="send_history_explorer">エクスプローラーで履歴を表示</string>
+    <string name="send_recovery_unavailable">送金の状態を確認できません。元のデータは保持されています。もう一度お試しください。</string>
+    <string name="send_submitted_title">送金の状態</string>
+    <string name="send_submitted_message">残高画面の「最近の送金」またはエクスプローラーで承認状態を確認してください。結果が不明な間、この送金を再作成しないでください。</string>
+    <string name="send_existing_pending">以前の送金の状態を確認する必要があります。残高画面の「最近の送金」で元の金額を確認し、同じ送金を再送できます。この新しい見積もりは送信されません。</string>
+    <string name="send_review_changed">ウォレット、手数料、残高、または見積もりが変わりました。金額画面に戻り、送金内容を再確認してください。</string>
+    <string name="send_pending_network_unavailable">この保存済みの送金の元のネットワークを確認できません。送金の記録はこの端末に保持されます。状態の確認や再送はできません。</string>
+    <string name="send_unsupported_account">このアカウントまたはトークンはこのウォレットから送金できません。標準SPLトークンに対応しています。Token-2022の送金には対応していません。</string>
+    <string name="send_storage_unavailable">保持された送金を検証できません。二重送金を防ぐため、送金は停止されています。アプリのデータを保持して、もう一度お試しください。</string>
+    <string name="send_bitcoin_address_help">Bitcoinの送金はネイティブSegWitアドレスのみ対応しています。Bitcoinではbc1q、Bitcoin Testnetではtb1qで始まるアドレスを使用してください。他の種類のアドレスへは送金できません。</string>
+    <string name="send_insufficient_spendable">利用可能残高が送金額とネットワーク手数料に足りません。保留中のBitcoinは先に承認される必要があります。</string>
+    <string name="send_bitcoin_dust">このBitcoinの金額は最小出力額を下回っています。金額を増やしてください。</string>
+    <string name="send_solana_rent">アカウントの最低残高、ネットワーク手数料、トークンアカウント作成に必要なSOLを残してください。金額を減らすか、SOLを追加してください。</string>
+    <string name="send_solana_account_invalid">署名可能なSolanaウォレットアドレスと、凍結されていない標準SPLトークンアカウントを使用してください。プログラムアドレス、不一致のアカウント、凍結トークンは使用できません。</string>
+  <string name="startup_network_refresh_unavailable">一部のネットワーク情報を更新できませんでした。ウォレットは引き続き利用できます。残高が古い場合があり、影響を受けるネットワークでは送信できない場合があります。再試行するか、そのまま続けてください。</string>
+  <string name="startup_settings_refresh_unavailable">起動時の設定の一部を更新できませんでした。ウォレットは引き続き利用できます。再試行するか、そのまま続けてください。</string>
+  <string name="startup_app_update_notice">このバージョンはサポートされなくなりました。ウォレットに進み、この端末に保存されている復元情報にアクセスするか、アップデートを確認できます。</string>
+  <string name="fw_font_licenses">フォントのライセンス</string>
+  <string name="wallet_recovery_back">戻る</string>
+  <string name="fw_loading_in_progress">処理中</string>
+
+  <string name="pool_join_recovery_title">前回のプール取引</string>
+  <string name="pool_join_recovery_pending">前回のプール取引の状態が未確認です。別のプール取引を行う前に状態を確認してください。この確認で署名や再送信は行われません。</string>
+  <string name="pool_join_recovery_checking">確定済みブロックを確認しています。確認中も前の画面に戻れます。</string>
+  <string name="pool_join_recovery_not_found">確認したブロックに元の取引が見つかりませんでした。状態は未確認のままです。以前のブロックを確認するか、時間をおいて最新のブロックを再確認してください。</string>
+  <string name="pool_join_recovery_unavailable">取引の状態を確認できませんでした。新しいプール取引は作成されていません。元の取引情報を保存し、後でもう一度お試しください。</string>
+  <string name="pool_join_recovery_legacy">この古い試行には開始時のブロック情報がないため、ここで安全に解除できません。取引ハッシュを保存し、別のプール取引を行う前に状態を確認してください。</string>
+  <string name="pool_join_recovery_finalized">設定したノードによると、元の取引は確定済みブロックに含まれています。ステーキングの成功を示すものではありません。プールの状態を確認してから新しい操作の確認を始めてください。</string>
+  <string name="pool_join_recovery_hash">取引ハッシュ</string>
+  <string name="pool_join_recovery_recent">最新のブロックを確認</string>
+  <string name="pool_join_recovery_older">以前のブロックを確認</string>
+  <string name="pool_join_recovery_return">プールに戻る</string>
+
+    <string name="pool_join_recovery_loading">この端末に保存されたプール取引を読み込んでいます…</string>
+    <string name="pool_join_recovery_empty">このネットワークのこのアカウントには、未解決のプール取引は保存されていません。プールに戻って現在の状態を確認してください。</string>
+  <string name="pool_recovery_return_earn">「Earn」に戻る</string>
+  <string name="pool_recovery_state_control">プール状態の管理</string>
+
+  <!-- Offline, authenticated saved endpoint recovery. -->
+  <string name="saved_endpoints_title">保存済みエンドポイント</string>
+  <string name="saved_endpoints_intro">この端末に保存されたエンドポイントを確認します。この画面を開いても接続や現在の接続先の変更は行いません。</string>
+  <string name="saved_endpoints_locked">保存済みエンドポイントを見るにはロックを解除してください。非公開のアクセス情報が含まれる場合があります。</string>
+  <string name="saved_endpoints_unlock">保存済みエンドポイントのロックを解除</string>
+  <string name="saved_endpoints_refresh">再読み込み</string>
+  <string name="saved_endpoints_loading">保存済みエンドポイントを読み込み中…</string>
+  <string name="saved_endpoints_read_failed">保存済みエンドポイントを読み込めませんでした。表示中の記録は前回正常に読み込んだものです。再試行するか、後でもう一度お試しください。</string>
+  <string name="saved_endpoints_empty">このページに記録がありません。再読み込みすると最初に戻ります。</string>
+  <string name="saved_endpoints_absent">保存済みエンドポイントのアーカイブは見つかりませんでした。</string>
+  <string name="saved_endpoints_escaped">空白が分かるように値を引用符で囲んでいます。バックスラッシュと不可視文字はエスケープ表記で表示します。</string>
+  <string name="saved_endpoints_record">保存済み記録 %1$s</string>
+  <string name="saved_endpoints_name">保存された名前</string>
+  <string name="saved_endpoints_url">保存されたエンドポイント</string>
+  <string name="saved_endpoints_network_code">保存されたネットワークコード：%1$s。現在のネットワークは選択されません。</string>
+  <string name="saved_endpoints_unknown">不明</string>
+  <string name="saved_endpoints_previous">前の記録</string>
+  <string name="saved_endpoints_next">次の記録</string>
+  <string name="saved_endpoints_not_saved">値は保存されていません。</string>
+  <string name="saved_endpoints_unrecognized">保存された値をテキストとして認識できません。値はこの端末に保持されています。</string>
+  <string name="saved_endpoints_too_large">この値は大きすぎるため、この画面では表示できません。値全体はこの端末に保持されています。</string>
+  <string name="saved_endpoints_invalid_text">この値をテキストに変換できません。元のバイト列はこの端末に保持されています。</string>
+  <string name="saved_endpoints_bytes">保存サイズ：%1$s バイト</string>
+  <string name="saved_endpoints_unlock_failed">ロック解除を開始できませんでした。もう一度お試しください。</string>
+
+  <!-- Complete existing production navigation, portfolio and safety copy. -->
+  <string name="cross_chain_route_checking">確認済みの経路をチェック中…</string>
+  <string name="cross_chain_destination_unavailable_message">Fearless Walletは、送信先ネットワーク上の資産または受取人の残高を確認できなかったため、何も送信していません。接続を確認して、もう一度お試しください。</string>
+  <string name="cross_chain_destination_fee_included">送信先で送金額から差し引かれます</string>
+  <string name="cross_chain_pending_message">このアカウントからの以前のクロスチェーン送金が送信された可能性がありますが、結果は不明です。状態を確認するまで、このアカウントから新しいクロスチェーン送金は送信されません。確認では署名も再送信も行いません。</string>
+  <string name="cross_chain_pending_not_found">以前の送金はファイナライズ済みのブロックに見つかりませんでした。署名から数分後に期限切れになるまでは、まだ取り込まれる可能性があります。後でもう一度確認してください。</string>
+  <string name="cross_chain_pending_included">以前の送金は送信元ネットワークのファイナライズ済みブロックに含まれているため、送信されています。到着を確認するものではないので、送信先ネットワークで受取人の残高を確認してください。</string>
+  <string name="cross_chain_pending_expired">以前の送金は取り込まれないまま期限切れになったため、実行されておらず、資金は移動していません。もう一度送信できます。</string>
+  <string name="cross_chain_pending_unavailable">以前の送金の状態を確認できませんでした。送金はこのデバイスに保持されたままで、新しい送信は行われません。接続を確認して、もう一度お試しください。</string>
+  <string name="cross_chain_protocol_xcm">プロトコル：確認済みの XCM 経路</string>
+  <string name="cross_chain_no_supported_route">このウォレットと現在の本番ネットワーク一覧に対応する経路はありません。</string>
+  <string name="cross_chain_route_protocol">プロトコル：%1$s</string>
+  <string name="cross_chain_route_minimum_value">最小額：%1$s %2$s</string>
+  <string name="cross_chain_route_minimum_unknown">最小額：この確認済みプロバイダーからは提供されていません</string>
+  <string name="cross_chain_route_origin_fee">現在の送信元手数料：%1$s %2$s</string>
+  <string name="cross_chain_route_destination_fee">現在の送信先手数料：%1$s %2$s</string>
+  <string name="cross_chain_route_estimated_time">所要時間の目安：%1$s</string>
+  <string name="cross_chain_route_estimated_time_unknown">所要時間の目安：この確認済みプロバイダーからは提供されていません</string>
+  <string name="cross_chain_route_warning">警告：%1$s</string>
+  <string name="connection_add_ton_account">TON アカウントを追加</string>
+  <string name="connection_add_signing_account">Substrate または EVM アカウントを追加</string>
+  <string name="tabbar_portfolio_title">ポートフォリオ</string>
+  <string name="tabbar_defi_title">DeFi</string>
+  <string name="tabbar_cross_chain_title">クロス・チェーン</string>
+  <string name="settings_section_wallets_accounts">ウォレットとアカウント</string>
+  <string name="settings_section_networks_assets">ネットワークと資産</string>
+  <string name="settings_section_connections">接続</string>
+  <string name="settings_section_security">セキュリティ</string>
+  <string name="settings_section_preferences">環境設定</string>
+  <string name="settings_manage_assets">アセットの管理</string>
+  <string name="portfolio_detected_assets">検出された資産（%1$d）</string>
+  <string name="portfolio_detected_assets_description">チェーン上で見つかりました。使用前にメタデータを確認してください。</string>
+  <string name="portfolio_price_unavailable">価格を取得できません</string>
+  <string name="portfolio_asset_verified">確認済み</string>
+  <string name="portfolio_asset_unverified">未確認</string>
+  <string name="portfolio_asset_metadata_missing">メタデータがありません</string>
+  <string name="portfolio_sync_updated">更新：%1$s</string>
+  <string name="portfolio_sync_stale_since">情報が古くなっています・最終更新：%1$s</string>
+  <string name="portfolio_sync_error">同期に失敗しました・最後に取得した残高を表示中</string>
+  <string name="portfolio_sync_pending">最初の資産スキャンを待っています</string>
+  <string name="portfolio_sync_limited">資産の検出範囲が限られています</string>
+  <string name="common_collapse">折りたたむ</string>
+  <string name="common_expand">展開する</string>
+  <plurals name="portfolio_assets_count">
+    <item quantity="other">%1$d 個の資産</item>
+  </plurals>
+  <string name="ux_choose_network">ネットワークを選択</string>
+  <string name="ux_network_selection_title">どの資産を使いますか？</string>
+  <string name="ux_network_selection_description">このウォレットのネットワークを選択してください。復元する場合は既存のウォレットと同じネットワークを使用してください。後から別のウォレットを追加できます。</string>
+  <string name="ux_networks_ethereum_polkadot">Ethereum、Polkadot と互換ネットワーク</string>
+  <string name="ux_assets_ethereum_polkadot">ETH、DOT など</string>
+  <string name="ux_network_ton">TON ネットワーク</string>
+  <string name="ux_asset_ton">トンコイン（TON）</string>
+  <string name="ux_receive_network">ネットワーク：%1$s</string>
+  <string name="ux_receive_instruction">このアドレスには %2$s ネットワーク上の %1$s のみを送信してください。</string>
+  <string name="ux_receive_qr">%2$s 上で %1$s を受け取る</string>
+  <string name="ux_backup_status">ウォレットをバックアップ</string>
+  <string name="ux_backup_description">資金へのアクセスを復元できるよう、復元方法を保存してください。</string>
+  <string name="ux_swap_direction">支払う資産と受け取る資産を入れ替える</string>
+  <string name="ux_execution_details">実行の詳細</string>
+  <string name="ux_show_details">実行の詳細を表示</string>
+  <string name="ux_hide_details">実行の詳細を隠す</string>
+  <string name="ux_switch_wallet">ウォレットを切り替える</string>
+  <string name="ux_scan">QR コードをスキャン</string>
+  <string name="ux_search">検索</string>
+  <string name="ux_more">その他のオプション</string>
+  <string name="ux_filter">絞り込み</string>
+  <string name="ux_sort">並べ替え</string>
+  <string name="ux_close">閉じる</string>
+  <string name="ux_copy">コピー</string>
+  <string name="ux_share">シェア</string>
+  <string name="ux_send_maximum">最大額を送信してこのネットワークアカウントを閉じる</string>
+  <string name="ux_send_maximum_description">アカウントの準備金も使用します。このアカウントを再び使用するには新たな入金が必要になる場合があります。続行する前にネットワークの警告を確認します。</string>
+  <string name="ux_staking_estimate">推定年間報酬：%s</string>
+  <string name="ux_staking_variability">報酬は推定値であり、変動する場合があります。ネットワークの状況、プール手数料、バリデーターの稼働状況が報酬に影響します。</string>
+  <string name="ux_pool_operator_options">プール運営者向けオプション</string>
+  <string name="ux_pool_operator_description">プールを作成すると、バリデーターと設定の管理を行います。既存のプールでステーキングするには、プールに参加を選択してください。</string>
+  <string name="ux_tab_wallet">ウォレット</string>
+  <string name="ux_tab_earn">運用する</string>
+  <string name="ux_tab_swap">スワップ</string>
+  <string name="ux_tab_transfer">送信</string>
+  <string name="ux_network_transfer">別のネットワークへ送金</string>
+  <string name="ux_back">戻る</string>
+  <string name="ux_swap_settings">スワップ設定</string>
+  <string name="saved_endpoints_inspect_name">保存された名前を確認</string>
+  <string name="saved_endpoints_inspect_url">保存された接続先を確認</string>
+  <string name="saved_endpoints_part_range">バイト %1$s–%2$s（全 %3$s バイト）</string>
+  <string name="saved_endpoints_part_empty">バイトオフセット %1$s にはデータがありません。現在のサイズ: %2$s バイト。</string>
+  <string name="saved_endpoints_part_escaped">保存された値の一部を表示しています。文字として表示できないバイトは \\xNN で示されます。</string>
+  <string name="saved_endpoints_part_unavailable">この保存された値は利用できなくなりました。一覧に戻って更新してください。</string>
+  <string name="saved_endpoints_part_previous">前の部分</string>
+  <string name="saved_endpoints_part_next">次の部分</string>
+  <string name="saved_endpoints_part_return">保存された接続先の一覧に戻る</string>
+  <string name="saved_endpoint_collection">記録の種類：%1$s</string>
+  <string name="saved_endpoint_source_legacy">旧形式の保存済みエンドポイント</string>
+  <string name="saved_endpoint_source_historical">最初に保存された記録</string>
+  <string name="saved_endpoint_source_entry">アップグレード開始時の記録</string>
+  <string name="saved_endpoint_source_current">前回のアップグレード中に保存された記録</string>
+  <string name="saved_endpoint_source_owned">現在のエンドポイント</string>
+  <string name="saved_endpoint_source_absent">この種類の記録はこの端末に保存されていません。</string>
+  <string name="saved_endpoint_historical_notice">過去の記録を表示しても現在の接続は変更されません。</string>
+  <string name="saved_endpoint_deleted">削除済みのエンドポイント — 復旧用に保持</string>
+  <string name="saved_endpoint_attached">ネットワークに関連付け済み</string>
+  <string name="saved_endpoint_pending">ネットワークへの関連付け待ち</string>
+  <string name="saved_endpoint_changed">この記録は変更されました。一覧に戻り、現在の記録を選択してください。</string>
+  <string name="saved_endpoint_inspect_field">%1$sを確認</string>
+  <string name="saved_endpoint_chain_reference">保存されたネットワーク参照</string>
+  <string name="saved_endpoint_network_type">保存されたネットワークコード</string>
+  <string name="saved_endpoint_default_value">保存された既定値</string>
+  <string name="saved_endpoint_selection_value">保存された選択値</string>
+
+  <!-- Authenticated offline endpoint choices. -->
+  <string name="saved_endpoint_choice_edit">保存した選択を編集</string>
+  <string name="saved_endpoint_choice_title">保存する接続先の選択</string>
+  <string name="saved_endpoint_choice_intro">ネットワークを選び、名前とURLを入力してください。元の保存記録は引き続き利用できます。保存してもネットワークには接続しません。</string>
+  <string name="saved_endpoint_choice_target">この接続先のネットワーク</string>
+  <string name="saved_endpoint_choice_choose">このネットワークを選ぶ</string>
+  <string name="saved_endpoint_choice_selected">選択したネットワーク：%1$s</string>
+  <string name="saved_endpoint_choice_unavailable">保存された情報では、このネットワークを選択できません。</string>
+  <string name="saved_endpoint_choice_empty">この端末に保存されたネットワークはありません。ウォレットに戻り、ネットワークが利用可能になってからもう一度お試しください。</string>
+  <string name="saved_endpoint_choice_refresh_targets">ネットワークを再読み込み</string>
+  <string name="saved_endpoint_choice_save">オフラインで保存</string>
+  <string name="saved_endpoint_choice_saving">選択を保存中…</string>
+  <string name="saved_endpoint_choice_saved">この端末に保存しました。接続の検証はまだ完了していません。</string>
+  <string name="saved_endpoint_choice_failed">この選択を保存できませんでした。再試行するか、編集内容を保持したまま保存状態を再読み込みしてください。</string>
+  <string name="saved_endpoint_choice_reload">編集内容を保持して再読み込み</string>
+  <string name="saved_endpoint_choice_invalid">テキストが長すぎるか、未対応の文字が含まれています。短くしてもう一度お試しください。</string>
+  <string name="saved_endpoint_choice_missing">保存する前にURLを入力し、ネットワークを選択してください。</string>
+  <string name="saved_endpoint_choice_unsupported">このネットワークの検証にはまだ対応していません。未検証の選択として保存できます。</string>
+  <string name="saved_endpoint_attachment_intro">保存したURLが選択したネットワークと一致するか検証します。接続先を追加または復元しても、使用する接続先としては選択されません。</string>
+  <string name="saved_endpoint_attachment_add">検証して接続先を追加</string>
+  <string name="saved_endpoint_attachment_restore">検証して接続先を復元</string>
+  <string name="saved_endpoint_attachment_working">接続先を検証中…</string>
+  <string name="saved_endpoint_attachment_added">接続先を追加しました。使用する接続先としては選択されていません。</string>
+  <string name="saved_endpoint_attachment_restored">接続先を復元しました。使用する接続先としては選択されていません。一覧に戻ってこの記録を更新してください。</string>
+  <string name="saved_endpoint_attachment_present_active">この接続先はすでに選択されています。新たな検証は行っていません。</string>
+  <string name="saved_endpoint_attachment_present_inactive">この接続先はすでに追加されていますが、選択されていません。新たな検証は行っていません。</string>
+  <string name="saved_endpoint_attachment_mismatch">接続先から異なるネットワーク識別情報が返されました。何も追加していません。</string>
+  <string name="saved_endpoint_attachment_invalid">接続先から無効な応答が返されました。何も追加していません。</string>
+  <string name="saved_endpoint_attachment_unreachable">接続先に到達できませんでした。何も追加していません。</string>
+  <string name="saved_endpoint_attachment_large">接続先の応答が大きすぎました。何も追加していません。</string>
+  <string name="saved_endpoint_attachment_timeout">検証がタイムアウトしました。何も追加していません。</string>
+  <string name="saved_endpoint_attachment_busy">検証処理が混み合っています。もう一度お試しください。</string>
+  <string name="saved_endpoint_attachment_failed">接続先の状態を確認できませんでした。一覧に戻り、保存した選択内容を更新してから、もう一度お試しください。</string>
+  <string name="saved_endpoint_attachment_source_changed">保存元の記録が変更されています。選択内容を確認し、もう一度保存してから検証してください。</string>
+  <string name="portfolio_balance_loading">残高を読み込み中…</string>
+  <string name="portfolio_prices_loading">価格を読み込み中…</string>
+  <string name="portfolio_balance_partial">一部の残高</string>
+  <string name="portfolio_balance_unavailable">残高を取得できません</string>
 </resources>

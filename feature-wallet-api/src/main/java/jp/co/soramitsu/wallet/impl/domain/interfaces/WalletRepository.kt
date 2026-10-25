@@ -11,8 +11,8 @@ import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -49,6 +49,9 @@ interface WalletRepository {
         batchAll: Boolean = false
     ): BigDecimal
 
+    /** Returns a fresh exact protocol maximum for the selected wallet and recipient. */
+    suspend fun getTransferMaxAmount(chain: Chain, transfer: Transfer): BigDecimal = throw UnsupportedOperationException()
+
     suspend fun observeTransferFee(
         chain: Chain,
         transfer: Transfer
@@ -78,6 +81,8 @@ interface WalletRepository {
     suspend fun getPhishingInfo(address: String): PhishingLocal?
 
     suspend fun getAccountFreeBalance(chainAsset: CoreAsset, accountId: AccountId): BigInteger
+
+    suspend fun getAccountSpendableBalance(chainAsset: CoreAsset, accountId: AccountId): BigInteger
 
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 

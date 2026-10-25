@@ -1,68 +1,52 @@
 package jp.co.soramitsu.common.compose.theme.tokens
 
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Green40
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Green5
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Grey40
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Grey5
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Grey50
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Grey90
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Outline
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Pink40
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Pink5
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Polkaswap40
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Polkaswap5
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.White100
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.White30
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.White40
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.White50
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Yellow30
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Yellow5
+import jp.co.soramitsu.common.compose.theme.fw.FwLegacyPalette
 
 object NightThemeColors {
 
-    val AccentPrimary = Pink40
+    val AccentPrimary = FwLegacyPalette.nightAccentPrimary
 
-    val AccentPrimaryContainer = Pink5
+    val AccentPrimaryContainer = FwLegacyPalette.nightAccentPrimaryContainer
 
-    val AccentSecondary = Grey5
+    val AccentSecondary = FwLegacyPalette.nightAccentSecondary
 
-    val AccentSecondaryContainer = Grey50
+    val AccentSecondaryContainer = FwLegacyPalette.nightAccentSecondaryContainer
 
-    val AccentTertiary = Grey5
+    val AccentTertiary = FwLegacyPalette.nightAccentTertiary
 
-    val AccentTertiaryContainer = Grey50
+    val AccentTertiaryContainer = FwLegacyPalette.nightAccentTertiaryContainer
 
-    val BgPage = Grey90
+    val BgPage = FwLegacyPalette.nightBgPage
 
-    val BgSurface = Grey40
+    val BgSurface = FwLegacyPalette.nightBgSurface
 
-    val BgSurfaceVariant = White30
+    val BgSurfaceVariant = FwLegacyPalette.nightBgSurfaceVariant
 
-    val BgSurfaceInverted = Grey5
+    val BgSurfaceInverted = FwLegacyPalette.nightBgSurfaceInverted
 
-    val FgPrimary = White100
+    val FgPrimary = FwLegacyPalette.nightFgPrimary
 
-    val FgSecondary = White50
+    val FgSecondary = FwLegacyPalette.nightFgSecondary
 
-    val FgTertiary = White40
+    val FgTertiary = FwLegacyPalette.nightFgTertiary
 
-    val FgInverted = Grey50
+    val FgInverted = FwLegacyPalette.nightFgInverted
 
-    val FgOutline = Outline
+    val FgOutline = FwLegacyPalette.nightFgOutline
 
-    val StatusSuccess = Green40
+    val StatusSuccess = FwLegacyPalette.nightStatusSuccess
 
-    val StatusSuccessContainer = Green5
+    val StatusSuccessContainer = FwLegacyPalette.nightStatusSuccessContainer
 
-    val StatusWarning = Yellow30
+    val StatusWarning = FwLegacyPalette.nightStatusWarning
 
-    val StatusWarningContainer = Yellow5
+    val StatusWarningContainer = FwLegacyPalette.nightStatusWarningContainer
 
-    val StatusError = Pink40
+    val StatusError = FwLegacyPalette.nightStatusError
 
-    val StatusErrorContainer = Pink5
+    val StatusErrorContainer = FwLegacyPalette.nightStatusErrorContainer
 
-    val AdditionalPolkaswap = Polkaswap40
+    val AdditionalPolkaswap = FwLegacyPalette.nightAdditionalPolkaswap
 
-    val AdditionalPolkaswapContainer = Polkaswap5
+    val AdditionalPolkaswapContainer = FwLegacyPalette.nightAdditionalPolkaswapContainer
 }

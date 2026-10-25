@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import com.valentinilk.shimmer.shimmer
 import java.math.BigDecimal
@@ -78,7 +79,8 @@ fun AmountInput(
     onInput: (BigDecimal) -> Unit = {},
     onInputFocusChange: (Boolean) -> Unit = {},
     onTokenClick: () -> Unit = {},
-    onKeyboardDone: () -> Unit = {}
+    onKeyboardDone: () -> Unit = {},
+    stacked: Boolean = false
 ) {
     val textColorState = when {
         state.tokenAmount.isZero() -> {
@@ -136,9 +138,7 @@ fun AmountInput(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            val tokenSelector: @Composable () -> Unit = {
                 Row(
                     modifier = if (state.allowAssetChoose) {
                         Modifier
@@ -162,6 +162,8 @@ fun AmountInput(
                         )
                     }
                 }
+            }
+            val amountField: @Composable () -> Unit = {
                 val usePrecision = maxOf(state.precision, state.tokenAmount.precision())
                 BasicNumberInput(
                     modifier = Modifier
@@ -176,7 +178,7 @@ fun AmountInput(
                             }
                         ),
                     onFocusChanged = onInputFocusChange,
-                    textStyle = MaterialTheme.customTypography.displayS.copy(textAlign = TextAlign.End, color = textColorState),
+                    textStyle = MaterialTheme.customTypography.displayS.copy(fontSize = if (stacked) 20.sp else MaterialTheme.customTypography.displayS.fontSize, textAlign = TextAlign.End, color = textColorState),
                     enabled = state.inputEnabled,
                     precision = usePrecision,
                     initial = state.tokenAmount,
@@ -196,6 +198,11 @@ fun AmountInput(
                     },
                     onKeyboardDone = onKeyboardDone
                 )
+            }
+            if (stacked) {
+                Column(Modifier.fillMaxWidth()) { tokenSelector(); amountField() }
+            } else {
+                Row(Modifier.fillMaxWidth()) { tokenSelector(); amountField() }
             }
             MarginVertical(margin = 4.dp)
             B1(text = state.totalBalance, color = black2)
@@ -234,7 +241,7 @@ private fun RowScope.TokenIcon(
 private fun AmountInputPreview() {
     val state = AmountInputViewState(
         tokenName = "KSM",
-        tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+        tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg",
         totalBalance = "Balance: 20.0",
         fiatAmount = "$120.0",
         tokenAmount = BigDecimal.ONE,

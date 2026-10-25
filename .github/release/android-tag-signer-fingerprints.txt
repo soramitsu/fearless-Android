@@ -1,0 +1,8 @@
+# Fail-closed production contract.
+#
+# Replace the line below, in a reviewed pull request, with the exact
+# `ssh-keygen -l -E sha256` fingerprint authorized to sign Android release
+# tags. Exactly one canonical SHA256 fingerprint is allowed. The matching
+# one-line OpenSSH Ed25519 public key must be stored as one-line base64 in the
+# ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64 GitHub Actions repository variable.
+UNCONFIGURED_ANDROID_RELEASE_TAG_SIGNER_FINGERPRINT

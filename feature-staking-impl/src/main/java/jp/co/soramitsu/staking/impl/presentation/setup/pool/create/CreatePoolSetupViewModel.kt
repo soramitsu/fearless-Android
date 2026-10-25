@@ -1,5 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.setup.pool.create
 
+import jp.co.soramitsu.staking.impl.presentation.common.requireStakingBalance
+
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
@@ -27,21 +29,26 @@ import jp.co.soramitsu.common.validation.MinPoolCreationThresholdException
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeEstimation
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolCreateFlowState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -61,6 +68,15 @@ class CreatePoolSetupViewModel @Inject constructor(
         private const val STATE_TOGGLER_WALLET_SELECTOR_TAG = "state_toggler"
     }
 
+    private val createFlow = stakingPoolSharedStateProvider.createFlowState
+    private val originalDraft = createFlow.capture()
+    private val mainReview = requireNotNull(originalDraft.value).context
+
+    private val review = stakingPoolSharedStateProvider.poolContextReview(mainReview)
+    private var formRevision = Any()
+    private val pendingSelections = mutableMapOf<String, Any>()
+    private val selectionsPendingFlow = MutableStateFlow(false)
+
     private val asset: Asset
     private val address: String
     private val accountId: AccountId
@@ -69,7 +85,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private var quickInputs: Map<Double, BigDecimal> = mapOf()
 
     init {
-        val mainState = stakingPoolSharedStateProvider.requireMainState
+        val mainState = requireNotNull(mainReview.value)
 
         asset = mainState.requireAsset
         address = mainState.requireAddress
@@ -84,6 +100,8 @@ class CreatePoolSetupViewModel @Inject constructor(
                 calculateAvailableAmount = { asset.transferable },
                 calculateFee = {
                     poolInteractor.estimateCreateFee(
+                        chain,
+                        asset.metaId,
                         512.toBigInteger(),
                         this@CreatePoolSetupViewModel.javaClass.name,
                         it,
@@ -114,13 +132,14 @@ class CreatePoolSetupViewModel @Inject constructor(
         "...",
         "...",
         FeeInfoViewState.default,
-        ButtonViewState(resourceManager.getString(R.string.common_create))
+        ButtonViewState(resourceManager.getString(R.string.common_create), enabled = false)
     )
 
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
-        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
+        val tokenBalance = asset.transferable?.formatCrypto(asset.token.configuration.symbol)
+            ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable)
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
@@ -158,16 +177,22 @@ class CreatePoolSetupViewModel @Inject constructor(
     }
 
     private val feeInPlanksFlow: MutableStateFlow<BigInteger> = MutableStateFlow(BigInteger.ZERO)
+    private val feeEstimation = FeeEstimation(resourceManager)
 
-    private val feeInfoViewState = combine(
+    private val feeInfoViewState = jp.co.soramitsu.common.utils.combine(
         poolIdFlow,
         enteredPoolNameFlow,
         enteredAmountFlow,
         selectedNominatorFlow,
-        selectedStateTogglerFlow
-    ) { poolId, poolName, enteredAmount, selectedNominator, selectedStateToggler ->
+        selectedStateTogglerFlow,
+        feeEstimation.retryFlow
+    ) { poolId, poolName, enteredAmount, selectedNominator, selectedStateToggler, _ ->
         val amountInPlanks = asset.token.planksFromAmount(enteredAmount)
-        val feeInPlanks = poolInteractor.estimateCreateFee(poolId.toBigInteger(), poolName, amountInPlanks, address, selectedNominator, selectedStateToggler)
+        // Runs eagerly in viewModelScope: a failed estimation (on Polkadot and Kusama pools moved to Asset Hub) must
+        // neither crash the app nor stop later ones.
+        val feeInPlanks = feeEstimation.estimate {
+            poolInteractor.estimateCreateFee(chain, asset.metaId, poolId.toBigInteger(), poolName, amountInPlanks, address, selectedNominator, selectedStateToggler)
+        } ?: return@combine FeeInfoViewState.default
         feeInPlanksFlow.value = feeInPlanks
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
@@ -183,11 +208,15 @@ class CreatePoolSetupViewModel @Inject constructor(
         addressDisplayFlow,
         feeInfoViewState,
         nominatorDisplayFlow,
-        stateTogglerDisplayFlow
-    ) { amountInputState, poolId, poolNameInput, currentAddressDisplay, feeInfo, selectedNominator, selectedStateToggler ->
-        val isButtonEnabled =
+        stateTogglerDisplayFlow,
+        feeEstimation.failureFlow,
+        selectionsPendingFlow
+    ) { amountInputState, poolId, poolNameInput, currentAddressDisplay, feeInfo, selectedNominator, selectedStateToggler, feeFailure, selectionsPending ->
+        // Without a fee the button stays enabled when its estimation failed, so that tapping it says why.
+        val isButtonEnabled = asset.transferable != null && !selectionsPending && (feeFailure != null || (
             poolNameInput.text.isNotEmpty() && amountInputState.tokenAmount > BigDecimal.ZERO &&
                 feeInfo.feeAmount.isNullOrEmpty().not()
+            ))
 
         CreatePoolSetupViewState(
             poolNameInputViewState = poolNameInput,
@@ -211,89 +240,163 @@ class CreatePoolSetupViewModel @Inject constructor(
     }
 
     override fun onNavigationClick() {
-        router.back()
+        if (review.revoke()) router.back()
+    }
+
+    fun onDismissed() {
+        review.revoke()
+    }
+
+    override fun onCleared() {
+        review.revoke()
+        super.onCleared()
     }
 
     override fun onPoolNameInput(text: String) {
-        enteredPoolNameFlow.value = text
+        review.withCurrent {
+            if (enteredPoolNameFlow.value != text) {
+                formRevision = Any()
+                enteredPoolNameFlow.value = text
+            }
+        }
     }
 
     override fun onTokenAmountInput(value: BigDecimal?) {
-        enteredAmountFlow.value = value.orZero()
+        review.withCurrent {
+            if (enteredAmountFlow.value != value.orZero()) {
+                formRevision = Any()
+                enteredAmountFlow.value = value.orZero()
+            }
+        }
     }
 
     override fun onNominatorClick() {
-        router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
+        review.withCurrent {
+            pendingSelections.remove(NOMINATOR_WALLET_SELECTOR_TAG)
+            selectionsPendingFlow.value = pendingSelections.isNotEmpty()
+            formRevision = Any()
+            router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
+        }
     }
 
     override fun onStateTogglerClick() {
-        router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
+        review.withCurrent {
+            pendingSelections.remove(STATE_TOGGLER_WALLET_SELECTOR_TAG)
+            selectionsPendingFlow.value = pendingSelections.isNotEmpty()
+            formRevision = Any()
+            router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
+        }
+    }
+
+    private data class SetupRequest(
+        val draft: StakingPoolSharedState.Snapshot<StakingPoolCreateFlowState>,
+        val formRevision: Any,
+        val fields: StakingPoolCreateFlowState?,
+        val fee: BigInteger
+    )
+
+    private fun SetupRequest.isCurrent(): Boolean =
+        formRevision === this@CreatePoolSetupViewModel.formRevision && pendingSelections.isEmpty() &&
+            draft.isSameFlowAs(originalDraft) && createFlow.isEditable(draft)
+
+    /** An error belongs to the same form, draft, wallet and screen as its validation. */
+    private fun present(request: SetupRequest, operation: () -> Unit) {
+        review.withCurrent { if (request.isCurrent()) operation() }
     }
 
     override fun onCreateClick() {
+        val request = review.withCurrent {
+            val draft = createFlow.capture()
+            SetupRequest(draft, formRevision, draft.value?.copy(
+                poolName = enteredPoolNameFlow.value,
+                amountInPlanks = asset.token.planksFromAmount(enteredAmountFlow.value),
+                poolId = poolIdFlow.value,
+                nominatorAddress = selectedNominatorFlow.value,
+                stateTogglerAddress = selectedStateTogglerFlow.value
+            ), feeInPlanksFlow.value)
+        } ?: return
+        val fields = request.fields ?: return
+        if (!request.isCurrent()) return
         viewModelScope.launch {
-            val amount = enteredAmountFlow.value
-            val amountInPlanks = asset.token.planksFromAmount(amount)
-
-            val existentialDeposit = stakingInteractor.existentialDeposit(chain.id)
-            val fee = feeInPlanksFlow.value
-            val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
-
             try {
-                val minToCreate = poolInteractor.getMinToCreate(chain.id)
-                if (amountInPlanks < minToCreate) {
-                    val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
-                    showError(MinPoolCreationThresholdException(resourceManager, minToCreateFormatted))
+                if (!review.isCurrent() || !request.isCurrent()) return@launch
+                if (feeEstimation.hasFailed) {
+                    present(request) { showError(feeEstimation.missingFeeError()) }
                     return@launch
                 }
-            } catch (e: NullPointerException) {
-                showError(e.message.orEmpty())
-                return@launch
+                val existentialDeposit = stakingInteractor.existentialDeposit(chain.id)
+                currentCoroutineContext().ensureActive()
+                if (!review.isCurrent() || !request.isCurrent()) return@launch
+                val minToCreate = poolInteractor.getMinToCreate(chain.id)
+                currentCoroutineContext().ensureActive()
+                if (!review.isCurrent() || !request.isCurrent()) return@launch
+                val amountInPlanks = fields.requireAmountInPlanks
+                if (amountInPlanks < minToCreate) {
+                    val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
+                    present(request) { showError(MinPoolCreationThresholdException(resourceManager, minToCreateFormatted)) }
+                    return@launch
+                }
+                val transferableInPlanks = asset.token.planksFromAmount(requireStakingBalance(asset.transferable, resourceManager))
+                if ((amountInPlanks + request.fee + existentialDeposit) > transferableInPlanks) {
+                    present(request) { showError(StakeInsufficientBalanceException(resourceManager)) }
+                    return@launch
+                }
+                present(request) {
+                    if (stakingPoolSharedStateProvider.publishCreateSetup(request.draft, fields)) {
+                        review.withCurrent {
+                            if (formRevision === request.formRevision) router.openCreatePoolConfirm()
+                        }
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                present(request) { showError(error) }
             }
-
-            if ((amountInPlanks + fee + existentialDeposit) > transferableInPlanks) {
-                showError(StakeInsufficientBalanceException(resourceManager))
-                return@launch
-            }
-
-            val poolName = enteredPoolNameFlow.value
-            val poolId = poolIdFlow.value
-            val nominatorAddress = selectedNominatorFlow.value
-            val stateTogglerAddress = selectedStateTogglerFlow.value
-
-            val createFlow = stakingPoolSharedStateProvider.createFlowState
-            createFlow.mutate { nullableState ->
-                val state = requireNotNull(nullableState)
-                state.copy(
-                    poolName = poolName,
-                    amountInPlanks = amountInPlanks,
-                    poolId = poolId,
-                    nominatorAddress = nominatorAddress,
-                    stateTogglerAddress = stateTogglerAddress
-                )
-            }
-            router.openCreatePoolConfirm()
         }
     }
 
     override fun onQuickAmountInput(value: Double) {
-        viewModelScope.launch {
-            val amount = quickInputs[value] ?: return@launch
-            enteredAmountFlow.value  = amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
-        }
+        val amount = quickInputs[value] ?: return
+        onTokenAmountInput(amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN))
     }
 
     private fun onWalletSelected(item: WalletSelectorPayload) {
+        val (tag, selectedWalletId) = item
+        if (tag != NOMINATOR_WALLET_SELECTOR_TAG && tag != STATE_TOGGLER_WALLET_SELECTOR_TAG) return
+        val request = review.withCurrent {
+            Any().also {
+                pendingSelections[tag] = it
+                selectionsPendingFlow.value = true
+                formRevision = Any()
+            }
+        } ?: return
         viewModelScope.launch {
-            val (tag, selectedWalletId) = item
-            val metaAccount = stakingInteractor.getMetaAccount(selectedWalletId)
-            val address = metaAccount.address(chain) ?: return@launch
-            when (tag) {
-                NOMINATOR_WALLET_SELECTOR_TAG -> {
-                    selectedNominatorFlow.value = address
+            try {
+                if (review.withCurrent { pendingSelections[tag] === request } != true) return@launch
+                val metaAccount = stakingInteractor.getMetaAccount(selectedWalletId)
+                currentCoroutineContext().ensureActive()
+                val address = metaAccount.address(chain) ?: return@launch
+                review.withCurrent {
+                    if (pendingSelections[tag] !== request) return@withCurrent
+                    val target = if (tag == NOMINATOR_WALLET_SELECTOR_TAG) selectedNominatorFlow else selectedStateTogglerFlow
+                    if (target.value != address) {
+                        formRevision = Any()
+                        target.value = address
+                    }
                 }
-                STATE_TOGGLER_WALLET_SELECTOR_TAG -> {
-                    selectedStateTogglerFlow.value = address
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                review.withCurrent {
+                    if (pendingSelections[tag] === request) showError(error)
+                }
+            } finally {
+                review.withCurrent {
+                    if (pendingSelections[tag] === request) {
+                        pendingSelections.remove(tag)
+                        selectionsPendingFlow.value = pendingSelections.isNotEmpty()
+                    }
                 }
             }
         }

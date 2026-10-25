@@ -35,5 +35,6 @@ data class ChainAssetLocal(
     val existentialDeposit: String?,
     val color: String?,
     val isNative: Boolean?,
-    val priceProvider: String?
+    val priceProvider: String?,
+    val coinbaseUrl: String?
 )

@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.core.models.Asset
@@ -27,7 +26,10 @@ import jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confi
 import jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -80,25 +82,30 @@ class SelectRewardDestinationViewModel @Inject constructor(
     val continueAvailable = rewardDestinationMixin.rewardDestinationChangedFlow
         .asLiveData()
 
-    private val rewardCalculator = viewModelScope.async {
-        val validators =
-            (stashStateFlow.first() as? StakingState.Stash.Nominator)?.nominations?.targets
-        val asset = interactor.currentAssetFlow().first().token.configuration
-        validators?.let {
-            rewardCalculatorFactory.createWithValidators(asset, it)
-        } ?: rewardCalculatorFactory.create(
-            interactor.currentAssetFlow().first().token.configuration
-        )
-    }
-
     init {
         rewardDestinationFlow.combine(stashStateFlow) { rewardDestination, stashState ->
             loadFee(rewardDestination, stashState)
         }.launchIn(viewModelScope)
 
-        controllerAssetFlow.filter { it.bonded != null }.onEach {
-            rewardDestinationMixin.updateReturns(rewardCalculator(), it, it.bonded.orZero())
-        }.launchIn(viewModelScope)
+        viewModelScope.launch {
+            controllerAssetFlow.onEach {
+                // Revoke before collectLatest waits for a cancelled calculation's cleanup.
+                rewardDestinationMixin.invalidateReturns()
+            }.collectLatest { asset ->
+                val bonded = asset.bonded ?: return@collectLatest
+                try {
+                    val calculator = rewardCalculator(asset.token.configuration)
+                    currentCoroutineContext().ensureActive()
+                    rewardDestinationMixin.updateReturns(calculator, asset, bonded)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    currentCoroutineContext().ensureActive()
+                    rewardDestinationMixin.invalidateReturns()
+                    showError(failure)
+                }
+            }
+        }
 
         stashStateFlow.onEach(rewardDestinationMixin::loadActiveRewardDestination)
             .launchIn(viewModelScope)
@@ -181,5 +188,10 @@ class SelectRewardDestinationViewModel @Inject constructor(
         onError = { title, message -> showError(title, message) }
     )
 
-    private suspend fun rewardCalculator() = rewardCalculator.await()
+    private suspend fun rewardCalculator(asset: Asset): jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculator {
+        val stash = stashStateFlow.first { it.chain.id == asset.chainId }
+        val validators = (stash as? StakingState.Stash.Nominator)?.nominations?.targets
+        return if (validators == null) rewardCalculatorFactory.create(asset)
+        else rewardCalculatorFactory.createWithValidators(asset, validators)
+    }
 }

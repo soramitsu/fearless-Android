@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "d0739c902552718267f8f6c69b5fd76ad28aee34",
+  "sourceSha256": {
+    "common/src/main/java/jp/co/soramitsu/common/compose/theme/Color.kt": "01d5c0557464bfc5ca8c1b6cce70e39731c18a86933115c28adcb316f0f1bf0f",
+    "common/src/main/java/jp/co/soramitsu/common/compose/theme/tokens/NightThemeColors.kt": "2581f44c98b02363f31b3b58dd2c61fc751f852e4103d485eb6743843db1bb9e",
+    "common/src/main/res/values/colors.xml": "88543eabda33162fe6ecea9a6737e8f218072137445e49d40e60879265093782"
+  },
+  "compose": {
+    "colorPrimary": {
+      "argb": "FF004CB7"
+    },
+    "colorSelected": {
+      "argb": "66FF009A"
+    },
+    "colorPrimaryDark": {
+      "argb": "80004CB7"
+    },
+    "colorAccent": {
+      "argb": "FFFF009A"
+    },
+    "colorHint": {
+      "argb": "FFCCCCCC"
+    },
+    "gray1": {
+      "argb": "FFCCCCCC"
+    },
+    "gray2": {
+      "argb": "FF888888"
+    },
+    "gray3": {
+      "argb": "FF444444"
+    },
+    "gray4": {
+      "argb": "FF181818"
+    },
+    "grayDisabled": {
+      "argb": "FFD0D0D0"
+    },
+    "colorGreyText": {
+      "argb": "FF888888"
+    },
+    "black": {
+      "argb": "FF000000"
+    },
+    "green": {
+      "argb": "FF0ED33B"
+    },
+    "greenText": {
+      "argb": "FF09C8A1"
+    },
+    "dividerGray": {
+      "argb": "FF444444"
+    },
+    "bottomSheetBackground": {
+      "argb": "80838383"
+    },
+    "red": {
+      "argb": "FFF00004"
+    },
+    "blurColorDark": {
+      "argb": "B3000000"
+    },
+    "blurColor": {
+      "argb": "8C000000"
+    },
+    "blurColorLight": {
+      "argb": "66000000"
+    },
+    "backgroundBlurColor": {
+      "argb": "0AFFFFFF"
+    },
+    "selectedGreen": {
+      "argb": "FF09C8A1"
+    },
+    "white": {
+      "argb": "FFFFFFFF"
+    },
+    "white04": {
+      "argb": "0AFFFFFF"
+    },
+    "white08": {
+      "argb": "14FFFFFF"
+    },
+    "white10": {
+      "argb": "1AFFFFFF"
+    },
+    "white16": {
+      "argb": "29FFFFFF"
+    },
+    "white20": {
+      "argb": "33FFFFFF"
+    },
+    "white24": {
+      "argb": "3DFFFFFF"
+    },
+    "white30": {
+      "argb": "4DFFFFFF"
+    },
+    "white40": {
+      "argb": "66FFFFFF"
+    },
+    "white50": {
+      "argb": "80FFFFFF"
+    },
+    "white60": {
+      "argb": "A6FFFFFF"
+    },
+    "white64": {
+      "argb": "A3FFFFFF"
+    },
+    "black1": {
+      "alias": "gray1"
+    },
+    "black2": {
+      "alias": "gray2"
+    },
+    "black3": {
+      "alias": "gray3"
+    },
+    "black4": {
+      "alias": "gray4"
+    },
+    "black05": {
+      "argb": "FF1D1F21"
+    },
+    "black72": {
+      "argb": "B8000000"
+    },
+    "black50": {
+      "argb": "80000000"
+    },
+    "purple": {
+      "argb": "FF7700EE"
+    },
+    "backgroundBlack": {
+      "argb": "FF131313"
+    },
+    "grayButtonBackground": {
+      "argb": "FF2B2B2B"
+    },
+    "darkButtonBackground": {
+      "argb": "FF1C1A1B"
+    },
+    "shimmerColor": {
+      "argb": "80DBDBDB"
+    },
+    "accountIconLight": {
+      "argb": "FFEEEEEE"
+    },
+    "accountIconDark": {
+      "argb": "FF000000"
+    },
+    "errorRed": {
+      "argb": "FFFF3B30"
+    },
+    "warningOrange": {
+      "argb": "FFEE7700"
+    },
+    "alertYellow": {
+      "argb": "FFEE7700"
+    },
+    "warningYellow": {
+      "argb": "FFFFD600"
+    },
+    "demeterYellow": {
+      "argb": "FFEC7430"
+    },
+    "transparent": {
+      "argb": "00FFFFFF"
+    },
+    "colorAccentDark": {
+      "argb": "FFEE0077"
+    },
+    "colorAccentSecondary": {
+      "argb": "FFD5D5D5"
+    },
+    "soraRed": {
+      "argb": "FFEE2233"
+    },
+    "soraBlueDialog": {
+      "argb": "FF007AFF"
+    }
+  },
+  "gradients": {
+    "borderGradientColors": [
+      "FFEE0077",
+      "FFEE7700",
+      "FF7700EE",
+      "FFC800EE"
+    ]
+  },
+  "night": {
+    "AccentPrimary": "Pink40",
+    "AccentPrimaryContainer": "Pink5",
+    "AccentSecondary": "Grey5",
+    "AccentSecondaryContainer": "Grey50",
+    "AccentTertiary": "Grey5",
+    "AccentTertiaryContainer": "Grey50",
+    "BgPage": "Grey90",
+    "BgSurface": "Grey40",
+    "BgSurfaceVariant": "White30",
+    "BgSurfaceInverted": "Grey5",
+    "FgPrimary": "White100",
+    "FgSecondary": "White50",
+    "FgTertiary": "White40",
+    "FgInverted": "Grey50",
+    "FgOutline": "Outline",
+    "StatusSuccess": "Green40",
+    "StatusSuccessContainer": "Green5",
+    "StatusWarning": "Yellow30",
+    "StatusWarningContainer": "Yellow5",
+    "StatusError": "Pink40",
+    "StatusErrorContainer": "Pink5",
+    "AdditionalPolkaswap": "Polkaswap40",
+    "AdditionalPolkaswapContainer": "Polkaswap5"
+  },
+  "xml": {
+    "colorPrimary": "#004CB7",
+    "colorSelected": "#66FF009A",
+    "colorPrimaryDark": "#80004CB7",
+    "colorAccent": "#FF009A",
+    "colorAccentDark": "#EE0077",
+    "colorAccent_50": "#80FF009A",
+    "white": "#fff",
+    "colorHint": "#ccc",
+    "black": "#000",
+    "gray1": "#CCCCCC",
+    "gray2": "#888888",
+    "gray3": "#444444",
+    "gray4": "#181818",
+    "bottom_bar_grey": "#F71F1D1E",
+    "gray_disabled": "#D0D0D0",
+    "colorGreyText": "#888888",
+    "green": "#0ED33B",
+    "dividerGray": "#444444",
+    "bottomSheetBackground": "#80838383",
+    "red": "#F00004",
+    "blurColorDark": "#B3000000",
+    "blurColor": "#8C000000",
+    "blurColorLight": "#66000000",
+    "backgroundBlurColor": "#0AFFFFFF",
+    "white_10": "#1AFFFFFF",
+    "white_16": "#29FFFFFF",
+    "white_20": "#33FFFFFF",
+    "white_30": "#4DFFFFFF",
+    "white_24": "#3DFFFFFF",
+    "white_40": "#66FFFFFF",
+    "white_50": "#80FFFFFF",
+    "white_64": "#A6FFFFFF",
+    "black_70": "#B3000000",
+    "black1": "@color/gray1",
+    "black2": "@color/gray2",
+    "black3": "@color/gray3",
+    "black4": "@color/gray4",
+    "black80": "#80000000",
+    "account_icon_light": "#eeeeee",
+    "account_icon_dark": "@color/black",
+    "error_red": "#FF3B30",
+    "warning_orange": "#EE7700"
+  }
+}

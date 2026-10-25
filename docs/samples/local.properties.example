@@ -1,0 +1,46 @@
+# Copy this file to local.properties (root) and replace placeholders with your real values.
+# Do NOT commit local.properties to VCS.
+
+MOONPAY_TEST_PUBLIC_KEY=<your_moonpay_test_public_key>
+MOONPAY_PRODUCTION_PUBLIC_KEY=<your_moonpay_production_public_key>
+
+# Buy provider partner config
+RAMP_TOKEN_DEBUG=<your_ramp_debug_token>
+RAMP_TOKEN_RELEASE=<your_ramp_release_token>
+COINBASE_APP_ID=<your_coinbase_app_id>
+
+# Google Drive backup web client ID. Release builds must use the client 2.4.1-4.2.0 shipped
+# (SHA-256 pinned in .github/release/android-google-drive-web-client-sha256.txt); debug builds may
+# leave WEB_CLIENT_ID_DEBUG unset. See "Google Drive Backup" in docs/release-checklist.md.
+WEB_CLIENT_ID_DEBUG=<your_google_web_client_id_debug>
+WEB_CLIENT_ID_RELEASE=<your_google_web_client_id_release>
+
+# Ethereum blast api nodes keys
+FL_BLAST_API_ETHEREUM_KEY=<your_blast_api_eth_key>
+FL_BLAST_API_BSC_KEY=<your_blast_api_bsc_key>
+FL_BLAST_API_SEPOLIA_KEY=<your_blast_api_sepolia_key>
+FL_BLAST_API_GOERLI_KEY=<your_blast_api_goerli_key>
+FL_BLAST_API_POLYGON_KEY=<your_blast_api_polygon_key>
+
+# One Etherscan V2 key covers Ethereum, BNB Smart Chain, Sepolia and Polygon history.
+# OP Mainnet uses the separate OKLink history provider.
+FL_ANDROID_ETHERSCAN_API_KEY=<your_etherscan_api_key>
+FL_ANDROID_OKLINK_API_KEY=<your_oklink_api_key>
+# Kaia mainnet and Kairos history; this is sent only to the chain-bound KaiaScan OAPI host.
+FL_ANDROID_KAIASCAN_API_KEY=<your_kaiascan_api_key>
+
+FL_ANDROID_OKX_PROJECT_ID=<your_okx_project_id>
+FL_ANDROID_OKX_API_KEY=<your_okx_api_key>
+FL_ANDROID_OKX_SECRET=<your_okx_secret>
+FL_ANDROID_OKX_PASSPHRASE=<your_okx_passphrase>
+
+FL_WALLET_CONNECT_PROJECT_ID=<your_wallet_connect_project_id>
+FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY=<your_alchemy_api_eth_key>
+FL_DWELLIR_API_KEY=<your_dwellir_api_key>
+
+FL_ANDROID_TON_API_KEY=<your_ton_api_key>
+# Optional for local or non-mainnet TON testing. Mainnet always uses https://ti.soramitsu.io.
+FL_ANDROID_TON_INDEXER_URL=<your_ton_indexer_base_url>
+# TON uses TI only after its service-info proves the network; until then the verified registry TonAPI node answers.
+# Set to false once TI serves TON mainnet to use TI only (default true).
+# FL_ANDROID_TON_REGISTRY_NODE_FALLBACK=true

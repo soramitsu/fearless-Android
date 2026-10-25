@@ -29,6 +29,7 @@ import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -43,8 +44,8 @@ import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
-import jp.co.soramitsu.shared_utils.encrypt.Signer
-import jp.co.soramitsu.shared_utils.icon.IconGenerator
+import jp.co.soramitsu.fearless_utils.encrypt.Signer
+import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import java.security.SecureRandom
 import java.util.Random
 import javax.inject.Qualifier
@@ -128,6 +129,14 @@ class CommonModule {
         encryptionUtil: EncryptionUtil
     ): EncryptedPreferences {
         return EncryptedPreferencesImpl(preferences, encryptionUtil)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWalletSecretMutationJournalStore(
+        encryptedPreferences: EncryptedPreferences
+    ): WalletSecretMutationJournalStore {
+        return WalletSecretMutationJournalStore(encryptedPreferences)
     }
 
     @Provides

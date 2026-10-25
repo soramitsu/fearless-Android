@@ -1,24 +1,24 @@
 package jp.co.soramitsu.account.api.domain.model
 
-import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import java.math.BigDecimal
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
-class AssetBalance(
-    val assetBalance: BigDecimal,
-    val rateChange: BigDecimal?,
-    val assetSymbol: String?,
-    val fiatBalance: BigDecimal,
-    val fiatBalanceChange: BigDecimal,
-    val fiatSymbol: String,
-) {
-    companion object {
-        val Empty = AssetBalance(
-            assetBalance = BigDecimal.ZERO,
-            rateChange = BigDecimal.ZERO,
-            assetSymbol = null,
-            fiatBalance = BigDecimal.ZERO,
-            fiatBalanceChange = BigDecimal.ZERO,
-            fiatSymbol = DOLLAR_SIGN
-        )
-    }
+/** Transferable quantity and its valuation retain one account, asset and currency snapshot. */
+sealed interface AssetBalance {
+    data object AwaitingSelection : AssetBalance
+    data class Loading(val metaId: Long, val currencyId: String, val chainId: String, val assetId: String) : AssetBalance
+    data object Unavailable : AssetBalance
+
+    /** A partial subtotal is not a complete or spendable amount. One-shot results are historical. */
+    class Ready(
+        val meta: MetaAccount,
+        val configuration: CoreAsset,
+        val currencyId: String,
+        val fiatSymbol: String,
+        val quotesReady: Boolean,
+        val transferable: BigDecimal?,
+        val knownTransferableSubtotal: BigDecimal?,
+        val unknownQuantityCount: Int,
+        val fiat: PortfolioBalance
+    ) : AssetBalance
 }

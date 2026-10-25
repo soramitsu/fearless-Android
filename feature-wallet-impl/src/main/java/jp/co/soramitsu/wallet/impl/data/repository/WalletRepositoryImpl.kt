@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import com.opencsv.CSVReaderHeaderAware
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -22,33 +24,35 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
-import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
+import jp.co.soramitsu.runtime.multiNetwork.tokengroups.PortfolioVisibility
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.isCallMovedToAssetHub
+import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.wallet.impl.data.mappers.mapCachedAssetToAsset
+import jp.co.soramitsu.wallet.impl.data.mappers.toDomainAssets
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
@@ -62,11 +66,11 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -90,7 +94,9 @@ class WalletRepositoryImpl(
     private val remoteStorageSource: StorageDataSource,
     private val pricesSyncService: PricesSyncService,
     private val transferServiceProvider: TransferServiceProvider,
-    private val tonRemoteSource: TonRemoteSource
+    private val tonRemoteSource: TonRemoteSource,
+    private val portfolioVisibility: PortfolioVisibility,
+    private val currentAccountAssetReader: CurrentAccountAssetReader
 ) : WalletRepository {
 
     companion object {
@@ -99,50 +105,51 @@ class WalletRepositoryImpl(
 
     private val coingeckoCache = mutableMapOf<String, MutableMap<String, Pair<Long, BigDecimal>>>()
 
-    override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
-        return combine(
-            chainsRepository.chainsByIdFlow(),
-            assetDao.observeAssets(meta.id)
-        ) { chainsById, assetsLocal ->
-
-            val chainAccounts = meta.chainAccounts.values.toList()
-            val updatedAssets = assetsLocal.mapNotNull { asset ->
-                mapAssetLocalToAsset(chainsById, asset)?.let {
-                    val hasChainAccount =
-                        asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }
-                    AssetWithStatus(
-                        asset = it,
-                        hasAccount = !it.accountId.contentEquals(emptyAccountIdValue),
-                        hasChainAccount = hasChainAccount
-                    )
-                }
+    override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> =
+        currentAccountAssetReader.observeAccountSnapshots(meta.id).map { state ->
+            val snapshot = (state as? SelectedAccountAssetSnapshot.Ready)?.snapshot
+            if (snapshot == null || snapshot.context.meta.id != meta.id) return@map emptyList()
+            val chainAccounts = snapshot.context.meta.chainAccounts.keys
+            snapshot.toDomainAssets(portfolioVisibility::hasTrustedPrice).map { asset ->
+                AssetWithStatus(
+                    asset = asset,
+                    hasAccount = asset.accountId.isNotEmpty(),
+                    hasChainAccount = asset.chainId in chainAccounts
+                )
             }
-            updatedAssets
+        }.catch { failure ->
+            if (failure is CancellationException) throw failure
+            emit(emptyList())
+            throw failure
         }
-    }
 
     override suspend fun getAssets(metaId: Long): List<Asset> = withContext(Dispatchers.Default) {
-        val chainsById = chainsRepository.getChainsById()
-        val assetsLocal = assetDao.getAssets(metaId)
-
-        assetsLocal.mapNotNull {
-            mapAssetLocalToAsset(chainsById, it)
-        }
+        val snapshot = currentAccountAssetReader.getSnapshot(metaId)
+        require(snapshot.context.meta.id == metaId) { "Wallet snapshot identity mismatch" }
+        snapshot.toDomainAssets(portfolioVisibility::hasTrustedPrice)
     }
 
-    private fun mapAssetLocalToAsset(
-        chainsById: Map<ChainId, Chain>,
-        assetLocal: AssetWithToken
+    /** The requested account must still be owned by this exact captured wallet/catalog. */
+    private fun snapshotAsset(
+        snapshot: CurrentAccountAssetSnapshot,
+        metaId: Long,
+        accountId: AccountId,
+        chainId: ChainId,
+        assetId: String
     ): Asset? {
-        val (chain, chainAsset) = try {
-            val chain = chainsById.getValue(assetLocal.asset.chainId)
-            val asset = chain.assetsById.getValue(assetLocal.asset.id)
-            chain to asset
-        } catch (e: Exception) {
-            return null
-        }
-
-        return mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
+        if (snapshot.context.meta.id != metaId) return null
+        val chain = snapshot.chainsById[chainId] ?: return null
+        val configuration = chain.assetsById[assetId] ?: return null
+        if (!accountId.contentEquals(snapshot.context.meta.accountId(chain))) return null
+        val row = snapshot.assets.firstOrNull {
+            it.asset.metaId == metaId && it.asset.chainId == chainId && it.asset.id == assetId &&
+                it.asset.accountId.contentEquals(accountId)
+        } ?: snapshot.assets.firstOrNull {
+            it.asset.metaId == metaId && it.asset.chainId == chainId && it.asset.id == assetId && it.asset.accountId.isEmpty()
+        } ?: return null
+        val admitted = if (row.asset.accountId.isEmpty()) row.withRequestedAccount(accountId) else row
+        return mapCachedAssetToAsset(admitted, configuration, chain.minSupportedVersion,
+            portfolioVisibility.hasTrustedPrice(configuration), snapshot.context.fiat)
     }
 
     override suspend fun syncAssetsRates(currencyId: String) {
@@ -155,10 +162,19 @@ class WalletRepositoryImpl(
         chainAsset: CoreAsset,
         minSupportedVersion: String?
     ): Flow<Asset> {
-        return assetDao.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
-            .mapNotNull { it }
-            .mapNotNull { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
-            .distinctUntilChanged()
+        val capturedAccountId = accountId.copyOf()
+        // The non-null historical API revokes removed/loading values with an all-unknown asset.
+        // It never invents a cached zero or retains the previous selected currency's quote.
+        val unavailable = Asset.createEmpty(chainAsset, metaId, capturedAccountId,
+            minSupportedVersion = minSupportedVersion)
+        return currentAccountAssetReader.observeAccountSnapshots(metaId).map { state ->
+            val snapshot = (state as? SelectedAccountAssetSnapshot.Ready)?.snapshot
+            snapshot?.let { snapshotAsset(it, metaId, capturedAccountId, chainAsset.chainId, chainAsset.id) } ?: unavailable
+        }.catch { failure ->
+            if (failure is CancellationException) throw failure
+            emit(unavailable)
+            throw failure
+        }.distinctUntilChanged()
     }
 
     override suspend fun getAsset(
@@ -167,14 +183,17 @@ class WalletRepositoryImpl(
         chainAsset: CoreAsset,
         minSupportedVersion: String?
     ): Asset? {
-        val assetLocal = assetDao.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
-
-        return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
+        val capturedAccountId = accountId.copyOf()
+        return snapshotAsset(currentAccountAssetReader.getSnapshot(metaId), metaId,
+            capturedAccountId, chainAsset.chainId, chainAsset.id)
     }
 
     override suspend fun updateAssetsHidden(state: List<AssetUpdateItem>) {
-        assetDao.updateAssets(state)
+        assetDao.updateOrInsertAssetPreferences(state)
     }
+
+    override suspend fun getTransferMaxAmount(chain: Chain, transfer: Transfer): BigDecimal =
+        transferServiceProvider.provide(chain).getTransferMaxAmount(transfer)
 
     override suspend fun observeTransferFee(
         chain: Chain,
@@ -228,6 +247,13 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): TransferValidityStatus {
+        if (chain.isUniversalWalletBitcoin() || chain.isUniversalWalletSolana()) {
+            // The protocol service revalidates the displayed quote and current RPC/UTXO state before signing.
+            // Substrate balance/ED lookups are neither meaningful nor authoritative for these chains.
+            return jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel.Ok
+        }
+        val capturedAccountId = accountId.copyOf()
+        require(transfer.chainAsset.chainId == chain.id) { "Transfer asset belongs to another chain" }
         val feeResponse = getTransferFee(chain, transfer, additional, batchAll)
 
         val chainAsset = transfer.chainAsset
@@ -235,42 +261,46 @@ class WalletRepositoryImpl(
         val totalRecipientBalanceInPlanks = getTotalBalance(chainAsset, chain, transfer.recipient)
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetDao.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
-        val asset = mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
-
         val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
+        val utilityExistentialDepositInPlanks = chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
+        val utilityExistentialDeposit = chain.utilityAsset?.amountFromPlanks(utilityExistentialDepositInPlanks).orZero()
 
-        val utilityAssetLocal = assetDao.getAsset(
-            metaId,
-            accountId,
-            chainAsset.chainId,
-            chain.utilityAsset?.id.orEmpty()
-        )!!
-        val utilityAsset = chain.utilityAsset?.let {
-            mapAssetLocalToAsset(
-                utilityAssetLocal,
-                it,
-                chain.minSupportedVersion
-            )
+        val tipInPlanks = try {
+            walletConstants.tip(chain.id)
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            null
         }
-
-        val utilityExistentialDepositInPlanks =
-            chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
-        val utilityExistentialDeposit =
-            chain.utilityAsset?.amountFromPlanks(utilityExistentialDepositInPlanks).orZero()
-
-        val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
         val tip = tipInPlanks?.let { chain.utilityAsset?.amountFromPlanks(it) }
 
+        // Capture both balances together after all remote/constant awaits. A changed account or
+        // catalog cannot authorize the old transfer configuration or borrow a sibling's quantity.
+        val snapshot = currentAccountAssetReader.getSnapshot(metaId)
+        val capturedChain = requireNotNull(snapshot.chainsById[chain.id]) { "Transfer chain is unavailable" }
+        require(capturedChain.assetsById[chainAsset.id] == chainAsset) { "Transfer asset configuration changed" }
+        require(capturedChain.utilityAsset == chain.utilityAsset) { "Transfer utility configuration changed" }
+        val asset = requireNotNull(snapshotAsset(snapshot, metaId, capturedAccountId, chain.id, chainAsset.id)) {
+            "Transfer account balance is unavailable"
+        }
+        val senderTransferable = requireNotNull(asset.transferable) { "Transferable balance is unknown" }
+        val senderTotal = requireNotNull(asset.total) { "Total balance is unknown" }
+        val senderUtilityBalance = if (chainAsset.isUtility) senderTotal else {
+            val utility = requireNotNull(capturedChain.utilityAsset) { "Utility asset is unavailable" }
+            requireNotNull(snapshotAsset(snapshot, metaId, capturedAccountId, chain.id, utility.id)?.total) {
+                "Utility balance is unknown"
+            }
+        }
+
         return transfer.validityStatus(
-            senderTransferable = asset.transferable,
-            senderTotal = asset.total.orZero(),
+            senderTransferable = senderTransferable,
+            senderTotal = senderTotal,
             fee = feeResponse,
             recipientBalance = totalRecipientBalance,
             existentialDeposit = existentialDeposit,
             isUtilityToken = chainAsset.isUtility,
-            senderUtilityBalance = utilityAsset?.total.orZero(),
+            senderUtilityBalance = senderUtilityBalance,
             utilityExistentialDeposit = utilityExistentialDeposit,
             tip = tip
         )
@@ -333,6 +363,9 @@ class WalletRepositoryImpl(
 
     override suspend fun getAccountFreeBalance(chainAsset: CoreAsset, accountId: AccountId) =
         substrateSource.getAccountFreeBalance(chainAsset, accountId)
+
+    override suspend fun getAccountSpendableBalance(chainAsset: CoreAsset, accountId: AccountId) =
+        substrateSource.getAccountSpendableBalance(chainAsset, accountId)
 
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset) =
         substrateSource.getEquilibriumAssetRates(chainAsset)
@@ -399,14 +432,28 @@ class WalletRepositoryImpl(
     override fun observeChainsPerAsset(
         accountMetaId: Long,
         assetId: String
-    ): Flow<Map<Chain, Asset?>> {
-        return chainsRepository.observeChainsPerAssetFlow(accountMetaId, assetId).map { chainsPerAsset ->
-            val chains = chainsPerAsset.keys.map { mapChainLocalToChain(it) }
-            val chainsById = chains.associateBy { it.id }
-            val assets = chainsPerAsset.values.map { mapAssetLocalToAsset(chainsById, it) }
-            val chainToAssetMap = chains.zip(assets).toMap()
-            chainToAssetMap.filter { pair -> pair.value != null}
-        }
+    ): Flow<Map<Chain, Asset?>> = currentAccountAssetReader.observeAccountSnapshots(accountMetaId).map { state ->
+        val snapshot = (state as? SelectedAccountAssetSnapshot.Ready)?.snapshot
+        if (snapshot == null || snapshot.context.meta.id != accountMetaId) return@map emptyMap()
+        // A registry ID which maps to conflicting symbols cannot pick an arbitrary network.
+        val symbol = snapshot.chainsById.values.flatMap { it.assets }
+            .filter { it.id == assetId }.map { it.symbol.removedXcPrefix() }.distinct().singleOrNull()
+            ?: return@map emptyMap()
+        snapshot.toDomainAssets(portfolioVisibility::hasTrustedPrice)
+            .filter { it.token.configuration.symbol.removedXcPrefix() == symbol &&
+                (it.enabled == true || (it.enabled == null && it.total?.signum() == 1)) }
+            .groupBy { it.chainId }
+            .mapNotNull { (chainId, assets) ->
+                val chain = snapshot.chainsById[chainId] ?: return@mapNotNull null
+                val selected = assets.sortedWith(compareBy<Asset>(
+                    { if (it.token.configuration.symbol == symbol) 0 else 1 }, { it.id }
+                )).first()
+                chain to selected
+            }.toMap()
+    }.catch { failure ->
+        if (failure is CancellationException) throw failure
+        emit(emptyMap())
+        throw failure
     }
 
     override suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger? {
@@ -460,9 +507,14 @@ class WalletRepositoryImpl(
     override suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = chainsRepository.getChain(chainId)
+            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain)
 
-            extrinsicService.estimateFee(chain) {
-                claimRewards()
+            if (accountId == null) {
+                BigInteger.ZERO
+            } else {
+                extrinsicService.estimateFee(chain, accountId) {
+                    claimRewards()
+                }
             }
         }
     }
@@ -477,15 +529,23 @@ class WalletRepositoryImpl(
 
 }
 
-fun ExtrinsicBuilder.claimRewards(): ExtrinsicBuilder {
-    return if (runtime.metadata.moduleOrNull(Modules.VESTING)?.calls?.get("claim") != null) {
-        call(Modules.VESTING, "claim", emptyMap())
-    } else if (runtime.metadata.moduleOrNull(Modules.VESTING)?.calls?.get("vest") != null) {
-        call(Modules.VESTING, "vest", emptyMap())
-    } else if (runtime.metadata.moduleOrNull(Modules.VESTED_REWARDS)?.calls?.get("claim_rewards") != null) {
-        call(Modules.VESTED_REWARDS, "claim_rewards", emptyMap())
-    } else {
-        this
-    }
+private val CLAIM_REWARDS_CALLS = listOf(
+    Modules.VESTING to "claim",
+    Modules.VESTING to "vest",
+    Modules.VESTED_REWARDS to "claim_rewards"
+)
+
+/**
+ * Module and call that claim vested rewards on this runtime, or null when there is none to offer.
+ * Polkadot and Kusama still list Vesting.vest after the Asset Hub migration but reject it at dispatch after charging
+ * the fee, and fearless-utils refuses to build it, so such calls are skipped.
+ */
+fun RuntimeMetadata.claimRewardsCall(): Pair<String, String>? = CLAIM_REWARDS_CALLS.firstOrNull { (moduleName, callName) ->
+    moduleOrNull(moduleName)?.calls?.get(callName) != null && !isCallMovedToAssetHub(moduleName, callName)
 }
 
+fun ExtrinsicBuilder.claimRewards(): ExtrinsicBuilder {
+    val (moduleName, callName) = runtime.metadata.claimRewardsCall() ?: return this
+
+    return call(moduleName, callName, emptyMap())
+}

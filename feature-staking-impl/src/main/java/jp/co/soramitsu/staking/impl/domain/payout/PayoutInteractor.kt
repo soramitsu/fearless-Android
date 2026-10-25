@@ -2,7 +2,7 @@ package jp.co.soramitsu.staking.impl.domain.payout
 
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.model.Payout
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.payoutStakers
@@ -18,7 +18,10 @@ class PayoutInteractor(
 
     suspend fun estimatePayoutFee(accountAddress: String, payouts: List<Payout>): BigInteger {
         return withContext(Dispatchers.IO) {
-            extrinsicService.estimateFee(stakingSharedState.chain()) {
+            val chain = stakingSharedState.chain()
+            val accountId = chain.accountIdOf(accountAddress)
+
+            extrinsicService.estimateFee(chain, accountId) {
                 payouts.forEach {
                     payoutStakers(it.era, it.validatorAddress.toAccountId())
                 }

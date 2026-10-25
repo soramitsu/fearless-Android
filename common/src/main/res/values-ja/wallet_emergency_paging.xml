@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">表示する保存済みの鍵を選んでください。選択した鍵だけが復号されます。</string>
+    <string name="wallet_emergency_view_key">この鍵を表示</string>
+    <string name="wallet_emergency_next_page">次のページ</string>
+    <string name="wallet_emergency_first_page">最初のページから再読み込み</string>
+    <string name="wallet_emergency_back_to_list">このページに戻る</string>
+    <string name="wallet_emergency_inventory_changed">保存済みの鍵の一覧が変わりました。最初のページから再読み込みしてください。</string>
+    <string name="wallet_emergency_no_more_keys">このページ以降に鍵はありません。</string>
+    <string name="wallet_emergency_key_identifier">保存済みキー: %1$s</string>
+</resources>

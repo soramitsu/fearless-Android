@@ -2,9 +2,9 @@ package jp.co.soramitsu.nft.impl.domain.models.nft
 
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.nft.data.models.ContractInfo
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 
 class CollectionImpl(
     override val chainId: ChainId,

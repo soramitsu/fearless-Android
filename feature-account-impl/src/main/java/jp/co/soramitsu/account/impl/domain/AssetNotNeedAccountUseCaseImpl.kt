@@ -2,12 +2,11 @@ package jp.co.soramitsu.account.impl.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.common.domain.SelectedFiat
-import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.model.WalletAssetKey
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
-import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
@@ -35,22 +34,13 @@ class AssetNotNeedAccountUseCaseImpl(
         assetId: String,
         priceId: String?
     ) {
-        val cached = assetDao.getAsset(metaId, emptyAccountIdValue, chainId, assetId)?.asset
-        if (cached == null) {
-            val initial = AssetLocal.createEmpty(emptyAccountIdValue, assetId, chainId, metaId, priceId)
-            val newAsset = initial.copy(markedNotNeed = true)
-//            priceId?.let { tokenPriceDao.ensureTokenPrice(it) }
-            assetDao.insertAsset(newAsset)
-        } else {
-            val updatedAsset = cached.copy(markedNotNeed = true)
-            assetDao.updateAsset(updatedAsset)
-        }
+        assetDao.markAssetNotNeed(metaId, emptyAccountIdValue, chainId, assetId, priceId)
     }
 
-    override fun getAssetsMarkedNotNeedFlow(metaId: Long): Flow<List<AssetKey>> {
+    override fun getAssetsMarkedNotNeedFlow(metaId: Long): Flow<List<WalletAssetKey>> {
         return assetDao.observeAssets(metaId).map {
             it.filter { it.asset.markedNotNeed }.map {
-                AssetKey(
+                WalletAssetKey(
                     metaId = metaId,
                     chainId = it.asset.chainId,
                     accountId = it.asset.accountId,

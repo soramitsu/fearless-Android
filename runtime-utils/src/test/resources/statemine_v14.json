@@ -1,0 +1,24 @@
+{
+  "runtime_id": 1,
+  "types": {},
+  "versioning": [
+    {
+      "runtime_range": [
+        0,
+        null
+      ],
+      "types": {
+        "Balance": "u128",
+        "Index": "u32",
+        "Phase": "frame_system::Phase",
+        "Address": "sp_runtime::multiaddress::MultiAddress",
+        "ExtrinsicSignature": "sp_runtime::MultiSignature",
+        "ParaId": "polkadot_parachain::primitives::Id",
+        "statemine_runtime::Event": "GenericEvent",
+        "statemine_runtime::Call": "GenericCall",
+        "sp_core::crypto::AccountId32": "GenericAccountId",
+        "pallet_identity::types::Data": "Data"
+      }
+    }
+  ]
+}

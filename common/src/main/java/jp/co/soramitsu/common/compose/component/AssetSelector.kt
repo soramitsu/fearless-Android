@@ -167,7 +167,7 @@ private fun AssetSelectorPreview() {
         AssetSelector(
             state = AssetSelectorState(
                 title = "Kusama",
-                iconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+                iconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg",
                 balance = "300 KSM",
                 "Pool"
             )

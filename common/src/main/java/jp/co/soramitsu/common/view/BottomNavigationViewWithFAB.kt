@@ -41,8 +41,11 @@ class BottomNavigationViewWithFAB @JvmOverloads constructor(
             .build()
 
         background = MaterialShapeDrawable(shapeAppearanceModel).apply {
+            fillColor = this@BottomNavigationViewWithFAB.backgroundTintList
             shadowCompatibilityMode = MaterialShapeDrawable.SHADOW_COMPAT_MODE_ALWAYS
         }
+        viewAttrs.recycle()
+
     }
 
 }

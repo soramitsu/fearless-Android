@@ -47,6 +47,10 @@ class JsonImportView @JvmOverloads constructor(
             WalletEcosystem.Ethereum -> binding.importJsonContent.setLabel(R.string.import_ethereum_recovery)
             WalletEcosystem.Ton -> { /* not implemented */
             }
+            WalletEcosystem.Bitcoin,
+            WalletEcosystem.Solana,
+            WalletEcosystem.Iroha -> { /* handled by universal wallet import */
+            }
         }
     }
 

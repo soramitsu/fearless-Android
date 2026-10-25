@@ -1,0 +1,39 @@
+[
+  {
+    "chainId": "15b8706309a2407e6ae6615b44f08c2bee8eba3fe54a6a765e4068373feaf269",
+    "externalApi": {
+      "history": {
+        "type": "sora",
+        "url": "https://api.subquery.network/sq/sora-xor/sora-test"
+      }
+    }
+  },
+  {
+    "chainId": "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17",
+    "staking": "relaychain",
+    "externalApi": {
+      "history": {
+        "type": "sora",
+        "url": "https://api.subquery.network/sq/sora-xor/sora-staging"
+      },
+      "staking": {
+          "type": "sora",
+          "url": "https://api.subquery.network/sq/sora-xor/sora-staging"
+        }
+    }
+  },
+  {
+    "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+    "staking": "relaychain",
+    "externalApi": {
+      "history": {
+        "type": "sora",
+        "url": "https://api.subquery.network/sq/sora-xor/sora-prod"
+      },
+      "staking": {
+          "type": "sora",
+          "url": "https://api.subquery.network/sq/sora-xor/sora-prod"
+        }
+    }
+  }
+]

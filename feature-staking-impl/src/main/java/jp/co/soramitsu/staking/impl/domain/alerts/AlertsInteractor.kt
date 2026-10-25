@@ -4,9 +4,9 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -99,7 +99,7 @@ class AlertsInteractor(
 
     private fun produceRedeemableAlert(context: AlertContext): Alert? = requireState(context.stakingState) { _: StakingState.Stash ->
         with(context.asset) {
-            if (redeemable > BigDecimal.ZERO) Alert.RedeemTokens(redeemable, token) else null
+            redeemable?.takeIf { it > BigDecimal.ZERO }?.let { Alert.RedeemTokens(it, token) }
         }
     }
 

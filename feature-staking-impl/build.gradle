@@ -1,8 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
@@ -22,21 +23,16 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
-    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    namespace 'jp.co.soramitsu.feature_staking_impl'
+    namespace = 'jp.co.soramitsu.feature_staking_impl'
 }
 
 dependencies {
@@ -61,22 +57,23 @@ dependencies {
     implementation libs.lifecycle.runtime.ktx
 
     implementation libs.fragmentKtx
-    implementation libs.xnetworking.lib.android
+    implementation libs.navigation.fragment.ktx
+    implementation project(':core-networking')
 
     implementation libs.insetter.widgets
 
     implementation libs.hilt.android
     implementation libs.legacy.support.v4
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.room.runtime
-    kapt libs.room.compiler
+    ksp libs.room.compiler
 
     implementation libs.lifecycle.process
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
 
-    compileOnly libs.nv.websocket.client
+    compileOnly project(':runtime-websocket')
 
     implementation libs.gson
     implementation libs.retrofit
@@ -94,4 +91,7 @@ dependencies {
     testImplementation libs.mockito.kotlin
     testImplementation libs.mockito.inline
     testImplementation libs.mockito.core
+    testImplementation libs.arch.core.testing
+    // Exercise the same source-pinned final writer handle with a local OutputStream.
+    testImplementation project(':runtime-websocket')
 }

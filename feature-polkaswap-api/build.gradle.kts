@@ -33,7 +33,7 @@ dependencies {
 
     implementation("javax.inject:javax.inject:1")
 
-    implementation(libs.xnetworking.lib.android)
+    implementation(project(":core-networking"))
 }
 
 

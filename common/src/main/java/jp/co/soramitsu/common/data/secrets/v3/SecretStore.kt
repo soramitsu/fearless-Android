@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.secrets.v3
 
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
-import jp.co.soramitsu.shared_utils.scale.Schema
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.scale.Schema
 
 
 interface SecretStore<T: Schema<T>> {

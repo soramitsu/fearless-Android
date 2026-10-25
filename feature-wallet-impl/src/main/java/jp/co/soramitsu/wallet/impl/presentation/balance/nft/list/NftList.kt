@@ -147,6 +147,9 @@ private fun NFTLayout(
                 is NFTCollectionsScreenView.LoadingIndication ->
                     NFTLoadingIndication(view)
 
+                is NFTCollectionsScreenView.NetworkHeader ->
+                    NFTNetworkHeader(view)
+
                 is NFTCollectionsScreenView.ItemModel ->
                     NFTCollectionItem(view)
             }
@@ -155,6 +158,25 @@ private fun NFTLayout(
         item(
             span = { GridItemSpan(2) }
         ) { MarginVertical(margin = 80.dp) }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Suppress("FunctionName")
+private fun LazyGridScope.NFTNetworkHeader(header: NFTCollectionsScreenView.NetworkHeader) {
+    item(
+        span = { GridItemSpan(2) },
+        key = header.key,
+        contentType = header.contentType
+    ) {
+        CapsTitle(
+            text = header.networkName,
+            color = white50,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp, bottom = 4.dp)
+                .animateItemPlacement()
+        )
     }
 }
 

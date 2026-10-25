@@ -2,8 +2,9 @@ plugins {
     id("com.android.library")
     id("dagger.hilt.android.plugin")
     id("kotlin-android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 android {
     namespace = "co.jp.soramitsu.feature_walletconnect_impl"
@@ -23,9 +24,6 @@ android {
         compose = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = rootProject.ext["composeCompilerVersion"] as String
-    }
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
@@ -34,17 +32,25 @@ android {
 
 dependencies {
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
-    implementation(libs.sharedFeaturesCoreDep)
+    implementation(project(":core-chain"))
 
     implementation(libs.web3jDep)
 
-    implementation(platform(libs.walletconnectBomDep))
-    implementation(libs.walletconnectCoreDep)
-    implementation(libs.walletconnectWeb3WalletDep)
+    implementation(platform(libs.reownBomDep))
+    implementation(libs.reownCoreDep) {
+        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
+        exclude(group = "net.java.dev.jna")
+    }
+    implementation(libs.reownWalletKitDep) {
+        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
+        exclude(group = "net.java.dev.jna")
+        // Exclude WalletConnect Pay until 16 KB native builds are available
+        exclude(group = "com.walletconnect", module = "pay")
+    }
 
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
@@ -61,4 +67,6 @@ dependencies {
     implementation(projects.featureWalletImpl)
 
     testImplementation(libs.junit)
+    testImplementation(projects.testShared)
+    testImplementation(libs.arch.core.testing)
 }

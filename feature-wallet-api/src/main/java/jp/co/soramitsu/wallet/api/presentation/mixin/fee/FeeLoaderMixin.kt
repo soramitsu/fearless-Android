@@ -23,6 +23,9 @@ interface FeeLoaderMixin : Retriable {
 
     interface Presentation : FeeLoaderMixin {
 
+        /** Revokes the current fee and its callbacks immediately, before a replacement request is ready. */
+        fun invalidate()
+
         fun loadFee(
             coroutineScope: CoroutineScope,
             feeConstructor: suspend (Token) -> BigInteger,

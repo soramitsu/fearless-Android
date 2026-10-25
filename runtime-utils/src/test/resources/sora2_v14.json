@@ -1,0 +1,22 @@
+{
+  "runtime_id": 43,
+  "types": { },
+  "versioning": [
+    {
+      "runtime_range": [
+        0,
+        null
+      ],
+      "types": {
+        "Balance": "u128",
+        "Index": "u32",
+        "Phase": "frame_system::Phase",
+        "Address": "GenericAccountId",
+        "ExtrinsicSignature": "sp_runtime::MultiSignature",
+        "framenode_runtime::Event": "GenericEvent",
+        "framenode_runtime::Call": "GenericCall",
+        "sp_core::crypto::AccountId32": "GenericAccountId"
+      }
+    }
+  ]
+}

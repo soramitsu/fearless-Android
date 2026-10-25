@@ -110,6 +110,9 @@ interface StakingRouter {
 
     fun openConfirmJoinPool()
 
+    /** Opens read-only recovery without creating a join draft. */
+    fun openPoolJoinRecovery()
+
     fun openPoolInfo(poolId: Int)
 
     fun openManagePoolStake()

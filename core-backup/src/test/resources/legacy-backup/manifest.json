@@ -1,0 +1,254 @@
+{
+    "comment": "Synthetic test phrases only. Written by the production shared_features backup code named in producedBy (AL-4a parity oracle); each file was read back by that code and by this port before it was committed.",
+    "fixtures": [
+        {
+            "file": "v1-passphrase-sr25519-paths.json",
+            "password": "fixture-password-1",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "PASSPHRASE with //polkadot and the default Ethereum path",
+            "expected": {
+                "name": "Passphrase sr25519",
+                "address": "5HdHWkvPFBLd57XgZTVN2WFxaHmrswAmhSrTipd75EKww1af",
+                "mnemonicPhrase": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+                "substrateDerivationPath": "//polkadot",
+                "ethDerivationPath": "//44//60//0/0/0",
+                "cryptoType": "SR25519",
+                "backupAccountType": [
+                    "PASSPHRASE"
+                ],
+                "seed": null,
+                "json": null
+            }
+        },
+        {
+            "file": "v1-passphrase-ed25519-empty-paths.json",
+            "password": "fixture-password-2",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "PASSPHRASE with empty derivation paths, which decrypt to null",
+            "expected": {
+                "name": "Passphrase ed25519",
+                "address": "5FM25N8HGtacre9TnWQGRK32d1kUp1Gs6Dd7YiYpSPZLjmj6",
+                "mnemonicPhrase": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+                "substrateDerivationPath": null,
+                "ethDerivationPath": null,
+                "cryptoType": "ED25519",
+                "backupAccountType": [
+                    "PASSPHRASE"
+                ],
+                "seed": null,
+                "json": null
+            }
+        },
+        {
+            "file": "v1-passphrase-sr25519-path-password.json",
+            "password": "パスワード-3",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "PASSPHRASE whose Substrate path carries a ///password; non-ASCII backup password",
+            "expected": {
+                "name": "Path password",
+                "address": "5Gbu4xvRzXuGYuuWEh68McU86EZxp9soPGSbUq1mQLMjJG9q",
+                "mnemonicPhrase": "legal winner thank year wave sausage worth useful legal winner thank yellow",
+                "substrateDerivationPath": "//hard/soft///p@ss",
+                "ethDerivationPath": "//44//60//0/0/0",
+                "cryptoType": "SR25519",
+                "backupAccountType": [
+                    "PASSPHRASE"
+                ],
+                "seed": null,
+                "json": null
+            }
+        },
+        {
+            "file": "v1-seed-substrate-ed25519.json",
+            "password": "fixture-password-4",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "SEED with only a Substrate seed",
+            "expected": {
+                "name": "Seed substrate",
+                "address": "5G15zyNFvx63cvMkpqNu4KrQtQ8FERh2AK4dcAywnFMMf5nB",
+                "mnemonicPhrase": null,
+                "substrateDerivationPath": "//0",
+                "ethDerivationPath": null,
+                "cryptoType": "ED25519",
+                "backupAccountType": [
+                    "SEED"
+                ],
+                "seed": {
+                    "substrateSeed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+                    "ethSeed": null
+                },
+                "json": null
+            }
+        },
+        {
+            "file": "v1-seed-ethereum-only.json",
+            "password": "fixture-password-5",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "SEED with only an Ethereum private key",
+            "expected": {
+                "name": "Seed ethereum",
+                "address": "5DyFsM2F6kLfdKM5XuGS5r8784cziF5w9nhdPPHks1JYWu2N",
+                "mnemonicPhrase": null,
+                "substrateDerivationPath": null,
+                "ethDerivationPath": null,
+                "cryptoType": "ECDSA",
+                "backupAccountType": [
+                    "SEED"
+                ],
+                "seed": {
+                    "substrateSeed": null,
+                    "ethSeed": "0x1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727"
+                },
+                "json": null
+            },
+            "identity": {
+                "ethereumAddress": "0x9858effd232b4033e47d90003d41ec34ecaeda94"
+            }
+        },
+        {
+            "file": "v1-seed-both-ecdsa.json",
+            "password": "fixture-password-6",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "SEED with an ECDSA Substrate seed and an Ethereum private key",
+            "expected": {
+                "name": "Seed both",
+                "address": "5HMEcggbsk6ViNdeCgEPg5W4GitPNxkwVMLPmJFmZBmnaQn3",
+                "mnemonicPhrase": null,
+                "substrateDerivationPath": null,
+                "ethDerivationPath": null,
+                "cryptoType": "ECDSA",
+                "backupAccountType": [
+                    "SEED"
+                ],
+                "seed": {
+                    "substrateSeed": "0x6fa2796b0071cac425d8a7851038318c2c37dcebfe4bae73197ce93e75909bd2",
+                    "ethSeed": "0x33fa40f84e854b941c2b0436dd4a256e1df1cb41b9c1c0ccc8446408c19b8bf9"
+                },
+                "json": null
+            },
+            "identity": {
+                "ethereumAddress": "0x58a57ed9d8d624cbd12e2c467d34787555bb1b25"
+            }
+        },
+        {
+            "file": "v1-json-only.json",
+            "password": "fixture-password-7",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "JSON only: no field is encrypted, so the password is not checked at decryption",
+            "expected": {
+                "name": "Json only",
+                "address": "5DeoTRMW1qmsai9q5NSTr9U6QDiyV1NkCJ8yhLyVUuDHQBzM",
+                "mnemonicPhrase": null,
+                "substrateDerivationPath": null,
+                "ethDerivationPath": null,
+                "cryptoType": "SR25519",
+                "backupAccountType": [
+                    "JSON"
+                ],
+                "seed": null,
+                "json": {
+                    "substrateJson": "{\"encoded\":\"synthetic-fixture-not-a-keystore\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"5DeoTRMW1qmsai9q5NSTr9U6QDiyV1NkCJ8yhLyVUuDHQBzM\",\"meta\":{\"name\":\"fixture\"}}",
+                    "ethJson": "{\"encoded\":\"synthetic-fixture-not-a-keystore\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"0x9858effd232b4033e47d90003d41ec34ecaeda94\",\"meta\":{\"name\":\"fixture\"}}"
+                }
+            }
+        },
+        {
+            "file": "v1-mixed-4.2.0.json",
+            "password": "fixture-password-8",
+            "producedBy": "shared_features 1.1.1.44 (SFA 7508bc83) BackupAccountCrypto + AccountJsonMapper",
+            "note": "PASSPHRASE, SEED and JSON as AccountInteractorImpl.saveGoogleBackupAccount writes them for a mnemonic wallet",
+            "expected": {
+                "name": "Mixed",
+                "address": "5FM25N8HGtacre9TnWQGRK32d1kUp1Gs6Dd7YiYpSPZLjmj6",
+                "mnemonicPhrase": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+                "substrateDerivationPath": null,
+                "ethDerivationPath": "//44//60//0/0/0",
+                "cryptoType": "ED25519",
+                "backupAccountType": [
+                    "PASSPHRASE",
+                    "SEED",
+                    "JSON"
+                ],
+                "seed": {
+                    "substrateSeed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+                    "ethSeed": "0x1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727"
+                },
+                "json": {
+                    "substrateJson": "{\"encoded\":\"synthetic-fixture-not-a-keystore\",\"encoding\":{\"content\":[\"pkcs8\",\"ed25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"5FM25N8HGtacre9TnWQGRK32d1kUp1Gs6Dd7YiYpSPZLjmj6\",\"meta\":{\"name\":\"fixture\"}}",
+                    "ethJson": "{\"encoded\":\"synthetic-fixture-not-a-keystore\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"0x9858effd232b4033e47d90003d41ec34ecaeda94\",\"meta\":{\"name\":\"fixture\"}}"
+                }
+            },
+            "identity": {
+                "ethereumAddress": "0x9858effd232b4033e47d90003d41ec34ecaeda94"
+            }
+        },
+        {
+            "file": "v0-passphrase-1.0.1.json",
+            "password": "fixture-password-v0",
+            "producedBy": "shared_features 1.0.1 (SFA 564014f6) BackupAccountCrypto + AccountJsonMapper",
+            "note": "Written before backupAccountType existed; unreadable by 2.4.1-4.2.0",
+            "expected": {
+                "name": "Legacy 2.3.1",
+                "address": "5HdHWkvPFBLd57XgZTVN2WFxaHmrswAmhSrTipd75EKww1af",
+                "mnemonicPhrase": "bottom drive obey lake curtain smoke basket hold race lonely fit walk",
+                "substrateDerivationPath": "//polkadot",
+                "ethDerivationPath": "//44//60//0/0/0",
+                "cryptoType": "SR25519",
+                "backupAccountType": [
+                    "PASSPHRASE"
+                ],
+                "seed": null,
+                "json": null
+            }
+        },
+        {
+            "file": "v0-passphrase-empty-paths-1.0.1.json",
+            "password": "fixture-password-v0-empty",
+            "producedBy": "shared_features 1.0.1 (SFA 564014f6) BackupAccountCrypto + AccountJsonMapper",
+            "note": "Written before backupAccountType existed; unreadable by 2.4.1-4.2.0",
+            "expected": {
+                "name": "Legacy empty paths",
+                "address": "5ErKjJLUyc8TTU2vNKrj5UciogZho2MDawb6nN2KG44aU1aB",
+                "mnemonicPhrase": "legal winner thank year wave sausage worth useful legal winner thank yellow",
+                "substrateDerivationPath": null,
+                "ethDerivationPath": null,
+                "cryptoType": "ED25519",
+                "backupAccountType": [
+                    "PASSPHRASE"
+                ],
+                "seed": null,
+                "json": null
+            }
+        },
+        {
+            "file": "rc-written-v1-verified.json",
+            "password": "rc-written-password",
+            "producedBy": "RC core-backup port; decrypted by shared_features 1.1.1.44 (SFA 7508bc83) and re-encoded byte-identically by its JsonFactory",
+            "note": "Down-compatibility: 4.2.0 reads what the RC uploads",
+            "expected": {
+                "name": "Written by the RC",
+                "address": "5FM25N8HGtacre9TnWQGRK32d1kUp1Gs6Dd7YiYpSPZLjmj6",
+                "mnemonicPhrase": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+                "substrateDerivationPath": null,
+                "ethDerivationPath": "//44//60//0/0/0",
+                "cryptoType": "ED25519",
+                "backupAccountType": [
+                    "PASSPHRASE",
+                    "SEED",
+                    "JSON"
+                ],
+                "seed": {
+                    "substrateSeed": "0x4ed8d4b17698ddeaa1f1559f152f87b5d472f725ca86d341bd0276f1b61197e2",
+                    "ethSeed": "0x1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727"
+                },
+                "json": {
+                    "substrateJson": "{\"encoded\":\"synthetic-fixture-not-a-keystore\",\"encoding\":{\"content\":[\"pkcs8\",\"ed25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"5FM25N8HGtacre9TnWQGRK32d1kUp1Gs6Dd7YiYpSPZLjmj6\",\"meta\":{\"name\":\"fixture\"}}",
+                    "ethJson": "{\"encoded\":\"synthetic-fixture-not-a-keystore\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"0x9858effd232b4033e47d90003d41ec34ecaeda94\",\"meta\":{\"name\":\"fixture\"}}"
+                }
+            },
+            "identity": {
+                "ethereumAddress": "0x9858effd232b4033e47d90003d41ec34ecaeda94"
+            }
+        }
+    ]
+}

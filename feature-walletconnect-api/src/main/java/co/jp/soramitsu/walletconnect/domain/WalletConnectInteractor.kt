@@ -1,6 +1,6 @@
 package co.jp.soramitsu.walletconnect.domain
 
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 

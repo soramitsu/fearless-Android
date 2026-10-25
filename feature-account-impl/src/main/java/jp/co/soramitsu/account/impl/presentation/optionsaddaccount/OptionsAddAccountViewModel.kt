@@ -32,7 +32,7 @@ class OptionsAddAccountViewModel @Inject constructor(
     }
 
     fun importAccount() {
-            accountRouter.openSelectImportModeForResult()
+            accountRouter.openSelectAccountImportModeForResult()
                 .onEach(::handleSelectedImportMode)
                 .launchIn(viewModelScope)
     }

@@ -19,6 +19,7 @@ class ManageAssetsFragment : BaseComposeBottomSheetDialogFragment<ManageAssetsVi
 
     @Composable
     override fun Content(padding: PaddingValues) {
+        androidx.compose.runtime.LaunchedEffect(Unit) { viewModel.applyInitialFilter(arguments?.getString("manage_asset_filter")) }
         val state by viewModel.state.collectAsState()
         BottomSheetScreen {
             ManageAssetsContent(

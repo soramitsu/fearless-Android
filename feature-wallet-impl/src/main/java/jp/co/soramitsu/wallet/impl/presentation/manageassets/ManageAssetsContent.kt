@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -56,6 +57,7 @@ import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.getImageRequest
+import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.black4
@@ -72,10 +74,15 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 data class ManageAssetsScreenViewState(
     val assets: Map<String, List<ManageAssetItemState>>? = null,
+    val allSectionAssets: Map<String, List<ManageAssetItemState>> = emptyMap(),
     val selectedChainTitle: String = "",
     val selectedAssetId: String? = null,
     val searchQuery: String? = null,
-    val showAllChains: Boolean = true
+    val showAllChains: Boolean = true,
+    val showTestnets: Boolean = false,
+    val visibilityFilter: ManageAssetFilter = ManageAssetFilter.All,
+    val collapsedSections: Set<String> = emptySet(),
+    val lens: jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens = jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByToken
 ) {
     companion object {
         val default = ManageAssetsScreenViewState()
@@ -89,6 +96,10 @@ interface ManageAssetsContentInterface {
     fun onEditClicked(assetItemState: ManageAssetItemState)
     fun onDoneClicked()
     fun onSelectedChainClicked()
+    fun onFilterChanged(filter: ManageAssetFilter) {}
+    fun onSectionToggle(id: String) {}
+    fun onGroupChecked(section: String, checked: Boolean) {}
+    fun onShowTestnetsChanged(show: Boolean)
 }
 
 @Composable
@@ -96,88 +107,71 @@ fun ManageAssetsContent(
     state: ManageAssetsScreenViewState,
     callback: ManageAssetsContentInterface
 ) {
-    Column(
-        modifier = Modifier
-            .nestedScroll(rememberNestedScrollInteropConnection())
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            B0(
-                text = stringResource(id = R.string.common_done),
-                modifier = Modifier
-                    .align(CenterVertically)
-                    .clickableSingle(onClick = callback::onDoneClicked),
-                color = colorAccentDark
-            )
-            B0(
-                text = state.selectedChainTitle,
-                modifier = Modifier
-                    .align(CenterVertically)
-                    .clickableSingle(onClick = callback::onSelectedChainClicked)
-            )
+    Column(Modifier.nestedScroll(rememberNestedScrollInteropConnection()).padding(horizontal = 16.dp).fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = CenterVertically) {
+            B0(text = stringResource(R.string.common_done), color = colorAccentDark,
+                modifier = Modifier.heightIn(min = 48.dp).clickableSingle(onClick = callback::onDoneClicked))
+            B0(text = state.selectedChainTitle, textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f).padding(start = 16.dp).heightIn(min = 48.dp)
+                    .clickableSingle(onClick = callback::onSelectedChainClicked))
         }
-        MarginVertical(margin = 16.dp)
-        CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(id = R.string.common_search))
-        MarginVertical(margin = 8.dp)
-
-        if (state.assets == null) {
-            Box(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                FearlessProgress(
-                    Modifier.align(Alignment.Center)
-                )
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            item(key = "manage-controls") {
+                MarginVertical(16.dp)
+                CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(R.string.common_search))
+                MarginVertical(8.dp)
+                jp.co.soramitsu.common.compose.component.MultiToggleButton(
+                    jp.co.soramitsu.common.compose.component.MultiToggleButtonState(state.visibilityFilter, ManageAssetFilter.entries),
+                    callback::onFilterChanged, stacked = androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.3f)
+                MarginVertical(8.dp)
+                ShowTestnetsRow(isChecked = state.showTestnets, onCheckedChange = callback::onShowTestnetsChanged)
+                ManageAssetsHeader()
             }
-        } else if (state.assets.isEmpty()) {
-            MarginVertical(margin = 16.dp)
-            Column(
-                horizontalAlignment = CenterHorizontally,
-                modifier = Modifier
-                    .weight(1f)
-                    .align(CenterHorizontally)
-            ) {
-                EmptyResultContent()
-            }
-        } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                item {
-                    ManageAssetsHeader()
+            when {
+                state.assets == null -> item { Box(Modifier.fillMaxWidth().height(120.dp)) { FearlessProgress(Modifier.align(Alignment.Center)) } }
+                state.assets.isEmpty() -> item {
+                    if (state.visibilityFilter == ManageAssetFilter.Hidden) B1(text = stringResource(R.string.portfolio_no_hidden))
+                    else EmptyResultContent()
                 }
-
-                items(state.assets.entries.toList()) { assetsGroup ->
-                    val assets = assetsGroup.value
-
-                    if (assets.size == 1) {
-                        ManageAssetItem(assets[0], callback::onEditClicked, callback::onItemClicked, callback::onChecked)
-                    } else {
-                        val isCollapsed = remember { mutableStateOf(true) }
-
-                        LaunchedEffect(key1 = state.searchQuery) {
-                            if (state.searchQuery.isNullOrBlank().not()) {
-                                isCollapsed.value = false
-                            }
+                else -> state.assets.forEach { (section, assets) ->
+                    if (!section.startsWith("group:") && !section.startsWith("network:")) {
+                        items(assets, key = { it.canonicalAssetKey }) {
+                            ManageAssetItem(it, callback::onEditClicked, callback::onItemClicked, callback::onChecked)
                         }
-
-                        GroupItem(assets, isCollapsed)
-
-                        if (isCollapsed.value.not()) {
-                            Column {
-                                assets.map {
-                                    ManageAssetItem(it.copy(isGrouped = true), callback::onEditClicked, callback::onItemClicked, callback::onChecked)
-                                }
-                            }
+                    } else {
+                        val collapsed = section in state.collapsedSections && state.searchQuery.isNullOrBlank()
+                        item(key = "header:$section") {
+                            GroupItem(state.allSectionAssets[section] ?: assets, collapsed, section.startsWith("network:"),
+                                { callback.onSectionToggle(section) }, { callback.onGroupChecked(section, it) })
+                        }
+                        if (!collapsed) items(assets, key = { it.canonicalAssetKey }) {
+                            ManageAssetItem(it.copy(isGrouped = true), callback::onEditClicked, callback::onItemClicked, callback::onChecked)
                         }
                     }
                 }
             }
+            item(key = "manage-bottom") { MarginVertical(52.dp) }
         }
-        MarginVertical(margin = 52.dp)
+    }
+}
+
+@Composable
+private fun ShowTestnetsRow(
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("ManageAssets_show_testnets"),
+        verticalAlignment = CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            B1(text = stringResource(id = R.string.portfolio_show_testnets))
+            B2(text = stringResource(id = R.string.portfolio_show_testnets_description), color = gray2)
+        }
+        MarginHorizontal(margin = 8.dp)
+        ManageAssetsSwitch(checked = isChecked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -216,6 +210,7 @@ fun EmptyResultContent() {
 }
 
 data class ManageAssetItemState(
+    val canonicalAssetKey: String,
     val id: String,
     val imageUrl: String?,
     val chainName: String,
@@ -227,7 +222,16 @@ data class ManageAssetItemState(
     val isChecked: Boolean,
     val showEdit: Boolean,
     val isZeroAmount: Boolean,
-    val isGrouped: Boolean = false
+    val isGrouped: Boolean = false,
+    /**
+     * Set for a hidden asset that holds a balance, for example "Hidden in previous version". Such
+     * a row keeps its amount visible although its switch is off.
+     */
+    val hiddenNote: String? = null,
+    val preference: String = "auto",
+    val isTestnet: Boolean = false,
+    val isFavorite: Boolean = false,
+    val isRankedMainnet: Boolean = false
 )
 
 @Composable
@@ -236,6 +240,33 @@ fun ManageAssetItem(
     onEditClick: (ManageAssetItemState) -> Unit,
     onItemClick: (ManageAssetItemState) -> Unit,
     onChecked: (ManageAssetItemState, Boolean) -> Unit
+) {
+    Row(verticalAlignment = CenterVertically, modifier = Modifier.fillMaxWidth()
+        .background(if (state.isGrouped) darkButtonBackground else Color.Unspecified).padding(vertical = 10.dp)) {
+        Column(Modifier.weight(1f).padding(end = 8.dp)) {
+            B1(text = state.symbol, fontWeight = FontWeight.W600)
+            B2(text = state.chainName, color = white64)
+            if (state.isTestnet) B2(text = stringResource(R.string.label_testnet), color = white64)
+            B2(text = stringResource(when (state.preference) {
+                "shown" -> R.string.portfolio_filter_shown
+                "hidden" -> R.string.portfolio_filter_hidden
+                else -> R.string.portfolio_preference_auto
+            }), color = white64)
+            B1(text = state.amount)
+            state.fiatAmount?.let { B2(text = it, color = white64) }
+            state.hiddenNote?.let { B2(text = it, color = alertYellow,
+                modifier = Modifier.testTag("ManageAssetItem_hidden_note_${state.id}")) }
+        }
+        ManageAssetsSwitch(state.isChecked, { onChecked(state, it) },
+            Modifier.testTag("manage_toggle:${state.canonicalAssetKey}"))
+    }
+}
+
+@Composable
+private fun ManageAssetsSwitch(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val switchColors = object : SwitchColors {
         @Composable
@@ -253,136 +284,46 @@ fun ManageAssetItem(
             return rememberUpdatedState(transparent)
         }
     }
-
-    Row(
-        verticalAlignment = CenterVertically,
-        modifier = Modifier
-            .height(48.dp)
-            .fillMaxWidth()
-            .background(if (state.isGrouped) darkButtonBackground else Color.Unspecified)
-            .clickableWithNoIndication {
-                onItemClick(state)
-            }
-    ) {
-        AsyncImage(
-            model = state.imageUrl?.let { getImageRequest(LocalContext.current, it) },
-            contentDescription = null,
-            modifier = Modifier
-                .testTag("ManageAssetItem_image_${state.id}")
-                .size(32.dp),
-            colorFilter = ColorFilter.tint(white64, BlendMode.DstOut).takeIf { state.isChecked.not() }
-        )
-        MarginHorizontal(margin = 10.dp)
-        Row(
-            verticalAlignment = CenterVertically
-        ) {
-            Column {
-                Row(
-                    verticalAlignment = CenterVertically
-                ) {
-                    val symbolColor = if (!state.isChecked || state.isZeroAmount) black2 else Color.Unspecified
-                    B1(
-                        text = state.symbol,
-                        fontWeight = FontWeight.W600,
-                        color = symbolColor
-                    )
-                    if (state.showEdit) {
-                        MarginHorizontal(margin = 6.dp)
-                        Image(
-                            res = R.drawable.ic_edit_20,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clickableSingle {
-                                    onEditClick(state)
-                                }
-                        )
-                    }
-                }
-
-                B2(text = state.chainName, color = black2)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            if (state.isChecked) {
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    B1(
-                        text = state.amount,
-                        fontWeight = FontWeight.W600
-                    )
-                    state.fiatAmount?.let {
-                        B2(text = it, color = black2)
-                    }
-                }
-            }
-            MarginHorizontal(margin = 8.dp)
-            val trackColor = when {
-                state.isChecked -> colorAccentDark
-                else -> black3
-            }
-            Switch(
-                colors = switchColors,
-                checked = state.isChecked,
-                onCheckedChange = { onChecked(state, it) },
-                modifier = Modifier
-                    .background(color = trackColor, shape = RoundedCornerShape(20.dp))
-                    .padding(3.dp)
-                    .height(20.dp)
-                    .width(36.dp)
-                    .align(CenterVertically)
-            )
-        }
+    val trackColor = when {
+        checked -> colorAccentDark
+        else -> black3
     }
+    Switch(
+        colors = switchColors,
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        modifier = modifier
+            .background(color = trackColor, shape = RoundedCornerShape(20.dp))
+            .padding(3.dp)
+            .height(20.dp)
+            .width(36.dp)
+    )
 }
 
 @Composable
 private fun GroupItem(
     groupAssets: List<ManageAssetItemState>,
-    isCollapsed: MutableState<Boolean>
+    isCollapsed: Boolean,
+    isNetwork: Boolean,
+    onToggle: () -> Unit,
+    onChecked: (Boolean) -> Unit
 ) {
-    Row(
-        verticalAlignment = CenterVertically,
-        modifier = Modifier
-            .height(48.dp)
-            .fillMaxWidth()
-            .clickableWithNoIndication {
-                isCollapsed.value = isCollapsed.value.not()
-            }
-    ) {
-        val image = groupAssets.firstOrNull { it.imageUrl != null }?.imageUrl?.let {
-            getImageRequest(LocalContext.current, it)
+    val all = groupAssets.all { it.isChecked }
+    val none = groupAssets.none { it.isChecked }
+    val toggleState = when {
+        all -> androidx.compose.ui.state.ToggleableState.On
+        none -> androidx.compose.ui.state.ToggleableState.Off
+        else -> androidx.compose.ui.state.ToggleableState.Indeterminate
+    }
+    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = CenterVertically) {
+        Column(Modifier.weight(1f).clickableWithNoIndication(onToggle)) {
+            H3(text = if (isNetwork) groupAssets.first().chainName else groupAssets.first().symbol)
+            B2(text = stringResource(R.string.portfolio_manage_group_count, groupAssets.count { it.isChecked }, groupAssets.size), color = white64)
+            B2(text = stringResource(if (isCollapsed) R.string.common_expand else R.string.common_collapse), color = white64)
         }
-        val assetName = groupAssets.firstOrNull { it.assetName != null }?.assetName.orEmpty()
-        val allAssetsAreHidden = groupAssets.all { it.isChecked.not() }
-
-        AsyncImage(
-            model = image,
-            contentDescription = null,
-            modifier = Modifier
-                .testTag("ManageGroupItem_image_${groupAssets.getOrNull(0)?.symbol}")
-                .size(32.dp),
-            colorFilter = ColorFilter.tint(white64, BlendMode.DstOut).takeIf { allAssetsAreHidden }
-        )
-        MarginHorizontal(margin = 10.dp)
-        Row(
-            verticalAlignment = CenterVertically
-        ) {
-            val groupNameColor = if (allAssetsAreHidden) black2 else Color.Unspecified
-
-            Column {
-                B1(text = assetName, fontWeight = FontWeight.W600, color = groupNameColor)
-                B2(text = pluralStringResource(id = R.plurals.common_networks_format, groupAssets.size, groupAssets.size), color = black2)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Image(
-                res = R.drawable.ic_chevron_up_white,
-                modifier = Modifier
-                    .size(20.dp)
-                    .rotate(if (isCollapsed.value) 180f else 0f)
-            )
-            MarginHorizontal(margin = 8.dp)
-        }
+        androidx.compose.material.TriStateCheckbox(state = toggleState, onClick = { onChecked(!all) },
+            colors = androidx.compose.material.CheckboxDefaults.colors(checkedColor = colorAccentDark,
+                uncheckedColor = white64, checkmarkColor = white))
     }
 }
 
@@ -391,8 +332,9 @@ private fun GroupItem(
 private fun ManageAssetsScreenPreview() {
     val items = listOf(
         ManageAssetItemState(
+            canonicalAssetKey = "substrate:kusama:1",
             id = "1",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonriver.svg",
             chainName = "Kusama",
             assetName = "Asset on Kusama",
             symbol = "KSM",
@@ -404,8 +346,9 @@ private fun ManageAssetsScreenPreview() {
             showEdit = false
         ),
         ManageAssetItemState(
+            canonicalAssetKey = "ethereum:moonriver:2",
             id = "2",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
             chainName = "Moonriver",
             assetName = "Asset on Moonriver",
             symbol = "MOVR",
@@ -417,8 +360,9 @@ private fun ManageAssetsScreenPreview() {
             showEdit = true
         ),
         ManageAssetItemState(
+            canonicalAssetKey = "substrate:westend:3",
             id = "3",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
             chainName = "Westend",
             assetName = "WND from the Westend",
             symbol = "WND",
@@ -430,8 +374,9 @@ private fun ManageAssetsScreenPreview() {
             showEdit = true
         ),
         ManageAssetItemState(
+            canonicalAssetKey = "substrate:two-tee:4",
             id = "4",
-            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
             chainName = "TWO-TEE",
             assetName = "TWO TEE TO TWO-TWO",
             symbol = "TWO",
@@ -467,6 +412,7 @@ private fun ManageAssetsScreenPreview() {
                 override fun onEditClicked(assetItemState: ManageAssetItemState) {}
                 override fun onDoneClicked() {}
                 override fun onSelectedChainClicked() {}
+                override fun onShowTestnetsChanged(show: Boolean) {}
             }
         )
     }

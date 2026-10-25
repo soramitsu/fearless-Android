@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">历史众贷</string>
+    <string name="legacy_crowdloan_review">查看</string>
+    <string name="legacy_crowdloan_description">该账户在 %1$s 上的历史众贷活动已核实。现已停止接受新的贡献；保留的链上状态和本地领取记录仍可在此查看。</string>
+    <string name="legacy_crowdloan_current_contributions">当前贡献</string>
+    <string name="legacy_crowdloan_historical_locks">历史锁定</string>
+    <string name="legacy_crowdloan_historical_claims">历史领取</string>
+    <string name="legacy_crowdloan_view_locked">查看锁定余额</string>
+    <string name="legacy_crowdloan_no_evidence">未找到此账户可恢复的众贷状态。</string>
+    <string name="cross_chain_route_inventory_title">路由提供商</string>
+    <string name="cross_chain_route_inventory_description">生产环境覆盖范围包括已审核的路由和仅列入目录的路由。不可用的路由仍会显示，但无法提交交易。</string>
+    <string name="cross_chain_route_inventory_checking">正在检查路由提供商的覆盖范围…</string>
+    <string name="cross_chain_route_inventory_status_available">可用</string>
+    <string name="cross_chain_route_inventory_status_paused">已审核的路由可用 · 操作暂时暂停</string>
+    <string name="cross_chain_route_inventory_status_setup">需要设置</string>
+    <string name="cross_chain_route_inventory_status_unavailable">不可用</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">资产 ID：%1$s</string>
+    <string name="cross_chain_route_inventory_summary">%1$d 个来源网络 → %2$d 个目标网络 · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">未内置此提供商的确切生产路由目录。</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">最低金额：请选择具体的来源网络、资产和目标网络</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">最低金额：此目录未提供</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">最低金额：没有可用的已审核数值</string>
+</resources>

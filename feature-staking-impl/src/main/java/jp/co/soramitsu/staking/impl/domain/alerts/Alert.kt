@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.impl.domain.alerts
 
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.CollatorDelegation
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import java.math.BigDecimal

@@ -1,10 +1,14 @@
 package jp.co.soramitsu.common.compose.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import jp.co.soramitsu.common.compose.theme.fw.FwHighContrast
+import jp.co.soramitsu.common.compose.theme.fw.FwStandard
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.rememberFwEffects
 import jp.co.soramitsu.common.compose.theme.tokens.DayThemeColors
 import jp.co.soramitsu.common.compose.theme.tokens.NightThemeColors
 import jp.co.soramitsu.common.compose.theme.tokens.buttonM
@@ -42,17 +46,19 @@ import jp.co.soramitsu.ui_core.theme.lightColors
 @Deprecated("use FearlessAppTheme instead")
 @Composable
 fun FearlessTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    CompositionLocalProvider(
-        FearlessColors provides flwColors,
-        FearlessTypography provides flwTypography
-    ) {
-        MaterialTheme(
-            colors = fearlessMaterialColors,
-            content = content
-        )
+    // Legacy fragment hosts also contain ui-core components during the theme migration.
+    FearlessAppTheme {
+        CompositionLocalProvider(
+            FearlessColors provides flwColors,
+            FearlessTypography provides flwTypography
+        ) {
+            MaterialTheme(
+                colors = fearlessMaterialColors,
+                content = content
+            )
+        }
     }
 }
 
@@ -68,17 +74,23 @@ val MaterialTheme.customTypography: CustomTypographyFlw
 
 @Composable
 fun FearlessAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    AppTheme(
-        darkTheme = darkTheme,
-        lightColors = fearlessLightColors,
-        darkColors = fearlessDarkColors,
-        typography = fearlessTypography,
-        borderRadius = fearlessBorderRadius,
-        content = content
-    )
+    val effects = rememberFwEffects().value.copy(calm = LocalFwEffects.current.calm)
+    CompositionLocalProvider(
+        LocalFwEffects provides effects,
+        LocalFwColors provides if (effects.highContrast) FwHighContrast else FwStandard
+    ) {
+        AppTheme(
+            // Fearless is dark-only; system light mode must not leak into mixed Compose hosts.
+            darkTheme = true,
+            lightColors = fearlessLightColors,
+            darkColors = fearlessDarkColors,
+            typography = fearlessTypography,
+            borderRadius = fearlessBorderRadius,
+            content = content
+        )
+    }
 }
 
 private val fearlessLightColors = lightColors(

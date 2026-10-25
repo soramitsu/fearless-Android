@@ -11,13 +11,15 @@ interface ChainSelectScreenContract {
         val chains: List<ItemState>?
         val selectedChainId: ChainId?
         val searchQuery: String?
+        val onlyNetworkName: String? get() = null
         val showAllChains: Boolean
 
         data class Impl(
             override val chains: List<ItemState>?,
             override val selectedChainId: ChainId?,
             override val searchQuery: String? = null,
-            override val showAllChains: Boolean = true
+            override val showAllChains: Boolean = true,
+            override val onlyNetworkName: String? = null
         ): State {
             companion object {
                 val default = Impl(null, null)
@@ -36,6 +38,7 @@ interface ChainSelectScreenContract {
             val imageUrl: String?
             val title: String
             val isSelected: Boolean
+            val balance: String? get() = null
             val tokenSymbols: Map<String, String>
 
             fun markSelected(isSelected: Boolean): ItemState
@@ -45,7 +48,8 @@ interface ChainSelectScreenContract {
                 override val imageUrl: String?,
                 override val title: String,
                 override val isSelected: Boolean = false,
-                override val tokenSymbols: Map<String, String> = mapOf()
+                override val tokenSymbols: Map<String, String> = mapOf(),
+                override val balance: String? = null
             ): ItemState {
 
                 override fun markSelected(isSelected: Boolean): ItemState {

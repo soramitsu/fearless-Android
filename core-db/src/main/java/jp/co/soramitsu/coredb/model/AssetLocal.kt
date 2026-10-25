@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
-import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import java.math.BigInteger
 
 /*** This table is used for storing balances in database.

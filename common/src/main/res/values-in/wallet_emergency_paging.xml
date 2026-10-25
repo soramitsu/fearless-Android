@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">Pilih kunci tersimpan untuk dilihat. Hanya kunci yang Anda pilih yang didekripsi.</string>
+    <string name="wallet_emergency_view_key">Lihat kunci ini</string>
+    <string name="wallet_emergency_next_page">Halaman berikutnya</string>
+    <string name="wallet_emergency_first_page">Muat ulang dari halaman pertama</string>
+    <string name="wallet_emergency_back_to_list">Kembali ke halaman ini</string>
+    <string name="wallet_emergency_inventory_changed">Daftar kunci tersimpan telah berubah. Muat ulang dari halaman pertama untuk melanjutkan.</string>
+    <string name="wallet_emergency_no_more_keys">Tidak ada kunci lagi setelah halaman ini.</string>
+    <string name="wallet_emergency_key_identifier">Kunci tersimpan: %1$s</string>
+</resources>

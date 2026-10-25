@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="staking_unbond_review_changed">Кошелёк, сумма, комиссия или баланс изменились. Вернитесь на экран ввода суммы и ещё раз проверьте запрос на вывод из стейкинга.</string>
+    <string name="staking_unbond_return_to_review">Вернуться к проверке</string>
+</resources>

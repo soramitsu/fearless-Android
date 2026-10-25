@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pin_recovery_title">Pulihkan PIN dompet</string>
+    <string name="pin_recovery_intro">PIN tersimpan tidak dapat dibaca. Dompet dan rekaman PIN asli tetap disimpan. Verifikasi kepemilikan untuk memilih PIN baru.</string>
+    <string name="pin_recovery_failed">Pemulihan tidak selesai atau otorisasinya kedaluwarsa. Data yang disimpan tidak dihapus. Coba lagi.</string>
+    <string name="pin_recovery_retry">Coba lagi</string>
+    <string name="pin_recovery_biometric">Verifikasi dengan biometrik kuat</string>
+    <string name="pin_recovery_backup_intro">Pilih kunci dompet dan masukkan cadangannya. Cadangan harus cocok dengan identitas publik tersimpan. Cadangan yang cocok juga dapat memperbaiki kunci itu.</string>
+    <string name="pin_recovery_no_identity">Tidak ada identitas dompet tersimpan yang dapat diverifikasi saat ini. Gunakan biometrik kuat yang sebelumnya diaktifkan, atau buka kunci perangkat untuk akses lihat saja.</string>
+    <string name="pin_recovery_view_only_intro">Membuka kunci perangkat hanya menampilkan saldo dan alamat publik. Pengiriman, penandatanganan, dan pencadangan kunci tetap terkunci hingga PIN dompet dipulihkan.</string>
+    <string name="pin_recovery_view_only">Buka kunci perangkat untuk lihat saja</string>
+    <string name="pin_recovery_verified">Kepemilikan terverifikasi. Pilih PIN dompet baru.</string>
+    <string name="pin_recovery_verify_backup">Verifikasi cadangan dompet</string>
+    <string name="pin_recovery_reset">Pulihkan PIN dompet</string>
+    <string name="pin_recovery_view_only_title">Akses lihat saja</string>
+</resources>

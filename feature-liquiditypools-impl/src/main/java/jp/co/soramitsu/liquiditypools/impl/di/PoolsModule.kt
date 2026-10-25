@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
@@ -17,6 +18,7 @@ import jp.co.soramitsu.liquiditypools.domain.interfaces.DemeterFarmingInteractor
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.data.DemeterFarmingRepositoryImpl
 import jp.co.soramitsu.liquiditypools.impl.data.PoolsRepositoryImpl
+import jp.co.soramitsu.liquiditypools.impl.data.SoraDeFiMutationAuthorizer
 import jp.co.soramitsu.liquiditypools.impl.domain.DemeterFarmingInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.domain.PoolsInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.navigation.InternalPoolsRouterImpl
@@ -55,6 +57,8 @@ class PoolsModule {
     fun provideDemeterFarmingInteractor(demeterFarmingRepository: DemeterFarmingRepository): DemeterFarmingInteractor =
         DemeterFarmingInteractorImpl(demeterFarmingRepository)
 
+    // Dagger provider arguments are independent bindings, not a caller-owned API.
+    @Suppress("LongParameterList")
     @Provides
     @Singleton
     fun provideDemeterFarmingRepository(
@@ -63,12 +67,18 @@ class PoolsModule {
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
         poolsRepository: PoolsRepository,
+        extrinsicService: ExtrinsicService,
+        featureToggleStore: ProductFeatureToggleStore,
+        mutationAuthorizer: SoraDeFiMutationAuthorizer,
     ): DemeterFarmingRepository = DemeterFarmingRepositoryImpl(
         chainRegistry,
         bulkRetriever,
         accountRepository,
         walletRepository,
-        poolsRepository
+        poolsRepository,
+        extrinsicService,
+        featureToggleStore,
+        mutationAuthorizer
     )
 
     @Provides
@@ -78,14 +88,18 @@ class PoolsModule {
         chainRegistry: ChainRegistry,
         accountRepository: AccountRepository,
         poolDao: PoolDao,
-        appDataBase: AppDatabase
+        appDataBase: AppDatabase,
+        featureToggleStore: ProductFeatureToggleStore,
+        mutationAuthorizer: SoraDeFiMutationAuthorizer
     ): PoolsRepository {
         return PoolsRepositoryImpl(
             extrinsicService,
             chainRegistry,
             accountRepository,
             poolDao,
-            appDataBase
+            appDataBase,
+            featureToggleStore,
+            mutationAuthorizer
         )
     }
 }

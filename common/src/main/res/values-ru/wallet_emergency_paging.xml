@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wallet_emergency_select_key">Выберите сохранённый ключ для просмотра. Расшифровывается только выбранный ключ.</string>
+    <string name="wallet_emergency_view_key">Показать этот ключ</string>
+    <string name="wallet_emergency_next_page">Следующая страница</string>
+    <string name="wallet_emergency_first_page">Обновить с первой страницы</string>
+    <string name="wallet_emergency_back_to_list">Вернуться к этой странице</string>
+    <string name="wallet_emergency_inventory_changed">Список сохранённых ключей изменился. Обновите его с первой страницы.</string>
+    <string name="wallet_emergency_no_more_keys">После этой страницы больше нет ключей.</string>
+    <string name="wallet_emergency_key_identifier">Сохранённый ключ: %1$s</string>
+</resources>

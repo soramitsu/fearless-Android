@@ -1,17 +1,22 @@
 package jp.co.soramitsu.account.impl.domain
 
+import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.api.domain.model.AndroidUniversalWalletMigrationSnapshotBuilder
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.domain.exceptions.FileNotFoundException
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
@@ -22,7 +27,10 @@ import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.model.UNIVERSAL_WALLET_CUTOFF_AT_MILLIS
+import jp.co.soramitsu.common.model.UniversalWalletMigrationSnapshot
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
@@ -34,20 +42,21 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.EnglishWordList
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.EnglishWordList
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -58,8 +67,13 @@ class AccountInteractorImpl(
     private val preferences: Preferences,
     private val backupService: BackupService,
     private val walletInteractor: WalletInteractor,
-    private val context: CoroutineContext = Dispatchers.Default
+    private val context: CoroutineContext = Dispatchers.Default,
+    private val nowProvider: () -> Long = { System.currentTimeMillis() },
+    private val migrationSnapshotBuilder: AndroidUniversalWalletMigrationSnapshotBuilder =
+        AndroidUniversalWalletMigrationSnapshotBuilder(UNIVERSAL_WALLET_CUTOFF_AT_MILLIS)
 ) : AccountInteractor {
+
+    private val pinAttemptLimiter = PinAttemptLimiter(preferences, nowProvider)
 
     override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
         return accountRepository.generateMnemonic(length)
@@ -75,6 +89,13 @@ class AccountInteractorImpl(
 
     override suspend fun createAccount(payload: AddAccountPayload): Result<Long> {
         return runCatching { accountRepository.createAccount(payload) }
+    }
+
+    override suspend fun createAccountFromBackup(
+        payload: AddAccountPayload.SubstrateOrEvm,
+        ethereumPrivateKeyHex: String
+    ): Result<Long> {
+        return runCatching { accountRepository.createAccountFromBackup(payload, ethereumPrivateKeyHex) }
     }
 
     override suspend fun saveChainSelectFilter(metaId: Long, filterValue: String){
@@ -132,14 +153,28 @@ class AccountInteractorImpl(
         return accountRepository.isCodeSet()
     }
 
+    override suspend fun getPinHealth(): PinHealth = accountRepository.getPinHealth()
+
     override suspend fun savePin(code: String) {
-        return accountRepository.savePinCode(code)
+        accountRepository.savePinCode(code)
+        pinAttemptLimiter.reset()
     }
 
     override suspend fun isPinCorrect(code: String): Boolean {
-        val pinCode = accountRepository.getPinCode()
+        if (pinAttemptLimiter.lockedUntil() != null) {
+            return false
+        }
 
-        return pinCode == code
+        val pinCode = accountRepository.getPinCode()
+        val isCorrect = PinHealth.assess(true, pinCode) == PinHealth.HEALTHY && pinCode == code
+
+        if (isCorrect) {
+            pinAttemptLimiter.reset()
+            return true
+        }
+
+        pinAttemptLimiter.registerFailure()
+        return false
     }
 
     override suspend fun isBiometricEnabled(): Boolean {
@@ -263,11 +298,30 @@ class AccountInteractorImpl(
             }.flowOn(Dispatchers.IO)
     }
 
-    override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String) {
-        withContext(Dispatchers.IO) {
+    override fun universalWalletMigrationSnapshotFlow(): Flow<UniversalWalletMigrationSnapshot> {
+        return accountRepository.lightMetaAccountsFlow()
+            .map(migrationSnapshotBuilder::build)
+            .flowOn(context)
+    }
+
+    override suspend fun universalWalletMigrationSnapshot(): UniversalWalletMigrationSnapshot {
+        return withContext(context) {
+            migrationSnapshotBuilder.build(accountRepository.lightMetaAccountsFlow().first())
+        }
+    }
+
+    override suspend fun isWalletRecoveryRequired(metaId: Long): Boolean {
+        return accountRepository.isWalletRecoveryRequired(metaId)
+    }
+
+    override fun walletRecoveryRequiredFlow(metaId: Long): Flow<Boolean> {
+        return accountRepository.walletRecoveryRequiredFlow(metaId)
+    }
+
+    override suspend fun saveGoogleBackupAccount(metaId: Long, googleBackupPassword: String): Set<BackupAccountType> {
+        return withContext(Dispatchers.IO) {
             val wallet = getMetaAccount(metaId)
-            val westendChain = getChain(westendChainId)
-            val googleBackupAddress = wallet.address(westendChain) ?: error("error obtaining google backup address")
+            val googleBackupAddress = googleBackupFileAddress(wallet) ?: error("error obtaining google backup address")
 
             val jsonResult = generateRestoreJson(
                 metaId = metaId,
@@ -302,7 +356,7 @@ class AccountInteractorImpl(
             val backupAccountTypes = getSupportedBackupTypes(metaId).toList()
 
             val substrateCryptoType = wallet.substrateCryptoType ?: error("Need substrate CryptoType to backup wallet: ${wallet.id} - ${wallet.name}")
-            backupService.saveBackupAccount(
+            uploadVerifiedGoogleBackup(
                 account = DecryptedBackupAccount(
                     name = wallet.name,
                     address = googleBackupAddress,
@@ -313,9 +367,10 @@ class AccountInteractorImpl(
                     backupAccountType = backupAccountTypes,
                     seed = Seed(substrateSeed = substrateSeed, ethSeed),
                     json = Json(substrateJson = substrateJson, ethJson)
-                ),
-                password = googleBackupPassword
-            )
+                )
+            ) { account ->
+                backupService.saveBackupAccount(account = account, password = googleBackupPassword)
+            }
         }
     }
 
@@ -327,11 +382,30 @@ class AccountInteractorImpl(
         return backupService.getWebBackupAccounts()
     }
 
-    override suspend fun deleteGoogleBackupAccount(walletId: Long, address: String) {
-        kotlin.runCatching { backupService.deleteBackupAccount(address) }
-            .onSuccess {
-                updateWalletOnGoogleBackupDelete(walletId)
-            }
+    override fun isGoogleBackupAvailable(): Boolean = backupService.isAvailable
+
+    override suspend fun getGoogleBackupCopies(walletId: Long): List<BackupAccountMeta> {
+        val address = googleBackupFileAddress(getMetaAccount(walletId))
+        // Listed even without an address, so a lapsed Google sign-in is still reported.
+        return backupService.getBackupCopies().filter { it.address == address }
+    }
+
+    override suspend fun deleteGoogleBackupAccount(walletId: Long, copies: List<BackupAccountMeta>) {
+        // Never the stored googleBackupAddress: a wallet imported with a phrase that restores another
+        // account keeps the address of that account's backup, which may be the only one restoring it.
+        val address = googleBackupFileAddress(getMetaAccount(walletId))
+        val fileIds = copies.filter { it.address == address }.mapNotNull { it.fileId }
+        try {
+            if (address != null) backupService.deleteBackupAccount(address, fileIds)
+        } catch (e: FileNotFoundException) {
+            // Already removed, for example from another device: the wallet has no Drive backup either way.
+        }
+        updateWalletOnGoogleBackupDelete(walletId)
+    }
+
+    // A wallet uploads its backups under its own Westend address (see saveGoogleBackupAccount).
+    private suspend fun googleBackupFileAddress(wallet: MetaAccount): String? {
+        return wallet.address(getChain(westendChainId))
     }
 
     override suspend fun authorizeGoogleBackup(launcher: ActivityResultLauncher<Intent>): Boolean {
@@ -365,6 +439,10 @@ class AccountInteractorImpl(
                             entropy = byteArrayOf()
                         )
                     }
+
+                    WalletEcosystem.Bitcoin,
+                    WalletEcosystem.Solana,
+                    WalletEcosystem.Iroha -> null
                 }
             }
         }.mapNotNull {

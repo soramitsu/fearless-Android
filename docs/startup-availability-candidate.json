@@ -1,0 +1,134 @@
+{
+  "status": "applied-reviewed-candidate-awaiting-full-Gradle-and-device-qualification",
+  "baseCommit": "46acf6ea7b05b670e10ecbe019b3252d3909c723",
+  "createdUtc": "2026-10-21T09:59:42.130657+00:00",
+  "sourceRoot": "/Users/takemiyamakoto/dev/fearless/.worktrees/fearless-Android-integration",
+  "sourceFiles": {
+    "app/src/androidTest/assets/keyloss/shipped-3.7.4-public-ed25519-evm.hex": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/native-v3/assets/keyloss/shipped-3.7.4-public-ed25519-evm.hex",
+      "baseSHA256": null,
+      "sha256": "d6db2bb43a365a4eef35b700fc6bbda674a573cab88e528bb4c92e96a7162dfe"
+    },
+    "app/src/androidTest/java/jp/co/soramitsu/app/root/domain/WalletLargeCacheStartupInstrumentedTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/native-v4/WalletLargeCacheStartupInstrumentedTest.kt",
+      "baseSHA256": null,
+      "sha256": "868d82c25a946baa420d5078c71d1fefa7f3a007ccc09623280d823b72249730"
+    },
+    "app/src/main/java/jp/co/soramitsu/app/root/domain/WalletDatabaseStartupGate.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/candidate-v1/app/src/main/java/jp/co/soramitsu/app/root/domain/WalletDatabaseStartupGate.kt",
+      "baseSHA256": "e0ff5de3a223f23797441df2911f43cae2f4ee70e924f794f2b264f8ce40330b",
+      "sha256": "ea3a7e5b811d7b9fd46d5153b42b15ed77446950dc69f68bb787ce33fcaf14e2"
+    },
+    "app/src/main/java/jp/co/soramitsu/app/root/domain/keyloss/WalletPublicSnapshotReader.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/public-reader-v1/WalletPublicSnapshotReader.kt",
+      "baseSHA256": "3e9225adfc32bc83ede2abd68705dbe18bcd6fa4475cb394a77a5f76a7f3c4dc",
+      "sha256": "43119fe984c18ab60bc92b6ab7e730d434b0ec59b264d4d95c75f1b61b41c083"
+    },
+    "app/src/test/java/jp/co/soramitsu/app/root/domain/WalletDatabaseStartupGateTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/candidate-v1/app/src/test/java/jp/co/soramitsu/app/root/domain/WalletDatabaseStartupGateTest.kt",
+      "baseSHA256": "2bc656fa343bbd5541f39fdd0cd85805933a09f58a37a03bb4b7b714b02cfb3e",
+      "sha256": "1597d0b83dd01d534d1b5556f433334744c7fc121b755c0dcccc30cb677157ed"
+    },
+    "app/src/test/java/jp/co/soramitsu/app/root/domain/keyloss/WalletPublicSnapshotReaderTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/public-reader-v1/WalletPublicSnapshotReaderTest.kt",
+      "baseSHA256": "6b2489208dd43f23553710545f1a3985019219dbd957c60d54c4575f9d478909",
+      "sha256": "c17bf2ec0a3d858dc574a772058ed0b32d93372aa05f6966ae4aca2f14fe6c31"
+    },
+    "common/src/main/java/jp/co/soramitsu/common/data/storage/PreferenceKeyVisitation.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/common/src/main/java/jp/co/soramitsu/common/data/storage/PreferenceKeyVisitation.kt",
+      "baseSHA256": null,
+      "sha256": "cdeabf23cb53f3b0eba6dc950fb27552e4769bb8c8b84cee6db34a783613d5e3"
+    },
+    "common/src/main/java/jp/co/soramitsu/common/data/storage/Preferences.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/common/src/main/java/jp/co/soramitsu/common/data/storage/Preferences.kt",
+      "baseSHA256": "97841f164bd234d9a801cef17c4c3d90339ab7323c59596df86077959987cdc3",
+      "sha256": "6a8f506b07c64435e876b09a1fdb61a5763717bac16ad84518dff6d0a0b2b602"
+    },
+    "common/src/main/java/jp/co/soramitsu/common/data/storage/PreferencesImpl.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/common/src/main/java/jp/co/soramitsu/common/data/storage/PreferencesImpl.kt",
+      "baseSHA256": "1b5ff19ae24463f22fc29ca67eee2797a0e000ff03cbc9d53d5850fb9c8d5d12",
+      "sha256": "07772acce5502336a5add5a0506fc3e87b7efbaf65956b76fe7af5f5409a78a4"
+    },
+    "common/src/main/java/jp/co/soramitsu/common/data/storage/encrypt/EncryptedPreferences.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/common/src/main/java/jp/co/soramitsu/common/data/storage/encrypt/EncryptedPreferences.kt",
+      "baseSHA256": "a008c579b9f83594c9f33672957567ddd0bce662bfeb474628cc24df91607208",
+      "sha256": "8cfadb90b2b2e1e3d1a2cfffe5c3d14d1a3c568bab865ee5159a7e15c1cc4bed"
+    },
+    "common/src/main/java/jp/co/soramitsu/common/data/storage/encrypt/EncryptedPreferencesImpl.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/common/src/main/java/jp/co/soramitsu/common/data/storage/encrypt/EncryptedPreferencesImpl.kt",
+      "baseSHA256": "236d26b0cb9d895fba7a6f13bac292133af10b98f49fac783f19640dfb6b30f6",
+      "sha256": "353ba651b61894471df04ee6bb0319b93e9dec46b1a22b940127f93d310bde5e"
+    },
+    "common/src/test/java/jp/co/soramitsu/common/data/storage/PreferenceKeyAdaptersTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/common/src/test/java/jp/co/soramitsu/common/data/storage/PreferenceKeyAdaptersTest.kt",
+      "baseSHA256": null,
+      "sha256": "0fbf2a3194b7c232126f1479b05464aa8683bcbcc832582df8afa535a639f75d"
+    },
+    "common/src/test/java/jp/co/soramitsu/common/data/storage/PreferenceKeyVisitationTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/common/src/test/java/jp/co/soramitsu/common/data/storage/PreferenceKeyVisitationTest.kt",
+      "baseSHA256": null,
+      "sha256": "bcf2bc80f53f9b63b16b9b646573a161452bf88d8a9384da737c92c98e0af497"
+    },
+    "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/TonMigrationSafetyTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/TonMigrationSafetyTest.kt",
+      "baseSHA256": "d7a0efbee30b2b3743fc71ebab3f66f816d4a2d33b79b3afb8c107e1175b725a",
+      "sha256": "761e13c046fbbf53ef0cc96a8d8e7a0adf922cf1cc2f033d9ce3a36ac35fb120"
+    },
+    "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/WalletIndependentRevalidationInstrumentedTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/WalletIndependentRevalidationInstrumentedTest.kt",
+      "baseSHA256": null,
+      "sha256": "9aad95cbde68687fe9d7d524e0cb53bf121ada2d3c152858cda6159b8e04059d"
+    },
+    "core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/WalletSecretIntegrityMigrationTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/androidTest/java/jp/co/soramitsu/coredb/migrations/WalletSecretIntegrityMigrationTest.kt",
+      "baseSHA256": "067ecc6a179628d4b7adff68f653e029cbd1de9f20b05ea80334168820f0be3f",
+      "sha256": "8db4e75adbda89de053b096aa946d6a289735b1ff92da44404cc2ad37d2a6526"
+    },
+    "core-db/src/main/java/jp/co/soramitsu/coredb/migrations/BoundedMigrationCursor.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/main/java/jp/co/soramitsu/coredb/migrations/BoundedMigrationCursor.kt",
+      "baseSHA256": "7e6fafc7e1c88bec1c498fcde79a25ed189e068b221d1ff2b6cb41ce85371d5b",
+      "sha256": "a029d585fcebfe033ab00ffa699c982fd8d42a3910c87f1becec027939b00bb6"
+    },
+    "core-db/src/main/java/jp/co/soramitsu/coredb/migrations/WalletQuarantineRevalidation.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/main/java/jp/co/soramitsu/coredb/migrations/WalletQuarantineRevalidation.kt",
+      "baseSHA256": "f1fe3d38758fbe5974c1dc47e53356ca9e6833e077c3d4ad236789acade47664",
+      "sha256": "cf43977221d3a58fe8162b2699c4258e265b260e0a34dc30e404fe13b00338cf"
+    },
+    "core-db/src/sharedTest/java/jp/co/soramitsu/coredb/migrations/WalletIndependentRevalidationContract.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/sharedTest/java/jp/co/soramitsu/coredb/migrations/WalletIndependentRevalidationContract.kt",
+      "baseSHA256": null,
+      "sha256": "0ab0739b68c8f28e3c4b48050f83089774b938bec71e4a39353ee38cb337be0a"
+    },
+    "core-db/src/test/java/jp/co/soramitsu/coredb/migrations/FakeWalletDatabase.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/test/java/jp/co/soramitsu/coredb/migrations/FakeWalletDatabase.kt",
+      "baseSHA256": "69a6b48db2b8c739ba8318431f55ec2245d4b5553ba86f0d5a34bf0467afa554",
+      "sha256": "1a85eda5d7ec608551f343af13d981a1146297ce549044c06e44305105989513"
+    },
+    "core-db/src/test/java/jp/co/soramitsu/coredb/migrations/WalletQuarantineRevalidationTest.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/core-db/src/test/java/jp/co/soramitsu/coredb/migrations/WalletQuarantineRevalidationTest.kt",
+      "baseSHA256": "508faa5d4e571fe4d0959c62ddab7b7d4319041cd4663ecf50fb45969d0dfa32",
+      "sha256": "a101e94f23296fc740d21a9047b198e5ee29d121f4d31ad97c3c10fa0b124090"
+    },
+    "test-shared/src/main/java/jp/co/soramitsu/testshared/HashMapEncryptedPreferences.kt": {
+      "source": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/files/test-shared/src/main/java/jp/co/soramitsu/testshared/HashMapEncryptedPreferences.kt",
+      "baseSHA256": "3ced4db222a1bcc810dffcc33a7d34e0c867125960f52e70efc3897cfdfc1745",
+      "sha256": "0e2d5448ab3853ed6c685c48b55294aa135b5c3cafba5d86ea791f04583403cd"
+    }
+  },
+  "evidence": {
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/correction-v1/draft-manifest-v4.json": "d564a61c5bec9e16a52c73147795a7d231917a5a1a3d409c51960b148463551a",
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/checkpoint-manifest-v1.json": "aab3c6d900d8cd33fb117465775dc1d8cd3800595e07809d4f9bf45f0c500429",
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/independent-source-host-review-v1.json": "7c288c2d4b87b52ff9040b7d45496d89b27d24b4afaec1acd91b8571f644470e",
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/native-v3/draft-manifest-v1.json": "b0b78a94f942e8721fe4a51f62372df7274e77c3942cfbe1e8bbca0c92bd6490",
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/native-v3/native-compile-v1/result.json": "38549d0eee0094dd2a24eb09411338d28c8e7270032cc66e009c5b04503f0f7e",
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/native-v4/draft-manifest-v1.json": "0a3e40d8c4fe7a502cd781232b44bf35c3c8f9304cc19ebbfafd1d98c5e91155",
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/native-v4/native-compile-v1/result.json": "81d476ea6807e20fef1338c161951b010ad51153e731a74f27292a32c632b3c1",
+    "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/startup-integrity-scope-v1/native-v4/independent-source-review-v1.json": "bc6de4f6c7e01001bbdddd12643ffefd05e13b93a72f478a25ac198ae8250669"
+  },
+  "schema83SHA256": "b7ca1b0cd010717cc60636860a1848c72ca40b4e5f80e92009b26081c8b32306",
+  "scope": "Reviewed external source candidates combined in integration checkout. Host counts retain their scoped fixture meanings. No device execution, whole-audit closure or final qualification yet.",
+  "priorApplication": {
+    "path": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-startup-availability-followup-v1/combined-application-v1/application-precommit.json",
+    "sha256": "d25a9f1db99311c1ca869b55e93d571d0aba3461287e67dcb79bb56696039bbb"
+  }
+}

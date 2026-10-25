@@ -1,0 +1,22 @@
+{
+    "runtime_id": 930,
+    "types": { },
+    "versioning": [
+        {
+            "runtime_range": [
+                0,
+                null
+            ],
+            "types": {
+                "Balance": "u128",
+                "Index": "u32",
+                "Phase": "145",
+                "Address": "205",
+                "ExtrinsicSignature": "556",
+                "ParaId": "54",
+                "17": "GenericEvent",
+                "282": "GenericCall"
+            }
+        }
+    ]
+}

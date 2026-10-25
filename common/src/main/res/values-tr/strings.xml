@@ -98,6 +98,10 @@
   <string name="backup_now">Şimdi yedekle</string>
   <string name="backup_wallet_backup_to_google">Google\'a yedekleme</string>
   <string name="backup_wallet_delete_alert_message">Google yedeklemenizi silerseniz, cüzdanınızı yalnızca parolanızın manuel olarak yedeklenmesiyle kurtarabilirsiniz.</string>
+  <plurals name="backup_wallet_delete_copies_alert_message">
+    <item quantity="one">Bu işlem bu cüzdanın %d Google yedeğini siler. Bundan sonra cüzdanınızı yalnızca parolanızın manuel olarak yedeklenmesiyle kurtarabilirsiniz.</item>
+    <item quantity="other">Bu işlem, diğer cihazlarınızdan veya başka bir şifreyle kaydedilenler dahil, bu cüzdanın %d Google yedeğinin tümünü siler. Bundan sonra cüzdanınızı yalnızca parolanızın manuel olarak yedeklenmesiyle kurtarabilirsiniz.</item>
+  </plurals>
   <string name="backup_wallet_delete_google_backup">Google yedeklemesini sil</string>
   <string name="backup_wallet_export_json">JSON\'u dışa aktar</string>
   <string name="backup_wallet_replace_accounts_alert" formatted="false">Şu anda bir%szincir hesap ve adres%sana anahtar çiftinin değiştirilmesiyle eklenen ve belirli bir anahtar çiftine sahip olan. Ancak mevcut cüzdan yedekleme (dışa aktarma) akışımızın birden fazla anahtar çiftinin depolanmasını desteklemediğini lütfen unutmayın. Sonuç olarak yalnızca ana anahtar çiftinizi kaydedebilirsiniz. \n  \n Değiştirdiğiniz zincir hesabınızın güvenliğini sağlamak için mevcut akışa geçmeden önce öncelikle hesabınızı ayrı olarak yedeklemenizi öneririz. Değiştirdiğiniz zincir hesabınızı başarıyla yedekledikten sonra herhangi bir endişe yaşamadan mevcut akışa geçebilirsiniz.</string>
@@ -110,9 +114,6 @@
   <string name="balance_locks_nomination_pools_row_title">Adaylık havuzları</string>
   <string name="balance_locks_screen_title">Kilitli ayrıntılar</string>
   <string name="banners_backup_description">Fonlarınıza erişiminizi kaybetmekten kendinizi koruyun</string>
-  <string name="banners_buy_xor">XOR\'u satın al</string>
-  <string name="banners_buy_xor_description">XOR tokenını Euro nakit ile satın alın veya satın</string>
-  <string name="banners_buy_xor_title">XOR jetonu satın al</string>
   <string name="banners_liquidity_pools_title">Likidite Havuzları</string>
   <string name="beacon_connect_warning">Uyarı: Bağlan\'a tıklayarak bu dapp\'in genel adresinizi görüntülemesine izin vermiş olursunuz. Bu, verilerinizi potansiyel kimlik avı risklerinden korumak için önemli bir güvenlik adımıdır</string>
   <string name="beacon_connected">Bağlı%s</string>
@@ -190,9 +191,9 @@
   <string name="common_change">Değişiklik</string>
   <string name="common_choose_file">Dosya yükle</string>
   <string name="common_choose_network">Ağı seçin</string>
-  <string name="common_claim">İddia</string>
+  <string name="common_claim">Talep et</string>
   <string name="common_claimable">Hak talebinde bulunulabilir</string>
-  <string name="common_close">Kapalı</string>
+  <string name="common_close">Kapat</string>
   <string name="common_commission">komisyon</string>
   <string name="common_completed">Tamamlandı</string>
   <string name="common_completed_with_count">Tamamlandı ( %s )</string>
@@ -236,6 +237,9 @@
   <string name="common_error_network">Uzak sunucuyla iletişim kurulurken hata oluştu</string>
   <string name="common_event">Etkinlik</string>
   <string name="common_existential_error_message">Bu işlem, bakiyenin varolma tutarının%s altına inmesine neden olacak ve bu da onun hesabın silinmesine neden olacaktır (yer kazanmak için hesap blok zincirinden silinecektir).</string>
+  <string name="common_existential_unknown_message">Fearless Wallet, ağın %s için istediği asgari bakiyeyi (varolma tutarı) kontrol edemedi. Bu transfer hesaplardan herhangi birini bu asgari tutarın altına düşürürse, ağ hesabı içinde kalan tutarla birlikte silebilir. Yalnızca iki hesapta da yeterli bakiye kalacağından eminseniz devam edin; aksi halde iptal edip daha sonra tekrar deneyin.</string>
+  <string name="common_existential_unknown_retry_message">Fearless Wallet, ağın %s için istediği asgari bakiyeyi (varolma tutarı) kontrol edemediği için hiçbir şey gönderilmedi. Bağlantınızı kontrol edip tekrar deneyin.</string>
+  <string name="common_existential_unknown_title">Asgari bakiye kontrol edilemedi</string>
   <string name="common_existential_warning_message">Bu işlem, bakiyenin varolma tutarının%s altına inmesine neden olacak ve bu da onun hesabın silinmesine neden olacaktır (yer kazanmak için hesap blok zincirinden silinecektir). Devam etmeyi seçerseniz, ağ tarafından belirlenen varolma tutarının altındaki tüm fonları kaybedersiniz. Ayrıntılı bilgi için lütfen resmi ağ belgelerine bakın (örn. Polkadot Wikisi). Fearless Wallet, fonlarınız üzerinde yetkisi olmayan bir uygulamadır ve ağ üzerindeki eylemlerinizden herhangi birinin kontrolü veya bilgisi yoktur. YALNIZCA UYGULAMALARI TAMAMEN KABUL EDİYORSANIZ VE ANLIYORSANIZ DEVAM EDİN.</string>
   <string name="common_existential_warning_title">İşlem hesabı kaldıracak.</string>
   <string name="common_filter_sort_header">Göre sırala:</string>
@@ -276,6 +280,8 @@
   <string name="common_not_enough_funds_title">Yetersiz bakiye</string>
   <string name="common_note">Not:</string>
   <string name="common_ok">Tamam</string>
+  <string name="update_security_notice_title">Mobil cüzdanınız güvende</string>
+  <string name="update_security_notice_message">iOS ve Android için Fearless, eski Fearless Chrome uzantısındaki güvenlik sorunundan etkilenmedi.\n\nChrome uzantısını 23 Ekim 2026\'dan önce kullandıysanız yeni bir cüzdan oluşturun ve fonlarınızı bu cüzdana taşıyın.</string>
   <string name="common_options">Seçenekler</string>
   <string name="common_options_title">Bir seçenek seçİniz</string>
   <string name="common_origin_network">Köken ağı</string>
@@ -362,6 +368,50 @@
   <string name="connection_methods_not_supported_warning">Wallet Connect tarafından talep edilen belirli yöntemler şu anda Uygulama tarafından desteklenmemektedir. Bağlantı kurulabilse de dApp\'in bazı işlevleri kullanılamayabilir.</string>
   <string name="connection_optional_networks">İsteğe bağlı ağlar</string>
   <string name="connection_problems_alert_message">Uygulamayı başlatmak için gereken zorunlu veriler yüklenemedi. Lütfen internet bağlantısını kontrol edin ve tekrar deneyin.</string>
+  <string name="wallet_secure_storage_unavailable_title">Cüzdan verileri korunuyor</string>
+  <string name="wallet_secure_storage_unavailable_message">Fearless, Android güvenli depolama alanına erişemedi. Şifrelenmiş cüzdan verileriniz korundu ve sıfırlanmadı. Cihazınızın kilidini açıp yeniden deneyin. Sorun devam ederse Fearless destek ekibiyle iletişime geçin.</string>
+  <string name="wallet_database_unavailable_title">Cüzdan verileri açılamadı</string>
+  <string name="wallet_database_unavailable_message">Fearless hiçbir cüzdan verisini silmedi veya sıfırlamadı. Cüzdanı yeniden açmayı deneyin. Sorun devam ederse Fearless destek ekibiyle iletişime geçin.</string>
+  <string name="wallet_recovery_required_title">Cüzdan kurtarma gerekli</string>
+  <string name="wallet_recovery_required_message">Bu cüzdandaki bir anahtarın kontrol edilmesi gerekiyor. Diğer anahtarlarınız ve cüzdanlarınız çalışmaya devam eder. Erişimi geri yüklemek veya yedeğinizi kontrol etmek için cüzdan kurtarmayı açın.</string>
+  <string name="wallet_startup_recovery_required_message">Fearless cüzdanlarınızı açmayı tamamlayamadı. Hiçbir şey değiştirilmedi veya silinmedi. Saklanan tüm anahtarları şimdi PIN kodunuzla görüntüleyip not alabilirsiniz. Uygulama verilerini temizlemeyin ve Fearless uygulamasını kaldırmayın: bu, anahtarları bu cihazdan kaldırır. Tanılama kodu: %1$s</string>
+  <string name="wallet_startup_restart_required_title">Fearless uygulamasını kapatıp yeniden açın</string>
+  <string name="wallet_startup_restart_required_message">Android bir cüzdan depolama yazma işlemini doğrulayamadığı için Fearless durdu. Bu süreçte başka bir cüzdan değişikliği denenmeyecek. Saklanan durumu güvenli şekilde doğrulamak için uygulamayı şimdi kapatıp yeniden açın. Uygulama verilerini temizlemeyin veya uygulamayı yeniden yüklemeyin.</string>
+  <string name="wallet_recovery_scoped_title">Bir anahtar ilgi gerektiriyor</string>
+  <string name="wallet_emergency_open">Saklanan anahtarlarımı göster</string>
+  <string name="wallet_emergency_title">Saklanan anahtarlarınız</string>
+  <string name="wallet_emergency_intro">Bu cihazda saklanan tüm anımsatıcı dizileri ve anahtarları saklandığı haliyle görmek için Fearless PIN kodunuzu girin. Hiçbir şey değiştirilmez veya silinmez.</string>
+  <string name="wallet_emergency_pin_hint">6 haneli PIN kodu</string>
+  <string name="wallet_emergency_unlock">Anahtarlarımı göster</string>
+  <string name="wallet_emergency_wrong_pin">Yanlış PIN kodu</string>
+  <string name="wallet_emergency_locked">Çok fazla deneme. %1$d saniye sonra tekrar deneyin.</string>
+  <string name="wallet_emergency_unavailable">Bu cihaz artık PIN kodunuzu okuyamadığı için saklanan anahtarları gösteremiyor. Hiçbir şey silinmedi. Anımsatıcı dizinizi not aldıysanız cüzdanınızı onunla geri yükleyebilirsiniz.</string>
+  <string name="wallet_emergency_read_failed">Fearless saklanan anahtarları şu anda okuyamadı. Hiçbir şey değiştirilmedi veya silinmedi. Tekrar deneyin.</string>
+  <string name="wallet_emergency_warning">Bu kelimeleri veya anahtarları gören herkes fonlarınızı alabilir. Bunları kağıda yazın, çevrimdışı saklayın ve asla paylaşmayın.</string>
+  <string name="wallet_emergency_empty">Bu cihazda saklanan cüzdan anahtarı yok.</string>
+  <string name="wallet_emergency_wallet">Cüzdan %1$d</string>
+  <string name="wallet_emergency_wallet_unknown">Eski bir sürümden cüzdan</string>
+  <string name="wallet_emergency_kind_substrate">Polkadot ve Substrate anahtarı</string>
+  <string name="wallet_emergency_kind_ethereum">Ethereum anahtarı</string>
+  <string name="wallet_emergency_kind_ton">TON anahtarı</string>
+  <string name="wallet_emergency_kind_legacy">Cüzdan anahtarı, 4.0 öncesi biçim</string>
+  <string name="wallet_emergency_kind_network">Tek bir ağ için anahtar</string>
+  <string name="wallet_emergency_kind_early">Cüzdan anahtarı, eski biçim</string>
+  <string name="wallet_emergency_state_active">Kullanımda</string>
+  <string name="wallet_emergency_state_set_aside">Kenara ayrıldı, imzalamada kullanılmıyor</string>
+  <string name="wallet_emergency_state_archived">Önceki bir sürümden saklandı, imzalamada kullanılmıyor</string>
+  <string name="wallet_emergency_field_phrase">Anımsatıcı dizi</string>
+  <string name="wallet_emergency_field_ton_phrase">TON anımsatıcı dizisi. Tam olarak gösterildiği gibi yazın</string>
+  <string name="wallet_emergency_field_entropy">Entropi</string>
+  <string name="wallet_emergency_field_seed">Ham kaynak</string>
+  <string name="wallet_emergency_field_path">Türetme yolu</string>
+  <string name="wallet_emergency_field_ethereum_path">Ethereum türetme yolu</string>
+  <string name="wallet_emergency_field_private_key">Özel anahtar</string>
+  <string name="wallet_emergency_field_ethereum_private_key">Ethereum özel anahtarı</string>
+  <string name="wallet_emergency_field_ton_private_key">TON özel anahtarı</string>
+  <string name="wallet_emergency_field_nonce">Nonce</string>
+  <string name="wallet_emergency_field_stored">Saklanan veri, bulunduğu haliyle</string>
+  <string name="wallet_emergency_unreadable">Bu değerin şifresi bu cihazda çözülemiyor. Değiştirilmeden saklandı.</string>
   <string name="connection_reject">Reddetmek</string>
   <string name="connection_required_networks">Gerekli ağlar</string>
   <string name="connection_review_optional_permissions">İsteğe bağlı izinleri inceleyin</string>
@@ -466,6 +516,42 @@
   <string name="fearless_wallet">Korkusuz Cüzdan</string>
   <string name="fee_not_yet_loaded_message">Lütfen ücret hesaplanana kadar bekleyin.</string>
   <string name="fee_not_yet_loaded_title">Ücret hesaplaması devam ediyor.</string>
+  <string name="google_backup_already_imported_message">Bu cüzdan bu cihazdaki Fearless\'ta zaten var, bu yüzden yeniden içe aktarılmadı.</string>
+  <string name="google_backup_already_imported_title">Bu cihazda zaten var</string>
+  <string name="google_backup_back_up_later">Daha sonra yedekle</string>
+  <string name="google_backup_ethereum_only_message">Bu tarayıcı uzantısı yedeği yalnızca bir Ethereum anahtarı içeriyor ve yalnızca bununla yeni bir cüzdan oluşturulamaz. Hiçbir şey değiştirilmedi. Bu cüzdanı anımsatıcı ifadesi, ham kaynağı veya JSON dosyalarıyla içe aktarın.</string>
+  <string name="google_backup_ethereum_only_title">Yalnızca bir Ethereum anahtarı</string>
+  <string name="google_backup_failed_message">Google Drive\'a bağlanırken bir sorun oluştu. Tekrar deneyin.</string>
+  <string name="google_backup_failed_title">Google Drive yedeklemesi tamamlanmadı</string>
+  <string name="google_backup_import_another_way">Başka bir yolla içe aktar</string>
+  <string name="google_backup_import_with_json">JSON dosyasıyla içe aktar</string>
+  <string name="google_backup_import_with_phrase">Anımsatıcı ifadeyle içe aktar</string>
+  <string name="google_backup_no_connection_message">İnternet bağlantınızı kontrol edip tekrar deneyin.</string>
+  <string name="google_backup_no_connection_title">Google Drive\'a ulaşılamadı</string>
+  <string name="google_backup_none_found_message">Fearless bu Google hesabında cüzdan yedeği bulamadı. Başka bir Google hesabıyla yedeklediyseniz o hesapla oturum açın. Anımsatıcı ifade, ham kaynak veya JSON dosyasıyla da içe aktarabilirsiniz.</string>
+  <string name="google_backup_none_found_title">Bu Google hesabında yedek yok</string>
+  <string name="google_backup_not_found_message">Bu yedek, muhtemelen başka bir cihazdan, Google Drive\'dan silindi. Şu anda mevcut yedekleri görmek için listeyi yenileyin.</string>
+  <string name="google_backup_not_found_title">Yedek artık Google Drive\'da değil</string>
+  <string name="google_backup_not_verified_message">Bu cüzdan için saklanan anımsatıcı ifade veya kaynak, tam olarak bu cüzdanı geri yüklemiyor; bu yüzden hiçbir şey yüklenmedi ve bu cihazda hiçbir şey değiştirilmedi. Bunun yerine bu cüzdanı JSON\'u dışa aktar ile yedekleyin: cüzdanın şu anda kullandığı anahtarı kaydeder.</string>
+  <string name="google_backup_not_verified_title">Yedek yüklenmedi</string>
+  <string name="google_backup_open_wallet">Cüzdanı aç</string>
+  <string name="google_backup_origin_extension">Tarayıcı uzantısından yedeklendi</string>
+  <string name="google_backup_refresh">Listeyi yenile</string>
+  <string name="google_backup_saved_without_phrase_message">Bu cüzdan için saklanan anımsatıcı ifade veya kaynak, tam olarak bu cüzdanı geri yüklemediği için yedeğe eklenmedi. Google Drive yedeğiniz bu cüzdanı şu anda kullandığı anahtardan geri yükler.</string>
+  <string name="google_backup_saved_without_phrase_title">Anımsatıcı ifade olmadan yedeklendi</string>
+  <string name="google_backup_sign_in">Oturum aç</string>
+  <string name="google_backup_sign_in_message">Fearless\'ın Google Drive\'ınızdaki yedek klasörüne erişmesi gerekiyor. Devam etmek için yeniden oturum açın ve erişime izin verin.</string>
+  <string name="google_backup_sign_in_title">Google\'da yeniden oturum açın</string>
+  <string name="google_backup_storage_full_message">Google hesabınızda boş depolama alanı kalmadığı için yedek kaydedilmedi. Yer açıp tekrar deneyin.</string>
+  <string name="google_backup_storage_full_title">Google Drive dolu</string>
+  <string name="google_backup_unavailable_message">Bu Fearless kurulumunda Google ile oturum açma kullanılamıyor. Bu cihazdaki cüzdanlarınız etkilenmedi. Cüzdanları yedeklemek veya içe aktarmak için anımsatıcı ifade, ham kaynak veya JSON dosyası kullanın.</string>
+  <string name="google_backup_unavailable_title">Google Drive yedeklemesi kullanılamıyor</string>
+  <string name="google_backup_unsupported_message">Bu yedek Fearless\'ın daha yeni bir sürümüyle oluşturulmuş veya bozulmuş. Hiçbir şey değiştirilmedi. Bunun yerine bu cüzdanı anımsatıcı ifadesi, ham kaynağı veya JSON dosyasıyla içe aktarabilirsiniz.</string>
+  <string name="google_backup_unsupported_title">Bu yedek okunamıyor</string>
+  <string name="google_backup_use_another_account">Başka bir Google hesabı kullan</string>
+  <string name="google_backup_wallet_created_not_backed_up">Yeni cüzdanınız oluşturuldu ancak henüz yedeklenmedi. Daha sonra cüzdanın yedekleme seçeneklerinden yedekleyebilirsiniz.</string>
+  <string name="google_backup_wrong_password_message">Bu yedek o parolayla açılamıyor. Yedeği oluştururken belirlediğiniz parolayı girip tekrar deneyin.</string>
+  <string name="google_backup_wrong_password_title">Yedek parolası yanlış</string>
   <string name="hash">Doğramak</string>
   <string name="hidden_assets">Gizli varlıklar</string>
   <string name="history_v1.9.0">Geçmiş</string>
@@ -612,6 +698,17 @@
   <string name="parachain_staking_unbonding_period_template">%1$siçinde%2$s- hangisi%3$s</string>
   <string name="parachain_staking_unlock">Kilidini aç</string>
   <string name="parachain_staking_unlock_title">Jetonların kilidini aç</string>
+  <string name="paused_cross_chain_message">Önceki sürümlerde kullanılabilen çapraz zincir transferleri, son Polkadot ağ değişiklikleri için güvenlik kontrollerini tamamlayana kadar bu sürümde duraklatıldı. Tokenleriniz ve bakiyeleriniz etkilenmez. Her ağda göndermeye ve almaya devam edebilirsiniz.</string>
+  <string name="paused_cross_chain_send_on_network">%1$s üzerinde gönder</string>
+  <string name="paused_cross_chain_send_within_network">Tek bir ağ içinde gönder</string>
+  <string name="paused_cross_chain_title">Çapraz zincir transferleri duraklatıldı</string>
+  <string name="paused_farming_message">Farming işlemleri şu anda duraklatıldı. Farming pozisyonlarınız ve bakiyeleriniz etkilenmez; göndermeye ve almaya devam edebilirsiniz.</string>
+  <string name="paused_liquidity_message">Likidite havuzu işlemleri şu anda duraklatıldı. Havuz pozisyonlarınız ve bakiyeleriniz etkilenmez; göndermeye ve almaya devam edebilirsiniz.</string>
+  <string name="paused_polkamarkt_message">Polkamarkt alım satımı bu sürümde duraklatıldı. Pozisyonlarınız ve bakiyeleriniz etkilenmez.</string>
+  <string name="paused_send_message">Bir sorunu incelediğimiz için %1$s üzerinde gönderim şu anda duraklatıldı. Bakiyeniz etkilenmez ve almaya devam edebilirsiniz.</string>
+  <string name="paused_send_title">Gönderim duraklatıldı</string>
+  <string name="paused_swap_message">Takaslar şu anda duraklatıldı. Tokenleriniz ve bakiyeleriniz etkilenmez; göndermeye ve almaya devam edebilirsiniz.</string>
+  <string name="paused_swap_title">Takaslar duraklatıldı</string>
   <string name="pincode_biometry_dialog_title">Biyometri</string>
   <string name="pincode_changed_message">PIN kodu başarıyla değiştirildi</string>
   <string name="pincode_confirm_pin_code">Pin kodunu onaylayın</string>
@@ -664,7 +761,7 @@
   <string name="polkaswap_preview_title">Ön izleme</string>
   <string name="polkaswap_slippage_tolerance">Kayma Toleransı</string>
   <string name="polkaswap_slippage_tolerance_description">Fiyatın bu yüzdeden daha fazla olumsuz yönde değişmesi durumunda işleminiz geri alınacaktır</string>
-  <string name="polkaswap_swap_settings_title">Ayarları değiştir</string>
+  <string name="polkaswap_swap_settings_title">Takas ayarları</string>
   <string name="polkaswap_swap_title">Takas</string>
   <string name="polkaswap_to">İle</string>
   <string name="polkaswap_transaction_may_fail">İşleminiz başarısız olabilir</string>
@@ -734,7 +831,6 @@
   <string name="profile_network_title">Ağlar</string>
   <string name="profile_pincode_change_title">PIN kodunu değiştir.</string>
   <string name="profile_settings_title">Ayarlar</string>
-  <string name="profile_soracard_title">SORA Kartı</string>
   <string name="profile_title">Hesap</string>
   <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Cüzdanlar</string>
@@ -750,6 +846,8 @@
   <string name="recovery_raw_seed_hint">Özel anahtar</string>
   <string name="recovery_source_type">Kaynak türü</string>
   <string name="referral_email_acala">Acala\'dan eposta almayı kabul ediyorum</string>
+  <string name="relay_moved_to_asset_hub_message">2025 Asset Hub geçişinden bu yana bu ağdaki staking, adaylık havuzları, vesting ve crowdloan katkıları Polkadot Asset Hub veya Kusama Asset Hub üzerinde işleniyor ve Fearless\'ın bu sürümü bunları orada yönetemiyor. Relay chain bu işlem için ücreti alır ve ardından işlemi reddeder; bu yüzden hiçbir şey imzalanmadı veya gönderilmedi. Oradaki hesabınız aynı adrese sahiptir ve bu cüzdanda gösterilir.</string>
+  <string name="relay_moved_to_asset_hub_title">Asset Hub\'a taşındı</string>
   <string name="remove_backup_extension_error_message">Yedekleme, Fearless Wallet tarayıcı uzantısı tarafından oluşturuldu. Kimlik bilgileri eksikliği nedeniyle mobil uygulama bunu kaldıramıyor</string>
   <string name="rename_account_description">Örnek: Tasarruflar, Yatırımlar, Kitlesel Krediler, Staking. Bu takma ad yalnızca size gösterilecek ve mobil cihazınızda yerel olarak saklanacaktır.</string>
   <string name="replace_account">Hesabı değiştir</string>
@@ -806,13 +904,6 @@
   <string name="sora_bridge_amount_less_fee">Aktarmaya çalıştığınız tutar, işlem ücretlerini karşılamaya yetmiyor. %sAğ İşlem gerçekleşmese de Sora ağındaki ücretler sizden yine de tahsil edilecektir.</string>
   <string name="sora_bridge_low_amount_format_alert">Şu anda bir dk. miktar%sSORA Ağının istikrarını ve güvenliğini sağlamak amacıyla köprü oluşturmak için. Anlayışınız için minnettarız.</string>
   <string name="sora_bridge_low_amount_format_alert_2">Şu anda istikrar ve güvenliği sağlamak için köprüleme için minimum %s miktarı var. Anlayışınız için teşekkür ederiz.</string>
-  <string name="sora_card_annual_service_fee">0 € yıllık hizmet ücreti</string>
-  <string name="sora_card_blacklisted_countires_title">Uygulama dışı</string>
-  <string name="sora_card_blacklisted_countires_warning"><![CDATA[<b>Belirli ülkelerde<br>sakinler şu anda SORA Kartına başvuramaz</b><br><a href=\"https://soracard.com/blacklist/\">Bkz. listele</a>]]></string>
-  <string name="sora_card_enable_card_title">Kartı etkinleştir</string>
-  <string name="sora_card_get_sora_card">SORA Kartını Alın</string>
-  <string name="sora_card_title">SORA Kartına itibari para veya kripto para yükleyin ve çevrimiçi, mağazada ödeme yapın veya ATM\'den para çekin</string>
-  <string name="sora_card_verification_successful">Kartınız yolda</string>
   <string name="specify_network">Ağı Belirt</string>
   <string name="specify_network_description">Adres öneki birden fazla ağla eşleşiyor, lütfen ağı belirtin</string>
   <string name="sr25519_selection_subtitle">sr25519 (önerilen)</string>
@@ -870,7 +961,7 @@
   <string name="staking_custom_proceed_button_enabled_title" formatted="false">Seçilenleri göster: %d (maks %d )</string>
   <string name="staking_custom_validators_list_title">Doğrulayıcıları seçin.</string>
   <string name="staking_custom_validators_settings_filters">Göster</string>
-  <string name="staking_custom_validators_settings_sort_apy">Tahmini ödüller (% APY)</string>
+  <string name="staking_custom_validators_settings_sort_apy" formatted="false">Tahmini ödüller (% APY)</string>
   <string name="staking_custom_validators_settings_sort_total_stake">Toplam stake (%s)</string>
   <string name="staking_custom_validators_title">Özel doğrulayıcıları seçin</string>
   <string name="staking_custom_validators_update_list">Listenizi güncelleyin</string>
@@ -1042,7 +1133,7 @@
   <string name="staking_unbonding_limit_reached_title">Stake kaldırma istekleri sınırına ulaşıldı</string>
   <string name="staking_unbondings_placeholder">Stake kaldırma işlemleri burada görünecek</string>
   <string name="staking_unstaking_period">Unstake dönemi</string>
-  <string name="staking_validator_apy_percent">Tahmini ödüller (% APY)</string>
+  <string name="staking_validator_apy_percent" formatted="false">Tahmini ödüller (% APY)</string>
   <string name="staking_validator_estimated_reward">Tahmini ödül</string>
   <string name="staking_validator_info_title">Doğrulayıcı bilgileri</string>
   <string name="staking_validator_my_oversubscribed_message">Fazla abone var. Bu dönemde doğrulayıcıdan ödül almayacaksınız</string>
@@ -1192,4 +1283,446 @@
   <string name="what_accounts_for_export">Dışa aktarmak istediğin hesaplar hangileri?</string>
   <string name="yesterday">Dün</string>
   <string name="your_collator">Harmanlayıcınız</string>
+
+
+  <string name="banner_addwallet_regular_button_title">Сreate or import</string>
+
+  <string name="banner_addwallet_regular_subtitle">Join the ecosystems with more than 90+ chains and fascinating features</string>
+
+  <string name="banner_addwallet_regular_title">EVM/Substrate accounts</string>
+
+  <string name="banner_addwallet_ton_button_title">Join now</string>
+
+  <string name="banner_addwallet_ton_title">Join the fastest growing ecosystem ever</string>
+
+  <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
+
+  <string name="banners_demeter_title">Demeter Protocol</string>
+
+  <plurals name="common_months_format">
+    <item quantity="one">%d month</item>
+    <item quantity="other">%d months</item>
+  </plurals>
+
+  <string name="common_network_hash">%s Hash</string>
+
+  <string name="common_refund">Refund</string>
+
+  <string name="common_see_all">See all</string>
+
+  <string name="connected_accounts_common">Connected Accounts</string>
+
+  <string name="connected_accounts_ethereum_title">EVM chain accounts</string>
+
+  <string name="connected_accounts_substrate_title">Substrate chain accounts</string>
+
+  <string name="connected_accounts_ton_title">TON chain accounts</string>
+
+  <string name="connected_accounts_bitcoin_title">Bitcoin zinciri hesapları</string>
+
+  <string name="connected_accounts_solana_title">Solana zinciri hesapları</string>
+
+  <string name="connected_accounts_iroha_title">Iroha zinciri hesapları</string>
+
+  <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
+
+  <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
+
+  <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>
+
+  <string name="cross_chain_tx_status_done_title">All done</string>
+
+  <string name="cross_chain_tx_status_pending_description">Transaction is in progress. Please wait while %1$s asset cross the bridge from the %2$s to the %3$s network.</string>
+
+  <string name="cross_chain_tx_status_pending_title">Transaction pending</string>
+
+  <string name="cross_chain_tx_status_source_fail_description">Transaction failed on the %s network. Please, try again.</string>
+
+  <string name="cross_chain_tx_status_source_fail_title">Transaction failed</string>
+
+  <string name="dapp_category_connected_title">Connected</string>
+
+  <string name="dapp_category_defi_title">DeFi</string>
+
+  <string name="dapp_category_featured_title">Featured</string>
+
+  <string name="dapp_category_nft_title">NFT</string>
+
+  <string name="dapp_category_utilities_title">Utilities</string>
+
+  <string name="dapp_connected_title">Connected</string>
+
+  <string name="dapp_discover_title">Discover dApp</string>
+
+  <string name="dapp_no_connected_dapps_title">No connected dApps</string>
+
+  <string name="dapp_not_found_title">No dApps were found</string>
+
+  <string name="ecosystem_options_backup_title">Backup chain accounts</string>
+
+  <string name="ecosystem_options_details_title">Chain accounts</string>
+
+  <string name="ecosystem_options_title">Account options</string>
+
+  <string name="fee_calculation_error">Something went wrong while calculating the fee. Please try again later.</string>
+
+  <string name="fee_calculation_error_inactive_account">Your account is inactive. Top up your balance to calculate the fee.</string>
+
+  <string name="onboarding_banner_regular_ecosystem_button_title">Join EVM or Substrate</string>
+
+  <string name="onboarding_banner_regular_ecosystem_title">Create or import Substrate or EVM accounts</string>
+
+  <string name="onboarding_banner_ton_ecosystem_button_title">Join TON</string>
+
+  <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
+
+  <string name="profile_tonconnect_title">Ton connect</string>
+
+  <string name="tc_connected_dapp">Connected</string>
+
+  <string name="tc_discover_dapp">Discover dApp</string>
+
+  <string name="tc_review_dapp_info">Review dApp info</string>
+
+  <string name="tc_review_dapp_title">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="tc_see_all">See all</string>
+
+  <string name="tc_service_address">Service address</string>
+
+  <string name="ton_connect_alert_description">Service address</string>
+
+  <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
+
+  <string name="ton_connect_alert_title">Review dApp info</string>
+
+  <string name="ton_tonviewer_action_title">View in Tonviewer</string>
+
+  <string name="warning_message_nothing_to_claim">You have nothing to claim</string>
+  <string name="ux_share_address">Adresi paylaş</string>
+  <string name="portfolio_sync_catalog_only">Bazı tokenlar görünmeyebilir</string>
+  <string name="portfolio_balance_update_failed">Bakiyeler güncellenemedi</string>
+  <string name="portfolio_balances_outdated">Bakiyeler güncel olmayabilir</string>
+  <string name="portfolio_balances_not_loaded">Bakiyeler yüklenmedi</string>
+  <string name="portfolio_balance_incl_hidden">gizlenenler dahil</string>
+  <plurals name="portfolio_hidden_assets_not_included">
+    <item quantity="one">%1$d gizli varlık dahil değil</item>
+    <item quantity="other">%1$d gizli varlık dahil değil</item>
+  </plurals>
+  <plurals name="portfolio_hidden_assets_not_included_manage">
+    <item quantity="one">%1$d gizli varlık dahil değil · Yönet</item>
+    <item quantity="other">%1$d gizli varlık dahil değil · Yönet</item>
+  </plurals>
+  <plurals name="portfolio_assets_without_price_not_included">
+    <item quantity="one">Fiyatı olmayan %1$d varlık dahil değil</item>
+    <item quantity="other">Fiyatı olmayan %1$d varlık dahil değil</item>
+  </plurals>
+  <string name="portfolio_pool_stakes_not_included">Adaylık havuzlarındaki stake dahil değil</string>
+  <plurals name="portfolio_hidden_assets_hold_funds">
+    <item quantity="one">%1$d gizli varlıkta bakiye var</item>
+    <item quantity="other">%1$d gizli varlıkta bakiye var</item>
+  </plurals>
+  <string name="portfolio_hidden_assets_hold_funds_description">Gizli varlıklar toplamınıza dahil değildir. Bunları inceleyin veya gizli tutun.</string>
+  <string name="portfolio_hidden_assets_review">İncele</string>
+  <string name="portfolio_hidden_assets_keep_hidden">Gizli tut</string>
+  <string name="portfolio_hidden_in_previous_version">Önceki sürümde gizlendi</string>
+  <string name="portfolio_asset_hidden">Gizli</string>
+  <string name="portfolio_show_testnets">Test ağlarını göster</string>
+  <string name="portfolio_show_testnets_description">Test tokenlerinin değeri yoktur ve toplamınıza asla dahil edilmez.</string>
+  <string name="portfolio_testnet_no_value">Değeri yok</string>
+  <string name="search_assets_hint">Token veya ağa göre ara</string>
+  <string name="search_assets_section_portfolio">Portföyünüzde</string>
+  <string name="search_assets_section_other">Diğer varlıklar</string>
+  <string name="search_assets_section_other_description">Henüz portföyünüzde değil. Almak için birini açın.</string>
+  <string name="asset_select_nothing_to_send">Henüz gönderilecek bir şey yok. Aktarılabilir bakiyesi olan varlıklar burada görünür.</string>
+  <string name="wallet_recovery_center">Cüzdan kurtarma</string>
+  <string name="wallet_recovery_center_intro">Bir cüzdana erişimi geri yükleyin veya bir yedeği kontrol edin. Başka bir anahtarı kurtarırken çalışan anahtarlar kullanılabilir durumda kalır.</string>
+  <string name="wallet_recovery_inventory_failed">Bazı kurtarma ayrıntıları okunamadı. Yeniden deneyin veya saklanan verileri dışa aktarın.</string>
+  <string name="wallet_recovery_identity_issue">Saklanan anahtar başka bir hesaba ait. Yedeğini ayrı bir cüzdan olarak içe aktarın; bu kayıt yalnızca görüntülenebilir olarak kalacaktır.</string>
+  <string name="wallet_recovery_missing_key">İmzalama anahtarı bu cihazda yok. Bu hesapla eşleşen anahtarı geri yükleyin.</string>
+  <string name="wallet_recovery_unusable_key">Bu imzalama anahtarı bu cihazda kullanılamıyor. Orijinal veriler korundu.</string>
+  <string name="wallet_recovery_import_corrected">Düzeltilmiş yeni bir cüzdan olarak içe aktar</string>
+  <string name="wallet_recovery_use_phrase">Kurtarma ifadesiyle geri yükle</string>
+  <string name="wallet_recovery_use_seed">Ham seed veya özel anahtarla geri yükle</string>
+  <string name="wallet_recovery_use_json">JSON dosyasıyla geri yükle</string>
+  <string name="wallet_recovery_as_typed">Bu ifade, boşluklar ve büyük harfler dahil tam olarak kaydedildiği gibi girildiğinde hesabınızı geri yükler. Birebir aynı bir yedek saklayın.</string>
+  <string name="wallet_recovery_backup_advisory">Saklanan kurtarma ifadesi veya seed, bu imzalama anahtarını yeniden oluşturmuyor. Çalışan anahtarı JSON veya özel anahtar olarak yedekleyin.</string>
+  <string name="wallet_recovery_no_attention">Şu anda kurtarılması gereken cüzdan anahtarı yok.</string>
+  <string name="wallet_recovery_retained">Korunan cüzdan verileri</string>
+  <string name="wallet_recovery_retained_intro">Kaldırılan cüzdanların ve önceki onarımların verileri burada saklanır. Herhangi bir şeyi geri yüklemeden önce türetilen hesapları inceleyin.</string>
+  <string name="wallet_recovery_keep_view_only">Şimdilik yalnızca görüntülenebilir kalsın</string>
+  <string name="wallet_recovery_restore">Geri yükle</string>
+  <string name="wallet_recovery_restore_key">Cüzdan anahtarını geri yükle</string>
+  <string name="wallet_recovery_restore_explanation">Bu hesap için bir yedek girin. Erişimi geri yüklemeden önce eşleştiğini kontrol ederiz. Mevcut saklanan veriler korunur.</string>
+  <string name="wallet_recovery_restored">Cüzdan anahtarı geri yüklendi</string>
+  <string name="wallet_recovery_different_key">Bu yedek bu hesapla eşleşmiyor. İfadeyi, parolayı ve türetme yolunu kontrol edin.</string>
+  <string name="wallet_recovery_restore_failed">Anahtar geri yüklenemedi. Saklanan verileriniz korundu. Yedeğinizi kontrol edip yeniden deneyin.</string>
+  <string name="wallet_recovery_fix_now">Şimdi düzelt</string>
+  <string name="wallet_recovery_backup_key">Çalışan anahtarı yedekle</string>
+
+    <!-- Retained wallet data: authenticated preview, restore and explicit purge. -->
+    <string name="wallet_archive_open">Saklanan cüzdan verilerini aç</string>
+    <string name="wallet_archive_intro">Geri yüklemeden önce adresleri kontrol edin. Her anahtar ayrı bir cüzdan olur. Özgün veriler saklanır; ağları yeniden seçmeniz gerekebilir.</string>
+    <string name="wallet_archive_unlock">Saklanan verilerin kilidini aç</string>
+    <string name="wallet_archive_empty">Saklanan cüzdan verisi bulunamadı.</string>
+    <string name="wallet_archive_unproved">Saklanan verilerin bir bölümünün kullanılabilir olduğu doğrulanamadı. Bu veriler özgün veri dışa aktarımında hâlâ bulunur.</string>
+    <string name="wallet_archive_exact_data">Özgün verileri görüntüle</string>
+    <string name="wallet_archive_unreadable">Bu cihaz bu kaydı okuyamıyor. Saklanan veriler değiştirilmedi.</string>
+    <string name="wallet_archive_delete">Kalıcı olarak sil</string>
+    <string name="wallet_archive_delete_first">Bu işlem, görüntülenemeyen anahtarlar dâhil saklanan kaydın tamamını siler. Yalnızca çalışan başka bir yedeğiniz varsa devam edin.</string>
+    <string name="wallet_archive_delete_final">Son onay: Saklanan bu kayıt kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Diğer cüzdanlar ve kayıtlar korunur.</string>
+    <string name="wallet_archive_restore_confirm">Bu adres ayrı bir cüzdan olarak geri yüklensin mi? Özgün kayıt korunur. Kayıtlı kurtarma ifadesinin hâlâ doğrulanması gerekebilir.</string>
+    <string name="wallet_archive_continue_delete">Son onaya geç</string>
+    <string name="wallet_archive_export_warning">Bu veriler özel anahtarlar ve eksik kurtarma bilgileri içerebilir. Verileri alan kişi paranızı kontrol edebilir. Yalnızca güvendiğiniz bir hedefle paylaşın.</string>
+    <string name="wallet_archive_share">Saklanan verileri paylaş</string>
+    <string name="wallet_archive_restored_name">Geri yüklenen cüzdan</string>
+    <string name="wallet_archive_purged">Saklanan kayıt silindi</string>
+
+  <string name="wallet_keyloss_title">Güvenli depolamayı kurtar</string>
+  <string name="wallet_keyloss_intro">Bu cihaz şu anda önceki güvenli depolamayı açamıyor. Cüzdan kayıtları ve şifreli anahtarlar korunuyor. Önce yeniden deneyin. Uygulamayı silmeyin.</string>
+  <string name="wallet_keyloss_retry">Önceki güvenli depolamayı dene</string>
+  <string name="wallet_keyloss_start">Yeni güvenli depolama başlat</string>
+  <string name="wallet_keyloss_view">Yalnızca önbellekteki cüzdanları görüntüle</string>
+  <string name="wallet_keyloss_restart_device">Önceki anahtar hâlâ kullanılamıyor. Cihazı yeniden başlatın, Fearless uygulamasını açın ve tekrar deneyin. Yeni depolama, yalnızca cihaz yeniden başlatılmadan önce ve sonra başarısız denemelerden sonra sunulur.</string>
+  <string name="wallet_keyloss_retry_later">Güvenli depolama kullanılamıyor veya kurtarma kontrolü değişti. Hiçbir şey silinmedi. Yeniden kontrol etmeyi deneyin.</string>
+  <string name="wallet_keyloss_can_start">Cihaz yeniden başlatıldıktan sonra da önceki anahtar kullanılamıyor. Kurtarma yedekleriniz varsa yeni depolama başlatıp cüzdanlarınızı geri yükleyebilirsiniz. Eski veriler bu cihazda kalır.</string>
+  <string name="wallet_keyloss_backup_confirmation">Geri yüklemek istediğim cüzdanlar için kurtarma ifadelerim, seed veya JSON yedeklerim var.</string>
+  <string name="wallet_keyloss_consent">Yeni şifreleme anahtarı eski şifreli verileri açamaz. İmzalamayı geri getirmek için eşleşen kurtarma yedekleri gerekir. Önceki sarılmış anahtarı, cihazdaki takma adını ve tüm şifreli cüzdan değerlerini koruruz. Fearless önceki anahtarı denemeye devam eder ve kullanılabilir olursa yeniden kullanır. Yeni cüzdanlar ve anahtarları da korunur.</string>
+  <string name="wallet_keyloss_authenticate">Devam etmek için cihaz kimlik bilginizi doğrulayın.</string>
+  <string name="wallet_keyloss_cached_warning">Bunlar önbellekteki herkese açık cüzdan kayıtlarıdır; güncel ağ bakiyeleri değildir. Burada imzalama ve cüzdan değişiklikleri yapılamaz. Token etiketi olmayan tutarlar en küçük birimdedir. Genel anahtarlar alım adresi değildir.</string>
+  <string name="wallet_keyloss_incomplete">Bazı kayıtlar veya önbellekteki bakiyeler görüntülenemedi. Özgün veriler korunuyor. Tam erişim için güvenli depolamayı yeniden deneyin.</string>
+  <string name="wallet_keyloss_no_cached">Okunabilir önbellek cüzdanı bulunamadı. Kayıtlı veriler değiştirilmedi.</string>
+  <string name="wallet_keyloss_working">Korunan veriler kontrol ediliyor…</string>
+  <string name="wallet_keyloss_back">Kurtarmaya dön</string>
+  <string name="wallet_keyloss_substrate_id">Substrate hesap kimliği: %1$s</string>
+  <string name="wallet_keyloss_evm_address">Ethereum adresi: %1$s</string>
+  <string name="wallet_keyloss_ton_public">TON genel anahtarı: %1$s</string>
+  <string name="wallet_keyloss_address">Adres: %1$s</string>
+  <string name="wallet_keyloss_public">Genel anahtar: %1$s</string>
+  <string name="wallet_keyloss_balance">Ağ %1$s · Varlık %2$s: %3$s</string>
+    <string name="send_max">Maks.</string>
+    <string name="send_account_creation">Hesap oluşturma</string>
+    <string name="send_fee_rate">Ücret oranı</string>
+    <string name="send_sat_per_vbyte">%1$s sat/vB</string>
+    <string name="send_recent_payment">Son ödeme</string>
+    <string name="send_pending_message">Bu ödemenin sonucu henüz bilinmiyor. Durumunu kontrol edin veya aynı ödemeyi yeniden gönderin. Yerine yeni bir ödeme oluşturmayın.</string>
+    <string name="send_pending_expired">Bu ödemenin blockhash süresi doldu, ancak ödeme işlenmiş olabilir. Durumu veya gezgini kontrol etmeye devam edin. Sonuç bilinmiyorken Fearless yeni bir ödeme imzalamaz.</string>
+    <string name="send_confirmed_message">Bu ödeme ağ tarafından onaylandı.</string>
+    <string name="send_failed_message">Ağ bu ödemenin başarısız olduğunu bildirdi. Orijinal işlem saklanıyor.</string>
+    <string name="send_check_status">Durumu kontrol et</string>
+    <string name="send_retry_same_payment">Aynı ödemeyi yeniden gönder</string>
+    <string name="send_view_explorer">Gezginde görüntüle</string>
+    <string name="send_history_explorer">Geçmişi gezginde görüntüle</string>
+    <string name="send_recovery_unavailable">Ödeme durumu kontrol edilemedi. Orijinal veriler saklanıyor. Tekrar deneyin.</string>
+    <string name="send_submitted_title">Ödeme durumu</string>
+    <string name="send_submitted_message">Onay durumunu bakiye ekranındaki Son ödeme bölümünden veya gezginden kontrol edin. Sonuç bilinmiyorken bu ödemeyi yeniden oluşturmayın.</string>
+    <string name="send_existing_pending">Önceki bir ödemenin durumu kontrol edilmeli. Orijinal tutarı incelemek ve aynı ödemeyi yeniden göndermek için bakiye ekranında Son ödeme bölümünü açın. Bu yeni hesaplama gönderilmeyecek.</string>
+    <string name="send_review_changed">Cüzdan, ücret, bakiye veya hesaplama değişti. Tutar ekranına dönüp ödemeyi yeniden inceleyin.</string>
+    <string name="send_pending_network_unavailable">Kaydedilen bu ödemenin asıl ağı doğrulanamıyor. Ödeme bu cihazda saklanır. Durum kontrolü ve yeniden gönderme kullanılamıyor.</string>
+    <string name="send_unsupported_account">Bu hesap veya token bu cüzdanla gönderim yapamaz. Standart SPL tokenleri desteklenir; Token-2022 gönderimleri kullanılamaz.</string>
+    <string name="send_storage_unavailable">Saklanan ödeme doğrulanamadı. Yinelenen ödemeyi önlemek için gönderim engellendi. Uygulama verilerini koruyun ve tekrar deneyin.</string>
+    <string name="send_bitcoin_address_help">Bitcoin gönderimi yalnızca yerel SegWit adreslerini destekler: Bitcoin için bc1q, Bitcoin Testnet için tb1q. Diğer adres türleri bu gönderimi alamaz.</string>
+    <string name="send_insufficient_spendable">Harcanabilir bakiye bu tutar ve ağ ücreti için yetersiz. Bekleyen Bitcoin fonları önce onaylanmalıdır.</string>
+    <string name="send_bitcoin_dust">Bu Bitcoin tutarı minimum çıktı tutarının altında. Tutarı artırın.</string>
+    <string name="send_solana_rent">Hesabın minimum bakiyesi, ağ ücreti ve token hesabı oluşturma için yeterli SOL bırakın. Tutarı azaltın veya SOL ekleyin.</string>
+    <string name="send_solana_account_invalid">İmza atabilen bir Solana cüzdan adresi ve dondurulmamış standart SPL token hesabı kullanın. Program adresleri, eşleşmeyen hesaplar ve dondurulmuş tokenler kullanılamaz.</string>
+  <string name="startup_network_refresh_unavailable">Bazı ağ verileri yenilenemedi. Cüzdanlarınıza erişmeye devam edebilirsiniz. Bakiyeler güncel olmayabilir ve etkilenen ağlarda gönderim yapılamayabilir. Yeniden deneyin veya devam edin.</string>
+  <string name="startup_settings_refresh_unavailable">Bazı başlangıç ayarları yenilenemedi. Cüzdanlarınıza erişmeye devam edebilirsiniz. Yeniden deneyin veya devam edin.</string>
+  <string name="startup_app_update_notice">Bu sürüm artık desteklenmiyor. Cüzdanlarınıza devam edip bu cihazda saklanan kurtarma bilgilerine erişebilir veya güncellemeleri kontrol edebilirsiniz.</string>
+  <string name="fw_font_licenses">Yazı tipi lisansları</string>
+  <string name="wallet_recovery_back">Geri</string>
+  <string name="fw_loading_in_progress">İşlem sürüyor</string>
+
+  <string name="pool_join_recovery_title">Önceki havuz işlemi</string>
+  <string name="pool_join_recovery_pending">Önceki havuz işleminin durumu belirsiz. Yeni bir havuz işlemi yapmadan önce durumunu kontrol edin. Bu kontroller işlemi imzalamaz veya yeniden göndermez.</string>
+  <string name="pool_join_recovery_checking">Kesinleşmiş bloklar kontrol ediliyor. Kontrol sürerken geri dönebilirsiniz.</string>
+  <string name="pool_join_recovery_not_found">Asıl işlem kontrol edilen bloklarda bulunamadı. Durumu hâlâ belirsiz. Daha eski blokları kontrol edin veya son blokları daha sonra yeniden kontrol edin.</string>
+  <string name="pool_join_recovery_unavailable">İşlem durumu doğrulanamadı. Yeni bir havuz işlemi oluşturulmadı. Asıl işlem bilgilerini saklayın ve daha sonra tekrar deneyin.</string>
+  <string name="pool_join_recovery_legacy">Bu eski denemede başlangıç blok referansı bulunmadığından burada güvenle temizlenemez. Yeni bir havuz işlemi yapmadan önce işlem karmasını saklayın ve durumunu doğrulayın.</string>
+  <string name="pool_join_recovery_finalized">Yapılandırılmış düğüm asıl işlemin kesinleşmiş bir blokta olduğunu bildiriyor. Bu, staking işleminin başarılı olduğunu doğrulamaz. Yeni bir inceleme başlatmadan önce havuzun durumunu kontrol edin.</string>
+  <string name="pool_join_recovery_hash">İşlem karması</string>
+  <string name="pool_join_recovery_recent">Son blokları kontrol et</string>
+  <string name="pool_join_recovery_older">Daha eski blokları kontrol et</string>
+  <string name="pool_join_recovery_return">Havuza dön</string>
+
+    <string name="pool_join_recovery_loading">Bu cihazda kayıtlı havuz işlemi okunuyor…</string>
+    <string name="pool_join_recovery_empty">Bu ağda bu hesap için kayıtlı, çözümlenmemiş bir havuz işlemi yok. Güncel durumu incelemek için havuza dönün.</string>
+  <string name="pool_recovery_return_earn">Earn bölümüne dön</string>
+  <string name="pool_recovery_state_control">Havuz durumu yönetimi</string>
+
+  <!-- Offline, authenticated saved endpoint recovery. -->
+  <string name="saved_endpoints_title">Kayıtlı uç noktalar</string>
+  <string name="saved_endpoints_intro">Bu cihazda kaydedilmiş uç noktaları inceleyin. Bu ekranı açmak bu uç noktalara bağlanmaz veya geçerli bağlantınızı değiştirmez.</string>
+  <string name="saved_endpoints_locked">Kayıtlı uç noktaları görmek için kilidi açın. Özel erişim bilgileri içerebilirler.</string>
+  <string name="saved_endpoints_unlock">Kayıtlı uç noktaların kilidini aç</string>
+  <string name="saved_endpoints_refresh">Yenile</string>
+  <string name="saved_endpoints_loading">Kayıtlı uç noktalar okunuyor…</string>
+  <string name="saved_endpoints_read_failed">Kayıtlı uç noktalar okunamadı. Gösterilen kayıtlar son başarılı okumadan kalmıştır. Yeniden deneyebilir veya daha sonra dönebilirsiniz.</string>
+  <string name="saved_endpoints_empty">Bu sayfada kayıt bulunamadı. Baştan başlamak için yenileyin.</string>
+  <string name="saved_endpoints_absent">Kayıtlı uç nokta arşivi bulunamadı.</string>
+  <string name="saved_endpoints_escaped">Boşlukları göstermek için değerler tırnak içine alınır. Ters eğik çizgiler ve görünmez karakterler kaçış dizileri olarak gösterilir.</string>
+  <string name="saved_endpoints_record">Kayıtlı öğe %1$s</string>
+  <string name="saved_endpoints_name">Kayıtlı ad</string>
+  <string name="saved_endpoints_url">Kayıtlı uç nokta</string>
+  <string name="saved_endpoints_network_code">Kayıtlı ağ kodu: %1$s. Bu, geçerli bir ağ seçmez.</string>
+  <string name="saved_endpoints_unknown">Bilinmiyor</string>
+  <string name="saved_endpoints_previous">Önceki kayıtlar</string>
+  <string name="saved_endpoints_next">Sonraki kayıtlar</string>
+  <string name="saved_endpoints_not_saved">Değer kaydedilmemiş.</string>
+  <string name="saved_endpoints_unrecognized">Saklanan değer metin olarak tanınmıyor. Bu cihazda korunuyor.</string>
+  <string name="saved_endpoints_too_large">Bu değer bu görünüm için çok büyük. Değerin tamamı bu cihazda korunuyor.</string>
+  <string name="saved_endpoints_invalid_text">Bu değer metin olarak çözülemedi. Özgün baytlar bu cihazda korunuyor.</string>
+  <string name="saved_endpoints_bytes">Saklanan boyut: %1$s bayt</string>
+  <string name="saved_endpoints_unlock_failed">Kilit açma başlatılamadı. Lütfen yeniden deneyin.</string>
+
+  <!-- Complete existing production navigation, portfolio and safety copy. -->
+  <string name="cross_chain_route_checking">İncelenen rotalar kontrol ediliyor…</string>
+  <string name="cross_chain_destination_unavailable_message">Fearless Wallet hedef ağdaki varlığı veya alıcının bakiyesini belirleyemediği için hiçbir şey gönderilmedi. Bağlantınızı kontrol edip tekrar deneyin.</string>
+  <string name="cross_chain_destination_fee_included">Hedefte tutardan düşülür</string>
+  <string name="cross_chain_pending_message">Bu hesaptan yapılan önceki zincirler arası transfer gönderilmiş olabilir ve sonucu bilinmiyor. Durumu kontrol edilene kadar bu hesaptan yeni bir zincirler arası transfer gönderilmez. Kontrol, transferi imzalamaz veya yeniden göndermez.</string>
+  <string name="cross_chain_pending_not_found">Önceki transfer kesinleşmiş bloklarda bulunamadı. İmzalandıktan birkaç dakika sonra süresi dolana kadar hâlâ bloğa eklenebilir. Daha sonra tekrar kontrol edin.</string>
+  <string name="cross_chain_pending_included">Önceki transfer kaynak ağın kesinleşmiş bir bloğunda yer alıyor, yani gönderildi. Bu, ulaştığını doğrulamaz: alıcının hedef ağdaki bakiyesini kontrol edin.</string>
+  <string name="cross_chain_pending_expired">Önceki transferin süresi bloğa eklenmeden doldu; bu nedenle yürütülmedi ve hiçbir şey taşınmadı. Yeniden gönderebilirsiniz.</string>
+  <string name="cross_chain_pending_unavailable">Önceki transferin durumu kontrol edilemedi. Transfer bu cihazda saklanmaya devam ediyor ve yeni bir şey gönderilmiyor. Bağlantınızı kontrol edip tekrar deneyin.</string>
+  <string name="cross_chain_protocol_xcm">Protokol: incelenen XCM rotaları</string>
+  <string name="cross_chain_no_supported_route">Bu cüzdan ve geçerli üretim ağı kayıtları için desteklenen bir rota yok.</string>
+  <string name="cross_chain_route_protocol">Protokol: %1$s</string>
+  <string name="cross_chain_route_minimum_value">Minimum: %1$s %2$s</string>
+  <string name="cross_chain_route_minimum_unknown">Minimum: incelenen bu sağlayıcı tarafından belirtilmemiş</string>
+  <string name="cross_chain_route_origin_fee">Güncel kaynak ağ ücreti: %1$s %2$s</string>
+  <string name="cross_chain_route_destination_fee">Güncel hedef ağ ücreti: %1$s %2$s</string>
+  <string name="cross_chain_route_estimated_time">Tahmini süre: %1$s</string>
+  <string name="cross_chain_route_estimated_time_unknown">Tahmini süre: incelenen bu sağlayıcı tarafından belirtilmemiş</string>
+  <string name="cross_chain_route_warning">Uyarı: %1$s</string>
+  <string name="connection_add_ton_account">TON hesabı ekle</string>
+  <string name="connection_add_signing_account">Substrate veya EVM hesabı ekle</string>
+  <string name="tabbar_portfolio_title">Portföy</string>
+  <string name="tabbar_defi_title">DeFi</string>
+  <string name="tabbar_cross_chain_title">Çapraz zincir</string>
+  <string name="settings_section_wallets_accounts">Cüzdanlar ve hesaplar</string>
+  <string name="settings_section_networks_assets">Ağlar ve varlıklar</string>
+  <string name="settings_section_connections">Bağlantılar</string>
+  <string name="settings_section_security">Güvenlik</string>
+  <string name="settings_section_preferences">Tercihler</string>
+  <string name="settings_manage_assets">Varlıkları yönetin</string>
+  <string name="portfolio_detected_assets">Algılanan varlıklar (%1$d)</string>
+  <string name="portfolio_detected_assets_description">Zincirde bulundu. Kullanmadan önce meta verileri inceleyin.</string>
+  <string name="portfolio_price_unavailable">Fiyat bilgisi yok</string>
+  <string name="portfolio_asset_verified">Doğrulandı</string>
+  <string name="portfolio_asset_unverified">Doğrulanmadı</string>
+  <string name="portfolio_asset_metadata_missing">Meta veriler eksik</string>
+  <string name="portfolio_sync_updated">Güncellendi: %1$s</string>
+  <string name="portfolio_sync_stale_since">Güncel değil · son güncelleme: %1$s</string>
+  <string name="portfolio_sync_error">Eşitleme başarısız · son bilinen bakiye gösteriliyor</string>
+  <string name="portfolio_sync_pending">İlk varlık taraması bekleniyor</string>
+  <string name="portfolio_sync_limited">Sınırlı varlık kapsamı</string>
+  <string name="common_collapse">Daralt</string>
+  <string name="common_expand">Genişlet</string>
+  <plurals name="portfolio_assets_count">
+    <item quantity="one">%1$d varlık</item>
+    <item quantity="other">%1$d varlık</item>
+  </plurals>
+  <string name="ux_choose_network">Bir ağ seçin</string>
+  <string name="ux_network_selection_title">Hangi varlıkları kullanacaksınız?</string>
+  <string name="ux_network_selection_description">Bu cüzdan için ağı seçin. Geri yüklerken mevcut cüzdanınızla aynı ağı kullanın. Daha sonra başka bir cüzdan ekleyebilirsiniz.</string>
+  <string name="ux_networks_ethereum_polkadot">Ethereum, Polkadot ve uyumlu ağlar</string>
+  <string name="ux_assets_ethereum_polkadot">ETH, DOT ve diğerleri</string>
+  <string name="ux_network_ton">TON ağı</string>
+  <string name="ux_asset_ton">Toncoin (TON)</string>
+  <string name="ux_receive_network">Ağ: %1$s</string>
+  <string name="ux_receive_instruction">Bu adrese yalnızca %2$s ağındaki %1$s varlığını gönderin.</string>
+  <string name="ux_receive_qr">%2$s ağında %1$s alın</string>
+  <string name="ux_backup_status">Cüzdanınızı yedekleyin</string>
+  <string name="ux_backup_description">Fonlarınıza erişimi geri yükleyebilmek için bir kurtarma yöntemi kaydedin.</string>
+  <string name="ux_swap_direction">Ödediğiniz ve aldığınız varlıkları değiştirin</string>
+  <string name="ux_execution_details">İşlem ayrıntıları</string>
+  <string name="ux_show_details">İşlem ayrıntılarını göster</string>
+  <string name="ux_hide_details">İşlem ayrıntılarını gizle</string>
+  <string name="ux_switch_wallet">Cüzdan değiştir</string>
+  <string name="ux_scan">QR kodunu tara</string>
+  <string name="ux_search">Arama</string>
+  <string name="ux_more">Diğer seçenekler</string>
+  <string name="ux_filter">Filtrele</string>
+  <string name="ux_sort">Sırala</string>
+  <string name="ux_close">Kapat</string>
+  <string name="ux_copy">Kopyala</string>
+  <string name="ux_share">Paylaş</string>
+  <string name="ux_send_maximum">Maksimum tutarı gönder ve bu ağ hesabını kapat</string>
+  <string name="ux_send_maximum_description">Hesap rezervini de kullanır. Bu hesabı yeniden kullanmak için yeni bir yatırma işlemi gerekebilir. Devam etmeden önce ağ uyarısını inceleyeceksiniz.</string>
+  <string name="ux_staking_estimate">Tahmini yıllık ödüller: %s</string>
+  <string name="ux_staking_variability">Ödüller tahminidir ve değişebilir. Ağ koşulları, havuz ücretleri ve doğrulayıcı performansı kazancınızı etkiler.</string>
+  <string name="ux_pool_operator_options">Havuz operatörü seçenekleri</string>
+  <string name="ux_pool_operator_description">Havuz oluşturmak, doğrulayıcılarını ve ayarlarını yönetmek anlamına gelir. Mevcut bir havuzda stake etmek için Havuza katıl seçeneğini seçin.</string>
+  <string name="ux_tab_wallet">Cüzdan</string>
+  <string name="ux_tab_earn">Kazan</string>
+  <string name="ux_tab_swap">Takas</string>
+  <string name="ux_tab_transfer">Aktar</string>
+  <string name="ux_network_transfer">Başka bir ağa transfer et</string>
+  <string name="ux_back">Geri</string>
+  <string name="ux_swap_settings">Takas ayarları</string>
+  <string name="saved_endpoints_inspect_name">Kayıtlı adı incele</string>
+  <string name="saved_endpoints_inspect_url">Kayıtlı uç noktayı incele</string>
+  <string name="saved_endpoints_part_range">Bayt %1$s–%2$s / %3$s</string>
+  <string name="saved_endpoints_part_empty">%1$s bayt ofsetinde bayt yok. Geçerli boyut: %2$s bayt.</string>
+  <string name="saved_endpoints_part_escaped">Kayıtlı değerin bir bölümü gösteriliyor. Metin olarak gösterilemeyen baytlar \\xNN biçiminde görünür.</string>
+  <string name="saved_endpoints_part_unavailable">Bu kayıtlı değer artık kullanılamıyor. Yenilemek için listeye dönün.</string>
+  <string name="saved_endpoints_part_previous">Önceki bölüm</string>
+  <string name="saved_endpoints_part_next">Sonraki bölüm</string>
+  <string name="saved_endpoints_part_return">Kayıtlı uç noktalara dön</string>
+  <string name="saved_endpoint_collection">Kayıt grubu: %1$s</string>
+  <string name="saved_endpoint_source_legacy">Eski biçimde kaydedilmiş uç noktalar</string>
+  <string name="saved_endpoint_source_historical">İlk kaydedilen kayıtlar</string>
+  <string name="saved_endpoint_source_entry">Yükseltme başındaki kayıtlar</string>
+  <string name="saved_endpoint_source_current">Son yükseltmede kaydedilen kayıtlar</string>
+  <string name="saved_endpoint_source_owned">Mevcut uç noktalar</string>
+  <string name="saved_endpoint_source_absent">Bu cihazda bu gruba ait kayıt bulunmuyor.</string>
+  <string name="saved_endpoint_historical_notice">Geçmiş kayıtlar mevcut bağlantınızı değiştirmez.</string>
+  <string name="saved_endpoint_deleted">Kaldırılan uç nokta — kurtarma için saklanıyor</string>
+  <string name="saved_endpoint_attached">Bir ağ ile ilişkilendirilmiş</string>
+  <string name="saved_endpoint_pending">Ağ ile ilişkilendirme bekleniyor</string>
+  <string name="saved_endpoint_changed">Bu kayıt değişti. Güncel sürümünü seçmek için listeye dönün.</string>
+  <string name="saved_endpoint_inspect_field">%1$s değerini incele</string>
+  <string name="saved_endpoint_chain_reference">Kaydedilmiş ağ referansı</string>
+  <string name="saved_endpoint_network_type">Kaydedilmiş ağ kodu</string>
+  <string name="saved_endpoint_default_value">Kaydedilmiş varsayılan değer</string>
+  <string name="saved_endpoint_selection_value">Kaydedilmiş seçim değeri</string>
+
+  <!-- Authenticated offline endpoint choices. -->
+  <string name="saved_endpoint_choice_edit">Kayıtlı seçimi düzenle</string>
+  <string name="saved_endpoint_choice_title">Kayıtlı bağlantı seçimi</string>
+  <string name="saved_endpoint_choice_intro">Bir ağ seçip ad ve URL girin. Özgün kayıtlar kullanılabilir durumda kalır. Kaydetmek ağa bağlantı kurmaz.</string>
+  <string name="saved_endpoint_choice_target">Bu seçim için ağ</string>
+  <string name="saved_endpoint_choice_choose">Bu ağı seç</string>
+  <string name="saved_endpoint_choice_selected">Seçilen ağ: %1$s</string>
+  <string name="saved_endpoint_choice_unavailable">Bu ağ, kayıtlı bilgileriyle seçilemiyor.</string>
+  <string name="saved_endpoint_choice_empty">Bu cihazda kayıtlı ağ yok. Cüzdana dönün ve ağlar kullanılabilir olduğunda yeniden deneyin.</string>
+  <string name="saved_endpoint_choice_refresh_targets">Ağları yenile</string>
+  <string name="saved_endpoint_choice_save">Çevrimdışı kaydet</string>
+  <string name="saved_endpoint_choice_saving">Seçiminiz kaydediliyor…</string>
+  <string name="saved_endpoint_choice_saved">Bu cihaza kaydedildi. Bağlantı doğrulaması hâlâ bekliyor.</string>
+  <string name="saved_endpoint_choice_failed">Bu seçim kaydedilemedi. Yeniden deneyin veya düzenlemelerinizi koruyarak kayıtlı durumu yeniden yükleyin.</string>
+  <string name="saved_endpoint_choice_reload">Düzenlemeleri koruyarak yeniden yükle</string>
+  <string name="saved_endpoint_choice_invalid">Metin çok uzun veya desteklenmeyen karakterler içeriyor. Kısaltıp yeniden deneyin.</string>
+  <string name="saved_endpoint_choice_missing">Kaydetmeden önce bir URL girip ağ seçin.</string>
+  <string name="saved_endpoint_choice_unsupported">Bu ağ için doğrulama henüz kullanılamıyor. Bu seçimi beklemede olarak kaydedebilirsiniz.</string>
+  <string name="saved_endpoint_attachment_intro">Kaydedilen URL adresini seçilen ağ ile doğrulayın. Bir uç noktayı eklemek veya geri yüklemek onu seçmez.</string>
+  <string name="saved_endpoint_attachment_add">Doğrula ve uç noktayı ekle</string>
+  <string name="saved_endpoint_attachment_restore">Doğrula ve uç noktayı geri yükle</string>
+  <string name="saved_endpoint_attachment_working">Uç nokta doğrulanıyor…</string>
+  <string name="saved_endpoint_attachment_added">Uç nokta eklendi. Seçili değil.</string>
+  <string name="saved_endpoint_attachment_restored">Uç nokta geri yüklendi. Seçili değil. Bu kaydı yenilemek için listeye dönün.</string>
+  <string name="saved_endpoint_attachment_present_active">Bu uç nokta zaten seçili. Yeni bir doğrulama yapılmadı.</string>
+  <string name="saved_endpoint_attachment_present_inactive">Bu uç nokta zaten eklenmiş ancak seçili değil. Yeni bir doğrulama yapılmadı.</string>
+  <string name="saved_endpoint_attachment_mismatch">Uç nokta farklı bir ağ kimliği döndürdü. Hiçbir şey eklenmedi.</string>
+  <string name="saved_endpoint_attachment_invalid">Uç nokta geçersiz bir yanıt döndürdü. Hiçbir şey eklenmedi.</string>
+  <string name="saved_endpoint_attachment_unreachable">Uç noktaya ulaşılamadı. Hiçbir şey eklenmedi.</string>
+  <string name="saved_endpoint_attachment_large">Uç noktanın yanıtı çok büyüktü. Hiçbir şey eklenmedi.</string>
+  <string name="saved_endpoint_attachment_timeout">Doğrulama zaman aşımına uğradı. Hiçbir şey eklenmedi.</string>
+  <string name="saved_endpoint_attachment_busy">Doğrulama meşgul. Tekrar deneyin.</string>
+  <string name="saved_endpoint_attachment_failed">Uç noktanın durumu doğrulanamadı. Listeye dönün, kaydedilen seçimi yenileyin ve tekrar deneyin.</string>
+  <string name="saved_endpoint_attachment_source_changed">Kaydedilen kayıt değişti. Doğrulamadan önce bu seçimi gözden geçirip yeniden kaydedin.</string>
+  <string name="portfolio_balance_loading">Bakiye yükleniyor…</string>
+  <string name="portfolio_prices_loading">Fiyatlar yükleniyor…</string>
+  <string name="portfolio_balance_partial">Kısmi bakiye</string>
+  <string name="portfolio_balance_unavailable">Bakiye kullanılamıyor</string>
 </resources>

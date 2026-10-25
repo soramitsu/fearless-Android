@@ -1,10 +1,20 @@
 apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
+
+def enableDebugXcmTransfers = readOptionalSecret("ENABLE_DEBUG_XCM_TRANSFERS") ?: "false"
+if (!(enableDebugXcmTransfers in ["true", "false"])) {
+    throw new GradleException("ENABLE_DEBUG_XCM_TRANSFERS must be literal true or false")
+}
+def enableDebugBridgeTransfers = readOptionalSecret("ENABLE_DEBUG_BRIDGE_TRANSFERS") ?: "false"
+if (!(enableDebugBridgeTransfers in ["true", "false"])) {
+    throw new GradleException("ENABLE_DEBUG_BRIDGE_TRANSFERS must be literal true or false")
+}
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -15,23 +25,36 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "RAMP_TOKEN", "\"4bk3yhfrg99fer764bo7egrqmxbfene7gbrpwmp3\""
+        buildConfigField "String", "RAMP_TOKEN", readOptionalSecretInQuotes("RAMP_TOKEN_DEBUG")
         buildConfigField "String", "RAMP_HOST", "\"ri-widget-staging.firebaseapp.com\""
 
-        buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_TEST_SECRET")
-        buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
-        buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
+        buildConfigField "String", "COINBASE_HOST", "\"pay.coinbase.com/buy/select-asset\""
+        buildConfigField "String", "COINBASE_APP_ID", readOptionalSecretInQuotes("COINBASE_APP_ID")
 
-        buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
+        buildConfigField "String", "MOONPAY_HOST", "\"buy-sandbox.moonpay.com\""
+        buildConfigField "String", "MOONPAY_PUBLIC_KEY", readOptionalSecretInQuotes("MOONPAY_TEST_PUBLIC_KEY")
+
+        buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
     }
 
     buildTypes {
+        debug {
+            buildConfigField "boolean", "ENABLE_PRODUCTION_XCM_TRANSFERS", enableDebugXcmTransfers
+            buildConfigField "boolean", "ENABLE_PRODUCTION_BRIDGE_TRANSFERS", enableDebugBridgeTransfers
+        }
+
         release {
-            buildConfigField "String", "RAMP_TOKEN", "\"3quzr4e6wdyccndec8jzjebzar5kxxzfy2f3us5k\""
+            // Keep reviewed discovery and quotes available independently of submission authority.
+            // No remote switch may enable release submissions before the funded route evidence
+            // and release qualification gates are complete.
+            buildConfigField "boolean", "ENABLE_PRODUCTION_XCM_TRANSFERS", "false"
+            // The reviewed Polkaswap bridge executor follows the same rule: a remote switch and an operator
+            // authorization alone never enable release bridge submissions.
+            buildConfigField "boolean", "ENABLE_PRODUCTION_BRIDGE_TRANSFERS", "false"
+            buildConfigField "String", "RAMP_TOKEN", readOptionalSecretInQuotes("RAMP_TOKEN_RELEASE")
             buildConfigField "String", "RAMP_HOST", "\"app.ramp.network\""
 
-            buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_PRODUCTION_SECRET")
-            buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_live_Boi6Rl107p7XuJWBL8GJRzGWlmUSoxbz\""
+            buildConfigField "String", "MOONPAY_PUBLIC_KEY", readOptionalSecretInQuotes("MOONPAY_PRODUCTION_PUBLIC_KEY")
             buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
         }
     }
@@ -48,22 +71,27 @@ android {
     }
 
     kotlinOptions {
-        freeCompilerArgs = ["-Xallow-result-return-type"]
-
         jvmTarget = JavaVersion.VERSION_21.toString()
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion composeCompilerVersion
-    }
 
-    namespace 'jp.co.soramitsu.feature_wallet_impl'
+    namespace = 'jp.co.soramitsu.feature_wallet_impl'
+}
+
+// Release XCM submissions are bound to the funded route evidence: a release build that compiles them on fails
+// to configure unless scripts/xcm-production-evidence.json is ready and release-enabled. CI then also runs the
+// full readiness audit (scripts/xcm-release-submissions-enabled.sh).
+def releaseXcmTransfersField = android.buildTypes.release.buildConfigFields["ENABLE_PRODUCTION_XCM_TRANSFERS"]
+def xcmProductionEvidence = new groovy.json.JsonSlurper().parse(rootProject.file("scripts/xcm-production-evidence.json"))
+if (releaseXcmTransfersField?.value != "false" &&
+        !(xcmProductionEvidence.status == "ready" && xcmProductionEvidence.releaseEnabled == true)) {
+    throw new GradleException("Release XCM transfers require ready, release-enabled evidence in scripts/xcm-production-evidence.json")
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-crowdloan-api')
     implementation project(':feature-polkaswap-api')
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
@@ -73,9 +101,10 @@ dependencies {
     implementation project(':feature-walletconnect-api')
     implementation project(':feature-tonconnect-api')
 
-    implementation platform(libs.walletconnectBomDep)
-    implementation libs.walletconnectCoreDep
-    implementation libs.walletconnectWeb3WalletDep
+    implementation platform(libs.reownBomDep)
+    // Exclude JNA (and WalletConnect Pay) from Reown libraries to prevent duplicate natives and page-size incompatible libs
+    implementation libs.reownCoreDep, withoutJna
+    implementation libs.reownWalletKitDep, withoutJnaAndPay
 
     implementation libs.kotlin.stdlib.jdk7
 
@@ -95,12 +124,12 @@ dependencies {
 
     implementation libs.hilt.android
     implementation libs.legacy.support.v4
-    kapt libs.hilt.compiler
+    ksp libs.hilt.compiler
 
     implementation libs.room.runtime
-    kapt libs.room.compiler
+    ksp libs.room.compiler
 
-    kapt libs.lifecycle.compiler
+    ksp libs.lifecycle.compiler
 
     implementation libs.bouncycastle
 
@@ -112,15 +141,17 @@ dependencies {
     implementation libs.gson
     implementation libs.retrofit
 
-    implementation libs.nv.websocket.client
-    implementation libs.xnetworking.lib.android
+    implementation project(':runtime-websocket')
+    implementation project(':core-networking')
 
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
     implementation libs.insetter.widgets
 
+    // JNA is added as direct dependency to prevent class duplication from 3rd party libraries
     implementation libs.jna
+    // Exclude JNA from beacon SDK to prevent class duplication - using direct JNA dependency above
     implementation libs.beacon.android.sdk, withoutJna
 
 
@@ -137,9 +168,9 @@ dependencies {
     implementation libs.navigation.fragment.ktx
     implementation libs.navigation.ui.ktx
 
-    implementation libs.sharedFeaturesXcmDep
-    implementation libs.sharedFeaturesBackupDep
-    implementation(libs.soramitsu.android.foundation)
+    implementation project(':core-xcm')
+    implementation project(':core-backup')
+    implementation(project(':core-foundation'))
 
     implementation libs.web3jDep
     implementation libs.bundles.ton

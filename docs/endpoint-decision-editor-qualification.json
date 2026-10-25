@@ -1,0 +1,50 @@
+{
+  "status": "accepted-authenticated-offline-editor",
+  "qualifiedSourceCommit": "bb2c140997c4308fa22c7bea26d93f21a1ce2d65",
+  "qualification": {
+    "path": "/Users/takemiyamakoto/dev/fearless/build/safe-upgrade/evidence/codex-20261012/android-endpoint-decision-form-draft-v1/qualified-editor-v1.json",
+    "bytes": 293690,
+    "sha256": "3e17aeb0cd63319b91e9a2187c84328903fd4cd11530dde8270acacba4a81077"
+  },
+  "independentFinalReview": {
+    "bytes": 14642,
+    "sha256": "1dcb240e534d7b2ef8b3f656eed5c928b58bdc72eac64cdaf9dc24eb0150a7f0"
+  },
+  "counts": {
+    "unitPass": 1823,
+    "unitInheritedSkip": 4,
+    "coreNativePass": 1242,
+    "renderedComponentsPass": 105
+  },
+  "authScopes": {
+    "26": {
+      "sourceCommit": "bb2c140997c4308fa22c7bea26d93f21a1ce2d65",
+      "actual82To83InFinalRun": true,
+      "freshFiveSaves": true,
+      "proofs": 17
+    },
+    "34": {
+      "sourceCommit": "fd50c0aa4aafec6933610754ccc282d0914d0a61",
+      "actual82To83InFinalRun": true,
+      "freshFiveSaves": true,
+      "proofs": 17,
+      "metadataDisposition": "Exact onlyWAL/SHM0600-to0660 sameUID/GID reviewed; original cleanup error retained."
+    },
+    "36": {
+      "sourceCommit": "fd50c0aa4aafec6933610754ccc282d0914d0a61",
+      "actual82To83InFinalRun": false,
+      "freshFiveSaves": false,
+      "proofs": 29,
+      "provenance": "Final successful continuation rereads exact5priorPENDING decisions without resave. Initial82-to83 and fiveactualUIwrites remain in independently classified partialpilot packets; finalrun qualifies Home/recreation suffix."
+    }
+  },
+  "freshness": "Unit outcomes are exact prior accepted reuse with origin reports. Core414/API runs use36e199 with final byte-exact core APK. Corrected components are fresh atbb2c. API26 auth isbb2c;34/36 auth isfd50 with product bytes unchanged. API36 actual upgrade and five saves are from the preserved partial pilots, not repeated by the final no-resave continuation.",
+  "scope": "Authenticated bounded source/target form, ephemeral exact-save decisions and lock revocation; real PIN/editor and83 startup on retained public fixtures, Home/recreation clearing and readback. Saves only offline PENDING intent, without RPC, attachment or selection.",
+  "openGates": [
+    "Bounded genesis probe and inactive atomic attachment C2",
+    "Separate explicit acknowledged selection C3",
+    "Broader startup U0 and historical matrix",
+    "Physical/biometric/accessibility/design checks",
+    "Exact signed shipping artifacts and release gates"
+  ]
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">选择端点</string>
+    <string name="saved_endpoint_selection_refresh">刷新选择状态</string>
+    <string name="saved_endpoint_selection_checking">正在检查已添加的端点…</string>
+    <string name="saved_endpoint_selection_available">可以为此网络选择这个已添加的端点。</string>
+    <string name="saved_endpoint_selection_unattached">请先添加此端点，再进行选择。</string>
+    <string name="saved_endpoint_selection_saving">正在保存选择…</string>
+    <string name="saved_endpoint_selection_saved">选择已保存</string>
+    <string name="saved_endpoint_selection_failed">无法确认选择。请刷新后重试。</string>
+    <string name="saved_endpoint_selection_stale">端点或选择已更改。请刷新后再选择。</string>
+    <string name="saved_endpoint_runtime_preferred">首选 Solana 端点已保存。请求可能会使用其他服务提供商。</string>
+    <string name="saved_endpoint_runtime_pending">正在等待网络使用此选择。</string>
+    <string name="saved_endpoint_runtime_not_in_use">此网络当前未被使用。</string>
+    <string name="saved_endpoint_runtime_unavailable">网络连接不可用。</string>
+    <string name="saved_endpoint_runtime_paused">网络连接已暂停。</string>
+    <string name="saved_endpoint_runtime_connecting">正在连接所选端点…</string>
+    <string name="saved_endpoint_runtime_connected">已连接到所选端点</string>
+</resources>

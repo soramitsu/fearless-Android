@@ -82,7 +82,7 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
         }
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(binding.unbondAmount::setAssetBalanceFiatAmount)
+            binding.unbondAmount.setAssetBalanceFiatAmount(it)
         }
 
         viewModel.feeLiveData.observe {

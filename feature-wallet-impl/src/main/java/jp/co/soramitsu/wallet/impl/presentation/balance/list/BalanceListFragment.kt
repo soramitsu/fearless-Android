@@ -109,6 +109,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
+        viewModel.showUpdateSecurityNotice.observeEvent { showUpdateSecurityNotice() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
     }
 
@@ -127,6 +128,18 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
             .setMessage(R.string.chain_unsupported_text)
             .setButtonText(R.string.common_update)
             .callback { viewModel.updateAppClicked() }
+            .build()
+            .show()
+    }
+
+    private fun showUpdateSecurityNotice() {
+        AlertBottomSheet.Builder(requireContext())
+            .setTitle(R.string.update_security_notice_title)
+            .setMessage(R.string.update_security_notice_message)
+            .setButtonText(R.string.common_ok)
+            .setIcon(R.drawable.ic_security_shield_ok_24)
+            .setCancelable(false)
+            .callback { viewModel.onUpdateSecurityNoticeClosed() }
             .build()
             .show()
     }

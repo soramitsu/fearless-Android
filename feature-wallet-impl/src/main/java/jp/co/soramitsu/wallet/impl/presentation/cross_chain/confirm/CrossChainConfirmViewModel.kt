@@ -5,7 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -33,17 +37,24 @@ import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.data.repository.CrossChainSubmissionJournal
+import jp.co.soramitsu.wallet.impl.data.repository.CrossChainSubmissionReconciler
+import jp.co.soramitsu.wallet.impl.domain.CrossChainSubmissions
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeInteractor
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
+import jp.co.soramitsu.wallet.impl.domain.exactXcmAmountInPlanks
+import jp.co.soramitsu.wallet.impl.domain.exactXcmOriginFeeInPlanks
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
+import jp.co.soramitsu.xcm.ReviewedBridgeQuote
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +81,10 @@ class CrossChainConfirmViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase,
-    private val xcmInteractor: XcmInteractor
+    private val xcmInteractor: XcmInteractor,
+    private val reviewedBridgeInteractor: ReviewedPolkaswapBridgeInteractor,
+    private val accountInteractor: AccountInteractor,
+    private val crossChainSubmissions: CrossChainSubmissions
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
@@ -93,25 +107,42 @@ class CrossChainConfirmViewModel @Inject constructor(
     private val destinationNetworkFlow = flowOf { interactor.getChain(transferDraft.destinationChainId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
+    // The wallet validated at setup, which alone may sign; shown so the user sees which wallet pays.
     private val senderFlow = flowOf {
-        currentAccountAddress(transferDraft.originChainId)?.let { address ->
-            val walletName = interactor.getSelectedMetaAccount().name
-            getAddressModel(address, walletName)
+        val wallet = accountInteractor.getMetaAccount(transferDraft.metaAccountId)
+        wallet.address(interactor.getChain(transferDraft.originChainId))?.let { address ->
+            getAddressModel(address, wallet.name)
         }
     }
 
+    private val walletUnchangedFlow = interactor.selectedMetaAccountFlow()
+        .map { it.id == transferDraft.metaAccountId }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = false)
+
     private val transferSubmittingFlow = MutableStateFlow(false)
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
+
+    // An unsettled earlier transfer of this wallet, origin network and account; no new one is signed until it settles.
+    private val pendingFlow = MutableStateFlow<PendingTransfer?>(null)
 
     private val defaultButtonState = ButtonViewState(
         resourceManager.getString(R.string.common_confirm),
         true
     )
 
-    private val buttonStateFlow = transferSubmittingFlow.map { submitting ->
+    private val buttonStateFlow = kotlinx.coroutines.flow.combine(
+        transferSubmittingFlow,
+        walletUnchangedFlow,
+        pendingFlow
+    ) { submitting, walletUnchanged, pending ->
+        val text = when {
+            pending == null || pending.status == PendingStatus.Expired -> R.string.common_confirm
+            pending.status == PendingStatus.Included -> if (pending.isThisTransfer) R.string.common_done else R.string.common_confirm
+            else -> R.string.send_check_status
+        }
         ButtonViewState(
-            text = resourceManager.getString(R.string.common_confirm),
-            enabled = !submitting
+            text = resourceManager.getString(text),
+            enabled = !submitting && walletUnchanged && pending?.status != PendingStatus.Checking
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -126,15 +157,11 @@ class CrossChainConfirmViewModel @Inject constructor(
             .map(::mapAssetToAssetModel)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val transferableAssetFlow = originNetworkFlow.mapNotNull {
-        it?.assets?.firstOrNull { it.symbol == transferDraft.transferableTokenSymbol }?.id
-    }.flatMapLatest { assetId ->
-        interactor.assetFlow(transferDraft.originChainId, assetId)
-            .map(::mapAssetToAssetModel)
-    }
+    val transferableAssetFlow = interactor
+        .assetFlow(transferDraft.originChainId, transferDraft.chainAssetId)
+        .map(::mapAssetToAssetModel)
 
-    val state: StateFlow<CrossChainConfirmViewState> = combine(
+    private val contentStateFlow: StateFlow<CrossChainConfirmViewState> = combine(
         recipientFlow,
         originNetworkFlow,
         destinationNetworkFlow,
@@ -145,6 +172,14 @@ class CrossChainConfirmViewModel @Inject constructor(
         buttonStateFlow,
         transferSubmittingFlow
     ) { recipient, originNetwork, destinationNetwork, sender, originAsset, utilityAsset, transferableAsset, buttonState, isSubmitting ->
+        val fromInfoItem = sender?.let {
+            val isWalletNameSpecified = !it.name.isNullOrEmpty()
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.transaction_details_from),
+                value = if (isWalletNameSpecified) it.name else it.address.shortenAddress(),
+                additionalValue = if (isWalletNameSpecified) it.address.shortenAddress() else null
+            )
+        }
         val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.send_to),
@@ -198,11 +233,19 @@ class CrossChainConfirmViewModel @Inject constructor(
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originFee)
         )
 
-        val destinationFeeInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.common_destination_network_fee),
-            value = transferDraft.destinationFee.formatCryptoDetail(transferableAsset.token.configuration.symbol),
-            additionalValue = transferableAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
-        )
+        val destinationFeeInfoItem = if (transferDraft.destinationFeeIncluded) {
+            // Not "0": the destination deducts its fee from the amount.
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_destination_network_fee),
+                value = resourceManager.getString(R.string.cross_chain_destination_fee_included)
+            )
+        } else {
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_destination_network_fee),
+                value = transferDraft.destinationFee.formatCryptoDetail(transferableAsset.token.configuration.symbol),
+                additionalValue = transferableAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
+            )
+        }
 
         CrossChainConfirmViewState(
             originChainIcon = GradientIconData(
@@ -213,6 +256,7 @@ class CrossChainConfirmViewModel @Inject constructor(
                 url = destinationNetwork?.icon,
                 color = destinationNetwork?.utilityAsset?.color
             ),
+            fromInfoItem = fromInfoItem,
             toInfoItem = toInfoItem,
             originNetworkItem = originNetworkItem,
             destinationNetworkItem = destinationNetworkItem,
@@ -224,6 +268,29 @@ class CrossChainConfirmViewModel @Inject constructor(
             isLoading = isSubmitting
         )
     }.stateIn(this, SharingStarted.Eagerly, CrossChainConfirmViewState.default)
+
+    val state: StateFlow<CrossChainConfirmViewState> = kotlinx.coroutines.flow.combine(
+        contentStateFlow,
+        pendingFlow
+    ) { content, pending ->
+        content.copy(
+            pendingMessage = pending?.let { resourceManager.getString(it.status.message) },
+            pendingTransactionHash = pending?.submission?.transactionHash?.shortenAddress()
+        )
+    }.stateIn(this, SharingStarted.Eagerly, CrossChainConfirmViewState.default)
+
+    init {
+        // Settle an earlier transfer first: claim the in-flight flag so that a tap cannot submit meanwhile.
+        if (transferSubmittingFlow.compareAndSet(expect = false, update = true)) {
+            launch {
+                try {
+                    if (loadPending()) pendingFlow.value?.let { checkPending(it) }
+                } finally {
+                    transferSubmittingFlow.value = false
+                }
+            }
+        }
+    }
 
     override fun onNavigationClick() {
         router.back()
@@ -243,45 +310,145 @@ class CrossChainConfirmViewModel @Inject constructor(
     }
 
     override fun onNextClick() {
+        // Claim the in-flight flag before the first suspension point. Validation and submission both
+        // suspend, so a second tap (or a re-entry through warningConfirmed) arriving in that window
+        // must not start another transfer: each submission would sign with a fresh nonce and move funds again.
+        if (!transferSubmittingFlow.compareAndSet(expect = false, update = true)) return
+
         launch {
-            val destinationChain = destinationNetworkFlow.value ?: return@launch
-            val asset = originAssetFlow.firstOrNull() ?: return@launch
-            val token = asset.token.configuration
-
-            val rawAmountInPlanks = token.planksFromAmount(transferDraft.amount)
-            val destinationFeeInPlanks = token.planksFromAmount(transferDraft.destinationFee)
-            val originFee = token.planksFromAmount(transferDraft.originFee)
-            val recipientAddress = transferDraft.recipientAddress
-            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
-
-            val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
-                amountInPlanks = rawAmountInPlanks + destinationFeeInPlanks,
-                originAsset = asset,
-                destinationChainId = destinationChain.id,
-                destinationAddress = recipientAddress,
-                originAddress = selfAddress,
-                originFee = originFee,
-                confirmedValidations = confirmedValidations
-            )
-
-            // error occurred inside validation
-            validationProcessResult.exceptionOrNull()?.let {
-                showError(it)
-                return@launch
-            }
-            val validationResult = validationProcessResult.requireValue()
-
-            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
-                if (it is ValidationWarning) {
-                    _openValidationWarningEvent.value = Event(validationResult to it)
-                } else {
-                    showError(it)
+            try {
+                val pending = pendingFlow.value
+                when {
+                    pending == null || pending.status == PendingStatus.Expired -> validateAndSubmit()
+                    // A retry of a transfer that was sent would send it a second time.
+                    pending.status == PendingStatus.Included ->
+                        if (pending.isThisTransfer) router.finishSendFlow() else validateAndSubmit()
+                    else -> checkPending(pending)
                 }
-                return@launch
+            } finally {
+                transferSubmittingFlow.value = false
             }
-
-            performTransfer()
         }
+    }
+
+    /** Reads only finalized blocks; it never signs or resends the earlier transfer. */
+    private suspend fun checkPending(pending: PendingTransfer) {
+        val scope = submissionScope() ?: return
+        pendingFlow.value = pending.copy(status = PendingStatus.Checking)
+        pendingFlow.value = try {
+            when (crossChainSubmissions.check(scope, pending.submission.attemptId)) {
+                CrossChainSubmissionReconciler.Outcome.Settled -> null
+                is CrossChainSubmissionReconciler.Outcome.Included -> pending.copy(status = PendingStatus.Included)
+                is CrossChainSubmissionReconciler.Outcome.Expired -> pending.copy(status = PendingStatus.Expired)
+                is CrossChainSubmissionReconciler.Outcome.Unsettled -> pending.copy(status = PendingStatus.NotFound)
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            pending.copy(status = PendingStatus.CheckFailed)
+        }
+    }
+
+    /** Whether an unsettled transfer is kept for this scope; an unreadable record blocks like a kept one. */
+    private suspend fun loadPending(): Boolean {
+        val scope = submissionScope() ?: return false
+        val submission = try {
+            crossChainSubmissions.pending(scope)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            showError(resourceManager.getString(R.string.send_storage_unavailable))
+            return true
+        } ?: return false
+        pendingFlow.value = PendingTransfer(submission, PendingStatus.Unknown, isThisTransfer = submission.isRetryOfDraft())
+        return true
+    }
+
+    private suspend fun submissionScope(): CrossChainSubmissionJournal.Scope? {
+        val wallet = accountInteractor.getMetaAccount(transferDraft.metaAccountId)
+        val originChain = interactor.getChain(transferDraft.originChainId)
+        val accountId = wallet.accountId(originChain) ?: return null
+        return crossChainSubmissions.scope(wallet.id, originChain, accountId)
+    }
+
+    private fun CrossChainSubmissionJournal.Submission.isRetryOfDraft(): Boolean {
+        // The XCM record keeps the amount with the destination fee added on top; the bridge keeps the amount.
+        val sent = if (transferDraft.isReviewedBridge) transferDraft.amount else transferDraft.amount + transferDraft.destinationFee
+        val sentInPlanks = runCatching { sent.scaleByPowerOfTen(details.precision).toBigIntegerExact() }.getOrNull()
+        return details.destinationChainId == transferDraft.destinationChainId &&
+            details.assetId == transferDraft.chainAssetId &&
+            details.recipient == transferDraft.recipientAddress &&
+            details.amountInPlanks == sentInPlanks
+    }
+
+    private suspend fun validateAndSubmit() {
+        // Balances were validated for the draft's wallet; another selected wallet must not sign this transfer.
+        if (interactor.getSelectedMetaAccount().id != transferDraft.metaAccountId) {
+            showError(resourceManager.getString(R.string.send_review_changed))
+            return
+        }
+        // The reviewed bridge executor repeats its own exact minimum, fee, balance, account,
+        // runtime and recipient checks immediately before submission.
+        if (transferDraft.isReviewedBridge) {
+            performTransfer()
+            return
+        }
+        val destinationChain = destinationNetworkFlow.value ?: return
+        val originChain = originNetworkFlow.value ?: return
+        val asset = originAssetFlow.firstOrNull() ?: return
+        val token = asset.token.configuration
+        val utilityAsset = utilityAssetFlow.firstOrNull() ?: return
+
+        val amountAndDestinationFeeInPlanks: BigInteger
+        val destinationFeeInPlanks: BigInteger
+        val originFee: BigInteger
+        try {
+            amountAndDestinationFeeInPlanks = exactXcmAmountInPlanks(createTransfer(token))
+            destinationFeeInPlanks = transferDraft.destinationFee.scaleByPowerOfTen(token.precision).toBigIntegerExact()
+            val feeAsset = utilityAsset.token.configuration
+            originFee = exactXcmOriginFeeInPlanks(
+                originChainId = transferDraft.originChainId,
+                expectedUtilityAssetId = checkNotNull(originChain.utilityAsset?.id) {
+                    "XCM origin utility asset is unavailable"
+                },
+                utilityAsset = feeAsset,
+                quotedFee = transferDraft.originFee
+            )
+        } catch (error: RuntimeException) {
+            showError(error)
+            return
+        }
+        val recipientAddress = transferDraft.recipientAddress
+        val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return
+
+        val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
+            amountInPlanks = amountAndDestinationFeeInPlanks,
+            originAsset = asset,
+            destinationChainId = destinationChain.id,
+            destinationAddress = recipientAddress,
+            originAddress = selfAddress,
+            originFee = originFee,
+            confirmedValidations = confirmedValidations,
+            destinationFeeInPlanks = destinationFeeInPlanks
+        )
+
+        // error occurred inside validation
+        validationProcessResult.exceptionOrNull()?.let {
+            showError(it)
+            return
+        }
+        val validationResult = validationProcessResult.requireValue()
+
+        ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+            if (it is ValidationWarning) {
+                _openValidationWarningEvent.value = Event(validationResult to it)
+            } else {
+                showError(it)
+            }
+            return
+        }
+
+        performTransfer()
     }
 
     override fun onItemClick(code: Int) {
@@ -327,31 +494,42 @@ class CrossChainConfirmViewModel @Inject constructor(
         onNextClick()
     }
 
-    private fun performTransfer() {
-        launch {
-            val originAsset = originAssetFlow.value ?: return@launch
-            val token = originAsset.token.configuration
+    // Runs inside the coroutine of onNextClick, which owns transferSubmittingFlow for its whole duration.
+    private suspend fun performTransfer() {
+        val originAsset = originAssetFlow.value ?: return
+        val token = originAsset.token.configuration
 
-            transferSubmittingFlow.value = true
-
-            val result = withContext(Dispatchers.Default) {
-                xcmInteractor.performCrossChainTransfer(createTransfer(token))
-            }
-            if (result.isSuccess) {
-                val operationHash = result.getOrNull()
-                router.finishSendFlow()
-                router.openOperationSuccess(operationHash, token.chainId)
+        val result = withContext(Dispatchers.Default) {
+            if (transferDraft.isReviewedBridge) {
+                reviewedBridgeInteractor.submit(
+                    walletId = transferDraft.metaAccountId,
+                    providerId = requireNotNull(transferDraft.providerId),
+                    routeId = requireNotNull(transferDraft.routeId),
+                    originChainId = transferDraft.originChainId,
+                    destinationChainId = transferDraft.destinationChainId,
+                    asset = token,
+                    recipientAddress = transferDraft.recipientAddress,
+                    amount = transferDraft.amount,
+                    confirmedQuote = transferDraft.reviewedBridgeQuote()
+                )
             } else {
-                val error = result.requireException()
-
-                if (error is NotValidTransferStatus) {
-                    processInvalidStatus(error.status)
-                } else {
-                    showError(error)
-                }
+                xcmInteractor.performCrossChainTransfer(createTransfer(token), transferDraft.metaAccountId)
             }
+        }
+        if (result.isSuccess) {
+            val operationHash = result.getOrNull()
+            router.finishSendFlow()
+            router.openOperationSuccess(operationHash, token.chainId)
+        } else {
+            val error = result.requireException()
 
-            transferSubmittingFlow.value = false
+            if (error is NotValidTransferStatus) {
+                processInvalidStatus(error.status)
+            } else if (!loadPending()) {
+                // Nothing was retained, so nothing was sent: the user may try again.
+                showError(error)
+            }
+            // Otherwise the retained transfer may have reached the network: it is shown as unsettled instead.
         }
     }
 
@@ -378,4 +556,30 @@ class CrossChainConfirmViewModel @Inject constructor(
             )
         }
     }
+
+    private enum class PendingStatus(val message: Int) {
+        Unknown(R.string.cross_chain_pending_message),
+        Checking(R.string.pool_join_recovery_checking),
+        NotFound(R.string.cross_chain_pending_not_found),
+        CheckFailed(R.string.cross_chain_pending_unavailable),
+        Included(R.string.cross_chain_pending_included),
+        Expired(R.string.cross_chain_pending_expired)
+    }
+
+    private data class PendingTransfer(
+        val submission: CrossChainSubmissionJournal.Submission,
+        val status: PendingStatus,
+        /** The kept transfer is this draft, so after it was included it must not be submitted again. */
+        val isThisTransfer: Boolean
+    )
+
+    private fun CrossChainTransferDraft.reviewedBridgeQuote() = ReviewedBridgeQuote(
+        providerId = requireNotNull(providerId),
+        routeId = requireNotNull(routeId),
+        runtimeFingerprint = requireNotNull(runtimeFingerprint),
+        executionFingerprint = requireNotNull(executionFingerprint),
+        originFeeInPlanks = BigInteger(requireNotNull(originFeeInPlanks)),
+        destinationFeeInPlanks = BigInteger(requireNotNull(destinationFeeInPlanks)),
+        effectiveMinimumInPlanks = BigInteger(requireNotNull(effectiveMinimumInPlanks))
+    )
 }

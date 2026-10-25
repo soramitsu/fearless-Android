@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -16,8 +17,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.lifecycle.Observer
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -32,48 +34,64 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
-import jp.co.soramitsu.common.utils.MultipleEventsCutter
-import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBinding
 import jp.co.soramitsu.staking.api.data.StakingType
-import jp.co.soramitsu.staking.impl.domain.model.NominatorStatus
-import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
-import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.CollatorStakeInfoViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarnings
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingAssetInfo
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingAssetInfoViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingParachainInfo
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingPoolInfo
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingRelayChainInfo
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationOptionsBottomSheet
-import jp.co.soramitsu.staking.impl.presentation.view.DelegationRecyclerViewAdapter
-import jp.co.soramitsu.staking.impl.presentation.view.StakeSummaryView
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
+class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking) {
 
     @Inject
     lateinit var imageLoader: ImageLoader
-    private val delegationAdapter by lazy { DelegationRecyclerViewAdapter(this) }
 
     override val viewModel: StakingViewModel by viewModels()
 
     private val binding by viewBinding(FragmentStakingBinding::bind)
+    private var managementDialog: ManageStakingBottomSheet? = null
+    private var delegationDialog: DelegationOptionsBottomSheet? = null
+    private var managementDestinationListener: Pair<NavController, NavController.OnDestinationChangedListener>? = null
 
-    var currentEnteredAmountFlow = MutableStateFlow("")
+    override fun onResume() {
+        super.onResume()
+        viewModel.onStakingScreenResumed()
+    }
+
+    override fun onPause() {
+        viewModel.onStakingScreenPaused()
+        dismissManagementDialog()
+        dismissDelegationDialog()
+        super.onPause()
+    }
+
+    override fun onDestroyView() {
+        dismissManagementDialog()
+        dismissDelegationDialog()
+        managementDestinationListener?.let { (controller, listener) -> controller.removeOnDestinationChangedListener(listener) }
+        managementDestinationListener = null
+        super.onDestroyView()
+    }
 
     override fun initViews() {
         with(binding) {
@@ -98,15 +116,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             }
         }
 
-        binding.collatorsList.layoutManager = object : LinearLayoutManager(requireContext()) {
-            override fun canScrollVertically() = false
-        }
-        binding.collatorsList.adapter = delegationAdapter
     }
 
-    private var observeDelegationsJob: Job? = null
     private var observeAlertsJob: Job? = null
-    private var observeStakingStateJob: Job? = null
 
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
@@ -130,70 +142,6 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                 }
             }
         }.launchIn(viewModel.stakingStateScope)
-
-        viewModel.stakingViewStateOld.observe { loadingState ->
-            observeDelegationsJob?.cancel()
-            when (loadingState) {
-                is LoadingState.Loading -> {
-                    binding.startStakingBtn.setVisible(false)
-                    binding.stakingEstimate.setVisible(false)
-                    binding.stakingStakeSummary.setVisible(false)
-                    binding.collatorsList.setVisible(false)
-                }
-                is LoadingState.Loaded -> {
-                    val stakingState = loadingState.data
-
-                    val isEstimatesVisible = stakingState is RelaychainWelcomeViewState || stakingState is ParachainWelcomeViewState
-
-                    binding.startStakingBtn.setVisible(isEstimatesVisible)
-                    binding.stakingEstimate.setVisible(isEstimatesVisible)
-                    binding.stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
-                    binding.collatorsList.setVisible(stakingState is DelegatorViewState)
-
-                    when (stakingState) {
-                        is StakingPoolWelcomeViewState -> {
-                            binding.stakingEstimate.setVisible(false)
-                            binding.stakingStakeSummary.setVisible(false)
-                            binding.collatorsList.setVisible(false)
-                        }
-                        is NominatorViewState -> {
-                            binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
-                        }
-
-                        is ValidatorViewState -> {
-                            binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapValidatorStatus)
-                        }
-
-                        is StashNoneViewState -> {
-                            binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapStashNoneStatus)
-                        }
-
-                        is WelcomeViewState -> {
-                            observeWelcomeState(stakingState)
-                        }
-                        is DelegatorViewState -> {
-                            observeDelegationsJob = stakingState.delegations.onEach {
-                                if (it is LoadingState.Loaded) {
-                                    delegationAdapter.submitList(it.data)
-                                }
-                            }.launchIn(viewModel.stakingStateScope)
-                            observeDelegationsJob?.start()
-
-                            observeWelcomeState(stakingState.welcomeViewState)
-
-                            binding.stakingStakeSummary.isVisible = false
-                            binding.stakingEstimate.isVisible = true
-                            binding.startStakingBtn.isVisible = true
-                        }
-                        is Pool -> {
-                            binding.stakingEstimate.setVisible(false)
-                            binding.stakingStakeSummary.setVisible(false)
-                            binding.collatorsList.setVisible(false)
-                        }
-                    }
-                }
-            }
-        }
 
         combine(viewModel.networkInfo, viewModel.stakingTypeFlow) { state, stakingType ->
             state to stakingType
@@ -243,8 +191,44 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
     }
 
     private fun setupComposeViews() {
-        viewModel.showRewardEstimationEvent.observeEvent {
-            StakingRewardEstimationBottomSheet(requireContext(), it).show()
+        // Every queued callback keeps the exact view and destination that created it.
+        val actionView = binding.root
+        val actionOwner = runCatching { findNavController().getBackStackEntry(R.id.stakingFragment) }.getOrNull()
+        val isScreenCurrent = {
+            view === actionView && isResumed && actionOwner != null &&
+                runCatching { findNavController().currentBackStackEntry === actionOwner }.getOrDefault(false)
+        }
+        viewModel.showRewardEstimationEvent.observe(viewLifecycleOwner, EventObserver {
+            if (isScreenCurrent()) StakingRewardEstimationBottomSheet(requireContext(), it).show()
+        })
+        managementDestinationListener?.let { (controller, listener) -> controller.removeOnDestinationChangedListener(listener) }
+        findNavController().let { controller ->
+            val listener = NavController.OnDestinationChangedListener { _, _, _ ->
+                if (!isScreenCurrent()) {
+                    dismissManagementDialog()
+                    dismissDelegationDialog()
+                }
+            }
+            managementDestinationListener = controller to listener
+            controller.addOnDestinationChangedListener(listener)
+        }
+        viewModel.showManageStakeEvent.observe(viewLifecycleOwner, Observer<Event<ManageStakingBottomSheet.Payload>?> { event ->
+            if (event == null) dismissManagementDialog()
+            else event.getContentIfNotHandled()?.let { showManagementDialog(it, isScreenCurrent) }
+        })
+        viewModel.showStakingStatusEvent.observe(viewLifecycleOwner, EventObserver {
+            showStatusAlert(it.title, it.message)
+        })
+        binding.poolJoinRecoveryEntry.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val type by viewModel.stakingTypeFlow.collectAsState(initial = null)
+                FearlessAppTheme {
+                    PoolJoinRecoveryEntry(type) {
+                        viewModel.onPoolJoinRecovery(isScreenCurrent)
+                    }
+                }
+            }
         }
         binding.composeContent.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -255,8 +239,8 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                         Column(modifier = Modifier.padding(horizontal = Dp(16f))) {
                             AssetSelector(state = it.selectorState, onClick = { viewModel.assetSelectorMixin.assetSelectorClicked() })
                             MarginVertical(margin = Dp(16f))
-                            it.networkInfoState?.let { networkState ->
-                                StakingAssetInfo(networkState)
+                            if (it.networkInfoState is StakingAssetInfoViewState.StakingPool) {
+                                StakingAssetInfo(it.networkInfoState)
                             }
                             it.stakingViewState?.let { stakingViewState ->
                                 when (stakingViewState) {
@@ -264,14 +248,14 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                                         MarginVertical(margin = Dp(16f))
                                         StakingPoolInfo(
                                             stakingViewState.stakeInfoViewState,
-                                            onClick = viewModel::onManagePoolStake
+                                            onClick = { viewModel.onManagePoolStake(isScreenCurrent) }
                                         )
                                     }
                                     is StakingViewState.Pool.Welcome -> {
                                         MarginVertical(margin = Dp(16f))
                                         EstimatedEarnings(
                                             stakingViewState.estimatedEarnings,
-                                            viewModel::onEstimatedEarningsInfoClick,
+                                            { viewModel.onEstimatedEarningsInfoClick(isScreenCurrent) },
                                             viewModel::onPoolsAmountInput,
                                             viewModel::onAmountInputFocusChanged
                                         )
@@ -282,13 +266,27 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                                                 .fillMaxWidth()
                                                 .height(Dp(52f)),
                                             text = stringResource(id = R.string.staking_start_title),
-                                            onClick = viewModel::startStakingPoolClick
+                                            onClick = { viewModel.startStakingPoolClick(isScreenCurrent) }
                                         )
                                         MarginVertical(margin = Dp(16f))
                                     }
+                                    is StakingViewState.RelayChain,
+                                    is StakingViewState.Parachain -> Unit
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        binding.nonPoolStakingBody.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val state by viewModel.state.collectAsState()
+                state?.stakingViewState?.let { stakingState ->
+                    FearlessAppTheme {
+                        NonPoolStakingBody(stakingState, isScreenCurrent)
                     }
                 }
             }
@@ -328,11 +326,53 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             }
         }
 
-        viewModel.enteredAmountEvent.collectEvent {
-            viewModel.launch {
-                currentEnteredAmountFlow.emit(it.formatCrypto())
+    }
+
+    @Composable
+    private fun NonPoolStakingBody(state: StakingViewState, isScreenCurrent: () -> Boolean) {
+        Column(modifier = Modifier.padding(horizontal = Dp(16f))) {
+            when (state) {
+                is StakingViewState.RelayChain.Welcome -> WelcomeStakingBody(state.estimatedEarnings, isScreenCurrent)
+                is StakingViewState.RelayChain.Stake -> {
+                    StakingRelayChainInfo(
+                        state = state.stakeInfoViewState,
+                        onClick = { viewModel.onManageRelayChainStake(state, isScreenCurrent) },
+                        onStatusClick = { viewModel.onRelayChainStatusClick(state, isScreenCurrent) }
+                    )
+                    MarginVertical(margin = Dp(8f))
+                }
+                is StakingViewState.Parachain.Welcome -> WelcomeStakingBody(state.estimatedEarnings, isScreenCurrent)
+                is StakingViewState.Parachain.Delegator -> {
+                    state.delegations.forEach { delegation ->
+                        StakingParachainInfo(delegation.stakeInfo) {
+                            showDelegatorOptions(delegation, isScreenCurrent)
+                        }
+                        MarginVertical(margin = Dp(8f))
+                    }
+                    WelcomeStakingBody(state.estimatedEarnings, isScreenCurrent)
+                }
+                is StakingViewState.Pool -> Unit
             }
         }
+    }
+
+    @Composable
+    private fun WelcomeStakingBody(state: EstimatedEarningsViewState, isScreenCurrent: () -> Boolean) {
+        EstimatedEarnings(
+            state,
+            { viewModel.onEstimatedEarningsInfoClick(isScreenCurrent) },
+            viewModel::onPoolsAmountInput,
+            viewModel::onAmountInputFocusChanged
+        )
+        MarginVertical(margin = Dp(16f))
+        AccentButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(Dp(52f)),
+            text = stringResource(id = R.string.staking_start_title),
+            onClick = { viewModel.startNonPoolStakingClick(isScreenCurrent) }
+        )
+        MarginVertical(margin = Dp(16f))
     }
 
     private fun setupNetworkInfo(model: StakingNetworkInfoModel.RelayChain) {
@@ -377,138 +417,57 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         }
     }
 
-    private fun <S> StakeSummaryView.bindStakeSummary(
-        stakingViewState: StakeViewState<S>,
-        mapStatus: (StakeSummaryModel<S>) -> StakeSummaryView.Status
-    ) {
-        val multipleEventsCutter = MultipleEventsCutter()
-        setStatusClickListener {
-            multipleEventsCutter.processEvent {
-                stakingViewState.statusClicked()
-            }
-        }
-
-        setStakeInfoClickListener {
-            multipleEventsCutter.processEvent {
-                stakingViewState.moreActionsClicked()
-            }
-        }
-
-        stakingViewState.showStatusAlertEvent.observeEvent { (title, message) ->
-            showStatusAlert(title, message)
-        }
-
-        moreActions.setVisible(stakingViewState.manageStakingActionsButtonVisible)
-
-        stakingViewState.showManageActionsEvent.observeEvent {
-            ManageStakingBottomSheet(requireContext(), it, stakingViewState::manageActionChosen).show()
-        }
-
-        observeStakingStateJob?.cancel()
-        observeStakingStateJob = stakingViewState.stakeSummaryFlow.onEach { summaryState ->
-            when (summaryState) {
-                is LoadingState.Loaded<StakeSummaryModel<S>> -> {
-                    val summary = summaryState.data
-
-                    hideLoading()
-                    setElectionStatus(mapStatus(summary))
-                    setTotalStaked(summary.totalStaked)
-                    setRewardsApr(summary.totalRewards)
-                    showRewardsAprFiat()
-                    summary.totalRewardsFiat?.let { setRewardsAprFiat(it) } ?: hideRewardsAprFiat()
-                    if (summary.totalStakedFiat == null) {
-                        hideTotalStakeFiat()
-                    } else {
-                        showTotalStakedFiat()
-                        setTotalStakedFiat(summary.totalStakedFiat)
-                    }
-                }
-                is LoadingState.Loading -> {}
-            }
-        }.launchIn(viewModel.stakingStateScope)
-    }
-
     private fun showStatusAlert(title: String, message: String) {
         infoDialog(requireContext(), childFragmentManager, title, message)
     }
 
-    private fun mapValidatorStatus(summary: ValidatorSummaryModel): StakeSummaryView.Status {
-        return when (summary.status) {
-            ValidatorStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            ValidatorStatus.ACTIVE -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
+    private fun showManagementDialog(payload: ManageStakingBottomSheet.Payload, isScreenCurrent: () -> Boolean) {
+        if (!isScreenCurrent() || !viewModel.isManagementPresentationCurrent(payload)) return
+        dismissManagementDialog()
+        if (!isScreenCurrent() || !viewModel.isManagementPresentationCurrent(payload)) return
+        val dialog = ManageStakingBottomSheet(requireContext(), payload) { action ->
+            viewModel.onManageStakeActionChosen(payload, action)
         }
+        managementDialog = dialog
+        dialog.setOnDismissListener {
+            if (managementDialog === dialog) managementDialog = null
+            viewModel.onManagementPresentationDismissed(payload)
+        }
+        dialog.show()
+        if (!isScreenCurrent() || !viewModel.isManagementPresentationCurrent(payload)) dialog.dismiss()
     }
 
-    private fun mapStashNoneStatus(summary: StashNoneSummaryModel): StakeSummaryView.Status {
-        return when (summary.status) {
-            StashNoneStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-        }
+    private fun dismissManagementDialog() {
+        val previous = managementDialog
+        managementDialog = null
+        previous?.dismiss()
     }
 
-    private fun mapNominatorStatus(summary: StakeSummaryModel<NominatorStatus>): StakeSummaryView.Status {
-        return when (summary.status) {
-            is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
-            is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
-        }
-    }
-
-    private var returnsJob: Job? = null
-
-    private fun observeWelcomeState(stakingState: WelcomeViewState) {
-        returnsJob?.cancel()
-        observeValidations(stakingState)
-
-        stakingState.assetLiveData.observe {
-            binding.stakingEstimate.setAssetImageUrl(it.imageUrl, imageLoader)
-            binding.stakingEstimate.setAssetName(it.tokenName)
-            binding.stakingEstimate.setAssetBalance(it.assetBalance)
-        }
-
-        stakingState.amountFiat.observe { amountFiat ->
-            binding.stakingEstimate.showAssetBalanceFiatAmount()
-            binding.stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
-        }
-
-        returnsJob = stakingState.returns.onEach { rewards ->
-            binding.stakingEstimate.hideReturnsLoading()
-            binding.stakingEstimate.populateMonthEstimation(rewards.monthly)
-            binding.stakingEstimate.populateYearEstimation(rewards.yearly)
-        }.launchIn(viewModel.stakingStateScope)
-        returnsJob?.start()
-
-        currentEnteredAmountFlow = stakingState.enteredAmountFlow
-        binding.stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
-        binding.stakingEstimate.amountInput.setOnFocusChangeListener { v, hasFocus ->
-            viewModel.onAmountInputFocusChanged(hasFocus)
-        }
-
-        binding.startStakingBtn.setOnClickListener { stakingState.nextClicked() }
-
-        binding.stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
-
-        stakingState.showRewardEstimationEvent.observeEvent {
-            StakingRewardEstimationBottomSheet(requireContext(), it).show()
-        }
-    }
-
-    override fun moreClicked(model: DelegatorViewState.CollatorDelegationModel) {
-        showDelegatorOptions(model)
-    }
-
-    private fun showDelegatorOptions(model: DelegatorViewState.CollatorDelegationModel) {
-        DelegationOptionsBottomSheet(
+    private fun showDelegatorOptions(model: CollatorStakeInfoViewState, isScreenCurrent: () -> Boolean) {
+        if (!isScreenCurrent()) return
+        dismissDelegationDialog()
+        if (!isScreenCurrent()) return
+        val dialog = DelegationOptionsBottomSheet(
             context = requireContext(),
-            model = model,
-            onStakingBalance = viewModel::onStakingBalance,
-            onYourCollator = viewModel::openCollatorInfo
-        ).show()
+            onStakingBalance = { viewModel.onStakingBalance(model, isScreenCurrent) },
+            onYourCollator = model.collator?.let { { viewModel.openCollatorInfo(model, isScreenCurrent) } }
+        )
+        delegationDialog = dialog
+        dialog.setOnDismissListener {
+            if (delegationDialog === dialog) delegationDialog = null
+        }
+        dialog.show()
+        if (!isScreenCurrent()) dialog.dismiss()
+    }
+
+    private fun dismissDelegationDialog() {
+        val previous = delegationDialog
+        delegationDialog = null
+        previous?.dismiss()
     }
 
     override fun onStop() {
         super.onStop()
-        returnsJob?.cancel()
-        observeDelegationsJob?.cancel()
         observeAlertsJob?.cancel()
     }
 }

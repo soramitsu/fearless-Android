@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -22,6 +24,7 @@ import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -32,6 +35,8 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.crowdloan.api.domain.LegacyCrowdloanRecovery
+import jp.co.soramitsu.crowdloan.api.domain.shouldShowLegacyCrowdloan
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
@@ -41,6 +46,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.SendPausePolicy
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -49,6 +55,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
+import jp.co.soramitsu.wallet.impl.presentation.send.showSendPausedSheet
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
@@ -67,9 +74,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -93,7 +100,11 @@ class BalanceDetailViewModel @Inject constructor(
     private val clipboardManager: ClipboardManager,
     addressDisplayUseCase: AddressDisplayUseCase,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val xcmService: XcmService
+    private val xcmService: XcmService,
+    private val legacyCrowdloanRecovery: LegacyCrowdloanRecovery,
+    private val featureToggleStore: ProductFeatureToggleStore,
+    private val sendPausePolicy: SendPausePolicy,
+    private val nativeRecovery: jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendRecovery? = null
 ) : BaseViewModel(),
     BalanceDetailsScreenInterface,
     DefaultLifecycleObserver,
@@ -102,10 +113,14 @@ class BalanceDetailViewModel @Inject constructor(
 
     companion object {
         private const val LOCKED_BALANCE_INFO_ID = 409
+        private const val LEGACY_CROWDLOAN_INFO_ID = 410
     }
 
     private val assetPayloadInitial: AssetPayload =
         savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
+
+    val nativeRecoveryUi = MutableStateFlow<jp.co.soramitsu.wallet.impl.presentation.send.NativeSendRecoveryUiState?>(null)
+    private val nativeRecoveryRefresh = MutableStateFlow(0L)
 
     val transactionDetailsBottomSheet = MutableStateFlow<TransactionDetailsState?>(null)
     val externalActionsSelector = MutableStateFlow<ExternalAccountActions.Payload?>(null)
@@ -121,29 +136,14 @@ class BalanceDetailViewModel @Inject constructor(
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
+    private val legacyCrowdloanRefresh = MutableStateFlow(0L)
 
     private val chainsFlow = chainInteractor.getChainsFlow().share()
     private val chainsItemStateFlow = chainsFlow.mapList { it.toChainItemState() }
     private val selectedChainFlow = selectedChainId.map { interactor.getChain(it) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val assetModelFlow = selectedChainId.mapNotNull { selectedChainId ->
-        val chains = chainsFlow.firstOrNull()
-        val selectedChain = chains?.firstOrNull { it.id == selectedChainId }
-        val initialSelectedChain = chains?.firstOrNull { it.id == assetPayloadInitial.chainId }
-
-        val initialSelectedAssetSymbol =
-            initialSelectedChain?.assets?.firstOrNull { it.id == assetPayloadInitial.chainAssetId }?.symbol
-        val newSelectedAsset =
-            selectedChain?.assets?.firstOrNull { it.symbol == initialSelectedAssetSymbol }
-
-        newSelectedAsset?.id?.let {
-            AssetPayload(
-                chainId = selectedChainId,
-                chainAssetId = it
-            )
-        }
-    }
+    private val assetModelFlow = assetPayload
         .flatMapLatest {
             interactor.assetFlow(it.chainId, it.chainAssetId)
                 .catch { showError("Failed to load balance of the asset, try to change node or come back later") }
@@ -164,6 +164,7 @@ class BalanceDetailViewModel @Inject constructor(
         super.onResume(owner)
         viewModelScope.launch {
             transactionHistoryProvider.tryReloadHistory()
+            nativeRecoveryRefresh.value++
         }
     }
 
@@ -208,6 +209,7 @@ class BalanceDetailViewModel @Inject constructor(
         LoadingState.Loading(),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
+        null,
         TransactionHistoryUi.State.EmptyProgress,
         false
     )
@@ -216,7 +218,10 @@ class BalanceDetailViewModel @Inject constructor(
 
     init {
         router.chainSelectorPayloadFlow.onEach { chainId ->
-            chainId?.let { selectedChainId.value = chainId }
+            resolveNetworkScopedAssetPayload(assetPayloadInitial, chainId)?.let { exactAsset ->
+                assetPayload.value = exactAsset
+                selectedChainId.value = exactAsset.chainId
+            }
         }.launchIn(viewModelScope)
 
         selectedChainId.onEach { chainId ->
@@ -233,6 +238,128 @@ class BalanceDetailViewModel @Inject constructor(
         }.launchIn(viewModelScope)
 
         subscribeScreenState()
+        subscribeLegacyCrowdloanState()
+        subscribeNativeRecovery()
+    }
+
+    private fun subscribeNativeRecovery() {
+        val recovery = nativeRecovery ?: return
+        combine(selectedChainId, interactor.selectedMetaAccountFlow(), nativeRecoveryRefresh) { chainId, wallet, _ -> chainId to wallet.id }
+            .onEach { (chainId, walletId) ->
+                nativeRecoveryUi.value?.snapshot?.let {
+                    if (it.walletId != walletId || it.chainId != chainId ||
+                        !jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.isCurrent(it.selectionEpoch)) nativeRecoveryUi.value = null
+                }
+                val record = try {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { recovery.peek(chainId, walletId) }
+                } catch (error: kotlinx.coroutines.CancellationException) { throw error } catch (_: Exception) { null }
+                if (selectedChainId.value == chainId && interactor.getSelectedMetaAccount().id == walletId) {
+                    state.update { it.copy(nativePaymentAvailable = record != null) }
+                }
+            }.launchIn(viewModelScope)
+    }
+
+    override fun onNativePaymentClick() {
+        val recovery = nativeRecovery ?: return
+        launch {
+            val walletId = interactor.getSelectedMetaAccount().id
+            val chainId = selectedChainId.value
+            val record = try {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { recovery.peek(chainId, walletId) }
+            } catch (error: kotlinx.coroutines.CancellationException) { throw error } catch (_: Exception) {
+                showError(resourceManager.getString(R.string.send_recovery_unavailable)); null
+            } ?: return@launch
+            if (selectedChainId.value != chainId || interactor.getSelectedMetaAccount().id != walletId ||
+                !jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.isCurrent(record.selectionEpoch)) return@launch
+            nativeRecoveryUi.value = jp.co.soramitsu.wallet.impl.presentation.send.NativeSendRecoveryUiState(record)
+            if (record.networkAvailable) refreshNativePayment(false)
+        }
+    }
+
+    fun closeNativePayment() { nativeRecoveryUi.value = null }
+
+    fun refreshNativePayment(retry: Boolean) {
+        val recovery = nativeRecovery ?: return
+        val before = nativeRecoveryUi.value?.takeUnless { it.busy || !it.snapshot.networkAvailable } ?: return
+        nativeRecoveryUi.value = before.copy(busy = true, error = null)
+        launch {
+            val result = try {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { recovery.refresh(before.snapshot, retry) }
+            } catch (error: kotlinx.coroutines.CancellationException) { throw error } catch (_: Exception) { null }
+            if (nativeRecoveryUi.value?.snapshot == before.snapshot) {
+                if (!jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.isCurrent(before.snapshot.selectionEpoch)) {
+                    nativeRecoveryUi.value = null
+                } else nativeRecoveryUi.value = before.copy(snapshot = result ?: before.snapshot, busy = false,
+                    error = if (result == null) resourceManager.getString(R.string.send_recovery_unavailable) else null)
+            }
+            nativeRecoveryRefresh.value++
+            transactionHistoryProvider.tryReloadHistory()
+        }
+    }
+
+    fun openNativePaymentExplorer() {
+        val snapshot = nativeRecoveryUi.value?.snapshot?.takeIf { it.networkAvailable } ?: return
+        launch {
+            val chain = try { nativeRecovery?.explorerChain(snapshot) } catch (error: kotlinx.coroutines.CancellationException) {
+                throw error
+            } catch (_: Exception) { null } ?: return@launch
+            if (nativeRecoveryUi.value?.snapshot != snapshot || selectedChainId.value != snapshot.chainId ||
+                !jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.isCurrent(snapshot.selectionEpoch)) return@launch
+            jp.co.soramitsu.wallet.impl.presentation.send.NativeSendExplorer.url(chain, snapshot.transactionId, true)?.let(::openUrl)
+        }
+    }
+
+    override fun onNativeHistoryClick() {
+        launch {
+            val epoch = jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.snapshot()
+            val wallet = interactor.getSelectedMetaAccount()
+            val chainId = selectedChainId.value
+            val address = currentAccountAddress(chainId) ?: return@launch
+            val chain = interactor.getChain(chainId)
+            if (selectedChainId.value != chainId || interactor.getSelectedMetaAccount().id != wallet.id ||
+                !jp.co.soramitsu.common.data.storage.WalletSelectionEpoch.isCurrent(epoch)) return@launch
+            jp.co.soramitsu.wallet.impl.presentation.send.NativeSendExplorer.url(chain, address, false)?.let(::openUrl)
+        }
+    }
+
+    private fun subscribeLegacyCrowdloanState() {
+        assetPayload.onEach {
+            state.update { previous -> previous.copy(legacyCrowdloanViewState = null) }
+        }.launchIn(viewModelScope)
+
+        combine(assetPayload, legacyCrowdloanRefresh) { payload, _ -> payload }.flatMapLatest { payload ->
+            flow {
+                val chain = interactor.getChain(payload.chainId)
+                val utilityAssetId = chain.assets.firstOrNull { it.isUtility }?.id
+                val evidence = legacyCrowdloanRecovery.findEvidence(
+                    chainId = payload.chainId,
+                    chainAssetId = payload.chainAssetId
+                )
+                val entryState = if (
+                    shouldShowLegacyCrowdloan(
+                        chainId = payload.chainId,
+                        chainAssetId = payload.chainAssetId,
+                        utilityAssetId = utilityAssetId,
+                        evidence = evidence
+                    )
+                ) {
+                    TitleValueViewState(
+                        title = resourceManager.getString(R.string.legacy_crowdloan_title),
+                        value = resourceManager.getString(R.string.legacy_crowdloan_review),
+                        clickState = TitleValueViewState.ClickState.Value(
+                            R.drawable.ic_arrow_right_24,
+                            LEGACY_CROWDLOAN_INFO_ID
+                        )
+                    )
+                } else {
+                    null
+                }
+
+                emit(entryState)
+            }.catch { emit(null) }
+        }.onEach { entryState ->
+            state.update { previous -> previous.copy(legacyCrowdloanViewState = entryState) }
+        }.launchIn(viewModelScope)
     }
 
     private fun subscribeScreenState() {
@@ -240,17 +367,23 @@ class BalanceDetailViewModel @Inject constructor(
             state.update { prevState ->
                 prevState.copy(transactionHistory = historyState)
             }
+            if (
+                historyState is TransactionHistoryUi.State.Data ||
+                historyState is TransactionHistoryUi.State.Empty
+            ) {
+                legacyCrowdloanRefresh.update { it + 1 }
+            }
         }.launchIn(viewModelScope)
 
         assetModelFlow.onEach { balanceModel ->
+            val unavailable = resourceManager.getString(R.string.portfolio_balance_unavailable)
             val balanceState = AssetBalanceViewState(
-                transferableBalance = balanceModel.transferable.orZero()
-                    .formatCryptoDetail(balanceModel.token.configuration.symbol),
+                transferableBalance = balanceModel.transferable?.formatCryptoDetail(balanceModel.token.configuration.symbol) ?: unavailable,
                 address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
                 isInfoEnabled = false,
                 changeViewState = ChangeBalanceViewState(
                     percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
-                    fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.transferable.orZero())
+                    fiatChange = balanceModel.transferable?.let(balanceModel.token::fiatAmount)
                         ?.formatFiat(balanceModel.token.fiatSymbol).orEmpty()
                 )
             )
@@ -267,8 +400,8 @@ class BalanceDetailViewModel @Inject constructor(
             )
 
             val transferableFormatted =
-                balanceModel.sendAvailable.formatCryptoDetail(balanceModel.token.configuration.symbol)
-            val transferableFiat = balanceModel.token.fiatAmount(balanceModel.sendAvailable)
+                balanceModel.sendAvailable?.formatCryptoDetail(balanceModel.token.configuration.symbol) ?: unavailable
+            val transferableFiat = balanceModel.sendAvailable?.let(balanceModel.token::fiatAmount)
                 ?.formatFiat(balanceModel.token.fiatSymbol)
             val newTransferableState = defaultState.transferableViewState.copy(
                 value = transferableFormatted,
@@ -280,13 +413,15 @@ class BalanceDetailViewModel @Inject constructor(
             } else {
                 balanceModel.locked
             }
-            val lockedFormatted = showLocked.formatCryptoDetail(balanceModel.token.configuration.symbol)
-            val lockedFiat = balanceModel.token.fiatAmount(showLocked)?.formatFiat(balanceModel.token.fiatSymbol)
+            val lockedFormatted = showLocked?.formatCryptoDetail(balanceModel.token.configuration.symbol) ?: unavailable
+            val lockedFiat = showLocked?.let(balanceModel.token::fiatAmount)?.formatFiat(balanceModel.token.fiatSymbol)
 
+            val bitcoinPending = selectedChainFlow.first().isUniversalWalletBitcoin()
             val newLockedState = defaultState.lockedViewState.copy(
+                title = resourceManager.getString(if (bitcoinPending) R.string.transaction_status_pending else R.string.assetdetails_balance_locked),
                 value = lockedFormatted,
                 additionalValue = lockedFiat,
-                clickState = if (balanceModel.locked > BigDecimal.ZERO) {
+                clickState = if (!bitcoinPending && balanceModel.locked?.signum() == 1) {
                     TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
                 } else {
                     null
@@ -300,7 +435,8 @@ class BalanceDetailViewModel @Inject constructor(
                     balance = LoadingState.Loaded(balanceState),
                     transferableViewState = newTransferableState,
                     lockedViewState = newLockedState,
-                    filtersEnabled = filtersEnabled
+                    filtersEnabled = filtersEnabled,
+                    nativeHistoryExplorer = chain.isUniversalWalletBitcoin() || chain.isUniversalWalletSolana()
                 )
             }
         }.launchIn(viewModelScope)
@@ -348,6 +484,7 @@ class BalanceDetailViewModel @Inject constructor(
 
             sync()
             transactionHistoryProvider.tryReloadHistory()
+            nativeRecoveryRefresh.value++
         }
     }
 
@@ -365,13 +502,6 @@ class BalanceDetailViewModel @Inject constructor(
 
     private fun receiveClicked(assetPayload: AssetPayload) {
         router.openReceive(assetPayload)
-    }
-
-    fun openSelectChain() {
-        launch {
-            val asset = assetModelFlow.first()
-            router.openSelectChain(asset.token.configuration.id, asset.token.configuration.chainId)
-        }
     }
 
     fun accountOptionsClicked() = launch {
@@ -395,12 +525,14 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.SEND,
             ActionItemType.RECEIVE
         )
-        val isXcmSupportAsset = runCatching { xcmService.isXcmSupportAsset(
+        // A reviewed route keeps the action visible while submission is paused; the tap explains why.
+        val hasReviewedXcmRoute = runCatching { xcmService.hasReviewedRoute(
             originChainId = selectedChainId,
+            originAssetId = asset.token.configuration.id,
             assetSymbol = asset.token.configuration.symbol
         ) }.getOrNull() ?: false
 
-        if (isXcmSupportAsset) {
+        if (hasReviewedXcmRoute) {
             actionItems += ActionItemType.CROSS_CHAIN
         }
         if (isBuyEnabled()) {
@@ -442,7 +574,7 @@ class BalanceDetailViewModel @Inject constructor(
         val payload = AssetPayload(chainId, chainAssetId)
         when (actionType) {
             ActionItemType.SEND -> {
-                sendClicked(payload)
+                onSendClicked(payload)
             }
 
             ActionItemType.RECEIVE -> {
@@ -458,7 +590,7 @@ class BalanceDetailViewModel @Inject constructor(
             }
 
             ActionItemType.SWAP -> {
-                openSwapTokensScreen(payload)
+                onSwapClicked(payload)
             }
 
             ActionItemType.HIDE, ActionItemType.SHOW -> {
@@ -466,8 +598,51 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
+    private fun onSendClicked(assetPayload: AssetPayload) {
+        viewModelScope.launch {
+            // The transfer service enforces the veto again, so a failed lookup may proceed.
+            val chain = runCatching { interactor.getChain(assetPayload.chainId) }.getOrNull()
+            if (chain != null && sendPausePolicy.isPaused(chain)) {
+                showSendPausedSheet(
+                    resourceManager = resourceManager,
+                    error = sendPausePolicy.pausedError(chain),
+                    onReceive = { receiveClicked(assetPayload) }
+                )
+            } else {
+                sendClicked(assetPayload)
+            }
+        }
+    }
+
     private fun onCrossChainClicked(assetPayload: AssetPayload) {
-        router.openCrossChainSend(assetPayload)
+        if (xcmService.canSubmitNow) {
+            router.openCrossChainSend(assetPayload)
+            return
+        }
+        viewModelScope.launch {
+            val chainName = runCatching { interactor.getChain(assetPayload.chainId).name }.getOrNull()
+            showError(
+                title = resourceManager.getString(R.string.paused_cross_chain_title),
+                message = resourceManager.getString(R.string.paused_cross_chain_message),
+                positiveButtonText = chainName
+                    ?.let { resourceManager.getString(R.string.paused_cross_chain_send_on_network, it) }
+                    ?: resourceManager.getString(R.string.common_action_send),
+                negativeButtonText = resourceManager.getString(R.string.common_close),
+                positiveClick = { onSendClicked(assetPayload) }
+            )
+        }
+    }
+
+    private fun onSwapClicked(assetPayload: AssetPayload) {
+        if (featureToggleStore.polkaswapMutationsEnabled) {
+            openSwapTokensScreen(assetPayload)
+        } else {
+            showError(
+                title = resourceManager.getString(R.string.paused_swap_title),
+                message = resourceManager.getString(R.string.paused_swap_message),
+                positiveButtonText = resourceManager.getString(R.string.common_ok)
+            )
+        }
     }
 
     private fun copyToClipboard(text: String) {
@@ -522,8 +697,9 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun tableItemClicked(itemId: Int) {
-        if (itemId == LOCKED_BALANCE_INFO_ID) {
-            openBalanceDetails()
+        when (itemId) {
+            LOCKED_BALANCE_INFO_ID -> openBalanceDetails()
+            LEGACY_CROWDLOAN_INFO_ID -> router.openLegacyCrowdloan(assetPayload.value)
         }
     }
 
@@ -601,3 +777,13 @@ class BalanceDetailViewModel @Inject constructor(
         externalAccountActions.viewExternalClicked(url)
     }
 }
+
+/**
+ * A Portfolio asset detail is scoped to one exact `(chainId, assetId)` pair. Chain-selector
+ * results are process-wide, so a result produced by another screen must never remap this detail
+ * to a similarly named or similarly symbolized asset on another network.
+ */
+internal fun resolveNetworkScopedAssetPayload(
+    initial: AssetPayload,
+    selectedChainId: ChainId?
+): AssetPayload? = initial.takeIf { selectedChainId == initial.chainId }

@@ -8,18 +8,20 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolCreateFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
+import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.calculatePoolStakingReturns
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -39,8 +41,10 @@ class StartStakingPoolViewModel @Inject constructor(
     private val flowStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
 
-    private val assetDeferred = viewModelScope.async { stakingSharedState.currentAssetFlow().first() }
-    private val chainDeferred = viewModelScope.async { stakingSharedState.assetWithChain.first().chain }
+    private val mainReview = flowStateProvider.mainState.capture()
+    private val review = flowStateProvider.poolContextReview(mainReview)
+    private val assetDeferred = viewModelScope.async { requireNotNull(mainReview.value?.asset) }
+    private val chainDeferred = viewModelScope.async { requireNotNull(mainReview.value?.chain) }
 
     init {
         viewModelScope.launch {
@@ -64,20 +68,12 @@ class StartStakingPoolViewModel @Inject constructor(
             val asset = assetDeferred.await()
             val chain = chainDeferred.await()
             val yearlyReturnsDeferred = async {
-                // todo hardcoded returns for demo
-                val kusamaOnTestNodeChainId =
-                    "51cdb4b3101904a9d234d126656d33cd17518249819b510a03d6c90d0a019611"
-                val polkadotOnTestNodeChainId =
-                    "4f77f65b21b1f396c1555850be6f21e2b1f36c26b94dbcbfec976901c9f08bf3"
-                val chainId =
-                    if (chain.id == kusamaOnTestNodeChainId || chain.id == polkadotOnTestNodeChainId) {
-                        polkadotChainId
-                    } else {
-                        chain.id
-                    }
                 val rewardCalculator = rewardCalculatorFactory.create(asset.token.configuration)
-                val yearly =
-                    rewardCalculator.calculateReturns(BigDecimal.ONE, PERIOD_YEAR, true, chainId)
+                val yearly = rewardCalculator.calculatePoolStakingReturns(
+                    BigDecimal.ONE,
+                    PERIOD_YEAR,
+                    chain.id
+                )
 
                 mapPeriodReturnsToRewardEstimation(
                     yearly,
@@ -118,43 +114,73 @@ class StartStakingPoolViewModel @Inject constructor(
         )
 
     fun onBackClick() {
-        router.back()
+        if (review.revoke()) router.back()
+    }
+
+    fun onDismissed() {
+        review.revoke()
+    }
+
+    override fun onCleared() {
+        review.revoke()
+        super.onCleared()
     }
 
     fun onInstructionsClick() {
-        router.openWebViewer(
-            resourceManager.getString(R.string.pool_staking_title),
-            BuildConfig.STAKING_POOL_WIKI
-        )
+        review.withCurrent {
+            router.openWebViewer(
+                resourceManager.getString(R.string.pool_staking_title),
+                BuildConfig.STAKING_POOL_WIKI
+            )
+        }
     }
 
     fun onJoinPool() {
-        val setupState = flowStateProvider.joinFlowState
-        if (setupState.get() == null) {
-            setupState.set(StakingPoolJoinFlowState())
+        review.withCurrent {
+            val setupState = flowStateProvider.joinFlowState
+            val original = setupState.capture()
+            val receipt = if (original.value?.context?.let(flowStateProvider::isPoolContextCurrent) == true) {
+                original.takeIf(setupState::isEditable)
+            } else {
+                setupState.replaceIfCurrent(original, StakingPoolJoinFlowState(context = mainReview))
+            } ?: return@withCurrent
+            review.withCurrent {
+                if (setupState.isCurrent(receipt)) router.openSetupStakingPool()
+            }
         }
-        router.openSetupStakingPool()
     }
 
     fun onCreatePool() {
+        val draft = review.withCurrent { flowStateProvider.createFlowState.capture() } ?: return
         viewModelScope.launch {
-            val limitHasReached = poolsLimitHasReachedDeferred.await()
-            if (limitHasReached) {
-                router.openAlert(
-                    AlertViewState(
-                        title = resourceManager.getString(R.string.pools_limit_has_reached_error_title),
-                        message = resourceManager.getString(R.string.pools_limit_has_reached_error_message),
-                        buttonText = resourceManager.getString(R.string.common_got_it),
-                        iconRes = R.drawable.ic_status_warning_16
-                    )
-                )
-                return@launch
+            try {
+                val limitHasReached = poolsLimitHasReachedDeferred.await()
+                currentCoroutineContext().ensureActive()
+                review.withCurrent {
+                    if (!flowStateProvider.createFlowState.isCurrent(draft)) return@withCurrent
+                    if (limitHasReached) {
+                        router.openAlert(
+                            AlertViewState(
+                                title = resourceManager.getString(R.string.pools_limit_has_reached_error_title),
+                                message = resourceManager.getString(R.string.pools_limit_has_reached_error_message),
+                                buttonText = resourceManager.getString(R.string.common_got_it),
+                                iconRes = R.drawable.ic_status_warning_16
+                            )
+                        )
+                    } else {
+                        val receipt = flowStateProvider.prepareCreateDraft(mainReview, draft) ?: return@withCurrent
+                        review.withCurrent {
+                            if (flowStateProvider.createFlowState.isCurrent(receipt)) router.openCreatePoolSetup()
+                        }
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                review.withCurrent {
+                    if (flowStateProvider.createFlowState.isCurrent(draft)) showError(error)
+                }
             }
-            val setupState = flowStateProvider.createFlowState
-            if (setupState.get() == null) {
-                setupState.set(StakingPoolCreateFlowState())
-            }
-            router.openCreatePoolSetup()
         }
     }
 }

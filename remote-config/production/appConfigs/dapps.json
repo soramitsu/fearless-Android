@@ -1,0 +1,88 @@
+[
+    {
+        "type": "top",
+        "apps": [
+            {
+                "identifier": "ed88b393-2ac3-4749-b864-dbc141c4188d",
+                "chains": ["-239"],
+                "name": "FW dapp example",
+                "url": "https://ton-connect.example.fearless.soramitsu.co.jp",
+                "description": "FW dapp example",
+                "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/defaultbg.png",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/FW_icon_288.png"
+            },
+            {
+                "identifier": "da345123-6d6a-4440-b75f-875669cdb132",
+                "chains": ["-239"],
+                "name": "Nomis Score",
+                "url": "https://nomis.cc/ton",
+                "description": "TON Reputation Score is Live",
+                "background": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/nomisbg.png",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/nomis.png"
+            }
+        ]
+    },
+    {
+        "type": "featured",
+        "apps": [
+            {
+                "identifier": "bd485b34-7e10-45da-8e20-a58f5acccdc3",
+                "chains": ["-239"],
+                "name": "Storm Trade",
+                "url": "https://app.storm.tg/",
+                "description": "Perps DEX with ×100 leverage.",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/stormtrade.png"
+            }
+        ]
+    },      
+    {
+        "type": "defi",
+        "apps": [
+            {
+                "identifier": "ed88b393-2ac3-4749-b864-dbc141c4188d-v2",
+                "chains": ["-239"],
+                "name": "STON.fi",
+                "url": "https://app.ston.fi/",
+                "description": "Cross-chain DEX built on TON.",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/stonfi.png"
+            },
+            {
+                "identifier": "d32532fa-7306-4927-9cfa-04e164a17419",
+                "chains": ["-239"],
+                "name": "DeDust.io",
+                "url": "https://dedust.io/swap",
+                "description": "AMM DEX for the TON blockchain.",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/dedust.jpg"
+            }
+        ]
+    },
+    {
+        "type": "explorers",
+        "apps": [
+            {
+                "identifier": "aa592b75-9134-4708-8122-0b7d5519f593",
+                "chains": ["-239"],
+                "name": "Tonviewer",
+                "url": "https://tonviewer.com/",
+                "description": "The only explorer you need for TON",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/tonviewer.jpg"
+            },
+            {
+                "identifier": "c2301105-b592-45da-8039-a99552f05ccb",
+                "chains": ["-239"],
+                "name": "DYOR.io",
+                "url": "https://dyor.io/",
+                "description": "Explore The Open Network with DYOR: Earn and Learn",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/dyorio.png"
+            },
+            {
+                "identifier": "cd3357b7-7a79-4193-93b2-fe277eb18d8c",
+                "chains": ["-239"],
+                "name": "Tonscan",
+                "url": "https://tonscan.org/",
+                "description": "Explore The Open Network",
+                "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/dapps/tonscan.jpg"
+            }
+        ]
+    }
+]

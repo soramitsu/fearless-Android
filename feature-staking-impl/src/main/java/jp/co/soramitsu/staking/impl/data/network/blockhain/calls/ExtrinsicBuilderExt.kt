@@ -3,10 +3,13 @@ package jp.co.soramitsu.staking.impl.data.network.blockhain.calls
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.MultiAddress
 import jp.co.soramitsu.core.models.bindMultiAddress
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
+import jp.co.soramitsu.fearless_utils.runtime.metadata.call
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardDestination
 
@@ -314,48 +317,53 @@ fun ExtrinsicBuilder.claimPayout(): ExtrinsicBuilder {
     return call("NominationPools", "claim_payout", emptyMap())
 }
 
-fun ExtrinsicBuilder.withdrawUnbondedFromPool(memberAccountId: MultiAddress, numSlashingSpans: BigInteger = BigInteger.ZERO): ExtrinsicBuilder {
-    return call(
-        "NominationPools",
-        "withdraw_unbonded",
-        mapOf(
-            "member_account" to bindMultiAddress(memberAccountId),
-            "num_slashing_spans" to numSlashingSpans
-        )
+/** Choose the member format from this exact builder runtime before the single submission. */
+fun ExtrinsicBuilder.withdrawUnbondedFromPool(
+    memberAccountId: AccountId,
+    memberAddress: MultiAddress,
+    numSlashingSpans: BigInteger = BigInteger.ZERO
+): ExtrinsicBuilder = call(
+    "NominationPools",
+    "withdraw_unbonded",
+    mapOf(
+        "member_account" to poolMemberAccount("withdraw_unbonded", memberAccountId, memberAddress),
+        "num_slashing_spans" to numSlashingSpans
     )
-}
+)
 
-fun ExtrinsicBuilder.unbondFromPool(memberAccountId: MultiAddress, unbondingPoints: BigInteger): ExtrinsicBuilder {
-    return call(
-        "NominationPools",
-        "unbond",
-        mapOf(
-            "member_account" to bindMultiAddress(memberAccountId),
-            "unbonding_points" to unbondingPoints
-        )
+/** Runtime encoding compatibility must never retry a failed or cancelled network submission. */
+fun ExtrinsicBuilder.unbondFromPool(
+    memberAccountId: AccountId,
+    memberAddress: MultiAddress,
+    unbondingPoints: BigInteger
+): ExtrinsicBuilder = call(
+    "NominationPools",
+    "unbond",
+    mapOf(
+        "member_account" to poolMemberAccount("unbond", memberAccountId, memberAddress),
+        "unbonding_points" to unbondingPoints
     )
-}
+)
 
-fun ExtrinsicBuilder.withdrawUnbondedFromPool(memberAccountId: AccountId, numSlashingSpans: BigInteger = BigInteger.ZERO): ExtrinsicBuilder {
-    return call(
-        "NominationPools",
-        "withdraw_unbonded",
-        mapOf(
-            "member_account" to memberAccountId,
-            "num_slashing_spans" to numSlashingSpans
-        )
-    )
-}
-
-fun ExtrinsicBuilder.unbondFromPool(memberAccountId: AccountId, unbondingPoints: BigInteger): ExtrinsicBuilder {
-    return call(
-        "NominationPools",
-        "unbond",
-        mapOf(
-            "member_account" to memberAccountId,
-            "unbonding_points" to unbondingPoints
-        )
-    )
+private fun ExtrinsicBuilder.poolMemberAccount(
+    callName: String,
+    accountId: AccountId,
+    multiAddress: MultiAddress
+): Any {
+    val memberType = requireNotNull(
+        runtime.metadata.module("NominationPools").call(callName)
+            .arguments.single { it.name == "member_account" }.type
+    ) { "Pool member account type is unresolved" }
+    require(memberType.isFullyResolved) { "Pool member account type is unresolved" }
+    val boundAddress = bindMultiAddress(multiAddress)
+    val member = when {
+        memberType.isValidInstance(boundAddress) -> boundAddress
+        memberType.isValidInstance(accountId) -> accountId
+        else -> error("Unsupported pool member account type")
+    }
+    // Complete public SCALE validation before adding the call; no RPC or signing fallback.
+    memberType.bytes(runtime, member)
+    return member
 }
 
 fun ExtrinsicBuilder.bondExtra(amount: BigInteger): ExtrinsicBuilder {

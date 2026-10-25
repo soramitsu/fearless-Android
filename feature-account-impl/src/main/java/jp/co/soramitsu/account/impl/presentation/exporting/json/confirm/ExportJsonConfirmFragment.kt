@@ -129,7 +129,7 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
                 putExtra(Intent.EXTRA_STREAM, jsonUri)
             }
 
-            startActivity(Intent.createChooser(intent, "Json"))
+            startActivityForResult(Intent.createChooser(intent, "Json"), CHOOSER_REQUEST_CODE)
         }
     }
 

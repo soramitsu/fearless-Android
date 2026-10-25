@@ -1,0 +1,58 @@
+{
+  "en-EN": {
+    "new": [
+        {
+            "title": "Brand new network management",
+            "description": "Navigate between All, Popular and your Favourite networks modes",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/1.png"
+        },
+        {
+            "title": "Use only prefarable chains",
+            "description": "You can customise your favourite networks and work only with the ones you prefer",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/2.png"
+        },
+        {
+            "title": "Single or multiple network mode",
+            "description": "You’re free to choose a single network or a set of networks to operate with your assets",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/3.png"
+        },
+        {
+            "title": "Multi-network state for the Asset details screen",
+            "description": "You can see any particular asset and its balances on multiple networks on one screen",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/4.png"
+        },
+        {
+            "title": "Navigate assets across a vast range of networks fearlessly",
+            "description": "You can easily choose your asset on a specific network and do whatever you want to do with it",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/5.png"
+        }
+    ],
+    "regular": [
+        {
+            "title": "Brand new network management",
+            "description": "Navigate between All, Popular and your Favourite networks modes",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/1.png"
+        },
+        {
+            "title": "Use only prefarable chains",
+            "description": "You can customise your favourite networks and work only with the ones you prefer",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/2.png"
+        },
+        {
+            "title": "Single or multiple network mode",
+            "description": "You’re free to choose a single network or a set of networks to operate with your assets",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/3.png"
+        },
+        {
+            "title": "Multi-network state for the Asset details screen",
+            "description": "You can see any particular asset and its balances on multiple networks on one screen",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/4.png"
+        },
+        {
+            "title": "Navigate assets across a vast range of networks fearlessly",
+            "description": "You can easily choose your asset on a specific network and do whatever you want to do with it",
+            "image": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/appConfigs/onboarding/screensMobile/5.png"
+        }
+    ]
+  }
+  }

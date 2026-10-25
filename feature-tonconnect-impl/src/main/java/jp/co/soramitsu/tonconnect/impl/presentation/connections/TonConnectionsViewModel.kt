@@ -88,7 +88,13 @@ class TonConnectionsViewModel @Inject constructor(
             showError(resourceManager.getString(R.string.common_undefined_error_message))
         }
 
-        val app = tonConnectInteractor.readManifest(request.manifestUrl)
+        val app = kotlin.runCatching {
+            tonConnectInteractor.readManifest(request.manifestUrl)
+        }.getOrElse {
+            showError(it)
+            return
+        }
+
         val signedRequest = tonConnectRouter.openTonConnectionAndWaitForResult(app, request.proofPayload)
         kotlin.runCatching {
             tonConnectInteractor.respondDappConnectRequest(clientId!!, request, signedRequest, app)

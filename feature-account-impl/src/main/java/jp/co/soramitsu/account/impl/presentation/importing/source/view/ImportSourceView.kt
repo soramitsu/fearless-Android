@@ -28,6 +28,7 @@ abstract class ImportSourceView @JvmOverloads constructor(
     abstract fun observeSource(source: ImportSource, blockchainType: WalletEcosystem, lifecycleOwner: LifecycleOwner)
 
     fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
+        nameInputView.visibility = if (viewModel.isRebinding) View.GONE else View.VISIBLE
         nameInputView.content.bindTo(viewModel.nameLiveData, lifecycleOwner)
     }
 }

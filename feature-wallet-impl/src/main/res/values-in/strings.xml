@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="legacy_crowdloan_title">Crowdloan lama</string>
+    <string name="legacy_crowdloan_review">Tinjau</string>
+    <string name="legacy_crowdloan_description">Aktivitas Crowdloan historis akun ini di %1$s telah diverifikasi. Kontribusi baru sudah dihentikan; status on-chain yang tersimpan dan riwayat klaim lokal tetap tersedia di sini.</string>
+    <string name="legacy_crowdloan_current_contributions">Kontribusi saat ini</string>
+    <string name="legacy_crowdloan_historical_locks">Riwayat penguncian</string>
+    <string name="legacy_crowdloan_historical_claims">Riwayat klaim</string>
+    <string name="legacy_crowdloan_view_locked">Lihat saldo terkunci</string>
+    <string name="legacy_crowdloan_no_evidence">Tidak ditemukan status Crowdloan yang dapat dipulihkan untuk akun ini.</string>
+    <string name="cross_chain_route_inventory_title">Penyedia rute</string>
+    <string name="cross_chain_route_inventory_description">Cakupan produksi mencakup rute yang telah ditinjau dan rute yang hanya tercantum dalam katalog. Rute yang tidak tersedia tetap terlihat, tetapi tidak dapat mengirim transaksi.</string>
+    <string name="cross_chain_route_inventory_checking">Memeriksa cakupan penyedia rute…</string>
+    <string name="cross_chain_route_inventory_status_available">Tersedia</string>
+    <string name="cross_chain_route_inventory_status_paused">Rute yang telah ditinjau tersedia · tindakan dijeda sementara</string>
+    <string name="cross_chain_route_inventory_status_setup">Perlu penyiapan</string>
+    <string name="cross_chain_route_inventory_status_unavailable">Tidak tersedia</string>
+    <string name="cross_chain_route_inventory_exact_route">%1$s → %2$s · %3$s</string>
+    <string name="cross_chain_route_inventory_asset_id">ID aset: %1$s</string>
+    <string name="cross_chain_route_inventory_summary">%1$d jaringan asal → %2$d jaringan tujuan · %3$s</string>
+    <string name="cross_chain_route_inventory_no_catalog">Tidak ada katalog rute produksi yang spesifik yang disertakan untuk penyedia ini.</string>
+    <string name="cross_chain_route_inventory_minimum_select_route">Minimum: pilih jaringan asal, aset, dan jaringan tujuan yang spesifik</string>
+    <string name="cross_chain_route_inventory_minimum_not_supplied">Minimum: tidak disediakan oleh katalog ini</string>
+    <string name="cross_chain_route_inventory_minimum_no_reviewed_value">Minimum: tidak ada nilai yang telah ditinjau</string>
+</resources>

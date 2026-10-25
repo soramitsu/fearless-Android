@@ -1,0 +1,1672 @@
+> Historical qualification receipts named in this document are retained in the local consolidation recovery archive, outside the public source tree. They are not current release approval. See `docs/public-source-qualification.md` for the published source checks and remaining release gates.
+
+# Roadmap & Technical Debt
+
+## Canonical Ed25519 verification — 25 October 2026
+
+The app-owned runtime preserves Utils PR154's missing verifier guard and five
+RFC8032 regressions from `db86fdf14ba0d32a28df70ef97406f7317150b06`.
+Verification rejects malformed lengths and noncanonical S scalars before the
+existing provider; deterministic signing bytes remain unchanged. This guards
+callers of this verifier without replacing EdDSA or changing native artifacts.
+All ten focused canonical/signing/prepared-signature tests pass, with no skips;
+owned-source verification and all fifteen adversarial manifest tests pass.
+The original import provenance is retained, with current owned digests updated.
+
+## Universal recovery integration — 25 October 2026
+
+Public recovery work from `8b38ca5ab88e605cd51cdbcf450bfe822080c4d7` is adapted
+onto platform-owned Android sources. Verified wallet material can enroll missing
+Bitcoin testnet and TON accounts; existing roots, independent aliases and current
+startup/journal/catalog safeguards are preserved. Alias comparisons are case
+insensitive without rewriting stored IDs. Address-only testnet catalog rows
+preserve keys, and SORA Nexus details remain local with no runtime activation.
+BIP39 TON recovery stays separate from signing validity and preserves native TON.
+
+Validation: the reconciled focused host suites contain 3,478 tests, with 3,464
+passed, 14 inherited opt-in skips and no failures. The final account rerun passes
+all 915 tests. Debug APK assembly, repository Detekt, AndroidTest compilation,
+source/config ownership, dependency/binary provenance and XCM audits pass.
+Initial stale fixtures and the corrected replay fault-position failure are
+retained in evidence. The two mnemonic restore and two adapted portfolio
+migration device tests compiled but were not run. Existing device, signed/store
+release and funded/live-service qualification gates remain open; XCM stays off.
+
+## Android platform ownership — 25 October 2026
+
+Runtime and guarded WebSocket source, native rebuild inputs, core/UI/networking,
+XCM, backup, remote config and artwork now belong to this Android repository.
+Internal published artifacts, composite checkouts and private Nexus are removed.
+Source manifests, release/IAS guards and CI bind the complete app tree. Current
+config uses public master; historical migration bytes and legacy host availability
+remain preserved. Consolidation does not enable XCM, rebuild native libraries or
+qualify a signed distribution. Validation passes: all 6,429 host tests (6,411
+passed, 18 inherited/opt-in skips, no failures), Debug APK assembly, app Debug lint
+(no errors/fatal findings; 87 warnings), Detekt, and all eight release XCM
+configuration/catalog tests. Source/config ownership, native provenance and
+release/IAS policy regression checks pass. Failed intermediate attempts and one
+inherited staking-test timing failure remain in the consolidation receipts; no
+claim is made that the intermittent test defect or device/store gates are closed.
+
+## Runtime dependency pins — 25 October 2026
+
+The release candidate now pins the published runtime sources required by its socket configuration API: fearless-utils `3d22dad159ca5304d199acd08c5a622dea3c1577` (tree `165380bed84bb1dd69f868660e57f9ebca899932`) and guarded WebSocket `18a94e2db0f67a8387414bc7db53aac48ded18d7` (tree `e5bd65d129bd50463eeeb41d8239b28ed2a3dc1f`). The Utils tree is identical to the source used for the prior 4,592-test XCM release verification. The runtime manifest, source guard, workflow jobs and current build instructions now agree. Historical validation snapshots retain the revisions they actually tested.
+
+Validation passes: all 14 runtime pin tests; pristine-source verification before and after Gradle; deterministic/adversarial source checks; the dependency handoff export and its 25 negative scenarios; all XCM audits and self-tests; and the actual release-variant XCM configuration/catalog contracts (8 tests, no failures or skips, `CI=true`, 288 tasks executed). XCM and bridge submissions remain compiled off. The prior 4,592-test debug result uses the identical Utils source tree; this pin correction does not claim a new full-suite, device, or distribution qualification.
+
+## Native migration fixture correction — 24 October 2026
+
+Full-v10 passes 6,161 unit tests with zero failures and 26 inherited skips; eleven lint scopes and Detekt are clean. The subsequent API36 core run executes all 459 methods: 455 pass and four fixture failures remain, with exact wallet bytes, 55 prior proofs, APK identities and clean process settlement preserved.
+
+Three current-Room fixtures still expected version83 or registered only the82→83 edge. They now use the current database version and the actual83→84 migration while retaining endpoint ownership, exact DDL and two-open checks. The legacy-node test now separately checks a real retained-parent staging-budget fallback and acceptance of SQL-only cache bytes under a small TON copy budget. It preserves archive bytes, selected/custom node tuples, parent rows, transaction and temporary-object checks. Production code and schemas are unchanged. Fresh compilation and native rerun remain required; the historical35 and caller14 suites and broader readiness gates remain open.
+
+## Alert test job-capture correction — 24 October 2026
+
+Full-v8 at 23f7eafd74533876e34ceba0df62bde37b21f4eb is preserved with 6,159 passes, one failure and 26 inherited skips across all 21 unit modules. The only failed method is the healthy current redeem alert fixture: its child lookup ran after scheduler settlement, when the actual job could already have completed and left its owner. All eleven lint scopes have no errors or fatal findings, detekt is clean, compilation reports no errors, and all four APKs are fresh. Root and independent reviews retain the failure, exact clean source and settled processes; full-build acceptance is withheld.
+
+The test-only correction captures the real queued child before advancing the StandardTestDispatcher. All 24 existing test bodies and assertions remain unchanged. One regression verifies the shared capture helper, completion, removal from the owner, one validation and one navigation. No fake job, retry, product change or weakened assertion is introduced. The next full build reruns the existing clean-first unit/lint/detekt/generated-graph/coverage/APK checks with the same serial resource controls and a separate per-run daemon registry.
+
+The 459-method Room84 native suite and fourteen caller lifetime methods still await successful current-build acceptance. The caller replacement-dialog failure, relay call-recipe semantics and broader action/quote authority, historical/runtime matrix, installed recovery, rendered signing, iOS/extension, physical/design and publication remain open. The separate 35-case released-schema cohort is not included in the 459-method selection. The full audit remains incomplete.
+
+## Final test fixture formatting correction — 24 October 2026
+
+The second full build at f1414cc41bf536267f25c9e37b59d901d154e543 is preserved with 6,160 unit passes, 0 unit failures and 26 inherited skips. Its only failed task is detektAll, with five function-signature formatting findings in two TON test helpers. The prior Room84 Android-test compilation errors are resolved. Root and independent preservation verify exact clean sources, 3,725 controls and settled owned processes; full-build acceptance remains withheld until the static-analysis check passes.
+
+The correction only changes whitespace around the meta and dapp fixture expression bodies. All non-whitespace source bytes, thirteen test identities and assertions remain exact. The next full run keeps the clean-first task order, forced compilation, unit/lint/detekt/coverage/generated-graph/APK scope and serial resource controls. The 459-method Room84 native suite and fourteen caller lifetime methods are prepared against the preserved API36/API34 profiles and await a verified current build. Relay minimum-bond fee semantics, broader action/quote authority, historical/runtime matrix, recovery, rendered signing, iOS/extension, physical/design and publication remain open. The full audit is incomplete.
+
+## Full build findings and reviewed corrections — 24 October 2026
+
+The complete run at ad380d2f7e3162a561e22d56e2093325b85ddc39 finished with 6,160 unit tests passing, no unit failures and 26 inherited skips across 701 fresh XML reports. The only failed tasks were detektAll (174 findings across nine files) and core-db Android-test Kotlin compilation (four invalid AppDatabase.use receivers, producing eight diagnostics). Root and independent reviews preserve the failures, exact clean sources, 2,977 controls, retained outputs and settled processes. The retained core database test APK is stale and cannot qualify the current migration tests.
+
+The static-analysis correction replaces wildcard imports, applies formatting and removes an unused TON request AccountRepository constructor dependency and its sole fixture argument. All 41 affected test method identities and assertions remain. The four Room84 tests now close their AppDatabase instances in explicit try/finally blocks, preserving every assertion, rollback/retry operation and all eight production reopens. These ten source changes require fresh compilation and checks; no suppressions, exclusions or production database schema changes were introduced.
+
+The next full rerun explicitly orders the existing clean task first, because runTest's unordered clean dependency deleted the first run's generated detekt report after analysis. That report was separately archived before deletion and remains bound to the preserved failure. The new run must retain fresh static-analysis, lint, unit, generated graph, coverage and APK evidence before the 459-method Room84 native selection can execute. Installed dialog lifetime, broader quote/action authority including relay minimum-bond rereads, historical/runtime matrix, recovery, rendered signing, iOS/extension, physical/design and publication remain open. The full audit is incomplete.
+
+## Green unit checks and Room84 native coverage — 24 October 2026
+
+The eighth integrated run at 5df13103b9e79a8274b04fd56578c12d0d19bd20 passes 1,502 methods with zero failures or skips: staking 1,313 and app 189. All 84 focused unbond and seven balance-publication methods pass, and app Android-test Kotlin compilation succeeds. Root and independent result reviews verify exact clean sources, 108 fresh reports, 2,810 controls, unchanged Room84 and settled owned processes.
+
+Four new core database instrumentation methods now cover direct83→84, actual production82→84 and76→84, and transaction failure after the real ALTER and user_version change. They require exact legacy price bytes/storage types, NULL fiat identity, protected SQL rows and controlled preferences, rollback and same-file retry, exported-schema validation and stable production reopens. Existing tests remain unchanged. The explicitly mapped native selection contains 459 methods across34 classes:449 current successors of the old443 cohort, six existing preference DAO methods and four new currency methods. These additions require current APK compilation and native execution; host fixture checks are only preparation.
+
+Next is the complete unit/lint/detekt/generated-graph/coverage/APK build and exact-source native verification. Current production and unit-test sources remain the green V8 versions. Broader quote/action authority including relay minimum-bond rereads, installed dialog lifetime and recovery, historical/runtime matrix, rendered signing, iOS/extension, physical/design and publication remain open. The full audit is incomplete.
+
+## Unbond warning amount, exact input and test cleanup — 24 October 2026
+
+The seventh integrated run at 2e1b756054cb0ecc2b2921d0bfb65dff04ea347e is preserved at 1,486 passes, six failures and zero skips. All 21 parachain quote methods pass, including all seven earlier failures. App passes 189 and Android-test compilation succeeds with no compiler diagnostics. Root and independent preservation verify 107 fresh reports, 2,654 controls, exact sources/Room84, clean repositories and settled owned processes.
+
+Three actual warning-callback failures confirm that amount auto-fix could route or submit ten units using the completed one-unit fee. Two input failures confirm that fractional token units and invalid precision could acquire review authority. The correction now restarts changed input under the same authority, selection and wallet locks, clears the old fee and requires a fresh completed quote plus another explicit action. Confirmation returns to the originating amount screen and cannot create a review for a different amount. Bounded exact conversion rejects fractional planks, malformed precision and excessive decimal work; fiat display uses the same parser.
+
+The original 11 authority and four warning baseline methods remain unchanged. Nine added methods cover stale and concurrent warning input changes, numeric equality, safe parsing, actual Select and Confirm fresh-fee recovery, and invalid-input recovery. The unbond focused set now contains 84 methods awaiting this rerun. The sixth failure is a MissingMain completion-handler error in StakingBalancePublicationTest teardown; its fixture now waits for all owned view-model jobs before resetting Main. All six original test bodies remain, with one added delayed Default-to-Main cleanup regression. Production balance code is unchanged.
+
+Next is the staking/app unit and Android-test compilation rerun, then final full build/lint/generated graph/APK verification. Full-build tools and the current singleton-reader graph checker are prepared; ten structural graph controls pass against frozen fixtures, which is not fresh-build acceptance. Relay minimum-nominator-bond rereads and broader action/quote authority, native Room84 migrations/writers and dialog lifetime, historical/runtime matrix, recovery, rendered signing, iOS/extension, physical/design and publication remain open. The audit is incomplete.
+
+## Parachain unbond quote context and remaining input/fee baselines — 24 October 2026
+
+The sixth integrated module run at 66876c686cf6612e6fbd236bca93f4b20b4d5c8f settled at 1,466 passes, seven quote failures and no skips or compiler diagnostics. All twelve original unbond failures are resolved; 49 focused caller/builder/authority/actual-service methods pass. App passes 189 and Android-test Kotlin compilation succeeds. Root and independent reviews retain 106 fresh XML reports, 2,499 controls, exact sources/Room84, clean repositories and settled processes.
+
+The seven actual quote failures concern captured chain/wallet/account/state identity, wallet/selection ABA, overcommitted amounts and lost cancellation identity. The reviewed correction binds reads to the captured context, rejects invalid values, preserves latest-state combination and forwards each source's original failure, including actual job self-cancellation before its peer emits. It retains the eight original test bodies and adds thirteen regressions, including token precision, malformed candidates, delayed updates and cancellation. No current-round read is needed to subtract both ready and pending reservations. A null candidate retains the existing explicit no-selection zero contract; this does not assert a wallet balance.
+
+Four actual warning-callback tests and two amount-precision tests establish separate unchanged-production baselines. Warning auto-fix must not submit or open confirmation with a fee for a different amount. Unbond capture must reject fractional token units and malformed precision instead of silently truncating. Three warning and two precision failures are expected but have not yet executed. The original nine authority test bodies remain unchanged.
+
+The next module attempt verifies the quote correction and these baselines. Minimum-nominator-bond rereads between quote and signing remain an unqualified source follow-up. Full build/lint/generated graph, native dialog lifetime and Room84 migration/writers, broader action/quote authority, historical/runtime matrix, recovery, rendered signing, iOS/extension, physical/design and publication remain open. The audit is incomplete.
+
+## Unbond review and final submission authority — 24 October 2026
+
+The fifth integrated run at 8d1732fa7b53efcdb27125beb8feb0d177dddcaf is preserved at 1,995 passes, twelve unbond failures and zero skips. All seventeen actual FeeLoader methods pass, and app Android-test compilation succeeds. Root and independent checks retain 180 fresh reports, 2,198 controls, exact sources and Room84, clean repositories and settled processes.
+
+The composed correction captures source/input/wallet/selection authority across fee estimation, validation and confirmation. Unavailable relay balances cannot become zero; parachain requests retain their collator. Confirmation carries the original in-process review and rejects mismatched or restored unbound payloads. Fee, fiat, balance and origin presentation revoke when that review changes. Quote and quick-choice values clear before cancellation cleanup and reject late completions. The return-to-review explanation covers all eight shipped language resources.
+
+The interactor uses wallet-bound public fee preparation and the existing authorized key/sign/send route. Final primitive guards serialize with source/input/selection changes, bind the exact transaction intent and admit at most one physical submission. Blocking output runs after admission outside selection locks. Fifteen original baseline bodies remain unchanged; fourteen caller, nine authority, ten actual-service and eight actual parachain quote methods compose a 56-method focused set. Execution is pending; the quote implementation is intentionally unchanged for its eight-method baseline and six negative failures are expected.
+
+A separate review found that existing CrossExistential warning auto-fix may change the amount and encoded call while retaining the prior fee. Its actual warning-callback baseline is next. Full build/lint/generated graph, native dialog lifetime and Room84 migrations/writers, broader quote/action coverage, historical/runtime matrix, recovery, rendered UI/signing, iOS/extension, physical/design and publication remain open. No full production-readiness claim is made.
+
+## Fee request lifetime correction and unbond compile repair — 24 October 2026
+
+The fourth integrated run at 76784b530e44b9b260488097f80333fccced359d passes 309 methods and exposes five FeeLoader defects. All 189 app methods pass, including MainHub unknown/empty-cache funding; Android-test compilation succeeds. The new unbond fixture fails compilation because its BaseViewModel else branch does not narrow to SelectUnbondViewModel. No unbond runtime result is claimed. Root and independent reviews retain the failed attempt, verify 2,039 controls and 35 fresh reports, exclude stale staking reports, and confirm exact sources/Room84, clean repositories and settled processes.
+
+The fee correction ties each publication and retry/cancel/completion callback to its current request, revokes the previous request before cancellation and handles synchronous LiveData observer replacement. Token-read failures become an explicit Error, cancellation keeps its original reason, known zero fees remain available and negative fees are rejected. A new invalidate operation clears a fee immediately while the owner prepares a replacement. Twelve actual provider methods include all seven unchanged baseline methods and five added regressions. Existing moved-to-Asset-Hub/error/retry behavior also requires rerun. Caller selection changes still require explicit invalidation; this does not qualify every owner.
+
+The unbond fixture now narrows its Select branch explicitly and implements the new fee invalidation contract as a controlled no-op. All fifteen baseline methods and assertions remain intact, with production unbond code unchanged. Next is actual module execution to establish those remaining findings and verify the fee fixes.
+
+Full production-readiness remains open, including broader quote/action authority, full build/lint/generated graph, native migration/writers and dialog lifetime, historical/runtime matrix, recovery, rendered signing, iOS/extension, physical/design and publication gates.
+
+## MainHub availability and fee/unbond baselines — 24 October 2026
+
+The third integrated run at f4b46462eedc2656ccc8a4f7f283e137d0fac5dc settles with 2,170 passing methods and one newly observed MainHub failure. Core-api passes 120, wallet 634, staking 1,228 and app 188 with one failure. All six earlier failures now pass, and app Android-test Kotlin compilation succeeds. Root and independent preservation verify all 1,772 controls, 200 fresh XML reports, exact tracked sources and Room84, clean repositories and settled owned processes.
+
+MainHub now distinguishes unavailable funding (including an empty cache) from explicitly known zero funding. Unknown funding remains blocked with the localized unavailable reason and Unavailable capability; known zero remains SetupRequired, and known positive funding retains existing routing. The original two regression methods are retained with explicit availability assertions and empty-cache coverage. The correction awaits execution.
+
+Twenty-two actual FeeLoader and unbond baseline methods are integrated against unchanged target production code. They cover overlapping requests, read failures, cancellation, delayed validation/builders, amount/account/balance changes, relay availability and parachain collator/context retention. They include bounded cleanup for held work. This is test preparation, not executed acceptance; failures must be retained before correction.
+
+The full audit remains incomplete. Full build/lint/generated graph, native dialog lifetime and Room84 migration/writers, broader quote/action ownership, historical/runtime coverage, recovery, rendered/signing flows, iOS/extension, physical/design and publication remain open.
+
+## Quote RPC errors and actual module rerun — 24 October 2026
+
+The second integrated run at 07f0cb640296c0eef33f892264a5f638cf48c14b finished in 2m8s / 696 tasks: 2,589 passes, six failures and four inherited skips. Core database tests pass 516 with four skips; swap passes 30; app compiles and passes 187. All 18 earlier staking failures are resolved, including the unchanged FreshTap method, and 1,227 staking methods pass. Wallet passes 629; four newly reached quote fixtures fail from nested Mockito stubbing and one header fixture lacks a plural resource. App Android-test compilation exposes one nullable known-total fixture. Root and independent reviews preserve exact source, all 1,468 controls, 252 fresh XML reports, unchanged Room84 and settled processes.
+
+The remaining SORA failure is a production RPC issue: liquidityProxyQuote discarded response.error. A response mapper now checks the server error before mapping its result, including a response containing both an error and an apparent quote. Existing request parameters, delivery mode, absent-result behavior and explicit zero results stay unchanged; the conversion caller separately rejects a nonpositive rate. Three actual RPC regressions supplement the unchanged failed SORA assertion. Wallet fixture corrections preserve their assertions, and the rendered portfolio fixture now explicitly requires its known total. The next run covers the changed core RPC module, wallet/staking failures, app instrumentation compilation and two new actual MainHub baseline methods. The MainHub baseline retains zero/positive routing controls and expects an unavailable holding to be described as unavailable; its production source is unchanged and a failure is expected until observed and corrected.
+
+This checkpoint is not production readiness. Full build/lint/native, unbond and MainHub availability/context, Room84 historical migration/writers and broader recovery/design/signing/publication gates remain open.
+
+
+## Integrated unit failures and estimate availability — 24 October 2026
+
+The first actual twelve-module run at 7c5bdaf5c2f79f31773785b79bb9e4376822d70a produced 3,975 passes, 43 failures and 14 skips in 4m7s / 744 tasks, plus one MainHub nullable-amount compilation error. Root and independent reviews preserve 396 fresh XML reports, all 976 controls, unchanged tracked sources and Room84, clean dependencies and settled compiler processes. The failed attempt is retained and does not establish readiness.
+
+The correction updates the prepared 231 database ledger to Room84 and requires known positive transferability for MainHub funding eligibility. Test fixtures now supply required identities, resources, icons and LiveData; a concrete staking state replaces an unmockable sealed base, nested stubbing is separated, and the JUnit method returns Unit. Exact cancellation assertions retain marker-bearing injected reasons. Search uses the current catalog configuration, and swap validation asserts both the title and explanation. Existing test names and staking assertions remain intact; the FreshTap test is unchanged because its pre-entry errors trace to incomplete controller construction.
+
+SORA estimates now reject missing or nonpositive conversion quotes, absent/invalid payout samples, invalid statistics and nonfinite arithmetic instead of reporting zero earnings. Known zero payouts, zero requested amounts/periods and the existing valid formulas and averaging policies remain supported; 26 actual socket/factory/calculator/provider tests accompany the change. Setup staking rejects a missing existing bonded amount before minimum lookup. Controller fee checks retain the strict known-balance boundary, preserve unavailable reads and reject negative fees; six regressions cover availability and cancellation. All new work awaits the targeted rerun.
+
+The accepted historical baseline remains 5,398 passes / 26 skips and the focused currency subset remains 372 unique methods / 582 executions. Native v5 remains 8 passes, 1 failure and 5 unrun. Unbond fee/submission authority, full lint/build/generated graph, Room84 native migration and historical writers, broader historical/device coverage, recovery, rendered/signing flows, iOS/extension, design and publication remain open.
+
+
+
+## Integrated test and remaining display corrections — 24 October 2026
+
+The fourth module compile corrects the prior wallet/staking production callers and reaches further integration scopes. It still fails: 236 diagnostics across five files, primarily absent signing-test dependencies, two retired BalanceList fixture constructors, one typed fixture copy, one known-zero staking fixture and two liquidity display nullable calls. The failed run and unchanged source/Room84/settled-process evidence are preserved.
+
+The successor supplies existing shared test dependencies, migrates fixtures without deleting their expectations, preserves unknown quantities in liquidity removal and asset management/selection, and adds actual presenter/ViewModel regressions. Manage assets uses canonical qualified fiat; absent or foreign quotes never invent zero. A final asset-picker adapter also needed to preserve unknown through its Compose amount label. Staking reward estimates now clear before cancellation cleanup, reject late calculation results and recover on a new known balance. Staking balance read/factory errors publish unavailable values and revoke actions while allowing explicit refresh. Seventeen actual provider/ViewModel regressions cover these paths. Next is actual module unit-test execution, followed by full lint/build/native checks. No new runtime qualification is claimed.
+
+## Remaining integrated compiler callers — 24 October 2026
+
+The third compiler pass at 52959ff80 failed with 23 diagnostics in eight files after 2m30s / 602 tasks. Shared-reader/account dependency compilation and swap/market production compilation now pass. All 923 control pins and tracked sources remained exact, Room84 is unchanged, and owned compiler processes settled; both independent and root reviews preserve the result. No new unit/native acceptance is claimed.
+
+The successor corrects legacy nullable balance displays and hidden-asset ordering, clears dependent fiat for unavailable detail amounts, and updates backup fixtures to the captured Ready portfolio API. The TON fee path and controller confirmation receive explicit availability guards and cancellation handling. Existing successful fixture assertions remain in place, with regressions for unknown values and recovery. The full module/unit/lint/native checks and all broader audit gates remain open.
+
+## Nullable balance callers and shared reader boundary — 24 October 2026
+
+The second integrated compile at e6760f3ff failed with 46 diagnostics after 2m4s and 578 tasks. The source, Room84 schema and 904 build-control pins remained exact, and the owned compiler processes settled. This result is retained separately from the earlier failure. No unit or native success is inferred.
+
+The shared account asset reader, quote selector and cached domain mapper now live in wallet-api, with byte-identical source and tests, so account implementation can consume them without a dependency cycle. Recording DAOs implement all abstract reads and reject unintended numeric access. The wallet interactor delivers empty revocations before replacement cleanup and preserves independent current-producer cancellation, including self-cancellation; 13 prepared regressions cover both public observers.
+
+Nullable quantities now propagate through staking displays, amount models, quick inputs, swap and market guards, and transfer validation. Unknown origin or fee balances have an explicit non-dismissible validation result. Fee failures cannot create unreserved quick-fill amounts, and cancellation remains cancellation. Send confirmation clears its fee display and disables actions on lost balance availability, recovers after a known balance returns, and checks again before creating a transfer. Claim and receive callers preserve unavailable balances. Original successful submission fixtures now explicitly represent funded balances rather than an empty, unknown row; their original test bodies remain unchanged.
+
+The composed source and added regression tests require a fresh integrated compilation and execution. Accepted baseline evidence remains 5,398 JVM passes with 26 inherited skips and the focused currency cohort of 372 unique methods / 582 accepted executions. Native replacement-window diagnosis, Room84 migration and historical preference writers, remaining action/quote lifetime checks and legacy displays, the broader historical/runtime matrix, recovery, rendered signing flows, iOS/extension, physical/design and publication gates remain open. This checkpoint does not establish production readiness.
+
+## Integrated currency caller corrections — 24 October 2026
+
+The first integrated906950419 module compile failed after1m54s (536tasks); no unit/native success is claimed. Its source/dependency checks and settled compiler cleanup are independently verified. Generated Room84 changes only nullable token_price.fiatCurrencyId plus version/identity metadata; all24 other tables are unchanged. The preceding full catalog build remains5,398passes/26inherited skips, and the accepted currency host cohort remains372unique methods/582accepted executions.
+
+The correction replaces cache read/rebuild writes with field-specific fresh provider updates, preserves metadata-only writes, supplies account-api test dependencies, and adapts original DAO/aggregate fixtures. WalletRepository now consumes captured wallet/catalog/currency snapshots, clears delivered loading/deletion/failure values, preserves exact damaged-row precedence, and uses one captured pair of known transfer balances. Fee-read failures cannot become zero. Canonical mappers retain quote identity. Default amount/fee actions reject unknown balances; portfolio rows and token groups retain unknown quantity, cannot collapse it as automatic zero, and display unavailable rather than a partial total. Regression tests accompany these changes. Receive-only missing rows remain unvalued and cannot prove a zero holding. Review also closes negative load-failure filtering and same-ID catalog replacement: failed quantities remain rows, and a changed precision/price configuration revokes previously captured amounts until refresh.
+
+Next: compile the actual composed source and tests, correct remaining callers, then execute module tests, lint/generated graph checks and native Room/caller qualification. The native replacement-window failure and its diagnostics remain open. Broader historical/runtime matrix, action authority, recovery, rendered/signing, iOS/extension, physical/design and publication gates remain open; this checkpoint is not production ready.
+
+
+## Currency identity and availability integration — 24 October 2026
+
+The catalog baseline da93900de passes 5,398 JVM cases with 26 inherited skips and eleven scoped lint checks. Its native successor passes eight methods, fails replacement-dialog authorization before focus, and leaves five methods unrun. The failure and protected-data checks remain retained; its exact authority predicate still needs diagnosis. The native fixture now records individual request, epoch, selection, screen and owner predicates while retaining every existing assertion and timeout.
+
+Currency integration is in progress. Room version84 adds nullable fiatCurrencyId without rewriting legacy quotes, registers the contiguous83-to84 migration, and includes that SQL in rollback previews before historical preference writers. Existing quote bytes remain preserved; absent identity cannot prove a quote belongs to the selected currency. The migration host tests and four strengthened native failure-boundary cases are now in this checkout. The composed reader/domain/model changes, captured portfolio callers, shared components, eight locale resources and their focused/module tests are now applied from an exact141-file map. This includes all12 existing total/asset-balance ViewModel consumers. One-wallet ordinary read failures are isolated before the detail producer; the corrected17-case roster run is in progress. Generated Room84, full module tests, real native openings and the remaining currency readers, writers and callers still require validation. No new production-readiness claim is made.
+
+## Shared catalog observations with fresh read boundaries — 23 October 2026
+
+The preceding 497b192ff source has an accepted full build with 5,377 passing JVM cases, zero failures and 26 inherited skips. Its unchanged native caller run has eight passes, one cold-start management timeout and five delegation methods not run. The timeout occurs before the first synthetic publication or Home action. Protected data, device identity and settings remain preserved. No native success is claimed for this correction.
+
+Actual repository and DAO tests reproduce excess work: six overlapping list/map subscribers perform six catalog reads, and one invalidation performs separate reads and mapping for each observer. The generated dependency graph also creates independent repository instances. The provider is now scoped as a singleton, and overlapping observations share one catalog read and mapped snapshot. Synchronous subscriber retirement prevents a just-replaced observer generation from replaying stale data. Errors reach collectors before any retained snapshot, cancellation remains cancellation, and finite sources retain completion semantics. One-shot getters, including getChain, still read fresh local state.
+
+Twenty-one focused runtime tests cover duplicate reads, invalidation, withdrawal, cancellation, restart, finite completion and late-subscriber failure. Three original repository failures and two failed sharing drafts remain preserved; the final candidate passes independent replay. These checks establish the duplicate-read correction, not the cause or resolution of the native timeout. The full-build target is now 5,398 passes with the same 26 inherited skips. Fresh generated Hilt scope, module compilation, lint, coverage, APK checks and unchanged native caller checks remain required.
+
+Numeric availability, currency binding, repository/UI/action propagation, migration and historical writer coverage, production recovery wiring, rendered UI/signing, iOS/extension, physical/design and shipping gates remain open. The production-readiness audit stays active.
+
+## Catalog read cost and pending pool publication — 22 October 2026
+
+The preceding 67d227c source passed 5,350 fresh JVM cases with zero failures and the same 26 inherited skips. Its native management checks still timed out. An independently reviewed observational run preserved all five original failures, assertions and timeouts: four methods reached a real pool selection and scenario without publishing the terminal body, while one had no observed selection by its deadline. Protected records and settings remained exact. These observations narrow the diagnosis but do not establish one cause for every timeout.
+
+Catalog snapshots now scan assets and explorers once, retain parent and child ordering, and read small node text inline with strict UTF-8 and a 4,096-byte bound. Larger node fields keep the existing bounded chunk reader. Catalog SQL excludes missing parents before projecting raw fields; the separate all-row asset reader retains its old semantics. The host fixture drops from 1,275 queries to at most 225 for 106 chains. Sixty-one host tests and 21 SQL controls pass, including oversized orphan rows, malformed text, endpoint selection and existing preservation cases. These are host results, not device latency measurements.
+
+The pool interactor now emits unavailable before waiting for chain and wallet metadata. Twelve new tests exercise pending prerequisites, cancellation, healthy completion and actual pool/root view models. The original source fails seven cases and passes five controls; the candidate passes all twelve plus 49 retained cases. A missing scenario still waits and cannot be invented by this change.
+
+The combined full-build target is 5,377 passing cases with the same 26 inherited skips. Fresh generated Room, expanded lint, coverage and APK validation, followed by unchanged native caller checks, remain required. The candidate does not close numeric cache/domain/action work, migration and historical-writer gaps, production recovery wiring, rendered UI/signing, iOS/extension, physical/design or shipping gates. The production-readiness audit remains active.
+
+## Offline staking catalog selection — 22 October 2026
+
+The preceding `7210b03d` source has an independently accepted full build: 5,344 passing unit cases, zero failures, the same 26 inherited skips, expanded lint and APK checks. Its subsequent offline native caller run failed: all four adapter methods passed, all five management methods timed out waiting for an actual terminal staking body, and the five delegation methods were not run. The failure, receipts and cleanup remain retained. Seven protected records, two wallet rows and four account rows remain exact; settings were restored and the crash buffer was unchanged.
+
+Selection was observing `ChainRegistry.currentChains`, which publishes only after runtime setup jobs finish. The correction observes the local database catalog through `ChainsRepository.chainsFlow()`, preserving stored choices, exact wallet/account matching, current token configuration, null revocation and action revisions. It does not change registry convergence or authorize a network operation before that operation's own checks.
+
+Six new source-compiled tests use the actual registry, repository and local mapper with controlled DAO rows and a held runtime configurator. The preceding source reproduces four failures and passes two controls. The correction passes all six plus the 43 existing availability/revision/shared-state cases. Cached pool selection, local removal and recovery, metadata refresh and unavailable explicit choices work while the registry has never published; absence of a database snapshot still waits. The existing three test fixtures change only their injected catalog source and keep their assertions. The initial host compile preparation failure is separately retained.
+
+Fresh integrated checks must retain all 5,344 prior passes and add six, for a target of 5,350 passes with the same 26 skips. The full build and unchanged fourteen-method native caller regression remain pending for this correction. Host tests do not qualify generated Room, installed UI, rendered parachain/signing behavior or physical devices. Mixed numeric cache reads and their write/domain/action separation remain external work; broader migration, historical writers, iOS/extension, physical/design and shipping gates remain open. The full production-readiness audit is active.
+
+## Nullable staking events and alert callback identity — 22 October 2026
+
+The expanded d030 staking build completed all 5,344 fresh unit cases with zero failures and the same 26 inherited skips, but failed the newly included staking lint scope. Three revocable event streams now explicitly admit null; reward and status observers use the existing null-safe EventObserver, while management retains its null-triggered dialog dismissal. The alert diff keeps reference identity so an equal-text replacement installs fresh callback authority, with a local documented suppression for that intentional behavior. No revocation, observer lifecycle, test assertion or lint scope is removed.
+
+The failed build and its exact test roster, six lint findings and class inputs remain retained. Existing event retirement and nullable-observer regressions plus the fourteen native staking caller methods remain applicable. A fresh full build, expanded lint and native caller qualification are required before accepting this correction. Broader startup/migration, numeric cache availability, historical writers, iOS/extension, physical/design and shipping gates remain open; the full audit is active.
+
+## Staking catalog authority and chooser identity — 22 October 2026
+
+Preserve the exact qualified seven-file staking correction and the separate status/documentation update. Keep pre-integration source 5a6 frozen until the accepted three-API APP baselines, three-API CORE70 results and independent preparation review are bound into an apply record. Retain every original failure, candidate and source archive; resolve changed historical source pins to their exact archived bytes.
+
+After applying the change, run the required focused staking checks and fresh full build. Preserve all 5,316 previously passing identities and 26 inherited skipped identities across all 20 modules, adding exactly 28 staking methods for an expected 5,344 passes. Verify the ten modified shared-state test identities and assertions remain intact. Require fresh scoped lint for affected staking modules and existing required modules, compilation of relevant callers/APKs, and coverage measured from the new compiled inputs. A prior source's native result must remain prior provenance; qualify the new source with the applicable retained-data/caller/device checks before claiming those gates complete.
+
+The focused host correction covers unavailable explicit choices, exact wallet/account rows, current token configuration, pre-read revocation, canceled stale reads, fresh revisions on restoration, and chooser chain/asset display identity. Follow up on existing non-null rendered UI values, wallet deletion/empty-wallet flows, repository error recovery, complete signing, migration/startup and historical-writer behavior, physical/design validation and release gates. Keep the production-readiness audit open until the remaining scope is resolved with evidence.
+
+## Paged recovery and active selected-asset observers — 22 October 2026
+
+The preceding Android 5dea source retains its accepted 5,263 fresh JVM passes, 26 inherited skips and three-API APP preservation qualification. This change keeps large recognized recovery inventories reachable through bounded metadata pages and decrypts only an explicitly selected key after PIN authentication. A per-screen session revokes on stop/recreation and prevents late operations from returning secrets. The screen distinguishes stale lists, read failures, actual empty storage and unavailable authentication, identifies each stored key, and routes copying through the sensitive clipboard action. Host qualification independently passes 41 reader/session cases, including 259 synthetic vectors and 991 exact exported fields. The new seven-method actual Android Activity/reader packet remains unexecuted until the final build is accepted.
+
+Selected token and balance consumers now cancel work when the exact saved asset becomes unavailable. Balance observation follows the current wallet and account ID, including same-wallet TON key changes that domain equality omits. All 34 focused host cases pass independent review; the original 10 observer failures and the review-found three TON failures remain recorded. Fifty-three new JVM methods are included in the expected 5,316-pass cohort, with the wallet-api module explicitly added to unit and lint checks. Full Gradle/APK and retained-device CORE/APP regression plus fresh-profile recovery qualification remain pending. These changes do not clear every existing non-null rendered UI state or qualify signing. Separate staking catalog/revision failures, broader migration/startup bounds, installed historical writers, physical/design checks and shipping gates remain open; no production-readiness claim is made.
+
+## Complete registry fixture isolation — 22 October 2026
+
+The second integrated run resolves the preceding four failures and retains 5,262 passes, one failure and 26 inherited skips. The remaining failure is an uncaught Android logging exception reported by a later test; all real-registry fixtures are now inventoried. Two Unconfined fixtures scope their logging mock and join cancellation before restoring it. The native-node fixture keeps Dispatchers.IO, uses a worker-visible logging mock, and joins every registered scope in teardown before restoring logging. All existing test bodies and production files remain unchanged. Forty focused source-compiled checks pass in independent and root replay with assertions and the throwing Android Log stub, including worker-thread logging/restoration and a subsequent runTest control. Complete runtime/common module tests, a fresh full run and retained-device native qualification remain pending; the full audit stays open.
+
+## Full-check test fixture correction — 22 October 2026
+
+The first integrated exact-choice run is retained as a failed attempt: 5,259 passes, four failures and 26 inherited skips. Three new asynchronous exception assertions required reference identity despite coroutine debug stacktrace recovery; they now accept only the original throwable or a copy with the same concrete class/message and original direct cause. The selection fixture now scopes its Android logging mock and joins registry cancellation before closing it, preventing completion-handler exceptions from leaking into a later test. Production code and all test IDs remain unchanged. All 28 focused cases pass with and without Java assertions. A fresh full integrated run and retained-device native qualification remain pending; the full audit is open.
+
+## Single-asset selection and preference observation — 22 October 2026
+
+The reviewed correction preserves an explicit stored chain/asset choice while its catalog entry is unavailable; it never substitutes a different chain or overwrites that choice. Empty or unsupported catalogs wait without initialization exceptions, returning healthy options separately. A missing preference derives a permitted default without persisting it. Asset IDs retain their complete colon-containing suffix, and selected metadata follows catalog updates.
+
+String observation without an initializer now registers before reading, serializes snapshot publication with callbacks, performs no writes, and always unregisters. The producer-present branch keeps its existing behavior. Twenty-eight focused actual-class tests pass in independent replay. The original implementation fails thirteen of the initial twenty-six; the first observer correction separately reproduces two burst/clear failures. The final observer coalesces queued updates to retain the latest value and re-reads on Android R+ null-key clear callbacks. Full integrated Gradle and native checks are pending. Existing collectors retain their last non-null value while unavailable; this change does not revoke their child subscriptions or qualify transaction signing. The full production-readiness audit remains open.
+
+## Unsupported chain families and initial catalog availability — 22 October 2026
+
+The preceding pagination source af0f05d5046b171f47da7d500acac316a965c9f9 is qualified in its recorded scope: 5,192 fresh JVM passes with 26 inherited skips, eight scoped lint reports, four APKs and independently matched coverage. Actual-app catalog qualification passes on API26/34/36, followed by 210 endpoint/DAO regression passes. All prior wallet/database/authentication files are preserved. Separate API34/36 reviews correct a verifier that required the unchanged AndroidX profile cache to refresh after package replacement; no changed prior file is admitted and original failures remain retained.
+
+The new correction excludes explicitly unsupported ecosystem values from operational chain collections and connections while retaining their stored catalog, identities, balances, visibility choices and selected custom endpoints. A known-to-unsupported remote transition updates only the exact raw ecosystem cell inside the existing catalog transaction; supported metadata can restore the chain later. Duplicate remote identities reject before choosing a winner. XCM parsing catches only expected parse failures, and explicit unknown asset types remain unknown. The chain registry now distinguishes an unobserved catalog from a known empty snapshot, publishing initial empty catalogs without a readiness/data race.
+
+The composed candidates pass 80 focused host checks. Forty-three added JVM methods bring the expected full-build cohort to 5,235 passing cases plus the same 26 inherited skips; integrated Gradle validation is pending. Two new native suites cover the actual offline ChainSyncService caller and generated Room quarantine, restoration and late rollback. Together with the preceding catalog suite, the pending cohort has 19 methods,102 synthetic current-schema fixtures and420 measured actions per API; every stored SQL value outside32 exactly named changes remains protected. Native sources and the full SQL oracle have independent review, including44 replayed acceptance/rejection controls. No device execution of this new source is claimed yet.
+
+Next: run the full source-bound unit/static/lint/APK checks, then native qualification on the retained owned API26/34/36 profiles. Saved asset-selection availability, mixed/protected migration limits, historical matrix, secret recovery, physical/design and exact shipping gates remain open. Full production readiness is not established. Composition plan SHA256: `b7b8c475e83537f9328017d107f7e2b02ef4cfa7a9de7bc9306db4f2890e4ece`.
+
+## Runtime catalog pagination — 22 October 2026
+
+The preceding runtime catalog correction has an independently accepted full build: 5,192 fresh passes, zero failures and 26 inherited skips, eight scoped lint reports without errors, four APKs and verified five-module coverage. Detekt retains its inherited exclusions and crowdloan coverage remains zero. Actual-app API26 qualification now independently passes all 12 methods, 68 synthetic fixtures and 234 measured actions. Full SQL preservation, the sixteen exact allowed cell updates, prior wallet data and authentication proofs are verified. API34/36 qualification is pending.
+
+Those measurements exposed a performance regression: complete large catalog reads took 18–35 seconds and offline preservation about 65 seconds. A nullable pagination predicate caused each page to rescan earlier rows. The three runtime catalog queries now add a redundant signed-rowid lower bound so SQLite can seek directly to the next page, retaining the original exclusive cursor test and every valid row. No stored data, schema, migration or optional-field policy changes.
+
+Independent host SQLite checks compare 396 literal-query samples, 168 signed-boundary samples and 36 complete traversals, including 262,146 rows over 4,098 pages. The three query plans use rowid range searches; the minimum signed rowid remains included on the first page and the maximum terminates safely. The existing two healthy native fixtures now seed both signed extremes before their retained before-images. Actual Android performance and the revised boundary fixtures remain pending fresh execution.
+
+Next: full source-bound runTest, static analysis, lint and APK checks, then the 12-method actual-app suite and 70 existing endpoint/DAO cases on retained API26/34/36 profiles. Native caller wiring, unknown ecosystem, mixed/protected migration limits, historical matrix, physical/design, secret recovery and exact shipping gates remain open. The full audit is active; production readiness is not established. Pagination plan SHA256: `8bf3835214c88ade079d0f8a3b2facf48cb4e1a746172c36800d435c485aacb7`.
+
+## Runtime catalog availability and preservation — 22 October 2026
+
+The preceding optional JSON correction has an accepted full build: 5,155 fresh unit passes, 26 inherited skips, eight fresh scoped lint reports without errors, four APKs and five verified coverage reports. Detekt passes its inherited filtered scope; runtime remains excluded and crowdloan implementation coverage remains zero. Earlier migration/startup and rollback acceptance retains its original scope.
+
+Actual native baseline reads reproduced CursorWindow failures for four oversized optional catalog fields. The core-only API26 test process also exhausted its 48 MiB heap on a large relation; the actual wallet application process, using its existing 512 MiB manifest heap allowance, subsequently passed all ten large-catalog reads with every row retained. This establishes the tested app baseline, not a global device-performance guarantee.
+
+The integrated correction pages runtime catalog rows and reads optional JSON as bounded UTF-8 chunks. Values through 4 MiB remain available; oversized, invalid UTF-8 or non-text optional metadata becomes unavailable in the operational view while stored bytes remain intact. Catalog and funded observers retain same-count invalidations. Offline refresh explicitly preserves cached catalog rows without a lossy domain round trip; complete online values, including explicit clears, still update storage. Unknown cached staking/remote asset-source values and incomplete price-provider objects now follow narrow operational fallbacks. Existing identities, endpoints and user choices remain protected; no schema or migration version changes.
+
+The reviewed candidate passes 50 focused host cases plus 24 mapper cases and independent SQLite controls. The new actual-app regression contains 12 methods and 68 synthetic current-schema fixtures per API, including complete large relations, boundary/wide metadata, selected custom endpoint records, explicit clears, absent-parent rejection and rollback after parent and asset writes. Sixteen writer fixtures allow only one named catalog-cell update; all others require exact SQL preservation.
+
+Next: full source-bound Gradle/unit/static/lint/artifact checks, followed by actual-app execution on retained API26/34/36 profiles and independent retention review. These integrated checks are pending. Native ChainSyncService wiring, unknown ecosystem handling, broader mixed/protected migration limits, historical matrix, physical/design, secret recovery and exact shipping gates remain open. The full audit remains active; production readiness is not established. Combined plan SHA256: `cdca2902dbbc1fd96c9d4e2f5d7b622568b8a72b766f8584ff768217f9c2a3b3`.
+
+## Optional cache JSON recovery — 22 October 2026
+
+The preceding cache migration correction now has an independently accepted full build: 5,143 fresh unit passes, 26 inherited skips, zero errors in eight fresh scoped lint reports, four APK targets and five verified coverage reports. Detekt passes its inherited filtered scope; runtime is excluded by that configuration and crowdloan implementation coverage remains zero. All 312 native cases pass on API 26/34/36. Retained SQL, wallet data and authentication proofs are verified. API36 has an exact reviewed Firebase SDK-label ordering change; the original retention failure and read-only completion remain preserved. Native cross-review SHA256: `1a55457d26c23fd999eb5b1a836470ac0136d827bd017bb92c60f73ac2a5dbc9`.
+
+Actual compiled mapper/repository reproductions found that malformed optional purchase-provider, price-provider or explorer JSON prevents healthy peer chains from being returned. The narrow correction treats Gson parse failures as absent optional metadata and preserves every other mapped field and database row. Cancellation, fatal errors and unrelated failures still propagate. Twelve external regression cases pass, including all four repository paths in both peer orders and a valid 1,048,578-byte list. Candidate SHA256: `62c916c8507282e452a41b6dc075329a55f438c7f36089ea0af2da634ed7f361`.
+
+Next: rerun the required full unit/static/lint/build checks with exact source binding. The prior 312 migration/startup executions qualify their unchanged source only; they do not qualify this mapper on Android. Native wide-cell and large-relation reads, semantic cache validation, mixed/protected migration limits, historical matrix, physical/design and exact shipping gates remain open. The full audit remains active and production readiness is not established.
+
+## Cache migration availability correction — 22 October 2026
+
+The physical-cohort transaction correction is now independently accepted: all six cohort and three transport-policy cases pass on each API 26/34/36 profile (27 fresh passes). The other 67 historical cases per API have explicit reuse lineage. The accepted app database, real-PIN proofs and original failed fixtures remain preserved. The earlier rollback-open-mode correction remains closed.
+
+Separate real-SQLite reproductions found that healthy copied cache data could block startup at the 1 MiB cell or 262,144-row limits. This correction excludes four SQL-only copied cache tables from payload-byte accounting and permits known configured cache foreign-key children to bypass row-count cutoffs. Exact schema, foreign-key definitions, actual foreign-key validation, protected identity and mixed user-data limits remain enforced. Saved endpoints and user choices are preserved; token prices retain their existing migration rebuild behavior.
+
+The reviewed candidate passes 44 external host checks, including boundary, invalid-foreign-key, user-data, complete rollback and policy controls. Core and app native sources compile. The new shipped-wallet startup case covers 262,145 cache rows and a 1,048,578-byte cache cell through the actual Room/startup gate, Android Keystore and two opens. These are source/host results; full Gradle and native acceptance are pending.
+
+Next: full runTest, 19 forced unit tasks, eight fresh scoped lint reports and four APKs, then 103 core migration cases and the new actual-startup case on API 26/34/36. Broader mixed-cache availability, runtime cache consumers, historical matrix, physical/design and exact shipping gates remain open. Plan SHA256: `9b7f3f66ed0b645672da4a5f74c6d6dba06302151aa3f4af74234f26735fc9c6`. The full audit remains active and production readiness is not established.
+
+## Historical cohort transaction correction — 22 October 2026
+
+The actual-PIN Solana selection journey is independently accepted on API 26/34/36, including 18 phase proofs per API, exact SQL/preferences and reauthentication after lifecycle changes. Six locale/component methods pass per API; 96 captures have source/receipt/PNG verification and scoped visual review across all eight locales. The API36 pre-install offline-ADB failure and same-profile continuation are retained.
+
+Historical native qualification passed 69 of 73 cases on each API. Four positive physical-schema cohort cases invoked the 76-to-77 migration after ending the fixture transaction; the production rollback-preview guard correctly rejected this. The fixture now runs each positive chain in one outer transaction, preserving the original source version and foreign-key mode. All frozen cohorts, identity assertions, negative cases and preference no-write guards remain intact. All failed evidence and 222/223/223 core files are retained, and the accepted app database and 18 proofs per API remain exact. The Android transport-policy cases were not reached after the cohort failures.
+
+Next: rebuild and lint the corrected core test fixture, then rerun its six cohort cases and three platform-policy cases per API on the same owned profiles. The other 67 native cases per API, 5,139 unit passes/26 inherited skips, scoped coverage and unchanged app/common APKs have explicit reuse lineage; they are not new executions. Broader cache/startup availability, historical matrix, physical/design and exact shipping gates remain open.
+
+## Coverage report path correction — 22 October 2026
+
+The full historical/native follow-up build completed with 5,139 fresh unit passes, zero failures and 26 inherited skips across 18 Android modules and utils. All eight scoped lint reports contain zero errors or fatal findings (five fresh, three exact reused); all four APKs assembled and schemas 82/83 remain unchanged. These results are bound to source `4fd48653a701aa48d4ed8db45d171e8b7b8a5453`.
+
+Coverage instrumentation produced five fresh execution files, but the reports contained no classes because DirectoryProperty string interpolation yielded nonexistent paths. The report script now resolves class-directory providers, supplies Java/Kotlin source roots, and fails when no compiled classes are found. Qualification will rerun only the five report tasks using the exact frozen compiled classes and execution data; production/test sources, APKs, instrumentation scope and inherited report filters are unchanged. Coverage remains pending until nonempty XML/HTML and input lineage are verified.
+
+Next: finish report qualification, then actual-PIN selection, historical/native policy and locale journeys on the allocated API 26/34/36 profiles. Broader startup availability, full historical, physical/design and exact shipping gates remain open.
+
+## Historical repair, native journeys and coverage qualification — 22 October 2026
+
+The preceding endpoint observer correction passes 428 fresh core unit cases with four inherited skips, zero core lint findings and all 70 device cases on each retained API 26/34/36 profile (210 executions). The earlier 3,357-pass C3 build remains separately recorded. Retained failed-baseline files remain intact except the narrowly proven AndroidX package-update timestamp field. This acceptance covers endpoint database and observer behavior; actual-PIN, locale, policy and historical paths remain separate gates.
+
+This follow-up prepares shipped version 71 cache layouts before strict migration checks, archives endpoints before repair, and accepts exact shipped foreign keys and compatible earlier archive captures. User-row copying now uses strict insertion so conflicting contacts cannot silently disappear. External host checks pass 23 cases and preserve 33 retained public-wallet fixtures, including complete rollback for both reproduced contact collisions. Broader startup availability for conflicting/unknown user layouts remains open.
+
+Native additions cover authenticated Solana selection, three real transport-policy checks and explicit locale binding in four Compose fixtures. Seven locales gain 112 selection/status strings. The corrected default/custom activation oracle matches retained evidence; older non-English fixture claims await rerun. This commit also enables application-class coverage on Java21 using pinned JaCoCo0.8.12, replacing the inherited exclusion of every class. Existing five-module report scope and report filters remain explicit; actual Gradle coverage still needs qualification.
+
+Next: full 18-module runTest/static/coverage checks, scoped lint and APK builds, then actual-PIN, historical/native policy, locale journeys and visual review. Full historical, physical/design and exact shipping gates remain open. Combined candidate plan SHA256: `bc4c33a7d6d7f55c49c2b09642c2f1f07e0730cef050cba93d804ef6b8c64289`.
+
+## Endpoint observer correction under qualification — 22 October 2026
+
+The C3 build passed 3,357 fresh unit cases with 26 inherited skips and zero lint errors. The subsequent retained-device baseline produced 163 passes and 11 failure executions across API 26/34/36, representing four distinct methods. The closed-handle postcondition now checks the reopened database. The malformed-inactive-default oracle preserves a healthy active endpoint and adds explicit malformed-active/default and unknown-active rejection controls. The edit fixture uses the real custom-node DAO.
+
+A direct JVM regression independently reproduced stale node/catalog observers when Room invalidations remain idle after a raw-store mutation. Both flows now also observe mutation-lane completion. The funded send-network query uses catalog metadata and bounded node reads, with the same wake-ups, avoiding its legacy unbounded endpoint relation. New native cases exercise actual raw selection through all three observers and a 3 MiB malformed endpoint beside a healthy peer. Four focused JVM cases and 70 native cases per API (60 endpoint cases plus ten existing DAO cases) are the next qualification target; no corrected-pass claim is made yet.
+
+Original failed runs and retained fixtures remain preserved. PIN, locale, historical cache, broader startup availability, physical/design and exact shipping gates remain open. Correction manifest SHA256: `b22bcd5051b0aeeb7c8ed6a82779f9d2fa03a3679e16118a52cc84e01d73ce7c`.
+
+## Endpoint selection Gradle fixture correction checkpoint - 22 October 2026
+
+The first integrated C3 build retained eight runtime/account/wallet failures plus a separate core API test dependency error. The dependency rerun now passes all 117 core API tests with clean lint. This follow-up initializes the real DAO mutation lane in mocks, waits for fixture startup and explicit runtime acknowledgment while preserving healthy-peer identity checks, tests exact URL bytes/rejections, and scopes the expected Android logging stub. The deleted-row regression now requires the intended exception, closing an accidental passing assertion.
+
+The reviewed external candidate passes 45 targeted tests and 200 scheduler repeats against real Android stubs, plus one helper control. Style-only cleanup retains native case bodies and explicitly maps seven renamed cases; 16 residual style findings remain recorded without suppression. Manifest SHA256: `95dd516e8977ef0ac4832de59975dc15071fdfdca3c91e6aa9a25eaaedaccccf`. Actual Gradle rerun, native/PIN selection, historical caches and broader release gates remain open.
+
+## Endpoint Gradle corrections — 22 October 2026
+
+The first integrated C3 Gradle run completed with four failed tasks: core API test compilation lacked its explicit guarded WebSocket test dependency, and eight tests failed across runtime, account and wallet modules. Its source snapshots remained exact; logs, XML reports and generated APKs are retained. These failures remain open pending correction and rerun.
+
+Core API now declares the existing pinned WebSocket library for tests only. Production dependency scope, version and local source substitution are unchanged. The remaining failures and attributable formatting follow-up are under review; no clean Gradle or full readiness claim is made.
+
+## Endpoint selection integration under qualification — 21 October 2026
+
+The combined C3 candidate now integrates ordered endpoint selection, catalog replacement, runtime requalification, Solana preference handling and the Saved endpoints selection UI. Selection authority remains tied to the rendered observation and current authentication lease; UI status distinguishes durable selection from runtime connection acknowledgment. The socket dependency carries matching configuration and worker-lifetime changes.
+
+The external combined checkpoint has 602 distinct host passes, compilation of 68 production files across eight modules, 55 unit/shared sources across seven modules, and eight native/shared sources. Its 58 native test methods compile; they have not yet run on Android for this candidate. Root review SHA256 is `aacd0037bd6c86e917fa43cd801996ed90115ab8677cf1440d078e054da67047`. The earlier missing-resource/dependency host failures remain recorded with their passing class-specific reruns.
+
+Actual Gradle dependency resolution, Room/KSP/Hilt generation, resource/APK builds, scoped units/lint, native transaction/policy checks and actual-PIN selection journeys remain required. Scoped static analysis still has 674 new-file findings and 496 conservative changed-line findings, in addition to 2,076 matched existing findings; cleanup is underway and no clean-style claim is made. Historical cache repair remains an external candidate. The full audit and release gates remain open.
+
+## Startup checksum correction qualified — 21 October 2026
+
+The fixture-only correction at `dcc47d3be` passed its narrow build and all three app cases on API 26, 34 and 36. Root raw-data review and an independent cross-review accept all nine fresh passes, including the original complete-file SHA assertions. Prior failing/diagnostic fixtures remain unchanged on the same profiles and UIDs. API 26 crash evidence uses the original same-boot empty baseline plus fresh during/after buffers; API 34/36 have fresh before/after captures.
+
+Production, core-test and common-test APKs and schemas 82/83 are byte-identical to the previously qualified build. The 496 core/common native cases per API and 1,960 unit passes with four inherited skips remain exact-source reuse. App lint reports zero errors and 100 warnings. The accepted packet is `android-startup-availability-followup-v1/api26-reopen-diagnostic-v1/correction-v1`; cross-review SHA256 is `89c2554dda031eb75a2fd70fcafe7e39552d9d0ee62072f47ab6f7444686d5aa`.
+
+This closes the scoped test correction. Endpoint integration, historical cache recovery, broader startup availability, physical-device and shipping qualification remain open. Earlier entries below retain the investigation history.
+
+## API 26 fixture open-mode correction — 21 October 2026
+
+The retained diagnostic reproduced the original checksum failure and found only the paired SQLite change counters advancing from 46 to 48. Every other byte and all 38 typed SQL table images were unchanged. The scoped test Context enabled WAL after opening the database; Android 8 ContextImpl instead supplies WAL in the initial open flags. Both fixture overloads now follow that platform behavior, including the localized-collator flag.
+
+The original whole-file checksum assertion remains unchanged. Temporary before/after diagnostic copies are removed from this corrected fixture, while their committed source, failed run, raw files and analysis remain retained in the evidence. Production code is unchanged. The corrected fixture still needs its narrow build and three-case native reruns on API 26/34/36; this is not yet a passing qualification or full audit closure.
+
+## API 26 database reopen diagnostic — 21 October 2026
+
+Startup candidate `14d6d5589` passed 1,960 fresh unit cases with four existing skips and four fresh zero-error lint reports. API 34 and API 36 each passed all 499 native cases with independently checked raw database/preferences evidence. API 26 passed 467 core and 29 common cases, but all three app cases failed only the final closed-database raw checksum after the second Room opening; preceding wallet/private-key/public-identity/typed-preference assertions passed. The byte change remains unclassified.
+
+The instrumentation fixture now retains closed before/after database copies around the original, unchanged checksum assertion. This is diagnostic evidence capture, not a fix or a weakened assertion. Production sources are unchanged. The next check runs the small malformed-wallet-journal case on the same owned offline API 26 profile while preserving every earlier fixture. Full startup/C3/historical and release qualification remain open.
+
+## Startup availability qualification in progress — 21 October 2026
+
+Startup now opens Room and reconciles the TON and wallet journals without a whole-file size or integrity scan prerequisite. The read-only public recovery view also accepts a large database while retaining bounded row/value queries. Recovery revalidation visits each bounded key name and reads only its owner, so an unrelated malformed identity or a large inventory does not suppress healthy items. Exact compare-and-set and secure-storage failure handling are retained.
+
+This candidate combines the independently reviewed 56-case per-key host checkpoint and 41-case startup/read-only host checkpoint. Three new Android fixture methods use public seeds replayed through the shipped 3.7.4 writer; they compile and cover current83 cache growth plus malformed reached journals after a small shipped71 upgrade. Native source and compiler/public-writer provenance have independent review; full Gradle and device qualification are pending. A successful startup does not certify untouched database pages. Historical inputs already containing large caches, broader cache repair and the full U0/release gates remain open. No production-readiness or native-pass claim is made here.
+
+## Inactive endpoint attachment and Restore accepted, 2026-10-21
+
+C2 source e4c45589ab2b535fdd6fbdc7c3fa54073384b61c is integrated with all
+4,553 non-document files byte-exact to the independently accepted build.
+Explicit Add and Restore verify the chosen network and establish inactive
+ownership; neither operation selects an endpoint. The Room schema guard also
+checks the exact temporary invalidation objects used by Room 2.7.2.
+
+Validation: 1,966 fresh unit passes and four inherited skips; 1,458 fresh native
+passes across API 26/34/36 (443 core, 41 components, one actual-PIN attachment and
+one actual-PIN Restore test per API), plus 87 common native passes reused on the
+identical archived APK and unchanged common source. All four scoped lint reports
+have zero errors; core/account/common reports are reused, with 0/67/288 warnings,
+and the fresh app report has 100 warnings. Earlier failures remain in the evidence.
+
+The qualification and exact-source verification are recorded in
+`endpoint-attachment-qualification.json` and
+`endpoint-attachment-integration-verification.json`. This acceptance covers the
+retained public fixtures and emulator journeys. C3 explicit selection/runtime
+acknowledgment, U0 startup availability/cache/history, OS process death, physical
+biometrics/accessibility/design and exact shipping gates remain open. The full
+production readiness audit is active.
+
+## Authenticated offline endpoint editor accepted, 2026-10-21
+
+The editor at source bb2c140997c4308fa22c7bea26d93f21a1ce2d65 is integrated
+with every non-document source file exact to qualification. Checks cover 1,823
+unit passes/four inherited skips (explicit prior reuse), 1,242 core native passes,
+105 rendered component passes and accepted retained public-fixture PIN/editor
+journeys on API26/34/36. API26/34 qualify actual82-to83 startup and five saves;
+API36 combines preserved partial-pilot upgrade/saves with the successful final
+no-resave Home/recreation continuation. Failed runs and narrow SQLite sidecar
+metadata dispositions remain in the evidence. Production/core APK bytes are
+unchanged by the final fixture corrections; fresh app lint reports zero errors.
+This closes the authenticated offline PENDING-intent editor checkpoint. Explicit
+network verification/inactive attachment, separate selection, broader startup
+and historical, physical/design and final release gates remain open. See
+endpoint-decision-editor-qualification.json and its integration verification.
+
+## Offline endpoint decisions — backend qualified, 2026-10-20
+
+Source `405d2a2f5f0106e4303cfb2f1554cdd0a27447a4` adds bounded offline
+PENDING intent, exact source/target/revision checks, a one-use commit grant and
+PIN-lease publication fencing. Schema 83 adds the decision table; schema 82 and
+the oldest supported version 9 remain unchanged. The corrected typed-source
+fixture uses genuine production captures and retains corruption rejection.
+
+Qualification: 1,139 fresh unit passes, four inherited skips; 1,215 native
+passes (405 on each API 26/34/36), with no failures or skips. Lint aggregates
+reran; reports were reused byte-exact from the accepted baseline: zero errors,
+core/account/app warning counts 0/67/100. Retained app DB/preferences and five
+PIN proofs per device remain exact against both prior successful authentication
+and failed native baselines. Installed app identities, UIDs and controlled
+environments are unchanged. The retained application remains on schema 82.
+
+Evidence: `android-endpoint-offline-decisions-v1/qualified-backend-v1.json`,
+SHA256 `9e8b25e0b39bbdf982e4d608f29d266fa905cf0a1fd5245883515a00a1b5852d`.
+Every non-document file is exact to the qualified source. This integration
+records source continuity, with no additional build or device execution claim.
+The verified build used utils `fbbc2802` and WebSocket transport `e8903f4c`.
+
+Authenticated editing forms and the actual schema 83 app upgrade/PIN journey,
+explicit genesis verification/atomic inactive attachment, separate acknowledged
+selection, and broader startup/historical/physical/design/release gates remain
+open. Earlier failures and qualifications remain preserved below.
+
+## Saved endpoints and rollback preservation — qualified source integrated, 2026-10-20
+
+Source `2dffe5e6597e2076ab4498633d25b6df1b3d866a` integrates the qualified
+historical/current endpoint preservation, bounded global inventory, authenticated
+recovery UI and API 26 compatibility corrections. Every non-document file is
+byte-exact to that source; earlier integration records remain preserved.
+
+Rollback/current ownership has 1,035 native passes with no failures or skips.
+The global checkpoint has 201 component passes: 67 fresh API 26 outcomes and
+134 explicitly reused API 34/36 outcomes. Its API 26 PIN journey is fresh at
+this source; API 34/36 retain verified `279cd4dc` fixture provenance against the
+identical application APK. Each verifies five sources, 16 byte chunks and four
+PIN lifetimes. Full protected data comparisons admit only the exact native
+startup bootstrap and declared owned revision increment. All failed attempts
+and profiles are retained.
+
+The current build has fresh app lint with zero errors and 100 warnings;
+1,945 unit passes and 14 inherited skips are reused from unchanged sources.
+Integration itself makes no new build or runtime claim. See
+`global-saved-endpoints-qualification.json` and
+`global-saved-endpoints-integration-verification.json` for source and evidence.
+
+Offline decision persistence, verified attachment, separate acknowledged
+selection, broader startup/historical coverage, physical/design and signed/store
+release gates remain open. These synthetic fresh-schema-82 fixtures do not prove
+retained 81-to-82 upgrades or operating-system process death. The full audit
+remains active; no production-readiness or publication claim is made.
+
+## Historical harness and API 26 migration compatibility — independently accepted, 2026-10-19
+
+Qualified source `5327c6a5d4636ff63d222394002f302ff85b7e57` fixes the API 26 SQLite upgrade blocker:
+the final global foreign-key check uses raw PRAGMA while retaining every ordered
+schema, relationship, parent-key and row guard. Only exact declared child/parent
+pairs are tolerated. Malformed or unexpected violations fail closed and the
+cursor closes on exit. The shipped migration manifest now has a separate name,
+so strict historical schema discovery works without changing fixture bytes.
+
+The final instrumentation APK passes 558 selected cases: 186 on each of API 26,
+34 and 36 (55 preflight, 43 historical and 88 caller regressions). No native
+failures or skips remain. The same 96 unit outcomes remain: 92 passes and four
+inherited skips, reused unchanged by the final fixture-only build. Core-db lint
+reports no issues; configured Detekt passes but excludes core-db. Seventy
+packaged historical fixture files and two shipped migration assets are exact.
+Prior provenance checks verified all 68 pinned historical APKs and regenerated
+35 schema fixtures; ten extractor tests passed. Test helpers retain their original
+assertions; three unsupported column-renaming fixtures now preserve rows and
+constraints through portable table reconstruction.
+
+Candidate `46a0c350a12223d86fa1b0477632a89c57941d3fa957cf822975ac56e0fb52d3` and independent review `e1773d46ca553c11a712bfc10109582018311472d4d37dd94a994c35b0afc48f` bind 4,453 app files,
+377 utility files, 85 transport files and 467 evidence files. Original failing
+runs are retained. Source-wide release checks, full schema-scoped U8, installed
+writers, process interruption/relaunch, native UI, physical/biometric and
+signed/store gates remain open. In particular, pre-40 custom-node loss requires
+separate reproduction and correction. These passes do not complete the
+3,014-cell release inventory or authorize publication. See
+`docs/historical-fk-portability-validation.json`.
+
+## Delegation options native window ownership — independently accepted, 2026-10-19
+
+Source `4d365b5ab6edf0ac27fcff9c1820decb701233dc` retains the exact delegation options dialog in its StakingFragment and dismisses it when the screen pauses, its view is destroyed or navigation changes its owner. Admission checks the captured screen before and after presentation; dismissal clears only the matching owned reference. Normal row callbacks and ViewModel preparation remain byte-exact. Dismissing a row-selected sheet does not cancel admitted asynchronous collator details.
+
+The four original native baseline cases have two genuine window-lifetime failures after Home/navigation and two healthy Back/recreation controls. All original bodies/deadlines remain exact; the final five-case suite adds rejection of a retired real screen entry and fresh-current recovery. Same final APK pair passes14 native methods:5 options,4 unchanged adapter and5 unchanged management cases, with203 JSON phases (63/14/126). Management retains8 terminal qualification proofs and11 exact single synthetic injections. Seven protected XML values, two wallet/four chain rows, settings, readiness and crash buffers are exact across all three suites; six comparisons use scratch DB/WAL copies only.
+
+Independent final review `2dc2e8a712e842c93e6c49441fac6a81f1109c4e5d82ec24ebcfe4dbfd42ee41` verifies4,352app/376utilities/84transport files against working trees and Git, two changed source/test files and1,175 evidence pins. Broad3,332 outcomes=3,322passes/ten unchanged inherited skips, all prior3,332 outcomes and144 focused cases exact. App/common/staking tests executed; six unchanged module tasks reused up-to-date outputs. Debug APKs, lint zero errors/100 unchanged warnings and configured Detekt pass; staking remains excluded from Detekt. Candidate `b9041f858708a881db61f81ba1f998e12f5799e6c605fa349208815d869697dd` retains the genuine baseline failures.
+
+This proves bounded native window lifetime with a public presentation-only collator model. Actual rendered-parachain provenance, row-route navigation, double-tap/stacking, visual/physical acceptance, shared-account/registry provenance, historical upgrades and signed/store release gates remain open. No production-readiness or publication claim. See `docs/parachain-options-window-validation.json`.
+
+## Parachain body and details action ownership — independently accepted, 2026-10-19
+
+Source `3db78e1e8bb94bc5c4b31335fa2923b4a01116be` carries each canonical role observation and source lease into published delegator bodies. Root callbacks require the current publication, role, wallet/account/chain/selection and screen lifetime. Details preparation checks authority around identity and APY waits; only the owning root routes the prepared result. Source metadata exceptions deny action admission while cancellation propagates. Seven original failing methods across related action boundaries and one separately reproduced metadata exception now pass; these are not eight distinct vulnerabilities.
+
+Independent final review `ac781a08d5bad069d3d63677b283d2029b97dbb4421c8a7b84be690d3633d891` verifies all4,351 app/376 utilities/84 transport source files against working trees and Git, four changed source/test files and1,100 evidence pins. Broad results are3,332 named outcomes:3,322 passes/ten unchanged inherited skips; all3,310 prior outcomes exact and144 focused cases pass. Original12 baseline method bodies and122 earlier cases remain exact. App/common/staking tests executed; six unchanged module tasks reused up-to-date outputs. Debug APKs, lint zero errors/100 unchanged warnings and configured Detekt pass; affected staking code remains excluded from Detekt. The final-source APK pair passes four unchanged native adapter and five management-window methods with139 JSON phases (14adapter/125management). Compared with the prior140 phases, one incidental startup-awaiting-recognized-focus event is absent; all8 required terminal qualifications and11 exact synthetic injections remain. Seven protected values, two wallet/four chain rows, settings and crash buffers remain exact; capture readiness is verified. Database comparison uses disposable DB/WAL copies only.
+
+Candidate `bcaf4f5ca19d19d5f1855cc42663292342b1515591ee9f2861291fb7c6a8fc0e` preserves compile, virtual-time fixture and metadata-exception diagnostics. No native actual-parachain options-sheet lifetime/dismissal/stacking or downstream destination authority is claimed. Same-role automatic retry, shared-account wallet and registry provenance, numeric/visual design and historical/physical/signed/store gates remain open. No publication or production-readiness claim. See `docs/parachain-body-action-validation.json`.
+
+## Parachain alert role retirement — independently accepted, 2026-10-19
+
+Source `12f3460ca72a83525cfded473078d5bed09530cb` retires each earlier role observation before downstream alert calculation can suspend. The shared stream carries that exact observation into each callback, which also requires the original wallet/account/chain/selection lease. Four reproduced stale-collator callback methods now pass; these exercise one authority boundary, not four distinct vulnerabilities. All original nine baseline method bodies and111 prior focused cases remain exact, with two additional cancellation/round-trip controls.
+
+Independent final review `05e9fa0870833d88eaabadb00c7b77db4c095c7233ef1334ae752820dad2dff8` verifies all4,350 app/376 utilities/84 transport source files against working trees and Git, two changed source/test files and1,045 evidence pins. Broad results are3,310 named outcomes:3,300 passes/ten unchanged inherited skips; all3,299 prior outcomes exact and122 focused cases pass. App/common/staking tests executed; six unchanged module tasks reused up-to-date outputs. Debug APKs, lint zero errors/100 unchanged warnings and configured Detekt pass; affected staking code remains excluded from Detekt. The same final-source APK pair passes four unchanged native adapter and five management-window methods with140 JSON phases. Pre/post capture readiness is verified; seven protected values, two wallet/four chain rows, settings and crash buffers remain exact. Database comparison uses disposable DB/WAL copies only.
+
+Candidate `e354929ff51a8008eeff1b9849cba246d22c474f44fd629fc7af590c12b817bd` preserves baseline/intermediate diagnostics and previous native timeout/recovery lineage. Actual-root ReadyForUnlocking is covered; ChangeCollators/CollatorLeaving, native parachain source provenance, broader body/options callbacks, post-await details routing, numeric/visual design and historical/physical/signed/store gates remain open. No publication or production-readiness claim. See `docs/parachain-alert-role-validation.json`.
+
+## Root staking alerts and adapter — independently accepted, 2026-10-18
+
+Production `135ff7244` resolves 14 reproduced root callback authority failures and two native adapter failures. Source `d34b84f0a` adds the independently reviewed synchronized management-window fixture; production and JVM test bytes are unchanged and its application APK is byte-exact. Broad results remain at135ff: 3,299 named outcomes, 3,289 passes and ten unchanged inherited skips; all3,275 prior outcomes exact,111focused pass. Four native adapter cases pass at135ff and five native management-window cases pass atd34, with140 raw JSON phases. All4,349 app/376 utilities/84 transport files and1,431 evidence pins are independently verified. Seven protected values, two wallet/four chain rows and settings remain exact. SQLite review used disposable DB/WAL copies. Debug APKs, lint0errors/100unchanged warnings and configured Detekt pass; affected staking code is excluded from Detekt.
+
+The earlier management4/5 timeout remains unclassified. Diagnostic5/5 exposed competing real publication; the final helper waits for an exact current terminal qualification without relay authority, injects once and rejects competing publication without increasing deadlines or retrying. An interrupted preferences write was restored by normal unchanged-app launch; the original public PIN still opens the portfolio and all protected data remain exact. No manual preference rewrite. No screenshots/readability, actual root source provenance/action-row route, parachain retirement or production-readiness claim. Those gates, other native/UI/authority work and migration/physical/signed/store gates remain open.
+
+Candidate `1a75e8d8bb02176c5483918b3ff6ef208b9a4bd171b05dbff45f71901aa02477`; independent final review `414627e1b5c9e3f37e4cd27278a5edacb109f4a1bb416e8e42065f60f464c0fe`. Complete raw evidence and source lineage are linked in the saved validation.
+
+
+## Relay staking scenario and summary — independently accepted, 2026-10-18
+
+Source `7b6a31246` (production `8138ac692`, focused `3d1fb9a8c`) resolves 17 reproduced stale relay-body failures. The lower summary carries exact public wallet/account/chain/asset denomination/type/bonded input, withdraws pending recalculation and cancels obsolete work; the scenario rejects independently lagging asset/summary combinations before rendering.
+
+Independent review `9b02cb78a9b3764cac00050f77d0ca305e565bafb6ec2d5551485c0a8c0df652` verifies seven changed source files, 4,345 app/376 utilities/84 transport files against Git and current source, all 933 evidence pins and both APKs. Raw broad results: 3,236 named methods, 3,226 passes and ten inherited RuntimeSyncService skips; all 3,210 prior outcomes unchanged, all 26 focused methods pass. Lint has zero errors/100 warnings and is byte-identical to the prior report. Configured Detekt passes but excludes affected staking code. Test-only fixture corrections and the one coherent-input setup adaptation are retained; original assertions remain unchanged.
+
+This checkpoint qualifies the bounded JVM/build behavior. Actual top-level rendered model/action authority, debounce, scenario scope lifetime, detached reward synchronization, native/device continuity, migration and signed/store gates remain open. No native screen, public transaction or production-readiness claim. Candidate SHA `00c03138fe2c05e0a10e52f10131512fea81b1b48785705ba0cfe619b5fb2b97`.
+
+
+## Staking management presentation lifetime — independently accepted, 2026-10-18
+
+Qualified source `292e998af` (production `e2b9f1f16`) resolves eleven reproduced unit failures and three actual native-window lifetime failures. Exact presentation identities, synchronous revocation signals and identity-owned Fragment dismissal prevent obsolete management callbacks or windows from surviving context/departure/replacement changes.
+
+All 199 focused methods pass. The broad invocation records 3,210 named methods: 3,200 passes and ten inherited runtime skips. Debug APK assembly, lint zero errors/100 unchanged warnings and configured Detekt pass; affected modules remain excluded from Detekt. The same instrumentation APK gives three failures/two healthy controls on the prior app and five passes on the corrected app. All five method bodies/deadlines are exact. Seven protected records/two wallets/four accounts remain exact; settings restored and crash buffers unchanged.
+
+Candidate-v2 SHA256 `868caf2d1cc678256ac13891441fddcc3d0c81ec3738591e9ea4f5d46845a84b`; independent final review `92e9c96d5520d58ef7ec1fa681793568ebbf000e615dba72ac97ebbf9e013a7a`. Earlier fixture and reviewer-precondition failures remain retained and explicitly separated. Synthetic rendered input qualifies window lifetime only. Rendered-model freshness, eligibility/action rows, other dialogs, amount/session and downstream authorization remain open. Black emulator captures do not qualify visual design. See the saved qualification and final-review JSON; source integration verification follows.
+
+
+## Pool member compatibility integrated acceptance — 2026-10-14
+
+Source `e77e5b2f4` is independently accepted for a single runtime-compatible pool unbond/withdraw attempt. Review SHA `7d682720c2e6c34626f631952a99206fc7927481db51b5ad1a149b27c415996d` verifies2,303 named unit cases/zero failures or skips,22 new methods, six reproduced baseline defects, both Debug APKs and lint0errors98warnings. Configured Detekt exclusions and up-to-date unit tasks remain explicit. Integration verification `820954039ae84d51dec175e38aa08e8e05988cb0de139192dc75e155b2051a9b` proves4 changed non-document files and the whole non-document tree match source5bc32ac8e, with4,304app/376utils/84transport and483 evidence pins exact. Earlier candidate pending-review language below records its freeze and is superseded here. Two documentation-only conflict pairs preserved prior accepted sections.
+
+This closes automatic compatibility retry after ambiguous/cancelled output at the API boundary. It does not close mutable wallet/selection/lifecycle authorization, manual retries, durable outcome recovery, complete live-chain/native migration or release qualification.
+
+## Pool unbond/withdraw single-attempt compatibility — in progress, 2026-10-14
+
+The corrected actual API/service/SCALE baseline reproduces six extra-request failures with ten healthy cases: unbond and withdrawal each retry a signed transaction after ambiguous output or cancellation, and both retry a failed fee RPC. A runtime format change between attempts lets both original and replacement envelopes encode. The first mocked-service attempt had Kotlin Result boxing and copied-exception identity fixture failures; those are preserved and excluded from product counts. All tests use public local keys and mocked RPC, with no real network.
+
+The candidate resolves member_account against the exact ExtrinsicBuilder runtime before adding either call, validating MultiAddress or raw account SCALE locally, then issues only one submission or fee query. Network exceptions and failed Results cannot trigger another encoding/signing attempt. Both old and new argument formats remain required regression controls. Expanded unit-v3 passes325 staking cases with zero failures/skips/source drift, including22 new methods. Both operations cover32-byte Id/raw,20-byte EthereumBased Address20/raw, aliases and unsupported/unresolved/wrong-length metadata with zero RPC output. Earlier unit-v2 preserves two fixture failures from inconsistent Substrate ecosystem with a hex address; those occurred before the encoding path and are excluded from product failures. Full build and final independent review are pending; broader wallet/lifecycle binding and durable outcome recovery for these operations remain open.
+
+Final candidate `5bc32ac8e` passes2,303 unit cases across eight modules with zero failures/skips, Debug app/test assembly, lint0errors98 inherited warnings and configured Detekt (affected modules excluded). All4,304app/376utils/84transport snapshot/Git pins match with no drift. Manifest `docs/android-pool-member-compatibility-validation.json`, SHA `909dc4dbc293dc25e6b1757b87adbc592c6f7e01b9e474f968ae92cee6a7dd5d`, binds6 changed files/483 evidence files. Independent source reviewv3 `8f5019697e706d1dd5e8163f3e2696ffe6f666116f0344a5bc663b5050766377` accepts the bounded source and325-case focused run; final evidence review/integration remain pending. No new installed/native presentation or live-chain claim is made for this data-path correction.
+
+## Pool recovery integrated acceptance — 2026-10-14
+
+Recovery source `db3639a7a` is independently accepted within the bounded read-only scope. Review SHA `b79a8d80b2eea4c9e68aba52c38b5c815aaedad32aeacdbe71a97493cc1e70ed` verifies the candidate, all 2,701 evidence pins, named unit/native results, actual installed Back/reopen and protected-wallet continuity. Integration verification SHA `2cfe9244c1f0a59b806890eb08b43f820aaf42358b1e29a595ed2bcec3a90209` proves all 52 changed non-document files and the complete non-document tree equal qualified source `6abb8f91d`, with 4,302 app/376 utilities/84 transport source and Git pins exact. Two documentation conflict pairs preserved all earlier accepted sections. The final candidate and its detailed limits follow below; their pending-review wording records the earlier freeze, now superseded by this acceptance.
+
+Other operations' retry/wallet/lifecycle binding, unanchored historical pending outcomes, configured-RPC trust limits, broader native/physical/migration and signed release gates remain open. This is not production-readiness or publication approval.
+
+## Pool recovery final candidate — evidence review pending, 2026-10-14
+
+Final source `6abb8f91d` provides independent recovery from pool staking, preserves the original wallet/network/account/payment, and performs bounded read-only finalized-block checks. The installed fixed app now permits system Back while idle and checking, including after a system text-size change. The previous non-hideable Material sheet trapped system Back; both the corrected native regression and actual installed public-wallet baseline reproduce that defect before the scoped hideability fix.
+
+The final full check passes 2,281 unit cases with zero failures/skips, Debug app/test APK assembly, lint zero errors/98 inherited warnings and configured Detekt. Some unit tasks are up to date; this is not a claim of 2,281 fresh executions. Configured Detekt excludes affected modules. All 4,302 app/376 utilities/84 transport source pins match Git and the build snapshot without drift. App SHA `d88b2a114fce6bdf72eceb9dc05a32a16cc80d942a9fa03bc3cf9d1573b8209b` is the installed final artifact.
+
+Native final Back policy passes one method on initial and recreated hosts. Three opt-in, offline fixture methods prepare an impossible never-submitted public transaction, verify it in a fresh process and remove only that exact fixture. Original PIN unlock reaches pool staking with zero DOT and offline networking; the actual 37 DOT/pool8/account/hash record survives idle Back, doubled text plus in-flight-check Back, and both reopens exactly. Toolbar Back also returns to the origin. Secure-window PNGs are black by design; XML/actions qualify navigation and retained state, not visual rendering. All two wallets/four accounts/seven protected records remain exact and SQLite quick-check passes; original network and font settings are restored.
+
+Unchanged component coverage is bound separately: six actual-preference methods plus one process-kill phase at `669beb8bd`, and five native graph/Compose methods with 128 recovery layouts/16 entry layouts/272 raw PNGs at `297381704`. The final change after those layouts affects only Fragment Back policy and two native fixtures; the installed final APK covers that policy. Earlier 96-layout/192-PNG Confirm content coverage remains historical and is not counted as final whole-APK qualification.
+
+Candidate SHA `9b43e39490334a4410fbab1914b55de08cf09b92ec36ea18f5c00c1c969d89dc` binds 55 changed files and 2,701 evidence files in `docs/android-pool-recovery-validation.json`. Independent final evidence review and integration remain pending. Failed baselines, fixture corrections and compile/setup failures are preserved. Earlier progress entries below describe their own checkpoints and are superseded by this status.
+
+Configured RPC trust, absent block-body trie/consensus proof, inclusion-versus-dispatch distinction, unresolved unanchored legacy records, other operation callers, broader native/physical/predictive-gesture checks and full migration/signed-release gates remain explicit. No public transaction, signature, rebroadcast or expiry-based clearance is performed; XCM remains paused.
+
+## Pool join read-only reconciliation — in progress, 2026-10-14
+
+Added a bounded RPC reader that binds exact original bytes to canonical finalized block identity and recomputes SCALE/Blake2b-256 header hashes. It only issues chain reads. Misses, pruning, malformed replies, cancellation and network/finality drift cannot establish non-execution. Under the existing configured-RPC trust model this is not consensus or extrinsics-trie verification, and inclusion does not claim dispatch success.
+
+The journal can atomically archive the exact original transaction and public inclusion before clearing only its pending scope. The reconciler retains exact attempt ownership and invokes synchronous review completion only after durable archive acknowledgement/readback. Focused reader/storage and prior actual pool caller tests pass; a same-height wrong-header regression was reproduced and corrected. Compiler/fixture diagnostics remain preserved. API/UI wiring, historical discovery availability, native qualification, full checks and independent acceptance are still in progress. No new payment is authorized by an RPC acknowledgement or a failed lookup.
+
+
+The first independent review reproduced two safety gaps: an unanchored old identical inclusion could clear a fresh attempt, and a failed SharedPreferences commit could mutate memory and escape a per-instance fence. New joins capture and retain a canonical finalized anchor before signing; v1 attempts stay readable but unresolved. Storage identity now shares a scope-specific failure fence across recreated PreferencesImpl wrappers, including archived reads. The frozen anchor/fence run passes797 tests (620common/92core/85selected staking), zero failures/skips/source drift. Independent review `9b5541537842fc9dc381d92df3a359439c6942a9533bba0a46018adfd1bb9453` checks11 source pins and the two genuine failing baselines, resolving both findings at this unit scope.
+
+The current unqualified presentation adds original amount/pool/account/hash, eight-locale pending/legacy/error/inclusion messages, read-only recent and older block checks, and a separate return to pool after inclusion. Recent checks start again at the latest finalized head. Actual caller recovery, cancellation and stale-review tests are running in `android-pool-recovery-presentation-build-v1`; native layout/actions, process archive durability, full final checks and independent acceptance remain pending. It never presents inclusion as successful staking or offers replacement signing for an unresolved attempt.
+
+
+Presentation v2 passes980 tests (620common/92core/268staking), with zero failures/skips/source drift. The corrected race baseline executes62 actual caller cases with57 passes and five genuine failures: held validators prevent recovery publication; three departures during awaited pending lookup still display stale errors; cancellation immediately after durable archive loses its usable return state. Those are fixed by separate validator-flow loading, post-await ownership checks and synchronous-receipt recovery in finally. Earlier Flow access, spy setup and matcher/state-emission fixture diagnostics remain preserved and do not count as product regressions. Source review remains pending on the fixes.
+
+A separate independent entry-path review (`11fb0f626f0a9f27687b9e1fc54afb7730864679cfeb5336ff059a8d214c93ac`) confirms that recovery solely inside Confirm is insufficient: fresh amount/fee/pool-list validation and changed pool membership can prevent entry after restart. A direct read-only route independent of these gates is still release-blocking. This checkpoint is not complete recovery acceptance. Native all-locale presentation and actual archive/restart fixtures are prepared but not yet executed; broader checks are next.
+
+## Pool join uncertain output — independently accepted bounded retention, 2026-10-14
+
+Source `c236bcfe2` retains exact signed bytes, local transaction hash, prepared intent and amount/pool in the original wallet/network/account namespace before RPC. The attempt gate seals late callbacks before an exactly owned, positively unsent record can be removed. Lost/cancelled/wrong-hash responses retain the original record. Matching acknowledgement consumes known success before status persistence; a failed status write does not authorize replacement. Both unresolved and acknowledged records prevent another pool signature. Storage and output hold no review/wallet/attempt monitor.
+
+The baseline reproduces two real duplicate-payment failures with32 healthy cases. Final full qualification passes2,039 unit tests/zero skips (619common71core568account427wallet228staking9Polkamarkt117XCM);78 focused cases pass. Separate136-case expanded run also passes. Debug app/test APKs, lint0errors98 inherited warnings and configured Detekt pass with4,284app+376utils+84transport source/Git pins unchanged. Configured Detekt excludes affected modules and supplies no changed-module coverage claim. Earlier compile-only fixture failures and the known-success-before-status-write timing fixture failure remain preserved and excluded from product regression counts.
+
+Actual PreferencesImpl/SharedPreferences native qualification passes three methods plus one intentionally terminated writer phase. The pending record survives host force-stop during admitted local output (PID23212→23337); the acknowledged record survives restart (23409→23483). Both exact serialized record digests match. Fake public bytes only, no valid signed transaction or fixture network request; this is process termination, not physical power-loss or real RPC qualification. Existing2wallets/4accounts/7protected records remain exact, SQLite quick-check ok; no new PIN UI journey is claimed. Device Wi-Fi/mobile settings were restored.
+
+Candidate SHA `c64a813a42b1583fc726ff6df51b451f289b6ba8e32e7567840df5764c3d5231` binds15 changed files and450 evidence files. Independent final review SHA `1360f29322b51fca9ec4b39533765870ef25103655dde9c3a9b51798052d4a69` accepts this bounded retain/no-rebroadcast stage. Integration source `069104379` and manifest `224d7aacc` exactly match the qualified source outside documentation; integration verification SHA `50c4b889bbdedacdf040e9f2831e149b04f51cb3748d0bef56043aaba0941487` rechecks all13 changed non-document files,4,284app+376utils+84transport source/Git and450 evidence pins. Prior accepted documentation sections were preserved. See `docs/android-pool-retention-validation.json`.
+
+There is no automatic rebroadcast or expiry/nonce-based clearance. Localized pending/recovery UI, proven chain reconciliation and safe future join availability remain required; retained acknowledgement is node acceptance, not inclusion/finality. Account reaping can invalidate same-byte replay assumptions. Other pool operations/unbound callers, full migration/design/physical/signed distribution gates remain open. No public transaction is performed; XCM remains paused.
+
+## Exact wallet signing namespace — independently accepted, 2026-10-14
+
+Pool setup, quick-input estimates, confirmation fees and join submission now carry the original reviewed asset.metaId through the interactor/API to wallet-bound extrinsic entry points. Public crypto metadata and root/per-chain key lookup resolve that exact wallet and verify account ownership; equal accounts in earlier wallets cannot substitute their metadata, keys or quarantine state. Fee construction remains public-only with inert signatures; guarded submission retains the prior revocable key/sign/final-writer admission boundaries. Other unbound callers remain separate work.
+
+Final source `55071ba25` (production identical to `17e495b08`) passes 2,013 module tests without failures/skips:619 common,68 core,568 account,427 wallet,205 staking,9 Polkamarkt and117 XCM. All145 focused cases pass, including the four original repository failures and wrong fee-envelope regression, actual guarded secret-store decoders over in-memory preferences, actual pool caller/SCALE and retained setup/quick-input wallet42→99 controls. Debug assembly and lint0errors98 inherited warnings pass; configured Detekt excludes the affected modules. All4,278 app+376 utilities+84 transport source pins match the build snapshots and Git with no drift.
+
+Candidate SHA `65568cc46d6a1d52d05bafd90cde3ed33b3e3d8ad16becd31d88accfb9e6d69f` binds17 changed files and796 evidence files. Independent source review SHA `8134bb5f97008540b01a0369b69b82899eacbd52b126b4a08c1d43b2d63757a4` accepts the production source; final independent evidence acceptance is complete. Earlier JUnit/Mockito/in-memory provider fixture failures remain retained and excluded from product regression counts; fullv1 stopped at a null fixture asset id, fixed by the test-only final delta. No failed or incomplete run is counted as a full passing gate.
+
+No real encrypted wallet, database/device upgrade, public transaction, process durability or release qualification is claimed. Public deterministic fixture keys only; XCM remains paused. Ambiguous output reconciliation, broader unbound callers, other pool operations and the full migration/design/physical/signed distribution gates remain open.
+
+Independent review SHA `f94995e6cfd26aef9aa0fda4781ab95d260fe5a58ca12e65756c75b867870d67` accepts the bounded signing and fee namespace fix. Integrated through `09839fc3e` (production `405b11c6c`, final test correction `430bfeaa7`); verification SHA `e1ffdbc505e3ef0f47585f1f971a819735b757de136753687e8d9961358b8f69` confirms all4,278 app+376 utilities+84 transport current/Git files,15 changed non-document files and796 evidence pins. No source mismatch; accepted prior sections survive the two documentation conflicts.
+
+## Pool execution revocation — independently accepted, 2026-10-14
+
+Pool join carries local review authority through the guarded extrinsic service. Prepared intent, original main-state revision, exact join claim, wallet-selection epoch and attempt lifetime are checked at key access, signing and final writer admission. Main/join publication and Back/dismissal revocation share one lock; local secret/signing primitives serialize with wallet selection. The final writer callback atomically admits at most one output operation, then releases navigation and wallet-selection locks before potentially blocking write/flush. An already-admitted operation may finish after revocation; admission is neither acknowledgement nor permission to retry. No remote capability/configuration gate is added to healthy wallet access. Known submitted success still consumes only the original claim before cancellable API dispatch-back.
+
+Baselines reproduce ten distinct failures: eight stale transport handoffs and two Back/selection stalls found during independent review despite1,299 earlier passing tests. Final source `95239e3d9` passes79 focused cases and1,438 module tests without failures, skips or source drift (619common/64core/427wallet/202staking/9Polkamarkt/117XCM). Debug assembly and lint pass with zero errors/98 inherited warnings; configured Detekt excludes the affected modules and establishes no analysis coverage for them. The79 focused cases comprise31 actual caller cases, seven authority/concurrency cases,35 retained submission cases, four reviewed-chain/known-success cases and two RPC-admission/default-policy cases.
+
+Held-output tests use the actual source-pinned GuardedWriteHandle with a local OutputStream held at write or flush, exact frozen bytes, rejected admitted cancellation, duplicate-write rejection and healthy acknowledgement. Three final cases invoke actual AndroidX ViewModelStore.clear during preparation, queued transport and admitted output, exercising the real clearing callback. These are JVM fixtures, not real socket, installed-wallet or Activity/Fragment lifecycle qualification. Baseline v1's fixture argument compile failure and candidate v3's missing test-classpath dependency are retained; copied stale XML is excluded from executed-test counts.
+
+Candidate SHA `af46c9abb4cdfa69c0ff2b973c8508331d256a7c275213248a81153160a3d472` binds18 changed files,4,277 app/376 library/84 transport current and Git source pins, and839 evidence files. See `docs/android-pool-execution-validation.json`. Independent source review resolves EXEC-OUTPUT-1; final evidence acceptance remains pending. Exact wallet namespace during key lookup, ambiguous-broadcast retry (including cancellation before the API observes acknowledgement), native lifecycle/configuration, process durability, other pool operations and the full upgrade/physical/signed release gates remain open. Public local test keys and mocked RPC only; no public transaction, device installation, wallet-continuity or release claim. XCM remains paused.
+
+Independent review accepts source `95239e3d9`, integrated through `2acf21762`. Review SHA `f8a71ccd73c1cc7ece144a04536da3ae3711939ba927d789901c0b2b85a2c86b`; integration verification SHA `55efdf2ae7dc4cebe6ca3dd5a9ed780a6b3b28c8e11fc91aadbb62a81156b619` confirms all 4,277 app, 376 utilities and 84 transport files against current and committed source, plus 839 evidence pins. The two documentation conflicts preserve prior accepted sections. Exact wallet namespace and ambiguous output reconciliation remain open.
+
+## Fee estimation without private keys — independently accepted, 2026-10-14
+
+Account-specific extrinsic fee construction now uses public crypto metadata, account, nonce and runtime information without reading a private key. Both fee overloads encode an inert signature placeholder with the runtime's correct representation and width. Submission paths remain unchanged. This closes the eager pool-fee key-access lead and applies the same correction to other users of the shared fee service.
+
+Ten failed regression cases were reproduced across the core service and actual pool API. Source `d9b1bf91e` passes 18 focused checks and all 653 affected-module tests (62 core/427 wallet/164 staking), with zero failures/skips and source drift. The checks include all three crypto types, both fee overloads, held nonce/runtime lookups, failed public RPC, 20-byte Ethereum accounts, structured ECDSA signatures, batch/batch_all order, and equal legacy encoded length with byte-exact non-signature fields. Debug assembly and lint pass with zero errors/98 inherited warnings. Configured Detekt excludes changed modules and does not establish their analysis coverage.
+
+Candidate SHA `f40c8ae7e14a5c022355487147061307abf6a2c942a1f6578b970176ffda93aa` binds three changed files, 4,273 app/376 library source/Git pins and 164 evidence files. Independent source and evidence review accepts this bounded checkpoint (review SHA `1e7e457c1512bf453a3f4058224463a13acf301f6ea5fa653e8c6709bd8e3ca4`). Integration at `ffdaa2e21` matches every source pin; verification SHA `b6536403468242fba88ae9109a20db289777f7929cbd2d1339c6a28991965fe1` records only documentation differences. See `docs/android-fee-placeholder-validation.json`. All dependencies used for runtime interaction are local test doubles. Only public local keys are used in the legacy encoding comparison fixture; no real wallet secret, public transaction, device installation or release operation occurs. Downstream submission authority, exact wallet namespace during key lookup, ambiguous-broadcast retry, full runtime/migration coverage and physical/signed release gates remain open.
+
+## Pool wallet context and preparation — independently accepted, 2026-10-14
+
+Join drafts now require their original prepared main-state snapshot and wallet-selection epoch. Welcome, setup, selection and confirmation reject replaced contexts and wallet A-to-B-to-A changes while preserving valid edits and consuming known successful submissions independently of stale presentation. Preparation captures wallet and synchronous staking-selection intent before launch; shared ownership and conditional publication prevent old, queued or reentrant preparations from replacing a newer flow. Both join and management entry points use this protection.
+
+Corrected baselines reproduce 24 distinct failed cases, including seven preparation cases found during independent review. Source `20820b778` passes 101 focused cases and all 585 affected-module tests (427 wallet/158 staking), with zero failures/skips and no source drift. Debug assembly and lint pass with zero errors/98 inherited warnings. The staking API test task has no sources; its selection revision is exercised by the implementation tests. Configured Detekt passes UP-TO-DATE but excludes the changed staking modules. Candidate SHA `1442d334684447a89f94be857a11938bd4cd975915a6192ea172fda90560874e` binds 17 changed files, 4,272 app/376 library source/Git pins and 267 evidence files. Independent source and evidence review resolves PC-PREP-1 and accepts this bounded checkpoint (review SHA `0de1e062c64b30f1ba7130cd2ef6d1a6fd2d0a5965812f7e6760967a7b05832c`). Integration at `690e168ef` matches all source pins; verification SHA `5cbc6039a8fde5672d7498dc7243bf06ddc90f24087c1e0853d3dcd054a62336` records documentation-only differences. The earlier Mockito fixture errors and missed second-caller compilation failure remain separately recorded in `docs/android-pool-context-validation.json`; stale copied XML is excluded from executed-test counts.
+
+This qualifies callers and preparation. Downstream key access, signing, submission and ambiguous broadcast remain open: the pool API still uses legacy extrinsic submission, and account-specific fee construction also reaches the key provider before confirmation. Native dismissal/configuration, protected-wallet continuity, process durability, other pool operations, the complete upgrade matrix and physical/signed release checks remain separate gates. These runs use local fixtures and perform no signing, RPC, public transaction or device installation.
+
+## Pool join lifecycle — qualified candidate, 2026-10-14
+
+A shared submission claim now spans confirmation instances. A known API success consumes only its owned draft before cancellable dispatch-back; reentrant observers cannot redirect the completion receipt to a newer draft. Back/dismissal revokes queued admission and presentation, repeated Back is idempotent, and old success or failure cannot clear or navigate over another flow. Setup and selection bind their original flow lineage, permit legitimate back-editing, reject unrelated replacements and explicitly exit consumed drafts. A separate edit generation invalidates older validation as soon as submission starts, including after a failed submission releases its claim.
+
+Corrected baseline runs reproduce 24 distinct failed regression cases, with healthy controls. Source `1d7cb371a` passes all 55 focused cases and 539 affected-module tests (427 wallet/112 staking), with zero failures/skips and no source drift. Debug assembly and lint pass with zero errors/98 inherited warnings. Configured Detekt passes UP-TO-DATE but excludes staking and other affected modules; it supplies no static-analysis coverage for these files. Candidate SHA `590bdc4e967fffca914c4f1911960d19b14903681b926eb60e92359ae1d01057` binds 13 changed files, 4,267 app/376 library source/Git pins and 256 evidence files. Independent final review SHA `254fb00bafe9c428c89bc1f9c01cba51ba2a2b90de173861aa656e1ac43d6784` rehashes every source/evidence pin and verifies raw focused/full/baseline counts, with no further bounded blocker. Earlier fixture compilation, suspend-Result boxing and obsolete-control expectation failures remain preserved and separately identified in `docs/android-pool-lifecycle-validation.json`.
+
+Fragment cancel/dismiss wiring is source-reviewed; actual native dialog/system dismissal and configuration journeys remain to be qualified. Wallet selection/authorization, main-state context, downstream cancellation or ambiguous broadcast before API-observed success, crash durability and other pool operations remain separate gates. These checks use local mocked dependencies only: no signing, RPC, public transaction, device installation or new protected-wallet continuity claim. Full upgrade, design and physical/signed release gates remain open.
+
+## Pool review and chain context — independently accepted, 2026-10-14
+
+Pool confirmation now captures a revision of the shared join draft, checks that revision before claiming and again before queued work starts, and only clears/navigates when the successful review still owns the draft. Publishing an equal value again does not revive an old confirmation. Setup and confirmation pass their displayed chain explicitly through the interactor and API for join fees and submission, so later global selection cannot redirect the operation.
+
+Four actual ViewModel failures were reproduced for replaced/restored/queued reviews and late success. Two further failures were reproduced through the actual ViewModel, real interactor and real API with a local extrinsic recorder. Final source `0e8297de7` passes 15 focused cases and all 499 affected-module tests (427 wallet/72 staking), without skips; Debug assembly and lint pass with zero errors/98 inherited warnings. Configured Detekt passes from cache but excludes the changed staking module. Candidate SHA `42b8048170cbcdbc5021fbaf8e6a00e9afe07a40dfa4517c673ef944757a63fc` binds eight changed files, 4,265 app/376 library snapshot pins and 162 evidence files. Initial compile/matcher fixture failures and stale XML are retained and excluded from executed-product-failure counts. Independent review SHA `a2bdc118fedbd75ca377dbae92387e04dbdda53880c02569884a7e538650343e` verifies every pin and result. Source-exact integration `8cd7cb3b5` is verified by SHA `5b60bea24668de125c7eb27f243147fb5a35f3b51dd31616548283f0d9594b8c`; accepted integration documentation is preserved.
+
+This checkpoint does not reserve submissions across separate ViewModels or revoke work after Back, dismissals or an already-started request. Stale error presentation, retained setup/select draft handlers, wallet authorization epochs, other pool operations and downstream ambiguous/cancelled broadcasts remain open follow-ups. Only public synthetic data and local test dependencies were used; there is no signing, RPC, device-installation, new visual/continuity or release claim. See `docs/android-pool-review-context-validation.json`.
+
+## Confirmation submission ownership — qualified candidate, 2026-10-14
+
+The actual pool and Send confirmation ViewModels now claim a submission before suspension, retain the claim after success even if navigation fails, and release refused/failed/cancelled attempts with loading cleanup. Send validation and transfer execute in one owned coroutine; validation errors are shown, warnings still require explicit acknowledgement, and an already successful review stays disabled. These changes protect caller entry points independently of loading-container input interception.
+
+Corrected baselines reproduce five pool failures (one healthy control) and five Send failures (five healthy controls). The candidates pass seven pool and ten Send tests with no skips using only local held dependencies; no signing or network submission occurs. Retained initial diagnostics include Mockito suspend-Result boxing and a test that selected the wrong successful-navigation overload; corrected fixtures reproduce genuine failures before remediation. The first broader run passes 488 wallet/staking unit tests, Debug assembly, configured Detekt and lint (zero errors/98 inherited warnings). Independent review then reproduces four additional failures: known success lost during cancellation at the Send dispatch boundary, and Result-valued cancellation shown as an error in Send validation, Send transfer and pool submission. Known success is now claimed inside the submitting coroutine before dispatch-back, and cancellation is rethrown before presentation. All 21 focused tests pass (13 Send/eight pool); final source `99e246d37` also passes all 492 affected-module tests (427 wallet/65 staking), Debug assembly and lint with zero errors/98 inherited warnings, with 4,264 app/376 library pins unchanged. Configured Detekt passes from cache but excludes the changed wallet/staking modules; it does not provide analysis coverage of these files. Manifest v2 SHA `3f3f4f7432ccf97b61fe90b6364d8f8121f8a0cf83e6eb12a3148eec1144f8ca` binds four changed source files and 276 evidence pins. Independent final evidence acceptance remains pending. These are per-ViewModel claims, not durable transaction deduplication across process death or ambiguous broadcasts.
+
+## Loading input — independently accepted, 2026-10-14
+
+Source `53876ee49` passes 761 unit tests without skips (618 common/143 app), lint with zero errors/98 inherited warnings, configured Detekt and Debug assemblies. All seven actual-container interaction methods pass on APIs 30/31/34/36; each separately compiled global/surface paint rollback passes the same seven plus four paint/motion methods and four flag unit tests. The candidate also passes four paint/motion and ten existing wallet/navigation/mnemonic methods: 64 native executions total. Every one of the 321 comparison PNGs is byte-identical to the accepted presentation checkpoint. The original PIN opens the public wallet and both wallets appear in the picker; two wallets, four chain accounts and seven protected records remain exact with SQLite quick-check ok.
+
+The preserved expanded baseline fails six of seven input tests. Persistent ancestor pointer interception now cancels covered and complete-cycle gestures; covered focus/keyboard activation and semantic actions are suppressed only while busy, and the original content composition and caller Back behavior survive. Paint rollback retains this input safety correction. Manifest SHA `531eea1f37ac488ee8c4ba94fa5f6fa63971b2e381839d7e1d5508082f92ca9d` binds four changed source files, 4,262 app/376 library source files and 676 evidence files. Independent review SHA `3a6937309d52defbd0d25a8c9f356736946da523bf4d7f86a59714545bc522f8` rehashes every source/evidence pin and independently reparses native/unit results, all 321 unchanged images and protected wallet state. Integration matches all 4,262 app/376 library pins and the complete non-documentation source tree. Physical assistive technology and caller-side submission reentry are separate gates; no transaction or release claim is made. See `docs/android-loading-input-validation.json` for failure provenance and setup limits.
+
+## Loading appearance — independently accepted, 2026-10-14
+
+Final source `8fc0cd8cb` passes 756 unit tests with zero skips (613 common/143 app), lint with zero errors/98 inherited warnings, configured Detekt and Debug assemblies. API 30/31/34/36 each pass four native methods, producing 320 locale/size/effect text layouts and 428 PNGs in total. The exact rendered text/surface/arc roles pass in every layout; text contrast is 15.794 and arc contrast is 11.884. Both compiled rollback modes pass four unit and four native methods each, restore all 24 original frames exactly, and match each other in all 107 PNGs. Ten required existing wallet/navigation/mnemonic UI methods also pass with 37 captures. The two installed public wallets, four chain-account records and seven protected records remain exact; the original PIN opens the wallet and both wallets appear in the native picker.
+
+The default-off Loading flag under the global appearance boundary selects still skeletons and a static arc when Reduce Motion is enabled, a quieter 1,600ms ordinary shimmer, localized progress copy in all eight shipped locales, and an opaque progress surface over a blur-free busy backdrop. Actual line-bound checks prove complete labels fit the existing 320×120dp host at normal and double-size text. Manifest SHA `3b1cfc0c4435c94b95cfd7df0879c54fc8500ce54ac3d95fae12a8704543a92a` binds 20 changed source files, 4,259 app/376 library snapshot files and 969 evidence files. See `docs/android-loading-appearance-validation.json` for checks, failed baselines and setup limitations. Independent acceptance SHA `b28d73677d60c54ffdcc3a81bb28e82e86c10bdfccfe04533e4ba6f22213bb02` verifies the complete source/snapshot/evidence inventory and independently repeats pixels, frame equality, unit counts and public-wallet continuity. Integration matches all 4,259 app/376 library snapshot files and the complete non-documentation source tree.
+
+The initial frame harness was built but not run because its sampling ended before the pinned library's 1,500ms initial delay; corrected sampling reproduced the motion failure before remediation. API 30 extraction required post-test debug root on the fresh public-fixture emulator after scoped-storage denial; denied airplane-mode setup and the absent API 31 phone service are retained without an offline-device claim. These checks qualify guarded loading presentation. FullScreenLoading input interception/modal semantics, physical assistive technology, remaining screens, the complete upgrade matrix and production release gates remain open.
+
+## Raw colour guard — independently accepted, 2026-10-14
+
+Source8d3767434 is integrated with exact equality across4,255 app and376 library files and no non-documentation differences. Independent review verifies all4 changed-source and586 evidence pins. All611 common tests pass with zero skips; configured Detekt passes. A real cross-module source injection first exposed a Gradle UP-TO-DATE false green; declaring repository source, baseline and Git/base inputs fixes it. The same injected literal then fails the intended test (610 pass/1 fail), and removing it restores611 passes. The96 occurrence baseline only shrinks against the actual PR/push base. This accepts the native literal guard and cache invalidation only; no new UI/rendering or production-build claim is made. Full colour migration, broader screen, upgrade and release gates remain open. See docs/android-raw-colour-independent-review.json and docs/android-raw-colour-integration-verification.json.
+
+## Recovery appearance adoption — independently accepted, 2026-10-14
+
+Final bounded candidate source ba6fe5799 (production f49821c6e) is independently accepted and integrated through f12022058. Review SHA 3bc15251ea35699e787ddf22c05b52ee17a670a12ef27eb528b1cb520cf1e51a verifies the evidence and independently replays all rendering gates; 4,253 app and 376 library source hashes match and every non-documentation file equals the qualified lane. Manifest SHA441e8e38825fe95fbc5fe68c6a6830e10f303c23a39c96625cb91f9c2b4cfb30 pins14 changed source files,4,253 app/376 library snapshot files and3,572 evidence files. Production checks pass1,298 unit tests/0skips, lint0errors/98 inherited warnings, configured Detekt and Debug assemblies. Native candidate17 methods produces480 recovery and45 prior captures;333 exact comparisons,48 rendered-text groups and340 pixel-role checks pass. Separate3-method focus/press preflight passes40 captures; adversarial native text-fit controls accept the complete short line and reject ellipsis/height clipping. Both compiled rollback configurations pass4 unit methods and17 native methods each, with125 byte/pixel-identical reference images each. All320 legacy effects comparisons are exact. Original PIN opens the installed public wallet, both public wallets appear in the picker,2wallet/4chain/7protected records remain exact. Four representative double-text captures are reviewed; Russian long title wraps mid-word. See docs/android-recovery-appearance-validation.json for full failure provenance, scope and limits. Full R1–R10 recovery, other screens, global A3 and full upgrade/device/release gates remain open. Subsequent paragraphs preserve the earlier qualification history; the accepted final disposition above supersedes their pending-state wording.
+
+A native adversarial control now exercises the corrected line gate against the exact complete-short-line counterexample, an ellipsized narrow label and a height-clipped label. It must distinguish all three before the full candidate can be accepted; no production source changes.
+
+Native diagnostics establish the first overflow flag as paragraph-box versus measured-node width:616px paragraph,480px node and complete479.957px line, with56px height and no ellipsis/truncation. The harness now checks every actual line against the measured integer bounds (half-pixel rounding tolerance), plus complete final character, no ellipsis, no exceeded max-lines and no height overflow. Raw Compose overflow flags remain recorded. This replaces an invalid width-box inference, not a production text change; the full matrix still must pass.
+
+The frozen cross-version Banner replay exposed shifted resource integers after adding the localized Back string. Action lookup now uses the installed app's stable resource names; original mismatch is retained with aapt2 table evidence. The final candidate matrix independently stopped at an English1x title overflow assertion despite a visually complete title; exact paragraph/line diagnostics are now captured without relaxing that assertion. Final focus/press native3-method run passes40 captures; global and surface rollback builds both pass4 compiled-control tests with zero source drift. Complete matrix and visual acceptance remain pending.
+
+Caller review aligns the Banner locale fixture with WalletScreen's16dp horizontal gutters: the320dp host now gives the banner288dp. The frozen old app will replay80 banner captures before the final comparison. Prior fullwidth banner captures are preserved as standalone evidence; corrected Center160 and original Pin160 remain applicable. This test-only change does not alter production sourcef49821c6e, whose buildv5 passed with zero drift.
+
+The focus-state source correction34d79459c passes Debug assemblies, focused module suites, lint and configured Detekt with zero source drift. Runtime replay remains pending. Actual prior secondary-button pixels expose a separate Material-indication overlay: eight standard pressed captures have only2.687–2.691 inner-boundary contrast. The painted secondary now uses native clickable Button semantics with its explicit press/focus paint and no duplicate Material overlay; the unchanged action/geometry checks gain exact focused/pressed fill assertions. The v1 Back label now has translations in all eight shipped locales; rollback retains the old label. Final candidate build/native/rollback checks are pending.
+
+The keyboard-mode negative replay now reproduces missing rings on both frozen pre-correction controls. Candidate preflight passes Back and secondary focus/press across all ten size/effects combinations, but the recreated Lite banner reports native focus while its outside ring is absent. Failed pixels/logs are retained. The correction reads actual focus-node state through onFocusChanged rather than relying on a collected interaction stream; the unchanged native regression must pass before acceptance. Full rendering and compiled rollback qualification remain pending.
+
+The first focus regression run is invalid as a missing-ring reproduction: both nodes stayed in touch-input mode and failed before pixel sampling. The harness now requests actual keyboard input mode. Visual review also rejected the original Center color reference: its standalone Box omitted production BaseComposeFragment's Scaffold content-color provider. Center now uses Material Scaffold and will replay on the frozen pre-restyle APK. The160 affected captures remain; this is a fixture correction, not a claim that the installed app rendered black text. The17 prior native passes/45 unchanged old UX captures remain valid within their stated scope. Optional explicit screen/effects subsets support focused replay, with unknown/empty filters rejected.
+
+Independent source review identified missing explicit keyboard focus on the banner and Back control. Both now share the outside ring/gap treatment, with two actual-control pixel probes prepared against the frozen pre-correction app. The first candidate app assembled, but its test compilation stopped on an invalid test-only onAllNodes import; corrected without changing the intended assertions. Failed build and pre-correction APK are retained. Final checks remain pending.
+
+The scoped recovery banner, recovery center and PIN recovery now consume the approved semantic palette, locale-aware type and opaque Calm presentation when the compiled Recovery flag and v1 palette are both enabled. Secondary actions retain their original callbacks/targets, have full-width wrapping labels, 48dp minimum height, a declared control rim and an outside keyboard-focus ring. The banner uses a warning glyph/leading bar and an opaque status composite. Legacy branches remain the default; no wallet, PIN, key, import or persistence code changes.
+
+The frozen pre-change APK successfully rebuilt after regenerating a missing dependency Dex input, with zero source drift; its native baseline is still running. The new candidate adds rendered-text overflow and actual focus/press checks to the public-fixture locale/effects matrix. Candidate build, native qualification and both compiled rollback comparisons are pending. This is a presentation slice, not completion of the full guided R1–R10 flow, global A3 palette mapping, archives, physical assistive-technology or release gates.
+
+## Recovery presentation baseline — in qualification, 2026-10-14
+
+A public-fixture native harness captures the existing scoped-recovery banner, recovery center and PIN recovery before appearance changes. It exercises8 locales,1x/2x text and Full/Lite/Reduced/high-contrast/reduced-motion inputs at320×640dp. Each callback records its original public target/import mode, including separate biometric/view-only actions, retained-data routes and backup. No wallet/key/persistence operation is invoked. The baseline is building; no new screen appearance is accepted. Generated palette mapping, full guided recovery details, archives and broader screen/device gates remain open.
+
+## Build-time appearance rollback controls — independently accepted, 2026-10-14
+
+`FW_PALETTE=legacy|v1` and thirteen `FW_RESTYLE_<SURFACE>` booleans are compiled into common BuildConfig from Gradle properties. Invalid values and unknown surface flags fail configuration. `FwRestyle.isEnabled` requires both v1 and the requested surface; legacy overrides all individual flags. Defaults remain legacy/false while screen migration proceeds. No production screen consumes these controls yet; this adds the rollback boundary, not the A3 palette swap or completed screen rollback. Wallet state, preferences and remote configuration do not participate.
+
+Qualification inspects17 valid generated configurations, including all13 individual rollbacks, and rejects9 malformed/unknown configurations with the intended diagnostics. Four focused compiled configurations pass4 tests each; final default passes603 common tests without failures/skips and configured Detekt (which excludes common/app). All4,250 app/376 library source pins remain stable. See `docs/android-appearance-validation.json`; independent final acceptance is recorded in `docs/android-appearance-independent-review.json` (SHA `847ee24c885dbd910d7f2bc0efd73647fc31e132811cb59f5c93f48da4c01843`). Full non-documentation source equality with tested `e92aaa18b` is verified. Individual non-Recovery configurations are generated-field checks, not separate JVM/device runs. Full appearance adoption, screenshot rollback proof and release gates remain open.
+
+## Shared paint helpers — independently accepted, 2026-10-14
+
+Static backdrop, glass, Phase0 no-blur chrome, gated glow and raised/inset controls consume the approved palette and inherited effects. Drawing preserves child actions and bounds; decorative layers stay beneath content. Calm, Reduced and high contrast use opaque surfaces without glow/shadows. Focus/error rims remain, with error taking precedence. Repeated controls can disable raised shadows. No production screen adopts these helpers yet.
+
+Final v3 passes143 app and599 common tests, Debug assemblies, lint0errors/98 inherited warnings and configured Detekt; all4,245 lane/376 library source pins remain stable. The configured Detekt task excludes common/app, so this is not a scoped Detekt-clean claim. Final API34 pair passes11 baseline/15 candidate methods with91 paint captures. All45 existing UX/theme PNGs remain pixel-identical. Seven child actions keep exact bounds at1x/2x text across Full/Lite/Reduced/Calm/HC. Native tests verify child pixels, surface composites, focus/error precedence and square-circle/outline glow gating.
+
+Rendered analysis rejected the first generic/chamfer border: standard1.61/HC2.71 contrast versus required3. Direct clipped inside strokes fix the alpha loss. The new native regression fails on the frozen old app and passes on the final app for generic raised/inset/glass standard/HC. Final35 sampled surface strips contain6,300 background pixels;340 foreground-role checks and25 control rims pass (minimum text4.629, boundary3.516). This measures actual fixture backgrounds against declared native colours, not glyph raster or every screen. The first compile import error,99-warning intermediate build and failed pixel/reproduction results remain preserved.
+
+Original PIN and both wallets remain available through fresh UI XML;2 wallet/4 chain rows and7 protected records are exact. See `docs/android-paint-foundation-validation.json`; independent final acceptance is recorded in `docs/android-paint-independent-review.json` (review SHA `dd6c34816608a553230d1909ac7f90dc08e033b6070c1c6b571b144ddcc82950`). Full non-documentation source equality with tested `7c29a12cb` is verified. Remaining A1/A3/A5 work includes build-time appearance rollback, screen adoption, older API26–27 shadow qualification, all-locale/physical accessibility and final release gates. No wallet, cryptographic or transaction code changes.
+
+
+
+## Full shared contrast contract — independently accepted, 2026-10-14
+
+The byte-pinned shared contract now covers 33 pair groups (172 permitted foreground/background combinations), composite backdrop recipes, standard/high contrast, and price-colour CVD floors. The native JUnit port evaluates actual generated Compose semantic colours and actual status-container alpha, with rounded sRGB composition and every rounded primary-fill interpolation colour. Pure white under chrome, strict unrounded text/control ratios, required inventory/hash and a deliberately failing control-opacity regression are checked. Final qualification passes all599 common tests (five new contract methods), configured Detekt and a stable4,243 lane/376 library source snapshot. The first native reference assertion incorrectly expected unquantized alpha; its failed log/XML are retained, and the correction checks actual8-bit values. Independent review of the shared engine found an exact gradient midpoint omission for opposing channels; both engines now include the midpoint and a regression. See `docs/android-contrast-contract-validation.json`; independent final acceptance is recorded in `docs/android-contrast-contract-independent-review.json`:2 source/Git,342 evidence and4,243 app/376 library snapshot pins match. Integration retains full non-documentation equality. This test-only checkpoint does not change production paint or replace pixel/accessibility checks; iOS/web ports, per-screen use and broader release gates remain open.
+
+
+## Semantic typography and offline font licences — independently accepted, 2026-10-14
+
+The approved type scale now has explicit body/number/title/mono/HUD/recovery-word roles. Sora titles are limited to supported Latin locales; Russian/Vietnamese use Inter and Japanese/Chinese use the system body family. Amount roles use body tabular figures. Two exact JetBrains Mono 2.304 fonts and original Sora/Inter/JetBrains OFL notices are bundled with source pins. About has a localized offline licence entry and a scrollable dialog with a fixed Close action. Existing Material typography is unchanged.
+
+Six new JVM tests cover role/locale/weight choices, exact bundled bytes and notice reading. The final v5 build passes 1,289 unit tests with zero failures/skips, Debug app/test assembly, configured Detekt and lint with 0 errors/98 warnings; all 4,241 lane and 376 library source pins remain stable. Final paired native runs pass 11 baseline/14 candidate methods, and all 45 pre-existing UX/theme captures are pixel-identical. The three typography methods exercise eight locales at normal/double text with 64 new captures, actual localized title/Close and rendered font-scale/overflow assertions. Visual inspection verifies the corrected Japanese, Russian and Turkish double-size dialog captures. Original-PIN unlock and both wallets are observed in fresh UI XML; all 2 wallet/4 chain rows and 7 protected records remain exact. The initial native v1 pass was rejected because its separate dialog window reset caller locale/density; corrected providers preserve those values. The subsequent title-width failure is fixed with full-width heading constraints, retaining strict overflow assertions. Failed compile/runtime attempts and rejected captures remain evidence. See `docs/android-typography-foundation-validation.json`; independent final acceptance is recorded in `docs/android-typography-independent-review.json`. Integration source `6cbda37f7` matches all 22 changed source pins and every non-documentation lane file. Independent review rechecks 1,220 evidence pins and all 4,241 lane/376 library build-source pins.
+
+This is partial A1/A4. Full legacy Sora restrictions, small-text retirement, per-screen adoption, populated About/assistive-service coverage, Bold Text, older APIs, physical devices and final release gates remain open. No wallet, cryptographic or transaction code changes.
+
+## Live effects and theme providers — qualified candidate, 2026-10-14
+
+Both reusable theme hosts now provide the approved Fw palette and effects state while retaining existing Material colors and typography. High contrast wins over Reduced/Lite/Automatic choices; battery saving and low-memory/older devices select Lite. System contrast, power, animation scale, ordinary appearance preferences and resume refresh update live. A nested Calm wrapper retains contrast/motion and disables decorative paint. Phase0 live blur remains disabled.
+
+Final qualification passes143 app and588 common unit tests with no failures/skips, Debug app/test assembly, configured Detekt and lint0errors/98warnings. All4229 lane and376 library source pins remain stable. The final API34 suite passes13 native methods: both hosts exercise actual system contrast thresholds, power-saving transitions, preferences, animation scale and nested Calm. The original settings and raw preference values are restored. The empty debug test host handles uiMode so battery saver cannot recreate and discard injected content; activity-recreation behavior is not claimed by that test.
+
+The final paired baseline/candidate runs pass11/13 methods and all45 in-process captures are pixel-identical at narrow width and normal/double text. Earlier comparison across changed system window geometry is retained; it is superseded by the final same-session pair. Original-PIN unlock and both-wallet availability are verified through fresh UIAutomator XML/actions, not black full-app PNGs. All2 wallet/4 chain rows and7 protected records remain exact. The hidden-setting permission failure and empty-test-host recreation failure are retained diagnostics. Independent final review `docs/android-effects-foundation-independent-review.json` verifies all7 source/Git and808 evidence pins,731 unit passes,11/13 native methods,45 exact paired captures and2 wallet/4 chain/7 protected records. The integration source exactly matches the qualified candidate.
+
+This is partial A1 plus A2 theme plumbing. Appearance UI (including acknowledged failed-save behavior and off-main-thread writes), modifiers, typography, palette flags, actual paint consumption, session-jank Auto-Lite and full OS/locale/physical-device/release gates remain open. No wallet, cryptographic or transaction code changes.
+
+## Generated token foundation independently accepted — 2026-10-14
+
+Source `cb222fc51` is integrated at `61fa4aaba` with exact tracked non-documentation equality. Independent review verifies12 source/Git,247 evidence,3 shared-generator/Git and4600 build-snapshot pins. All584 common tests,8 shared/3 legacy generator checks,11 native methods per artifact and45 pixel-identical paired fixture captures pass; lint has0 errors/98 warnings. Original-PIN and both-wallet availability use fresh UIAutomator XML/action evidence: full-app adb PNGs are black and are not visual proof. In-process fixture captures are nonempty. All2 wallet/4 chain/7 protected records remain exact. `docs/android-token-foundation-independent-review.json` records the bounded acceptance. Effects/providers/type, rollback flags, full contrast/CVD/guardrails, visible palette and screen migration, historical/physical and signed-release gates remain open.
+
+## Generated token and legacy palette foundation — qualified candidate, 2026-10-14
+
+The approved shared token source now generates Compose and XML colors. Existing Compose constants, night aliases and XML names resolve through a generated frozen legacy palette without a value swap. Independent source review verifies58 Compose values/aliases, one ordered four-color gradient,23 night aliases and42 XML colors; existing helper bodies are unchanged. Eight shared-generator and three legacy-generator checks pass. The first actual Android build exposed an invalid generated XML comment; the shared generator correction and a real XML-parser regression are retained with the failed baseline.
+
+Final qualification passes584 common tests with zero skips/failures, Debug app/test assembly, configured Detekt and lint0errors/98warnings. All4224 lane and376 library source pins remain stable. Baseline and candidate each pass11 native UI methods; all45 paired captures (37 UX plus8 theme) are pixel-identical within the same emulator session. The installed candidate accepts the original PIN and displays both wallets;2 wallet rows,4 chain accounts and7 protected records remain exact. See `docs/android-token-foundation-validation.json`. Independent final acceptance is pending. This is partial A1 only: effects/modifiers/type, Fw providers, rollback flags, full contrast/CVD/raw-color guardrails, palette swap and screen migration remain open.
+
+## Dark-only theme ownership — candidate, 2026-10-14
+
+The two reusable Compose themes select a light palette when given a light configuration, contrary to their dark-only contract. Main/startup/emergency activities already force dark mode; this is a reproduced theme-boundary leak, not an observed light Portfolio. The baseline captures the real amount component under both hosts at normal/double text and fails exactly the four light-configuration cases. The fix makes the common theme entry select the existing dark palette and removes obsolete preview overrides. No palette values or storage behavior change. Final qualification passes 143 app and 581 common tests, Debug assemblies, configured Detekt and lint with zero errors/98 warnings. Eleven native UI methods pass with 37 fresh UX captures. Same-session baseline/candidate theme rendering preserves all four dark renders byte-for-byte; all four light configurations now match. The installed app unlocks with its original PIN and shows both wallets; two wallet/four account/seven protected records remain exact. `docs/android-theme-boundary-validation.json` pins the source and evidence. Independent acceptance verifies all five source/Git and243 evidence pins, exact paired PNGs and protected records; integration `d9dbbf9e4` matches the qualified source. Broader generated-token/effects and screen migration remain open.
+
+## Approved wallet avatar — qualified candidate, 2026-10-14
+
+The shared library replaces only the legacy bird cutout with the checksum-pinned solid winged-sun badge. Address-derived palettes, circle geometry and Ethereum avatars remain source-identical. All 12 native AndroidSVG cases retain exact colors and geometry; each renders the new shape distinctly. Debug app/test assembly, 581 common tests and three native asset/avatar methods pass. The installed app unlocks with the original PIN and displays both wallets; all two wallet rows, four chain rows and seven protected records remain exact. `docs/android-avatar-brand-validation.json` binds the source and evidence. The runtime dependency guard now pins shared-library commit `fbbc2802c8ef5a7e3ab5e8d565fc897c70a75331` and its exact tree. Independent acceptance verifies all seven source/Git pins and 166 evidence pins; integration is `5ca40bda2`, shared library `fbbc2802c8ef5a7e3ab5e8d565fc897c70a75331`. The integration source matches the qualified candidate. Full theme migration, physical-device and release gates remain open.
+
+## Android brand assets independently accepted — 2026-10-14
+
+Source `e8f4a2e50` is integrated at `f6da94035`, with candidate manifest `docs/android-brand-assets-validation.json`. All51 current/Git source and542 evidence pins match independent review `35eb0ed7aa1d88c89fb64d32a9cb1f23fc50ef305d5abbf9839db7d6ec747190`. Final APK passes1,441 unit tests/10 recorded skips,2 native asset/Coil tests, and the pixel-corrected320dp normal/double-text screen method. Actual PIN/Welcome/About and2 wallet/4 native account/7 protected-record preservation pass. Final lint has0 errors/98 warnings; two long-vector performance warnings remain explicit. Earlier failed renders and test diagnostics are retained. The documentation merge preserves both earlier startup acceptance and branding history. Avatar/general-art, broader design and production release gates remain open.
+
+
+## Startup U0 independently accepted — 2026-10-14
+
+Lane `a440e8312` is integrated with exact non-documentation equality. Independent review verifies15 changed sources,3313 compiled-source files,404 evidence pins and240 accepted captures with zero mismatch. All724 unit tests and4 device method executions pass. Actual offline unsupported-policy update retains original-PIN access and exact2 wallet/4 account/7 protected records. Warning control tests separately prove Continue/Retry/Update at both text sizes in8 locales. `docs/startup-u0-independent-review.json` records scoped acceptance; full installed-cohort, physical and release gates remain open.
+
+## Approved sun-disc artwork — candidate, 2026-10-14
+
+Visual thesis: the approved winged sun disc anchors app entry on calm dark surfaces. Content plan: line-art launcher badge, colour Welcome/About lockup, compact solid marks, and neutral missing-artwork placeholders. Interaction plan: existing navigation remains; artwork is static and the Android12 system splash has no forced wait or decorative animation. The approved SVG bytes are checksum-pinned under `brand/sun-disc`; `scripts/generate-brand-assets.py` derives native vectors, adaptive foreground/background and density rasters. Both Debug and Release overlays use those assets. Android12 launch attributes use the system SplashScreen styling. Bitcoin/Solana use offline two-letter monograms across canonical and retained catalog aliases. Qualification is pending; generated assets alone are not visual or release acceptance. Legacy wallet-avatar clipping lives in the shared library and remains a separate follow-up.
+
+
+## Startup U0 — remote policy and optional refresh follow-up, 2026-10-14
+
+Three held-response regressions reproduce local services waiting for remote startup data, optional refreshes delaying completion and caller cancellation losing ownership. Unsupported-version behavior is also covered; its initial relaxed remote-config fixture was corrected to exercise actual cached and fetched unsupported policies. Local services now start before those awaits, optional refresh jobs are independent and guarded against duplicate active work, and policy/version warnings allow Continue. Opening the update store no longer closes the wallet. Policy-save failures remain visible; cached feature vetoes and key authentication are unchanged. The baseline records four failures, including that corrected policy fixture; the first corrected run has15 passes and that one fixture failure. Final qualification passes143 app and581 common tests (724 total, no failures/skips), Debug app/test assembly, lint0errors/98warnings and configured Detekt. All3313 compiled-source hashes remained unchanged. Frozen APK SHA256 `6f230509e0e3bf7c4c95be70eae7cfde0e3961350c302726238f7e24e8d4788c` passes both warning-control methods at actual font1.0/2.0 on320dp, across all8 locales;240 exact fresh captures are pinned. An in-place update of the preserved owned wallet under offline unsupported policy reaches the original PIN and both wallets. All2 wallet rows,4 native account rows and7 protected entries are unchanged. The policy and connectivity test overrides were restored. Actual warning Continue/Update taps are qualified in the component tests; the full startup capture proves wallet access, not an observed Continue tap. See `docs/startup-u0-validation.json`. Physical-device, final upgrade and release gates remain open.
+
+## Native network and cache-startup integration — 2026-10-14
+
+Imported-wallet catalog/enrollment, host theme, durable node selection, per-request Solana genesis and original-payment network binding are integrated from lane `237b5c6c8`; every tracked non-documentation file is identical. The combined behavior source passes 1,939 unit tests with14 recorded skips, lint0errors/98warnings, two private-chain scenarios and13 UI tests at each normal/double system text size. The final localized-notice delta passes581 common tests and7 recovery/portfolio tests at each size. After its in-place install,2 wallet records,4 chain accounts and7 protected records remain exact. `docs/native-startup-network-integration-review.json` records pins and capture limits. Remaining U0 work covers app config, unsupported versions and awaited ancillary refreshes; branding, historical upgrades, physical devices and source-bound release gates remain open.
+
+## Retained-payment notice — final source follow-up, 2026-10-14
+
+The combined candidate passes1,939 unit tests with14 recorded skips, lint0errors/98warnings,2 private-chain scenarios and13 real UI tests at each actual font1.0/2.0 on320dp. Raw review then found that the unavailable-network dialog reused copy asking the user to review a new payment, even though an unbound saved payment cannot safely be replaced. A specific notice in all8 shipped locales now says the saved payment is retained and status/retry are unavailable. Only this notice and its UI assertion/capture change. Final debug APK SHA256 `43e6dc742282ebf1559af313924cd06db5dbe8e1624f0fcc57435d7af8895407` passes 581 common tests, debug/test assembly and configured Detekt, plus seven native recovery/portfolio tests at each actual system font1.0/2.0 on320dp (14 executions). Raw normal/double notice and scrolled Close captures were reviewed. All2 wallet records,4 chain accounts and7 protected records remain exact after the in-place install and tests. `docs/retained-network-notice-validation.json` pins this scoped follow-up; full startup U0 and release gates remain open.
+
+## Startup cache, grouping controls and native navigation — candidate qualification, 2026-10-14
+
+Remote registry/types failures now start local wallet services and offer Retry or Continue. Retries use the
+failed step and do not duplicate local services or connection observers. App-config cancellation is
+propagated; an offline request can use a supported cached policy, but a failed policy write cannot silently
+fall back to an older policy. Unsupported-version enforcement and awaited ancillary refreshes remain
+explicit startup follow-ups; this is not a claim that every startup failure is nonblocking.
+
+Actual imported-wallet testing found two more defects: the portfolio grouping selector collapsed to zero
+height inside the list, and Solana Send exposed an unsupported cross-chain route with no destination.
+The selector now measures normally and changes both lenses through actual taps. BTC/SOL Send hides the
+cross-chain action and rejects stale/unsupported callbacks; eligible legacy routes remain covered.
+
+Settled320dp/double-text captures reproduced inaccessible startup alert actions. The shared alert now
+opens expanded and scrolls long content. Two instrumentation methods pass at each actual system font
+scale1.0/2.0, exercising Continue and Retry through injected taps/swipes for8 locales and both cache failure
+steps;130 final captures are pinned. The same installed APK opens the preserved wallet with its original
+PIN, shows both grouping choices, switches lenses and opens native Solana Send without the XCM entry.
+
+Qualification:136 app tests pass after the config-persistence/header fixes;579 common tests pass after
+the alert change. The preceding broader candidate passes1,923 tests with14 recorded skips across app,
+wallet, account, runtime, core-db and common, with lint0errors/98warnings and configured Detekt. Actual
+generated Room DAO tests pass4/4. Portfolio4 and native Send/Recovery6 component tests pass at actual
+font2.0 on320dp. These source-scoped checkpoints are not a final combined-source acceptance. Exact logs,
+failed baselines, APK/source pins and captures are in the parent `build/safe-upgrade/evidence/codex-20261012`.
+
+The latest alert APK SHA256 is `2b403724f87ed2d52862eaa15d5a302643110fb711b3864271c82783557b97b1`;
+all3182 tracked/untracked compiled-source hashes checked at build start remained unchanged at completion.
+Solana durable network identity is being corrected in a separate slice after two failing alias-replacement
+recovery regressions. Final historical upgrades, independent integration and release gates remain open.
+No public-network signing or broadcast was performed.
+
+The same installed artifact also passed actual Solana Add Node, selection and rename, with the active URL disabled. The custom choice and name survived a process restart and original-PIN unlock. Comparison with the prior two-wallet snapshot preserves all2 meta-account rows,4 native chain-account rows and7 protected preference/key entries byte-for-byte. The failed devnet Add Node attempt displayed a generic connection error; that UI attempt alone does not prove genesis rejection.
+
+
+## Solana cluster binding — candidate checkpoint, 2026-10-14
+
+Five real RPC regressions failed before correction. The adapter now pins the selected registry genesis hash, rechecks the exact endpoint before every read/broadcast, preserves that pin across provider changes, and rejects wrong clusters before wallet RPC. Balance, reviewed transfer, retained-payment recovery, and Add/Edit Node select the same network identity. Private-validator tests inject and record that owned run's actual genesis; no check is bypassed.
+
+The combined candidate passes579 common tests and24 node tests, with397 wallet passes and one preserved test-cleanup timeout. Corrected bounded Main-dispatcher cleanup passes the18-test wallet-list suite. Both private Bitcoin/Solana scenarios pass, including native/token fee/rent/Max and exact-byte ambiguous retry. Debug/test assembly and configured detekt pass; Android lint reports0 errors/98 warnings after the debug-only network resource correction. Exact logs, failed baselines, APK hashes and source patches are under `android-solana-cluster-*` in the parent `build/safe-upgrade/evidence/codex-20261012` directory. Final combined module/Room/UI checks and independent acceptance remain pending.
+
+New actual-navigation evidence shows unsupported Solana Send can enter a paused XCM page with an empty destination picker. Three startup regressions also reproduce blocking registry/type refresh and swallowed cancellation. These follow-ups, final historical upgrades, physical-device and signed release gates remain open; this checkpoint is not production approval.
+
+## Imported-wallet send theme — correction in qualification, 2026-10-14
+
+The real imported-wallet Solana Send route crashed because `BaseComposeBottomSheetDialogFragment` uses legacy `FearlessTheme`, while the amount field consumes ui-core typography. The legacy theme now also installs `FearlessAppTheme` providers and retains its existing Material colors/typography. The native Send component regressions use the actual legacy host theme; their previous modern-only wrapper missed this failure. The captured process crash remains preserved. Rebuilt APK navigation and regression execution are pending.
+
+The first aggregate check produced 2,585 passes and 14 inherited skips in 17 reported modules, with some unchanged tasks up-to-date. It failed on a stale staking `Result<BigInteger>` mock and three debug network-security lint errors. The fixture now returns the real API shape and cancels its view-model scope. Debug loopback trust uses a distinct named resource selected by the debug manifest, with explicit subdomain policy; main/release trust is unchanged. Rechecks are pending. Native node/alias correctness is being corrected in a separate slice.
+
+
+## Native network discovery — remediation in qualification, 2026-10-14
+
+An actual launcher-to-public-mnemonic import reached Portfolio but exposed no native Bitcoin or Solana definitions. Runtime discovery now merges app-owned mainnet definitions, keeps recognized historical ids and exact chain-account identities, preserves the existing cache during a registry outage, and confines XCM discovery to a successful fetched snapshot. Native HTTP services bypass Substrate/EVM runtime setup; Bitcoin subscriptions do not require a websocket node. A wallet/catalog observer expands newly imported wallets without a process restart. No secret or existing public key is rewritten.
+
+Thirty-nine focused JVM tests pass with no failures/skips. Preserved baselines reproduce the missing catalog/subscription, wrong alias address and unrelated Substrate identity in native asset placeholders. Native placeholders now require their exact chain account, and both full/light address models prefer the requested stored id. Full checks, rebuilt imported-wallet navigation, independent review and final upgrade/release gates remain pending. No public-network transaction was sent.
+
+
+## WP-9 independent integration review — 2026-10-12
+
+Bitcoin/Solana send, exact-payment recovery and native review changes are locally integrated at `2c1196c84`, from qualified lane `f70d15cdd`. All 93 final source hashes and 230 frozen evidence hashes match. Every tracked file outside documentation is identical to that lane; documentation conflicts retained the earlier recovery and portfolio integration records.
+
+Independent review confirms 964 passing JVM tests and 12 native executions at system font scales 1 and 2, with nine representative captures inspected. Exact decimal amounts, fees, full addresses, separate Solana rent and recovery controls remain readable. Earlier delayed-Max, original-payment recovery and Bitcoin no-change findings are resolved. Private-chain production-service checks remain separately pinned at `2c54f65a7`. See `docs/wp9-integration-review.json` for the review and its limits.
+
+Imported-wallet navigation, physical-device and all-locale acceptance, historical signed upgrades and final source-bound release qualification remain open. No public-chain transfer or publication is claimed. Older checkpoint sections below retain their historical status.
+
+## WP-9 native payment review — local lane qualified, 2026-10-12
+
+BTC/SOL confirmation now preserves every reviewed decimal and full address, with Network first, separate Solana account-creation rent and Bitcoin sat/vB. Native Send stays disabled until the network, sender, recipient and amount are present; the exact amount is published with the ready fee. Warning actions remain reachable. Setup gives large-text network, amount and fee fields the width they need; the fee caption includes account creation where applicable. The new formatter covers a single lamport, nine-decimal fees and full-u64 SPL values without abbreviation or rounding.
+
+Final source passes 964 JVM tests (571 common and 393 wallet), debug app/test APK assembly and configured detekt (legacy-module exclusions unchanged). Six API 34 Compose cases pass at each actual system font scale, 1.0 and 2.0, on a 320 dp screen: 12 executions with zero failures/skips. They verify exact amount/recipient/network/fee/rent text geometry, warning actions, amount editing, Max/Continue, incomplete-review gating and retained-payment recovery. Thirty captures and exact source/APK/XML/log hashes are frozen in `docs/wp9-native-ui-validation.json`. Prior clipped-display attempts, compile failures and the unchanged balance-list teardown timeout are retained; the final source passes without suppressing tests.
+
+These are production screen components driven by public fixture states and callbacks. The separate private-chain checkpoint qualifies real signing, storage and transport at `2c54f65a7`; those paths are unchanged in this UI checkpoint. Independent final integration review, integrated historical/device acceptance, broader locale/device checks and governed release gates remain open. No funded public-network canary, imported-wallet end-to-end navigation, signed release or public transaction is claimed. Older WP-9 entries below describe their individual checkpoints; this entry supersedes their earlier open-gate lists.
+
+## WP-9 private-chain sends — native checkpoint qualified, 2026-10-12
+
+Production Android signing, RPC/indexer transport and durable pending storage now pass two real-chain instrumentation flows on disposable Bitcoin regtest and Solana validators (API 34, 4.636 seconds). Bitcoin proves the reviewed amount/fee, RBF, owned change, exact-byte restart retry without a duplicate payment, mined confirmation and a one-output Max spending its change. Solana proves native amount/fee, exact retry after a lost response, SPL with new and existing ATA rent, and native Max.
+
+The first run found a real Bitcoin bug: the ownership check required a change address even for a no-change plan. The fix checks ownership only for an actual change output. The affected wallet suite passes 392 JVM cases with no failures/skips, and debug app/test APKs assemble. `docs/wp9-private-chain-validation.json` binds source, frozen test XML, APKs, logs and helper hashes. Test-only loopback cleartext is confined to the debug resource. The runner removed its validators, temporary data and reverse forwards; no public-network transaction was sent.
+
+Full native Setup/Confirm exact display, compact/double-font captures, independent integration and broader release gates remain open. In particular, the shared abbreviated/eight-decimal formatter is being replaced for native reviewed values before that UI gate is closed.
+
+## WP-9 exact-payment recovery — checkpoint qualified, 2026-10-12
+
+A retained BTC/SOL payment now has a dedicated status dialog with the original network, amount, recipient, network fee and account-creation rent. After a restart it checks status or explicitly retries the same signed bytes; a new Max quote cannot authorize a previous payment. Unknown or expired Solana outcomes remain retained and cannot silently replace their blockhash. Asset details expose the recent payment and native explorer/history fallback. Submission shows neutral payment-status copy instead of claiming confirmation.
+
+Max requests now reject intervening amount/recipient edits, newer Max requests, wallet changes and exact-asset A→B→A changes, including the delayed input branch. Fee requests survive a zero starting amount and later provider errors. Drafts and explorer/history callbacks retain wallet revisions across suspended work. Remote-pause and view-only PIN errors keep actionable localized copy; all 25 review/recovery/error labels are present in the eight shipped locales.
+
+Final source passes 962 JVM tests (571 common and 391 wallet), with no failures or skips, plus debug app/test APK assembly and configured detekt (legacy-module exclusions unchanged). Four API 34 recovery-dialog tests pass at actual system font scales 1.0 and 2.0 on a 320 dp screen; six captures show the original review, expired outcome and reachable actions. `docs/wp9-recovery-validation.json` binds source, immutable XML, APKs, logs and captures. Earlier failed builds and the superseded LocalDensity-only font experiment are preserved separately.
+
+Remaining WP-9 gates: real Android production send execution against private Bitcoin/Solana validators; full Setup/Confirm native captures and exact-amount acceptance; independent final integration review and broader release/device gates. No public-network transaction or release acceptance is claimed.
+
+## WP-9 reviewed sends — source checkpoint qualified, 2026-10-12
+
+The production BTC/SOL paths now retain immutable reviewed transactions and durable signed bytes before submission. Bitcoin spends discovered receive/change UTXOs with owned internal change and an exact sweep; Solana uses RPC-only native/multi-account SPL messages with exact fee, ATA rent, priority, simulation and expiry checks. Confirmation uses its displayed quote/fee, exposes BTC sat/vB and separate account creation, and connects native Max. Selection revisions reject A→B→A work; canceled requests cannot publish late quotes. View-only PIN recovery cannot submit or retry a retained payment.
+
+Qualification: 570 common + 372 wallet + 92 core-db JVM passes (1,034 total), four existing core-db network skips, zero failures, plus debug source compilation and configured detekt (legacy-module exclusions unchanged). Frozen XML and 57 source/test/fixture/helper/resource hashes are recorded in `docs/wp9-reviewed-sends-validation.json`. The delayed quote tests cover selection ABA and canceled amount requests, and a DAO default-method test exercises the actual selection revision bracket. A full-run test lifecycle leak was fixed by canceling and joining test view models before resetting Main; previous failed logs are preserved.
+
+WP-9 remains incomplete: dedicated persistent pending controls, history/explorer fallback, full localized errors/recipient guidance, all eight review locales, native private-chain execution, APK/UI qualification and independent integration review remain open. No public-network transaction or final release acceptance is claimed.
+
+## WP-9 RPC balance and account checks — checkpoint qualified, 2026-10-12
+
+Production Solana balances now use the selected cluster RPC instead of the indexer, with exact SPL/Token-2022 inventory identity, full u64 balances, frozen-token spendability and preservation on incomplete data. New RPC account/status/height/priority methods and pure wallet/mint/token/rent preflight guards pass 912 JVM tests (549 common, 363 wallet), zero failures or skips. Bitcoin explicit/custom endpoints stay isolated from public fallback, and configured relay floors cannot undercut the selector minimum. `docs/wp9-rpc-validation.json` pins the 29 changed Kotlin files and immutable XML copies. These are building blocks: immutable send quotes, durable ambiguous-broadcast handling, send UI, all-address BTC spending and private-chain qualification remain in progress. No APK/native gate or public-network transaction is claimed here.
+
+## WP-9 Bitcoin/Solana correctness — foundation qualified, 2026-10-12
+
+Implemented signed Bitcoin mempool accounting, relay fee floor, strict supported-address validation, RBF sequence, bounded dust fallback and sweep primitive, plus sticky provider failover. Corrected an additional Solana ATA derivation defect: subgroup signature validation had been used instead of Solana's compressed-point decompression contract. The corrected result matches 523 independent Dalek cases and 64 web3.js owner/mint/program vectors. The final foundation passes 895 JVM tests (533 common, 362 wallet), no failures or skips, plus the configured detekt task, whose existing exclusions include these legacy modules. `docs/wp9-foundation-validation.json` binds 39 source/test/fixture/helper files and evidence hashes. See `docs/wp9-send-correctness.md` for source contracts and fixture reproduction.
+
+WP-9 remains in progress: RPC balance/account validation, all-address spendability/change, immutable quotes and durable ambiguous-broadcast protection, user-facing fee/rent/pending handling, and private-chain native execution are still required. No public-network transaction has been sent, and release gates remain open.
+
+## WP-5/6/7 portfolio and exact-network actions — reviewed and integrated, 2026-10-12
+
+By token is now the per-wallet default, with approved exact-member grouping, a By network alternative, persisted expansion, visible-total accounting and zero/hidden summaries. Singleton surviving groups become single-network rows. Manage follows the wallet's lens, keeps Hidden reachable, labels Auto/Shown/Hidden and applies group changes to every member. Its balances, preferences and writes stay bound to the same wallet across account changes.
+
+Send/Receive choose exact approved members, include available unfunded networks, reject ticker/native fallbacks and recheck the wallet after suspended lookups. Changed chain/asset identity clears the amount before loading; confirmation shows the full canonical Network first. The paused Send-to-Receive callback also retains the original wallet. Receive safety copy, sticky vetoes and obsolete-payment cleanup remain intact.
+
+Final source passes 487 JVM tests (361 wallet, 126 app), no failures or skips, debug and instrumentation assembly, and the configured detekt task (which excludes these legacy modules). Three API 34 Compose cases pass at each system font scale, six executions total; 12 final captures were inspected at actual 320 dp width. Pixel review repaired Network ellipsis, Manage scrolling and checkbox contrast. Twenty strings are present in all eight shipped locales. `docs/wp567-portfolio-validation.json` binds all 48 changed source/test/resource files, APKs, logs and captures; `docs/wp567-portfolio.md` explains behavior and contract precedence. Independent review and integration are complete at `b2c5af689`: all 48 source pins and 97 artifact/evidence digests match the lane; source outside documentation is identical to `9718a1d5e`. Four large-text portfolio, Manage, Receive-picker and confirmation captures were independently reviewed. WP-9 protocol and private-chain qualification, broader device/locale acceptance and release gates remain open. The optional asset-detail “Also on” card is deferred.
+
+## K4–K6 combined recovery — locally qualified, 2026-10-12
+
+Integrated PIN ownership recovery, authenticated retained-wallet restore/purge and explicit dual-slot master-key recovery at source `8751f03f1`. Reset persistence now uses effective key-slot health and only archives a previous PIN that actually exists. Recovery Center keeps “Try previous secure storage” available after activation. The public-API native regression proves an absent old PIN can be recovered, while exact old wrapped storage remains retained and a reopened process reads the new PIN.
+
+Combined qualification passes 1,586 JVM tests plus four existing core-db network skips (1,590 cases), 51 native common tests, three native account tests (including 104 archive keys and 102 rebind vectors), and 12 native recovery/UI/SQLite/reversal tests. Debug and instrumentation APKs assemble; configured detekt passes with its existing exclusions. All eight captured compact/large-text surfaces were reviewed. `docs/k6-integrated-recovery-validation.json` binds source, APKs, logs and images. The first combined run's three stale health-mock failures remain recorded.
+
+The independent PIN review and local K4–K6 integration gate are complete. Physical authentication and supported-runtime acceptance, signed historical upgrade/distribution evidence, remaining portfolio/send work and final release approval remain open. This local qualification does not authorize production publication.
+
+
+## K6 PIN ownership recovery — lane qualified, integration pending, 2026-10-12
+
+Unreadable PINs now route to a separate recovery screen. Previously enabled strong biometrics or a real matching wallet backup grants ten minutes to replace the exact original PIN snapshot; public identity is checked again at reset. The old typed PIN is archived without conversion. Device credential unlock discards any pending private action and opens a process-local view-only session, with signing/key export guarded until PIN recovery. The proof route remains on the PIN controller, and neither PIN confirmation nor backup input enters saved state. All eight shipped locales have the new recovery copy.
+
+Lane qualification passes 1,463 JVM tests (501 common, 510 account, 331 wallet and 121 app), 41 API 34 encryption/Keystore tests, five recovery Compose tests, and one input-privacy test, all without skips or test failures. Debug app and instrumentation APKs assemble; detektAll passes with its existing module exclusions. Recovery actions are reachable at actual 320 dp with 2x text. Source/artifact/log hashes and preserved failed attempts are in `docs/k6-pin-recovery-validation.json`. Independent review, master-key/archive integration and combined verification, physical authentication lifecycle, all-locale visual acceptance and final signed distribution gates remain open.
+
+## K6 explicit master-key recovery — 2026-10-12
+
+- Consent-bound fresh storage, dual-slot reversal, previous-key retry across device restarts, exact typed retention, effective PIN health and a read-only cached public wallet preview are locally qualified: 1,193 JVM passes plus four existing network skips, 48 common and five app native passes. Three compact/large-text captures were inspected. Exact source and device evidence is in `docs/k6-master-key-validation.json`.
+- Next: integrate the independently qualified PIN and archive lanes, use effective PIN health in the proof-reset write, handle an absent old PIN without attempting to archive a nonexistent value, retain previous-storage retry in Recovery Center, and run combined native acceptance. Broader historical upgrade and release gates remain required.
+
+## K4/K5 recovery continuation — 2026-10-12
+
+- K4 derives and rebinds one key against its stored public identity and retains exact old values on repair or wallet removal. Its 940 JVM tests and 102 native SR25519 vectors passed; independent review found no blocker and integration advanced to `8f71f949b`.
+- K5 guided key repair is qualified at `52fb5a4ae`. Retained-wallet recovery is completed at `d632aacc0`: authenticated address previews and journaled restore preserve every archive, exact-data export remains available for readable unverified material, and permanent purge requires two explicit confirmations. Final validation passed 1,433 JVM tests, two native SR25519 tests and two Compose tests at 320 dp with 2× font scaling; all 259 frozen root/network payloads are covered. See `docs/k5-archive-validation.json` for exact source hashes and evidence. The archive lane is integrated. Next: qualify combined K6 PIN and explicit fresh secure-storage recovery; release gates remain open.
+
+
+## A1 continuation and remaining release work — 2026-10-12
+
+- The combined A1 JVM validation and debug app assembly pass after updating the stale existential-deposit test mock; see `docs/status.md` for counts and evidence. Next: independent integration review and device migration checks, followed by K4/K5 guided recovery, K6 PIN health and remaining portfolio/send packages under the binding safe-upgrade addendum. Keep the final release gate open until these and the historical upgrade matrix pass.
+
+Actionable, prioritized tasks phrased as clear prompts for developers. Each task includes goal, acceptance criteria, and suggested steps.
+
+Priority: P0 (must-do), P1 (should-do), P2 (nice-to-have)
+
+## TON provider (AL-11) — 2026-10-11
+
+- P0 (backend, owner): TI serves TON testnet today. Android reads and sends TON mainnet through the verified registry node (TonAPI) until TI answers `/api/indexer/v1/service-info` with `chainId` `ton:mainnet` and every account route with `"network":"mainnet"`. Then build with `FL_ANDROID_TON_REGISTRY_NODE_FALLBACK=false` (the release workflow must pass it explicitly) to use TI only, after a funded TON canary on a testing-track build.
+- P1: TI lists only the jettons it indexes and has no prices; while TI answers, jetton discovery and pricing are limited to those jettons. History built from TI carries no fee for most transactions.
+- P2: `getTonCoinPrices` still reads `https://tonapi.io/v2/rates`; it is price data, not account data, and is unaffected by the provider choice.
+
+## RPC helpers and network minimums (AL-10) — 2026-10-11
+
+- P1: SORA indexer reads in `core-networking` are empty stubs. `HistoryInfoRemoteLoaderFacade.loadHistoryInfo` (SORA history shows no operations), `BlockExplorerRepositoryImpl.getStakingRewarded` (SORA total rewarded becomes zero) and `getValidatorsList` (SORA payouts list nothing to claim). Production used xnetworking 1.0.13, which chose the indexer from a remote `xn.json` on the `MWR-819` branch of shared-features-utils; its sources are not in the private source set. The 4.2.0 APK and the cached 1.0.15-K2 AAR show the queries, and 1.0.15-K2's SORA subsquid history query is not valid GraphQL (Kotlin interpolated the variable names), so 4.2.0's SORA history may never have loaded. Acceptance: query the SORA squid from the registry's `externalApi` URLs, record a response, map it with the existing `TxHistoryItem.toOperation`, and make SORA payouts fail visibly instead of listing nothing when the indexer is unavailable.
+- P1: assets whose minimum the network cannot report (Acala and Bifrost tokens; Interlay `ormlChain` assets) show the "Network minimum not checked" warning on every send. Add their `existentialDeposit` to the registry from each runtime's `ExistentialDeposits` parameter, or read `AssetRegistry` metadata `minimalBalance` on Acala and Bifrost.
+- P2: the remote chain types alias Polkadot Asset Hub's event type as `statemint_runtime::Event`; the runtime calls it `asset_hub_polkadot_runtime::RuntimeEvent`, so reconciled Asset Hub transfers keep a pending status (same in 4.2.0). Add the current name to `all_chains_types_android.json`.
+
+## SORA and ORML asset currency (AL-9) — 2026-10-11
+
+- `Asset.currency` and `typeExtra` match 4.2.0 again, SORA asset ids encode with fearless-utils, and SORA XOR balances are read from `System.Account` everywhere. P0: keep the fearless-utils pin at or after AL-6 (AL-7); the unsigned asset-id bytes need its `u8` writer, and the pre-AL-6 `1c80a2b` cannot encode them. P0: a funded SORA canary on a testing-track build (XOR send, a high-byte token such as DEO or USDT, one Polkaswap swap) before rollout. P1: Bifrost Kusama and Polkadot no longer have `Currencies.transfer`; their ORML token sends fail in 4.2.0 and the RC alike and need the runtime's current transfer call. P1: rerun `build/oracle-al9/tools/run.sh` when the bundled registry changes; `AssetCurrencyRuntimeParityTest` fails if a vector asset leaves the registry.
+
+## Rollback safety guards — 2026-10-10
+
+- P0 when the release candidate is final, all local until the release push: fast-forward `develop` to `release/fearless-safe-upgrade`, build `release/master-candidate` with `git merge -s ours origin/master` so `master` keeps its history but takes the release content, and confirm `bash scripts/audit-no-destructive-migration.sh develop release/master-candidate` passes. Move `master` only when pushing the release. When 4.2.0 (231) ships, keep its line in `core-db/released-database-versions.txt` and add a line for every later distributed build. The downgrade fail-closed instrumentation test (`DowngradeFailClosedTest`) is still owed by the test-matrix work.
+
+## Legacy auto-hide normalization, database 81 — 2026-10-10
+
+- Database 81 turns empty 3.5.x-4.2.0 automatic hides into Auto and keeps every funded, error or unparsable hide Hidden. P0: the portfolio work must exclude kept hides from totals, label a funded one "Hidden in previous version" and show the one-time "hidden assets hold a balance" review notice with a route to Manage. P0: rerun the hosted API 30/31/34/36 migration matrix on the release head. Any further schema change takes 82 with its own adjacent migration.
+
+## Legacy Google Drive backup engine — 2026-10-10
+
+- The 4.2.0 Drive engine is restored and refuses unverified phrase or seed uploads; its callers (AL-2) classify every failure, retry without dead ends, upload the remaining verified types and import a verified seed or keystore in place of a drifted phrase. The release workflow now refuses an AAB whose web client is not the one 2.4.1 through 4.2.0 shipped (AL-3). P0: run the manual Drive protocol in `docs/release-checklist.md` on a Play testing-track candidate, which is signed with the registered app-signing certificate; it covers wrong password, airplane mode, revoked access, a Google account without backups and labelled extension backups. P0 (K3): once `getSupportedBackupTypes` offers phrase and seed only for verified recovery material, the upload fallback should rarely trigger; keep it as the backstop. P1: move from the deprecated GoogleSignIn to the AuthorizationClient; tell users who restored from a seed or keystore that their old phrase restores another account. P2: the wallet selector's Google import (`SelectWalletViewModel.authorizeGoogle`) is unreachable because nothing posts `googleAuthorizeLiveData`; adding a wallet goes through Welcome, so remove it rather than wire it.
+
+## Recovery coroutine cancellation cleanup — 2026-09-28
+
+- Removed three redundant pre-`withContext(Dispatchers.IO)` cancellation checks. Future recovery integration must use the inherited job and retain explicit cancellation checkpoints only where synchronous work or a noncooperative callback requires them; these checks are not atomic write authorization. Exported plaintext remains producer-owned until successful return delivery; preserve that cancellation cleanup when wiring the exporter into backup creation.
+
+## Android durable receiving-policy binding — 2026-09-25
+
+- `FPWCAI01` v2 binds the exact compiled Substrate identity inventory through staging, restart, original-source commitments and storage projection. Existing v1 bytes and tokens retain their original interpretation; unknown policy digests preserve the quarantined record. P0: independently review the frozen inventory, qualify mixed cross-platform cohorts on supported devices, finish the transactional installer and installed signing/export proof, and retain a migration-safe policy strategy for future inventory revisions before enabling recovery.
+
+## Android incoming Substrate watch-chain policy candidate — 2026-09-25
+
+- The receiving plan checks raw lowercase 64-hex chain-watch IDs against exact `SUBSTRATE` entries in the existing `ApprovedGenesis` policy without aliases. The bundled chain registry uses raw IDs, but the signed V2 policy uses `0x`-prefixed IDs; the single-prefix comparison is explicit. Direct callers still default to an empty policy; v2 after-images bind the compiled inventory above. P0: qualify the candidate inventory and installed identities on replacement devices before removing watch and installer blockers. Recovery remains disabled.
+
+## Android iOS TON watch-address compatibility candidate — 2026-09-25
+
+- The receiving watch proof now reuses the signed-root verifier for the canonical iOS TonSwift JSON Wallet V4R2 address, requiring a present public key and an exact workchain-zero account hash while retaining the original bytes. P0: prove the released iOS watch serializer emits this qualified shape, reject any remaining address-only or alternative JSON variants until separately reviewed, and verify original wallet identity after transactional installation on replacement devices. Named universal chains remain unsupported; the Substrate genesis policy still needs to be bound to the reviewed compiled inventory. Recovery stays disabled.
+
+## Android incoming watch-identity guard candidate — 2026-09-25
+
+- The disabled receiving path rejects unverified watch public identities before cohort staging, including mismatched native TON, Substrate, EVM and supported chain fields; it retains valid address-only EVM watches. Unqualified iOS TON JSON and named universal chains are rejected before any journal write. P0: independently verify the remaining iOS-origin identity interpretations, then bind the complete public-identity digest and prove transactional installation/readback with original signing/export and cross-platform replacement-device tests. This guard is not a recovery-enablement or installer proof.
+
+## Android watch-wallet identity proof candidate — 2026-09-25
+
+- The disabled read-only Android export proof now rejects public key/address mismatches for watch Substrate, EVM, native TON V4R2 and chain accounts, while retaining valid address-only EVM watches. P0: independently qualify foreign TON JSON and named-chain identities, bind the complete cohort public-identity digest, and prove transactionally installed watch rows and preferences on replacement devices. This local public check is not watch-address ownership, restored-wallet readback or production recovery authorization.
+
+## Android verified application export candidate — 2026-09-25
+
+- An unwired, read-only account-owned capture now takes fresh authoritative Room/secret-store data through exact V1/V2/V3 proof, approved V2 genesis policy, bounded global secret-key inventory and post-proof stability checks before releasing caller-owned `FPWMSM01` plaintext. It rejects V2/V3 keys under missing Room IDs and quarantine/recovery-marker aliases while ignoring unrelated numeric preference names. Wallet-selected chain ID and chain-selector filter are exact optional UTF-8 metadata IDs 10/11; bounded ID 12 now preserves explicit asset-row presentation, including generic empty-account rows and nullable flags/name. All three are rechecked after source proof. Pre-V1 private aliases still block capture. P0: bind a reviewed compiled chain policy and cross-platform identity digest; implement transactional receiving storage/readback for these platform preferences and all original keys; then integrate encrypted immutable Drive generations after complete Android/iOS installer qualification. The exporter neither uploads nor marks a wallet backed up; recovery stays disabled.
+
+## Android mixed-cohort original-source proof candidate — 2026-09-25
+
+- A read-only verifier now composes V1, approved-genesis V2 and exact V3 source proofs across mixed signed/watch cohorts, while rejecting unsupported originals and inconsistent custody. P0: derive and bind the complete public-identity digest to an application-owned exporter and independent plaintext verifier; qualify every released V1/V2/V3/standalone EVM/native TON cohort, watch/favorite/metadata mapping and original-key export after transactional installation. Then test real passkey/Drive replacement recovery and signed upgrades on both platforms before enabling backup completion. Structural watch/favorite checks are not an installer proof.
+
+## Android historical V1 source proof candidate — 2026-09-25
+
+- The unwired V1 checker proves the retained typed historical key, SS58 identity, mnemonic/entropy, seed and path under the production validator; the existing V2 checker separately proves canonical original SCALE chain sources against an approved genesis policy. P0: qualify all real historical V1/V2 cohorts and original export behavior on signed upgrades; integrate with V3/iOS/watch/metadata checks only after exact original-key and complete-cohort proof exists, then implement crash-safe installation and replacement-device acceptance. No backup-complete decision consumes these narrow proofs.
+
+## Android V3 original-source proof candidate — 2026-09-25
+
+- The unwired V3 checker binds exact original Android SCALE bytes to semantic Substrate/EVM/TON roots and proves local signing. Narrow V1 semantic and V2 exact-source proof components are also present. P0: independently qualify the parsers and signed/exported key behavior; align V1/V2/V3 with iOS, preserve unmapped metadata, bind a complete cohort identity digest, and prove installed-key readback. Finish the app-owned exporter and fresh-install transaction before any backup-complete decision; the present capture remains partial where metadata is unmapped.
+
+## Android first-owner bootstrap candidate — 2026-09-25
+
+- The disabled client now composes local original-wallet authorization, native PRF-capable registration, exact signed owner-bootstrap proof, Play Integrity token, one-shot server completion and an authenticated empty-head read. A separate disabled owner-authentication method evaluates PRF only after the selected credential's public assertion and empty head are verified. P0: implement the application-owned authorizer against every original V1/V2/V3/standalone EVM/native TON root, prove its signing key belongs to the selected wallet, provision the exact Play app/project identity, deploy and independently review the owner authority, and qualify provider PRF/Drive behavior on Play-distributed replacement devices. Use the verified local PRF to build a first-generation wrapper and complete journaled upload/download/decrypt/original-key readback before claiming portable backup. Unknown owner-creation outcomes must recover through discoverable authentication, not automatic re-enrollment. No backup-complete or production recovery path is present.
+
+## Android verified backup-head promotion candidate — 2026-09-25
+
+- The disabled coordinator now requires exact journaled Drive readback and local original-key evidence before a single durable-marker owner CAS. Lost commit responses and restarts query the exact operation from the immutable journal and require a fresh matching head; neither a 404 nor absent operation status permits another upload or CAS. P0: supply the production original-key signing/export callback and first-generation wrapper builder, wire the reviewed PRF owner assertion and deployed owner service, then run physical provider/account replacement recovery and signed-upgrade acceptance. No wallet UI backup-complete state is emitted by this candidate.
+
+## Android owner generation metadata HTTP candidate — 2026-09-25
+
+- The disabled grant/commit/status client binds exact candidate metadata to a live owner session and the selected Google subject, and rejects malformed grants or substituted committed descriptors. Its durable coordinator candidate is described above. P0: integrate the deployed owner authority and fresh session, supply production original-key signing/export and first-enrollment verification, then qualify real iOS↔replacement Android recovery and signed upgrades before enabling. This metadata client alone cannot establish backup completion.
+
+## Android authenticated owner-head read candidate — 2026-09-25
+
+- A disabled, unwired `PasskeyBackupOwnerHeadHttpClient` now binds the read-only owner-head response to the verified selected Google subject from `GoogleDriveAccessTokenProvider` and checks the exact owner, namespace, generation chain and Drive identities; backup JVM tests pass 251/251 and `detektAll` passes. P0: connect reviewed owner sessions and the deployed authority to the readback coordinator, verify selected-account/Drive behavior and PRF ceremonies on physical iOS and Android replacement devices, and complete original-key signing/export, installer, signed-upgrade and cross-platform recovery gates before enabling. This adapter alone does not authenticate a wallet backup or complete recovery.
+
+## Android owner authentication HTTP candidate — 2026-09-25
+
+- A disabled, unwired client can request the owner authority's accountless Android challenge, perform a discoverable user-verified Credential Manager assertion without PRF, send only public WebAuthn fields and accept a bounded short-lived owner session. P0: deploy and production-admit the reviewed owner authority, add first-owner bootstrap and owner-session use across backup head/grant operations, bind real device/user verification and replacement-device acceptance, and keep the recovery flag false until full cross-platform wallet installation and original-key signing/export proof passes. This candidate has no production recovery UI or wallet install path.
+
+## Android portable receive origin reservation — 2026-09-25
+
+- Candidate Room schema 80 binds each reserved local ID to the exact source wallet ID and historical position, preserving that relation across restart and safely reconciling v79 pending rows from the encrypted cohort. A version-2 encrypted cohort journal now atomically stages the canonical opaque original-source sidecar; version-1 pending journals can be upgraded by exact-token CAS. P0: encode every verified original V1/V2/V3/standalone EVM/native TON secret into target stores, then retain the sidecar only after verified target readback and implement a durable cohort-wide Room/secret-store commit and replay before publishing wallet rows. Prove installed identities plus original-key signing/export, run final-source migrations on API 30/31/36 and Play-signed upgrades, then qualify both real cross-platform replacement directions. This staging increment does not enable recovery.
+
+## Android first-owner Play Integrity bootstrap — 2026-09-24
+
+- The disabled native Standard request component now derives the exact server wallet-proof attestation nonce and returns only a sanitized opaque token. P0: provision and audit the linked Google Cloud/Play project number, Play signing certificate and version allowlist; implement native first-owner wallet proof and owner-session/bootstrap HTTP composition; verify real Play-distributed device tokens against Google's server decode and the exact wallet-proof request hash; finish independent security review and cross-platform replacement-device recovery before enabling. No project ID or successful verdict is inferred from the local component.
+
+## Authenticated Android generation readback — 2026-09-24
+
+- The disabled coordinator now binds an exact Drive generation to a fresh credential-directed PRF assertion, a server-verified owner/head response, local decryption and original-key proof, and post-verification owner/Google-account rechecks. P0: implement and deploy the owner-session/bootstrap and one-use assertion/head HTTP adapter with transactional revocation/freshness semantics; replace the synthetic wallet verifier with full application-owned V1/V2/V3/standalone EVM/native TON original-key signing/export proof; complete the transactional cohort installer. Qualify real iOS↔replacement Android and Android↔replacement iOS provider/Drive recovery before enabling. Local readback evidence alone cannot authorize installation or backup completion.
+
+## Android portable receive abandonment tombstones — 2026-09-24
+
+- Candidate schema 79 now leaves exact, permanently fenced Room tombstones after a cohort is abandoned, closing the preference-first deletion crash window. P0: run revised v78→79 migration and full released-schema instrumentation on API 30/31/36, review the 8,192-row quota and a safe maintenance protocol before exposing repeated recovery attempts, and prove no cross-process writer bypasses the reservation fence. The compatibility evidence gate must identify the trigger test on every API, and final signed upgrade/device results are still required. This still does not install a wallet or enable recovery.
+
+## Android portable receive Room reservation — 2026-09-24
+
+- Schema 79 now fences staged portable receive IDs inside Room, preserving a replayable preference/Room split after interruption and refusing mismatched or orphaned reservations. The cohort remains invisible and recovery disabled. P0: run the v78→79 migration/trigger test and full released-schema matrix on API 30/31/36, then prove exact source-to-target V1/V2/V3/standalone EVM/native TON encoding and installed original-key signing/export before adding any wallet-row commit. Define explicit restored backup-state, Google-address and custody-digest semantics; finish cohort-wide secret/Room cutover with interruption rollback, then qualify iOS↔Android real-device restoration and exact signed upgrades.
+
+## Production qualification — 2026-09-22
+
+- 2026-09-24 fresh-install cohort staging: an internal Android path checks an empty Room wallet set under the wallet mutation mutex, allocates distinct IDs, and atomically stages encrypted cohort bytes plus exact preference-side reservation markers. Both current wallet allocators reject marked IDs and an active cohort journal blocks new wallet creation even if a marker disappears; restart replay preserves the staged cohort, and exact-token abandonment retains permanently fenced Room tombstones. P0: finish an actual cohort-wide installer and crash-safe replay spanning Room and every original V1/V2/V3/standalone EVM/native TON store, recheck IDs against Room and target namespaces before publication, and prove every installed public identity, signing and export path. Define the separate existing-wallet merge policy and the missing backup-state/custody representation. Treat orphan markers as occupied pending explicit reconciliation. No staged row is a usable wallet and recovery remains disabled.
+
+- 2026-09-24 portable cohort projection: a pure Android `FPWMSM01`/`FPWCAI01` projection now pins allocated local IDs to logical wallet/chain/favorite/custody/metadata and exact V1/V2/V3/source-sidecar intents, with cross-wallet public-identity collision rejection. Fresh-install Room positions are compact `0..N-1` in authoritative wallet-list order, with exact uint32 source positions retained separately; equal positions preserve list order. P0: qualify this fresh-install policy with final cross-platform cohorts and define the separate merge policy for existing local wallets, resolve absent backup-state fields, derive and prove custody identity digests, map watch and original-source storage without loss, and build a cohort-wide transaction with reserved IDs and crash-safe replay. Prove installed original-key signing/export and iOS↔Android restoration before removing the installer blocker; this projection neither writes storage nor enables recovery.
+
+- 2026-09-24 Kaia history candidate: the bundled mainnet/Kairos history configuration and legacy `KLAYTN` route now use chain-bound KaiaScan OAPI native/token endpoints, Bearer credentials, exact decimals and fail-closed pagination; token fees are not invented. P0: provision the Android KaiaScan key, prove native/token amount, fee and terminal receipt parity, fee delegation, multi-page freshness and retry/explorer recovery on both networks, and repeat on exact final signed builds. See [the provider gate](kaia-history-production-gate-20260924.md). The `9180bc535` unsigned AAB predates this source and cannot qualify it.
+
+- 2026-09-24 history provider hardening: OKLink and legacy Klaytn no longer turn provider or transport failures into empty successful history, and the bundled X Layer explorer templates match their networks. Focused tests pass 7/7. P0: qualify the final-source history providers with operator-provisioned credentials, representative native/token transfers, pagination and freshness on X Layer and Kaia; replace any retired provider path through a reviewed contract. Keep provider failures visible and preserve retry/explorer recovery. The source-bound unsigned AAB at `bbd9f34f4fc137444ce01defe45d5ba57e5b766c` passed a 16-library/16 KiB structural audit, but final-head rebuild, actual 16 KiB device checks and Play-signed upgrade acceptance remain required.
+
+- 2026-09-24 V2 chain proof: an unwired read-only verifier can prove exact Android V2 original SCALE bytes, the semantic chain key and recovery fields, and a local signature only under an explicit canonical genesis/identity-kind policy. P0: supply a reviewed immutable production genesis policy, qualify supported iOS chain originals, integrate this proof with all other wallet/source proofs and the transactional installer, and verify actual installed-key signing/export and cross-device restoration. The receive blocker and backup-completion denial remain in place.
+
+- 2026-09-24 migration verifier repair: align the seven required released-schema identities and stale production-open instrumentation expectations with database version 78. Local verifier and evidence-packaging fixtures pass; P0: rerun protected hosted CI and confirm the API 34 full suite, all four API migration/restart profiles, and their source-bound evidence before candidate release.
+
+- 2026-09-24 cohort journal staging: the internal versioned `FPWCJ001` encrypted preference record now retains and revalidates the exact multiwallet after-image across restart, rejects known occupied target namespaces and races at staging, and never publishes a partial wallet. P0: implement a complete installer whose durable transaction covers V1/V2/V3 and source sidecars, Room wallet/chain/favorite/metadata/selection rows and ID reservation; bind every installed key to its public identity and prove original-key signing/export. Add crash-point, rollback and exact replacement-device tests before removing the permanent installer blocker or enabling recovery.
+
+- 2026-09-24 cohort after-image: the pure versioned `FPWCAI01` schema binds ordered local IDs to exact canonical portable bytes, names candidate V3/V2/V1 destinations, retains metadata/originals/selection and every blocker, and rejects duplicate or unrepresentable keys. Focused tests pass 6/6 with scoped Detekt. P0: complete cross-store mutation replay and installation using the verified after-image, with exact V1/V2/V3/sidecar namespace and Room image coverage, crash/rollback tests and original-key/export proof. The after-image alone has no storage call and cannot enable recovery.
+
+- 2026-09-24 receiving-install plan: an unwired pure Android plan now retains exact `FPWMSM01` cohorts and marks V1/V2/auxiliary/watch/metadata and incomplete root proof as blockers; it never writes wallet storage. P0: add a replayable cohort-wide transaction journal covering all root, chain and original-source secrets plus Room wallet, chain, favorite, custody and selection rows; prove namespace collisions, readback, restart recovery and original-key signing/export for every slot before enabling installation. The existing single-wallet V3-root CREATE journal cannot serve as that installer.
+
+- 2026-09-24 wallet-material capture: the Android candidate has an internal bounded draft serializer for validated V3 Substrate/EVM/TON roots, V2 chain keys and guarded V1-only sources across multiple wallets, with public identity, selection/order and favorites. V1 source type, original address, exact keypair, optional seed/path and mnemonic-derived entropy use a distinct slot; malformed or unowned active aliases, duplicate aliases and changing inventories fail closed without deleting the source. Watch-only cohorts still fail closed. P0: agree one semantic and binary iOS/Android plaintext contract, prove all historical cohorts, implement atomic replacement-device installation and verify original-key signing/export. This Android-only draft is not wired to Drive or backup completion and cannot make passkey recovery eligible by itself.
+
+- 2026-09-23 wallet-material inventory: legacy mnemonic backup restoration now preserves a separately backed-up EVM private key in the same durable wallet creation. P0: agree the portable iOS/Android plaintext format and implement wallet-owned serialization/verification for all V3 Substrate/EVM/TON roots, V2 chain keys, historical V1 material and multiple wallet identities; prove locked/interrupted migration and original-key signing/export. See [the source inventory](portable-wallet-material-inventory.md). The public legacy remote-backup compatibility stub and disabled passkey generation code are not release acceptance.
+
+- 2026-09-23 immutable-generation candidate: FPBKGEN1 canonical bytes and a separate append-only Drive store pass local vector/max-envelope/unknown-outcome tests. A bounded local journal candidate now records exact ciphertext and requires a durable single create-attempt marker through the public upload API. The disabled legacy single-file save path verifies exact Drive readback and local decryption before success, with credential compensation on registration failure. P0: qualify physical-device filesystem behavior, integrate downloaded DEK/envelope and wallet-identity verification into owner-authorized head CAS/status, reconcile competing writers and revocation, retain the last usable generation, and qualify Android↔iOS recovery on real devices before enabling. No automatic deletion or final-credential retirement is implemented.
+
+- 2026-09-23 Drive identity candidate: retain stable Google UserInfo `sub` across email rename, bind every request to the verified selected subject, and preserve original envelope AAD/ciphertext. P0: qualify consent/UI and the same Google Cloud appData project on both platforms, migrate the deprecated token-fetch consent path to AuthorizationClient, integrate owner/lifecycle and generation checks, and collect real replacement-device evidence before enabling recovery.
+
+- 2026-09-23 CI repair: retain the seven-checkout release architecture contract and per-checkout pin/credential negatives, require the liquidity-pools/Polkamarkt/Polkaswap mutation suites in `runTest`, keep the debt baseline equal to the current source markers, and preserve exact first-party audit boundaries around independently verified dependency checkouts. Complete the full Android CI run at the repaired source head, including required API 30/31/36 migration and restart evidence, before release qualification.
+
+- Completed baseline: target API 36; retain reviewed XCM discovery/quotes with a hardcoded false release submission flag; reject direct engine transfer before entering signing/submission even when the remote switch enables mutations. Keep the 15-route approval set, 34 discovery-only routes and blocked production-evidence requirements intact.
+- Completed fee isolation: preparing quotes does not read wallet secrets; origin-fee RPC uses a correctly typed invalid signature placeholder without invoking the wallet signer. The 121 scoped JVM tests include private-key exclusion and Substrate/Ethereum encoding fixtures. Verify fee/weight parity against each approved live runtime before release enablement.
+- Completed authorization core: closed canonical Ed25519 FWMA1 verification, production package/version and policy/route-manifest binding, 900-second maximum lifetime, five-minute refresh, durable monotonic revision/digest and clock high-water, startup-denied state, and intent-bound process leases. Missing production trust and immutable all-false policy keep new Polkamarkt/XCM/bridge mutations denied; legacy behavior and read-only discovery are independent.
+- Completed source integration: freeze SCALE bytes and bind chain/account/payload intent before key acquisition; check the same lease inside physical key reads, signing, and the Utils WebSocket handoff. New-feature discovery/quotes use public metadata or key-presence checks; guarded SocketService requests terminate without reconnect replay.
+- Completed guarded source candidate: pass intent leases through physical unwrap/attestation/decryption, prepared signing primitives, Utils queues and the nv-websocket underlying output. Reject guarded compression before compressor state, finish owned blocking work before the final sample, and never replay uncertain mutations. Utils PR153 and transport PR1 are published source candidates; Android CI/release verifies their exact commits/trees without checkout mutation.
+- P0: Review and merge those exact source candidates, pass complete Android CI/release checks from the final merged app tree, and qualify SR25519/native providers and real-device TLS before treating source boundary tests as artifact evidence.
+- P0: Provision operator-reviewed production verification keys, exact artifact version/policy and full route/catalog manifest coverage only after release evidence is complete. Do not install fixture keys or relax compiled approval/per-route gates.
+- P0: Complete the existing funded per-route XCM evidence and final reconciliation gates before changing compiled submission permission. Quote/discovery availability does not count as an executable-route qualification.
+- P0: Requalify XCM routes one at a time (all execution specs were retired on 2026-10-24). For each origin and
+  destination pair, decide the reserve location, build the call with the engine, dry-run it with `DryRunApi` against
+  the live origin runtime and the destination with `dryRunXcm`, add an engine test that decodes the call back against
+  that runtime's metadata, then collect funded two-chain evidence. Asset Hub to a parachain needs
+  `polkadotXcm.transferAssetsUsingTypeAndThen` with an explicit local reserve; DOT and KSM on the relay chains can only
+  be teleported to their Asset Hub. Keep every other route discovery-only until its evidence and a separate approval
+  are complete.
+- P0: Requalify the SORA bridge directions one by one (retired on 2026-10-24: both SORA parachains stopped producing
+  blocks, and SORA to Liberland stopped delivering). Before a route returns, SORA must confirm that para 2025 and 2011
+  produce blocks again, the pending burns (5 DOT, 9 KSM, 3 Liberland) must settle or be refunded, DOT and KSM
+  destinations must point at Asset Hub (SORA's own allow-list names para 1000), and each direction needs a funded
+  round trip. Re-adding a route means moving it from `ReviewedPolkaswapBridgeCatalog.retiredRoutes` back to
+  `executableRoutes`.
+- Completed (XCM review follow-up, 2026-10-24): cross-chain validation stops on an unknown destination asset,
+  recipient balance or minimum and counts only what arrives after the destination fee; one asset symbol normaliser;
+  authorized mutations are never signed immortal; the confirm screen shows and binds the signing wallet; cross-chain
+  and bridge transfers keep a durable unsettled-transfer record, block new transfers of the same wallet, network and
+  account until it settles, and settle only on finalized-block proof (inclusion, or an expired validity window).
+- P1: Show unsettled cross-chain transfers outside the confirm screen (balance or history), and track destination
+  delivery events before a transfer is presented as delivered.
+- Completed (XCM review follow-up, 2026-10-24): the release XCM flag is bound to ready evidence in Gradle, CI and
+  the release workflow run the live readiness audit whenever it is on, ready evidence expires after 30 days, the
+  release-variant tests run in CI, and the bridge executor has its own compiled release gate.
+- Completed (XCM review follow-up, 2026-10-24): the executable Liberland bridge burn pins its live call index and
+  reads SORA's live registration shape; tracked submissions check the node's genesis; one malformed remote catalog
+  entry is skipped and logged instead of aborting the chain sync, and missing address prefixes or asset precisions are
+  refused instead of defaulted.
+- Completed (XCM review follow-up, 2026-10-25): recipients must use the destination network's address format, origin
+  fees are quoted in the origin network's utility asset, the destination location and xTokens beneficiary are bound to
+  the catalog's relay and parachain topology at registry load (mirrored in the metadata audit), registry load failures
+  are logged, and the transfer engine's maps are thread safe.
+- Completed (XCM review follow-up, 2026-10-25): XCM tests that could not fail now assert exact values or registry
+  refusals, and the remaining cross-chain validation and minimum-source paths have tests.
+- P0: Update `config/android-runtime-source-pins.json` (and the workflow and README pins) to the reviewed
+  fearless-utils commit the code builds against; release-mode Gradle runs, including the release-variant tests,
+  stop at the pin check until then.
+- P0: Qualify the exact source-bound target-36 release AAB, native 16 KiB alignment and actual 16 KiB-device startup/crypto behavior. Complete configured signer trust, immutable dependency/source publication, and the real Play-signed upgrade matrix on API 30, 31 and 36 from the final merged tree; preserve all legacy wallet identities, signing, backup and export behavior.
+
+## Portfolio network headers — 2026-09-07
+
+- Healthy headings now show the network name and available fiat subtotal. Routine scan coverage/timestamps, repeated account/ecosystem metadata, asset counts and missing-price placeholders are hidden; failed, outdated and unloaded balances retain short localized status messages. Collapse and detected-asset review are unchanged.
+- Validation: five focused JVM status tests and the native 320dp/200% text header fixture pass; debug app/test APKs build successfully. Screenshot and exact artifact hashes are in `build/ux-evidence/20260907-portfolio-header/`.
+
+## Completed TalkBack and large-text acceptance — 2026-09-06
+
+- Official-source TalkBack and audible RHVoice output now support the isolated 5560 checks. The scoped real-wallet and synthetic production-view matrix passes; service availability is no longer an Android blocker.
+- Preserve the verified raised center artwork/single accessible Polkaswap action, opaque bar and matching content inset, responsive wallet states, task-first setup/Back behavior, full options text and reusable dialog ownership. Targeted validation totals 41 JVM / 15 native passes; final app/test artifacts and reviewed screenshots/audio are in `build/ux-evidence/20260906-talkback/`.
+- The evidence README records exact case/artifact scope and diagnostic history. Normal text size and disabled TalkBack are restored after acceptance, with the official service and four synthetic wallets retained for owner review. No release or account/crypto behavior was changed for accessibility tooling.
+
+## Legacy upgrade acceptance — 2026-09-06
+
+- Preserve all legacy keys/addresses and existing wallet access while adding supported network accounts; implementation and targeted checks are recorded in [legacy-upgrade-audit-20260906.md](legacy-upgrade-audit-20260906.md).
+- Repeat the existing source-bound migration compatibility/release gate from the final merged release tree on API 30, 31 and 36 before distribution. The present working tree contains unrelated development changes and is not a releasable artifact.
+- Seed-only, raw-key, watch-only and other wallets without a recoverable mnemonic retain their legacy accounts. Adding a mnemonic-based network requires explicit user import/create; automatic upgrade never invents or silently replaces their recovery phrase.
+
+## UX validation follow-up
+- 2026-09-06 Receive follow-up: the SORA Request share-asset mismatch and actual Request typography crash are fixed. Current display/QR/share snapshot, cancellation/stale-result handling, share retry and selector reopening have six passing regressions; Copy address/Share address use localized labels. Scoped totals are 37 JVM and 10 native passes; both APKs build successfully. Actual Receive passes 4/4 cases across two SORA wallets, TON and ETH/Ethereum on the recorded `c493...` APK. Request at 200% text, amount/shared-QR equality and actual CERES→DEO switching pass. The fixture-only host-sizing/full-bounds correction builds and its native rerun passes 3/3 in 5.706s; corrected captures were inspected and the earlier clipped images remain diagnostics. The final scoped crash buffer is empty. Existing Manage assets toggles and Search provide zero-balance Receive entry without changing the tested Portfolio policy. That checkpoint predates the completed official TalkBack checks above.
+- Confirmation follow-up: returned/thrown create and backup errors now permit retry, cancellation releases the guard, and retry after partial completion reuses the saved wallet. Seven new JVM cases pass (31 scoped JVM total). Both debug APKs build successfully. The selected/source word panels share bounded scrolling, empty selection no longer preallocates the full phrase height, word targets are at least 48dp, and the exercised confirmation/export toolbar actions have named 48dp bounds. The new `MnemonicConfirmationLayoutInstrumentedTest` passes (9 scoped native total). The actual 24-word/200% text walkthrough and persisted backup status after restart also pass on the exact confirmation APK. Build-specific evidence is in `build/ux-evidence/20260905-real-onboarding/README.md`.
+- 2026-09-05: Retain the raised central Polkaswap artwork and existing destination. The ordinary center menu item is hidden from accessibility so the labeled FAB is the single accessible action. Future contextual Polkaswap/Soraswap selection remains deferred; this change does not add a provider router.
+- Center restoration: debug APK/test APK builds, 6 navigation JVM checks and 7 API 34 native layout/back-stack/screen checks pass. Production navigation fixtures at 320dp and 100%/200% text are saved under `build/ux-evidence/20260905-polkaswap/`; captions wrap without truncation. Production onboarding/Receive/Swap fixtures at the same widths/scales are saved under `build/ux-evidence/20260905-screens/ux-evidence/`; full text fit, scroll reachability and disclosure behavior pass. The later official TalkBack checks above complete that follow-up.
+- 2026-09-05: Implemented task-first onboarding, persistent wallet protection, explicit receive-network instructions, accessible toolbar/swap controls, transaction-focused swap details and consistent task labels. Existing backend capability checks and authenticated navigation graph IDs are preserved.
+- Actual Substrate/EVM and TON Create/Restore, invalid-phrase retry, Back, PIN unlock and saved-wallet switching have been exercised on an isolated API 34 emulator. Follow-up runtime testing found and fixed banner typography context, the TON header network identity and a TON initialization ordering deadlock; the final debug APK and three repeated TON cold starts pass; evidence is recorded in `build/ux-evidence/20260905-real-onboarding/README.md`. Spoken TalkBack remains required and unavailable in the QA image; cloud recovery is additional validation. The later full generated-word confirmation passed at 200% text. The generated TON empty-state copy and same-chain wallet address refresh are fixed, with four empty-state tests, three address-flow tests and real model/display switch checks. Final scoped totals: 24 JVM and 8 native passes.
+- A future global Activity destination needs a real multi-network operation feed and pagination contract; the existing AddressHistory screen selects recipients and cannot serve that role.
+- 6 focused onboarding/icon tests and common/onboarding/wallet/Polkaswap/staking debug compilation passed with the existing runtime-compatible fearless-utils checkout. App integration compilation passed. Finish device acceptance; see docs/status.md for exact current results. No production build is generated for this UX change.
+
+## Recent Updates
+- 2026-08-01: Added a URL-redacted, digest-bound contract for the observed
+  Google Play Internal App Sharing publication, including a mode-`0600`
+  private handoff writer and 6-positive / 184-adversarial audit. The evidence
+  remains test-only and records its missing device, independent-tester,
+  production-signing, and current-availability proof. Added a bounded AAB ELF
+  verifier with 1 positive / 20 negative fixtures and wired exact CI, IAS,
+  unsigned-release, and signed-release artifacts through its 16 KiB PT_LOAD
+  alignment checks.
+- 2026-07-30: Removed Reown delegate calls from `WCDelegate` static
+  initialization after a delayed release-like startup crash. Delegate
+  registration is now synchronized, idempotent, refreshes persisted sessions
+  when initialization succeeds, and safely retries partial readiness.
+  Recoverable synchronous SDK failures across pairing and session actions now
+  reach UI error callbacks; cancellation and fatal errors still propagate.
+  Stale proposal/session/request destinations route back without dereferencing
+  missing process-memory state. Pull-request IAS builds stay
+  WalletConnect-secretless, while a protected-`develop` manual dispatch binds
+  a required non-logged 32-hex project ID only to the exact bundle step.
+- 2026-07-27: Retired the legacy MoonPay secret/HMAC flow and removed every
+  signing-secret BuildConfig field and release requirement. The replacement
+  uses only publishable keys, an exact hosted-checkout allowlist, and manual
+  wallet entry; prefilled-wallet URLs still require a backend signer. The
+  formerly exposed secret must be revoked/rotated. The policy gate scans every
+  tracked Android source set, build input, release script, and workflow, with
+  alternate-module adversarial fixtures.
+- 2026-07-27: Made release Firebase overlay backup creation crash-safe by
+  validating size, SHA-256, and `0600` permissions on a same-directory
+  temporary before atomic rename. Cleanup discards partial temporaries. The
+  finalized split-overlay suite covers 20 restore and 8 cleanup TERM/SIGKILL
+  cases, 2 independent positive phases, 20 phase/credential-isolation
+  negatives, and separate corruption and permission-negative cases.
+- 2026-07-27: Reserved Google Play version code 230 and replaced mutable
+  release versioning/debug-signing fallback with a fail-closed Play testing
+  artifact pipeline. A credential-free first job validates the signed tag,
+  prior CI, governance, adversarial controls, and exact source tree. The
+  protected build runner then creates only an exact CI/source-bound unsigned
+  Gradle AAB with no signing material and transfers its exact, individually
+  attested four-file evidence, including the bounded verified Gradle/R8 build
+  log, to a separate protected signing runner. That
+  runner revalidates every file digest, exact provenance, all attestations,
+  tag, `master`, and source tree before restoring the upload key and invoking
+  the standalone signer pinned to the registered upload certificate. It
+  derives identity and permissions from the signed bytes and separately
+  attests the exact final three-file artifact. CI performs no Play mutation
+  and receives no Play service-account credential; the final AAB is uploaded
+  manually to the existing Open Testing track after evidence review.
+- 2026-07-27: Pinned release dependency provenance with the Gradle 9.0
+  distribution SHA-256, strict verification metadata plus a tracked digest,
+  the strict root buildscript-classpath lock, and the production dependency
+  lock. CI/release graphs reject
+  `mavenLocal()`, verification-off flags, and metadata/lock rewrite attempts.
+- 2026-07-30: Advanced the release toolchain from AGP 8.9.1 to exact AGP
+  8.10.1 / R8 8.10.24 so Reown's Kotlin 2.2 metadata is parsed by a supported
+  shrinker; clean release logs and embedded AAB metadata are fail-closed.
+- 2026-07-13: Added the production-satisfiable Android Iroha wallet-smoke
+  metadata seam without enabling send. A closed immutable wallet model and the
+  Nexus-only request factory enforce the exact four-key/all-string schema,
+  canonical route hash and wallet commit, Android platform/role binding, and
+  defensive snapshots. The operator seam also requires the exact Nexus global
+  chain and canonical Minamoto endpoint. The staged Java codec remains
+  Taira-only and rejects every non-empty metadata map before signing. Focused
+  adversarial tests cover malformed keys, types, case, controls, confusables,
+  sentinels, mutable aliasing, wrong network/chain, and endpoint substitution;
+  ordinary transfers still use empty metadata and production DI still injects
+  `UnavailableIrohaTransferSigner`.
+- 2026-07-11: Added a fail-closed, non-production Iroha staging lane. The
+  bounded materializer extracts only the pinned `core-jvm` coordinate; a
+  Java-only Taira bridge and Kotlin 2.1 smoke module run behind an explicit
+  CI/local gate; app debug/release graphs are proven free of the SDK. A custom
+  compact-length transaction hasher works around the pinned SDK's confirmed
+  fixed-`u64` defect and matches the inspected Rust/current-native diagnostic
+  vector. Production DI, live Torii/funded evidence, exact binary provenance,
+  device/R8 proof, authoritative live registry/precision/fee mapping,
+  deployed-node compatibility, and private-key residue acceptance remain
+  blockers. The tag fixture and current live Taira expose different canonical
+  XOR definition IDs, so neither is a valid hard-coded production mapping.
+- 2026-07-10: Hardened Android production release provenance: strict tag/master
+  and exact prior-CI binding, immutable committed versioning, AAB signer
+  verification, pinned build attestation/actions, and destructive release-gate
+  tests. `runTest` now dynamically covers all 14 source-backed test modules,
+  including the previously omitted `core-api`, backup, and XCM modules.
+- 2026-07-10: Removed MoonPay server-secret/HMAC signing from the APK and kept
+  the hosted checkout in publishable-key/manual-wallet mode with an exact host
+  allowlist and adversarial query/control/size tests. Credential Manager
+  transport and trust-all TLS lint checks are now fatal, and unused legacy
+  Spongy Castle PKIX/PGP artifacts no longer ship at runtime.
+- 2026-03-12: `scripts/build-libsodium.sh` now detects the correct host-specific NDK toolchain directory (darwin/linux/windows) instead of hardcoding macOS paths, so rebuilding libsodium works on Linux and CI hosts.
+- 2026-03-12: Local validation script now installs Android platform/build-tools 36 so fresh environments match the Gradle compileSdk configuration before running tasks.
+- 2026-03-12: Added Gradle compatibility shims inside `settings.gradle` (`jcenter()` repository + `JavaExec.main`) so the pinned `fearless-utils-Android` composite checkout remains buildable on the current Gradle stack until the upstream repository upgrades.
+- 2026-03-12: Updated WalletConnect/Reown dependencies to BOM 1.6.9 and initially bumped AGP (8.9.1) / compileSdk (36) so upstream UniFFI native libraries ship with 16 KB page-size support.
+- 2026-03-12: Temporarily excluded the WalletConnect Pay dependency (and its `yttrium-wcpay` natives) until Reown publishes 16 KB–aligned builds.
+- 2026-03-05: Completed Google Play 16 KB page-size compliance for all bundled native libs (sr25519, TonConnect helpers, toolChecker) by rebuilding with NDK r28, verifying `readelf -l` alignment in CI, and clearing the Play Console warning.
+- 2026-03-05: Completed security remediation batch for TON and account flows (TonConnect origin validation, TON network client hardening, WebView restrictions, encrypted preferences migration to AES-GCM, PIN lockout throttling, and internal-cache JSON export hygiene).
+- 2026-03-05: Expanded TON indexer-first integration to include account transaction history ingestion with automatic TonAPI fallback, plus additional runtime tests for indexer/fallback behavior.
+- 2026-03-05: Added TON history cursor normalization (`lt[:hash]`) so indexer requests can use `cursor_lt/cursor_hash` directly when available.
+- 2026-03-05: Tightened TonConnect `tonapi.fetch` URL validation (HTTPS + `tonapi.io` allowlist + default port), fixed TON API header host matching for `*.tonapi.io`, and added regression tests.
+- 2026-03-05: Hardened TonConnect dApp WebView navigation policy from host-only to strict same-origin checks to block cross-port and cross-origin hops.
+- 2026-03-05: Re-enabled TonConnect `tonapi.fetch` through the hardened TON API client with strict `GET`-only execution on IO dispatcher.
+- 2026-03-05: Fixed TON indexer fallback cancellation handling so `CancellationException` is not swallowed when indexer requests are interrupted.
+- 2026-03-05: Added TonConnect URL hardening against localhost bypass aliases (`*.localhost`, decimal/short IPv4 forms like `2130706433` and `127.1`) and made WebView connection restore parsing resilient to malformed URLs.
+- 2026-03-05: Pinned TON fallback reads to `https://tonapi.io` when indexer fails, even if chain nodes do not include TonAPI hosts, to keep ton-indexer primary and TonAPI fallback-only.
+- 2026-03-05: Added ton-indexer JSON-RPC client support in Android (`sendBoc`, `estimateFee`, `getAddressInformation`) and switched TON transfer send/fee/time paths to indexer-first with TonAPI fallback.
+- 2026-03-05: Added ton-indexer jetton transfer payload API integration for TonConnect signing (`/api/indexer/v1/jettons/{jetton}/transfer/{owner}/payload`) with TonAPI fallback.
+
+## P0 — High Priority
+
+1) Full support for Polkadot SDK release: polkadot-stable2503 (TOP PRIORITY)
+- Why: Aligns the wallet with the latest stable Polkadot SDK, ensuring type/metadata compatibility and correct decoding/encoding across chains.
+- Scope: Substrate runtime alignment across Polkadot/Kusama/Westend/AssetHub and major parachains used by the app (per `chains.json`).
+- Acceptance:
+  - App runs without SCALE decode errors on target chains.
+  - Balances, transfers, fees, and staking screens load and execute extrinsics successfully on Polkadot and Kusama.
+  - Chain sync (ChainRegistry) stable: connections establish, runtime providers load, subscriptions update on version bumps.
+  - No regressions in unit tests; detekt/lint green.
+  - If APIs changed (e.g., extrinsic names/signatures), code updated or guarded by capability checks; createPool/rename items validated.
+- Prompt (steps):
+  1) Registry overrides: In `local.properties`, set
+     - `TYPES_URL_OVERRIDE=https://<your>/all_chains_types_android.json` (stable2503-aligned)
+     - `DEFAULT_V13_TYPES_URL_OVERRIDE=https://<your>/default_v13_types.json`
+     - `CHAINS_URL_DEBUG_OVERRIDE=https://<your>/chains.json` (debug-only chain list validated against stable2503; release remains pinned)
+  2) Utils alignment (pinned source checkout): The build includes `soramitsu/fearless-utils-Android` as a composite source dependency.
+     - Ensure NDK r28 (android-ndk-r28 / 28.0.x) and Rust toolchain with Android targets are installed (see README and CI config).
+     - CI checks out the exact Utils and guarded transport commits from `config/android-runtime-source-pins.json`; local builds should clone that repo next to this checkout or set `FEARLESS_UTILS_PATH`.
+  3) Library version pinning (shared_features): If required, pin via `SHARED_FEATURES_VERSION_OVERRIDE=1.x.y` in `local.properties` or env.
+  4) Build + quick checks:
+     - `./gradlew detektAll runTest :app:lint`
+     - `./gradlew :app:assembleDebug`
+  5) Runtime smoke tests: Run app against Polkadot and Kusama
+     - Verify ChainRegistry establishes connections and loads metadata (logcat).
+     - Open Wallet → Balances; verify assets and fiat values present.
+     - Open Send; compute fee; submit a small transfer on Westend/Kusama dev if available.
+     - Open Staking screens; ensure validators/nominators decode, no crashes.
+  6) Address API deltas:
+     - Search for runtime-extrinsic assumptions (e.g., staking pool create/rename) and update code or add capability checks.
+     - Validate storage keys/paths used in wallet/staking; update binding code where schema changed.
+  7) Update defaults (optional): If stable2503 becomes default, update `runtime/build.gradle` defaults and docs with new registry URLs.
+  8) Document: Add the exact registry URLs used to `docs/status.md` and a short note on verification results.
+- Verification matrix (execute manually or script):
+  - Polkadot: balances load, transfer fee computed, send succeeds on test account.
+  - Kusama: same as above; staking validator list loads.
+  - AssetHub: asset enumeration works; transfers to another account OK.
+  - Westend: basic transfer path used for low-risk checks.
+
+2) Fix staking validator oversubscription/slashed logic
+- Why: Marked FIXME; incorrect flags can mislead users and affect staking choices.
+- Files: `feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/mappers/Validator.kt`
+- Acceptance:
+  - Correctly reflects oversubscribed and slashed status independent of election state.
+  - Unit tests cover typical and edge cases.
+- Prompt:
+  - Investigate current calculation for `isOversubscribed` and `isSlashed`.
+  - Cross-check against chain indexer or on-chain sources for truthiness.
+  - Implement corrected logic with clear documentation and tests.
+
+3) Remove hardcoded chainAssetId in balance loader
+- Why: Hardcoded fallback can show wrong asset balance on some chains.
+- Files: `feature-wallet-impl/.../SubstrateBalanceLoader.kt` (search for "do not hardcode chain asset id")
+- Acceptance:
+  - Asset ID resolved from chain/asset registry consistently.
+  - No direct default to utility asset unless explicitly intended and documented.
+- Prompt:
+  - Introduce a safe resolver using `ChainRegistry.getAsset(chainId, chainAssetId)`.
+  - Add tests for chains with multiple assets and non-utility assets.
+
+4) Adopt meta-account/EVM nullability across features
+- Why: Several call sites assume non-null `accountId(chain)` which may be null for EVM chains.
+- Files: Examples in `feature-staking-impl/.../StakingRelayChainScenarioInteractor.kt`, `feature-crowdloan-impl/...`, and account use cases.
+- Acceptance:
+  - No `!!` assumptions for account IDs on EVM chains.
+  - Compile-time null safety; graceful user prompts to select/derive appropriate account.
+- Prompt:
+  - Introduce utilities to safely obtain chain-specific account IDs with null-safe flows.
+  - Update call sites; add tests covering Substrate/EVM differences.
+
+5) Replace TODO placeholders in NFT UI
+- Why: Visible TODOs degrade UX and block validation of flows.
+- Files: `feature-nft-impl/.../DetailsScreen.kt`.
+- Acceptance:
+  - Replace all `TODO("Not yet implemented")` with minimal functional UI or feature flags hiding incomplete screens.
+  - Provide tracking issues for any scoped-down functionality.
+- Prompt:
+  - Implement minimal views with loaders/empty states and navigation back.
+  - If data/API missing, add feature flags and hide from production builds.
+
+6) Resource-based error texts for FearlessException
+- Why: Error messages should be localized and consistent.
+- Files: `common/.../base/errors/FearlessException.kt`
+- Acceptance:
+  - No generic empty strings; map kinds to string resources with fallbacks.
+  - Unit tests verify mapping for Network/Unexpected/etc.
+- Prompt:
+  - Create `strings.xml` entries and a small mapper to user-friendly messages.
+  - Replace TODOs with resource lookups.
+
+## P1 — Medium Priority
+
+6) Cleanup or implement `SocketSingleRequestExecutor`
+- Why: Marked as unused; dead code increases maintenance burden.
+- Files: `common/.../data/network/rpc/SocketSingleRequestExecutor.kt`
+- Acceptance:
+  - Either removed fully or covered by usages/tests.
+- Prompt:
+  - Run ripgrep for references; if none, delete and run CI. If used, document and add tests.
+
+7) Crowdloan Karura interactor TODO
+- Why: TODO indicates incomplete crowdloan integration for Karura.
+- Files: `feature-crowdloan-impl/.../karura/KaruraContributeInteractor.kt`
+- Acceptance:
+  - Implement contribution logic or hide Karura option if not supported.
+- Prompt:
+  - Confirm current Karura status; implement required extrinsics or guard with feature flag.
+
+8) Node switch UI polish
+- Why: Button temporarily hidden; affects network management UX.
+- Files: `feature-account-impl/.../OptionsSwitchNodeContent.kt`
+- Acceptance:
+  - Button visibility reflects product decision; if enabled, wiring works end-to-end.
+- Prompt:
+  - Validate `ChainRegistry.switchNode` flow; unhide button with proper enable/disable states.
+
+9) Track Polkadot runtime upgrade (9390) and rename `createPool`
+- Why: API alignment reduces confusion and future merge conflicts.
+- Files: `feature-staking-impl/.../ExtrinsicBuilderExt.kt`
+- Acceptance:
+  - Name aligned post-upgrade; integration tests green.
+- Prompt:
+  - Add a build-time flag or comment with target version; plan a small PR once utils/runtime upgraded.
+
+10) Expand runtime-flow tests (Room migration coverage delivered)
+- Status: API 34 runs the full 61-test database suite, including malformed,
+  oversized, interrupted, and no-wipe preservation cases. APIs 30, 31, and 36
+  each run the compact 8-test released-schema/fail-closed database profile as
+  part of a 39-test compatibility gate.
+- Remaining why: Runtime connection lifecycle behavior still needs the same
+  deterministic regression depth.
+- Files: `runtime/...`
+- Acceptance:
+  - Smoke tests cover `ChainRegistry` start, stop, reconnection, cancellation,
+    and concurrent `syncUp()` calls without live-network timing dependencies.
+- Prompt:
+  - Build lightweight `ChainRegistry.syncUp()` tests with fakes and adversarial
+    cancellation/reconnection cases; keep the existing migration device matrix
+    mandatory for every database schema change.
+
+11) Per-module READMEs and entry points
+- Why: Speeds onboarding and code navigation.
+- Files: All `feature-*/` modules.
+- Acceptance:
+  - README in each module with purpose, key classes, DI entry, and main screens.
+- Prompt:
+  - Template a README and populate for wallet, account, staking first.
+
+12) Gradle/AGP update and build hygiene
+- Why: Keep toolchain current, reduce deprecations, and ensure reproducible builds.
+- Acceptance:
+  - Update to latest stable Gradle (e.g., 8.x) and Android Gradle Plugin (e.g., 8.x); no deprecation warnings in `./gradlew help`.
+  - Build works with JDK 21; CI green. CI prints Gradle/AGP versions for traceability.
+- Prompt:
+  - Bump versions in `gradle/libs.versions.toml` and wrapper to the latest stable; fix any DSL changes.
+  - Verify `url = uri(...)`, `namespace = '…'`, and packaging excludes for test APKs.
+  - Keep a CI step that prints Gradle/AGP versions (android-ci.yml).
+
+13) Utils source checkout contract
+- Why: Keep `fearless-utils` open-source and reproducible without relying on private Maven artifacts.
+- Acceptance:
+  - CI checks out `soramitsu/fearless-utils-Android` at the pinned commit and fails early if it drifts.
+  - `settings.gradle` includes the checked-out repo via composite build and substitutes `jp.co.soramitsu.fearless-utils:fearless-utils`.
+  - README and validation scripts document the same local workflow.
+- Prompt:
+  - Update `FEARLESS_UTILS_COMMIT` intentionally when the source dependency changes, then rerun `scripts/ensure-fearless-utils.sh` and the Android build/test suite.
+
+## P2 — Lower Priority
+
+12) Centralize chain/type override docs and checks
+- Why: Developers often need to align with Polkadot SDK releases.
+- Acceptance:
+  - Single doc page with examples; pre-flight Gradle check warns when overrides set.
+- Prompt:
+  - Expand `ARCHITECTURE.md` or a new doc; optional Gradle task to echo overrides.
+
+13) Compose migration plan (where applicable)
+- Why: Mixed View/Compose code; define direction.
+- Acceptance:
+  - Short plan identifying priority screens and blockers.
+- Prompt:
+  - Audit major screens; identify shared UI components to port first.
+
+14) Network-state observability improvements
+- Why: Better debugging for chain sync failures.
+- Acceptance:
+  - Structured logs/metrics for `ChainRegistry` sync and node switches.
+- Prompt:
+  - Add log tags and failure counters; consider emitting events for debug builds.
+
+15) Detekt rule hygiene for TODOs
+- Why: Config already forbids TODOs; enforce cleanup instead of accumulating markers.
+- Acceptance:
+  - Replace TODOs with tracking issues or feature flags; CI stays green.
+- Prompt:
+  - Sweep TODOs; convert to issues with links in code comments.
+
+---
+
+Team prompts for execution
+- Default workflow:
+  1. Pick a P0/P1 task, create an issue with scope and acceptance.
+  2. Draft a small PR (1–3 files where possible) with tests.
+  3. Run `./gradlew detektAll runTest :app:lint` locally; ensure CI green.
+  4. Add a brief note in `docs/status.md` if the change affects status/risks.
+
+- Branding device v2 exposed AAPT STRING_TOO_LARGE in the 48,552-character line-badge path despite the passing JVM/build checks. The generator now converts that single compound polygon to exact Decimal relative coordinates, preserves all 136 closed contours and its even-odd fill, and enforces the 32,767-byte limit. An independent token parser verifies every vertex; device rerender remains required. Adaptive icons use the base anydpi directory (minimum API26), with API33 monochrome overrides. Earlier failing APKs and logs are retained.
+
+- Corrected branding candidate: build v3 passes1,441 JVM tests/10 recorded skips, Debug app/test assembly and configured Detekt. Native API34 resource/Coil tests pass2/2 with12 raw renders; actual original-PIN unlock, both-wallet list, Welcome and About navigation succeed. Pixel-rounded layout v4 passes the existing320dp normal/double-text method with20 captures; its diagnostic47.999985dp failure is retained. All2 wallet rows,4 native chain accounts and7 protected entries remain exact. Source review validates all136 polygon contours and31,139-byte maximum path; final source/evidence manifest and integration acceptance are pending. Shared deterministic wallet-avatar rebranding, general remote-art fallback, broader native design and signed/physical release gates remain open.
+
+
+## Recovery checkpoint qualification — 2026-10-14
+
+The frozen production checkpoint `669beb8bd` passes2,101 module tests/zero failures/skips, Debug app/test APK builds, lint0errors/98 inherited warnings and configured Detekt (changed modules excluded). Native storage passes six methods plus one intentional process-kill phase: unchanged historical v1 survives in-place upgrade; anchored pending and acknowledged records survive distinct reader processes; archive acknowledgement survives restart with exact original bytes/inclusion. This uses fake public bytes/local callbacks, not a real transaction or physical power loss. Corrected UI test v2 passes two methods,96 layouts/192 PNGs (eight locales × normal/double text × six states) and three positive/negative clipping controls. The first UI attempt falsely flagged a complete centered button because paragraph coordinates were compared against its smaller measured node; its raw failure remains preserved. Only the test geometry was corrected. Root inspected Russian finalized, Japanese pending and Portuguese older-search captures at double text. All2wallets/4accounts/7protected records remain exact with SQLite quick-check ok; network settings restored. Source review v3 `2011d3888d2acaa0b399028b5dc2234769354a9c615c3d663c1a43dfb63158a9` resolves the five caller races at unit scope. Direct recovery entry after restart remains release-blocking and is next; these bounded results do not establish complete recovery or audit readiness.
+
+
+## Direct pool recovery — in qualification, 2026-10-14
+
+A separate read-only recovery entry is now available in the pool staking view before network/membership content. It prepares only local public wallet/account/asset context and does not wait for balance eligibility, a fresh amount, fees, validators or the pool list. Its dedicated dialog reads the exact retained scope without creating/claiming/consuming a join draft. Empty local state is distinct from finalized inclusion; missing restored context and corrupt/legacy records remain explicit. Recent/older checks reuse the bounded reconciler; archive completion survives cancellation, and explicit Return dismisses back to staking. No operation-success route or signing action exists here.
+
+Unit-v6 passes303 staking tests/zero failures/skips/source drift, including17 direct VM cases and33 actual main-VM preparation cases. Earlier v1/v2/v3/v5 runs preserve missing coroutine/navigation imports, asset/reset/void/BigDecimal fixture diagnostics; they are not product regressions. A separate valid departure baseline executes26 tests with25 passes/one genuine failure: held local context opens recovery after the wallet picker, despite no wallet change. Independent source review `17face6a7634788bfef425f7593d5eaa61185c017aa965c2854d7da31471dadc` identified missing visible-screen authority. Recovery now owns a cancellable job/generation, revokes on pause and synchronously before opening the wallet picker, and accepts only its exact staking back-stack entry and view captured before the click callback. It rechecks before/after publication and error display. Fresh taps after resume remain usable. Broader module/app checks, installed navigation/layout qualification and independent final acceptance remain pending; no full recovery or release approval.
+
+
+## Direct recovery build and presentation fixture — 2026-10-14
+
+Production source `f0b0910a7` passes2,281 tests across eight modules (app145/common620/core92/account568/wallet427/staking303/Polkamarkt9/XCM117), zero failures/skips, Debug app/test assembly, lint0errors/98 inherited warnings and configured Detekt. All4,300 app/376 library/84 websocket source pins are stable;374 of1,705 Gradle tasks executed and1,331 were up-to-date. Configured Detekt excludes the changed main modules, so no changed-module Detekt coverage is claimed. Actual production graph/router native tests pass two methods with test destinations. Presentation v1 preserves one passing clipping-control method and two failing methods: a copied minimum-ten-text-node assertion wrongly rejects the smaller loading and entry screens. The test now requires each exact expected heading/message/public identifier (or entry label), retaining measured glyph bounds, ellipsis, exact actions and minimum targets. Corrected presentation v2 remains running; actual Fragment/lifecycle and overall release gates remain open.
+
+
+## Installed pending recovery system Back baseline — 2026-10-14
+
+Installed empty recovery and Return survive offline zero-balance entry and system font configuration1→2; protected identities/records remain exact. An opt-in guarded known-public-wallet fixture retains impossible0x01020304 bytes in the actual pending scope, reads exactly in a new process and removes only that exact never-submitted attempt afterward; all three native fixture methods pass. Actual original-PIN→Earn→Staking→recovery shows exact37DOT/pool8/account/network/hash after restart. Both idle pending and checking ignore Android system Back; the visible toolbar Back works and reopening retains the exact original. This genuine installed baseline is preserved in `android-pool-direct-recovery-system-back-baseline-v1.json`; no final acceptance. The fixture test initial build failed on hidden Settings.Global.MOBILE_DATA; the corrected literal uses the actual global setting and test build v2 passes with no source drift. All2wallets/4accounts/7protected records remain exact with SQLite ok, original network/font settings restored. Secure-window screenshots are black; only native hierarchy/actions are claimed. A narrow recovery-only hideable-behavior remedy is next; broader inherited sheets/configuration remain open.
+
+
+## Recovery system Back remedy — in qualification, 2026-10-14
+
+The native Material-dialog regression now reproduces the installed problem: baseline v2 runs one method with one genuine `OS Back must cancel recovery; recreated=false` failure, using the actual inherited recovery behavior. Its initial v1 fixture checked draggable state before the asynchronous onShow policy callback; that diagnostic is preserved and not counted as a product failure. The corrected test waits for the actual callback and sends a real OS Back key, covering initial and recreated hosts. Standalone recovery now permits Material hiding/cancellation while retaining the inherited expanded, non-draggable policy. Existing onCancel/onDismiss still revoke review ownership; no shared base behavior changes. The public pending fixture accepts a validated evidence label so baseline and fixed native records remain separate. Full app/module and installed idle/checking Back checks are pending.
+
+
+## Shared confirmation attempt and completion ownership — 14 October 2026
+
+BaseConfirmViewModel now admits one attempt synchronously, releases loading and that exact attempt in finally, and permanently consumes an observed successful result before any navigation callback. It rechecks cancellation after awaited validation/output, propagates cancellation returned inside Result, and contains ordinary preparation/navigation exceptions without recursively invoking a failing error presenter. Fatal errors are not caught. This applies to the seven pool screens using StakingConfirmViewModel.
+
+The actual-controller regression baselines preserve five ownership/loading failures (8 cases), two Result-valued cancellation alert failures (13 cases), and three uncaught preparation/navigation failures (16 cases), each with healthy controls. Final affected wallet module checks pass443 cases/zero failures/errors/skips and no source drift, including16 new cases. Tests use public local callbacks, actual ViewModelStore clearing and callbacks that ignore cancellation; no keys or RPC. Evidence: `build/safe-upgrade/evidence/codex-20261012/android-base-confirm-ownership-unit-v3-*` in the parent workspace. Full build/static checks and final independent acceptance remain pending.
+
+This is per-ViewModel admission and observed-success protection. It does not yet bind those seven callers to an exact wallet/chain/form/lifetime, persist an unknown output outcome, prevent later manual retry after ambiguity, or qualify native dialog lifecycle. Production readiness and publication remain open.
+
+The first broader build at b559f9144 stopped at one existing recovery fixture: `replaced draft during reconciliation is preserved` read the archive after waiting for submission ownership to be released. Draft replacement releases that claim before the reconciliation job completes, so the assertion raced durable archiving. The raw failed build/XML remain under `android-base-confirm-ownership-full-build-v1-*`; no full-build pass is claimed. The fixture now captures and joins the actual held check job before asserting exact archived bytes, replacement preservation and no stale navigation. Production recovery is unchanged; corrected full qualification follows.
+
+Final shared-confirmation candidate `cb08571a7` passes2,319 exact named unit cases/zero failures or skips, Debug app/test APK assembly, lint0errors/98 inherited warnings and configured Detekt (affected modules remain excluded). Source comparison has no drift:4,305app/376utils/84websocket pins. Candidate `android-base-confirm-ownership-candidate-v1.json` SHA-256 `e3c3119926dbc365a51466599b4247079a119804e805650dcdf77247e271c88d` binds976 evidence files; source review v3 `f15b65b9c3f0c2f62a1d53a07b9ac8c740d750f15dc8c1ad3dcf6d6263d43e57` accepts the boundary fix and actual-job fixture correction. Final evidence review/integration remain pending. Default minimum-balance validation and three pool overrides can still transform a returned cancellation into an unknown-minimum error; this is an explicit follow-up, separate from the tested isValid boundary. No native or whole-release acceptance is claimed.
+
+Shared confirmation ownership is independently accepted: final review `97406b4bf0f0671941826f1b21fb3f704fee76c9081df1c53c277c72eaf87073` verifies all2,319 named cases,16focused methods,10distinct reproduced defects,976 evidence pins and final artifacts. Integrated production `d562416ff` plus corrected fixture `a3998148c` match all3 changed non-document files and the complete qualified source tree. Integration verification `7d7b4a8ed073dba0a2db56d7773820d537b3a463f9aa9e6af3923833419c92bf` rehashes4,305app/376utils/84transport pins; three clean cherry-picks preserved accepted documentation. Default/upstream minimum lookup cancellation, exact caller wallet/chain/lifecycle authorization and durable ambiguous outcomes remain open; no broad native or release claim.
+
+## Preserve minimum-balance lookup cancellation — 15 October 2026
+
+The existential-deposit use case propagates direct coroutine cancellation before wrapping lookup failures. The default confirmation validator and actual claim/redeem/unbond/pool-setup validators also propagate cancellation returned inside Result before converting ordinary failures into an unknown-minimum warning. Unknown minimums still block these pool paths with their existing explanation, and known-zero minimums still permit healthy progression; wallet opening is unaffected.
+
+Corrected baseline-v4 runs30 named cases with7 genuine failures/23 healthy controls: two actual use-case runtime/RPC paths and five actual validators. Final wallet/staking modules pass785 cases (448wallet/337staking), zero failures/skips/source drift, including17 new methods/executions. Baseline-v1 compile diagnostics are excluded. Baseline-v2 has three genuine wallet failures and three missing Mockito icon-URL fixture failures; baseline-v3 corrects that fixture and reproduces six defects before setup is added. All raw runs are retained under `build/safe-upgrade/evidence/codex-20261012/android-minimum-cancellation-*` in the parent workspace. Checks use local public fixtures and mocked RPC; no signing or broadcast.
+
+This is direct cancellation propagation through the named service/converters, not a claim about every minimum-balance consumer or nested exception causes. Broader full build, independent acceptance and integration are pending; exact wallet/chain/form/lifecycle authority, uncertain output recovery and release gates remain open.
+
+Final minimum-cancellation source `29b37660e` passes2,336 exact named unit cases/zero failures or skips, Debug app/test APK builds, lint0errors98 inherited warnings and configured Detekt (affected modules excluded). All4,307app/376utils/84transport source pins remain unchanged. Candidate `android-minimum-cancellation-candidate-v1.json` SHA-256 `44af71e0edbd70d77bf7d5f10293b5779995da1596ecc42b8ab9e22eccb2d26f` binds13 changed files/634 evidence files,30 focused names and all7 corrected-baseline defects now passing. Source review `eb43f3b8d43e82c2ba942c392db96768342233d7b2d7ca3a82847f1f2f526b72` accepts direct cancellation propagation at this scope. Independent final review/integration remain pending; no broader consumer/native/release acceptance.
+
+
+Minimum cancellation is independently accepted and integrated from qualified29b37660e at5a87ec60a. Final review `f1e402bfa88a92b49d824a1b193c945dedea2b08148f8a941a6c29a1f4a92ca6` verifies2,336 named unit cases/zero failures or skips,30 focused cases,7 true baseline failures now passing,634 evidence pins, Debug APK pair and lint0errors98 inherited warnings. Integration verification `5ebfb142404986e4b38d0a5a13a302e0b736e452b84f86adf3e1370e21fa7ffd` confirms11 changed non-document files and whole non-document tree equal to the qualified source, with4,307app/376utils/84transport current and Git pins exact. Two documentation-only conflicts retain earlier acceptance sections. Configured Detekt excludes affected modules; no native, all-consumer, nested-cause or release-readiness claim. Pool creation draft/context/lifecycle authority is the next actual-controller follow-up.
+
+
+## Bind pool creation to its original review — 15 October 2026
+
+Create confirmation now captures immutable fields from a draft bound to its original main-context snapshot and wallet-selection epoch. Display, fee and operation callbacks use those original fields. Shared publication claims prevent two confirmation instances from executing the same draft simultaneously, and observed success consumes only the original claim even after departure. Back/dismissal/clearing revoke presentation; stale success/error callbacks cannot navigate or alert over another context. Claim observers are rechecked after synchronous publication, and conditional wallet admission skips stale presentation without swallowing admitted exceptions. These are caller boundaries; downstream key/sign/send authorization is still separate.
+
+Create setup conditionally publishes only its current editable draft under the original context. The welcome action carries that context and rechecks it after the limit lookup. Baseline-v3 executes21 cases with16 genuine failures/5 healthy controls. A reentrant baseline reproduces2 additional failures, and the origin baseline reproduces3 further failures while retaining those2; all21 distinct reproduced cases now pass. Expanded unit-v4 passes1,447 cases/zero failures or skips (621common/448wallet/378staking), including46 focused cases and42 new test executions. Source snapshots have no drift; full Debug/lint/configured Detekt and final independent evidence review are pending.
+
+All original failures are preserved under `build/safe-upgrade/evidence/codex-20261012/android-create-pool-context-*` in the parent workspace. Unit-v1 has two test-only matcher failures after reaching previously failing assertions (the router has a fourth default argument). Unit-v3 exposes queued fixture failures: previous minimum-validator mocks passed null chain/asset IDs to a non-null assetFlow stub, and background fixture flows could outlive Main reset. Explicit fixture IDs plus cancellation-and-join before reset correct these without relaxing assertions. The prior minimum gate's2,336 named result is historical; this qualification supersedes its affected fixtures and records their uncaught-flow weakness.
+
+The confirmation unit scope does not establish full create setup/welcome lifecycle: late setup errors and non-atomic welcome publication remain explicit follow-ups. Underlying create API current-chain/wallet resolution, physical execution revocation, durable ambiguous outputs and known-success loss inside downstream dispatch remain open, as do actual Fragment system Back/configuration and global historical/physical/store/release gates. Tests use local public fixtures with mocked callbacks; no keys, signing or broadcast.
+
+
+The real success-navigation sequence adds two reproduced failures: returnToMain can synchronously clear or dismiss the confirmation ViewModel, preventing the owned continuation to validator selection/success. A once-only synchronous success presentation scope now retains its exact completion receipt across that owning pop; every subsequent step still checks main/draft/wallet context. Five additional tests cover actual ViewModelStore clearing, dismissal, reentrant confirmation, non-escaping/once-only scope and wallet change during pop. All31 confirmation cases pass in unit-v5; the broader1,452-case run has one retained recovery-fixture failure because joining its check job does not join the separate combine/stateIn presentation collector. Archive and consumed-draft assertions pass. Unit-v6 waits for the finalized view-state emission before retaining the original assertion; recovery production is unchanged. Full candidate acceptance remains pending, with all failed XML retained.
+
+Corrected unit-v6 passes all1,452 named module cases (621common/448wallet/383staking), zero failures/skips/source drift, including51 focused/47 new create-context executions. All23 distinct reproduced create-context/navigation failures now pass. The recovery archive fixture synchronization preserves its original assertions. Final full build and independent acceptance remain pending.
+
+Final source `0c9e64970` passes2,383 named unit cases/zero failures or skips, Debug app/test APK assembly, lint0errors98 inherited warnings and configured Detekt (affected modules excluded). All4,310app/376utils/84transport source pins are unchanged. Candidate `android-create-pool-context-candidate-v2.json` SHA-256 `7c72b2eff3deaf2d47d64acffbaa8b8bb1aa229781a80e5ff1e5a6bf0f9ad012` binds17 changed files/1,765 evidence files,51 focused cases/47 new executions and23 distinct reproduced defects now passing. Source review-v4 `492b64fbad2cc1b0f4b55ed3aa9e827d630d9f3ab5d40f4cd9c98beb303cead9` verifies all15 changed non-document Git blobs and corrected1,452-case module results. Earlier full-v1 is an intermediate result before owned-success-pop correction; unit-v5 retains its separate recovery view-state synchronization failure. Independent final evidence acceptance and integration remain pending.
+
+
+Create confirmation context and owning success navigation are independently accepted and integrated at source `790adc21d` + `8fc4ea316` from qualified `0c9e64970`. Final review `ece6b3a25ae4efe313714714dd14f70de5552603704b72e433c0bb80611ce5ed` verifies2,383 exact named unit passes/zero skips,51 focused cases and all23 distinct reproduced failures now passing. Integration verification `b4b871fb17a7033339a27d4655b51cef4846ed4c88c08110cf5e2ea61c78145d` confirms15 changed non-document files, entire non-document tree equality and4,310app/376utils/84transport current+Git pins, with1,765 evidence pins unchanged. Two documentation-only conflicts retain earlier acceptance sections. Full setup/welcome lifecycle, exact downstream execution/durable outcomes, actual Fragment lifecycle and all broader release gates remain open. The next setup/welcome baseline is running; no new native claim.
+
+
+## Preserve create setup and welcome lifetime — 15 October 2026
+
+The actual-controller baseline executes24 cases with7 genuine failures and17 healthy controls: retained setup and held validation survive Back; a late insufficient-balance error reaches a replaced context; validation publishes an old amount with a newer name; an ordinary minimum lookup exception escapes; welcome continues after Back or after a reentrant draft replacement. Raw baseline and exact source snapshot remain under `android-create-setup-lifecycle-baseline-v1-*` in the parent workspace evidence directory.
+
+The candidate shares local screen lifetime with the pool publication lock and wallet epoch, captures original form fields plus an edit generation before validation, contains ordinary lookup failures only for the current request, and conditionally publishes welcome setup against the exact original draft receipt. Back, dismissal and clearing revoke pending presentation; configuration-change dismissal retains the existing ViewModel authority. Ten additional controls cover dismissal/clearing, idempotent Back, form A→B→A, late errors, replacement while the limit is held and ordinary limit failure. Qualification and independent review are pending. This does not establish downstream key/sign/send authority, durable output recovery, installed Fragment behavior or all eager initialization/fee-readiness paths.
+
+Independent source review identified two additional lifetime/order gaps. Expanded selector/welcome baseline-v1 runs41 cases with7 genuine failures/34 healthy controls: both role selectors accept older resolutions, current and obsolete selection exceptions escape, revoked welcome still opens Join/Instructions, and reentrant join-draft replacement still navigates. The correction gives each selector its own pending request token, blocks confirmation until resolutions finish, and guards all welcome routes with exact publication receipts. Two additional controls retain both concurrent selector choices and verify pending-address gating. Corrected unit-v2 passes43 cases/zero failures or skips/source drift; all14 distinct reproduced failures now pass. Full build and independent final review are pending. Eager initialization, fee readiness, selector-origin routing, downstream execution and actual native lifecycle remain explicit limits.
+
+Intermediate source4a1d05c69 passes2,409 full-build named unit cases/zero failures or skips, Debug APK pair and checks with no source drift. Final UI feedback now disables Create while either selector is pending and starts the button disabled until its inputs load. The existing actual ViewModel unresolved-selection control observes enabled→disabled→enabled emissions alongside its unchanged old-address rejection and final exact-address assertions. All43 focused unit-v3 methods pass without failures/skips/drift. Final full-source qualification and independent evidence acceptance follow; shared button rendering is unchanged.
+
+
+Final setup/welcome source `f1c2d2553` is independently accepted at this bounded scope. Full qualification passes2,409 named unit cases/zero failures or skips,43 focused cases/26 new executions, Debug app/test APKs, lint0errors98 inherited warnings and configured Detekt (affected modules excluded). All14 distinct reproduced baseline failures now pass;4,311app/376utils/84transport current/Git source pins and780 evidence pins match. Candidate SHA `84fdbc89727e658f86e7b336c45eb00d8bbe4ed75d7fc242c97f2bef67bb7481`; independent final review SHA `98299ecd45003f90a848bedb670c33c106d07bf7a195b6ded5352f8e1d167771`. Pending address selection visibly disables Create in actual ViewModel state; no new installed native claim. Downstream exact chain/wallet/key/sign/output and durable unknown outcomes, eager fee/initialization, selector-origin routing, Fragment lifecycle and global migration/physical/store/release gates remain open.
+
+
+Setup/welcome/selector ownership is integrated at source `285e5c1b2` + `9f2d1b255`. Verification SHA `2e0ddc40df04a821906d163b4c814163b06ff4d35309c47652e5b15294a86ec8` confirms all8 changed non-document files, whole non-document tree equality to f1c2d2553,4,311app/376utils/84transport current+Git pins and780 evidence pins. Two documentation-only conflicts preserved prior create-confirmation acceptance. Independent final review SHA `98299ecd45003f90a848bedb670c33c106d07bf7a195b6ded5352f8e1d167771` accepts the bounded2,409-case qualification. Downstream execution/durability and broader readiness gates remain open.
+
+
+## Carry create-pool review through physical execution — 15 October 2026
+
+The actual caller/API/SCALE baseline reproduces10 failures in13 cases: mutable global chain, unbound fee/signing wallet namespace and stale output after departure/context changes during preparation or queued transport. Three healthy controls retain atomic create/set_metadata call order, exact addresses and public-only fees. Baseline-v1 stopped at a test import error and is excluded. The correction passes original chain/wallet through confirmation, setup and quick-input fees to the API, then supplies the active review/draft claim/job/wallet epoch guard to physical key access, signing and final output. Admission is once-only and releases navigation/selection locks before blocking output.
+
+Focused unit-v2 passes75 named cases/zero failures or skips/source drift, including19 actual pipeline controls,31existing create-context and25setup cases. Added controls check legacy state_toggler encoding, original fee chain, ViewModel clearing, changed intent, actual local writer Back/wallet responsiveness and duplicate refusal. Production and test source are being frozen for full qualification and independent review. Fixed public fixture keys with mocked RPC/local OutputStream only; no live transaction. Durable ambiguity, matching acknowledgement and acknowledgement loss inside downstream dispatch remain explicit separate work, alongside other pool callers and global gates.
+
+
+Physical create authority is independently accepted at source8e1572b67:2,428 named unit cases/zero failures or skips,75 focused/19 new,all10 genuine baseline regressions now passing, Debug APK pair, lint0errors98 inherited warnings and configured Detekt (affected modules excluded). Candidate SHAfde1bb546c77ee13f0f3e6391c6d31c5ba05a92e0ec15d051237e09ad3ec0185; final review SHAc0d8d15ed71443749e81d6f364225347ae09c8731c9f091ee6fadf2a5c18ebd1 verifies4,312app/376utils/84transport Git/current source and433 evidence pins. Baseline-v1 never executed tests and its stale copied XML is excluded. Only local fixed public keys and mocked RPC/actual local writer were used; no new installed-device claim. Durable ambiguous output, matching acknowledgement/dispatch-loss and other caller/release gates remain open.
+
+
+Create chain/wallet and physical key/sign/output authority is integrated at8bbd33add. Verification SHA1eb9aa1857913039ad750f64dc4082d28be73547cdeb7e3ed4c4c7c189d95b35 confirms all8 changed non-document files, entire non-document tree equality to8e1572b67,4,312app/376utils/84transport current+Git pins and433 evidence pins. Two documentation-only conflicts preserved accepted setup lifetime sections. The bounded2,428-case result is accepted; durable unknown output and acknowledgement gates remain active.
+
+
+2026-10-15: independently accepted bounded durable pool creation recovery from qualified source 464582acaf7aeb1220387c5c402a704dd69fa3b8. Version3 retains exact original create name/roles/bytes/hash/intent/anchor alongside shared join/create scope; old v1/v2 records remain readable and unknown records preserved. Matching acknowledgement synchronously consumes only the original claim and opens read-only recovery without claiming successful creation. Final checks:2,460 named unit cases/zero skips, Debug app/test APK, lint zero errors98 inherited warnings, configured Detekt (affected modules excluded), installed v2 upgrade/read and five v3 persistence methods plus intentional admitted-output process kill, six UI/Back methods with176 layouts352 captures. Seven protected records and exact2wallet4account rows remain unchanged. Candidate SHA 94c2cd9fb72eedb3c0f513a78970b766deac872d88bb4d4c9f2242f41e6a35cf; independent review SHA 7c644e3ae4036f2118027c431017158f2fd644f5632a8e02ec07318575d2b264. Whole non-document tree verification follows this integration. Actual end-to-end create navigation, other pool callers, RPC trust/proof, physical/migration/store/global design and release gates remain open; no production-readiness or publication claim.
+
+
+2026-10-15: independently accepted bounded member-confirmation lifetime correction fromb8fa36cce6549d83d9ebb8f8650905a59926a7c2. Frozen original main/manage/wallet context, shared claims, exact consume with readable unclaimable fields, guarded late callbacks/synchronous success-pop, and four Fragment dismissal/Back policies. Final full build passes2,549 named unit cases/zero failures or skips,98 focused/89new, app/test APKs, lint0errors98inherited warnings and configured Detekt (affected modules excluded). Installed native tests pass six actual Material OS Back methods (four new member) on initial/recreated host. Seven protected records and exact2wallet4account rows unchanged; settings restored/app stopped. CandidateSHA6fd2c17772dbbfde79f3d6e7268645d9efd4653f6ac2db2cbb272753aa5fa4d3; independent reviewSHA3e98496f839facb0129134aa988ce6784940ef9c79aef6247ec613099dd10c1c. Complete non-document tree verification follows. Upstream preparation, downstream chain/wallet/physical/durability, actual full Fragment navigation, migration/physical/store/design and release gates remain open.
+
+
+2026-10-15: independently accepted bounded member amount/preparation correction from91f8f64d0b7420044836c2a0ca5d2190a77cfc2d. Original main/draft/wallet authority, exact conditional edits, separate read/edit permission, scoped Back/minimum errors/alert results and numeric input revocation protect claim/redeem/unbond/bond-more. Full build passes2,647 named cases/zero failures or skips,187focused/98new, all53distinct genuine baseline failures resolved, app/test APKs, lint0errors98inherited warnings and configured Detekt (affected modules excluded). Installed native tests pass10Material OS Back methods/four new amount policies on initial/recreated host. Seven protected records and exact2wallet4account rows unchanged; settings restored/app stopped. CandidateSHA20a0f338d9ba4cad7090745e23fd202b66d88d89f87ed8e4268f93d75d2fee5d; independent reviewSHA5d1e57ef407a4e95ca3ffea8e2a6b256cd8babd488cfecca5fa34dc0c493601a. Whole non-document verification follows. Complete Fragment navigation, downstream physical/durable execution, manage/validator/edit actions, generic fee readiness and quick-input faults, migration/physical/store/design and global release gates remain open.
+
+
+2026-10-15: independently accepted management action and live-value correction from a36c8aa8911fc565b3e738469fce5ef2063e314d. Original main/wallet/lifetime and exact pool own one action, destination publication, navigation and errors. Pause withdraws pending work and stops hidden draft publication; actual return allows a new action. Pool value equality/hash preserve same-ID amounts, roles and metadata. Full build passes 2,798 named cases with zero failures/errors/skips; 338 focused /151 new and all 80 distinct genuine baseline failures resolved. Three queued observer fixture failures remain diagnostic; explicit inline rerun established the genuine cache failure. Debug APK pair, lint zero errors/98 inherited warnings, configured Detekt (affected modules excluded), and eleven installed Material Back methods on initial/recreated host pass. Seven protected records and exact two-wallet/four-account rows unchanged; settings restored/app stopped. Candidate SHA 6d37b9869634b9b4289b9a88f583da71bb9f0820b1a98b4e07d208024530e442; independent review SHA 606ee7b8df3062b5eac1937540cdce8dad90c16b00770e2fc1f33e9bdc698ea7. Complete Fragment/back-stack lifecycle, eager source errors/cancellation, other pool controllers/downstream physical/durable execution, migration/store/design and global readiness remain open.
+
+
+2026-10-18: independently accepted pool-source lifetime and body context correction from 0c3066eb05dbf1890db4d5b8a31f4d4b6a135c77. Chain/wallet changes cancel old observations and emit unavailable state; missing account or source failure permits later healthy selection. Pool body requires matching chain/public account/supported asset, cancels old quote work, and keeps healthy nonmember input available without a failed optional estimate. Reward dialog retains its previous supported-asset admission filter. Full build passes 2,829 named cases with zero failures/errors/skips; 369 focused /31 new and all24 distinct genuine baseline failures resolved. Twelve Mockito setup failures remain diagnostic. Debug APK pair, lint zero errors/98 inherited warnings, configured Detekt (affected modules excluded), and eleven inherited installed Material Back methods on initial/recreated host pass. Seven protected records and exact two-wallet/four-account rows unchanged; settings restored/app stopped. Candidate SHA 1ef6e35e9538763a1be892d9f0323805c07390dfb534ce279838445cceb40898; independent review SHA d45c9f282fc1a7c8c00b89dd98627fb42d184e4135892ec729abc00b006cec44. Lower observation semantics including missing bonded-pool data, root screen generation/complete Fragment lifetime, network-info/dialog ownership, other controllers/downstream durability and global release gates remain open.
+
+
+2026-10-18: independently accepted lower pool-observation and acknowledged-storage correction from 0c3791b3358c40dddcacc4a09bdbe26634cd1eb2. Explicit unavailable state withdraws stale membership, body and management actions; confirmed nonmembership requires acknowledged null. Latest observation cancels obsolete metadata/reward/era work and later healthy values recover. Single-key status-bearing RPC queries validate raw block/key/tuple/value before decoding and preserve cancellation; unrelated legacy APIs remain unchanged. Final full build has3,058 named cases:3,048pass/10 inherited runtime skips/zero failures or errors. All428focused and54new methods pass;15 genuine baseline failures resolved, fixture diagnostics preserved. Debug APK pair, lint0errors/100warnings (net two additional availability notices on unchanged dependency catalog; no code-warning delta) and configured Detekt pass (affected modules excluded). Eleven inherited installed Material Back methods pass on initial/recreated host;7 protected records and2wallet4account rows remain exact, settings restored/app stopped. Candidate SHA 16f75d5b9e88b604d1cc580e6204601aa5e56d083f1c948ff11a6d5205979ac5; independent final review SHA c36c483318e1c4708eed44eedddd8e2c54591474b1674cfc6e7bb8dae93c7fe0. Cross-storage snapshot/freshness/provider trust, terminal-source retry/disconnect, full Fragment/root generation/network-info/reward-dialog and downstream signing/output/durable authority remain open, along with global migration/physical/signed/store/design gates.
+
+
+2026-10-18: independently accepted pool network-information lifetime correction from c65249351ee318162333631ebcfbdd74e7cd8365. Old values reset on each asset; obsolete lookups cancel, unsupported/failed lookup stays unavailable and later healthy observation recovers. Full3,066named=3,056pass/10 inherited runtime skips,35focused/zero skips; six genuine failures fixed, original eight methods exact. Debug APK pair, lint0errors/100warnings exact to previous issue multiplicity, configured Detekt pass with staking excluded. No new native execution or device changes. Candidate db236d28c5360828abd7e793b5434687e413dd9a3cd1cf81bd8da9e8ebf6e4f2; final review 24243df4a857432acde1e6538ae15bc6f88c16a6d8414bbcaf891475189f07d5. Root/Fragment/presentation/reward-dialog, terminal source retry and downstream durable authority/global release gates remain open.
+
+
+2026-10-18: independently accepted root-action lifetime correction from 1c4344bda8fbce499036ddbbdeacf94f275bfcdf. Screen/wallet/selection ownership rejects obsolete rewards and pool navigation, Fragment callbacks carry original owner, and rejected departures restore fresh visible actions. Nullable shared EventObserver fixes actual installed Wallet-tab crash. Broad3,116named=3,106pass/10 inherited skips;83focused/zero skips,50new and35genuine failures now pass, final47root+3common test files exact. Debug APK pair, lint0errors/100warnings exact prior multiplicity, configured Detekt pass (affected common/staking excluded). Actual offline PIN/startup/recovery/OSBack/Wallet/Earn/background-resume survives same process;7protected/2wallet4account records exact. Screenshots black, no visual claim; offline reward/start/manage controls absent. Candidate 08d8cdd17f84d8273945f695e8470e855bd4308f78d8a94f8f9c19c6d1e1ed34; final review d3eea78114f2bb49eec3e89168e222cdb1e549cbf20426a6a9d30ca614181ca7. Replacement qualification explicitly excludes one lost reviewer-mutated query-copy SHM index; original device DB/WAL and identities reverified on scratch copies. Complete scenario/presentation/dialog ownership, downstream asynchronous validation/durable authority and global migration/physical/store/design gates remain open.
+
+
+2026-10-18: independently accepted caller-owned nonpool preparation and guarded validation from 489492b5770bdaf0e0d4802ec1f7ef44605c4be2. Root screen/wallet/selection and actual ViewModel parent lifetime guard relay/parachain setup publication, including synchronous observers and retained callbacks. Current-owner cancellation clears progress then propagates. Broad3,154named=3,144pass/ten inherited runtime skips;118focused/zero skips;38new methods and14distinct genuine baseline failures now pass. Final48root/23nonpool/14common files exactly match5a959998a; six prior root mock calls explicitly adapted for the suspend API. Debug APK pair, lint0errors/100warnings exact prior issue multiplicity, configured Detekt pass with affected common/staking excluded. Installed16 hierarchy captures show original-PIN/recovery/OSBack/Wallet/Earn/background-resume continuity in PID7918 without new crash;7protected/2wallet4account records exact and settings restored. SQLite queries ran only on disposable DB/WAL clones. Sample06 black: no visual qualification. Offline reward/start/manage absent; ERROR-level retained callback controls do not establish a native warning button. Candidate 9f91a7efe1e4852ce4a0d2af5522e43e79d78c8c4ff2ae9148d5378459da9d05; final review c8b91bc9c764c9f5c5520aa0caaca2eac385fff196779cf37ebd5f07469e29cb. Fresh-tap scenario/asset/amount freshness, full presentation/dialog and downstream fee/key/sign/output ownership plus global migration/physical/store/design gates remain open.
+
+
+2026-10-18: independently accepted fresh staking action binding from 9c614ea44152dc59a5b98f443a469c6bf0b74910. Root actions bind scenario type, selection revision, captured asset, current wallet/account and authoritative staking capabilities. Actual relay validation uses captured chain; parachain maximum refuses another replayed chain and bound average recomputes for the requested chain. Broad3,186named=3,176pass/ten inherited runtime skips;172focused/zero skips,32newmethods and18distinct genuine failures now pass. Final21fresh and3actual-calculator assertion bodies exact12dcb4db3; calculator comment corrected, older root/nonpool fixture API changes and one old root contract mismatch explicit. Debug APK pair, lint0errors100warnings exact prior multiplicity and configured Detekt pass (affected modules excluded). Installed original-PIN/recovery/OSBack/Wallet/Earn/background-resume regression preserves7protected/2wallet4account records and settings; details and screenshot limits in native report. Candidate bf48dd008db67f5a51935dac819e6a48c267b135c86de5521637b3f5ad6ae990; final review 2a7e05f3b94ad29e8cb1124b31c002667921233e447c11c46d9fa3b45e94e91e. Entered amount/setup-session, full presented-dialog lifetime, legacy unbound quote/error semantics, downstream authority and migration/physical/store/design gates remain open.
+
+
+2026-10-18: management baseline9046cc191 executes15 methods:3healthy passes,11genuine stale publication/navigation failures and1fixture null-observer exception on intentional LiveData clearing. Only the helper observer nullability is corrected; all15 method bodies remain unchanged for baseline-v2 before production changes.
+
+
+2026-10-18: Management presentation/window lifetime qualifies at292e998af (productione2b9f1f16):199focused/zero skips,3,210named=3,200passes/ten inherited runtime skips, both Debug APKs, lint0errors/100unchanged warnings and configured Detekt with affected-module exclusions. Same instrumentation APK reproduces3genuine old-app native-window failures plus2healthy controls; corrected app passesall5. Exact7protected/2wallet/4account rows, settings restoration and unchanged crash buffers confirmed. Earlier startup/PIN fixture and runner/reviewer precondition failures remain separately retained; all5native bodies/deadlines unchanged. Candidate-v2 and paired-window review are frozen; independent final review/integration pending. Synthetic rendered input qualifies window lifetime only; actual action rows, eligibility, rendered-model freshness, other dialogs and downstream authority remain open.
+
+Final independent review accepts this bounded checkpoint; see the current section above. Remaining global production gates stay open.
+
+
+## 2026-10-18 — Bounded rendered relay action authority accepted
+
+Integrated executable source `72487016f8bb31828cfbce68ebb5f60b35854895` (production `f2c4f5e5737dfd62b8cb3a4d4a7783b96bec17c9`). Each relay body retains its immutable source; root publication validates the original wallet, account, selection and denomination before granting action authority. Management and status callbacks require the exact current published object. Resume requalifies the source and issues a fresh publication.
+
+Independent review verifies 3,258 named JVM outcomes: 3,248 pass and ten unchanged inherited runtime skips, with all 3,236 prior outcomes exact. All 70 focused cases pass. Eleven reproduced failures comprise eight original action failures and three late-adoption defects in the first correction; six further controls are qualification only. Both Debug APK hashes, 4,346 application/376 utility/84 transport source pins and 923 evidence pins are exact. Lint has zero errors/100 warnings, byte-identical to the prior report; configured Detekt excludes the affected staking module.
+
+The same five native management-window methods pass with final APKs. All seven protected records and two wallet/four account rows remain exact; settings are restored and crash buffers unchanged. Review queries used disposable DB/WAL copies, never frozen DBs or SHM. Forty-one JSON observations provide window-lifetime evidence; no current images or visual-readability claim. Synthetic native input does not prove actual root provenance or action-row clicks. The second Back proves window absence only, not navigation retention.
+
+Candidate SHA-256: `595b4ed1a66eb40304583781b25c4bb67f3e33a76b6f3448aaf3d4c45276868b`. Independent final review: `5967ea25af426911b72d3b429c5deea95a14a65ef0b5b3906eaf9889f3974bae`. Continuous independent registry/selector identity, other actions/dialogs, child-scope lifetime, amount/session and downstream signing/durability, migration, physical-device, design and store gates remain open. This is not production release approval.
+
+## Scenario owner, reward refresh and root story acceptance checkpoint
+
+Executable source `911d70b5df4ad1542e141b2083a833146dc46b82` is independently accepted within this bounded scope. Permanent root observers remain in the ViewModel scope; every distinct observed staking selection receives a fresh cancellable scenario owner. Relay reward refresh belongs to its collected body and checks cancellation before publishing an error. Stories switch with the scenario and clear before the next source, including an empty pool source.
+
+The original test-only baseline `730b91d00` preserves 78 named results: 73 pass and five genuine failing methods covering inactive lower-stream work, uncancelled reward work and stale errors after scenario/role replacement. These assertions overlap consequences and are not five independent vulnerabilities. Expanded baseline `bfa4adf67` preserves 87 cases: 85 pass, one genuine finite-source pool-story replay failure and one synthetic hot-source qualification failure. Actual story datasources are finite; the hot-stream probe is not counted as a production defect. The original eight method bodies, all 70 prior tests and the valid expanded 17-case fixture remain exact. Retained diagnostics include one nested Mockito fixture failure fixed without assertion changes and one missing-import compile failure before tests.
+
+Final focused checks pass all 87 methods with zero failures, errors, skips or source drift. The nine-module broad run has 3,275 named tests: 3,265 pass and the same ten inherited RuntimeSyncServiceTest skips. All 3,258 prior outcomes are exact. Both Debug APKs build; Android Lint has zero errors and the same 100 warnings with exact issue/location multiplicity. Configured Detekt passes but excludes feature-staking-impl. Source verification covers 4,347 application, 376 utils and 84 transport files against current bytes and Git blobs. Same-type relay chain replacement, relay/pool/relay body-network-input recovery, delayed NonCancellable returns after release, current errors and cancellation-result controls pass.
+
+The final APK pair passes the unchanged five native management-window cases on owned offline emulator 5710. Its 41 phase JSONs and zero images qualify actual startup/PIN, Fragment and management-window regression with synthetic presentation input, not actual root source provenance, row routing, eligible staking or visual readability. Seven protected records, two wallet rows and four chain-account rows remain exact; scratch-copy database checks pass, settings restore exactly and crash buffers remain unchanged. The app is force-stopped after cleanup. The existing second-Back navigation and black-image/readability limits remain explicit.
+
+Candidate-v2 SHA `0667a85ceb7c48f840cfb75d8a0ad0ad8406ded290f170a36b50898554c65fe8` binds 944 evidence files. Independent final review SHA `cc70a760bfb0b2a36d9d564a0bf0ce34c876969c3de4748668a2bdc062b4d435` accepts this checkpoint; see `docs/android-staking-scenario-owner-validation.json` and `docs/android-staking-scenario-owner-independent-final-review.json`. Integrated at `d9a40d065`; exact-tree verification is recorded below.
+
+Selection ownership follows actual selectionItem emissions, not every wallet/registry/preference intent; prior relay publication admission remains separate. Non-cooperative work can delay progress until it returns. New actual-root recovery tests cover relay and pool, not a fresh parachain round trip. Retained root-alert callbacks, equal-text alert adapter rebinding and action-to-info holder reuse are next source-based candidates requiring controlled baselines. The optional payout listener is unchanged; current-selection reads alone do not establish wrong-identity writes. Automatic root-alert/registry freshness, full native/design, migration, physical-device, signing/store and release gates remain open.
+
+Integration verified at `d9a40d065fb091f2a42c91aa410a755d08f51a29`: whole4,347-file executable tree,376utils/84transport and944evidence pins exact; verification `18147baf25141426aa423e777dcf2ae504e18291322e039729c8b5021bab738b`. No additional build or native run is claimed.

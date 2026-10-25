@@ -356,9 +356,7 @@ fun AssetDetailsItem(
 @Preview
 @Composable
 private fun AssetDetailsItemPreview() {
-    FearlessAppTheme(
-        darkTheme = false
-    ) {
+    FearlessAppTheme {
         AssetDetailsItem(
             itemState = AssetDetailsItemViewState(
                 assetId = null,

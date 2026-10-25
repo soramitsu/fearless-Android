@@ -1,0 +1,1771 @@
+{
+  "format": "fearless.canonical-asset-groups",
+  "version": 1,
+  "registry": {
+    "source": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v13/chains.json",
+    "snapshot": "config/portfolio/registry/chains-v13-20261009.json",
+    "snapshotSha256": "fa6f0e23cd87dfb3e5536980591dd22ae30e49bf59d04dc2a0b31fc53237ea66",
+    "appOwnedChains": "config/portfolio/app-owned-chains.v1.json",
+    "appOwnedChainsSha256": "79aae5e781447ef5476acfbc910818a134330a0cfbcea11a75a64fa96b6777ba",
+    "reviewedAt": "2026-10-10",
+    "reviewedBy": "Fearless 4.2.0 release lead decision record (Portfolio / token grouping); issuer lists checked 2026-10-10"
+  },
+  "issuerSources": {
+    "tether": {
+      "issuer": "Tether",
+      "url": "https://tether.to/en/supported-protocols/",
+      "verifiedAt": "2026-10-10",
+      "deployments": [
+        {
+          "network": "Ethereum",
+          "reference": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+        },
+        {
+          "network": "Avalanche C-Chain",
+          "reference": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+        },
+        {
+          "network": "Polkadot AssetHub",
+          "reference": "1984"
+        }
+      ]
+    },
+    "circle": {
+      "issuer": "Circle",
+      "url": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+      "verifiedAt": "2026-10-10",
+      "deployments": [
+        {
+          "network": "Ethereum",
+          "reference": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        },
+        {
+          "network": "Arbitrum One",
+          "reference": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+        },
+        {
+          "network": "OP Mainnet",
+          "reference": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+        },
+        {
+          "network": "Polygon",
+          "reference": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+        },
+        {
+          "network": "Avalanche C-Chain",
+          "reference": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+        },
+        {
+          "network": "Polkadot AssetHub",
+          "reference": "1337"
+        }
+      ]
+    }
+  },
+  "untrustedAssets": [
+    {
+      "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
+      "assetId": "27768227-8a9a-4443-a57d-6013c24f85e9",
+      "symbol": "usdt",
+      "precision": 4,
+      "network": "Kusama AssetHub",
+      "registryPriceId": "tether",
+      "reviewedAt": "2026-10-10",
+      "reason": "Kusama AssetHub Assets id 11 is a third-party token that names itself USDT (metadata USDT/USDT, 4 decimals; owner, issuer and admin H4DU1hKQeLkR5bhMeMidarF9bVvrH3k6ybLz84YLs7eRQMu; supply 69,000,000,000; one holder; not sufficient), read on 2026-10-10. It is not Tether's: Tether's deprecated Kusama asset is id 1984 (\"Tether USD\", USDt, 6 decimals). The registry calls id 11 \"tether usd\" with priceId tether, which would value anyone's airdrop of it at $1 per token."
+    }
+  ],
+  "groups": [
+    {
+      "id": "dot",
+      "symbol": "DOT",
+      "name": "Polkadot",
+      "status": "approved",
+      "policy": "native-and-reserve",
+      "priceId": "polkadot",
+      "symbolAliases": [
+        "xcDOT"
+      ],
+      "review": "Native DOT on the relay chain and system parachains plus XCM reserve-backed DOT at the same precision. Excluded: SORA-bridged DOT (18 decimals), disabled Parallel and Equilibrium, and liquid or voucher derivatives (LDOT, LCDOT, TDOT, VDOT).",
+      "members": [
+        {
+          "chainId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+          "assetId": "887a17c7-1370-4de0-97dd-5422e294fa75",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "native",
+          "network": "Polkadot"
+        },
+        {
+          "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+          "assetId": "887a17c7-1370-4de0-97dd-5422e294fa75",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "system-parachain",
+          "network": "Polkadot AssetHub"
+        },
+        {
+          "chainId": "67fa177a097bfa18f77ea95ab56e9bcdfeb0e5b8a40e46298bb93e16b6fc5008",
+          "assetId": "bb56f037-6f96-45e6-9b3c-c9059bf0f731",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "system-parachain",
+          "network": "Polkadot People"
+        },
+        {
+          "chainId": "dcf691b5a3fbe24adc99ddc959c0561b973e329b1aef4c4b22e7bb2ddecb4464",
+          "assetId": "dcbd7f55-c9f2-4ddf-a051-24256aeef6c9",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "system-parachain",
+          "network": "Polkadot BridgeHub"
+        },
+        {
+          "chainId": "46ee89aa2eedd13e988962630ec9fb7565964cf5023bb351f2b6b25c1b68b0b2",
+          "assetId": "33b5bb6a-7360-447a-b893-4322810499dc",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "system-parachain",
+          "network": "Polkadot Collectives"
+        },
+        {
+          "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+          "assetId": "ed98bee1-34ce-4aa2-896e-508380dea1c2",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "xcm-reserve",
+          "network": "Acala"
+        },
+        {
+          "chainId": "9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6",
+          "assetId": "d898014a-5c0f-49a1-b563-51017e9dce38",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "xcm-reserve",
+          "network": "Astar"
+        },
+        {
+          "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
+          "assetId": "7e4e064e-2b23-4eb5-96db-e6491c4031e5",
+          "symbol": "xcdot",
+          "precision": 10,
+          "role": "xcm-reserve",
+          "network": "Moonbeam"
+        },
+        {
+          "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+          "assetId": "4697396b-37c4-426f-a36a-fda1935f365a",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "xcm-reserve",
+          "network": "Hydration"
+        },
+        {
+          "chainId": "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72",
+          "assetId": "2a45aeb9-f585-4f1b-9558-ee3aa186a809",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "xcm-reserve",
+          "network": "Interlay"
+        },
+        {
+          "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+          "assetId": "fd62d09e-cfae-44f8-81a0-bf99732643fc",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "xcm-reserve",
+          "network": "Bifrost Polkadot"
+        },
+        {
+          "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+          "assetId": "1463120c-42c8-499d-a16f-8fcb9f1ee58c",
+          "symbol": "dot",
+          "precision": 10,
+          "role": "xcm-reserve",
+          "network": "Pendulum"
+        }
+      ]
+    },
+    {
+      "id": "ksm",
+      "symbol": "KSM",
+      "name": "Kusama",
+      "status": "approved",
+      "policy": "native-and-reserve",
+      "priceId": "kusama",
+      "symbolAliases": [
+        "xcKSM"
+      ],
+      "review": "Native KSM on the relay chain and system parachains plus XCM reserve-backed KSM at the same precision. Excluded: SORA-bridged KSM (18 decimals), disabled Khala and Mangata, and derivatives that share priceId kusama (vKSM, vsKSM, LKSM, taiKSM).",
+      "members": [
+        {
+          "chainId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
+          "assetId": "1e0c2ec6-935f-49bd-a854-5e12ee6c9f1b",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "native",
+          "network": "Kusama"
+        },
+        {
+          "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
+          "assetId": "1e0c2ec6-935f-49bd-a854-5e12ee6c9f1b",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "system-parachain",
+          "network": "Kusama AssetHub"
+        },
+        {
+          "chainId": "00dcb981df86429de8bbacf9803401f09485366c44efbf53af9ecfab03adc7e5",
+          "assetId": "f0f8e709-20f3-44e6-a6c3-89e9e82f78ed",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "system-parachain",
+          "network": "Kusama BridgeHub"
+        },
+        {
+          "chainId": "c1af4cb4eb3918e5db15086c0cc5ec17fb334f728b7c65dd44bfe1e174ff8b3f",
+          "assetId": "b54f9075-6364-4ad9-8ac2-ed8a604491fd",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "system-parachain",
+          "network": "Kusama People"
+        },
+        {
+          "chainId": "7dd99936c1e9e6d1ce7d90eb6f33bea8393b4bf87677d675aa63c9cb3e8c5b5b",
+          "assetId": "1e0c2ec6-935f-49bd-a854-5e12ee6c9f1b",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "system-parachain",
+          "network": "Encointer on Kusama"
+        },
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "223b0282-b5c9-48ed-87e3-5e9ef6714ac8",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Karura"
+        },
+        {
+          "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
+          "assetId": "980af72c-d1b8-46c7-9793-fa87912652ec",
+          "symbol": "xcksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Moonriver"
+        },
+        {
+          "chainId": "f1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108",
+          "assetId": "52509327-116a-4365-bf7d-03cecf7868bc",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Shiden"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "922c191c-4cb8-407e-8b81-2cfc52170c3b",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Bifrost"
+        },
+        {
+          "chainId": "4ac80c99289841dd946ef92765bf659a307d39189b3ce374a92b5f0415ee17a1",
+          "assetId": "003bb609-cae4-4cf0-afad-4230ca17873b",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Calamari"
+        },
+        {
+          "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
+          "assetId": "382a7dd4-5444-4797-8cec-d921000144ed",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Parallel Heiko"
+        },
+        {
+          "chainId": "a85cfb9b9fd4d622a5b28289a02347af987d8f73fa3108450e2b4a11c1ce5755",
+          "assetId": "f7cafffc-c8d9-4441-8d52-84c17082e514",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Basilisk"
+        },
+        {
+          "chainId": "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b",
+          "assetId": "a6761186-60ba-4ea8-bec1-2db08a420301",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Kintsugi"
+        },
+        {
+          "chainId": "631ccc82a078481584041656af292834e1ae6daab61d2875b4dd0c14bb9b17bc",
+          "assetId": "b52b937a-f22b-4bab-a601-476aeeec4f2f",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Robonomics"
+        },
+        {
+          "chainId": "0f62b701fb12d02237a33b84818c11f621653d2b1614c777973babf4652b535d",
+          "assetId": "e8774037-c4a5-42b5-87a4-cf946a60a406",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Turing Network"
+        },
+        {
+          "chainId": "cceae7f3b9947cdb67369c026ef78efa5f34a08fe5808d373c04421ecf4f1aaf",
+          "assetId": "b2f80126-9b7f-4026-adc8-dd7fb39baf2c",
+          "symbol": "ksm",
+          "precision": 12,
+          "role": "xcm-reserve",
+          "network": "Amplitude"
+        }
+      ]
+    },
+    {
+      "id": "eth",
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "status": "approved",
+      "policy": "native-gas",
+      "priceId": "ethereum",
+      "review": "Native gas ETH on Ethereum and on rollups whose canonical bridged native gas asset is ETH. Excluded: every WETH (different asset, priceId weth), Binance-Peg ETH on BNB Smart Chain, SORA-bridged ETH and wstETH.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "c2a6c062-d511-4bde-9ce6-ea775d2a302c",
+          "symbol": "eth",
+          "precision": 18,
+          "role": "native",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "37b6375a-0708-4728-bec9-bf15b8680aff",
+          "symbol": "eth",
+          "precision": 18,
+          "role": "canonical-rollup",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "08bb34b8-8027-4fea-948d-5243f5cbd6ba",
+          "symbol": "eth",
+          "precision": 18,
+          "role": "canonical-rollup",
+          "network": "OP Mainnet"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "8f85b561-18f5-4cf0-9077-305ebc84d015",
+          "symbol": "eth",
+          "precision": 18,
+          "role": "canonical-rollup",
+          "network": "Polygon zkEVM"
+        }
+      ]
+    },
+    {
+      "id": "usdt",
+      "symbol": "USDT",
+      "name": "Tether USD",
+      "status": "approved",
+      "policy": "issuer-native",
+      "priceId": "tether",
+      "issuerSource": "tether",
+      "review": "Only deployments on Tether's published supported-protocols list that are present in the registry. Separate rows: bridged USDT on Polygon, Arbitrum One, OP Mainnet, Polygon zkEVM and X Layer; XCM-reserve USDT on parachains; SORA-bridged USDT. The registry's Kusama AssetHub \"usdt\" is not Tether's: it is Assets id 11, a third-party 4-decimal token, and is listed in untrustedAssets. Tether's own (deprecated) Kusama AssetHub asset is id 1984, \"Tether USD\" (USDt, 6 decimals), which the registry does not list.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Ethereum",
+          "issuerReference": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+        },
+        {
+          "chainId": "43114",
+          "assetId": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Avalanche C-Chain",
+          "issuerReference": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+        },
+        {
+          "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+          "assetId": "ea33432f-9bd9-4d42-93bc-cd45a0e8a44c",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Polkadot AssetHub",
+          "issuerReference": "1984"
+        }
+      ]
+    },
+    {
+      "id": "usdc",
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "status": "approved",
+      "policy": "issuer-native",
+      "priceId": "usd-coin",
+      "issuerSource": "circle",
+      "review": "Only Circle-issued native USDC from Circle's published contract-address list that is present in the registry. Separate rows: USDC.e on Polygon, Arbitrum One, OP Mainnet and Polygon zkEVM; Binance-Peg USDC on BNB Smart Chain (18 decimals); the registry's X Layer and Kaia USDC (not Circle's addresses) and Polygon zkEVM USDC (not on Circle's list); XCM-reserve USDC on Pendulum; SORA-bridged USDC.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Ethereum",
+          "issuerReference": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Arbitrum One",
+          "issuerReference": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "OP Mainnet",
+          "issuerReference": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Polygon",
+          "issuerReference": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+        },
+        {
+          "chainId": "43114",
+          "assetId": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Avalanche C-Chain",
+          "issuerReference": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+        },
+        {
+          "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+          "assetId": "951ca8aa-c390-4512-a35c-d3851440b580",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "issuer-native",
+          "network": "Polkadot AssetHub",
+          "issuerReference": "1337"
+        }
+      ]
+    },
+    {
+      "id": "btc",
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "status": "approved",
+      "policy": "app-owned-native",
+      "priceId": "bitcoin",
+      "review": "Native Bitcoin only (app-owned network). Excluded: WBTC, BTC.b, kBTC and iBTC, which are wrapped or bridged representations with their own risks. A single-member group renders as a plain row.",
+      "members": [
+        {
+          "chainId": "bitcoin:mainnet",
+          "assetId": "BTC",
+          "symbol": "BTC",
+          "precision": 8,
+          "role": "app-owned-native",
+          "network": "Bitcoin"
+        }
+      ]
+    },
+    {
+      "id": "aave-ethereum",
+      "symbol": "AAVE",
+      "name": "AAVE (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "aave",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+          "symbol": "aave",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0xD6DF932A45C0f255f85145f286eA0b292B21C90B",
+          "symbol": "aave",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        }
+      ]
+    },
+    {
+      "id": "air-kusama",
+      "symbol": "AIR",
+      "name": "AIR (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "altair",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "4879d0ed-810b-4792-8e83-387180cc3a9c",
+          "symbol": "air",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "aa3876c1dc8a1afcc2e9a685a49ff7704cfd36ad8c90bf2702b9d1b00cc40011",
+          "assetId": "56c7f785-23d6-4199-accf-846be58011e6",
+          "symbol": "air",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Altair"
+        }
+      ]
+    },
+    {
+      "id": "astr-polkadot",
+      "symbol": "ASTR",
+      "name": "ASTR (Polkadot)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "astar",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+          "assetId": "184a1b21-d512-4de9-ab54-6c014e24f90c",
+          "symbol": "astr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Acala"
+        },
+        {
+          "chainId": "9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6",
+          "assetId": "5ab1e8d-81ed-4130-9d29-55b549cc6bab",
+          "symbol": "astr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Astar"
+        },
+        {
+          "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+          "assetId": "3af48a15-5358-4616-bca5-14cca9c5b0dc",
+          "symbol": "astr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Pendulum"
+        }
+      ]
+    },
+    {
+      "id": "ausd-kusama",
+      "symbol": "AUSD",
+      "name": "AUSD (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "acala-dollar",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "91a69026-0ab7-4db0-af53-8d571fd33ac4",
+          "symbol": "ausd",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "94d5e2d9-c2d7-40e6-8893-5832a784b2ea",
+          "symbol": "ausd",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Bifrost"
+        }
+      ]
+    },
+    {
+      "id": "bnb-ethereum",
+      "symbol": "BNB",
+      "name": "BNB (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "binancecoin",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
+          "symbol": "bnb",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0x3BA4c387f786bFEE076A58914F5Bd38d668B42c3",
+          "symbol": "bnb",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        }
+      ]
+    },
+    {
+      "id": "bnc-kusama",
+      "symbol": "BNC",
+      "name": "BNC (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "bifrost-native-coin",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "10757cfa-b590-43c1-8524-efc28d798bcb",
+          "symbol": "bnc",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "559e80d6-fb38-4dd5-bbd6-c0a7c2f600e1",
+          "symbol": "bnc",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Bifrost"
+        }
+      ]
+    },
+    {
+      "id": "bnc-polkadot",
+      "symbol": "BNC",
+      "name": "BNC (Polkadot)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "bifrost-native-coin",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+          "assetId": "dc9e23e8-f4bf-4864-9f2c-c2fbd4b03886",
+          "symbol": "bnc",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Bifrost Polkadot"
+        },
+        {
+          "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+          "assetId": "579b7f7f-330f-43a4-b2f0-c890bd97c92d",
+          "symbol": "bnc",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Pendulum"
+        }
+      ]
+    },
+    {
+      "id": "busd-ethereum",
+      "symbol": "BUSD",
+      "name": "BUSD (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "binance-usd",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "56",
+          "assetId": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+          "symbol": "busd",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "BNB Smart Chain"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0xdAb529f40E671A1D4bF91361c21bf9f0C9712ab7",
+          "symbol": "busd",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        }
+      ]
+    },
+    {
+      "id": "crv-ethereum",
+      "symbol": "CRV",
+      "name": "CRV (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "curve-dao-token",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0xD533a949740bb3306d119CC777fa900bA034cd52",
+          "symbol": "crv",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0x172370d5Cd63279eFa6d502DAB29171933a610AF",
+          "symbol": "crv",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        }
+      ]
+    },
+    {
+      "id": "csm-kusama",
+      "symbol": "CSM",
+      "name": "CSM (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "crust-storage-market",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "c6fd5a1e-3052-4bdf-b0f3-ad1b7b9fbff0",
+          "symbol": "csm",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "d4c0c08ca49dc7c680c3dac71a7c0703e5b222f4b6c03fe4c5219bb8f22c18dc",
+          "assetId": "d1e3be8c-880e-46fe-97e3-761c0a58aed1",
+          "symbol": "csm",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Crust Shadow Parachain"
+        }
+      ]
+    },
+    {
+      "id": "dai-ethereum",
+      "symbol": "DAI",
+      "name": "DAI (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "dai",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "56",
+          "assetId": "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "BNB Smart Chain"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "OP Mainnet"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0xC5015b9d9161Dca7e18e32f6f25C4aD850731Fd4",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        },
+        {
+          "chainId": "196",
+          "assetId": "0xc5015b9d9161dca7e18e32f6f25c4ad850731fd4",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "X Layer Mainnet"
+        },
+        {
+          "chainId": "8217",
+          "assetId": "0x078db7827a5531359f6cb63f62cfa20183c4f10c",
+          "symbol": "dai",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Kaia Mainnet"
+        }
+      ]
+    },
+    {
+      "id": "glmr-polkadot",
+      "symbol": "GLMR",
+      "name": "GLMR (Polkadot)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "moonbeam",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6",
+          "assetId": "ee6b0152-326f-4e15-a62f-ac02d357d840",
+          "symbol": "glmr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Astar"
+        },
+        {
+          "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
+          "assetId": "e40c8161-9fc9-4749-a3b8-ed1c0ad16475",
+          "symbol": "glmr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Moonbeam"
+        },
+        {
+          "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+          "assetId": "880664d6-71f6-473e-95ba-4cc697429578",
+          "symbol": "glmr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Hydration"
+        },
+        {
+          "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+          "assetId": "9ff3dbb1-5986-44b9-b247-db82ae3584a1",
+          "symbol": "glmr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Bifrost Polkadot"
+        },
+        {
+          "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+          "assetId": "a54675c6-83de-4f11-84ee-b8cd1754e512",
+          "symbol": "glmr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Pendulum"
+        }
+      ]
+    },
+    {
+      "id": "hdx-polkadot",
+      "symbol": "HDX",
+      "name": "HDX (Polkadot)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "hydradx",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+          "assetId": "fce79b6c-e071-4271-837e-6ec87a719390",
+          "symbol": "hdx",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Hydration"
+        },
+        {
+          "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+          "assetId": "a1a2523b-e151-49ed-a42e-73c67e964067",
+          "symbol": "hdx",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Pendulum"
+        }
+      ]
+    },
+    {
+      "id": "kar-kusama",
+      "symbol": "KAR",
+      "name": "KAR (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "karura",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "e71b30a0-2a44-40ff-8b53-a166fadef6c5",
+          "symbol": "kar",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "5c31c8ae-c045-43f2-849a-88a17ee7b302",
+          "symbol": "kar",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Bifrost"
+        },
+        {
+          "chainId": "4ac80c99289841dd946ef92765bf659a307d39189b3ce374a92b5f0415ee17a1",
+          "assetId": "6094eb13-6084-4909-9232-31b6088ad4cc",
+          "symbol": "kar",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Calamari"
+        },
+        {
+          "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
+          "assetId": "b48b21fb-eb3f-4296-9978-8dc42e42f384",
+          "symbol": "kar",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Parallel Heiko"
+        }
+      ]
+    },
+    {
+      "id": "kbtc-kusama",
+      "symbol": "KBTC",
+      "name": "KBTC (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "kintsugi-btc",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "17142348-16f6-49f2-9006-098f5562bda0",
+          "symbol": "kbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
+          "assetId": "5959efca-47b7-4ec4-a009-5870e2231d52",
+          "symbol": "kbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "Parallel Heiko"
+        },
+        {
+          "chainId": "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b",
+          "assetId": "80662ad9-8920-43ae-859a-33d97e87f74e",
+          "symbol": "kbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "Kintsugi"
+        }
+      ]
+    },
+    {
+      "id": "kint-kusama",
+      "symbol": "KINT",
+      "name": "KINT (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "kintsugi",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "6aa4622c-42b9-4976-9f7c-35447bb24128",
+          "symbol": "kint",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
+          "assetId": "7a97a272-c767-4b45-b055-4c521168558c",
+          "symbol": "kint",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Parallel Heiko"
+        },
+        {
+          "chainId": "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b",
+          "assetId": "f5d1db12-0a68-4897-903d-51a887daa1db",
+          "symbol": "kint",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Kintsugi"
+        }
+      ]
+    },
+    {
+      "id": "kma-kusama",
+      "symbol": "KMA",
+      "name": "KMA (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "calamari-network",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "addd6fed-51af-4088-8d6d-05c73b48b8df",
+          "symbol": "kma",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "4ac80c99289841dd946ef92765bf659a307d39189b3ce374a92b5f0415ee17a1",
+          "assetId": "39d4080e-e2ab-43f3-bcc2-2fa281d9290c",
+          "symbol": "kma",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Calamari"
+        }
+      ]
+    },
+    {
+      "id": "link-ethereum",
+      "symbol": "LINK",
+      "name": "LINK (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "chainlink",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+          "symbol": "link",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39",
+          "symbol": "link",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "0xf97f4df75117a78c1A5a0DBb814Af92458539FB4",
+          "symbol": "link",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6",
+          "symbol": "link",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "OP Mainnet"
+        }
+      ]
+    },
+    {
+      "id": "matic-ethereum",
+      "symbol": "MATIC",
+      "name": "MATIC (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "matic-network",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "56",
+          "assetId": "0xCC42724C6683B7E57334c4E856f4c9965ED682bD",
+          "symbol": "matic",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "BNB Smart Chain"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0xa2036f0538221a77A3937F1379699f44945018d0",
+          "symbol": "matic",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        }
+      ]
+    },
+    {
+      "id": "movr-kusama",
+      "symbol": "MOVR",
+      "name": "MOVR (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "moonriver",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "f2257792-ffb9-4dff-95ae-5f98c1cb594b",
+          "symbol": "movr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
+          "assetId": "35346815-009a-4cf9-a5ad-85a0167e594d",
+          "symbol": "movr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Moonriver"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "e6f78e19-80c7-4e8c-8499-91e03df504a8",
+          "symbol": "movr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Bifrost"
+        },
+        {
+          "chainId": "4ac80c99289841dd946ef92765bf659a307d39189b3ce374a92b5f0415ee17a1",
+          "assetId": "bd018ed9-069b-4d51-b5db-56b70bb5434c",
+          "symbol": "movr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Calamari"
+        },
+        {
+          "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
+          "assetId": "7bd1b0ca-a4a7-4b67-8f8b-cb19e2d3fab8",
+          "symbol": "movr",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Parallel Heiko"
+        }
+      ]
+    },
+    {
+      "id": "pha-kusama",
+      "symbol": "PHA",
+      "name": "PHA (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "pha",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "e27e5b58-3229-4656-b9ff-de309f49f17f",
+          "symbol": "pha",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "f1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108",
+          "assetId": "aa494fdc-3411-438c-b69b-a53e36f062a1",
+          "symbol": "pha",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Shiden"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "33746c72-6806-47d0-a1c4-7b433df862f1",
+          "symbol": "pha",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Bifrost"
+        },
+        {
+          "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
+          "assetId": "d0262105-2c85-4167-bde0-50c7cdfe4942",
+          "symbol": "pha",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Parallel Heiko"
+        }
+      ]
+    },
+    {
+      "id": "pha-polkadot",
+      "symbol": "PHA",
+      "name": "PHA (Polkadot)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "pha",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6",
+          "assetId": "39fb54c8-52c1-4cf7-8412-24ac38b63eb4",
+          "symbol": "pha",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Astar"
+        },
+        {
+          "chainId": "1bb969d85965e4bb5a651abbedf21a54b6b31a21f66b5401cc3f1e286268d736",
+          "assetId": "50add3d2-baa6-4bf3-9995-e6532ad51726",
+          "symbol": "pha",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Phala"
+        }
+      ]
+    },
+    {
+      "id": "pol-ethereum",
+      "symbol": "POL",
+      "name": "POL (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "polygon-ecosystem-token",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6",
+          "symbol": "pol",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0x0000000000000000000000000000000000001010",
+          "symbol": "pol",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0x22b21beddef74fe62f031d2c5c8f7a9f8a4b304d",
+          "symbol": "pol",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        }
+      ]
+    },
+    {
+      "id": "qtz-kusama",
+      "symbol": "QTZ",
+      "name": "QTZ (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "quartz",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "3d32d7cb-4de5-427e-9668-a9763648a555",
+          "symbol": "qtz",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "cd4d732201ebe5d6b014edda071c4203e16867305332301dc8d092044b28e554",
+          "assetId": "d0f2e718-99ee-4bc2-8dc2-1ce07f21c5ac",
+          "symbol": "qtz",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Quartz"
+        }
+      ]
+    },
+    {
+      "id": "rmrk-kusama",
+      "symbol": "RMRK",
+      "name": "RMRK (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "rmrk",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
+          "assetId": "3dd9d403-49d2-46c2-a84a-334b31a6a6b7",
+          "symbol": "rmrk",
+          "precision": 10,
+          "role": "legacy-partition",
+          "network": "Kusama AssetHub"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "75206b90-456e-48ae-a118-0bf9ab861115",
+          "symbol": "rmrk",
+          "precision": 10,
+          "role": "legacy-partition",
+          "network": "Bifrost"
+        }
+      ]
+    },
+    {
+      "id": "teer-kusama",
+      "symbol": "TEER",
+      "name": "TEER (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "integritee",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "8cf27ed8-11bf-4b16-be22-5aa6bbc10736",
+          "symbol": "teer",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "cdedc8eadbfa209d3f207bba541e57c3c58a667b05a2e1d1e86353c9000758da",
+          "assetId": "c8b67e07-8b3b-4b92-b23d-23b5bb1f8f42",
+          "symbol": "teer",
+          "precision": 12,
+          "role": "legacy-partition",
+          "network": "Integritee Network (Kusama)"
+        }
+      ]
+    },
+    {
+      "id": "uni-ethereum",
+      "symbol": "UNI",
+      "name": "UNI (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "uniswap",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+          "symbol": "uni",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0xb33EaAd8d922B1083446DC23f610c2567fB5180f",
+          "symbol": "uni",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        }
+      ]
+    },
+    {
+      "id": "usdc-e-ethereum",
+      "symbol": "USDC.E",
+      "name": "USDC.E (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "usd-coin",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "137",
+          "assetId": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "symbol": "usdc.e",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+          "symbol": "usdc.e",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+          "symbol": "usdc.e",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "OP Mainnet"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0x37eAA0eF3549a5Bb7D431be78a3D99BD360d19e5",
+          "symbol": "usdc.e",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        }
+      ]
+    },
+    {
+      "id": "usdc-ethereum",
+      "symbol": "USDC",
+      "name": "USDC (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "usd-coin",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "56",
+          "assetId": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+          "symbol": "usdc",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "BNB Smart Chain"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0xA8CE8aee21bC2A48a5EF670afCc9274C7bbbC035",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        },
+        {
+          "chainId": "196",
+          "assetId": "0x74b7f16337b8972027f6196a17a631ac6de26d22",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "X Layer Mainnet"
+        },
+        {
+          "chainId": "8217",
+          "assetId": "0x6270b58be569a7c0b8f47594f191631ae5b2c86c",
+          "symbol": "usdc",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Kaia Mainnet"
+        }
+      ]
+    },
+    {
+      "id": "usdt-ethereum",
+      "symbol": "USDT",
+      "name": "USDT (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "tether",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "137",
+          "assetId": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "OP Mainnet"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0x1E4a5963aBFD975d8c9021ce480b42188849D41d",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        },
+        {
+          "chainId": "196",
+          "assetId": "0x1e4a5963abfd975d8c9021ce480b42188849d41d",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "X Layer Mainnet"
+        }
+      ]
+    },
+    {
+      "id": "usdt-kusama",
+      "symbol": "USDT",
+      "name": "USDT (Kusama)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "tether",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assetId": "5fd5f3ce-4a2c-4647-923e-6c29cc95a4f7",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Karura"
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assetId": "2bd78b68-8bd7-4859-928a-1a7b8b57a734",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Bifrost"
+        },
+        {
+          "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
+          "assetId": "535ab9cf-fa62-4e19-ab39-02e5584ef7af",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Parallel Heiko"
+        },
+        {
+          "chainId": "a85cfb9b9fd4d622a5b28289a02347af987d8f73fa3108450e2b4a11c1ce5755",
+          "assetId": "125a05b1-1e0b-411d-8628-ffd3b84ed4c8",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Basilisk"
+        },
+        {
+          "chainId": "cceae7f3b9947cdb67369c026ef78efa5f34a08fe5808d373c04421ecf4f1aaf",
+          "assetId": "dc34cadc-d448-4bd8-a484-af6e602fe08d",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Amplitude"
+        }
+      ]
+    },
+    {
+      "id": "usdt-polkadot",
+      "symbol": "USDT",
+      "name": "USDT (Polkadot)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "tether",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6",
+          "assetId": "af1fc6a0-505c-43d7-b214-d64e4414e2e1",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Astar"
+        },
+        {
+          "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
+          "assetId": "53bd7f6e-b8eb-468f-a2ec-2bf347e702a7",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Hydration"
+        },
+        {
+          "chainId": "262e1b2ad728475fd6fe88e62d34c200abe6fd693931ddad144059b1eb884e5b",
+          "assetId": "8dc39b21-04c9-4d1d-b9ec-8ea111052e77",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Bifrost Polkadot"
+        },
+        {
+          "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
+          "assetId": "bc55b3f0-2b34-4561-aeb6-bd4ca9c88b7e",
+          "symbol": "usdt",
+          "precision": 6,
+          "role": "legacy-partition",
+          "network": "Pendulum"
+        }
+      ]
+    },
+    {
+      "id": "wbtc-ethereum",
+      "symbol": "WBTC",
+      "name": "WBTC (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "wrapped-bitcoin",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "137",
+          "assetId": "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+          "symbol": "wbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+          "symbol": "wbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0x68f180fcCe6836688e9084f035309E29Bf0A2095",
+          "symbol": "wbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "OP Mainnet"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0xEA034fb02eB1808C2cc3adbC15f447B93CbE08e1",
+          "symbol": "wbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        },
+        {
+          "chainId": "196",
+          "assetId": "0xea034fb02eb1808c2cc3adbc15f447b93cbe08e1",
+          "symbol": "wbtc",
+          "precision": 8,
+          "role": "legacy-partition",
+          "network": "X Layer Mainnet"
+        }
+      ]
+    },
+    {
+      "id": "weth-ethereum",
+      "symbol": "WETH",
+      "name": "WETH (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "weth",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "1",
+          "assetId": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "weth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Ethereum"
+        },
+        {
+          "chainId": "137",
+          "assetId": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+          "symbol": "weth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon"
+        },
+        {
+          "chainId": "42161",
+          "assetId": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+          "symbol": "weth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0x4200000000000000000000000000000000000006",
+          "symbol": "weth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "OP Mainnet"
+        },
+        {
+          "chainId": "1101",
+          "assetId": "0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9",
+          "symbol": "weth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Polygon zkEVM"
+        },
+        {
+          "chainId": "196",
+          "assetId": "0x5a77f1443d16ee5761d310e38b62f77f726bc71c",
+          "symbol": "weth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "X Layer Mainnet"
+        }
+      ]
+    },
+    {
+      "id": "wsteth-ethereum",
+      "symbol": "WSTETH",
+      "name": "WSTETH (EVM networks)",
+      "status": "proposed",
+      "policy": "legacy-partition",
+      "priceId": "wrapped-steth",
+      "review": "Generated from the 3.0.5 partition. Not reviewed: bridged, pegged and reserve-backed variants are not distinguished. Never renders until a reviewer approves it.",
+      "members": [
+        {
+          "chainId": "42161",
+          "assetId": "0x0fBcbaEA96Ce0cF7Ee00A8c19c3ab6f5Dc8E1921",
+          "symbol": "wsteth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "Arbitrum One"
+        },
+        {
+          "chainId": "10",
+          "assetId": "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb",
+          "symbol": "wsteth",
+          "precision": 18,
+          "role": "legacy-partition",
+          "network": "OP Mainnet"
+        }
+      ]
+    }
+  ]
+}

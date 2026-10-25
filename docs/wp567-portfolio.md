@@ -1,0 +1,15 @@
+> Historical qualification receipts named in this document are retained in the local consolidation recovery archive, outside the public source tree. They are not current release approval. See `docs/public-source-qualification.md` for the published source checks and remaining release gates.
+
+# Android portfolio and exact-network actions (WP-5/6/7)
+
+The portfolio defaults to By token. Its lens and expansion preferences belong to each wallet, following the shared portfolio contract §6 (which supersedes the older Android plan's global-key and singleton-group examples). Only exact approved registry members can combine; fewer than two visible active members remain ordinary single-network rows. No symbol-based grouping or network-switch fallback is used.
+
+Each group sums visible total quantities and each member's own trusted fiat. Hidden, testnet and untrusted metadata cannot add fiat; a funded unpriced member makes the estimate visibly incomplete. Shown zero rows stay inline. Auto zero defaults and empty networks sit behind persisted summaries. The wallet-wide hidden footer opens the Hidden filter, and kept hidden-fund notices are bound to the exact set of hidden funded assets. The prior full-holdings view in backup/wallet management remains in place.
+
+Manage follows the current wallet's lens, labels Auto/Shown/Hidden, preserves tri-state group selection and applies a group toggle to all members even under search. It observes balances tagged with their wallet ID, clears pending edits on wallet switches, and binds writes to the wallet being edited. Search, filters and Testnets scroll with the rows, leaving the close action usable at large text sizes.
+
+Group Receive always chooses a network. Group Send takes the single funded approved member directly, otherwise offers exact members, including valid zero-balance members whose balance row has not arrived. Network switching resolves the exact approved chain/asset pair in the same wallet, rechecks the wallet after suspended chain lookup, and resets the amount before loading a changed asset. Ungrouped assets keep their own network. Address-based selection uses the explicit asset picker when a chain has multiple assets. Confirmation lists the canonical network first and wraps its full name at large text sizes.
+
+The group control stays private to the wallet module because it accepts wallet-specific view data; it reuses the shared chain badge, buttons and theme. Receive's existing network warning, sticky send vetoes, and obsolete-payment database cleanup are unchanged. The optional asset-detail “Also on” card is deferred. WP-9 protocol/provider correctness and private Bitcoin/Solana chain tests are a separate package; these UI tests do not claim transaction acceptance.
+
+Qualification commands, exact source/artifact hashes, test totals, preserved failed attempts and capture names are recorded in `wp567-portfolio-validation.json`. Instrumentation uses public synthetic fixtures only, on an owned API 34 device at 320 dp, with 1x and 2x text. Real-device authentication, all-locale visual acceptance and protected release qualification remain separate gates.

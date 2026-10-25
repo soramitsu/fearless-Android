@@ -7,7 +7,7 @@
 
 #-keep class ** { *; }
 #-dontobfuscate
--keep class jp.co.soramitsu.shared_utils.** { *; }
+-keep class jp.co.soramitsu.fearless_utils.** { *; }
 -keep class jp.co.soramitsu.runtime.** { *; }
 
 -keep class jp.co.soramitsu.wallet.impl.data.** { *; }
@@ -254,3 +254,9 @@
 # Retain generic signatures of TypeToken and its subclasses with R8 version 3.0 and higher.
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
+
+# Reown (formerly WalletConnect) ProGuard rules
+-keep class com.reown.walletkit.client.Wallet$Model { *; }
+-keep class com.reown.walletkit.client.Wallet { *; }
+-keep class com.reown.android.** { *; }
+-dontwarn com.reown.**

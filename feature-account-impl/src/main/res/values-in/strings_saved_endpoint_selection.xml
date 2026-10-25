@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="saved_endpoint_select">Pilih endpoint</string>
+    <string name="saved_endpoint_selection_refresh">Perbarui status pilihan</string>
+    <string name="saved_endpoint_selection_checking">Memeriksa endpoint yang ditambahkan…</string>
+    <string name="saved_endpoint_selection_available">Endpoint yang ditambahkan ini dapat dipilih untuk jaringan.</string>
+    <string name="saved_endpoint_selection_unattached">Tambahkan endpoint ini sebelum memilihnya.</string>
+    <string name="saved_endpoint_selection_saving">Menyimpan pilihan…</string>
+    <string name="saved_endpoint_selection_saved">Pilihan disimpan</string>
+    <string name="saved_endpoint_selection_failed">Pilihan tidak dapat dikonfirmasi. Perbarui sebelum mencoba lagi.</string>
+    <string name="saved_endpoint_selection_stale">Endpoint atau pilihan telah berubah. Perbarui sebelum memilih.</string>
+    <string name="saved_endpoint_runtime_preferred">Endpoint Solana pilihan telah disimpan. Permintaan dapat menggunakan penyedia lain.</string>
+    <string name="saved_endpoint_runtime_pending">Menunggu jaringan menggunakan pilihan ini.</string>
+    <string name="saved_endpoint_runtime_not_in_use">Jaringan ini sedang tidak digunakan.</string>
+    <string name="saved_endpoint_runtime_unavailable">Koneksi jaringan tidak tersedia.</string>
+    <string name="saved_endpoint_runtime_paused">Koneksi jaringan dijeda.</string>
+    <string name="saved_endpoint_runtime_connecting">Menghubungkan ke endpoint yang dipilih…</string>
+    <string name="saved_endpoint_runtime_connected">Terhubung ke endpoint yang dipilih</string>
+</resources>

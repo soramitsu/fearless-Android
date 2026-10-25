@@ -738,7 +738,7 @@ formatting:
     maxLineLength: 100
   FunctionSignature:
     active: true
-    autoCorrect: false
+    autoCorrect: true
     forceMultilineWhenParameterCountGreaterOrEqualThan: 3
     functionBodyExpressionWrapping: 'default'
     maxLineLength: 120

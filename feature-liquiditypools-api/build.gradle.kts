@@ -33,8 +33,8 @@ dependencies {
     implementation("javax.inject:javax.inject:1")
 
     implementation(libs.bundles.coroutines)
-    implementation(libs.sharedFeaturesCoreDep)
+    implementation(project(":core-chain"))
 
-    implementation(libs.soramitsu.android.foundation)
-    implementation(libs.xnetworking.lib.android)
+    implementation(project(":core-foundation"))
+    implementation(project(":core-networking"))
 }

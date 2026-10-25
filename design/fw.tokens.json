@@ -1,0 +1,1938 @@
+{
+  "$description": "Fearless Wallet \"Neon Glass\" v1 design tokens (design-system.md sections 3, 4, 7 and 9), W3C design-tokens format. The single source for scripts/design/gen-fw-tokens.mjs; never edit the generated platform files.",
+  "$extensions": {
+    "fw": {
+      "format": "fearless.design-tokens",
+      "version": 1,
+      "outputs": "Android FwColors.kt + fw_colors.xml, iOS colors/FW/*.colorset + FWTokens.swift, web fw-tokens.scss"
+    }
+  },
+  "color": {
+    "raw": {
+      "navy": {
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1412,
+              0.1647,
+              0.302
+            ],
+            "hex": "#242A4D"
+          }
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.102,
+              0.1176,
+              0.2275
+            ],
+            "hex": "#1A1E3A"
+          }
+        },
+        "750": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0784,
+              0.0941,
+              0.2
+            ],
+            "hex": "#141833"
+          }
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0706,
+              0.0824,
+              0.1686
+            ],
+            "hex": "#12152B"
+          }
+        },
+        "850": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0549,
+              0.0667,
+              0.149
+            ],
+            "hex": "#0E1126"
+          }
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0392,
+              0.0471,
+              0.1059
+            ],
+            "hex": "#0A0C1B"
+          }
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0157,
+              0.0196,
+              0.051
+            ],
+            "hex": "#04050D"
+          }
+        },
+        "sunken": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0235,
+              0.0275,
+              0.0588
+            ],
+            "hex": "#06070F"
+          }
+        }
+      },
+      "magenta": {
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0.302,
+              0.7216
+            ],
+            "hex": "#FF4DB8"
+          }
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0,
+              0.6039
+            ],
+            "hex": "#FF009A"
+          }
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8392,
+              0,
+              0.498
+            ],
+            "hex": "#D6007F"
+          }
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6392,
+              0,
+              0.4157
+            ],
+            "hex": "#A3006A"
+          }
+        }
+      },
+      "cyan": {
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1804,
+              0.902,
+              1
+            ],
+            "hex": "#2EE6FF"
+          }
+        }
+      },
+      "violet": {
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6627,
+              0.6078,
+              1
+            ],
+            "hex": "#A99BFF"
+          }
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.5451,
+              0.3608,
+              1
+            ],
+            "hex": "#8B5CFF"
+          }
+        }
+      },
+      "ink": {
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.9294,
+              0.9412,
+              0.9804
+            ],
+            "hex": "#EDF0FA"
+          }
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7216,
+              0.7451,
+              0.8588
+            ],
+            "hex": "#B8BEDB"
+          }
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.5686,
+              0.5961,
+              0.7373
+            ],
+            "hex": "#9198BC"
+          }
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.3686,
+              0.3922,
+              0.5294
+            ],
+            "hex": "#5E6487"
+          }
+        },
+        "hc2": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8353,
+              0.8549,
+              0.9176
+            ],
+            "hex": "#D5DAEA"
+          }
+        },
+        "hc3": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7294,
+              0.7529,
+              0.8314
+            ],
+            "hex": "#BAC0D4"
+          }
+        },
+        "thumb": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7882,
+              0.8078,
+              0.9098
+            ],
+            "hex": "#C9CEE8"
+          }
+        }
+      },
+      "aqua": {
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.2196,
+              0.9098,
+              0.8784
+            ],
+            "hex": "#38E8E0"
+          }
+        }
+      },
+      "orange": {
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0.6275,
+              0.3412
+            ],
+            "hex": "#FFA057"
+          }
+        }
+      },
+      "mint": {
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.2392,
+              0.949,
+              0.6902
+            ],
+            "hex": "#3DF2B0"
+          }
+        }
+      },
+      "coral": {
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0.4549,
+              0.4
+            ],
+            "hex": "#FF7466"
+          }
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.702,
+              0.1882,
+              0.1647
+            ],
+            "hex": "#B3302A"
+          }
+        }
+      },
+      "amber": {
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0.7686,
+              0.3216
+            ],
+            "hex": "#FFC452"
+          }
+        }
+      },
+      "white": {
+        "base": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              1,
+              1
+            ],
+            "hex": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "semantic": {
+      "bgBase": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0392,
+            0.0471,
+            0.1059
+          ],
+          "hex": "#0A0C1B"
+        },
+        "$description": "Page background, scrim-free calm pages.",
+        "$extensions": {
+          "fw": {
+            "semantic": "bg.base",
+            "raw": "navy.900",
+            "ios": "fwBgBase",
+            "css": "--fw-bg-base"
+          }
+        }
+      },
+      "surfaceRaised": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0706,
+            0.0824,
+            0.1686
+          ],
+          "hex": "#12152B"
+        },
+        "$description": "Opaque fallback for every glass; calm surfaces; signing sheet.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.raised",
+            "raw": "navy.800",
+            "ios": "fwSurfaceRaised",
+            "css": "--fw-raised"
+          }
+        }
+      },
+      "surfaceRaised2": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.102,
+            0.1176,
+            0.2275
+          ],
+          "hex": "#1A1E3A"
+        },
+        "$description": "Segmented thumb, tags, disabled button fill, dialogs.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.raised2",
+            "raw": "navy.700",
+            "ios": "fwSurfaceRaised2",
+            "css": "--fw-raised-2"
+          }
+        }
+      },
+      "surfacePressed": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1412,
+            0.1647,
+            0.302
+          ],
+          "hex": "#242A4D"
+        },
+        "$description": "Pressed and selected rows (opaque).",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.pressed",
+            "raw": "navy.600",
+            "ios": "fwSurfacePressed",
+            "css": "--fw-pressed"
+          }
+        }
+      },
+      "surfaceSunken": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0235,
+            0.0275,
+            0.0588
+          ],
+          "hex": "#06070F"
+        },
+        "$description": "Input wells, children container.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.sunken",
+            "raw": "navy.sunken",
+            "ios": "fwSurfaceSunken",
+            "css": "--fw-sunken"
+          }
+        }
+      },
+      "glass": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0784,
+            0.0941,
+            0.2
+          ],
+          "alpha": 0.72,
+          "hex": "#141833"
+        },
+        "$description": "Cards and list containers (with glassSheen).",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.glass",
+            "raw": "navy.750",
+            "ios": "fwSurfaceGlass",
+            "css": "--fw-glass"
+          }
+        }
+      },
+      "glassSheen": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.04,
+          "hex": "#FFFFFF"
+        },
+        "$description": "White sheen over surface.glass.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.glass.sheen",
+            "raw": "white.base",
+            "ios": null,
+            "css": "--fw-glass-sheen"
+          }
+        }
+      },
+      "glassElevated": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.102,
+            0.1176,
+            0.2275
+          ],
+          "alpha": 0.86,
+          "hex": "#1A1E3A"
+        },
+        "$description": "Popovers and menus.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.glass.elevated",
+            "raw": "navy.700",
+            "ios": "fwSurfaceGlassElevated",
+            "css": "--fw-glass-elevated"
+          }
+        }
+      },
+      "glassElevatedSheen": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.05,
+          "hex": "#FFFFFF"
+        },
+        "$description": "White sheen over surface.glass.elevated.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.glass.elevated.sheen",
+            "raw": "white.base",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "chrome": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0549,
+            0.0667,
+            0.149
+          ],
+          "alpha": 0.88,
+          "hex": "#0E1126"
+        },
+        "$description": "Bottom bar, sticky headers, sheets over blur 24 (Full).",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.chrome",
+            "raw": "navy.850",
+            "ios": "fwSurfaceChrome",
+            "css": "--fw-chrome"
+          }
+        }
+      },
+      "chromeSheen": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.03,
+          "hex": "#FFFFFF"
+        },
+        "$description": "White sheen over surface.chrome.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.chrome.sheen",
+            "raw": "white.base",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "chromeSolid": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0549,
+            0.0667,
+            0.149
+          ],
+          "alpha": 0.96,
+          "hex": "#0E1126"
+        },
+        "$description": "Chrome in Lite or when blur is unavailable.",
+        "$extensions": {
+          "fw": {
+            "semantic": "surface.chrome.solid",
+            "raw": "navy.850",
+            "ios": "fwSurfaceChromeSolid",
+            "css": "--fw-chrome-solid"
+          }
+        }
+      },
+      "scrim": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0157,
+            0.0196,
+            0.051
+          ],
+          "alpha": 0.72,
+          "hex": "#04050D"
+        },
+        "$description": "Behind sheets and dialogs.",
+        "$extensions": {
+          "fw": {
+            "semantic": "scrim",
+            "raw": "navy.950",
+            "ios": "fwScrim",
+            "css": "--fw-scrim"
+          }
+        }
+      },
+      "textPrimary": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9294,
+            0.9412,
+            0.9804
+          ],
+          "hex": "#EDF0FA"
+        },
+        "$description": "Headings, amounts, body.",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.primary",
+            "raw": "ink.100",
+            "ios": "fwTextPrimary",
+            "css": "--fw-text-1"
+          }
+        }
+      },
+      "textSecondary": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.7216,
+            0.7451,
+            0.8588
+          ],
+          "hex": "#B8BEDB"
+        },
+        "$description": "Secondary lines, captions, HUD overlines, unselected tabs.",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.secondary",
+            "raw": "ink.300",
+            "ios": "fwTextSecondary",
+            "css": "--fw-text-2"
+          }
+        }
+      },
+      "textTertiary": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.5686,
+            0.5961,
+            0.7373
+          ],
+          "hex": "#9198BC"
+        },
+        "$description": "Meta, timestamps, indices. Restricted (3.4).",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.tertiary",
+            "raw": "ink.400",
+            "ios": "fwTextTertiary",
+            "css": "--fw-text-3"
+          }
+        }
+      },
+      "textDisabled": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.3686,
+            0.3922,
+            0.5294
+          ],
+          "hex": "#5E6487"
+        },
+        "$description": "Disabled labels only, with a reason line in text.secondary.",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.disabled",
+            "raw": "ink.600",
+            "ios": "fwTextDisabled",
+            "css": "--fw-text-dis"
+          }
+        }
+      },
+      "textOnAccent": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "hex": "#FFFFFF"
+        },
+        "$description": "On primary and danger fills only.",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.onAccent",
+            "raw": "white.base",
+            "ios": "fwTextOnAccent",
+            "css": "--fw-on-accent"
+          }
+        }
+      },
+      "textLink": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1804,
+            0.902,
+            1
+          ],
+          "hex": "#2EE6FF"
+        },
+        "$description": "Links, Retry, Manage.",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.link",
+            "raw": "cyan.400",
+            "ios": "fwTextLink",
+            "css": "--fw-link"
+          }
+        }
+      },
+      "textBrand": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0.302,
+            0.7216
+          ],
+          "hex": "#FF4DB8"
+        },
+        "$description": "Rare brand emphasis. Restricted (3.4).",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.brand",
+            "raw": "magenta.400",
+            "ios": "fwTextBrand",
+            "css": "--fw-brand-text"
+          }
+        }
+      },
+      "textPromo": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.6627,
+            0.6078,
+            1
+          ],
+          "hex": "#A99BFF"
+        },
+        "$description": "Promotional accents.",
+        "$extensions": {
+          "fw": {
+            "semantic": "text.promo",
+            "raw": "violet.300",
+            "ios": "fwTextPromo",
+            "css": "--fw-promo"
+          }
+        }
+      },
+      "brand": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0,
+            0.6039
+          ],
+          "hex": "#FF009A"
+        },
+        "$description": "Brand mark and glow colour. Never behind text.",
+        "$extensions": {
+          "fw": {
+            "semantic": "accent.glow",
+            "raw": "magenta.500",
+            "ios": "fwBrand",
+            "css": "--fw-brand"
+          }
+        }
+      },
+      "fillTop": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.8392,
+            0,
+            0.498
+          ],
+          "hex": "#D6007F"
+        },
+        "$description": "Primary fill gradient top; toggle-on track.",
+        "$extensions": {
+          "fw": {
+            "semantic": "accent.fill.top",
+            "raw": "magenta.600",
+            "ios": "fwFillTop",
+            "css": "--fw-fill-top"
+          }
+        }
+      },
+      "fillBottom": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.6392,
+            0,
+            0.4157
+          ],
+          "hex": "#A3006A"
+        },
+        "$description": "Primary fill gradient bottom; pressed primary.",
+        "$extensions": {
+          "fw": {
+            "semantic": "accent.fill.bottom",
+            "raw": "magenta.700",
+            "ios": "fwFillBottom",
+            "css": "--fw-fill-bottom"
+          }
+        }
+      },
+      "accentEdge": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0.302,
+            0.7216
+          ],
+          "alpha": 0.55,
+          "hex": "#FF4DB8"
+        },
+        "$description": "1 px inside edge on fills; lifts the toggle-on track to 3:1.",
+        "$extensions": {
+          "fw": {
+            "semantic": "accent.edge",
+            "raw": "magenta.400",
+            "ios": "fwAccentEdge",
+            "css": "--fw-accent-edge"
+          }
+        }
+      },
+      "focus": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1804,
+            0.902,
+            1
+          ],
+          "hex": "#2EE6FF"
+        },
+        "$description": "Focus ring (2 px on a 2 px bg.base offset).",
+        "$extensions": {
+          "fw": {
+            "semantic": "accent.focus",
+            "raw": "cyan.400",
+            "ios": "fwFocus",
+            "css": "--fw-focus"
+          }
+        }
+      },
+      "violet": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.5451,
+            0.3608,
+            1
+          ],
+          "hex": "#8B5CFF"
+        },
+        "$description": "Aurora and accent gradient mid-stop.",
+        "$extensions": {
+          "fw": {
+            "semantic": "accent.violet",
+            "raw": "violet.500",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "priceUp": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2196,
+            0.9098,
+            0.8784
+          ],
+          "hex": "#38E8E0"
+        },
+        "$description": "Price change up, always with the up glyph and sign.",
+        "$extensions": {
+          "fw": {
+            "semantic": "price.up",
+            "raw": "aqua.300",
+            "ios": "fwPriceUp",
+            "css": "--fw-up"
+          }
+        }
+      },
+      "priceDown": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0.6275,
+            0.3412
+          ],
+          "hex": "#FFA057"
+        },
+        "$description": "Price change down, always with the down glyph and sign.",
+        "$extensions": {
+          "fw": {
+            "semantic": "price.down",
+            "raw": "orange.300",
+            "ios": "fwPriceDown",
+            "css": "--fw-down"
+          }
+        }
+      },
+      "success": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2392,
+            0.949,
+            0.6902
+          ],
+          "hex": "#3DF2B0"
+        },
+        "$description": "Success glyphs and short state words.",
+        "$extensions": {
+          "fw": {
+            "semantic": "status.success",
+            "raw": "mint.400",
+            "ios": "fwSuccess",
+            "css": "--fw-success"
+          }
+        }
+      },
+      "warning": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0.7686,
+            0.3216
+          ],
+          "hex": "#FFC452"
+        },
+        "$description": "Warning, stale, testnet.",
+        "$extensions": {
+          "fw": {
+            "semantic": "status.warning",
+            "raw": "amber.400",
+            "ios": "fwWarning",
+            "css": "--fw-warning"
+          }
+        }
+      },
+      "danger": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0.4549,
+            0.4
+          ],
+          "hex": "#FF7466"
+        },
+        "$description": "Danger text and glyphs.",
+        "$extensions": {
+          "fw": {
+            "semantic": "status.danger",
+            "raw": "coral.400",
+            "ios": "fwDanger",
+            "css": "--fw-danger"
+          }
+        }
+      },
+      "info": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1804,
+            0.902,
+            1
+          ],
+          "hex": "#2EE6FF"
+        },
+        "$description": "Info glyphs.",
+        "$extensions": {
+          "fw": {
+            "semantic": "status.info",
+            "raw": "cyan.400",
+            "ios": "fwInfo",
+            "css": "--fw-info"
+          }
+        }
+      },
+      "dangerFill": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.702,
+            0.1882,
+            0.1647
+          ],
+          "hex": "#B3302A"
+        },
+        "$description": "Final irreversible confirm button only.",
+        "$extensions": {
+          "fw": {
+            "semantic": "status.danger.fill",
+            "raw": "coral.800",
+            "ios": "fwDangerFill",
+            "css": "--fw-danger-fill"
+          }
+        }
+      },
+      "selectFill": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0,
+            0.6039
+          ],
+          "alpha": 0.16,
+          "hex": "#FF009A"
+        },
+        "$description": "Selected chip, selected tab pill.",
+        "$extensions": {
+          "fw": {
+            "semantic": "select.fill",
+            "raw": "magenta.500",
+            "ios": "fwSelectFill",
+            "css": "--fw-select-fill"
+          }
+        }
+      },
+      "selectEdge": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0.302,
+            0.7216
+          ],
+          "hex": "#FF4DB8"
+        },
+        "$description": "Selected chip and pill edge (non-text 3:1).",
+        "$extensions": {
+          "fw": {
+            "semantic": "select.edge",
+            "raw": "magenta.400",
+            "ios": "fwSelectEdge",
+            "css": "--fw-select-edge"
+          }
+        }
+      },
+      "rowSelected": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0,
+            0.6039
+          ],
+          "alpha": 0.1,
+          "hex": "#FF009A"
+        },
+        "$description": "Selected list row on glass.",
+        "$extensions": {
+          "fw": {
+            "semantic": "row.selected",
+            "raw": "magenta.500",
+            "ios": "fwRowSelected",
+            "css": "--fw-row-selected"
+          }
+        }
+      },
+      "divider": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.08,
+          "hex": "#FFFFFF"
+        },
+        "$description": "Row dividers.",
+        "$extensions": {
+          "fw": {
+            "semantic": "stroke.divider",
+            "raw": "white.base",
+            "ios": "fwDivider",
+            "css": "--fw-divider"
+          }
+        }
+      },
+      "strokeStrong": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.28,
+          "hex": "#FFFFFF"
+        },
+        "$description": "Reduced-tier card edges (decorative).",
+        "$extensions": {
+          "fw": {
+            "semantic": "stroke.strong",
+            "raw": "white.base",
+            "ios": "fwStrokeStrong",
+            "css": "--fw-stroke-strong"
+          }
+        }
+      },
+      "strokeControl": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.4,
+          "hex": "#FFFFFF"
+        },
+        "$description": "Every interactive boundary.",
+        "$extensions": {
+          "fw": {
+            "semantic": "stroke.control",
+            "raw": "white.base",
+            "ios": "fwStrokeControl",
+            "css": "--fw-stroke-control"
+          }
+        }
+      },
+      "hudTick": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1804,
+            0.902,
+            1
+          ],
+          "alpha": 0.6,
+          "hex": "#2EE6FF"
+        },
+        "$description": "Hero corner ticks (decorative).",
+        "$extensions": {
+          "fw": {
+            "semantic": "hud.tick",
+            "raw": "cyan.400",
+            "ios": "fwHudTick",
+            "css": "--fw-hud-tick"
+          }
+        }
+      },
+      "hudTrace": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1804,
+            0.902,
+            1
+          ],
+          "alpha": 0.4,
+          "hex": "#2EE6FF"
+        },
+        "$description": "By-token circuit trace (decorative).",
+        "$extensions": {
+          "fw": {
+            "semantic": "hud.trace",
+            "raw": "cyan.400",
+            "ios": "fwHudTrace",
+            "css": "--fw-hud-trace"
+          }
+        }
+      },
+      "thumbOff": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.7882,
+            0.8078,
+            0.9098
+          ],
+          "hex": "#C9CEE8"
+        },
+        "$description": "Toggle-off thumb.",
+        "$extensions": {
+          "fw": {
+            "semantic": "toggle.thumbOff",
+            "raw": "ink.thumb",
+            "ios": "fwThumbOff",
+            "css": "--fw-thumb-off"
+          }
+        }
+      },
+      "qrModule": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0392,
+            0.0471,
+            0.1059
+          ],
+          "hex": "#0A0C1B"
+        },
+        "$description": "QR modules (19.42:1 on qr.field).",
+        "$extensions": {
+          "fw": {
+            "semantic": "qr.module",
+            "raw": "navy.900",
+            "ios": "fwQrModule",
+            "css": "--fw-qr-module"
+          }
+        }
+      },
+      "qrField": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "hex": "#FFFFFF"
+        },
+        "$description": "QR background.",
+        "$extensions": {
+          "fw": {
+            "semantic": "qr.field",
+            "raw": "white.base",
+            "ios": "fwQrField",
+            "css": "--fw-qr-field"
+          }
+        }
+      }
+    },
+    "highContrast": {
+      "$description": "Overrides under increased contrast (3.3). Glass, chrome and glow fall back to opaque surfaces in effects code, not tokens.",
+      "textSecondary": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.8353,
+            0.8549,
+            0.9176
+          ],
+          "hex": "#D5DAEA"
+        },
+        "$extensions": {
+          "fw": {
+            "raw": "ink.hc2"
+          }
+        }
+      },
+      "textTertiary": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.7294,
+            0.7529,
+            0.8314
+          ],
+          "hex": "#BAC0D4"
+        },
+        "$extensions": {
+          "fw": {
+            "raw": "ink.hc3"
+          }
+        }
+      },
+      "strokeControl": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.55,
+          "hex": "#FFFFFF"
+        },
+        "$extensions": {
+          "fw": {
+            "raw": "white.base"
+          }
+        }
+      }
+    },
+    "aurora": {
+      "$description": "Static backdrop blobs (3.2); geometry is relative to the screen. Used by the backdrop recipes and the contrast worst cases.",
+      "magenta": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            0,
+            0.6039
+          ],
+          "alpha": 0.18,
+          "hex": "#FF009A"
+        },
+        "$extensions": {
+          "fw": {
+            "center": [
+              0.15,
+              0.12
+            ],
+            "radius": 0.55
+          }
+        }
+      },
+      "cyan": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1804,
+            0.902,
+            1
+          ],
+          "alpha": 0.12,
+          "hex": "#2EE6FF"
+        },
+        "$extensions": {
+          "fw": {
+            "center": [
+              0.95,
+              0.08
+            ],
+            "radius": 0.45
+          }
+        }
+      },
+      "violet": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.5451,
+            0.3608,
+            1
+          ],
+          "alpha": 0.16,
+          "hex": "#8B5CFF"
+        },
+        "$extensions": {
+          "fw": {
+            "center": [
+              0.5,
+              1
+            ],
+            "radius": 0.6
+          }
+        }
+      }
+    },
+    "statusContainerAlpha": {
+      "$description": "status.*.container: the status colour at this alpha over the current surface (3.2).",
+      "default": {
+        "$type": "number",
+        "$value": 0.14
+      },
+      "info": {
+        "$type": "number",
+        "$value": 0.12
+      }
+    }
+  },
+  "gradient": {
+    "hairline": {
+      "$type": "gradient",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              1,
+              1
+            ],
+            "alpha": 0.22,
+            "hex": "#FFFFFF"
+          },
+          "position": 0
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              1,
+              1
+            ],
+            "alpha": 0.06,
+            "hex": "#FFFFFF"
+          },
+          "position": 0.42
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0,
+              0.6039
+            ],
+            "alpha": 0.28,
+            "hex": "#FF009A"
+          },
+          "position": 1
+        }
+      ],
+      "$description": "stroke.hairline: glass rims (decorative).",
+      "$extensions": {
+        "fw": {
+          "angle": 135,
+          "android": "Hairline",
+          "css": "--fw-hairline",
+          "ios": "hairline",
+          "highContrast": "strokeControl"
+        }
+      }
+    },
+    "accent": {
+      "$type": "gradient",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0,
+              0.6039
+            ],
+            "alpha": 0.75,
+            "hex": "#FF009A"
+          },
+          "position": 0
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0.5451,
+              0.3608,
+              1
+            ],
+            "alpha": 0.55,
+            "hex": "#8B5CFF"
+          },
+          "position": 0.5
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1804,
+              0.902,
+              1
+            ],
+            "alpha": 0.65,
+            "hex": "#2EE6FF"
+          },
+          "position": 1
+        }
+      ],
+      "$description": "stroke.accent: hero card rim, selected segment, focused hero input.",
+      "$extensions": {
+        "fw": {
+          "angle": 135,
+          "android": "Accent",
+          "css": "--fw-accent-rim",
+          "ios": "accent",
+          "highContrast": "strokeControl"
+        }
+      }
+    },
+    "primaryFill": {
+      "$type": "gradient",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8392,
+              0,
+              0.498
+            ],
+            "hex": "#D6007F"
+          },
+          "position": 0
+        },
+        {
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6392,
+              0,
+              0.4157
+            ],
+            "hex": "#A3006A"
+          },
+          "position": 1
+        }
+      ],
+      "$description": "accent.fill: primary button, Swap disc, toggle on, checkbox on.",
+      "$extensions": {
+        "fw": {
+          "angle": 180,
+          "android": "PrimaryFill",
+          "css": "--fw-fill",
+          "ios": "primaryFill"
+        }
+      }
+    }
+  },
+  "dimension": {
+    "radius": {
+      "xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        },
+        "$description": "Tags, badges."
+      },
+      "s": {
+        "$type": "dimension",
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        },
+        "$description": "Inputs, phrase cells, children well."
+      },
+      "m": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        },
+        "$description": "Cards, list containers, banners."
+      },
+      "l": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        },
+        "$description": "Sheet top corners, dialogs."
+      }
+    },
+    "chamfer": {
+      "l": {
+        "cut": {
+          "$type": "dimension",
+          "$value": {
+            "value": 16,
+            "unit": "px"
+          }
+        },
+        "radius": {
+          "$type": "dimension",
+          "$value": {
+            "value": 12,
+            "unit": "px"
+          }
+        }
+      },
+      "m": {
+        "cut": {
+          "$type": "dimension",
+          "$value": {
+            "value": 10,
+            "unit": "px"
+          }
+        },
+        "radius": {
+          "$type": "dimension",
+          "$value": {
+            "value": 8,
+            "unit": "px"
+          }
+        }
+      }
+    },
+    "spacing": {
+      "s2": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      },
+      "s4": {
+        "$type": "dimension",
+        "$value": {
+          "value": 4,
+          "unit": "px"
+        }
+      },
+      "s8": {
+        "$type": "dimension",
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        }
+      },
+      "s12": {
+        "$type": "dimension",
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        }
+      },
+      "s16": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "s20": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "s24": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "s32": {
+        "$type": "dimension",
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "s40": {
+        "$type": "dimension",
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      },
+      "s48": {
+        "$type": "dimension",
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "motion": {
+    "duration": {
+      "instant": {
+        "$type": "duration",
+        "$value": {
+          "value": 90,
+          "unit": "ms"
+        },
+        "$extensions": {
+          "fw": {
+            "css": "--fw-dur-instant"
+          }
+        }
+      },
+      "instantRelease": {
+        "$type": "duration",
+        "$value": {
+          "value": 140,
+          "unit": "ms"
+        }
+      },
+      "fast": {
+        "$type": "duration",
+        "$value": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "$extensions": {
+          "fw": {
+            "css": "--fw-dur-fast"
+          }
+        }
+      },
+      "base": {
+        "$type": "duration",
+        "$value": {
+          "value": 220,
+          "unit": "ms"
+        },
+        "$extensions": {
+          "fw": {
+            "css": "--fw-dur-base"
+          }
+        }
+      },
+      "slow": {
+        "$type": "duration",
+        "$value": {
+          "value": 320,
+          "unit": "ms"
+        },
+        "$extensions": {
+          "fw": {
+            "css": "--fw-dur-slow"
+          }
+        }
+      },
+      "deliberate": {
+        "$type": "duration",
+        "$value": {
+          "value": 450,
+          "unit": "ms"
+        },
+        "$extensions": {
+          "fw": {
+            "css": "--fw-dur-deliberate"
+          }
+        }
+      }
+    },
+    "easing": {
+      "standard": {
+        "$type": "cubicBezier",
+        "$value": [
+          0.2,
+          0,
+          0,
+          1
+        ],
+        "$extensions": {
+          "fw": {
+            "css": "--fw-ease"
+          }
+        }
+      },
+      "exit": {
+        "$type": "cubicBezier",
+        "$value": [
+          0.3,
+          0,
+          1,
+          1
+        ],
+        "$extensions": {
+          "fw": {
+            "css": "--fw-ease-exit"
+          }
+        }
+      },
+      "expand": {
+        "$type": "cubicBezier",
+        "$value": [
+          0.05,
+          0.7,
+          0.1,
+          1
+        ],
+        "$extensions": {
+          "fw": {
+            "css": "--fw-ease-expand"
+          }
+        }
+      }
+    }
+  },
+  "font": {
+    "display": {
+      "$type": "fontFamily",
+      "$value": [
+        "Sora Variable",
+        "var(--fw-font-body)"
+      ],
+      "$extensions": {
+        "fw": {
+          "css": "--fw-font-display"
+        }
+      }
+    },
+    "body": {
+      "$type": "fontFamily",
+      "$value": [
+        "Inter",
+        "system-ui",
+        "sans-serif"
+      ],
+      "$extensions": {
+        "fw": {
+          "css": "--fw-font-body"
+        }
+      }
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": [
+        "JetBrains Mono",
+        "ui-monospace",
+        "monospace"
+      ],
+      "$extensions": {
+        "fw": {
+          "css": "--fw-font-mono"
+        }
+      }
+    }
+  },
+  "web": {
+    "$description": "Element Plus variables bridged to the tokens (6.3).",
+    "elementPlusBridge": {
+      "--el-color-primary": "{color.semantic.fillTop}",
+      "--el-bg-color": "var(--fw-raised)",
+      "--el-bg-color-overlay": "var(--fw-raised-2)",
+      "--el-text-color-primary": "var(--fw-text-1)",
+      "--el-text-color-regular": "var(--fw-text-2)",
+      "--el-border-color": "var(--fw-stroke-control)"
+    }
+  }
+}

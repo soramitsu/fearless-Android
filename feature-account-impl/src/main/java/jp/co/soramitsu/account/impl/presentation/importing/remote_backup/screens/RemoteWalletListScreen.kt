@@ -14,15 +14,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.labelRes
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletNameItemViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
+import jp.co.soramitsu.common.compose.component.FearlessProgress
 import jp.co.soramitsu.common.compose.component.GradientIcon
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
@@ -33,8 +37,16 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.white50
 
 data class RemoteWalletListState(
-    val wallets: List<WrappedBackupAccountMeta>? = null
+    val wallets: List<WrappedBackupAccountMeta>? = null,
+    val error: RemoteWalletListError? = null
 ) : ImportRemoteWalletState
+
+/** Why the Google Drive backups could not be listed; [actionText] is null when retrying cannot help. */
+data class RemoteWalletListError(
+    val title: String,
+    val message: String,
+    val actionText: String?
+)
 
 interface RemoteWalletListCallback {
 
@@ -49,6 +61,12 @@ interface RemoteWalletListCallback {
     fun onBackClick()
 
     fun loadRemoteWallets()
+
+    fun onErrorActionClick()
+
+    fun onImportAnotherWayClick()
+
+    fun onUseAnotherGoogleAccountClick()
 }
 
 @Composable
@@ -72,7 +90,30 @@ internal fun RemoteWalletListScreen(
         )
         MarginVertical(margin = 8.dp)
         when {
-            state.wallets == null -> {}
+            state.error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    RemoteWalletListErrorContent(
+                        error = state.error,
+                        onActionClick = callback::onErrorActionClick,
+                        onImportAnotherWayClick = callback::onImportAnotherWayClick
+                    )
+                }
+            }
+            state.wallets == null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    FearlessProgress()
+                }
+            }
             state.wallets.isEmpty() -> {
                 Box(
                     modifier = Modifier
@@ -80,7 +121,10 @@ internal fun RemoteWalletListScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    EmptyResultContent()
+                    NoRemoteWalletsContent(
+                        onUseAnotherGoogleAccountClick = callback::onUseAnotherGoogleAccountClick,
+                        onImportAnotherWayClick = callback::onImportAnotherWayClick
+                    )
                 }
             }
             else -> {
@@ -92,7 +136,8 @@ internal fun RemoteWalletListScreen(
                     items(state.wallets) { wallet ->
                         WalletNameItem(
                             state = CompactWalletNameItemViewState(
-                                title = wallet.backupMeta.name
+                                title = wallet.backupMeta.name,
+                                subtitle = wallet.origin.labelRes?.let { stringResource(it) }
                             ),
                             onSelected = {
                                 callback.onWalletSelected(wallet)
@@ -119,9 +164,17 @@ internal fun RemoteWalletListScreen(
     }
 }
 
+/**
+ * Signed in, but this Google account holds no Fearless backups. Someone who backed up with another
+ * Google account, or never did, still needs a way to their wallet from here.
+ */
 @Composable
-fun EmptyResultContent() {
+private fun NoRemoteWalletsContent(
+    onUseAnotherGoogleAccountClick: () -> Unit,
+    onImportAnotherWayClick: () -> Unit
+) {
     Column(
+        modifier = Modifier.padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -131,11 +184,67 @@ fun EmptyResultContent() {
             modifier = Modifier.align(Alignment.CenterHorizontally),
             contentPadding = PaddingValues(bottom = 4.dp)
         )
-
-        H3(text = stringResource(id = R.string.common_search_assets_alert_title))
+        H3(text = stringResource(id = R.string.google_backup_none_found_title), textAlign = TextAlign.Center)
         B0(
-            text = stringResource(id = R.string.import_wallets_not_found),
+            text = stringResource(id = R.string.google_backup_none_found_message),
+            textAlign = TextAlign.Center,
             color = white50
+        )
+        GrayButton(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(),
+            text = stringResource(R.string.google_backup_use_another_account),
+            onClick = onUseAnotherGoogleAccountClick
+        )
+        GrayButton(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(),
+            text = stringResource(R.string.google_backup_import_another_way),
+            onClick = onImportAnotherWayClick
+        )
+    }
+}
+
+@Composable
+private fun RemoteWalletListErrorContent(
+    error: RemoteWalletListError,
+    onActionClick: () -> Unit,
+    onImportAnotherWayClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        GradientIcon(
+            iconRes = R.drawable.ic_alert_24,
+            color = alertYellow,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            contentPadding = PaddingValues(bottom = 4.dp)
+        )
+        H3(text = error.title, textAlign = TextAlign.Center)
+        B0(
+            text = error.message,
+            textAlign = TextAlign.Center,
+            color = white50
+        )
+        error.actionText?.let { actionText ->
+            AccentButton(
+                modifier = Modifier
+                    .height(48.dp)
+                    .fillMaxWidth(),
+                text = actionText,
+                onClick = onActionClick
+            )
+        }
+        GrayButton(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(),
+            text = stringResource(R.string.google_backup_import_another_way),
+            onClick = onImportAnotherWayClick
         )
     }
 }
@@ -153,6 +262,9 @@ private fun PreviewRemoteWalletListScreen() {
                 override fun onWalletLongClick(backupAccount: WrappedBackupAccountMeta) {}
                 override fun onBackClick() {}
                 override fun loadRemoteWallets() {}
+                override fun onErrorActionClick() {}
+                override fun onImportAnotherWayClick() {}
+                override fun onUseAnotherGoogleAccountClick() {}
             }
         )
     }

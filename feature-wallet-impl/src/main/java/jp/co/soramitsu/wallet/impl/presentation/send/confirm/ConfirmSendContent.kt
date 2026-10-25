@@ -35,13 +35,17 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class ConfirmSendViewState(
     val chainIconUrl: String?,
+    val networkInfoItem: TitleValueViewState? = null,
     val fromInfoItem: TitleValueViewState? = null,
     val toInfoItem: TitleValueViewState? = null,
     val amountInfoItem: TitleValueViewState? = null,
     val tipInfoItem: TitleValueViewState? = null,
     val feeInfoItem: TitleValueViewState? = null,
+    val accountCreationInfoItem: TitleValueViewState? = null,
+    val feeRateInfoItem: TitleValueViewState? = null,
     val buttonState: ButtonViewState,
     val isLoading: Boolean = false,
+    val nativeReview: Boolean = false,
     @DrawableRes val iconOverrideResId: Int? = null
 ) {
     companion object {
@@ -54,11 +58,14 @@ data class ConfirmSendViewState(
     }
 
     val tableItems = listOf(
+        networkInfoItem,
         fromInfoItem,
         toInfoItem,
         amountInfoItem,
         tipInfoItem,
-        feeInfoItem
+        feeInfoItem,
+        accountCreationInfoItem,
+        feeRateInfoItem
     ).mapNotNull { it }
 }
 
@@ -128,16 +135,31 @@ fun ConfirmSendContent(
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                     MarginVertical(margin = 24.dp)
-                    InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
+                    val largeText = androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.3f
+                    val network = state.networkInfoItem
+                    if (state.nativeReview) {
+                        ExactSendReviewTable(state.tableItems, callback::onItemClick)
+                    } else if (largeText && network != null) {
+                        jp.co.soramitsu.common.compose.component.BackgroundCornered(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp)) {
+                                jp.co.soramitsu.common.compose.component.B2(text = network.title.orEmpty(), color = black2)
+                                jp.co.soramitsu.common.compose.component.H3(text = network.value.orEmpty())
+                            }
+                        }
+                        MarginVertical(8.dp)
+                        InfoTable(items = state.tableItems.drop(1), onItemClick = callback::onItemClick)
+                    } else InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
                     MarginVertical(margin = 12.dp)
 
                     val isInitialLoading = state.feeInfoItem == null
+                    val identityReady = !state.nativeReview || listOf(state.networkInfoItem, state.fromInfoItem, state.toInfoItem, state.amountInfoItem)
+                        .all { !it?.value.isNullOrBlank() }
                     AccentButton(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
                         text = state.buttonState.text.takeIf { isInitialLoading.not() }.orEmpty(),
-                        enabled = state.buttonState.enabled,
+                        enabled = state.buttonState.enabled && !isInitialLoading && identityReady,
                         loading = isInitialLoading,
                         onClick = {
                             keyboardController?.hide()

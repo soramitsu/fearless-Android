@@ -6,7 +6,8 @@ data class StakeSummary<S>(
     val status: S,
     val totalStaked: BigDecimal?,
     val totalReward: BigDecimal,
-    val currentEra: Int
+    val currentEra: Int,
+    val source: StakeSummarySource
 )
 
 sealed class NominatorStatus {

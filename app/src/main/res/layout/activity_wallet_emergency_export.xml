@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Header3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/wallet_emergency_title"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/emergencyMessage"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/wallet_emergency_intro"
+            android:textColor="@color/white_64" />
+
+        <LinearLayout
+            android:id="@+id/emergencyPinGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/emergencyPin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints=""
+                android:hint="@string/wallet_emergency_pin_hint"
+                android:importantForAutofill="no"
+                android:inputType="numberPassword"
+                android:maxLength="6"
+                android:saveEnabled="false"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white_64" />
+
+            <TextView
+                android:id="@+id/emergencyPinError"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/red"
+                android:visibility="gone"
+                tools:text="Incorrect PIN"
+                tools:visibility="visible" />
+
+            <jp.co.soramitsu.common.view.PrimaryButton
+                android:id="@+id/emergencyUnlock"
+                style="@style/Widget.Fearless.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/wallet_emergency_unlock" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/emergencyWarning"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/wallet_emergency_warning"
+            android:textColor="@color/colorAccent"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/emergencyEntries"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <Button
+            android:id="@+id/emergencyClose"
+            style="@style/Widget.Fearless.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/common_close" />
+
+    </LinearLayout>
+
+</ScrollView>

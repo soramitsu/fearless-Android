@@ -18,7 +18,7 @@ import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import kotlinx.coroutines.flow.map
 
 abstract class ExportViewModel(

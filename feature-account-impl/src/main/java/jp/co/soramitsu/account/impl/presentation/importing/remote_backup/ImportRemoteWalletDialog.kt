@@ -16,6 +16,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -28,13 +29,11 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
     private val launcher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        when (result.resultCode) {
-            Activity.RESULT_OK -> viewModel.loadRemoteWallets()
-            Activity.RESULT_CANCELED -> { /* no action */ }
-            else -> {
-                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-                viewModel.onGoogleLoginError(googleSignInStatus.toString())
-            }
+        // The launcher also opens Drive permission screens, whose RESULT_OK carries no sign-in account.
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.onGoogleAuthorized()
+        } else {
+            viewModel.onGoogleSignInFailed(GoogleSignInResult.parse(result.resultCode, result.data))
         }
     }
 
@@ -63,6 +62,10 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
 
         viewModel.requestGoogleAuth.onEach {
             it.getContentIfNotHandled()?.let { launcher.launch(it) }
+        }.launchIn(viewLifecycleOwner.lifecycleScope)
+
+        viewModel.requestGoogleSignIn.onEach {
+            it.getContentIfNotHandled()?.let { viewModel.signInToGoogle(launcher) }
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 }

@@ -6,13 +6,13 @@ import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
-import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi

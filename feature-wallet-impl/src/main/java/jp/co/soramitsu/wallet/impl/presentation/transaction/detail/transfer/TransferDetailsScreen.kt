@@ -32,7 +32,7 @@ interface TransactionDetailsCallbacks {
 fun TransferDetailScreen(state: TransferDetailsState, callback: TransactionDetailsCallbacks) {
     Column {
         MarginVertical(8.dp)
-        Toolbar(ToolbarViewState(stringResource(R.string.common_details), R.drawable.ic_cross), onNavigationClick = callback::onNavigationClick)
+        Toolbar(ToolbarViewState(stringResource(R.string.common_details), R.drawable.ic_cross_24), onNavigationClick = callback::onNavigationClick)
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             MarginVertical(16.dp)
             DisabledTextInput(state.hash.hint, state.hash.text, endIcon = state.hash.endIcon, callback::onHashClick)

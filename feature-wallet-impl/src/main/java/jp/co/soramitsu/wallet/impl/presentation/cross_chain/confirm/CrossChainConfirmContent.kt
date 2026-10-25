@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.DoubleGradientIcon
@@ -33,6 +34,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 data class CrossChainConfirmViewState(
     val originChainIcon: GradientIconData?,
     val destinationChainIcon: GradientIconData?,
+    val fromInfoItem: TitleValueViewState? = null,
     val toInfoItem: TitleValueViewState? = null,
     val originNetworkItem: TitleValueViewState? = null,
     val destinationNetworkItem: TitleValueViewState? = null,
@@ -41,7 +43,10 @@ data class CrossChainConfirmViewState(
     val originFeeInfoItem: TitleValueViewState? = null,
     val destinationFeeInfoItem: TitleValueViewState? = null,
     val buttonState: ButtonViewState,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    /** Present while an earlier transfer of this account is unsettled or was just settled. */
+    val pendingMessage: String? = null,
+    val pendingTransactionHash: String? = null
 ) {
     companion object {
         const val CODE_WARNING_CLICK = 3
@@ -54,6 +59,7 @@ data class CrossChainConfirmViewState(
     }
 
     val tableItems = listOf(
+        fromInfoItem,
         toInfoItem,
         originNetworkItem,
         destinationNetworkItem,
@@ -121,6 +127,25 @@ fun CrossChainConfirmContent(
                 Spacer(modifier = Modifier.weight(1f))
 
                 Column {
+                    state.pendingMessage?.let { message ->
+                        B1(
+                            text = message,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        )
+                        state.pendingTransactionHash?.let { hash ->
+                            MarginVertical(margin = 4.dp)
+                            B1(
+                                text = stringResource(id = R.string.pool_join_recovery_hash) + ": " + hash,
+                                color = black2,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
+                        MarginVertical(margin = 12.dp)
+                    }
                     AccentButton(
                         state = state.buttonState,
                         onClick = {

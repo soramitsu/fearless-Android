@@ -36,6 +36,9 @@ interface RewardDestinationMixin : Browserable {
 
         suspend fun loadActiveRewardDestination(stashState: StakingState.Stash)
 
+        /** Immediately clears all estimate fields and revokes any in-flight calculation. */
+        fun invalidateReturns()
+
         suspend fun updateReturns(
             rewardCalculator: RewardCalculator,
             asset: Asset,

@@ -32,6 +32,7 @@ import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.controller.SetControllerValidationPayload
 import jp.co.soramitsu.staking.impl.domain.validations.controller.SetControllerValidationSystem
+import jp.co.soramitsu.staking.impl.presentation.common.stakingBalanceUnavailable
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -167,7 +168,8 @@ class SetControllerViewModel @Inject constructor(
             val asset = requireNotNull(stakingInteractor.getUtilityAsset(chain))
 
             val feeResult = runCatching {
-                interactor.estimateFee(controllerAddress(), chain.id)
+                val stakingState = accountStakingFlow.first()
+                interactor.estimateFee(stakingState.stashAddress, controllerAddress(), chain.id)
             }
 
             val value = if (feeResult.isSuccess) {
@@ -240,25 +242,32 @@ class SetControllerViewModel @Inject constructor(
 
         if (feeStatus is FeeStatus.Loaded) {
             val controllerAddress = controllerAccountModel.value?.address ?: return@launch
+            val asset = assetFlow.first()
+            val transferable = asset.availableForStaking ?: run {
+                showError(stakingBalanceUnavailable(resourceManager))
+                return@launch
+            }
 
             val payload = SetControllerValidationPayload(
                 stashAddress = stashAddress(),
                 controllerAddress = controllerAddress,
                 fee = feeStatus.feeModel.fee,
-                transferable = assetFlow.first().availableForStaking
+                transferable = transferable
             )
 
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
                 payload = payload,
-                validationFailureTransformer = { bondSetControllerValidationFailure(it, resourceManager) }
+                errorDisplayer = ::showError,
+                validationFailureTransformer = { bondSetControllerValidationFailure(it, resourceManager) },
+                isCurrent = { assetFlow.replayCache.lastOrNull() === asset }
             ) {
                 openConfirm(
                     ConfirmSetControllerPayload(
                         fee = feeStatus.feeModel.fee,
                         stashAddress = payload.stashAddress,
                         controllerAddress = payload.controllerAddress,
-                        transferable = payload.transferable,
+                        transferable = transferable,
                         chainId = chainId
                     )
                 )

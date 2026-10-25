@@ -84,7 +84,7 @@ class ConfirmBondMoreViewModel @Inject constructor(
     val stakeCreatorBalanceFlow = flowOf {
         val balance = stakingScenarioInteractor.getAvailableForBondMoreBalance()
         val asset = assetFlow.first()
-        balance.formatCryptoDetail(asset.token.configuration.symbol)
+        (balance?.formatCryptoDetail(asset.token.configuration.symbol) ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable))
     }.inBackground().share()
 
     val originAddressModelLiveData = liveData {

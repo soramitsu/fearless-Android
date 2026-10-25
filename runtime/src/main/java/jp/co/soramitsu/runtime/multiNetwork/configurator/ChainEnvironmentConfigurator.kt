@@ -1,7 +1,8 @@
 package jp.co.soramitsu.runtime.multiNetwork.configurator
 
 import jp.co.soramitsu.core.models.Ecosystem
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
@@ -18,26 +19,24 @@ class ChainEnvironmentConfiguratorProvider(
     private val runtimeProviderPool: RuntimeProviderPool,
     private val runtimeSyncService: RuntimeSyncService,
     private val runtimeSubscriptionPool: RuntimeSubscriptionPool,
-    private val chainsRepository: ChainsRepository,
     private val ethereumConnectionPool: EthereumConnectionPool
 ) {
     fun provide(chain: Chain): ChainEnvironmentConfigurator {
-        return when (chain.ecosystem) {
-           Ecosystem.Substrate,
-           Ecosystem.EthereumBased -> SubstrateEnvironmentConfigurator(
+        return when {
+            chain.isUniversalWalletBitcoin() || chain.isUniversalWalletSolana() -> NativeWalletEnvironmentConfigurator()
+            chain.isEthereumChain -> EthereumEnvironmentConfigurator(
+                ethereumConnectionPool
+            )
+            chain.ecosystem == Ecosystem.Ethereum -> EthereumEnvironmentConfigurator(
+                ethereumConnectionPool
+            )
+            chain.ecosystem == Ecosystem.Ton -> TonEnvironmentConfigurator()
+            else -> SubstrateEnvironmentConfigurator(
                 connectionPool,
                 runtimeProviderPool,
                 runtimeSyncService,
-                runtimeSubscriptionPool,
-                chainsRepository
+                runtimeSubscriptionPool
             )
-
-            Ecosystem.Ethereum -> EthereumEnvironmentConfigurator(
-                ethereumConnectionPool,
-                chainsRepository
-            )
-
-            Ecosystem.Ton -> TonEnvironmentConfigurator()
         }
     }
 }

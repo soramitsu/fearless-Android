@@ -14,6 +14,9 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode.Google
 import jp.co.soramitsu.account.api.domain.model.ImportMode.Json
 import jp.co.soramitsu.account.api.domain.model.ImportMode.MnemonicPhrase
 import jp.co.soramitsu.account.api.domain.model.ImportMode.RawSeed
+import jp.co.soramitsu.account.impl.domain.recovery.WalletKeyRecovery
+import jp.co.soramitsu.account.impl.domain.recovery.WalletRecoveryIdentityMismatch
+import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.IMPORT_ACCOUNT_TYPE_KEY
@@ -39,8 +42,10 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,10 +56,17 @@ class ImportAccountViewModel @Inject constructor(
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader,
+    private val keyRecovery: WalletKeyRecovery,
+    private val pinRecovery: jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecovery,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
+    val recoveryTarget = savedStateHandle.get<RecoveryTarget>(ImportAccountFragment.IMPORT_REBIND_KEY)
+    val isRebinding = recoveryTarget != null
+    val pinRecoveryChallenge = savedStateHandle.get<String>(ImportAccountFragment.PIN_RECOVERY_CHALLENGE)
+    val recoveryError = MutableLiveData<String?>(null)
+    private var recoveryJob: Job? = null
     val walletId = savedStateHandle.get<Long?>(IMPORT_WALLET_ID_KEY)
     val initialWalletEcosystem = savedStateHandle.get<WalletEcosystem>(IMPORT_ACCOUNT_TYPE_KEY)
     private val initialImportMode = savedStateHandle[IMPORT_MODE_KEY] ?: MnemonicPhrase
@@ -65,7 +77,7 @@ class ImportAccountViewModel @Inject constructor(
     private val _blockchainTypeLiveData = MutableLiveData<WalletEcosystem>(initialWalletEcosystem)
     val blockchainLiveData: LiveData<WalletEcosystem> = _blockchainTypeLiveData
 
-    val nameLiveData = MutableLiveData<String>()
+    val nameLiveData = MutableLiveData("")
 
     private val _showSourceChooserLiveData = MutableLiveData<Event<Payload<ImportSource>>>()
     val showSourceSelectorChooserLiveData: LiveData<Event<Payload<ImportSource>>> = _showSourceChooserLiveData
@@ -94,7 +106,7 @@ class ImportAccountViewModel @Inject constructor(
     private val importInProgressLiveData = MutableLiveData(false)
 
     private val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
-        sourceTypeValid && name.isNotEmpty()
+        sourceTypeValid && (isRebinding || name.isNotEmpty())
     }
 
     val nextButtonState = nextButtonEnabledLiveData.combine(importInProgressLiveData) { enabled, inProgress ->
@@ -111,7 +123,7 @@ class ImportAccountViewModel @Inject constructor(
     private var ethJson: String? = null
 
     fun homeButtonClicked() {
-        router.backToWelcomeScreen()
+        if (isRebinding) router.back() else router.backToWelcomeScreen()
     }
 
     fun openSourceChooserClicked() {
@@ -125,6 +137,10 @@ class ImportAccountViewModel @Inject constructor(
     }
 
     fun nextClicked() {
+        if (isRebinding) {
+            restoreKey()
+            return
+        }
         val isSubstrateDerivationPathValid = substrateDerivationPathLiveData.value?.matches(substrateDerivationPathRegex)
         if (isSubstrateDerivationPathValid == false) {
             showError(NotValidDerivationPath(resourceManager))
@@ -160,6 +176,74 @@ class ImportAccountViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun restoreKey() {
+        if (recoveryJob?.isActive == true) return
+        val target = recoveryTarget ?: return
+        val source = selectedSourceLiveData.value ?: return
+        val mode: ImportMode
+        val material: String
+        val password: String
+        when (source) {
+            is MnemonicImportSource -> {
+                mode = MnemonicPhrase
+                material = source.mnemonicContentLiveData.value.orEmpty()
+                password = ""
+            }
+            is RawSeedImportSource -> {
+                mode = RawSeed
+                material = source.rawSeedLiveData.value.orEmpty()
+                password = ""
+            }
+            is JsonImportSource -> {
+                mode = Json
+                material = source.jsonContentLiveData.value.orEmpty()
+                password = source.passwordLiveData.value.orEmpty()
+            }
+            else -> return
+        }
+        val path = if (target.ecosystem() == WalletEcosystem.Ethereum) ethereumDerivationPathLiveData.value.orEmpty()
+            else substrateDerivationPathLiveData.value.orEmpty()
+        importInProgressLiveData.value = true
+        recoveryError.value = null
+        recoveryJob = viewModelScope.launch {
+            try {
+                if (pinRecoveryChallenge == null) keyRecovery.restore(target.metaId, target.scope(), mode, material, path, password)
+                else pinRecovery.verifyWallet(pinRecoveryChallenge, target, mode, material, path, password)
+                clearRecoveryInput()
+                showMessage(resourceManager.getString(if (pinRecoveryChallenge == null) R.string.wallet_recovery_restored else R.string.pin_recovery_verified))
+                router.back()
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Exception) {
+                recoveryError.value = resourceManager.getString(
+                    if (failure is WalletRecoveryIdentityMismatch) R.string.wallet_recovery_different_key
+                    else R.string.wallet_recovery_restore_failed
+                )
+            } finally {
+                importInProgressLiveData.value = false
+            }
+        }
+    }
+
+    /** Leaving an authenticated recovery screen discards input and pending derivation. */
+    fun recoveryScreenStopped() {
+        if (!isRebinding) return
+        recoveryJob?.cancel()
+        clearRecoveryInput()
+    }
+
+    private fun clearRecoveryInput() {
+        sourceTypes.forEach { source ->
+            when (source) {
+                is MnemonicImportSource -> source.mnemonicContentLiveData.value = ""
+                is RawSeedImportSource -> source.rawSeedLiveData.value = ""
+                is JsonImportSource -> source.clearRecoveryInput()
+            }
+        }
+        substrateDerivationPathLiveData.value = ""
+        ethereumDerivationPathLiveData.value = ""
     }
 
     private fun import(withEth: Boolean) {
@@ -234,7 +318,8 @@ class ImportAccountViewModel @Inject constructor(
                 resourceManager,
                 clipboardManager,
                 fileReader,
-                viewModelScope
+                viewModelScope,
+                recoveryMode = isRebinding
             )
         )
     }

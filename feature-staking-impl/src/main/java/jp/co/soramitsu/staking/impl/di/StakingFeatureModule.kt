@@ -1,5 +1,7 @@
 package jp.co.soramitsu.staking.impl.di
 
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
+
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
@@ -559,11 +561,15 @@ class StakingFeatureModule {
     fun provideStakingPoolApi(
         extrinsicService: ExtrinsicService,
         stakingSharedState: StakingSharedState,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        preferences: Preferences,
+        rpcCalls: RpcCalls
     ) = StakingPoolApi(
         extrinsicService,
         stakingSharedState,
-        chainRegistry
+        chainRegistry,
+        jp.co.soramitsu.staking.impl.data.repository.PoolJoinJournal(preferences),
+        jp.co.soramitsu.core.rpc.FinalizedExtrinsicReader(rpcCalls)
     )
 
     @Provides
@@ -594,8 +600,8 @@ class StakingFeatureModule {
     fun provideIdentitiesUseCase(identityRepository: IdentityRepository) = GetIdentitiesUseCase(identityRepository)
 
     @Provides
-    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenPriceDao: TokenPriceDao, selectedFiat: SelectedFiat) =
-        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenPriceDao, selectedFiat)
+    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenRepository: TokenRepository) =
+        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenRepository)
 
     @Provides
     @Singleton

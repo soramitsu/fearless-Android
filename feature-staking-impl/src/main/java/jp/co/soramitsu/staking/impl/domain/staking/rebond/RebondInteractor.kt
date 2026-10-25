@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.staking.rebond
 
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import kotlinx.coroutines.Dispatchers
@@ -13,11 +13,9 @@ class RebondInteractor(
     private val sharedStakingSate: StakingSharedState
 ) {
 
-    suspend fun estimateFee(formExtrinsic: suspend ExtrinsicBuilder.() -> Unit): BigInteger {
+    suspend fun estimateFee(stashState: StakingState, formExtrinsic: suspend ExtrinsicBuilder.() -> Unit): BigInteger {
         return withContext(Dispatchers.IO) {
-            val chain = sharedStakingSate.chain()
-
-            extrinsicService.estimateFee(chain) {
+            extrinsicService.estimateFee(stashState.chain, stashState.executionAddressId) {
                 formExtrinsic.invoke(this)
             }
         }

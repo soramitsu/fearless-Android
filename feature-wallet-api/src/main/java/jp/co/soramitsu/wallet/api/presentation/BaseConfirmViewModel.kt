@@ -4,6 +4,8 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.TitledException
@@ -18,15 +20,21 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.validation.ExistentialDepositUnknownException
 import jp.co.soramitsu.common.validation.FeeInsufficientBalanceException
-import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
+import jp.co.soramitsu.common.validation.MovedToAssetHubException
+import jp.co.soramitsu.common.validation.isCallMovedToAssetHub
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeEstimation
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -85,9 +93,12 @@ abstract class BaseConfirmViewModel(
         amountFiat
     )
 
-    protected val feeInPlanksFlow = flowOf {
+    private val feeEstimation = FeeEstimation(resourceManager)
+
+    // Starts eagerly in viewModelScope, where an uncaught failure would crash the app.
+    protected val feeInPlanksFlow = feeEstimation.retryFlow.map {
         val amountInPlanks = amount?.let { asset.token.planksFromAmount(it) }
-        feeEstimator(amountInPlanks)
+        feeEstimation.estimate { feeEstimator(amountInPlanks) }
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
@@ -116,6 +127,8 @@ abstract class BaseConfirmViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val isLoadingStateFlow = MutableStateFlow(false)
+    private val activeAttempt = AtomicReference<Any?>(null)
+    private val confirmationConsumed = AtomicBoolean(false)
 
     val viewState by lazy {
         combine(tableItemsFlow, isLoadingStateFlow) { tableItems, isLoading ->
@@ -138,33 +151,79 @@ abstract class BaseConfirmViewModel(
     }
 
     fun onConfirm() {
-        launch {
-            isLoadingStateFlow.value = true
-            isValid().fold({ validationPassed() }, ::showError)
-            isLoadingStateFlow.value = false
+        val attempt = Any()
+        if (confirmationConsumed.get() || !activeAttempt.compareAndSet(null, attempt)) return
+        // A previous attempt may have completed between the first sample and admission.
+        if (confirmationConsumed.get()) {
+            activeAttempt.compareAndSet(attempt, null)
+            return
         }
+        val job = launch {
+            isLoadingStateFlow.value = true
+            try {
+                val result = try {
+                    executeValidatedOperation()
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Result.failure(error)
+                }
+                result.exceptionOrNull()?.let { if (it is CancellationException) throw it }
+                currentCoroutineContext().ensureActive()
+                result.fold({ hash ->
+                    try {
+                        onOperationSuccess(hash)
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (error: Exception) {
+                        currentCoroutineContext().ensureActive()
+                        showError(error)
+                    }
+                }, ::showError)
+            } finally {
+                isLoadingStateFlow.value = false
+                activeAttempt.compareAndSet(attempt, null)
+            }
+        }
+        // A cancelled ViewModel scope can prevent the body (and its finally) from starting.
+        job.invokeOnCompletion { activeAttempt.compareAndSet(attempt, null) }
     }
 
+    /** Why confirming has no fee yet: the estimation failed and is started again, or it is still running. */
+    protected fun missingFeeError(): ValidationException = feeEstimation.missingFeeError()
+
     protected open suspend fun isValid(): Result<Any> {
-        val fee = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
+        val fee = feeInPlanksFlow.value ?: return Result.failure(missingFeeError())
 
         val chargesAmount = amountInPlanks.orZero() + fee
-        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+        val existentialDeposit = existentialDepositUseCase(asset.token.configuration).getOrElse {
+            if (it is kotlinx.coroutines.CancellationException) throw it
+            return Result.failure(ExistentialDepositUnknownException(resourceManager, asset.token.configuration.symbol.uppercase()))
+        }
 
-        val resultBalance = assetFlow.value.transferableInPlanks - chargesAmount
+        val available = assetFlow.value.transferableInPlanks ?: return Result.failure(
+            ValidationException(resourceManager.getString(R.string.common_error_general_title),
+                resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable))
+        )
+        val resultBalance = available - chargesAmount
         if (resultBalance < existentialDeposit || resultBalance <= BigInteger.ZERO) {
             return Result.failure(FeeInsufficientBalanceException(resourceManager))
         }
         return Result.success(Unit)
     }
 
-    private suspend fun validationPassed() {
-        executeOperation(address, amountInPlanks).fold({
-            onOperationSuccess(it)
-        }, ::showError)
+    private suspend fun executeValidatedOperation(): Result<String> {
+        isValid().getOrThrow()
+        currentCoroutineContext().ensureActive()
+        val result = executeOperation(address, amountInPlanks)
+        // Consume observed success before navigation or a reentrant success callback.
+        if (result.isSuccess) confirmationConsumed.set(true)
+        return result
     }
 
     override fun showError(throwable: Throwable) {
+        if (throwable.isCallMovedToAssetHub()) return showError(MovedToAssetHubException(resourceManager))
+
         val message =
             throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
         val errorAlertViewState = when (throwable) {

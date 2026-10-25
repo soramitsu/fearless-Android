@@ -13,13 +13,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.showGoogleBackupIssue
+import jp.co.soramitsu.account.api.presentation.backup.toGoogleBackupIssue
 import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.exceptions.NotValidDerivationPath
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload.CreateExtras
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.MnemonicWordModel
 import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
@@ -29,8 +34,8 @@ import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -67,15 +72,11 @@ class BackupMnemonicViewModel @Inject constructor(
     val isShowAdvancedBlock =
         !payload.isFromGoogleBackup && isSubstrateOrEthereumAccount
     val isShowBackupWithGoogle =
-        !payload.isFromGoogleBackup && walletId == null && isSubstrateOrEthereumAccount
+        !payload.isFromGoogleBackup && walletId == null && isSubstrateOrEthereumAccount && backupService.isAvailable
     val isShowSkipButton = isTonAccount
 
     val mnemonic = flow {
-        val mnemonicLength = if (isSubstrateOrEthereumAccount) {
-            Mnemonic.Length.TWELVE
-        } else {
-            Mnemonic.Length.TWENTY_FOUR
-        }
+        val mnemonicLength = BackupMnemonicDefaults.mnemonicLengthForNewWallet(payload.accountTypes)
         emit(generateMnemonic(mnemonicLength))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -216,6 +217,11 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
+        if (!backupService.isAvailable) {
+            showGoogleBackupIssue(resourceManager, GoogleBackupIssue.UNAVAILABLE)
+            return
+        }
+
         if (payload.isFromGoogleBackup.not()) {
             backupService.logout()
         }
@@ -235,15 +241,17 @@ class BackupMnemonicViewModel @Inject constructor(
         )
         router.openCreateBackupPasswordDialogWithResult(createAndSavePayload)
             .onEach { resultCode ->
-                if (resultCode == Activity.RESULT_OK) {
+                // A skipped backup still created the wallet, so it continues not marked as backed up.
+                if (resultCode == Activity.RESULT_OK || resultCode == CreateBackupPasswordDialog.RESULT_BACKUP_SKIPPED) {
                     continueBasedOnCodeStatus()
                 }
             }
             .launchIn(viewModelScope)
     }
 
-    override fun onGoogleLoginError(message: String) {
-        showError("GoogleLoginError\n$message")
+    override fun onGoogleSignInFailed(result: GoogleSignInResult) {
+        val issue = result.toGoogleBackupIssue() ?: return
+        showGoogleBackupIssue(resourceManager, issue)
     }
 
     private suspend fun generateMnemonic(length: Mnemonic.Length): List<MnemonicWordModel> {

@@ -1,11 +1,11 @@
 package jp.co.soramitsu.polkaswap.impl.data.network.blockchain
 
 import java.math.BigInteger
+import jp.co.soramitsu.core.utils.soraAssetIdCode
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 
 fun ExtrinsicBuilder.swap(
     dexId: Int,
@@ -23,10 +23,10 @@ fun ExtrinsicBuilder.swap(
         mapOf(
             "dex_id" to dexId.toBigInteger(),
             "input_asset_id" to Struct.Instance(
-                mapOf("code" to inputAssetId.fromHex().toList().map { it.toInt().toBigInteger() })
+                mapOf("code" to soraAssetIdCode(inputAssetId))
             ),
             "output_asset_id" to Struct.Instance(
-                mapOf("code" to outputAssetId.fromHex().toList().map { it.toInt().toBigInteger() })
+                mapOf("code" to soraAssetIdCode(outputAssetId))
             ),
             "swap_amount" to DictEnum.Entry(
                 name = desired.backString,

@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.api.data.mappers
 import androidx.annotation.StringRes
 import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_api.R
@@ -13,12 +12,14 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 fun mapAssetToAssetModel(
     asset: Asset,
     resourceManager: ResourceManager,
-    retrieveAmount: (Asset) -> BigDecimal = Asset::availableForStaking,
+    retrieveAmount: (Asset) -> BigDecimal? = Asset::availableForStaking,
     @StringRes patternId: Int? = R.string.common_available_format
 ): AssetModel {
-    val amount = retrieveAmount(asset).formatCrypto(asset.token.configuration.symbol)
+    val value = retrieveAmount(asset)
+    val amount = value?.formatCrypto(asset.token.configuration.symbol)
+        ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable)
     val formattedAmount = patternId?.let { resourceManager.getString(patternId, amount) } ?: amount
-    val fiatAmount = retrieveAmount(asset).applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+    val fiatAmount = value?.let(asset.token::fiatAmount)?.formatFiat(asset.token.fiatSymbol)
 
     return with(asset) {
         AssetModel(
