@@ -24,17 +24,15 @@ class SoraHistorySource(
         chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
-        val soraHistory = runCatching {
-            historyInfoRemoteLoader.loadHistoryInfo(
-                pageCount = pageSize,
-                cursor = cursor,
-                signAddress = accountAddress,
-                chainInfo = ChainInfo.Simple(chain.id),
-                filters = setOf(TxFilter.TRANSFER, TxFilter.REWARD, TxFilter.EXTRINSIC),
-            )
-        }.getOrNull()
+        val soraHistory = historyInfoRemoteLoader.loadHistoryInfo(
+            pageCount = pageSize,
+            cursor = cursor,
+            signAddress = accountAddress,
+            chainInfo = ChainInfo.Simple(chain.id),
+            filters = setOf(TxFilter.TRANSFER, TxFilter.REWARD, TxFilter.EXTRINSIC),
+        )
 
-        val soraOperations = soraHistory?.items.orEmpty().mapNotNull { item ->
+        val soraOperations = soraHistory.items.mapNotNull { item ->
                 runCatching {
                     item.toOperation(
                         chain,
@@ -45,7 +43,7 @@ class SoraHistorySource(
                 }.getOrNull()
             }
 
-        val nextCursor = if (soraHistory?.endReached == true) null else soraHistory?.endCursor
+        val nextCursor = if (soraHistory.endReached) null else soraHistory.endCursor
         return CursorPage(nextCursor, soraOperations)
     }
 }
