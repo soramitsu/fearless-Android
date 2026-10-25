@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.impl.data.repository
 
 import com.google.gson.JsonParser
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.security.MessageDigest
@@ -19,7 +20,10 @@ class PortableWalletReceivingChainPolicyTest {
         val policy = PortableWalletReceivingChainPolicy.approvedGenesis
         assertEquals(expected, policy.map { it.id })
         assertEquals(87, policy.size)
-        assertEquals(17, substrate.count { it["disabled"]?.asBoolean == true })
+        assertEquals(18, substrate.count { it["disabled"]?.asBoolean == true })
+        val reefId = "7834781d38e4798d548e34ec947d19deea29df148a7bf32484b7b24dacf8d4b7"
+        assertTrue(substrate.single { it["chainId"].asString == reefId }["disabled"].asBoolean)
+        assertTrue(policy.any { it.id == "0x$reefId" })
         assertEquals(
             setOf(PortableWalletChainSigningProof.IdentityKind.SUBSTRATE),
             policy.map { it.identityKind }.toSet(),
