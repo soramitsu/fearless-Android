@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.setup.pool.join
 import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.CallMovedToAssetHubException
@@ -17,16 +18,21 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -98,9 +104,49 @@ class SetupStakingPoolFeeFailureTest {
 
     @After
     fun tearDown() {
-        ownedViewModel?.viewModelScope?.cancel()
-        Thread.setDefaultUncaughtExceptionHandler(previousHandler)
-        Dispatchers.resetMain()
+        try {
+            settleOwnedViewModel()
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(previousHandler)
+            Dispatchers.resetMain()
+        }
+        assertEquals(emptyList<Throwable>(), synchronized(uncaught) { uncaught.toList() })
+    }
+
+    private fun settleOwnedViewModel() = runBlocking {
+        // Fee estimation has a Default-thread producer whose completion resumes on Main.
+        // Cancellation alone does not finish that work before the test dispatcher is removed.
+        withTimeout(5_000) { ownedViewModel?.viewModelScope?.coroutineContext?.job?.cancelAndJoin() }
+    }
+
+    @Test
+    fun `teardown waits for background fee producer cleanup before resetting Main`() = runBlocking {
+        val started = CompletableDeferred<Unit>()
+        val cleaned = AtomicBoolean(false)
+        whenever(stakingPoolInteractor.estimateJoinFee(any(), any(), any(), any(), any())).doSuspendableAnswer {
+            started.complete(Unit)
+            try {
+                awaitCancellation()
+            } finally {
+                withContext(NonCancellable) {
+                    delay(25)
+                    withContext(Dispatchers.Main) { cleaned.set(true) }
+                }
+            }
+        }
+        val viewModel = SetupStakingPoolViewModel(
+            resourceManager, stakingInteractor, mock(), stakingPoolInteractor, router,
+            sharedState, existentialDepositUseCase, quickInputsUseCase
+        ).also { ownedViewModel = it }
+        try {
+            withTimeout(5_000) { started.await() }
+            settleOwnedViewModel()
+            assertTrue("Default-thread fee cleanup must finish while Main is still installed", cleaned.get())
+            assertTrue(viewModel.viewModelScope.coroutineContext.job.isCompleted)
+        } finally {
+            // Keep even the failing regression isolated from the next test.
+            withTimeout(5_000) { viewModel.viewModelScope.coroutineContext.job.cancelAndJoin() }
+        }
     }
 
     @Test

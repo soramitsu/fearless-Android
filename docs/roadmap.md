@@ -2,6 +2,16 @@
 
 # Roadmap & Technical Debt
 
+## Pool setup test cleanup — 25 October 2026
+
+The pool fee test fixture now awaits its ViewModel's background cancellation
+before resetting the Main dispatcher and uncaught-exception handler. A controlled
+Default-thread cleanup regression fails against cancel-only teardown and passes
+with the completion wait. All six fixture tests and the full 1,315-test staking
+module pass with no failures or skips; Detekt passes. This repairs a verified
+source of asynchronous test leakage without changing staking runtime behavior.
+Earlier intermittent failures remain recorded; the next CI run is still required.
+
 ## Avatar source regeneration — 25 October 2026
 
 The Android-owned `scripts/generate-avatar-brand.py` preserves the reviewed
