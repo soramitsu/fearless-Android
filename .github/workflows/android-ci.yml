@@ -317,6 +317,15 @@ jobs:
       - name: Unit tests + coverage
         run: ./gradlew runTest --no-daemon --console=plain --stacktrace
 
+      - name: Preserve unit test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-unit-test-results-${{ github.sha }}
+          path: '**/build/test-results/test*UnitTest/TEST-*.xml'
+          if-no-files-found: ignore
+          retention-days: 14
+
       # runTest runs debug unit tests; these check what only the release build compiles.
       - name: Release-variant unit tests
         run: ./gradlew :feature-wallet-impl:testReleaseUnitTest --no-daemon --console=plain --stacktrace
