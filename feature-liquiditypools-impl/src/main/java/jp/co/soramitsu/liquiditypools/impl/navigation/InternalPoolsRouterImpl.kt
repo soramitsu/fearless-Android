@@ -9,33 +9,50 @@ import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.util.Stack
 
 class InternalPoolsRouterImpl(
     private val walletRouter: WalletRouter,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val actionScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 ) : InternalPoolsRouter {
     private val routesStack = Stack<LiquidityPoolsNavGraphRoute>()
 
     private val mutableActionsFlow =
-        MutableSharedFlow<NavAction>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<NavAction>(extraBufferCapacity = 1)
 
     private val mutableRoutesFlow =
-        MutableSharedFlow<LiquidityPoolsNavGraphRoute>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<LiquidityPoolsNavGraphRoute>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    override fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute> = mutableRoutesFlow.onEach {
-        routesStack.push(it)
+    override fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute> = mutableRoutesFlow
+
+    override fun createNavGraphActionsFlow(): Flow<NavAction> = mutableActionsFlow
+
+    private fun publishRoute(route: LiquidityPoolsNavGraphRoute) {
+        // Presenters and the screen each collect routes; history belongs to navigation,
+        // so collecting or replaying a route must not add another stack entry.
+        routesStack.push(route)
+        mutableRoutesFlow.tryEmit(route)
     }
-    override fun createNavGraphActionsFlow(): Flow<NavAction> =
-        mutableActionsFlow.onEach { if (it is NavAction.BackPressed && !routesStack.isEmpty()) routesStack.pop() }
+
+    private fun publishAction(action: NavAction) {
+        // Start each emission in call order. A slow collector suspends delivery instead
+        // of losing consecutive BackPressed events; no-subscriber events still drop.
+        actionScope.launch(start = CoroutineStart.UNDISPATCHED) { mutableActionsFlow.emit(action) }
+    }
 
     override fun back() {
-        mutableActionsFlow.tryEmit(NavAction.BackPressed)
+        if (!routesStack.isEmpty()) routesStack.pop()
+        publishAction(NavAction.BackPressed)
     }
 
     override fun popupToScreen(route: LiquidityPoolsNavGraphRoute) {
@@ -47,15 +64,15 @@ class InternalPoolsRouterImpl(
     }
 
     override fun openAllPoolsScreen() {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.AllPoolsScreen())
+        publishRoute(LiquidityPoolsNavGraphRoute.AllPoolsScreen())
     }
 
     override fun openDetailsPoolScreen(ids: StringPair) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.PoolDetailsScreen(ids))
+        publishRoute(LiquidityPoolsNavGraphRoute.PoolDetailsScreen(ids))
     }
 
     override fun openAddLiquidityScreen(ids: StringPair) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddScreen(ids))
+        publishRoute(LiquidityPoolsNavGraphRoute.LiquidityAddScreen(ids))
     }
 
     override fun openAddLiquidityConfirmScreen(
@@ -64,11 +81,11 @@ class InternalPoolsRouterImpl(
         amountTarget: BigDecimal,
         apy: String
     ) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen(ids, amountBase, amountTarget, apy))
+        publishRoute(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen(ids, amountBase, amountTarget, apy))
     }
 
     override fun openRemoveLiquidityScreen(ids: StringPair) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen(ids))
+        publishRoute(LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen(ids))
     }
 
     override fun openRemoveLiquidityConfirmScreen(
@@ -79,19 +96,19 @@ class InternalPoolsRouterImpl(
         secondAmountMin: BigDecimal,
         desired: BigDecimal
     ) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen(ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired))
+        publishRoute(LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen(ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired))
     }
 
     override fun openPoolListScreen(isUserPools: Boolean) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.ListPoolsScreen(isUserPools))
+        publishRoute(LiquidityPoolsNavGraphRoute.ListPoolsScreen(isUserPools))
     }
 
     override fun openErrorsScreen(title: String?, message: String) {
-        mutableActionsFlow.tryEmit(NavAction.ShowError(title, message))
+        publishAction(NavAction.ShowError(title, message))
     }
 
     override fun openInfoScreen(title: String, message: String) {
-        mutableActionsFlow.tryEmit(NavAction.ShowInfo(title, message))
+        publishAction(NavAction.ShowInfo(title, message))
     }
 
     override fun openInfoScreen(itemId: Int) {
@@ -118,6 +135,6 @@ class InternalPoolsRouterImpl(
     }
 
     override fun supplyLiquidityCompleted() {
-        mutableActionsFlow.tryEmit(NavAction.SupplyLiquidityCompleted)
+        publishAction(NavAction.SupplyLiquidityCompleted)
     }
 }
