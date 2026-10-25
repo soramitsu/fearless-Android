@@ -1,6 +1,8 @@
 package jp.co.soramitsu.common.data.network.endpoint
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import okhttp3.Dns
 import org.junit.Assert.*
 import org.junit.Test
@@ -46,13 +48,23 @@ class EndpointProbeCleartextPolicyTest {
         })
         val candidate = request("http", "http://example.invalid/")
         val probe = EndpointGenesisProbe(runtime)
-        assertEquals(EndpointProbeOutcome.TRANSPORT_FAILURE, probe.probe(candidate))
+        suspend fun admittedProbe() = withTimeout(3000) {
+            // A result can resume before the worker and asynchronous close release
+            // their admission slot. BUSY attempts do not consult the policy.
+            var outcome = probe.probe(candidate)
+            while (outcome == EndpointProbeOutcome.BUSY) {
+                delay(1)
+                outcome = probe.probe(candidate)
+            }
+            outcome
+        }
+        assertEquals(EndpointProbeOutcome.TRANSPORT_FAILURE, admittedProbe())
         assertEquals(0, resolved.get())
         permitted = true
-        assertEquals(EndpointProbeOutcome.TRANSPORT_FAILURE, probe.probe(candidate))
+        assertEquals(EndpointProbeOutcome.TRANSPORT_FAILURE, admittedProbe())
         assertEquals(1, resolved.get())
         permitted = false
-        assertEquals(EndpointProbeOutcome.TRANSPORT_FAILURE, probe.probe(candidate))
+        assertEquals(EndpointProbeOutcome.TRANSPORT_FAILURE, admittedProbe())
         assertEquals(1, resolved.get())
         assertEquals(3, checked.get())
     }
