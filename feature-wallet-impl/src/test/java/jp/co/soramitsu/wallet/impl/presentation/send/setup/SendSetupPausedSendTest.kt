@@ -29,10 +29,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.job
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -53,7 +49,7 @@ class SendSetupPausedSendTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @get:Rule
-    val mainCoroutineRule = MainCoroutineRule(UnconfinedTestDispatcher())
+    val mainCoroutineRule = MainCoroutineRule()
 
     private val payload = AssetPayload(CHAIN_ID, ASSET_ID)
     private val sharedState = SendSharedState()
@@ -98,7 +94,7 @@ class SendSetupPausedSendTest {
     @After
     fun tearDown() {
         viewModelStore.clear()
-        runBlocking { withTimeout(AWAIT_MILLIS) { viewModelJobs.joinAll() } }
+        awaitValue { Unit.takeIf { viewModelJobs.all { it.isCompleted } } }
     }
 
     @Test
@@ -213,10 +209,13 @@ class SendSetupPausedSendTest {
     private fun SendSetupViewModel.awaitDialog(): ErrorDialogState =
         awaitValue { errorDialogStateLiveData.value?.peekContent() }
 
-    // The fee lookup runs on Dispatchers.Default, which the main-dispatcher rule does not replace.
+    // Default fee/asset work remains real, but Main must serialize UI state updates as Android
+    // does. Unconfined Main ran collectors concurrently on Default worker threads and could
+    // overwrite the selected network's native-review state with an unrelated UI update.
     private fun <T : Any> awaitValue(read: () -> T?): T {
         val deadline = System.currentTimeMillis() + AWAIT_MILLIS
         while (System.currentTimeMillis() < deadline) {
+            mainCoroutineRule.dispatcher.scheduler.runCurrent()
             read()?.let { return it }
             Thread.sleep(10)
         }

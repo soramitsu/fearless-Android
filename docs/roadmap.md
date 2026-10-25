@@ -2,6 +2,17 @@
 
 # Roadmap & Technical Debt
 
+## CI fixture scheduling — 25 October 2026
+
+The send-screen fixture now drives a serial Main test dispatcher while awaiting
+real background work. Recovery cursor tests await the previous reconciliation
+job before issuing the next tap, and the create-pool fixture uses the existing
+MockK version for suspended Kotlin `Result` answers. Cleanup restores dispatcher
+and exception-handler globals even when an assertion fails. These changes repair
+observed fixture races and a boxed-result failure without changing runtime code
+or dropping assertions. All 1,315 staking and 710 wallet tests pass with no skips;
+Detekt and the aggregate `runTest` pass. Fresh hosted CI remains required.
+
 ## Pool setup test cleanup — 25 October 2026
 
 The pool fee test fixture now awaits its ViewModel's background cancellation

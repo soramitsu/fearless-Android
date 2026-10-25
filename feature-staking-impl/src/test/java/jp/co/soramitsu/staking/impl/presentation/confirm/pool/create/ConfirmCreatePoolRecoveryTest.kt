@@ -77,28 +77,31 @@ class ConfirmCreatePoolRecoveryTest {
     private val selected = mock<StakingSharedState> { on { selectionRevision } doReturn revision }
     private val api = StakingPoolApi(extrinsics, selected, mock(), journal, reader)
     private val lookupJobs = CopyOnWriteArrayList<kotlinx.coroutines.Job>()
+    private val reconciliationJobs = CopyOnWriteArrayList<kotlinx.coroutines.Job>()
     private var failFee = false
     private var mutationCalls = 0
     private var expectedMutationCalls = 0
     private var createOperation: suspend (() -> Unit) -> Result<String> = { Result.failure(IllegalStateException("Unexpected creation")) }
     private var pendingLookup: suspend () -> PoolJoinJournal.Payment? = { api.pendingJoin(chain, address, 7) }
-    private val interactor = mock<StakingPoolInteractor> {
-        onBlocking { getAccountName(any()) } doReturn null
-        onBlocking { estimateCreateFee(any(), any(), any(), any(), any(), any(), any(), any()) } doAnswer {
+    // MockK preserves Kotlin Result's inline representation across suspended answers.
+    // Mockito's generic suspend adapter intermittently boxed Result.success twice.
+    private val interactor = io.mockk.mockk<StakingPoolInteractor> {
+        io.mockk.coEvery { getAccountName(any()) } returns null
+        io.mockk.coEvery { estimateCreateFee(any(), any(), any(), any(), any(), any(), any(), any()) } answers {
             if (failFee) throw IllegalStateException("Local fee unavailable")
             BigInteger.ONE
         }
-        onBlocking { pendingJoin(any(), any(), any()) } doSuspendableAnswer {
+        io.mockk.coEvery { pendingJoin(any(), any(), any()) } coAnswers {
             lookupJobs += kotlinx.coroutines.currentCoroutineContext().job
             pendingLookup()
         }
-        onBlocking { reconcileJoin(any(), any(), any(), any(), anyOrNull(), any()) } doSuspendableAnswer {
-            api.reconcileJoin(it.getArgument(0), it.getArgument(1), it.getArgument(2),
-                it.getArgument(3), it.getArgument(4), it.getArgument(5))
+        io.mockk.coEvery { reconcileJoin(any(), any(), any(), any(), any(), any()) } coAnswers {
+            reconciliationJobs += kotlinx.coroutines.currentCoroutineContext().job
+            api.reconcileJoin(arg(0), arg(1), arg(2), arg(3), arg(4), arg(5))
         }
-        onBlocking { createPool(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } doSuspendableAnswer {
+        io.mockk.coEvery { createPool(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } coAnswers {
             mutationCalls++
-            createOperation(it.getArgument(9))
+            createOperation(arg(9))
         }
     }
     private val shared = StakingPoolSharedStateProvider().apply {
@@ -118,12 +121,19 @@ class ConfirmCreatePoolRecoveryTest {
 
     }
     @After fun cleanup() {
-        owned?.let { vm -> val job = vm.viewModelScope.coroutineContext.job; vm.viewModelScope.cancel(); runBlocking { withTimeout(10_000) { job.join() } } }
-        verifyNoInteractions(extrinsics)
-        assertEquals(expectedMutationCalls, mutationCalls)
-        Thread.setDefaultUncaughtExceptionHandler(previousHandler)
-        Dispatchers.resetMain()
-        assertEquals(emptyList<Throwable>(), failures.toList())
+        try {
+            owned?.let { vm ->
+                val job = vm.viewModelScope.coroutineContext.job
+                vm.viewModelScope.cancel()
+                runBlocking { withTimeout(10_000) { job.join() } }
+            }
+            verifyNoInteractions(extrinsics)
+            assertEquals(expectedMutationCalls, mutationCalls)
+            assertEquals(emptyList<Throwable>(), failures.toList())
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(previousHandler)
+            Dispatchers.resetMain()
+        }
     }
 
     private val details = PoolJoinJournal.CreateDetails("Original\n池", "old-nominator", "old-bouncer")
@@ -268,7 +278,7 @@ class ConfirmCreatePoolRecoveryTest {
     @Test fun `recent and older cursors are exact and recent resets to latest head`(): Unit = runBlocking {
         val payment = retain()
         val calls = CopyOnWriteArrayList<BigInteger?>()
-        whenever(reader.search(any(), any(), anyOrNull(), any(), anyOrNull())).doAnswer {
+        whenever(reader.search(any(), any(), anyOrNull(), any(), anyOrNull())).doSuspendableAnswer {
             assertEquals(chainId, it.getArgument<String>(0))
             assertEquals(payment.signedExtrinsic, it.getArgument<String>(1))
             assertEquals(anchor, it.getArgument<FinalizedExtrinsicReader.Anchor>(4))
@@ -278,9 +288,11 @@ class ConfirmCreatePoolRecoveryTest {
         val vm = loaded()
         vm.onCheckPending(true)
         assertEquals(0, calls.size)
-        vm.onCheckPending(); await { checkNotNull(vm.recoveryViewState.value).canCheckOlder }
-        vm.onCheckPending(true); await { calls.size == 2 && checkNotNull(vm.recoveryViewState.value).canCheck }
-        vm.onCheckPending(); await { calls.size == 3 && checkNotNull(vm.recoveryViewState.value).canCheck }
+        // Unconfined Main resumes on the real IO worker. Wait for its check to finish
+        // before another test-thread tap, matching the serialized Android Main loop.
+        vm.onCheckPending(); await { reconciliationJobs.size == 1 && reconciliationJobs.last().isCompleted && checkNotNull(vm.recoveryViewState.value).canCheckOlder }
+        vm.onCheckPending(true); await { reconciliationJobs.size == 2 && reconciliationJobs.last().isCompleted && calls.size == 2 && checkNotNull(vm.recoveryViewState.value).canCheck }
+        vm.onCheckPending(); await { reconciliationJobs.size == 3 && reconciliationJobs.last().isCompleted && calls.size == 3 && checkNotNull(vm.recoveryViewState.value).canCheck }
         assertEquals(listOf(null, BigInteger.valueOf(50), null), calls.toList())
         assertEquals(payment, journal.read(scope))
     }
