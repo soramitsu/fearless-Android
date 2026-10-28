@@ -18,7 +18,6 @@ import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
@@ -50,7 +49,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal? = null)
     fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal?)
-    fun openCBDCSend(cbdcQrInfo: QrContentCBDC)
 
     fun openCrossChainSend(assetPayload: AssetPayload?)
 
