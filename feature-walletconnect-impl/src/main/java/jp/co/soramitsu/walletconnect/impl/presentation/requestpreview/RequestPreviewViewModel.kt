@@ -168,7 +168,8 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     override fun onSignClick() {
-        if (isLoading.value || summaryFlow.value == null) return
+        // Nothing is signed before the request is decoded, nor when the wallet refuses it.
+        if (isLoading.value || summaryFlow.value?.blocksSigning != false) return
         val chain = requestChainFlow.value ?: return
         val displayedRequest = recentSession ?: return
         val currentRequest = walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(displayedRequest.request.id)

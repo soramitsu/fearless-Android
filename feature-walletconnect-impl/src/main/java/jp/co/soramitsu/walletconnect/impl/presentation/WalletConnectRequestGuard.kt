@@ -12,7 +12,7 @@ import java.math.BigInteger
  * The wallet refuses to sign a request: its params are malformed or it is not bound to what the
  * user approved. The dApp gets an error response and retrying the same request cannot succeed.
  */
-internal class WalletConnectRequestRejectedException(reason: String) : IllegalStateException(reason)
+internal open class WalletConnectRequestRejectedException(reason: String) : IllegalStateException(reason)
 
 internal fun rejectRequest(reason: String): Nothing = throw WalletConnectRequestRejectedException(reason)
 
@@ -49,10 +49,11 @@ internal fun typedDataChainId(typedData: String): BigInteger? {
     return evmChainIdOf(domainObject["chainId"])
 }
 
-/** Fearless names Substrate networks by their genesis hash, so a payload for any other genesis is refused. */
-internal fun requireGenesisHash(payloadGenesisHash: ByteArray, chain: Chain) {
+/**
+ * Fearless names Substrate networks by their full genesis hash, so a payload for any other genesis is for another
+ * network. The CAIP-2 id a session uses is only the first half of it.
+ */
+internal fun isGenesisHashOf(payloadGenesisHash: ByteArray, chain: Chain): Boolean {
     val chainGenesisHash = runCatching { chain.id.fromHex() }.getOrNull()
-    requireRequest(chainGenesisHash?.size == GENESIS_HASH_SIZE && chainGenesisHash.contentEquals(payloadGenesisHash)) {
-        "The transaction is for another network"
-    }
+    return chainGenesisHash?.size == GENESIS_HASH_SIZE && chainGenesisHash.contentEquals(payloadGenesisHash)
 }

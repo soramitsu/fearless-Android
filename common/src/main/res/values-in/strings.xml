@@ -889,6 +889,11 @@
   <string name="signing_field_token">Token</string>
   <string name="signing_field_value">Nilai yang dikirim</string>
   <string name="signing_field_verifying_contract">Kontrak verifikasi</string>
+  <string name="signing_refused_format">Fearless tidak menandatangani transaksi ini: transaksi dApp dalam format jaringan ini tidak didukung.</string>
+  <string name="signing_refused_never_expires">Fearless tidak menandatangani transaksi ini: transaksi ini tidak pernah kedaluwarsa, sehingga dApp dapat mengirimkannya kapan saja nanti.</string>
+  <string name="signing_refused_other_network">Fearless tidak menandatangani transaksi ini: transaksi ini untuk jaringan lain, bukan jaringan yang disebutkan dApp.</string>
+  <string name="signing_refused_other_runtime">Fearless tidak menandatangani transaksi ini: transaksi ini dibuat untuk versi runtime lain dari jaringan ini. Minta dApp untuk membuatnya lagi.</string>
+  <string name="signing_refused_undecoded_call">Fearless tidak menandatangani transaksi ini: panggilannya tidak dapat didekode dengan runtime jaringan ini, sehingga tidak dapat ditampilkan kepada Anda.</string>
   <string name="signing_section_call">Panggilan %1$s</string>
   <string name="signing_value_never">Tidak pernah</string>
   <string name="signing_value_raw_units">%1$s (satuan terkecil)</string>

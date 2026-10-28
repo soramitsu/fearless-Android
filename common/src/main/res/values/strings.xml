@@ -998,6 +998,11 @@
   <string name="signing_field_token">Token</string>
   <string name="signing_field_value">Value sent</string>
   <string name="signing_field_verifying_contract">Verifying contract</string>
+  <string name="signing_refused_format">Fearless does not sign this transaction: dApp transactions in this network\'s format are not supported.</string>
+  <string name="signing_refused_never_expires">Fearless does not sign this transaction: it never expires, so the dApp could submit it at any time later.</string>
+  <string name="signing_refused_other_network">Fearless does not sign this transaction: it is for another network than the one the dApp named.</string>
+  <string name="signing_refused_other_runtime">Fearless does not sign this transaction: it was built for another runtime version of this network. Ask the dApp to create it again.</string>
+  <string name="signing_refused_undecoded_call">Fearless does not sign this transaction: its call cannot be decoded with this network\'s runtime, so it cannot be shown to you.</string>
   <string name="signing_section_call">Call %1$s</string>
   <string name="signing_value_never">Never</string>
   <string name="signing_value_raw_units">%1$s (smallest units)</string>

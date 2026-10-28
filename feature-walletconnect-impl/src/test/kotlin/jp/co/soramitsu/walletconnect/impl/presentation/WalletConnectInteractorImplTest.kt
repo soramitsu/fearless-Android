@@ -6,11 +6,11 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.BaseKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -19,6 +19,8 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
+import jp.co.soramitsu.walletconnect.impl.presentation.ParityRuntimes.cases
+import jp.co.soramitsu.walletconnect.impl.presentation.ParityRuntimes.text
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.add
@@ -45,7 +47,6 @@ class WalletConnectInteractorImplTest {
     private val ethereumSource = mockk<EthereumRemoteSource>()
     private val accountRepository = mockk<AccountRepository>()
     private val keypairProvider = mockk<KeypairProvider>()
-    private val extrinsicService = mockk<ExtrinsicService>()
     private val sessionClient = FakeSessionClient()
     private val transactionSender = FakeTransactionSender()
     private val signedRequests = WalletConnectSignedRequests()
@@ -193,26 +194,65 @@ class WalletConnectInteractorImplTest {
     }
 
     @Test
-    fun `polkadot transaction for the request network and account is signed over its payload`() {
-        val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
+    fun `polkadot js transaction is signed over the payload Polkadot verifies`() {
+        // The parity vector's key and its mortal transfer on Polkadot 2005000, which lists CheckMetadataHash.
+        val keypair = BaseKeypair(ParityRuntimes.keypairPrivateKey, ParityRuntimes.keypairPublicKey)
         val address = SS58Encoder.encode(keypair.publicKey, 0)
         sessionClient.activeSession = session("${polkadotChain.caip2id}:$address")
         coEvery { keypairProvider.getKeypairFor(polkadotChain, sameBytes(keypair.publicKey)) } returns keypair
         coEvery { keypairProvider.getCryptoTypeFor(polkadotChain, sameBytes(keypair.publicKey)) } returns CryptoType.ED25519
-        val request = polkadotTransaction(
+        val runtime = ParityRuntimes.runtime("polkadot")
+        val chain = ParityRuntimes.chain("polkadot")
+        val case = chain.cases()[1]
+        val payload = ParityRuntimes.signerPayload(chain, case, ParityRuntimes.callOf(runtime, case), SS58Encoder.encode(keypair.publicKey, 42))
+        val request = sessionRequest(
             id = 33,
-            address = address,
-            genesisHash = "0x${POLKADOT_GENESIS.uppercase()}",
-            payloadAddress = SS58Encoder.encode(keypair.publicKey, 42)
+            method = "polkadot_signTransaction",
+            params = buildJsonObject {
+                put("address", address)
+                put("transactionPayload", payload)
+            }.toString(),
+            chainId = polkadotChain.caip2id
         )
 
-        val outcome = sign(polkadotChain, request, interactor(extrinsicService = ExtrinsicService(mockk(), keypairProvider, mockk())))
+        val outcome = sign(polkadotChain, request, interactor(runtimeSource = { runtime }))
 
         assertTrue(outcome.succeeded)
         val result = Json.parseToJsonElement(singleResult()).jsonObject
         val signature = result["signature"]?.jsonPrimitive?.content.orEmpty().fromHex()
         assertEquals("33", result["id"]?.jsonPrimitive?.content)
-        assertTrue(Signer.verifyEd25519(polkadotSigningPayload(), signature.copyOfRange(1, signature.size), keypair.publicKey))
+        // A MultiSignature: the Ed25519 type byte, then the signature polkadot.js verifies.
+        assertEquals(0.toByte(), signature[0])
+        assertTrue(Signer.verifyEd25519(case.text("signingPayload").fromHex(), signature.copyOfRange(1, signature.size), keypair.publicKey))
+        // Ed25519 is deterministic: the same signature the parity extrinsic carries.
+        assertTrue(case.text("extrinsic").contains(signature.copyOfRange(1, signature.size).toHexString(withPrefix = false)))
+    }
+
+    @Test
+    fun `polkadot transaction waits for the network runtime instead of signing without it`() {
+        val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
+        val address = SS58Encoder.encode(keypair.publicKey, 0)
+        sessionClient.activeSession = session("${polkadotChain.caip2id}:$address")
+
+        val outcome = sign(polkadotChain, polkadotTransaction(id = 37, address = address), interactor(runtimeSource = { null }))
+
+        assertTrue(outcome.signError is PolkadotRuntimeUnavailableException)
+        // Not refused: the request stays pending, so the user can sign once the runtime is loaded.
+        assertTrue(sessionClient.responses.isEmpty())
+        coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
+    }
+
+    @Test
+    fun `immortal polkadot transaction is refused before any key is read`() {
+        val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
+        val address = SS58Encoder.encode(keypair.publicKey, 0)
+        sessionClient.activeSession = session("${polkadotChain.caip2id}:$address")
+
+        val outcome = sign(polkadotChain, polkadotTransaction(id = 38, address = address, era = "0x00"))
+
+        assertEquals(PolkadotRefusal.NeverExpires, (outcome.signError as PolkadotTransactionRefusedException).refusal)
+        assertTrue(sessionClient.responses.single() is Wallet.Model.JsonRpcResponse.JsonRpcError)
+        coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
     @Test
@@ -356,12 +396,12 @@ class WalletConnectInteractorImplTest {
         var requestError: Wallet.Model.Error? = null
     }
 
-    private fun interactor(extrinsicService: ExtrinsicService = this.extrinsicService) = WalletConnectInteractorImpl(
+    private fun interactor(runtimeSource: PolkadotRuntimeSource = { null }) = WalletConnectInteractorImpl(
         chainsRepository = chainsRepository,
         ethereumSource = ethereumSource,
         accountRepository = accountRepository,
         keypairProvider = keypairProvider,
-        extrinsicService = extrinsicService,
+        runtimeSource = runtimeSource,
         transactionSender = transactionSender,
         sessionClient = sessionClient,
         signedRequests = signedRequests
@@ -442,7 +482,8 @@ class WalletConnectInteractorImplTest {
         address: String,
         genesisHash: String = "0x$POLKADOT_GENESIS",
         payloadAddress: String = address,
-        chainId: String = polkadotChain.caip2id
+        chainId: String = polkadotChain.caip2id,
+        era: String = "0xf500"
     ) = sessionRequest(
         id = id,
         method = "polkadot_signTransaction",
@@ -453,7 +494,7 @@ class WalletConnectInteractorImplTest {
                 buildJsonObject {
                     put("address", payloadAddress)
                     put("blockHash", "0x$BLOCK_HASH")
-                    put("era", "0xf500")
+                    put("era", era)
                     put("genesisHash", genesisHash)
                     put("method", "0x0503008eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a480700e40b5402")
                     put("nonce", "0x00000004")
@@ -465,12 +506,6 @@ class WalletConnectInteractorImplTest {
         }.toString(),
         chainId = chainId
     )
-
-    // method, era, compact nonce 4, compact tip 0, spec 9320, transaction version 14, genesis and block hash
-    private fun polkadotSigningPayload() = (
-        "0503008eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a480700e40b5402" + "f500" + "10" + "00" +
-            "68240000" + "0e000000" + POLKADOT_GENESIS + BLOCK_HASH
-        ).fromHex()
 
     private fun ethTransaction(
         id: Long,

@@ -6,7 +6,10 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotRefusal
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotSignPayload
+import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotTransaction
+import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotTransactionRefusedException
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectEvmTransaction
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
 import jp.co.soramitsu.walletconnect.impl.presentation.message
@@ -50,7 +53,9 @@ internal sealed interface WalletConnectRequestSummary {
         val call: PolkadotCallSummary?,
         /** The tip in planks of the native token. */
         val tip: BigInteger,
-        val isImmortal: Boolean
+        val isImmortal: Boolean,
+        /** Why the wallet refuses to sign it, exactly as the signer would; null when it can be signed. */
+        val refusal: PolkadotRefusal? = null
     ) : WalletConnectRequestSummary {
         override val isComplete: Boolean
             get() = call?.isComplete == true
@@ -110,14 +115,31 @@ internal class WalletConnectRequestDecoder(
 
     private suspend fun polkadotTransaction(chain: Chain, message: String): WalletConnectRequestSummary {
         val payload = PolkadotSignPayload.parse(message)
-        val call = runtimeOf(chain)?.let { runtime ->
-            PolkadotCallDecoder(runtime) { accountId -> chain.addressOf(accountId) }.decode(payload.method)
-        }
+        val runtime = runtimeOf(chain)
+        val call = runtime?.let { PolkadotCallDecoder(it) { accountId -> chain.addressOf(accountId) }.decode(payload.method) }
         return WalletConnectRequestSummary.PolkadotTransaction(
             call = call,
-            tip = payload.tip.toBigInteger(),
-            isImmortal = payload.isImmortal
+            tip = payload.tip,
+            isImmortal = payload.isImmortal,
+            refusal = refusalOf(chain, payload, runtime)
         )
+    }
+
+    // The signer's own checks, so the preview shows a refusal before the user taps Sign.
+    // Without the runtime only its network and era can be checked; signing then waits for the runtime.
+    private fun refusalOf(
+        chain: Chain,
+        payload: PolkadotSignPayload,
+        runtime: RuntimeSnapshot?
+    ): PolkadotRefusal? = try {
+        if (runtime == null) {
+            PolkadotTransaction.requireSignableWithoutRuntime(chain, payload)
+        } else {
+            PolkadotTransaction.read(chain, payload, runtime)
+        }
+        null
+    } catch (refused: PolkadotTransactionRefusedException) {
+        refused.refusal
     }
 
     // polkadot.js dApps send text as hex: what the user reads is the text it encodes.

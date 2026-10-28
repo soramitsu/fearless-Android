@@ -105,19 +105,16 @@ class PolkadotSigningSummaryTest {
     }
 
     @Test
-    fun `preview method matches exact signing payload prefix and immortal era`() {
+    fun `preview decodes exactly the method bytes of the payload and reads its era`() {
         val method = transfer().toHexString(withPrefix = true)
         val json = """{"address":"wallet","genesisHash":"0x${"aa".repeat(32)}","method":"$method","tip":"0x03","blockHash":"0x${"bb".repeat(32)}","era":"0x00","nonce":"0x02","specVersion":"0x01","transactionVersion":"0x02"}"""
         val payload = PolkadotSignPayload.parse(json)
         assertTrue(payload.isImmortal)
         assertEquals("wallet", payload.address)
-        assertEquals(3, payload.tip)
-        val expected = transfer() + "00080c0100000002000000".fromHex() + ByteArray(32) {
-            0xaa.toByte()
-        } + ByteArray(32) { 0xbb.toByte() }
-        assertArrayEquals(expected, payload.signingPayload())
+        assertEquals(BigInteger.valueOf(3), payload.tip)
         assertArrayEquals(transfer(), payload.method)
-        assertFalse(PolkadotSignPayload.parse(json.replace("\"era\":\"0x00\"", "\"era\":\"0x0100\"")).isImmortal)
+        assertEquals("Balances.transfer_keep_alive", decoder.decode(payload.method)?.name)
+        assertFalse(PolkadotSignPayload.parse(json.replace("\"era\":\"0x00\"", "\"era\":\"0xf500\"")).isImmortal)
     }
 
     private fun transfer() = "0500".fromHex() + ByteArray(32) { 0x11 } + byteArrayOf(42) + ByteArray(15)

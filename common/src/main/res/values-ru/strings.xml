@@ -950,6 +950,11 @@
   <string name="signing_field_token">Токен</string>
   <string name="signing_field_value">Отправляемая сумма</string>
   <string name="signing_field_verifying_contract">Проверяющий контракт</string>
+  <string name="signing_refused_format">Fearless не подписывает эту транзакцию: транзакции dApp в формате этой сети не поддерживаются.</string>
+  <string name="signing_refused_never_expires">Fearless не подписывает эту транзакцию: у неё нет срока действия, и dApp сможет отправить её в любой момент позже.</string>
+  <string name="signing_refused_other_network">Fearless не подписывает эту транзакцию: она предназначена для другой сети, а не для той, которую указало dApp.</string>
+  <string name="signing_refused_other_runtime">Fearless не подписывает эту транзакцию: она создана для другой версии среды выполнения этой сети. Попросите dApp создать её заново.</string>
+  <string name="signing_refused_undecoded_call">Fearless не подписывает эту транзакцию: её вызов не удаётся декодировать средой выполнения этой сети, поэтому его нельзя вам показать.</string>
   <string name="signing_section_call">Вызов %1$s</string>
   <string name="signing_value_never">Никогда</string>
   <string name="signing_value_raw_units">%1$s (минимальные единицы)</string>

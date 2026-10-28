@@ -10,12 +10,12 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
-import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.SignatureWrapper
+import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
@@ -41,7 +41,7 @@ class WalletConnectInteractorImpl internal constructor(
     private val ethereumSource: EthereumRemoteSource,
     private val accountRepository: AccountRepository,
     private val keypairProvider: KeypairProvider,
-    private val extrinsicService: ExtrinsicService,
+    private val runtimeSource: PolkadotRuntimeSource,
     private val transactionSender: EvmTransactionSender,
     private val sessionClient: WalletConnectSessionClient = WalletKitSessionClient,
     private val signedRequests: WalletConnectSignedRequests = WalletConnectSignedRequests.processWide
@@ -380,14 +380,15 @@ class WalletConnectInteractorImpl internal constructor(
         account: SigningAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
-        // The payload exactly as the user saw it; every signed byte below is read from this object.
+        // The payload exactly as the user saw it; every signed byte below is encoded from this object.
         val signPayload = PolkadotSignPayload.parse(recentSession.signedMessage)
-        requireGenesisHash(signPayload.genesisHash, account.chain)
+        PolkadotTransaction.requireSignableWithoutRuntime(account.chain, signPayload)
         signPayload.address?.let { payloadAddress ->
             requireRequest(account.isAccount(payloadAddress)) { "The transaction is for another account" }
         }
-
-        val payloadBytes = signPayload.signingPayload()
+        val runtime = runtimeSource(account.chain) ?: throw PolkadotRuntimeUnavailableException()
+        // Decoded and laid out as the preview showed it; refused before any key is read when it cannot be.
+        val payloadBytes = PolkadotTransaction.read(account.chain, signPayload, runtime).signingPayload
 
         val messageToSign = if (payloadBytes.size > PAYLOAD_HASH_THRESHOLD) {
             payloadBytes.blake2b256()
@@ -395,13 +396,10 @@ class WalletConnectInteractorImpl internal constructor(
             payloadBytes
         }
 
-        val signature = extrinsicService.createSignature(
-            mapCryptoTypeToEncryption(account.cryptoType()),
-            account.keypair(),
-            messageToSign.toHexString()
-        )
+        val encryption = MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(account.cryptoType()))
+        val signature = Signer.sign(encryption, messageToSign, account.keypair())
 
-        return polkadotSignatureResponse(recentSession.request.id, signature)
+        return polkadotSignatureResponse(recentSession.request.id, signature.multiSignature().toHexString(withPrefix = true))
     }
 
     private suspend fun getPolkadotSignMessage(

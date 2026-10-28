@@ -38,7 +38,9 @@ data class SigningSummaryViewState(
     val sections: List<SigningSummarySection>,
     val warnings: List<String>,
     /** The request could not be decoded in full, so its raw data is offered as a fallback. */
-    val showsRawData: Boolean
+    val showsRawData: Boolean,
+    /** The wallet refuses to sign the request; the first warnings say why. */
+    val blocksSigning: Boolean = false
 )
 
 /**

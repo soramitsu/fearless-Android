@@ -930,6 +930,11 @@
   <string name="signing_field_token">Token</string>
   <string name="signing_field_value">Gönderilen değer</string>
   <string name="signing_field_verifying_contract">Doğrulayan sözleşme</string>
+  <string name="signing_refused_format">Fearless bu işlemi imzalamaz: bu ağın biçimindeki dApp işlemleri desteklenmiyor.</string>
+  <string name="signing_refused_never_expires">Fearless bu işlemi imzalamaz: işlemin süresi hiç dolmaz, bu yüzden dApp onu daha sonra herhangi bir zamanda gönderebilir.</string>
+  <string name="signing_refused_other_network">Fearless bu işlemi imzalamaz: işlem, dApp\'in belirttiği ağdan farklı bir ağ içindir.</string>
+  <string name="signing_refused_other_runtime">Fearless bu işlemi imzalamaz: işlem bu ağın başka bir çalışma zamanı sürümü için oluşturulmuş. dApp\'ten işlemi yeniden oluşturmasını isteyin.</string>
+  <string name="signing_refused_undecoded_call">Fearless bu işlemi imzalamaz: çağrısı bu ağın çalışma zamanıyla çözülemediği için size gösterilemiyor.</string>
   <string name="signing_section_call">Çağrı %1$s</string>
   <string name="signing_value_never">Hiçbir zaman</string>
   <string name="signing_value_raw_units">%1$s (en küçük birim)</string>

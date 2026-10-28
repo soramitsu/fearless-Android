@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.utils.formatExactTokenAmount
 import jp.co.soramitsu.common.utils.formatSigningTime
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotRefusal
 import java.math.BigInteger
 
 /** Turns a decoded WalletConnect request into what the approval screens show. */
@@ -189,6 +190,15 @@ internal class WalletConnectSummaryPresenter(
             }
         }
         if (summary.tip.signum() > 0) row(R.string.signing_field_tip, nativeAmount(summary.tip))
+        summary.refusal?.let { refuse(refusalText(it)) }
+    }
+
+    private fun refusalText(refusal: PolkadotRefusal): Int = when (refusal) {
+        PolkadotRefusal.OtherNetwork -> R.string.signing_refused_other_network
+        PolkadotRefusal.NeverExpires -> R.string.signing_refused_never_expires
+        PolkadotRefusal.OtherRuntime -> R.string.signing_refused_other_runtime
+        PolkadotRefusal.UnsupportedFormat -> R.string.signing_refused_format
+        PolkadotRefusal.UndecodableCall -> R.string.signing_refused_undecoded_call
     }
 
     // The calls a batch or proxy dispatches, each in its own numbered section.
@@ -221,6 +231,7 @@ internal class WalletConnectSummaryPresenter(
         private val rows = mutableListOf<SigningDetailViewState>()
         private val sections = mutableListOf<SigningSummarySection>()
         private val warnings = linkedSetOf<String>()
+        private val refusals = linkedSetOf<String>()
 
         fun string(id: Int): String = resourceManager.getString(id)
 
@@ -254,6 +265,12 @@ internal class WalletConnectSummaryPresenter(
             warnings += string(id)
         }
 
+        /** The wallet will not sign the request: shown first, and as the headline of the request screen. */
+        fun refuse(id: Int) {
+            refusals += string(id)
+            headline = refusals.first()
+        }
+
         fun nativeAmount(amount: BigInteger): String =
             chain.utilityAsset?.let { amount.formatExactTokenAmount(it.precision, it.symbol) } ?: rawUnits(amount)
 
@@ -285,8 +302,9 @@ internal class WalletConnectSummaryPresenter(
             return SigningSummaryViewState(
                 headline = headline,
                 sections = listOfNotNull(main) + sections,
-                warnings = warnings.toList(),
-                showsRawData = !isComplete
+                warnings = refusals.toList() + warnings.toList(),
+                showsRawData = !isComplete,
+                blocksSigning = refusals.isNotEmpty()
             )
         }
     }

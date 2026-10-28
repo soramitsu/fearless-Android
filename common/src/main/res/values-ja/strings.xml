@@ -924,6 +924,11 @@
   <string name="signing_field_token">トークン</string>
   <string name="signing_field_value">送付額</string>
   <string name="signing_field_verifying_contract">検証コントラクト</string>
+  <string name="signing_refused_format">Fearlessはこのトランザクションに署名しません。このネットワークの形式のdAppトランザクションには対応していません。</string>
+  <string name="signing_refused_never_expires">Fearlessはこのトランザクションに署名しません。有効期限がないため、dAppが後からいつでも送信できてしまいます。</string>
+  <string name="signing_refused_other_network">Fearlessはこのトランザクションに署名しません。dAppが指定したネットワークとは別のネットワーク向けです。</string>
+  <string name="signing_refused_other_runtime">Fearlessはこのトランザクションに署名しません。このネットワークの別のランタイムバージョン向けに作成されています。dAppに作り直すよう依頼してください。</string>
+  <string name="signing_refused_undecoded_call">Fearlessはこのトランザクションに署名しません。呼び出しをこのネットワークのランタイムで解読できないため、内容を表示できません。</string>
   <string name="signing_section_call">呼び出し %1$s</string>
   <string name="signing_value_never">無期限</string>
   <string name="signing_value_raw_units">%1$s（最小単位）</string>

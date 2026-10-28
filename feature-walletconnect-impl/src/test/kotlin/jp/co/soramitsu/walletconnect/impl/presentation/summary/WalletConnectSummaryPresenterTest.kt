@@ -4,6 +4,7 @@ import co.jp.soramitsu.feature_walletconnect_impl.R
 import io.mockk.every
 import io.mockk.mockk
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotRefusal
 import jp.co.soramitsu.walletconnect.impl.presentation.ethereumChain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -106,6 +107,20 @@ class WalletConnectSummaryPresenterTest {
         val batch = PolkadotCallSummary("Utility", "batch", listOf(PolkadotArgument("calls", PolkadotValue.Calls(listOf(transfer)))))
         assertEquals(2, presenter.present(ethereumChain, WalletConnectRequestSummary.PolkadotTransaction(batch, BigInteger.ZERO, false)).sections.size)
         assertTrue(presenter.present(ethereumChain, WalletConnectRequestSummary.PolkadotTransaction(null, BigInteger.ZERO, false)).showsRawData)
+    }
+
+    @Test
+    fun `a refused transaction says why first and cannot be signed`() {
+        val transfer = PolkadotCallSummary("Balances", "transfer_keep_alive", emptyList())
+        val refused = presenter.present(
+            ethereumChain,
+            WalletConnectRequestSummary.PolkadotTransaction(transfer, BigInteger.ZERO, false, PolkadotRefusal.OtherRuntime)
+        )
+
+        assertTrue(refused.blocksSigning)
+        assertEquals("string:${R.string.signing_refused_other_runtime}", refused.warnings.first())
+        assertEquals("string:${R.string.signing_refused_other_runtime}", refused.headline)
+        assertFalse(presenter.present(ethereumChain, WalletConnectRequestSummary.PolkadotTransaction(transfer, BigInteger.ZERO, false)).blocksSigning)
     }
 
     @Test

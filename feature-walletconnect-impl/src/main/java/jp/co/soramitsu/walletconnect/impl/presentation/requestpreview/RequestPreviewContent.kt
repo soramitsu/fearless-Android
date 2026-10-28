@@ -139,7 +139,7 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                         .fillMaxWidth()
                         .height(48.dp),
                     text = stringResource(id = R.string.common_sign),
-                    enabled = state.summary != null,
+                    enabled = state.summary != null && !state.summary.blocksSigning,
                     loading = state.loading || state.summary == null,
                     onClick = callback::onSignClick
                 )
