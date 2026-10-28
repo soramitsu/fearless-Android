@@ -260,6 +260,9 @@ tasks.register('printPolkadotSdkAlignment') {
         println(" - DEFAULT_V13_TYPES_URL: ${defaultV13TypesUrl}")
         println(" - CHAINS_URL (debug): ${chainsUrlDebug}")
         println(" - CHAINS_URL (release): ${chainsUrlRelease}")
+        // Type registry overrides apply to debug builds only; release builds read the reviewed registries.
+        println(" - TYPES_URL (release): ${typesUrlDefault}")
+        println(" - DEFAULT_V13_TYPES_URL (release): ${defaultV13TypesUrlDefault}")
     }
 }
 
