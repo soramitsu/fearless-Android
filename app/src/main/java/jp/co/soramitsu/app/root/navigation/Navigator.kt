@@ -135,7 +135,6 @@ import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
@@ -164,7 +163,6 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -887,12 +885,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openCBDCSend(cbdcQrInfo: QrContentCBDC) {
-        val bundle = CBDCSendSetupFragment.getBundle(cbdcQrInfo)
-
-        navigateInMainTabOrRoot(R.id.cbdcSendSetupFragment, bundle)
-    }
-
     override fun openCrossChainSend(assetPayload: AssetPayload?) {
         val bundle = CrossChainSetupFragment.getBundle(assetPayload)
         navigateInMainTabOrRoot(R.id.crossChainFragment, bundle)
@@ -1015,8 +1007,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.connectionInfoFragment, bundle)
     }
 
-    override fun openRequestPreview(topic: String) {
-        val bundle = RequestPreviewFragment.getBundle(topic)
+    override fun openRequestPreview(topic: String, requestId: Long) {
+        val bundle = RequestPreviewFragment.getBundle(topic, requestId)
         navigateInMainTabOrRoot(R.id.requestPreviewFragment, bundle)
     }
 

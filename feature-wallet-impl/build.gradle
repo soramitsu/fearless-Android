@@ -87,6 +87,14 @@ if (releaseXcmTransfersField?.value != "false" &&
     throw new GradleException("Release XCM transfers require ready, release-enabled evidence in scripts/xcm-production-evidence.json")
 }
 
+// Release bridge submissions are bound the same way. No bridge evidence manifest exists yet, so a release build that
+// compiles them on fails to configure until a reviewed manifest binds them as scripts/xcm-production-evidence.json
+// binds XCM. The effective-registry audit checks the same field, but it does not run in the Gradle release path.
+def releaseBridgeTransfersField = android.buildTypes.release.buildConfigFields["ENABLE_PRODUCTION_BRIDGE_TRANSFERS"]
+if (releaseBridgeTransfersField?.value != "false") {
+    throw new GradleException("Release bridge transfers stay compiled off until a reviewed bridge evidence manifest binds them")
+}
+
 dependencies {
     implementation project(':core-db')
     implementation project(':common')

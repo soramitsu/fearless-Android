@@ -2,6 +2,40 @@
 
 # Roadmap & Technical Debt
 
+## dApp signing and cross-chain hardening — 29 October 2026
+
+WalletConnect signs only with the account the session approved on the request's
+network, refuses malformed params and dApps Reown Verify flags, binds the preview
+and the signature to the request shown, and signs `polkadot_signMessage` wrapped in
+`<Bytes>`. `polkadot_signTransaction` reads every field strictly, decodes the call
+with the network's runtime and lays out the signed bytes itself, signed extensions
+included (CheckMetadataHash mode and hash, ChargeAssetTxPayment), bound to the
+metadata's runtime version. Ordinary polkadot.js requests now produce valid
+signatures: the Polkadot, Kusama, Statemint and Westend parity payloads are rebuilt
+byte for byte. Immortal eras, other genesis hashes or runtimes, unknown signed
+extensions and calls that do not decode exactly are refused before any key is read;
+a regression test reproduces crafted fields that spelled an XCM teleport payload.
+Previews decode Polkadot calls (also inside batches, proxies and multisig), EVM
+token calls and EIP-712 permits, show every cross-chain call with destination,
+beneficiary and amount, mark XCM programs high risk, and refuse destinations that
+no longer deliver: SORA bridge burns toward its halted parachains and Liberland,
+relay reserve transfers of the relay token, and XCM to Moonbeam, Parallel,
+Moonriver and the SORA parachains.
+
+The production chain catalog and app configs are owned by the security team, and a
+snapshot test pins the production XCM route membership. Type registry overrides are
+debug-only, release builds drop plaintext nodes from the remote catalog, and a
+release bridge flag other than false fails Gradle configuration. The retired CBDC
+QR payment flow is removed. A cross-chain transfer proven included stays on record
+until Done, so a confirm screen restored after another process death never resends
+it; sending it again takes an explicit choice.
+
+Unit tests: walletconnect 161, common 768, runtime 396 (10 unchanged skips), wallet
+API 130, wallet 718 debug and 726 release, app 189, no failures; Detekt clean. Open:
+the TON Connect summaries and other TON hardening of the build 231 line are not
+ported; Beacon signing has no entry point and is not removed; there is no remote
+veto for dApp signing; the wallet does not compute RFC-78 metadata hashes itself.
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory

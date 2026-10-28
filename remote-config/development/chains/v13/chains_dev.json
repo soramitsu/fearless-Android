@@ -318,32 +318,6 @@
         }
       ],
       "availableDestinations": [
-        {
-          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
-          "assets": [
-            {
-              "id": "c62c16f5-ac6b-410f-8804-4100dfb1bf33",
-              "symbol": "RMRK"
-            },
-            {
-              "id": "043a5aba-075a-4b14-91ae-f5bffe640477",
-              "symbol": "USDt"
-            }
-          ]
-        },
-        {
-          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
-          "assets": [
-            {
-              "id": "c62c16f5-ac6b-410f-8804-4100dfb1bf33",
-              "symbol": "RMRK"
-            },
-            {
-              "id": "043a5aba-075a-4b14-91ae-f5bffe640477",
-              "symbol": "USDt"
-            }
-          ]
-        }
       ]
     },
     "ecosystem": "substrate",
@@ -1122,40 +1096,6 @@
         }
       ],
       "availableDestinations": [
-        {
-          "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
-          "assets": [
-            {
-              "id": "c62c16f5-ac6b-410f-8804-4100dfb1bf33",
-              "symbol": "RMRK"
-            },
-            {
-              "id": "af3ac245-db18-4d40-aa1c-6b70e724fc5e",
-              "symbol": "USDt"
-            }
-          ]
-        },
-        {
-          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
-          "assets": [
-            {
-              "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
-              "symbol": "KSM"
-            },
-            {
-              "id": "cf0019d7-bbf7-48ca-b818-47f644ad97f6",
-              "symbol": "BNC"
-            },
-            {
-              "id": "a7e923a9-41d6-4d08-a4e2-2cf3efbb1061",
-              "symbol": "AUSD"
-            },
-            {
-              "id": "0fef7483-1f4c-4339-a12c-1b537e8e62ba",
-              "symbol": "KAR"
-            }
-          ]
-        }
       ]
     },
     "ecosystem": "substrate",
@@ -1581,32 +1521,6 @@
         }
       ],
       "availableDestinations": [
-        {
-          "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
-          "assets": [
-            {
-              "id": "af3ac245-db18-4d40-aa1c-6b70e724fc5e",
-              "symbol": "USDt"
-            }
-          ]
-        },
-        {
-          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
-          "assets": [
-            {
-              "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
-              "symbol": "KSM"
-            },
-            {
-              "id": "cf0019d7-bbf7-48ca-b818-47f644ad97f6",
-              "symbol": "BNC"
-            },
-            {
-              "id": "a7e923a9-41d6-4d08-a4e2-2cf3efbb1061",
-              "symbol": "AUSD"
-            }
-          ]
-        }
       ]
     },
     "ecosystem": "substrate",
@@ -4628,15 +4542,6 @@
         }
       ],
       "availableDestinations": [
-        {
-          "chainId": "6408de7737c59c238890533af25896a2c20608d8b380bb01029acb392781063e",
-          "assets": [
-            {
-              "id": "4d6baa42-c8ba-4c47-9992-2af0d55123b1",
-              "symbol": "ROC"
-            }
-          ]
-        }
       ]
     },
     "assets": [
@@ -7251,16 +7156,6 @@
         }
       ],
       "availableDestinations": [
-        {
-          "chainId": "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17",
-          "assets": [
-            {
-              "id": "4d6baa42-c8ba-4c47-9992-2af0d55123b2",
-              "symbol": "ROC"
-            }
-          ],
-          "bridgeParachainId": "8685a8d3e57fa8024b91b8ead6cc97acf953889c6fb0a355602826a1e2db198f"
-        }
       ]
     },
     "assets": [

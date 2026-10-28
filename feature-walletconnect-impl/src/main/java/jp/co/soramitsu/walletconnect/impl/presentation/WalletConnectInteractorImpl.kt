@@ -7,48 +7,44 @@ import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import com.reown.walletkit.utils.CacaoSigner
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.data.Keypair
-import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
-import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
-import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
-import jp.co.soramitsu.fearless_utils.scale.utils.directWrite
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.web3j.crypto.Credentials
+import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
-import org.web3j.utils.Numeric
 import java.math.BigInteger
 import java.util.concurrent.CancellationException
 
 @Suppress("LargeClass")
-class WalletConnectInteractorImpl(
+class WalletConnectInteractorImpl internal constructor(
     private val chainsRepository: ChainsRepository,
     private val ethereumSource: EthereumRemoteSource,
     private val accountRepository: AccountRepository,
     private val keypairProvider: KeypairProvider,
-    private val extrinsicService: ExtrinsicService,
+    private val runtimeSource: PolkadotRuntimeSource,
+    private val transactionSender: EvmTransactionSender,
+    private val sessionClient: WalletConnectSessionClient = WalletKitSessionClient,
+    private val signedRequests: WalletConnectSignedRequests = WalletConnectSignedRequests.processWide
 ) : WalletConnectInteractor {
 
     @Suppress("MagicNumber")
@@ -58,6 +54,13 @@ class WalletConnectInteractorImpl(
             val chainId = id.substring(0, Integer.min(id.length, 32))
             return namespace.value + ":" + chainId
         }
+
+    private val Wallet.Model.SessionRequest.signedMessage: String
+        get() = request.message ?: rejectRequest("The request params are malformed")
+
+    private val Wallet.Model.SessionRequest.eip155ChainId: BigInteger
+        get() = chainId?.removePrefix("${Caip2Namespace.EIP155.value}:")?.toBigIntegerOrNull()
+            ?: rejectRequest("The request names no eip155 chain")
 
     override suspend fun getChains(): List<Chain> = chainsRepository.getChains()
 
@@ -198,37 +201,35 @@ class WalletConnectInteractorImpl(
         onRequestSuccess: (operationHash: String?, chainId: ChainId?) -> Unit,
         onRequestError: (Wallet.Model.Error) -> Unit
     ) {
-        val address = recentSession.request.address ?: return
-        val accountId = chain.accountIdOf(address)
-        val metaAccount = withContext(Dispatchers.IO) { accountRepository.findMetaAccount(accountId) } ?: return
-
+        // Every read of the dApp's params happens in here: a malformed request fails, it never throws.
+        // A retry after a failed response re-sends what was signed: nothing is signed or broadcast twice.
         val signResult = try {
-            getSignResult(metaAccount, recentSession)
+            signedRequests.responseFor(
+                request = recentSession,
+                sign = { signRequest(chain, topic, recentSession) },
+                broadcast = { transaction ->
+                    transactionSender.send(transaction.chainId, transaction.signedTransaction)
+                }
+            )
         } catch (error: CancellationException) {
             throw error
+        } catch (rejection: WalletConnectRequestRejectedException) {
+            respondRejected(topic, recentSession.request.id, rejection)
+            onSignError(rejection)
+            return
         } catch (e: Exception) {
             onSignError(e)
             return
         }
 
-        val jsonRpcResponse = if (signResult == null) {
-            Wallet.Model.JsonRpcResponse.JsonRpcError(
-                id = recentSession.request.id,
-                code = 4001,
-                message = "Error perform sign"
-            )
-        } else {
-            Wallet.Model.JsonRpcResponse.JsonRpcResult(
-                id = recentSession.request.id,
-                result = signResult
-            )
-        }
-
         callWalletConnect(onRequestError) {
-            WalletKit.respondSessionRequest(
+            sessionClient.respondSessionRequest(
                 params = Wallet.Params.SessionRequestResponse(
                     sessionTopic = topic,
-                    jsonRpcResponse = jsonRpcResponse
+                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
+                        id = recentSession.request.id,
+                        result = signResult
+                    )
                 ),
                 onSuccess = {
                     val operationHash = signResult.takeIf {
@@ -244,134 +245,150 @@ class WalletConnectInteractorImpl(
         }
     }
 
-    private suspend fun getSignResult(metaAccount: MetaAccount, recentSession: Wallet.Model.SessionRequest): String? =
-        when (recentSession.request.method) {
-            WalletConnectMethod.EthereumSign.method,
-            WalletConnectMethod.EthereumPersonalSign.method -> {
-                getEthPersonalSignResult(metaAccount, recentSession)
-            }
+    // Signs with the key of exactly the account the request names, once the user approved that
+    // account for this session on the request's network. No other wallet's key is ever used.
+    private suspend fun signRequest(
+        chain: Chain,
+        topic: String,
+        recentSession: Wallet.Model.SessionRequest
+    ): SignedRequest {
+        val method = WalletConnectMethod.values().firstOrNull { it.method == recentSession.request.method }
+            ?: rejectRequest("The method is not supported")
+        requireRequest(method.isAvailableOn(chain)) { "The method cannot sign on the request network" }
+        val verifyContext = walletConnectRuntimeBoundary {
+            sessionClient.getVerifyContext(recentSession.request.id)
+        }.getOrNull()
+        requireRequest(!verifyContext.isFlaggedAsScam) { "Reown Verify reports the dApp as a scam" }
+        val account = SigningAccount(keypairProvider, chain, approvedAccountId(chain, topic, recentSession))
 
-            WalletConnectMethod.EthereumSignTransaction.method -> {
-                getEthSignTransactionResult(metaAccount, recentSession)
-            }
-
-            WalletConnectMethod.EthereumSendTransaction.method -> {
-                getEthSendTransactionResult(metaAccount, recentSession)
-            }
-
-            WalletConnectMethod.EthereumSignTypedData.method,
-            WalletConnectMethod.EthereumSignTypedDataV4.method -> {
-                getEthSignTypedResult(metaAccount, recentSession)
-            }
-
-            WalletConnectMethod.PolkadotSignTransaction.method -> {
-                getPolkadotSignTransaction(metaAccount, recentSession)
-            }
-
-            WalletConnectMethod.PolkadotSignMessage.method -> {
-                getPolkadotSignMessage(recentSession)
-            }
-
-            else -> null
+        return when (method) {
+            WalletConnectMethod.EthereumSign,
+            WalletConnectMethod.EthereumPersonalSign ->
+                SignedRequest.Response(getEthPersonalSignResult(account, recentSession))
+            WalletConnectMethod.EthereumSignTransaction ->
+                SignedRequest.Response(getEthSignTransactionResult(account, recentSession))
+            WalletConnectMethod.EthereumSendTransaction -> getEthSendTransaction(account, recentSession)
+            WalletConnectMethod.EthereumSignTypedData,
+            WalletConnectMethod.EthereumSignTypedDataV4 ->
+                SignedRequest.Response(getEthSignTypedResult(account, recentSession))
+            WalletConnectMethod.PolkadotSignTransaction ->
+                SignedRequest.Response(getPolkadotSignTransaction(account, recentSession))
+            WalletConnectMethod.PolkadotSignMessage ->
+                SignedRequest.Response(getPolkadotSignMessage(account, recentSession))
         }
+    }
+
+    private fun approvedAccountId(
+        chain: Chain,
+        topic: String,
+        recentSession: Wallet.Model.SessionRequest
+    ): ByteArray {
+        val requestChainId = recentSession.chainId?.takeIf { it == chain.caip2id }
+            ?: rejectRequest("The request is for another network")
+        val address = recentSession.request.address ?: rejectRequest("The request names no valid account")
+        val accountId = runCatching { chain.accountIdOf(address) }.getOrNull()
+            ?: rejectRequest("The request account is malformed")
+        val session = getActiveSessionByTopic(topic) ?: rejectRequest("The session is no longer active")
+        requireRequest(session.approvesAccount(requestChainId, accountId, chain::accountIdOf)) {
+            "The account is not approved for this session"
+        }
+        return accountId
+    }
+
+    private fun respondRejected(
+        topic: String,
+        requestId: Long,
+        rejection: WalletConnectRequestRejectedException
+    ) {
+        // Best effort: if this fails the request stays pending and the user can still reject it.
+        callWalletConnect(onError = {}) {
+            sessionClient.respondSessionRequest(
+                params = Wallet.Params.SessionRequestResponse(
+                    sessionTopic = topic,
+                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
+                        id = requestId,
+                        code = REQUEST_REJECTED_CODE,
+                        message = "Request rejected: ${rejection.message.orEmpty()}"
+                    )
+                ),
+                onSuccess = {},
+                onError = {}
+            )
+        }
+    }
 
     private suspend fun getEthSignTypedResult(
-        metaAccount: MetaAccount,
+        account: SigningAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
-        val ethSignTypedMessage = recentSession.request.message
-        val message = StructuredDataEncoder(ethSignTypedMessage).hashStructuredData()
+        val typedData = recentSession.signedMessage
+        typedDataChainId(typedData)?.let { domainChainId ->
+            requireRequest(domainChainId == recentSession.eip155ChainId) { "The typed data is for another chain" }
+        }
+        val message = StructuredDataEncoder(typedData).hashStructuredData()
 
-        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
-
-        val cred = Credentials.create(privateKey.toHexString())
-
-        val signatureData = Sign.signMessage(message, cred.ecKeyPair, false)
+        val signatureData = Sign.signMessage(message, ECKeyPair.create(account.evmKeypair().privateKey), false)
         val signatureWrapper = SignatureWrapper.Ecdsa(signatureData.v, signatureData.r, signatureData.s)
 
         return signatureWrapper.signature.toHexString(true)
     }
 
-    private suspend fun getEthSendTransactionResult(
-        metaAccount: MetaAccount,
+    // Signed here, broadcast by the caller: these exact bytes are what any retry broadcasts again.
+    private suspend fun getEthSendTransaction(
+        account: SigningAccount,
         recentSession: Wallet.Model.SessionRequest
-    ): String {
+    ): SignedRequest.Transaction {
         val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
+        val raw = checkedTransaction(account, recentSession)
 
-        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
-
-        val raw = mapToRawTransaction(recentSession.request.message)
-
-        return ethereumSource.sendRawTransaction(
+        val signedTransaction = ethereumSource.signRawTransaction(
             chainId,
             raw,
-            privateKey.toHexString()
+            account.evmKeypair().privateKey.toHexString()
         ).getOrThrow()
+        return SignedRequest.Transaction(chainId, signedTransaction)
     }
 
     private suspend fun getEthSignTransactionResult(
-        metaAccount: MetaAccount,
+        account: SigningAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
         val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
-        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
-
-        val raw = mapToRawTransaction(recentSession.request.message)
+        val raw = checkedTransaction(account, recentSession)
 
         return ethereumSource.signRawTransaction(
             chainId,
             raw,
-            privateKey.toHexString()
+            account.evmKeypair().privateKey.toHexString()
         ).getOrThrow()
     }
 
     private suspend fun getEthPersonalSignResult(
-        metaAccount: MetaAccount,
+        account: SigningAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
-        val secrets = accountRepository.getEthereumSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[EthereumSecrets.EthereumKeypair]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+        val message = recentSession.signedMessage
 
         return CacaoSigner.sign(
-            recentSession.request.message,
-            privateKey,
+            message,
+            account.evmKeypair().privateKey,
             SignatureType.EIP191
         ).s
     }
 
     private suspend fun getPolkadotSignTransaction(
-        metaAccount: MetaAccount,
+        account: SigningAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
-        val params = JSONObject(recentSession.request.params)
-
-        val signPayload = JSONObject(params.getString("transactionPayload"))
-        val genesisHash = signPayload.getString("genesisHash").fromHex()
-        val tip = signPayload.getString("tip").fromHex().decodeToInt()
-        val method = signPayload.getString("method").fromHex()
-        val blockHash = signPayload.getString("blockHash").fromHex()
-        val era = signPayload.getString("era").fromHex()
-        val nonce = signPayload.getString("nonce").fromHex().decodeToInt()
-        val specVersion = signPayload.getString("specVersion").fromHex().decodeToInt()
-        val transactionVersion = signPayload.getString("transactionVersion").fromHex().decodeToInt()
-
-        val payloadBytes = useScaleWriter {
-            directWrite(method)
-            directWrite(era)
-            writeCompact(nonce)
-            writeCompact(tip)
-            writeUint32(specVersion)
-            writeUint32(transactionVersion)
-            directWrite(genesisHash)
-            directWrite(blockHash)
+        // The payload exactly as the user saw it; every signed byte below is encoded from this object.
+        val signPayload = PolkadotSignPayload.parse(recentSession.signedMessage)
+        PolkadotTransaction.requireSignableWithoutRuntime(account.chain, signPayload)
+        signPayload.address?.let { payloadAddress ->
+            requireRequest(account.isAccount(payloadAddress)) { "The transaction is for another account" }
         }
+        val runtime = runtimeSource(account.chain) ?: throw PolkadotRuntimeUnavailableException()
+        // Decoded and laid out as the preview showed it; refused before any key is read when it cannot be.
+        val payloadBytes = PolkadotTransaction.read(account.chain, signPayload, runtime).signingPayload
 
         val messageToSign = if (payloadBytes.size > PAYLOAD_HASH_THRESHOLD) {
             payloadBytes.blake2b256()
@@ -379,71 +396,50 @@ class WalletConnectInteractorImpl(
             payloadBytes
         }
 
-        val secrets = accountRepository.getSubstrateSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[SubstrateSecrets.SubstrateKeypair]
-        val publicKey = keypairSchema[KeyPairSchema.PublicKey]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
-        val nonce1 = keypairSchema[KeyPairSchema.Nonce]
-        val keypair = Keypair(publicKey, privateKey, nonce1)
-        val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType!!)
+        val encryption = MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(account.cryptoType()))
+        val signature = Signer.sign(encryption, messageToSign, account.keypair())
 
-        val signature = extrinsicService.createSignature(
-            encryption,
-            keypair,
-            messageToSign.toHexString()
-        )
-
-        return JSONObject().apply {
-            put("id", recentSession.request.id)
-            put("signature", signature)
-        }.toString()
+        return polkadotSignatureResponse(recentSession.request.id, signature.multiSignature().toHexString(withPrefix = true))
     }
 
-    private suspend fun getPolkadotSignMessage(recentSession: Wallet.Model.SessionRequest): String {
-        val address = recentSession.request.address ?: error("No address")
-        val data = recentSession.request.message
+    private suspend fun getPolkadotSignMessage(
+        account: SigningAccount,
+        recentSession: Wallet.Model.SessionRequest
+    ): String {
+        val data = recentSession.signedMessage
 
-        val allChains = getChains()
-
-        val chain = allChains.first { chain -> chain.caip2id == recentSession.chainId }
-        val accountId = chain.accountIdOf(address)
-        val keypair = withContext(Dispatchers.IO) { keypairProvider.getKeypairFor(chain, accountId) }
-
-        val multiChainEncryption = if (chain.isEthereumBased) {
-            MultiChainEncryption.Ethereum
+        val (multiChainEncryption, keypair) = if (account.chain.isEthereumBased) {
+            MultiChainEncryption.Ethereum to account.evmKeypair()
         } else {
-            val cryptoType = withContext(Dispatchers.IO) { keypairProvider.getCryptoTypeFor(chain, accountId) }
-            val encryption = mapCryptoTypeToEncryption(cryptoType)
-            MultiChainEncryption.Substrate(encryption)
+            MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(account.cryptoType())) to account.keypair()
         }
 
-        val dataAsByteArray = runCatching {
-            data.fromHex()
-        }.getOrElse {
-            data.encodeToByteArray()
+        // Never sign the dApp's bytes raw: they could be an extrinsic payload or, with the EVM key, a transaction.
+        val signature = signPolkadotMessage(data, multiChainEncryption, keypair)
+
+        return polkadotSignatureResponse(recentSession.request.id, signature.signature.toHexString(true))
+    }
+
+    private fun polkadotSignatureResponse(requestId: Long, signature: String): String = buildJsonObject {
+        put("id", requestId)
+        put("signature", signature)
+    }.toString()
+
+    // The transaction to sign, refused unless it is for the request's chain and from the request's account.
+    private fun checkedTransaction(
+        account: SigningAccount,
+        recentSession: Wallet.Model.SessionRequest
+    ): RawTransaction {
+        // Read as the preview read it: the recipient, value and data signed are the ones shown.
+        val transaction = WalletConnectEvmTransaction.parse(recentSession.signedMessage)
+        transaction.chainId?.let { transactionChainId ->
+            requireRequest(transactionChainId == recentSession.eip155ChainId) { "The transaction is for another chain" }
+        }
+        requireRequest(account.isAccount(transaction.from)) {
+            "The transaction is from another account"
         }
 
-        val signature = Signer.sign(multiChainEncryption, dataAsByteArray, keypair)
-
-        return JSONObject().apply {
-            put("id", recentSession.request.id)
-            put("signature", signature.signature.toHexString(true))
-        }.toString()
-    }
-
-    private fun mapToRawTransaction(request: String): RawTransaction = with(JSONObject(request)) {
-        RawTransaction.createTransaction(
-            optString("nonce").safeDecodeNumericQuantity(),
-            optString("gasPrice").safeDecodeNumericQuantity(),
-            optString("gasLimit").safeDecodeNumericQuantity(),
-            getString("to"),
-            optString("value").safeDecodeNumericQuantity(),
-            optString("data")
-        )
-    }
-
-    private fun String.safeDecodeNumericQuantity(): BigInteger? {
-        return kotlin.runCatching { Numeric.decodeQuantity(this) }.getOrNull()
+        return transaction.rawTransaction()
     }
 
     override fun rejectSessionRequest(
@@ -453,7 +449,7 @@ class WalletConnectInteractorImpl(
         onError: (Wallet.Model.Error) -> Unit
     ) {
         callWalletConnect(onError) {
-            WalletKit.respondSessionRequest(
+            sessionClient.respondSessionRequest(
                 params = Wallet.Params.SessionRequestResponse(
                     sessionTopic = sessionTopic,
                     jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
@@ -469,14 +465,14 @@ class WalletConnectInteractorImpl(
     }
 
     override fun getActiveSessionByTopic(topic: String) = walletConnectRuntimeBoundary {
-        WalletKit.getActiveSessionByTopic(topic)
+        sessionClient.getActiveSessionByTopic(topic)
     }.getOrElse { error ->
         error.printStackTrace()
         null
     }
 
     override fun getPendingListOfSessionRequests(topic: String) = walletConnectRuntimeBoundary {
-        WalletKit.getPendingListOfSessionRequests(topic)
+        sessionClient.getPendingListOfSessionRequests(topic)
     }.getOrElse { error ->
         error.printStackTrace()
         emptyList()
@@ -516,5 +512,32 @@ class WalletConnectInteractorImpl(
 
     companion object {
         private const val PAYLOAD_HASH_THRESHOLD = 256
+        private const val REQUEST_REJECTED_CODE = 4001
+    }
+}
+
+/** The account a request signs for, approved by its session. Its key is read only once signing starts. */
+private class SigningAccount(
+    private val keypairProvider: KeypairProvider,
+    val chain: Chain,
+    val accountId: ByteArray
+) {
+    suspend fun keypair(): Keypair = withContext(Dispatchers.IO) {
+        keypairProvider.getKeypairFor(chain, accountId)
+    }
+
+    suspend fun cryptoType(): CryptoType = withContext(Dispatchers.IO) {
+        keypairProvider.getCryptoTypeFor(chain, accountId)
+    }
+
+    fun isAccount(address: String?): Boolean =
+        address != null && runCatching { chain.accountIdOf(address) }.getOrNull()?.contentEquals(accountId) == true
+
+    /** The EVM key, checked to be the key of exactly this account before it signs anything. */
+    suspend fun evmKeypair(): Keypair = keypair().also { keypair ->
+        val keyAddress = Credentials.create(keypair.privateKey.toHexString()).address
+        check(keyAddress.equals(accountId.toHexString(withPrefix = true), ignoreCase = true)) {
+            "The signing key does not belong to the request account"
+        }
     }
 }

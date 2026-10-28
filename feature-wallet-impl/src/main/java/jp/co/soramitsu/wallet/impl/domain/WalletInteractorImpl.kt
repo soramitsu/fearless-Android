@@ -68,12 +68,10 @@ import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
-import jp.co.soramitsu.wallet.impl.domain.qr.CbdcQrParser
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -391,9 +389,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun tryReadCBDCAddressFormat(content: String): QrContentCBDC? {
-        return CbdcQrParser.parse(content)
-    }
 
     override fun extractTonAddress(input: String): String? = kotlin.runCatching {
         val regex = Regex("ton://transfer/([a-zA-Z0-9_\\-:.]+)")

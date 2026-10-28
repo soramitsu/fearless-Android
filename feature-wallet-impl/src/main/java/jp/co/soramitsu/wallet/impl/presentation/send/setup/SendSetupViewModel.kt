@@ -1010,21 +1010,15 @@ class SendSetupViewModel @Inject constructor(
                 return@launch
             }
 
-            val cbdcQrContent = walletInteractor.tryReadCBDCAddressFormat(content)
-            if (cbdcQrContent != null) {
-                router.back()
-                router.openCBDCSend(cbdcQrInfo = cbdcQrContent)
+            val soraQrContent = walletInteractor.tryReadSoraFormat(content)
+            if (soraQrContent != null) {
+                handleSoraQr(soraQrContent)
             } else {
-                val soraQrContent = walletInteractor.tryReadSoraFormat(content)
-                if (soraQrContent != null) {
-                    handleSoraQr(soraQrContent)
+                val addressChains = getAccountSupportedChains(content)
+                if (addressChains.isNotEmpty()) {
+                    fillQrContentToAddressField(content)
                 } else {
-                    val addressChains = getAccountSupportedChains(content)
-                    if (addressChains.isNotEmpty()) {
-                        fillQrContentToAddressField(content)
-                    } else {
-                        showInvalidAddressError()
-                    }
+                    showInvalidAddressError()
                 }
             }
         }

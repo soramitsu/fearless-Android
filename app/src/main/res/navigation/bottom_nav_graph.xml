@@ -528,10 +528,6 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
         android:label="Confirm send" />
     <dialog
-        android:id="@+id/cbdcSendSetupFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
-        android:label="Send" />
-    <dialog
         android:id="@+id/successSheetFragment"
         android:name="jp.co.soramitsu.success.presentation.SuccessFragment"
         android:label="Success" />
