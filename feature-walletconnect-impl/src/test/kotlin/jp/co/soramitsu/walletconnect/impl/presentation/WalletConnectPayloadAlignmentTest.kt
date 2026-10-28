@@ -115,6 +115,11 @@ class WalletConnectPayloadAlignmentTest {
 
         assertArrayEquals(target, transaction.signingPayload)
         assertEquals("XcmPallet.limited_teleport_assets", "${transaction.call.module.name}.${transaction.call.function.name}")
+        // The preview shows it as the cross-chain transfer it is: destination, beneficiary and amount.
+        val teleportShown = transaction.crossChainCalls.single()
+        assertEquals(BigInteger.valueOf(1000), teleportShown.destination?.paraId)
+        assertEquals(SS58Encoder.encode(ByteArray(32) { 0xab.toByte() }, 0), teleportShown.beneficiary)
+        assertEquals(BigInteger.TEN.pow(13), teleportShown.amounts.single().planks)
     }
 
     @Test

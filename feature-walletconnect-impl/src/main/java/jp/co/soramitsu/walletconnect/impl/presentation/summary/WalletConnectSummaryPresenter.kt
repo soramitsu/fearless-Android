@@ -9,6 +9,10 @@ import jp.co.soramitsu.common.utils.formatExactTokenAmount
 import jp.co.soramitsu.common.utils.formatSigningTime
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainAmount
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainCall
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainDestination
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainRetirement
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotRefusal
 import java.math.BigInteger
 
@@ -190,15 +194,58 @@ internal class WalletConnectSummaryPresenter(
             }
         }
         if (summary.tip.signum() > 0) row(R.string.signing_field_tip, nativeAmount(summary.tip))
-        summary.refusal?.let { refuse(refusalText(it)) }
+        // A transfer to another network is what the request does, wherever in a batch or proxy it sits.
+        summary.crossChainCalls.firstOrNull()?.let { first ->
+            headline = listOf(string(R.string.signing_section_cross_chain), destinationText(first.destination)).joinToString(" · ")
+        }
+        summary.crossChainCalls.forEach { crossChain(it) }
+        summary.refusal?.let { refusal -> refuse(refusalText(refusal, summary.crossChainCalls)) }
     }
 
-    private fun refusalText(refusal: PolkadotRefusal): Int = when (refusal) {
-        PolkadotRefusal.OtherNetwork -> R.string.signing_refused_other_network
-        PolkadotRefusal.NeverExpires -> R.string.signing_refused_never_expires
-        PolkadotRefusal.OtherRuntime -> R.string.signing_refused_other_runtime
-        PolkadotRefusal.UnsupportedFormat -> R.string.signing_refused_format
-        PolkadotRefusal.UndecodableCall -> R.string.signing_refused_undecoded_call
+    // Where the funds go, to whom and how much, in a section of its own for every cross-chain call.
+    private fun SummaryBuilder.crossChain(call: CrossChainCall) {
+        val destination = destinationText(call.destination)
+        val setByXcm = string(R.string.signing_value_set_by_xcm)
+        sectionRows(
+            title = string(R.string.signing_section_cross_chain),
+            rows = listOf(
+                SigningDetailViewState(string(R.string.signing_field_call), call.name, call.isHighRisk),
+                SigningDetailViewState(string(R.string.signing_field_destination), destination, call.retirement != null),
+                SigningDetailViewState(string(R.string.signing_field_beneficiary), call.beneficiary ?: setByXcm)
+            ) + call.amounts.map { SigningDetailViewState(string(R.string.common_amount), amountText(it)) }
+        )
+        warning(R.string.signing_warning_cross_chain)
+        if (call.isHighRisk) warning(R.string.signing_warning_xcm_program)
+    }
+
+    private fun SummaryBuilder.destinationText(destination: CrossChainDestination?): String = when {
+        destination == null -> string(R.string.signing_value_set_by_xcm)
+        destination.chain != null -> destination.chain.name
+        destination.paraId != null -> resourceManager.getString(R.string.signing_value_parachain, destination.paraId.toString())
+        else -> destination.text ?: string(R.string.common_unknown)
+    }
+
+    private fun SummaryBuilder.amountText(amount: CrossChainAmount): String = when {
+        amount.planks == null -> amount.description
+        amount.asset != null -> amount.planks.formatExactTokenAmount(amount.asset.precision, amount.asset.symbol)
+        else -> resourceManager.getString(R.string.signing_value_raw_units, amount.planks.toString()) + " · " + amount.description
+    }
+
+    private fun SummaryBuilder.refusalText(refusal: PolkadotRefusal, crossChainCalls: List<CrossChainCall>): String =
+        when (refusal) {
+        PolkadotRefusal.OtherNetwork -> string(R.string.signing_refused_other_network)
+        PolkadotRefusal.NeverExpires -> string(R.string.signing_refused_never_expires)
+        PolkadotRefusal.OtherRuntime -> string(R.string.signing_refused_other_runtime)
+        PolkadotRefusal.UnsupportedFormat -> string(R.string.signing_refused_format)
+        PolkadotRefusal.UndecodableCall -> string(R.string.signing_refused_undecoded_call)
+        PolkadotRefusal.RetiredDestination -> {
+            val retirement = crossChainCalls.firstNotNullOfOrNull { it.retirement }
+            if (retirement is CrossChainRetirement.Destination) {
+                resourceManager.getString(R.string.signing_refused_destination, retirement.destination)
+            } else {
+                string(R.string.signing_refused_relay_reserve)
+            }
+        }
     }
 
     // The calls a batch or proxy dispatches, each in its own numbered section.
@@ -266,8 +313,8 @@ internal class WalletConnectSummaryPresenter(
         }
 
         /** The wallet will not sign the request: shown first, and as the headline of the request screen. */
-        fun refuse(id: Int) {
-            refusals += string(id)
+        fun refuse(text: String) {
+            refusals += text
             headline = refusals.first()
         }
 

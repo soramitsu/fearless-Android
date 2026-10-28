@@ -4,6 +4,10 @@ import co.jp.soramitsu.feature_walletconnect_impl.R
 import io.mockk.every
 import io.mockk.mockk
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainAmount
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainCall
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainDestination
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainRetirement
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotRefusal
 import jp.co.soramitsu.walletconnect.impl.presentation.ethereumChain
 import org.junit.Assert.assertEquals
@@ -121,6 +125,61 @@ class WalletConnectSummaryPresenterTest {
         assertEquals("string:${R.string.signing_refused_other_runtime}", refused.warnings.first())
         assertEquals("string:${R.string.signing_refused_other_runtime}", refused.headline)
         assertFalse(presenter.present(ethereumChain, WalletConnectRequestSummary.PolkadotTransaction(transfer, BigInteger.ZERO, false)).blocksSigning)
+    }
+
+    @Test
+    fun `cross-chain calls show destination beneficiary and amount with warnings`() {
+        val teleport = CrossChainCall(
+            name = "XcmPallet.limited_teleport_assets",
+            destination = CrossChainDestination(paraId = BigInteger.valueOf(1000)),
+            beneficiary = "beneficiary",
+            amounts = listOf(CrossChainAmount(BigInteger.TEN, null, "{parents: 0, interior: Here}")),
+            isHighRisk = false
+        )
+        val call = PolkadotCallSummary("XcmPallet", "limited_teleport_assets", emptyList())
+
+        val state = presenter.present(ethereumChain, WalletConnectRequestSummary.PolkadotTransaction(call, BigInteger.ZERO, false, crossChainCalls = listOf(teleport)))
+
+        val rows = state.sections.flatMap { it.rows }.associate { it.title to it.value }
+        assertEquals("string:${R.string.signing_value_parachain}:1000", rows["string:${R.string.signing_field_destination}"])
+        assertEquals("beneficiary", rows["string:${R.string.signing_field_beneficiary}"])
+        assertTrue(rows.getValue("string:${R.string.common_amount}").startsWith("string:${R.string.signing_value_raw_units}:10"))
+        assertTrue(state.headline.startsWith("string:${R.string.signing_section_cross_chain}"))
+        assertTrue(state.warnings.contains("string:${R.string.signing_warning_cross_chain}"))
+        assertFalse(state.warnings.contains("string:${R.string.signing_warning_xcm_program}"))
+        assertFalse(state.blocksSigning)
+
+        val program = presenter.present(
+            ethereumChain,
+            WalletConnectRequestSummary.PolkadotTransaction(
+                call,
+                BigInteger.ZERO,
+                false,
+                crossChainCalls = listOf(teleport.copy(isHighRisk = true, destination = null, beneficiary = null))
+            )
+        )
+        assertTrue(program.warnings.contains("string:${R.string.signing_warning_xcm_program}"))
+        assertTrue(program.sections.flatMap { it.rows }.any { it.value == "string:${R.string.signing_value_set_by_xcm}" })
+    }
+
+    @Test
+    fun `a transfer to a retired destination names it in the refusal`() {
+        val call = PolkadotCallSummary("XcmPallet", "send", emptyList())
+        fun refused(retirement: CrossChainRetirement) = presenter.present(
+            ethereumChain,
+            WalletConnectRequestSummary.PolkadotTransaction(
+                call,
+                BigInteger.ZERO,
+                false,
+                PolkadotRefusal.RetiredDestination,
+                listOf(CrossChainCall("XcmPallet.send", null, null, emptyList(), isHighRisk = true, retirement = retirement))
+            )
+        )
+
+        val moonbeam = refused(CrossChainRetirement.Destination("Moonbeam"))
+        assertEquals("string:${R.string.signing_refused_destination}:Moonbeam", moonbeam.warnings.first())
+        assertTrue(moonbeam.blocksSigning)
+        assertEquals("string:${R.string.signing_refused_relay_reserve}", refused(CrossChainRetirement.RelayReserve).warnings.first())
     }
 
     @Test

@@ -18,7 +18,9 @@ class WalletConnectRequestSummaries internal constructor(
     constructor(chainRegistry: ChainRegistry, resourceManager: ResourceManager) : this(
         // The signer reads the same runtime. A chain that is not connected has none yet: its calls are then
         // shown as raw data and signing waits until the runtime is loaded.
-        WalletConnectRequestDecoder(chainRegistryRuntimeSource(chainRegistry)),
+        WalletConnectRequestDecoder(chainsOf = {
+            chainRegistry.getChains()
+        }, runtimeOf = chainRegistryRuntimeSource(chainRegistry)),
         WalletConnectSummaryPresenter(resourceManager)
     )
 

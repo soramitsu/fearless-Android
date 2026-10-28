@@ -6,6 +6,8 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainCall
+import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotCrossChainCalls
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotRefusal
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotSignPayload
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotTransaction
@@ -55,7 +57,9 @@ internal sealed interface WalletConnectRequestSummary {
         val tip: BigInteger,
         val isImmortal: Boolean,
         /** Why the wallet refuses to sign it, exactly as the signer would; null when it can be signed. */
-        val refusal: PolkadotRefusal? = null
+        val refusal: PolkadotRefusal? = null,
+        /** Where the funds of every cross-chain call it dispatches go. */
+        val crossChainCalls: List<CrossChainCall> = emptyList()
     ) : WalletConnectRequestSummary {
         override val isComplete: Boolean
             get() = call?.isComplete == true
@@ -72,6 +76,8 @@ internal sealed interface WalletConnectRequestSummary {
  * bytes than the ones signed. [runtimeOf] gives the runtime a Polkadot call is decoded with.
  */
 internal class WalletConnectRequestDecoder(
+    /** The catalog, to name the networks cross-chain calls send to. */
+    private val chainsOf: suspend () -> List<Chain> = { emptyList() },
     private val runtimeOf: suspend (Chain) -> RuntimeSnapshot?
 ) {
 
@@ -117,11 +123,16 @@ internal class WalletConnectRequestDecoder(
         val payload = PolkadotSignPayload.parse(message)
         val runtime = runtimeOf(chain)
         val call = runtime?.let { PolkadotCallDecoder(it) { accountId -> chain.addressOf(accountId) }.decode(payload.method) }
+        val decodedCall = runtime?.let { PolkadotTransaction.decodeCall(payload.method, it) }
+        val chains = chainsOf()
+        // Read as the signer reads them; a call nested too deeply for the check is refused by refusalOf.
+        val crossChainCalls = decodedCall?.let { runCatching { PolkadotCrossChainCalls(chain, chains).read(it) }.getOrNull() }
         return WalletConnectRequestSummary.PolkadotTransaction(
             call = call,
             tip = payload.tip,
             isImmortal = payload.isImmortal,
-            refusal = refusalOf(chain, payload, runtime)
+            refusal = refusalOf(chain, payload, runtime),
+            crossChainCalls = crossChainCalls.orEmpty()
         )
     }
 

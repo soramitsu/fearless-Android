@@ -32,7 +32,8 @@ internal enum class PolkadotRefusal(val reason: String) {
     NeverExpires("The transaction never expires"),
     OtherRuntime("The transaction was built for another runtime version"),
     UnsupportedFormat("The transaction format of this network is not supported"),
-    UndecodableCall("The call cannot be decoded with the network's runtime")
+    UndecodableCall("The call cannot be decoded with the network's runtime"),
+    RetiredDestination("The cross-chain transfer would not arrive")
 }
 
 /** A refused Polkadot transaction: the dApp gets an error and the preview says why, before any key is read. */
@@ -60,6 +61,8 @@ internal inline fun requireTransaction(
 internal class PolkadotTransaction private constructor(
     val payload: PolkadotSignPayload,
     val call: GenericCall.Instance,
+    /** The cross-chain calls it dispatches; none of them goes to a destination that no longer delivers. */
+    val crossChainCalls: List<CrossChainCall>,
     val signingPayload: ByteArray
 ) {
     companion object {
@@ -71,8 +74,12 @@ internal class PolkadotTransaction private constructor(
         ): PolkadotTransaction {
             requireSignableWithoutRuntime(chain, payload)
             val call = decodeCall(payload.method, runtime) ?: refuseTransaction(PolkadotRefusal.UndecodableCall)
+            val crossChainCalls = PolkadotCrossChainCalls(chain).read(call)
+            crossChainCalls.firstNotNullOfOrNull { it.retirement }?.let { retirement ->
+                refuseTransaction(PolkadotRefusal.RetiredDestination, retirement.reason)
+            }
             val signingPayload = PolkadotSigningPayload.encode(payload, runtime)
-            return PolkadotTransaction(payload, call, signingPayload)
+            return PolkadotTransaction(payload, call, crossChainCalls, signingPayload)
         }
 
         /** The checks that need no runtime, so a request for another network is refused even while offline. */
