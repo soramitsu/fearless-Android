@@ -1377,6 +1377,7 @@
 
   <string name="connected_accounts_iroha_title">Iroha zinciri hesapları</string>
 
+  <string name="cross_chain_send_again">Tekrar gönder</string>
   <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
 
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>

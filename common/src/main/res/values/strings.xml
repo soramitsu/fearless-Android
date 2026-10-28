@@ -482,6 +482,7 @@
   <string name="create_new_account">Create a new account</string>
   <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
   <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
+  <string name="cross_chain_send_again">Send again</string>
   <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>
   <string name="cross_chain_tx_status_done_description">Transaction has been successfully completed.</string>

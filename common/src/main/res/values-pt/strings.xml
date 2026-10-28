@@ -1344,6 +1344,7 @@
 
   <string name="contacts_empty_message">No contacts found</string>
 
+  <string name="cross_chain_send_again">Enviar novamente</string>
   <string name="cross_chain_tx_status_destination_fail_description">Transaction failed on the %s. Your funds in the current transaction will be returned to your wallet.</string>
 
   <string name="cross_chain_tx_status_destination_fail_title">Transaction refund</string>

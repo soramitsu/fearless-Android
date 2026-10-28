@@ -454,6 +454,7 @@
   <string name="create_new_account">Tạo tài khoản mới</string>
   <string name="crodloan_private_crowdloan_message">Chiến dịch Gọi vốn riêng (Private crowdloan) chưa được hỗ trợ</string>
   <string name="crodloan_private_crowdloan_title">Chiến dịch Gọi vốn riêng (Private crowdloan)</string>
+  <string name="cross_chain_send_again">Gửi lại</string>
   <string name="cross_chain_tx_status_destination_fail_description">Giao dịch không thành công trên %s. Số tiền của bạn trong giao dịch hiện tại sẽ được trả lại vào ví của bạn.</string>
   <string name="cross_chain_tx_status_destination_fail_title">Giao dịch hoàn tiền</string>
   <string name="cross_chain_tx_status_done_description">Giao dịch đã được hoàn tất thành công.</string>
