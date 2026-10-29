@@ -1107,6 +1107,16 @@ root_component = add_component(
 wallet_root_component = add_component(
     "activity", wallet_root_activity, **{attribute_exported: "false"}
 )
+add_component(
+    "activity",
+    "jp.co.soramitsu.app.root.presentation.emergency.WalletEmergencyExportActivity",
+    **{attribute_exported: "false"},
+)
+add_component(
+    "activity",
+    "jp.co.soramitsu.app.root.presentation.keyloss.WalletKeyLossRecoveryActivity",
+    **{attribute_exported: "false"},
+)
 scanner = add_component(
     "activity",
     "jp.co.soramitsu.common.scan.ScannerActivity",
@@ -1130,6 +1140,11 @@ add_component(
 add_component(
     "activity",
     "com.google.android.gms.common.api.GoogleApiActivity",
+    **{attribute_exported: "false"},
+)
+add_component(
+    "activity",
+    "com.google.android.play.core.common.PlayCoreDialogWrapperActivity",
     **{attribute_exported: "false"},
 )
 add_component(

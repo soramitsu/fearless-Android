@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 EXPECTED_ANDROID_GRADLE_PLUGIN_VERSION="8.10.1"
 EXPECTED_R8_VERSION="8.10.24"
-EXPECTED_MANIFEST_COMPONENTS_SHA256="3bc445497950147312ac32e4539d137a6dd4a34b92d412a9d75a7f0929473e96"
+EXPECTED_MANIFEST_COMPONENTS_SHA256="4d91723e7fe0a4960f76d7d127a6d44a06c5b30ae3392cf334faca6bfe920d35"
 temporary_files=()
 
 cleanup() {
@@ -695,6 +695,11 @@ expected_components = [
         "activity",
         "com.google.android.gms.common.api.GoogleApiActivity",
     ),
+    # Play Integrity (core-backup attestation) merges this non-exported Play Core dialog host.
+    expected_component(
+        "activity",
+        "com.google.android.play.core.common.PlayCoreDialogWrapperActivity",
+    ),
     expected_component(
         "activity",
         "com.journeyapps.barcodescanner.CaptureActivity",
@@ -708,6 +713,15 @@ expected_components = [
         "jp.co.soramitsu.common.scan.ScannerActivity",
     ),
     expected_component("activity", root_activity),
+    # Wallet recovery screens: started only from inside the app, never exported.
+    expected_component(
+        "activity",
+        "jp.co.soramitsu.app.root.presentation.emergency.WalletEmergencyExportActivity",
+    ),
+    expected_component(
+        "activity",
+        "jp.co.soramitsu.app.root.presentation.keyloss.WalletKeyLossRecoveryActivity",
+    ),
     expected_component(
         "activity",
         startup_activity,
