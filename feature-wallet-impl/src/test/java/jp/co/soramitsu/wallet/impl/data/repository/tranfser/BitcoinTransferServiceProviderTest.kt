@@ -10,11 +10,10 @@ import jp.co.soramitsu.common.data.network.bitcoin.BitcoinEsploraUtxo
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerRoutes
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaAccountHistoryPage
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
@@ -1417,16 +1416,14 @@ class BitcoinTransferServiceProviderTest {
             scope: IrohaToriiRoutes.TransactionStatusScope
         ): IrohaPipelineTransactionStatusResponse = error("Unexpected Iroha transaction-status call")
 
-        override suspend fun mcpCapabilities(
-            network: UniversalWalletRegistry.IrohaNetwork,
-            baseUrl: String?
-        ): Map<String, Any?> = error("Unexpected Iroha mcp capabilities call")
-
-        override suspend fun mcpJsonRpc(
-            request: IrohaMcpJsonRpcRequest,
-            network: UniversalWalletRegistry.IrohaNetwork,
-            baseUrl: String?
-        ): IrohaMcpJsonRpcResponse = error("Unexpected Iroha mcp call")
+        override suspend fun accountHistory(
+            accountId: String,
+            baseUrl: String?,
+            limit: Int?,
+            cursor: String?,
+            filter: String?,
+            network: UniversalWalletRegistry.IrohaNetwork
+        ): IrohaAccountHistoryPage = error("Unexpected Iroha account-history call")
     }
 
     companion object {

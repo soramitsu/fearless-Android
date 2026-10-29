@@ -13,13 +13,6 @@ object IrohaToriiRoutes {
         return "${normalizeBaseUrl(baseUrl)}/health"
     }
 
-    fun mcpUrl(
-        network: UniversalWalletRegistry.IrohaNetwork = UniversalWalletRegistry.taira,
-        baseUrl: String = requireToriiBaseUrl(network)
-    ): String {
-        return "${normalizeBaseUrl(baseUrl)}${normalizePath(network.mcpPath)}"
-    }
-
     fun accountsUrl(
         baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
         limit: Int? = null,
@@ -52,6 +45,30 @@ object IrohaToriiRoutes {
         return appendQuery("${accountUrl(accountId, baseUrl)}/assets", query)
     }
 
+    fun accountHistoryUrl(
+        accountId: String,
+        baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
+        limit: Int? = null,
+        cursor: String? = null,
+        filter: String? = null
+    ): String {
+        val query = pageQuery(limit, offset = null, countMode = null).toMutableList()
+        cursor?.let { query += "cursor=${normalizeCursor(it)}" }
+        filter?.let { query += "filter=${encodeQueryValue(normalizeFilter(it))}" }
+
+        return appendQuery("${accountUrl(accountId, baseUrl)}/history", query)
+    }
+
+    /** Torii text filter for the transfer movements of the given asset definitions. */
+    fun transferHistoryFilter(assetDefinitionIds: Collection<String>): String {
+        val literals = assetDefinitionIds.map { "\"${escapeFilterString(normalizeAssetSelector(it))}\"" }.distinct()
+        if (literals.isEmpty()) {
+            throw IrohaToriiRouteException(ErrorCode.INVALID_ASSET)
+        }
+
+        return "asset_definition_id in [${literals.joinToString(", ")}] and type = \"TRANSFER\""
+    }
+
     fun assetDefinitionsUrl(
         baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
         limit: Int? = null,
@@ -74,18 +91,6 @@ object IrohaToriiRoutes {
         scope: TransactionStatusScope = TransactionStatusScope.Auto
     ): String {
         return "${normalizeBaseUrl(baseUrl)}/v1/pipeline/transactions/status?hash=${normalizeHash(hash)}&scope=${scope.apiValue}"
-    }
-
-    fun mcpJsonRpcRequest(
-        method: String,
-        id: String,
-        params: Map<String, Any?>? = null
-    ): IrohaMcpJsonRpcRequest {
-        return IrohaMcpJsonRpcRequest(
-            id = normalizeJsonRpcId(id),
-            method = normalizeMcpMethod(method),
-            params = params
-        )
     }
 
     fun normalizeBaseUrl(baseUrl: String): String {
@@ -134,15 +139,6 @@ object IrohaToriiRoutes {
         return normalized
     }
 
-    private fun normalizePath(path: String): String {
-        val normalized = path.trim()
-        if (!normalized.startsWith("/") || normalized.contains("..") || normalized.contains("?") || normalized.contains("#")) {
-            throw IrohaToriiRouteException(ErrorCode.INVALID_PATH)
-        }
-
-        return normalized.trimEnd('/')
-    }
-
     private fun normalizePathValue(value: String, errorCode: ErrorCode): String {
         val normalized = value.trim()
         if (normalized.isEmpty() || normalized.length > 256 || normalized.any { it <= ' ' } || PATH_FORBIDDEN.containsMatchIn(normalized)) {
@@ -161,22 +157,25 @@ object IrohaToriiRoutes {
         return normalized
     }
 
-    private fun normalizeJsonRpcId(id: String): String {
-        val normalized = id.trim()
-        if (!JSON_RPC_ID.matches(normalized)) {
-            throw IrohaToriiRouteException(ErrorCode.INVALID_JSON_RPC_ID)
+    // Torii cursors are opaque base64url tokens; pass them back exactly as received.
+    private fun normalizeCursor(cursor: String): String {
+        if (!CURSOR.matches(cursor)) {
+            throw IrohaToriiRouteException(ErrorCode.INVALID_CURSOR)
         }
 
-        return normalized
+        return cursor
     }
 
-    private fun normalizeMcpMethod(method: String): String {
-        val normalized = method.trim()
-        if (!MCP_METHOD.matches(normalized)) {
-            throw IrohaToriiRouteException(ErrorCode.INVALID_MCP_METHOD)
+    private fun normalizeFilter(filter: String): String {
+        if (filter.isBlank() || filter.length > MAX_FILTER_LENGTH || filter.any { it < ' ' || it == '\u007f' }) {
+            throw IrohaToriiRouteException(ErrorCode.INVALID_FILTER)
         }
 
-        return normalized
+        return filter
+    }
+
+    private fun escapeFilterString(value: String): String {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"")
     }
 
     private fun pageQuery(limit: Int?, offset: Long?, countMode: CountMode?): List<String> {
@@ -218,15 +217,14 @@ object IrohaToriiRoutes {
     enum class ErrorCode {
         INVALID_BASE_URL,
         MISSING_TORII_BASE_URL,
-        INVALID_PATH,
         INVALID_ACCOUNT_ID,
         INVALID_ASSET,
         INVALID_SCOPE,
         INVALID_HASH,
         INVALID_LIMIT,
         INVALID_OFFSET,
-        INVALID_JSON_RPC_ID,
-        INVALID_MCP_METHOD
+        INVALID_CURSOR,
+        INVALID_FILTER
     }
 
     enum class CountMode(val apiValue: String) {
@@ -244,6 +242,6 @@ object IrohaToriiRoutes {
     private val ASSET_FORBIDDEN = Regex("[/?]")
     private val DATASPACE_SCOPE = Regex("^dataspace:[A-Za-z0-9._:-]{1,128}$")
     private val HASH_256 = Regex("^[0-9a-f]{64}$")
-    private val JSON_RPC_ID = Regex("^[A-Za-z0-9._:-]{1,64}$")
-    private val MCP_METHOD = Regex("^[A-Za-z][A-Za-z0-9_/.-]{0,127}$")
+    private val CURSOR = Regex("^[A-Za-z0-9_-]{1,4096}$")
+    private const val MAX_FILTER_LENGTH = 2048
 }

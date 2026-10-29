@@ -1,9 +1,10 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
+import java.io.IOException
+import java.math.BigDecimal
 import java.math.BigInteger
-import java.time.Instant
 import jp.co.soramitsu.common.data.model.CursorPage
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
+import jp.co.soramitsu.common.data.network.iroha.IrohaAccountHistoryItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
 import jp.co.soramitsu.core.models.Asset
@@ -34,178 +35,102 @@ class IrohaHistorySource(
 
         val network = chain.universalWalletIrohaNetwork() ?: return CursorPage(null, emptyList())
         val normalizedAddress = chain.normalizedIrohaAddress(accountAddress) ?: return CursorPage(null, emptyList())
-        val page = cursor?.toIntOrNull()?.takeIf { it >= 0 } ?: 0
+        val assetDefinitionIds = listOfNotNull(chainAsset.id, chainAsset.currencyId).filter(String::isNotBlank).toSet()
         val limit = pageSize.coerceAtMost(IrohaToriiRoutes.MAX_LIMIT)
 
-        val response = toriiClient.mcpJsonRpc(
-            request = IrohaMcpJsonRpcRequest(
-                id = "history-$page",
-                method = "tools/call",
-                params = mapOf(
-                    "name" to "iroha.instructions.list",
-                    "arguments" to mapOf(
-                        "account" to normalizedAddress,
-                        "asset_id" to chainAsset.id,
-                        "kind" to "Transfer",
-                        "page" to page,
-                        "per_page" to limit,
-                        "transaction_status" to "committed",
-                        "accept" to "application/json"
-                    )
-                )
-            ),
-            network = network,
-            baseUrl = historyUrl.takeIf(String::isNotBlank)
-        )
+        val filter = IrohaToriiRoutes.transferHistoryFilter(assetDefinitionIds)
+        var nextCursor = cursor
+        var requests = 0
+        val seenCursors = mutableSetOf<String?>()
+        var operations: List<Operation>
 
-        check(response.error == null) { "Iroha history request failed (${response.error?.code})" }
-
-        val items = response.result.extractInstructionItems()
-        val operations = items.flatMapIndexed { index, item ->
-            item.toTransferOperations(
-                index = index,
-                accountAddress = normalizedAddress,
-                chainAsset = chainAsset
+        // Empty filtered pages are continuations, not the end of history. Bound their cost,
+        // but report an error rather than erase cached history if the bound is exhausted.
+        do {
+            seenCursors.add(nextCursor)
+            val page = toriiClient.accountHistory(
+                accountId = normalizedAddress,
+                baseUrl = historyUrl.takeIf(String::isNotBlank),
+                limit = limit,
+                cursor = nextCursor,
+                filter = filter,
+                network = network
             )
-        }
-
-        return CursorPage(
-            nextCursor = if (items.size >= limit) (page + 1).toString() else null,
-            items = operations
-        )
-    }
-
-    private fun Any?.extractInstructionItems(): List<Map<*, *>> {
-        val result = checkNotNull(this as? Map<*, *>) { "Iroha history result is not an object" }
-        val body = if (result.containsKey("body")) {
-            checkNotNull(result["body"] as? Map<*, *>) { "Iroha history body is not an object" }
-        } else {
-            result
-        }
-        val items = checkNotNull(body["items"] as? List<*>) { "Iroha history items is not an array" }
-
-        return items.map { checkNotNull(it as? Map<*, *>) { "Iroha history item is not an object" } }
-    }
-
-    private fun Map<*, *>.toTransferOperations(
-        index: Int,
-        accountAddress: String,
-        chainAsset: Asset
-    ): List<Operation> {
-        val hash = stringValue("transaction_hash", "transactionHash", "hash") ?: return emptyList()
-        val timestamp = timestampMillis(stringValue("created_at", "createdAt", "timestamp")) ?: return emptyList()
-        val payload = (((this["box"] as? Map<*, *>)?.get("json") as? Map<*, *>)?.get("payload") as? Map<*, *>)
-            ?: return emptyList()
-        val success = !stringValue("transaction_status", "transactionStatus", "status").equals("Rejected", ignoreCase = true)
-        val transfers = payload.transferPayloads(accountAddress, chainAsset.id)
-
-        return transfers.mapIndexed { transferIndex, transfer ->
-            val id = if (transfers.size == 1) hash else "$hash:${index + transferIndex}"
-            Operation(
-                id = id,
-                address = accountAddress,
-                time = timestamp,
-                chainAsset = chainAsset,
-                type = Operation.Type.Transfer(
-                    hash = hash,
-                    myAddress = accountAddress,
-                    amount = transfer.amount,
-                    receiver = transfer.to,
-                    sender = transfer.from,
-                    status = Operation.Status.fromSuccess(success),
-                    fee = BigInteger.ZERO
-                )
-            )
-        }
-    }
-
-    private fun Map<*, *>.transferPayloads(accountAddress: String, assetId: String): List<IrohaTransferPayload> {
-        val variant = stringValue("variant")
-        val value = this["value"]
-
-        return when (variant) {
-            "Asset" -> listOfNotNull((value as? Map<*, *>)?.assetTransfer(accountAddress, assetId))
-            "AssetBatch" -> (value as? Map<*, *>)
-                ?.firstList("entries", "transfers", "items")
-                ?.mapNotNull { (it as? Map<*, *>)?.assetTransfer(accountAddress, assetId) }
-                .orEmpty()
-            else -> emptyList()
-        }
-    }
-
-    private fun Map<*, *>.assetTransfer(accountAddress: String, assetId: String): IrohaTransferPayload? {
-        val source = stringValue("source", "source_id", "asset", "asset_id")
-        val destination = stringValue("destination", "destination_id", "to", "account_id") ?: return null
-        val amount = normalizeIrohaAmount(this["object"] ?: this["amount"] ?: this["quantity"] ?: this["value"]) ?: return null
-
-        if (source != null && !source.irohaAssetMatches(assetId)) return null
-
-        val sourceAccount = stringValue("source_account", "from", "account") ?: source.extractIrohaAssetAccount()
-        val incoming = destination.equals(accountAddress, ignoreCase = true)
-        val outgoing = sourceAccount?.equals(accountAddress, ignoreCase = true) == true || source?.contains(accountAddress) == true
-
-        if (!incoming && !outgoing) return null
-
-        return IrohaTransferPayload(
-            amount = amount,
-            from = if (outgoing) accountAddress else sourceAccount.orEmpty(),
-            to = if (incoming) accountAddress else destination
-        )
-    }
-
-    private fun normalizeIrohaAmount(value: Any?): BigInteger? {
-        return when (value) {
-            is String -> value.trim().takeIf { UNSIGNED_INTEGER.matches(it) }?.let(::BigInteger)
-            is Number -> value.toLong().takeIf { value.toDouble() == it.toDouble() && it > 0 }?.let(BigInteger::valueOf)
-            is Map<*, *> -> {
-                val scale = value["scale"]
-                if (scale != null && scale.toString() != "0") return null
-                normalizeIrohaAmount(value["value"] ?: value["amount"] ?: value["mantissa"])
+            operations = page.items.mapNotNull { item ->
+                item.toTransferOperation(chain, normalizedAddress, chainAsset, assetDefinitionIds)
             }
-            else -> null
-        }?.takeIf { it.signum() > 0 }
+            nextCursor = page.nextCursor?.takeIf(String::isNotEmpty)
+            requests += 1
+            if (nextCursor != null && nextCursor in seenCursors) {
+                throw IOException("Iroha history cursor did not advance")
+            }
+            if (operations.isEmpty() && nextCursor != null && requests >= MAX_PAGE_REQUESTS) {
+                throw IOException("Iroha history exceeded the empty-page limit")
+            }
+        } while (operations.isEmpty() && nextCursor != null)
+
+        // Let network errors and cancellation reach the caller's retry state. Returning an
+        // empty page here would replace the repository's cached operations and cursor.
+        return CursorPage(nextCursor, operations)
     }
 
-    private fun timestampMillis(value: String?): Long? {
-        val timestamp = value?.trim()?.takeIf(String::isNotEmpty) ?: return null
-        if (timestamp.all(Char::isDigit)) {
-            val raw = timestamp.toLongOrNull() ?: return null
-            return if (raw < MILLIS_THRESHOLD) raw * 1000 else raw
+    // Torii reports each movement once, already resolved to this account's side of the transfer.
+    private fun IrohaAccountHistoryItem.toTransferOperation(
+        chain: Chain,
+        accountAddress: String,
+        chainAsset: Asset,
+        assetDefinitionIds: Set<String>
+    ): Operation? {
+        if (type != TRANSFER_TYPE || assetDefinitionId !in assetDefinitionIds) return null
+        if (accountId?.let(chain::normalizedIrohaAddress) != accountAddress) return null
+
+        val hash = txHash?.lowercase()?.takeIf(TX_HASH::matches) ?: return null
+        val index = movementIndex?.takeIf { it >= 0 } ?: return null
+        val time = timestampMs?.takeIf { it > 0 } ?: return null
+        val planks = amount?.toPlanksOrNull(chainAsset.precision) ?: return null
+        val counterparty = counterpartyAccountId?.let(chain::normalizedIrohaAddress)
+        val (sender, receiver) = when (direction) {
+            INCOMING -> (counterparty ?: return null) to accountAddress
+            OUTGOING -> accountAddress to (counterparty ?: return null)
+            SELF -> accountAddress to accountAddress
+            else -> return null
         }
 
-        return runCatching { Instant.parse(timestamp).toEpochMilli() }.getOrNull()
+        return Operation(
+            id = "$hash:$index",
+            address = accountAddress,
+            time = time,
+            chainAsset = chainAsset,
+            type = Operation.Type.Transfer(
+                hash = hash,
+                myAddress = accountAddress,
+                amount = planks,
+                receiver = receiver,
+                sender = sender,
+                status = Operation.Status.fromSuccess(resultOk == true && status == SUCCESS_STATUS),
+                fee = BigInteger.ZERO
+            )
+        )
     }
 
-    private fun Map<*, *>.stringValue(vararg keys: String): String? {
-        return keys.firstNotNullOfOrNull { key ->
-            (this[key] as? String)?.trim()?.takeIf(String::isNotEmpty)
-        }
+    // Torii amounts are decimal quantities in the asset's units.
+    private fun String.toPlanksOrNull(precision: Int): BigInteger? {
+        if (length > MAX_AMOUNT_LENGTH || !DECIMAL_AMOUNT.matches(this)) return null
+
+        return runCatching { BigDecimal(this).movePointRight(precision).toBigIntegerExact() }
+            .getOrNull()
+            ?.takeIf { it.signum() > 0 }
     }
-
-    private fun Map<*, *>.firstList(vararg keys: String): List<*>? {
-        return keys.firstNotNullOfOrNull { key -> this[key] as? List<*> }
-    }
-
-    private fun String?.extractIrohaAssetAccount(): String? {
-        val source = this ?: return null
-        val separatorIndex = source.lastIndexOf('#')
-
-        return source.takeIf { separatorIndex >= 0 && separatorIndex < source.lastIndex }
-            ?.substring(separatorIndex + 1)
-    }
-
-    private fun String.irohaAssetMatches(assetId: String): Boolean {
-        return this == assetId || startsWith("$assetId#")
-    }
-
-    private data class IrohaTransferPayload(
-        val amount: BigInteger,
-        val from: String,
-        val to: String
-    )
 
     private companion object {
-        const val MILLIS_THRESHOLD = 10_000_000_000L
-        val UNSIGNED_INTEGER = Regex("^[1-9][0-9]*$")
+        const val MAX_PAGE_REQUESTS = 10
+        const val MAX_AMOUNT_LENGTH = 160
+        const val TRANSFER_TYPE = "TRANSFER"
+        const val SUCCESS_STATUS = "SUCCESS"
+        const val INCOMING = "incoming"
+        const val OUTGOING = "outgoing"
+        const val SELF = "self"
+        val DECIMAL_AMOUNT = Regex("^(0|[1-9][0-9]*)(\\.[0-9]+)?$")
+        val TX_HASH = Regex("^[0-9a-f]{64}$")
     }
 }

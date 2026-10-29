@@ -68,6 +68,16 @@ for required in \
   require_file "$required"
 done
 
+# Wallet reads and sends call Torii REST routes; the MCP tool endpoint is too slow for the app.
+grep -RnIF --include='*.kt' --include='*.java' -e '/v1/mcp' -e 'tools/call' \
+  --exclude-dir=.git --exclude-dir=.gradle --exclude-dir=build --exclude-dir=fearless-utils-Android \
+  "$ROOT_DIR" | grep -F '/src/main/' >"$TMP_MATCHES" || true
+if [[ -s "$TMP_MATCHES" ]]; then
+  sed "s#^$ROOT_DIR/##" "$TMP_MATCHES" >&2
+  fail "Android main sources must call Torii REST routes directly, never the MCP endpoint"
+fi
+: > "$TMP_MATCHES"
+
 [[ "$(wc -c < "$MANIFEST" | tr -d '[:space:]')" -le 32768 ]] || fail "readiness manifest exceeds 32 KiB"
 actual_manifest_sha256="$(sha256_file "$MANIFEST")"
 [[ "$actual_manifest_sha256" == "$EXPECTED_MANIFEST_SHA256" ]] ||

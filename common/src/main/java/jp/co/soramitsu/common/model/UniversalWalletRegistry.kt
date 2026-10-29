@@ -82,7 +82,6 @@ object UniversalWalletRegistry {
         chainId = "iroha3-taira",
         chainDiscriminant = 369,
         toriiBaseUrl = "https://taira.sora.org",
-        mcpPath = "/v1/mcp",
         enabledByDefault = true,
         features = listOf("transfer")
     )
@@ -92,7 +91,6 @@ object UniversalWalletRegistry {
         chainId = "sora:nexus:global",
         chainDiscriminant = 753,
         toriiBaseUrl = "https://minamoto.sora.org",
-        mcpPath = "/v1/mcp",
         enabledByDefault = false,
         features = listOf("transfer", "offline-cash", "sccp", "governance")
     )
@@ -149,7 +147,6 @@ object UniversalWalletRegistry {
         val chainId: String,
         val chainDiscriminant: Int,
         val toriiBaseUrl: String?,
-        val mcpPath: String,
         val enabledByDefault: Boolean,
         val features: List<String>
     )
@@ -261,9 +258,9 @@ object UniversalWalletRegistry {
         endpoints = toriiBaseUrl?.let { baseUrl ->
             listOf(
                 UniversalWalletRegistryEndpoint(
-                    id = "$id-torii-mcp",
-                    kind = UniversalWalletRegistryEndpointKind.ToriiMcp,
-                    url = baseUrl.removeSuffix("/") + mcpPath,
+                    id = "$id-torii",
+                    kind = UniversalWalletRegistryEndpointKind.Torii,
+                    url = baseUrl.removeSuffix("/"),
                     readOnly = false
                 )
             )

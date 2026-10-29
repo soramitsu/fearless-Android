@@ -5,12 +5,11 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaAccountHistoryPage
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListItem
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
@@ -399,16 +398,14 @@ class IrohaBalanceLoaderTest {
             scope: IrohaToriiRoutes.TransactionStatusScope
         ): IrohaPipelineTransactionStatusResponse = throw NotImplementedError()
 
-        override suspend fun mcpCapabilities(
-            network: UniversalWalletRegistry.IrohaNetwork,
-            baseUrl: String?
-        ): Map<String, Any?> = throw NotImplementedError()
-
-        override suspend fun mcpJsonRpc(
-            request: IrohaMcpJsonRpcRequest,
-            network: UniversalWalletRegistry.IrohaNetwork,
-            baseUrl: String?
-        ): IrohaMcpJsonRpcResponse = throw NotImplementedError()
+        override suspend fun accountHistory(
+            accountId: String,
+            baseUrl: String?,
+            limit: Int?,
+            cursor: String?,
+            filter: String?,
+            network: UniversalWalletRegistry.IrohaNetwork
+        ): IrohaAccountHistoryPage = throw NotImplementedError()
     }
 
     private class NoopOperationDao : OperationDao() {
