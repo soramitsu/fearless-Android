@@ -73,7 +73,7 @@
   Because IAS uses fake/empty public Firebase and OAuth values, do not claim it
   qualifies live Firebase, Google sign-in, Drive/passkey backup, or restore.
   When versioning changes, update the workflow/verifier hardcodes for
-  `4.2.0-ias` / `231` in the same reviewed commit.
+  `4.3.0-ias` / `232` in the same reviewed commit.
 - Polkadot runtime sources: to align debug builds with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
   - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_DEBUG_OVERRIDE`
   - Release chain discovery is intentionally pinned to the canonical production URL and does not accept a chain-registry override.
