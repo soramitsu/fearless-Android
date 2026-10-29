@@ -1,8 +1,12 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
 import com.reown.walletkit.client.Wallet
+import io.mockk.every
+import io.mockk.mockk
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.models.ErrorDialogState
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import org.junit.Assert.assertTrue
@@ -47,6 +51,16 @@ internal fun testChain(
 internal val polkadotChain = testChain(POLKADOT_GENESIS, Ecosystem.Substrate)
 internal val moonbeamChain = testChain(MOONBEAM_GENESIS, Ecosystem.EthereumBased)
 internal val ethereumChain = testChain("1", Ecosystem.Ethereum)
+
+/** The real kill-switch store over in-memory preferences: a test vetoes a family as a fetched config would. */
+internal fun featureToggleStore(): ProductFeatureToggleStore {
+    val values = mutableMapOf<String, Boolean>()
+    val preferences = mockk<Preferences> {
+        every { getBoolean(any(), any()) } answers { values[firstArg()] ?: secondArg() }
+        every { putBoolean(any(), any()) } answers { values[firstArg()] = secondArg() }
+    }
+    return ProductFeatureToggleStore(preferences, mockk(relaxed = true))
+}
 
 internal fun sessionRequest(
     id: Long,

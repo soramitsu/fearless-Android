@@ -6,6 +6,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.network.config.FeatureToggleConfig
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -50,6 +51,7 @@ class WalletConnectInteractorImplTest {
     private val sessionClient = FakeSessionClient()
     private val transactionSender = FakeTransactionSender()
     private val signedRequests = WalletConnectSignedRequests()
+    private val featureToggles = featureToggleStore()
 
     @Test
     fun `malformed personal message fails the request without reading keys`() {
@@ -389,6 +391,58 @@ class WalletConnectInteractorImplTest {
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
+    @Test
+    fun `paused polkadot signing refuses the request before any key is read and leaves EVM requests alone`() {
+        featureToggles.rememberRemoteVetoes(FeatureToggleConfig(polkadotDappSigningEnabled = false))
+        val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
+        val polkadotAddress = SS58Encoder.encode(keypair.publicKey, 0)
+        sessionClient.activeSession = session("${polkadotChain.caip2id}:$polkadotAddress")
+
+        val paused = sign(polkadotChain, polkadotSignMessage(id = 61, address = polkadotAddress))
+
+        assertTrue(paused.signError is DappSigningPausedException)
+        assertEquals(61L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+        coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
+
+        sessionClient.responses.clear()
+        val approvedEvmAddress = approveEvmAccount()
+        assertTrue(sign(ethereumChain, typedData(id = 62, address = approvedEvmAddress, chainId = "1")).succeeded)
+    }
+
+    @Test
+    fun `paused EVM signing never broadcasts a transaction signed before the pause`() {
+        val address = approveEvmAccount()
+        coEvery { ethereumSource.signRawTransaction("1", any(), any()) } returns Result.success("0xsigned")
+        transactionSender.failNextSends = 1
+        val request = ethTransaction(id = 63, from = address)
+
+        val first = sign(ethereumChain, request)
+        featureToggles.rememberRemoteVetoes(FeatureToggleConfig(evmDappSigningEnabled = false))
+        val retry = sign(ethereumChain, request)
+
+        assertTrue(first.signError != null)
+        assertTrue(retry.signError is DappSigningPausedException)
+        assertEquals(listOf("0xsigned"), transactionSender.sent)
+        assertEquals(63L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+    }
+
+    @Test
+    fun `a pause holds through fetches without the key until an explicit true lifts it`() {
+        val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
+        val address = SS58Encoder.encode(keypair.publicKey, 0)
+        sessionClient.activeSession = session("${polkadotChain.caip2id}:$address")
+        coEvery { keypairProvider.getKeypairFor(polkadotChain, sameBytes(keypair.publicKey)) } returns keypair
+        coEvery { keypairProvider.getCryptoTypeFor(polkadotChain, sameBytes(keypair.publicKey)) } returns CryptoType.ED25519
+
+        featureToggles.rememberRemoteVetoes(FeatureToggleConfig(polkadotDappSigningEnabled = false))
+        assertTrue(sign(polkadotChain, polkadotSignMessage(id = 64, address = address)).signError is DappSigningPausedException)
+        featureToggles.rememberRemoteVetoes(FeatureToggleConfig())
+        assertTrue(sign(polkadotChain, polkadotSignMessage(id = 65, address = address)).signError is DappSigningPausedException)
+
+        featureToggles.rememberRemoteVetoes(FeatureToggleConfig(polkadotDappSigningEnabled = true))
+        assertTrue(sign(polkadotChain, polkadotSignMessage(id = 66, address = address)).succeeded)
+    }
+
     private class Outcome {
         var signError: Exception? = null
         var operationHash: String? = null
@@ -403,6 +457,7 @@ class WalletConnectInteractorImplTest {
         keypairProvider = keypairProvider,
         runtimeSource = runtimeSource,
         transactionSender = transactionSender,
+        featureToggles = featureToggles,
         sessionClient = sessionClient,
         signedRequests = signedRequests
     )

@@ -40,6 +40,16 @@ def safe_path(root, relative):
     return path
 
 
+def verify_feature_switches(relative, document):
+    # The app reads these with Gson: a string other than "true" turns a switch off and any other
+    # type fails the whole fetch, which freezes every remembered veto. Only JSON booleans pass.
+    if not isinstance(document, dict):
+        raise ValueError('Feature toggles must be a JSON object: ' + relative)
+    for key, value in document.items():
+        if key.endswith('_enabled') and not isinstance(value, bool):
+            raise ValueError('Feature switch ' + key + ' must be true or false: ' + relative)
+
+
 def verify_consumers(root, listed):
     paths = set()
     for pattern in ('*.gradle', '*/build.gradle', '*/build.gradle.kts', '*/src/main/**/*.kt', '*/src/main/**/*.java', '*/src/main/assets/**/*.json'):
@@ -90,6 +100,8 @@ def verify(root):
             raise ValueError('Config digest changed: ' + relative)
         if relative.endswith('.json') or relative.endswith('/feature_toggle'):
             document = json.loads(data)
+            if relative.endswith('/feature_toggle'):
+                verify_feature_switches(relative, document)
             for value in values(document):
                 if value.startswith(('https://', 'http://')) and any(old in value for old in LEGACY):
                     raise ValueError('Legacy config host: ' + value)

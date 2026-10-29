@@ -22,8 +22,14 @@ internal class WalletConnectSummaryPresenter(
     private val formatTime: (BigInteger) -> String = ::formatSigningTime
 ) {
 
-    fun present(chain: Chain, summary: WalletConnectRequestSummary): SigningSummaryViewState {
+    /** [paused]: a remote kill switch paused signing for the request's family, which is then said first. */
+    fun present(
+        chain: Chain,
+        summary: WalletConnectRequestSummary,
+        paused: Boolean = false
+    ): SigningSummaryViewState {
         val builder = SummaryBuilder(resourceManager, chain)
+        if (paused) builder.refuse(resourceManager.getString(R.string.signing_refused_paused))
         when (summary) {
             is WalletConnectRequestSummary.Message -> builder.message(summary)
             is WalletConnectRequestSummary.EvmTransaction -> builder.evmTransaction(summary)
@@ -315,7 +321,6 @@ internal class WalletConnectSummaryPresenter(
         /** The wallet will not sign the request: shown first, and as the headline of the request screen. */
         fun refuse(text: String) {
             refusals += text
-            headline = refusals.first()
         }
 
         fun nativeAmount(amount: BigInteger): String =
@@ -347,7 +352,8 @@ internal class WalletConnectSummaryPresenter(
             if (!isComplete) warnings += string(R.string.signing_warning_undecoded)
             val main = SigningSummarySection(title = null, rows = rows.toList()).takeIf { rows.isNotEmpty() }
             return SigningSummaryViewState(
-                headline = headline,
+                // Whatever the request does, why it is refused comes first.
+                headline = refusals.firstOrNull() ?: headline,
                 sections = listOfNotNull(main) + sections,
                 warnings = refusals.toList() + warnings.toList(),
                 showsRawData = !isComplete,

@@ -8,6 +8,7 @@ import com.reown.walletkit.client.WalletKit
 import com.reown.walletkit.utils.CacaoSigner
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
@@ -43,6 +44,7 @@ class WalletConnectInteractorImpl internal constructor(
     private val keypairProvider: KeypairProvider,
     private val runtimeSource: PolkadotRuntimeSource,
     private val transactionSender: EvmTransactionSender,
+    private val featureToggles: ProductFeatureToggleStore,
     private val sessionClient: WalletConnectSessionClient = WalletKitSessionClient,
     private val signedRequests: WalletConnectSignedRequests = WalletConnectSignedRequests.processWide
 ) : WalletConnectInteractor {
@@ -204,6 +206,8 @@ class WalletConnectInteractorImpl internal constructor(
         // Every read of the dApp's params happens in here: a malformed request fails, it never throws.
         // A retry after a failed response re-sends what was signed: nothing is signed or broadcast twice.
         val signResult = try {
+            // Checked before the ledger: a paused family signs nothing and sends nothing signed earlier.
+            if (featureToggles.pausesDappSigning(recentSession.request.method)) throw DappSigningPausedException()
             signedRequests.responseFor(
                 request = recentSession,
                 sign = { signRequest(chain, topic, recentSession) },

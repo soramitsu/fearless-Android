@@ -16,6 +16,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.TEST_TOPIC
 import jp.co.soramitsu.walletconnect.impl.presentation.awaitErrorDialog
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.ethereumChain
+import jp.co.soramitsu.walletconnect.impl.presentation.featureToggleStore
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionRequest
 import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestDecoder
 import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
@@ -109,7 +110,8 @@ class WalletConnectSignMessageViewModelTest {
             WalletConnectRequestDecoder {
             null
         },
-            WalletConnectSummaryPresenter(resourceManager)
+            WalletConnectSummaryPresenter(resourceManager),
+            featureToggleStore()
         )
     )
 }

@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -26,6 +27,8 @@ import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.tonconnect.api.model.DappConfig
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.impl.presentation.featureToggleStore
+import jp.co.soramitsu.tonconnect.impl.presentation.pauseTonSigning
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -73,6 +76,7 @@ class TonSignRequestPortfolioAdoptionTest {
         every { this@mockk.icon } returns "ton-icon"
     }
     private val viewModels = mutableListOf<TonSignRequestViewModel>()
+    private val featureToggles = featureToggleStore()
 
     @Before
     fun setup() {
@@ -302,6 +306,45 @@ class TonSignRequestPortfolioAdoptionTest {
     }
 
     @Test
+    fun pausedTonSigningSaysWhyAndNeverSigns() = runTest(dispatcher) {
+        featureToggles.pauseTonSigning()
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7))
+        runCurrent()
+        val dialog = requireNotNull(vm.errorDialogStateLiveData.value).peekContent()
+        assertEquals("text-${R.string.signing_refused_paused}", dialog.message)
+        vm.onPreviewClick()
+        runCurrent()
+        vm.onSignClick()
+        runCurrent()
+        coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
+
+        dialog.positiveClick()
+        val result = slot<Pair<String, Any?>>()
+        verify { router.backWithResult(capture(result)) }
+        assertEquals(TonSignRequestFragment.TON_SIGN_RESULT_KEY, result.captured.first)
+        assertTrue((result.captured.second as Result<*>).isFailure)
+    }
+
+    @Test
+    fun tonSigningPausedWhileTheRequestIsShownIsNotSigned() = runTest(dispatcher) {
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7))
+        runCurrent()
+        vm.onPreviewClick()
+        runCurrent()
+        assertNull(vm.errorDialogStateLiveData.value)
+
+        featureToggles.pauseTonSigning()
+        vm.onSignClick()
+        runCurrent()
+
+        coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
+        assertEquals("text-${R.string.signing_refused_paused}", vm.errorDialogStateLiveData.value?.peekContent()?.message)
+        assertFalse((vm.state.value as TonSignPreviewViewState).loading)
+    }
+
+    @Test
     fun repeatedTapDuringBindingLookupCannotStartAnotherSigningAttempt() = runTest(dispatcher) {
         balances.value = ready("Request wallet")
         val vm = create(dapp(7))
@@ -369,6 +412,7 @@ class TonSignRequestPortfolioAdoptionTest {
                 TonSignRequestFragment.METHOD_KEY to "sendTransaction"
             )
         ),
+        featureToggles,
         total,
         router,
         resources,

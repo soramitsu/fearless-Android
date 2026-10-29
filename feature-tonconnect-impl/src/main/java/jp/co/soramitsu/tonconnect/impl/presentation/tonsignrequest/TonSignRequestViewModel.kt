@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
@@ -45,6 +46,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TonSignRequestViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val featureToggles: ProductFeatureToggleStore,
     private val getTotalBalance: TotalBalanceUseCase,
     private val tonConnectRouter: TonConnectRouter,
     private val resourceManager: ResourceManager,
@@ -79,6 +81,7 @@ class TonSignRequestViewModel @Inject constructor(
 
     init {
         buildInitialState()
+        if (!featureToggles.tonDappSigningEnabled) showSigningPaused()
     }
 
     private fun buildInitialState() = viewModelScope.launch {
@@ -240,6 +243,17 @@ class TonSignRequestViewModel @Inject constructor(
         )
     }
 
+    // A remote kill switch paused TON dApp signing: nothing is signed, and closing declines the request.
+    private fun showSigningPaused() {
+        showError(
+            title = resourceManager.getString(R.string.signing_paused_title),
+            message = resourceManager.getString(R.string.signing_refused_paused),
+            positiveButtonText = resourceManager.getString(R.string.common_close),
+            positiveClick = ::onClose,
+            onBackClick = ::onClose
+        )
+    }
+
     override fun onPreviewClick() {
         viewModelScope.launch {
             try {
@@ -316,6 +330,11 @@ class TonSignRequestViewModel @Inject constructor(
                 if (!isCurrentRequestPortfolio(captured, requestPortfolioSource, requestMetaId, metaId)) return@launch
                 val capturedChain = captured.chainsById[chain.id] ?: return@launch
                 if (capturedChain.ecosystem != Ecosystem.Ton || capturedChain.isTestNet != chain.isTestNet) return@launch
+                // The switch may have been vetoed while the request was shown.
+                if (!featureToggles.tonDappSigningEnabled) {
+                    showSigningPaused()
+                    return@launch
+                }
                 val signed = tonConnectInteractor.signMessage(chain, method, signRequest, metaId)
                 tonConnectRouter.backWithResult(TonSignRequestFragment.TON_SIGN_RESULT_KEY to Result.success(signed))
             } catch (cancelled: CancellationException) {
