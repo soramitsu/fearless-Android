@@ -283,8 +283,12 @@ class CreateBackupPasswordViewModelTest {
         coEvery { interactor.createAccount(newWallet) } coAnswers { created.await() }
         val vm = viewModel()
 
+        assertTrue(vm.state.value.originPasswordViewState.isActive)
         vm.onApplyPasswordClick()
         runCurrent()
+        // Both fields are locked while the backup is saved, so nothing typed can show another password.
+        assertFalse(vm.state.value.originPasswordViewState.isActive)
+        assertFalse(vm.state.value.confirmPasswordViewState.isActive)
         // A stray keystroke in the masked field while the wallet is being created.
         vm.onOriginPasswordChange("backup password!")
         created.complete(Result.success(42L))
@@ -294,6 +298,9 @@ class CreateBackupPasswordViewModelTest {
         coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), "backup password!") }
         coVerify(exactly = 1) { interactor.updateWalletBackedUp(42L) }
         assertEquals("backup password", vm.state.value.originPasswordViewState.text)
+        // Once the backup is saved, the fields keep showing its password.
+        assertFalse(vm.state.value.originPasswordViewState.isActive)
+        assertFalse(vm.state.value.confirmPasswordViewState.isActive)
     }
 
     @Test

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -100,23 +101,29 @@ internal fun CreateBackupPasswordContent(
                     color = gray2
                 )
                 MarginVertical(margin = 16.dp)
-                TextInput(
-                    modifier = Modifier.focusRequester(focusRequester),
-                    state = state.originPasswordViewState,
-                    onInput = callback::onOriginPasswordChange,
-                    onEndIconClick = callback::onOriginPasswordVisibilityClick
-                )
+                // A field keeps its own text, so it is rebuilt from the accepted password whenever it is
+                // locked or unlocked: a keystroke the view model refused while saving never stays on screen.
+                key(state.originPasswordViewState.isActive) {
+                    TextInput(
+                        modifier = Modifier.focusRequester(focusRequester),
+                        state = state.originPasswordViewState,
+                        onInput = callback::onOriginPasswordChange,
+                        onEndIconClick = callback::onOriginPasswordVisibilityClick
+                    )
+                }
                 MarginVertical(margin = 16.dp)
-                TextInput(
-                    state = state.confirmPasswordViewState,
-                    onInput = callback::onConfirmPasswordChange,
-                    onEndIconClick = callback::onConfirmPasswordVisibilityClick,
-                    borderColor = if (state.highlightConfirmPassword) {
-                        colorAccent
-                    } else {
-                        white24
-                    }
-                )
+                key(state.confirmPasswordViewState.isActive) {
+                    TextInput(
+                        state = state.confirmPasswordViewState,
+                        onInput = callback::onConfirmPasswordChange,
+                        onEndIconClick = callback::onConfirmPasswordVisibilityClick,
+                        borderColor = if (state.highlightConfirmPassword) {
+                            colorAccent
+                        } else {
+                            white24
+                        }
+                    )
+                }
                 MarginVertical(margin = 8.dp)
                 B2(
                     text = state.passwordMatchingTextResource

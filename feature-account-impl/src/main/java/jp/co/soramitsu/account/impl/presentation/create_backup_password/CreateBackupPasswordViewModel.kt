@@ -96,12 +96,14 @@ class CreateBackupPasswordViewModel @Inject constructor(
         originPasswordViewState = createTextInputViewState(
             hint = resourceManager.getString(R.string.export_json_password_new),
             password = originPassword.value,
-            isPasswordVisible = false
+            isPasswordVisible = false,
+            isEditable = true
         ),
         confirmPasswordViewState = createTextInputViewState(
             hint = resourceManager.getString(R.string.export_json_password_confirm),
             password = confirmPassword.value,
-            isPasswordVisible = false
+            isPasswordVisible = false,
+            isEditable = true
         ),
         isUserAgreedWithStatements = isUserAgreedWithStatements.value,
         agreementsState = TextSelectableItemState(
@@ -130,12 +132,14 @@ class CreateBackupPasswordViewModel @Inject constructor(
             originPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_new),
                 password = originPassword,
-                isPasswordVisible = isOriginPasswordVisible
+                isPasswordVisible = isOriginPasswordVisible,
+                isEditable = !isLoading && !isBackupUploaded
             ),
             confirmPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_confirm),
                 password = confirmPassword,
-                isPasswordVisible = isConfirmPasswordVisible
+                isPasswordVisible = isConfirmPasswordVisible,
+                isEditable = !isLoading && !isBackupUploaded
             ),
             isUserAgreedWithStatements = isUserAgreedWithStatements,
             agreementsState = TextSelectableItemState(
@@ -152,13 +156,16 @@ class CreateBackupPasswordViewModel @Inject constructor(
     private fun createTextInputViewState(
         hint: String,
         password: String,
-        isPasswordVisible: Boolean
+        isPasswordVisible: Boolean,
+        isEditable: Boolean
     ): TextInputViewState {
         return TextInputViewState(
             hint = hint,
             text = password,
             mode = if (isPasswordVisible) TextInputViewState.Mode.Text else TextInputViewState.Mode.Password,
-            endIcon = if (isPasswordVisible) R.drawable.ic_eye_enabled else R.drawable.ic_eye_disabled
+            endIcon = if (isPasswordVisible) R.drawable.ic_eye_enabled else R.drawable.ic_eye_disabled,
+            // Locked while a backup is saved and once it is saved, so the fields show its password.
+            isActive = isEditable
         )
     }
 
