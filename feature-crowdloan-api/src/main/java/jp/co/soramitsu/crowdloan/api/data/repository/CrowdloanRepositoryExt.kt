@@ -2,7 +2,6 @@ package jp.co.soramitsu.crowdloan.api.data.repository
 
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundIndex
-import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -21,10 +20,4 @@ suspend fun CrowdloanRepository.getContributions(
     }
         .awaitAll()
         .toMap()
-}
-
-suspend fun CrowdloanRepository.hasWonAuction(chainId: ChainId, fundInfo: FundInfo): Boolean {
-    val paraId = fundInfo.paraId
-
-    return getWinnerInfo(chainId, mapOf(paraId to fundInfo)).getOrDefault(paraId, false)
 }
