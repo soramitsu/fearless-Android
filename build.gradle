@@ -185,9 +185,10 @@ allprojects {
                             configuration.name.endsWith('CompileClasspath') ||
                                     configuration.name.endsWith('RuntimeClasspath')
                     )
-                    details.useVersion(androidClasspath ? '33.4.8-android' :
-                            (details.requested.version?.endsWith('-jre') ? '33.3.1-jre' : '33.3.1-android'))
-                    details.because('CVE-2020-8908, CVE-2023-2976: private temporary files in Guava')
+                    details.useVersion(androidClasspath ? '33.7.2-android' :
+                            (details.requested.version?.endsWith('-jre') ? '33.7.2-jre' : '33.7.2-android'))
+                    details.because('CVE-2020-8908, CVE-2023-2976: private temporary files in Guava; ' +
+                            'CVE-2026-102554: unbounded allocation when deserializing Guava collections')
                 }
                 if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
                     details.useVersion('3.18.0')
