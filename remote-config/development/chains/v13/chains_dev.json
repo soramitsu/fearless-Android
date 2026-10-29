@@ -5,17 +5,9 @@
     "rank": 8,
     "name": "Polkadot",
     "externalApi": {
-      "staking": {
-        "type": "subsquid",
-        "url": "https://squid.subsquid.io/fearless-polkadot/v/v3/graphql"
-      },
       "history": {
         "type": "subsquid",
         "url": "https://squid.subsquid.io/fearless-polkadot/v/v3/graphql"
-      },
-      "crowdloans": {
-        "type": "github",
-        "url": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/polkadot.json"
       },
       "explorers": [
         {
@@ -38,7 +30,6 @@
         "priceId": "polkadot",
         "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
         "color": "FF0066",
-        "staking": "relaychain",
         "purchaseProviders": [
           "moonpay",
           "ramp"
@@ -91,11 +82,7 @@
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polkadot.svg",
-    "addressPrefix": 0,
-    "options": [
-      "crowdloans",
-      "poolStaking"
-    ]
+    "addressPrefix": 0
   },
   {
     "disabled": false,
@@ -104,10 +91,6 @@
     "name": "Kusama",
     "identityChain": "c1af4cb4eb3918e5db15086c0cc5ec17fb334f728b7c65dd44bfe1e174ff8b3f",
     "externalApi": {
-      "staking": {
-        "type": "subsquid",
-        "url": "https://fearless-wallet.squids.live/fearless-kusama-2/v/v4/graphql"
-      },
       "history": {
         "type": "subsquid",
         "url": "https://fearless-wallet.squids.live/fearless-kusama-2/v/v4/graphql"
@@ -132,7 +115,6 @@
         "priceId": "kusama",
         "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
         "color": "FFFFFF",
-        "staking": "relaychain",
         "purchaseProviders": [
           "ramp"
         ],
@@ -180,10 +162,7 @@
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
-    "addressPrefix": 2,
-    "options": [
-      "poolStaking"
-    ]
+    "addressPrefix": 2
   },
   {
     "disabled": false,
@@ -191,10 +170,6 @@
     "rank": 108,
     "name": "Westend",
     "externalApi": {
-      "crowdloans": {
-        "type": "github",
-        "url": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/westend.json"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -208,7 +183,6 @@
     },
     "assets": [
       {
-        "staking": "relaychain",
         "isUtility": true,
         "id": "a3868e1b-922e-42d4-b73e-b41712f0843c",
         "name": "westend",
@@ -233,9 +207,7 @@
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Westend.svg",
     "addressPrefix": 42,
     "options": [
-      "testnet",
-      "crowdloans",
-      "poolStaking"
+      "testnet"
     ]
   },
   {
@@ -245,10 +217,6 @@
     "paraId": "1000",
     "name": "Kusama AssetHub",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-statemine-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -317,8 +285,7 @@
           "symbol": "USDt"
         }
       ],
-      "availableDestinations": [
-      ]
+      "availableDestinations": []
     },
     "ecosystem": "substrate",
     "nodes": [
@@ -356,10 +323,6 @@
     "paraId": "1000",
     "name": "Polkadot AssetHub",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid.subsquid.io/gs-main-statemint/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -490,10 +453,6 @@
     "name": "Acala",
     "paraId": "2000",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-acala-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -690,14 +649,6 @@
       {
         "url": "wss://acala-rpc-3.aca-api.network/ws",
         "name": "Acala Foundation 3 node"
-      },
-      {
-        "url": "wss://acala.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://acala.dotters.network",
-        "name": "IBP2 node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/acala.svg",
@@ -713,10 +664,6 @@
     "name": "Karura",
     "paraId": "2000",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-karura-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -1095,18 +1042,13 @@
           "symbol": "MOVR"
         }
       ],
-      "availableDestinations": [
-      ]
+      "availableDestinations": []
     },
     "ecosystem": "substrate",
     "nodes": [
       {
         "url": "wss://api-karura.dwellir.com",
         "name": "Dwellir node"
-      },
-      {
-        "url": "wss://karura.polkawallet.io",
-        "name": "Polkawallet node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg",
@@ -1117,169 +1059,11 @@
   },
   {
     "disabled": false,
-    "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "rank": 11,
-    "name": "Moonriver",
-    "paraId": "2023",
-    "externalApi": {
-      "staking": {
-        "type": "subsquid",
-        "url": "https://squid.subsquid.io/fearless-moonriver-1/v/v2/graphql"
-      },
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-moonriver-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://moonriver.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "35346815-009a-4cf9-a5ad-85a0167e594d",
-        "name": "moonriver",
-        "symbol": "movr",
-        "precision": 18,
-        "priceId": "moonriver",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MOVR.svg",
-        "color": "FFFFFF",
-        "staking": "parachain",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "980af72c-d1b8-46c7-9793-fa87912652ec",
-        "name": "kusama",
-        "symbol": "xcksm",
-        "currencyId": "42259045809535163221576417993425387648",
-        "precision": 12,
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF",
-        "type": "assets"
-      },
-      {
-        "id": "d1ebeaa2-e7ac-4645-8dce-e873ebdbb995",
-        "type": "assets",
-        "name": "acala dollar",
-        "symbol": "xcausd",
-        "currencyId": "214920334981412447805621250067209749032",
-        "precision": 12,
-        "priceId": "acala-dollar",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/AUSD.svg",
-        "color": "E40C5B"
-      },
-      {
-        "id": "8e45603e-91c4-4624-8457-9e9b24a98610",
-        "type": "assets",
-        "name": "xcrmrk",
-        "symbol": "xcrmrk",
-        "currencyId": "182365888117048807484804376330534607370",
-        "precision": 10,
-        "priceId": "rmrk",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/RMRK.svg",
-        "color": "392B73"
-      },
-      {
-        "id": "4f9750bb-f3f5-45b3-a180-a0c734f52562",
-        "type": "assets",
-        "name": "kintsugi wrapped btc",
-        "symbol": "xckbtc",
-        "currencyId": "328179947973504579459046439826496046832",
-        "precision": 8,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KBTC.svg",
-        "color": "FFFFFF",
-        "priceId": "kintsugi-btc"
-      },
-      {
-        "id": "ff8fce18-260f-46c9-85bd-36157d1f756e",
-        "type": "assets",
-        "name": "phala token",
-        "symbol": "xcpha",
-        "currencyId": "189307976387032586987344677431204943363",
-        "precision": 12,
-        "priceId": "pha",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PHA.svg",
-        "color": "DAFE6F"
-      },
-      {
-        "id": "88cfc7c3-6b8e-49a5-8620-e014840d4bf9",
-        "type": "assets",
-        "name": "robonomics native token",
-        "symbol": "xcxrt",
-        "currencyId": "108036400430056508975016746969135344601",
-        "precision": 9,
-        "priceId": "robonomics-network",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/XRT.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "db8fdbe6-26b0-4910-a267-d7a58c22c7ec",
-        "type": "assets",
-        "name": "kintsugi native token",
-        "symbol": "xckint",
-        "currencyId": "175400718394635817552109270754364440562",
-        "precision": 12,
-        "priceId": "kintsugi",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KINT.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "1854feda-ca0c-4e82-9076-af2c7978f042",
-        "type": "assets",
-        "name": "karura",
-        "symbol": "xckar",
-        "currencyId": "10810581592933651521121702237638664357",
-        "precision": 12,
-        "priceId": "karura",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KAR.svg",
-        "color": "FFFFFF"
-      }
-    ],
-    "ecosystem": "ethereumBased",
-    "nodes": [
-      {
-        "url": "wss://api-moonriver.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://wss.moonriver.moonbeam.network",
-        "name": "PureStake node"
-      },
-      {
-        "url": "wss://moonriver.unitedbloc.com",
-        "name": "UnitedBloc node"
-      },
-      {
-        "url": "wss://wss.api.moonriver.moonbeam.network",
-        "name": "Moonbeam Foundation node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonriver.svg",
-    "addressPrefix": 1285,
-    "options": [
-      "ethereumBased"
-    ]
-  },
-  {
-    "disabled": false,
     "chainId": "f1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2007",
     "name": "Shiden",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-shiden-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -1335,10 +1119,6 @@
       {
         "url": "wss://rpc.shiden.astar.network",
         "name": "StakeTechnologies node"
-      },
-      {
-        "url": "wss://shiden.public.blastapi.io",
-        "name": "Blast node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Shiden.svg",
@@ -1351,10 +1131,6 @@
     "paraId": "2001",
     "name": "Bifrost",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid.subsquid.io/gs-main-Bifrost/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -1520,8 +1296,7 @@
           "symbol": "USDt"
         }
       ],
-      "availableDestinations": [
-      ]
+      "availableDestinations": []
     },
     "ecosystem": "substrate",
     "nodes": [
@@ -1543,555 +1318,11 @@
   },
   {
     "disabled": false,
-    "chainId": "d43540ba6d3eb4897c28a77d48cb5b729fea37603cbbfc7a86a73b72adb3be8d",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2004",
-    "name": "Khala",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-khala-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://khala.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "3feb7de3-e881-4c04-a4de-1b9091dbc324",
-        "name": "phala",
-        "symbol": "pha",
-        "precision": 12,
-        "priceId": "pha",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PHA.svg",
-        "color": "DAFE6F",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "34d7fc9d-d616-4c3e-9398-060b18220a55",
-        "type": "assets",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "currencyId": "0",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-khala.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://khala-api.phala.network/ws",
-        "name": "Phala node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Khala.svg",
-    "addressPrefix": 30
-  },
-  {
-    "disabled": false,
-    "chainId": "411f057b9107718c9624d6aa4a3f23c1653898297f3d4d529d9bb6511a39dd21",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2086",
-    "name": "KILT Spiritnet",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-kilt-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://spiritnet.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "f0d5cadc-4999-45f3-8160-15243f2909d3",
-        "name": "kilt protocol",
-        "symbol": "kilt",
-        "precision": 15,
-        "priceId": "kilt-protocol",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KILT.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://spiritnet.kilt.io/",
-        "name": "KILT Protocol node"
-      },
-      {
-        "url": "wss://kilt-rpc.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kilt.svg",
-    "addressPrefix": 38
-  },
-  {
-    "disabled": false,
-    "chainId": "4ac80c99289841dd946ef92765bf659a307d39189b3ce374a92b5f0415ee17a1",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2084",
-    "name": "Calamari",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-calamari-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://calamari.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "39d4080e-e2ab-43f3-bcc2-2fa281d9290c",
-        "name": "calamari network",
-        "symbol": "kma",
-        "precision": 12,
-        "priceId": "calamari-network",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KMA.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "bd018ed9-069b-4d51-b5db-56b70bb5434c",
-        "type": "assets",
-        "name": "moonriver",
-        "symbol": "movr",
-        "precision": 18,
-        "currencyId": "11",
-        "priceId": "moonriver",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MOVR.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "003bb609-cae4-4cf0-afad-4230ca17873b",
-        "type": "assets",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "currencyId": "12",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "6094eb13-6084-4909-9232-31b6088ad4cc",
-        "type": "assets",
-        "name": "karura",
-        "symbol": "kar",
-        "precision": 12,
-        "currencyId": "8",
-        "priceId": "karura",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KAR.svg",
-        "color": "FFFFFF"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://calamari.systems",
-        "name": "Manta Network node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Calamari.svg",
-    "addressPrefix": 78
-  },
-  {
-    "disabled": false,
-    "chainId": "cd4d732201ebe5d6b014edda071c4203e16867305332301dc8d092044b28e554",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2095",
-    "name": "Quartz",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-quartz"
-      }
-    },
-    "assets": [
-      {
-        "id": "d0f2e718-99ee-4bc2-8dc2-1ce07f21c5ac",
-        "name": "quartz",
-        "symbol": "qtz",
-        "precision": 18,
-        "priceId": "quartz",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/QTZ.svg",
-        "color": "EC5B6D",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-quartz.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://eu-ws-quartz.unique.network",
-        "name": "Unique Europe node"
-      },
-      {
-        "url": "wss://ws-quartz.unique.network",
-        "name": "Geo Load Balancer node"
-      },
-      {
-        "url": "wss://asia-ws-quartz.unique.network",
-        "name": "Unique Asia node"
-      },
-      {
-        "url": "wss://us-ws-quartz.unique.network",
-        "name": "Unique America node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/quartz.svg",
-    "addressPrefix": 255
-  },
-  {
-    "disabled": false,
-    "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2085",
-    "name": "Parallel Heiko",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-parallel_heiko"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://parallel-heiko.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "02b54158-4f4f-4077-b6a7-7c9edd75a1ca",
-        "name": "heiko finance",
-        "symbol": "hko",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/HKO.svg",
-        "color": "CC3474",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "382a7dd4-5444-4797-8cec-d921000144ed",
-        "type": "assets",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "currencyId": "100",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "7bd1b0ca-a4a7-4b67-8f8b-cb19e2d3fab8",
-        "type": "assets",
-        "name": "moonriver",
-        "symbol": "movr",
-        "precision": 18,
-        "currencyId": "113",
-        "priceId": "moonriver",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MOVR.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "b48b21fb-eb3f-4296-9978-8dc42e42f384",
-        "type": "assets",
-        "name": "karura",
-        "symbol": "kar",
-        "precision": 12,
-        "currencyId": "107",
-        "priceId": "karura",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KAR.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "535ab9cf-fa62-4e19-ab39-02e5584ef7af",
-        "type": "assets",
-        "name": "tether usd",
-        "symbol": "usdt",
-        "precision": 6,
-        "currencyId": "102",
-        "priceId": "tether",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDT.svg",
-        "color": "26A17B"
-      },
-      {
-        "id": "7a97a272-c767-4b45-b055-4c521168558c",
-        "type": "assets",
-        "name": "kintsugi native token",
-        "symbol": "kint",
-        "precision": 12,
-        "currencyId": "119",
-        "priceId": "kintsugi",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KINT.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "5959efca-47b7-4ec4-a009-5870e2231d52",
-        "type": "assets",
-        "name": "kintsugi ibtc",
-        "symbol": "kbtc",
-        "precision": 8,
-        "currencyId": "121",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KBTC.svg",
-        "color": "FFFFFF",
-        "priceId": "kintsugi-btc"
-      },
-      {
-        "id": "d0262105-2c85-4167-bde0-50c7cdfe4942",
-        "type": "assets",
-        "name": "phala token",
-        "symbol": "pha",
-        "precision": 12,
-        "currencyId": "115",
-        "priceId": "pha",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PHA.svg",
-        "color": "DAFE6F"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://heiko-rpc.parallel.fi",
-        "name": "Parallel node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/parallelfinance.svg",
-    "addressPrefix": 110
-  },
-  {
-    "disabled": false,
-    "chainId": "6811a339673c9daa897944dcdac99c6e2939cc88245ed21951a0a3c9a2be75bc",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2087",
-    "name": "Picasso",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-picasso-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://picasso.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "d24959cd-72fb-4155-9880-86d42b1d1cbb",
-        "name": "picasso",
-        "symbol": "pica",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PICA.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-picasso.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://picasso-rpc.composable.finance",
-        "name": "Composable Finance node"
-      },
-      {
-        "url": "wss://rpc.composablenodes.tech",
-        "name": "Composable node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/picasso.svg",
-    "addressPrefix": 49
-  },
-  {
-    "disabled": false,
-    "chainId": "aa3876c1dc8a1afcc2e9a685a49ff7704cfd36ad8c90bf2702b9d1b00cc40011",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2088",
-    "name": "Altair",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-altair-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://altair.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "56c7f785-23d6-4199-accf-846be58011e6",
-        "name": "altair",
-        "symbol": "air",
-        "precision": 18,
-        "priceId": "altair",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/AIR.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://fullnode.altair.centrifuge.io",
-        "name": "Centrifuge node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Altair.svg",
-    "addressPrefix": 136
-  },
-  {
-    "disabled": false,
-    "chainId": "f22b7850cdd5a7657bbfd90ac86441275bbc57ace3d2698a740c7b0ec4de5ec3",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2096",
-    "name": "Pioneer Network",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-bit_country_pioneer"
-      }
-    },
-    "assets": [
-      {
-        "id": "d3b93409-97b1-42e0-8dbc-99d3fb93fc10",
-        "name": "metaverse.network pioneer",
-        "symbol": "neer",
-        "precision": 18,
-        "priceId": "metaverse-network-pioneer",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/NEER.svg",
-        "color": "B8FBFE",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://pioneer-rpc-3.bit.country/wss",
-        "name": "MetaverseNetwork node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/bitcountry.svg",
-    "addressPrefix": 268
-  },
-  {
-    "disabled": false,
-    "chainId": "5c7bd13edf349b33eb175ffae85210299e324d852916336027391536e686f267",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2002",
-    "name": "Clover",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-clover"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://clv.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "4b7ab596-bff4-4fd8-9c60-24ef1cbe9584",
-        "name": "clover finance",
-        "symbol": "clv",
-        "precision": 18,
-        "priceId": "clover-finance",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/CLV.svg",
-        "color": "73D4FD",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc-para.clover.finance",
-        "name": "Clover node"
-      },
-      {
-        "url": "wss://clover-rpc.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/clover.svg",
-    "addressPrefix": 128
-  },
-  {
-    "disabled": false,
     "chainId": "9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2006",
     "name": "Astar",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-astar-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -2191,10 +1422,6 @@
         "name": "Astar node"
       },
       {
-        "url": "wss://astar.public.blastapi.io",
-        "name": "Blast node"
-      },
-      {
         "url": "wss://astar.public.curie.radiumblock.co/ws",
         "name": "RadiumBlock node"
       }
@@ -2207,189 +1434,10 @@
   },
   {
     "disabled": false,
-    "chainId": "e61a41c53f5dcd0beb09df93b34402aada44cb05117b71059cce40a2723a4e97",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2012",
-    "name": "Parallel",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-parallel-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://parallel.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "f78aa731-a33c-4d8d-a3bb-74835064366b",
-        "name": "parallel finance",
-        "symbol": "para",
-        "precision": 12,
-        "priceId": "parallel-finance",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PARA.svg",
-        "color": "4C19E7",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "769ffb89-fd2f-4add-94a1-d2f9f716c143",
-        "type": "assets",
-        "name": "polkadot",
-        "symbol": "dot",
-        "precision": 10,
-        "currencyId": "101",
-        "priceId": "polkadot",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "1d850850-a2fb-4728-8dfc-13679c470017",
-        "type": "assets",
-        "name": "moonbeam",
-        "symbol": "glmr",
-        "precision": 18,
-        "currencyId": "114",
-        "priceId": "moonbeam",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/GLMR.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "5e745a28-9827-4d7f-9df9-e2cfbe4d11a5",
-        "type": "assets",
-        "name": "interlay",
-        "symbol": "intr",
-        "precision": 10,
-        "currencyId": "120",
-        "priceId": "interlay",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/INTR.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "ba44778d-f7a2-4adb-91f9-efd9a46468a7",
-        "type": "assets",
-        "name": "liquid crowdloan dot",
-        "symbol": "lcdot",
-        "precision": 10,
-        "currencyId": "106",
-        "priceId": "liquid-crowdloan-dot",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/LCDOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "01adcd11-256d-4ac2-966e-9bb87ed5f769",
-        "type": "assets",
-        "name": "acala",
-        "symbol": "aca",
-        "precision": 12,
-        "currencyId": "108",
-        "priceId": "acala",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ACA.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "bf70329b-421a-4b68-87eb-ef85e0d0044e",
-        "type": "assets",
-        "name": "liquid dot",
-        "symbol": "ldot",
-        "precision": 10,
-        "currencyId": "110",
-        "priceId": "liquid-staking-dot",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/LDOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "b4dc02ce-3e71-4d92-8e1a-9599a75d20e4",
-        "type": "assets",
-        "name": "inter ibtc",
-        "symbol": "ibtc",
-        "precision": 8,
-        "currencyId": "122",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/iBTC.svg",
-        "color": "F2AE7F"
-      },
-      {
-        "id": "c5453123-c85e-4226-b2a8-fbf0deb88e9f",
-        "type": "assets",
-        "name": "tether usd",
-        "symbol": "usdt",
-        "precision": 6,
-        "currencyId": "102",
-        "priceId": "tether",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDT.svg",
-        "color": "26A17B"
-      },
-      {
-        "id": "e52c5825-3076-4277-84e2-8b45f778d981",
-        "type": "assets",
-        "name": "cdot-6/13",
-        "symbol": "cdot-6/13",
-        "precision": 10,
-        "currencyId": "200060013",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/%D1%81DOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "1236185c-fa70-481e-befa-deda855054df",
-        "type": "assets",
-        "name": "cdot-7/14",
-        "symbol": "cdot-7/14",
-        "precision": 10,
-        "currencyId": "200070014",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/%D1%81DOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "afe2d55d-2fa7-4e7b-ab2c-c4c4aea15a87",
-        "type": "assets",
-        "name": "cdot-8/15",
-        "symbol": "cdot-8/15",
-        "precision": 10,
-        "currencyId": "200080015",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/%D1%81DOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "d6d35753-a3dc-4987-8995-2afbe0a65606",
-        "type": "assets",
-        "name": "phala token",
-        "symbol": "pha",
-        "precision": 12,
-        "currencyId": "115",
-        "priceId": "pha",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PHA.svg",
-        "color": "DAFE6F"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://parallel-rpc.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/parallelfinance.svg",
-    "addressPrefix": 172
-  },
-  {
-    "disabled": false,
     "chainId": "a85cfb9b9fd4d622a5b28289a02347af987d8f73fa3108450e2b4a11c1ce5755",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2090",
     "name": "Basilisk",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-basilisk-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
     "assets": [
       {
         "id": "7dae28e2-9f5e-49ff-9140-aa750a9579ea",
@@ -2443,463 +1491,11 @@
   },
   {
     "disabled": false,
-    "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "rank": 12,
-    "paraId": "2004",
-    "name": "Moonbeam",
-    "externalApi": {
-      "staking": {
-        "type": "subsquid",
-        "url": "https://squid.subsquid.io/fearless-x-moonbeam/v/v2/graphql"
-      },
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-moonbeam-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://moonbeam.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "e40c8161-9fc9-4749-a3b8-ed1c0ad16475",
-        "name": "moonbeam",
-        "symbol": "glmr",
-        "precision": 18,
-        "priceId": "moonbeam",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/GLMR.svg",
-        "color": "FFFFFF",
-        "staking": "parachain",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "7e4e064e-2b23-4eb5-96db-e6491c4031e5",
-        "type": "assets",
-        "name": "polkadot",
-        "symbol": "xcdot",
-        "precision": 10,
-        "currencyId": "42259045809535163221576417993425387648",
-        "priceId": "polkadot",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "311e3073-1bfb-40de-b601-20278e457577",
-        "type": "assets",
-        "name": "acala dollar",
-        "symbol": "xcausd",
-        "precision": 12,
-        "currencyId": "110021739665376159354538090254163045594",
-        "priceId": "acala-dollar",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/AUSD.svg",
-        "color": "E40C5B"
-      },
-      {
-        "id": "9539da0e-3610-406a-b1b9-c811b6508a17",
-        "type": "assets",
-        "name": "acala",
-        "symbol": "xcaca",
-        "precision": 12,
-        "currencyId": "224821240862170613278369189818311486111",
-        "priceId": "acala",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ACA.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "1509c799-b30f-4fde-934e-791f1c88f3d1",
-        "type": "assets",
-        "name": "interlay",
-        "symbol": "xcintr",
-        "precision": 10,
-        "currencyId": "101170542313601871197860408087030232491",
-        "priceId": "interlay",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/INTR.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "9e738e1a-81be-4ac2-8de0-b56e565699ce",
-        "type": "assets",
-        "name": "astar",
-        "symbol": "xcastr",
-        "precision": 18,
-        "currencyId": "224077081838586484055667086558292981199",
-        "priceId": "astar",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ASTR.svg",
-        "color": "0AE2FF"
-      },
-      {
-        "id": "5d4c759c-0f38-4c63-bdde-9359bdb0fa24",
-        "type": "assets",
-        "name": "tether usd",
-        "symbol": "xcusdt",
-        "precision": 6,
-        "currencyId": "311091173110107856861649819128533077277",
-        "priceId": "tether",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDT.svg",
-        "color": "26A17B"
-      },
-      {
-        "id": "d69e3203-d914-4c70-8f38-ed66ea5d94ea",
-        "type": "assets",
-        "name": "equilibrium token",
-        "symbol": "xceq",
-        "precision": 9,
-        "currencyId": "190590555344745888270686124937537713878",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/EQ.svg",
-        "color": "5176E6"
-      },
-      {
-        "id": "6cdc81d9-28a4-4b3c-8358-78a93f207ce7",
-        "type": "assets",
-        "name": "equilibrium dollar protocol",
-        "symbol": "xceqd",
-        "precision": 9,
-        "currencyId": "187224307232923873519830480073807488153",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/EQD.svg",
-        "color": "4D8BED"
-      },
-      {
-        "id": "f68a9550-7d4c-4358-81bc-61c5ea233f20",
-        "type": "assets",
-        "name": "phala token",
-        "symbol": "xcpha",
-        "precision": 12,
-        "currencyId": "132685552157663328694213725410064821485",
-        "priceId": "pha",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PHA.svg",
-        "color": "DAFE6F"
-      },
-      {
-        "id": "6fed1ff5-3aa5-4d94-b07a-22dfc0770fc0",
-        "type": "assets",
-        "name": "pink",
-        "symbol": "xcpink",
-        "precision": 10,
-        "currencyId": "64174511183114006009298114091987195453",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PINK.svg",
-        "color": "FF0066"
-      }
-    ],
-    "ecosystem": "ethereumBased",
-    "nodes": [
-      {
-        "url": "wss://api-moonbeam.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://wss.api.moonbeam.network",
-        "name": "Moonbeam Foundation node"
-      },
-      {
-        "url": "wss://moonbeam.unitedbloc.com",
-        "name": "UnitedBloc node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonbeam.svg",
-    "addressPrefix": 1284,
-    "options": [
-      "ethereumBased"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527",
-    "rank": 111,
-    "name": "Moonbase Alpha",
-    "externalApi": {
-      "staking": {
-        "type": "subsquid",
-        "url": "https://squid.subsquid.io/moonbase-x-fearless/v/v1/graphql"
-      },
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-moonbase_alpha"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://moonbase.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "caf10b57-bb4d-437b-81be-d2e1a6acdcc5",
-        "name": "moonbase alpha",
-        "symbol": "dev",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/GLMR.svg",
-        "color": "FFFFFF",
-        "staking": "parachain",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "ethereumBased",
-    "nodes": [
-      {
-        "url": "wss://wss.api.moonbase.moonbeam.network",
-        "name": "Moonbeam Network node"
-      },
-      {
-        "url": "wss://moonbase.unitedbloc.com",
-        "name": "UnitedBloc node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Moonbeam.svg",
-    "addressPrefix": 1287,
-    "options": [
-      "testnet",
-      "ethereumBased"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2092",
-    "name": "Kintsugi",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-kintsugi"
-      }
-    },
-    "assets": [
-      {
-        "id": "f5d1db12-0a68-4897-903d-51a887daa1db",
-        "name": "kintsugi",
-        "symbol": "kint",
-        "precision": 12,
-        "priceId": "kintsugi",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KINT.svg",
-        "color": "FFFFFF",
-        "type": "ormlChain",
-        "isUtility": true
-      },
-      {
-        "id": "a6761186-60ba-4ea8-bec1-2db08a420301",
-        "type": "ormlChain",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "80662ad9-8920-43ae-859a-33d97e87f74e",
-        "type": "ormlChain",
-        "name": "kintsugi ibtc",
-        "symbol": "kbtc",
-        "precision": 8,
-        "priceId": "kintsugi-btc",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KBTC.svg",
-        "color": "FFFFFF"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-kintsugi.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://api-kusama.interlay.io/parachain",
-        "name": "Kintsugi Labs node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kintsugi.svg",
-    "addressPrefix": 2092,
-    "iosMinAppVersion": "2.0.7"
-  },
-  {
-    "disabled": false,
-    "chainId": "9de765698374eb576968c8a764168893fb277e65ad3ddafcfe2c49593fc6d663",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2024",
-    "name": "Genshiro",
-    "assets": [
-      {
-        "id": "e207bcef-ab90-4df4-852f-566c309d778e",
-        "name": "genshiro",
-        "symbol": "gens",
-        "currencyId": "1734700659",
-        "precision": 9,
-        "priceId": "genshiro",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/GENS.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "equilibrium"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://node.ksm.genshiro.io",
-        "name": "Genshiro node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Genshiro.svg",
-    "addressPrefix": 67
-  },
-  {
-    "disabled": false,
-    "chainId": "631ccc82a078481584041656af292834e1ae6daab61d2875b4dd0c14bb9b17bc",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2048",
-    "name": "Robonomics",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://robonomics.subscan.io/{type}/{value}"
-        }
-      ],
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-robonomics-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "ca39e03e-dde3-41ac-b1f4-a3d20202b79e",
-        "name": "robonomics network",
-        "symbol": "xrt",
-        "precision": 9,
-        "priceId": "robonomics-network",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/XRT.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "b52b937a-f22b-4bab-a601-476aeeec4f2f",
-        "type": "assets",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "currencyId": "4294967295",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://kusama.rpc.robonomics.network",
-        "name": "Airalab node"
-      },
-      {
-        "url": "wss://robonomics.leemo.me",
-        "name": "Leemo node"
-      },
-      {
-        "url": "wss://robonomics.0xsamsara.com",
-        "name": "Samsara node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/robonomics.svg",
-    "addressPrefix": 32
-  },
-  {
-    "disabled": false,
-    "chainId": "4a12be580bb959937a1c7a61d5cf24428ed67fa571974b4007645d1886e7c89f",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2101",
-    "name": "Subsocial",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-subsocial-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "07f9e907-d099-4893-a67b-96cb2fe63049",
-        "name": "subsocial",
-        "symbol": "sub",
-        "precision": 10,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/SUB.svg",
-        "color": "AC2489",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://para.subsocial.network",
-        "name": "Dappforce node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/subsocial_new.svg",
-    "addressPrefix": 28
-  },
-  {
-    "disabled": false,
-    "chainId": "1bf2a2ecb4a868de66ea8610f2ce7c8c43706561b6476031315f6640fe38e060",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2092",
-    "name": "Zeitgeist",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-zeitgeist-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "2246fe14-4ec4-460c-8d92-e15bd337f8af",
-        "name": "zeitgeist",
-        "symbol": "ztg",
-        "precision": 10,
-        "priceId": "zeitgeist",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ZTG.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-zeitgeist.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/zeitgeist.svg",
-    "addressPrefix": 73
-  },
-  {
-    "disabled": false,
     "chainId": "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2034",
     "name": "Hydration",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-hydradx-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -2987,10 +1583,6 @@
         "name": "Helikon node"
       },
       {
-        "url": "wss://hydration.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
         "url": "wss://hydration.dotters.network",
         "name": "IBP2 node"
       }
@@ -3000,267 +1592,10 @@
   },
   {
     "disabled": false,
-    "chainId": "b3db41421702df9a7fcac62b53ffeac85f7853cc4e689e0b93aeb3db18c09d82",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2031",
-    "name": "Centrifuge",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-centrifuge-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://centrifuge.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "7b1963a6-11f1-461c-a9f1-83d82a54b7ee",
-        "name": "centrifuge",
-        "symbol": "cfg",
-        "precision": 18,
-        "priceId": "centrifuge",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/CFG.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-centrifuge.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://fullnode.parachain.centrifuge.io",
-        "name": "Centrufge node"
-      },
-      {
-        "url": "wss://rpc-centrifuge.luckyfriday.io",
-        "name": "LuckyFriday node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/centrifuge.svg",
-    "addressPrefix": 36
-  },
-  {
-    "disabled": false,
-    "chainId": "97da7ede98d7bad4e36b4d734b6055425a3be036da2a332ea5a7037656427a21",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2026",
-    "name": "Nodle Parachain",
-    "assets": [
-      {
-        "id": "e0e1107-e323-43aa-bb93-d7618d2c8cf5",
-        "name": "nodle network",
-        "symbol": "nodl",
-        "precision": 11,
-        "priceId": "nodle-network",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/NODL.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-nodle.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/nodle.svg",
-    "addressPrefix": 37
-  },
-  {
-    "disabled": false,
-    "chainId": "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2032",
-    "name": "Interlay",
-    "assets": [
-      {
-        "id": "7a77b6b0-f015-4ccc-a5bb-3456e17775dd",
-        "name": "interlay",
-        "symbol": "intr",
-        "precision": 10,
-        "priceId": "interlay",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/INTR.svg",
-        "color": "FFFFFF",
-        "type": "ormlChain",
-        "isUtility": true
-      },
-      {
-        "id": "2a45aeb9-f585-4f1b-9558-ee3aa186a809",
-        "type": "ormlChain",
-        "currencyId": "DOT",
-        "name": "polkadot",
-        "symbol": "dot",
-        "precision": 10,
-        "priceId": "polkadot",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
-        "color": "FF0066"
-      },
-      {
-        "id": "fdb17d7c-ca72-4ed7-9fc8-728aa366c843",
-        "type": "ormlChain",
-        "name": "inter ibtc",
-        "symbol": "ibtc",
-        "precision": 8,
-        "priceId": "interbtc",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/iBTC.svg",
-        "color": "F2AE7F"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-interlay.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://api.interlay.io/parachain",
-        "name": "Kintsugi Labs node"
-      },
-      {
-        "url": "wss://rpc-interlay.luckyfriday.io",
-        "name": "LuckyFriday node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/interlay.svg",
-    "addressPrefix": 2032
-  },
-  {
-    "disabled": false,
-    "chainId": "da5831fbc8570e3c6336d0d72b8c08f8738beefec812df21ef2afc2982ede09c",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2106",
-    "name": "Litmus",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-litmus-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "15076759-6a5b-4cd6-b84c-e64842f094e5",
-        "name": "litentry",
-        "symbol": "lit",
-        "precision": 12,
-        "priceId": "litentry",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/LIT_KSM.svg",
-        "color": "6530F0",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc.litmus-parachain.litentry.io",
-        "name": "Litentry node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/litmus.svg",
-    "addressPrefix": 131
-  },
-  {
-    "disabled": false,
-    "chainId": "3920bcb4960a1eef5580cd5367ff3f430eef052774f78468852f7b9cb39f8a3c",
-    "name": "Polkadex Main Network",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-polkadex-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "5502c9cb-14f7-4de8-a35d-71263dc3f78f",
-        "name": "polkadex",
-        "symbol": "pdex",
-        "precision": 12,
-        "priceId": "polkadex",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PDEX.svg",
-        "color": "D32D79",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://polkadex-mainnet-rpc.dwellir.com",
-        "name": "Dwellir"
-      },
-      {
-        "url": "wss://polkadex.api.onfinality.io/public-ws",
-        "name": "OnFinality"
-      },
-      {
-        "url": "wss://polkadex.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/polkadex.svg",
-    "addressPrefix": 88
-  },
-  {
-    "disabled": true,
-    "chainId": "577d331ca43646f547cdaa07ad0aa387a383a93416764480665103081f3eaf14",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2115",
-    "name": "Dorafactory Network",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/Dora-Factory-x-Fearless-Wallet"
-      }
-    },
-    "assets": [
-      {
-        "id": "c0d1efac-597d-4c56-b5ad-b683b8214ada",
-        "name": "dora factory",
-        "symbol": "dora",
-        "precision": 12,
-        "priceId": "dora-factory",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DORA.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://kusama.dorafactory.org",
-        "name": "DORA node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/DoraFactory.svg",
-    "addressPrefix": 128
-  },
-  {
-    "disabled": false,
     "chainId": "e7e0962324a3b86c83404dbea483f25fb5dab4c224791c81b756cfc948006174",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2043",
     "name": "OriginTrail Parachain",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-origintrail-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
     "assets": [
       {
         "id": "af5bf9f0-0009-4cf8-98ed-b988268c94f1",
@@ -3289,12 +1624,6 @@
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2037",
     "name": "UNIQUE",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/Unique-x-Fearless-Wallet"
-      }
-    },
     "assets": [
       {
         "id": "57d05537-06a2-453b-ac87-d081aee65ec9",
@@ -3341,10 +1670,6 @@
     "paraId": "2030",
     "name": "Bifrost Polkadot",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-bifrostpolkadot-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -3422,12 +1747,6 @@
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2013",
     "name": "Litentry",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-litentry-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
     "assets": [
       {
         "id": "10de552c-20cb-4a86-9bf8-cf5827ca2f71",
@@ -3457,142 +1776,10 @@
   },
   {
     "disabled": false,
-    "chainId": "1bb969d85965e4bb5a651abbedf21a54b6b31a21f66b5401cc3f1e286268d736",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2035",
-    "name": "Phala",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-phala-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "50add3d2-baa6-4bf3-9995-e6532ad51726",
-        "name": "phala",
-        "symbol": "pha",
-        "precision": 12,
-        "priceId": "pha",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PHA.svg",
-        "color": "DAFE6F",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-phala.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://api.phala.network/ws",
-        "name": "Phala node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/phala.svg",
-    "addressPrefix": 30
-  },
-  {
-    "disabled": false,
-    "chainId": "daab8df776eb52ec604a5df5d388bb62a050a0aaec4556a64265b9d42755552d",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2019",
-    "name": "Composable Finance",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-composable-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://composable.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "7f429a3f-4666-40a2-a506-58bfe01504c4",
-        "name": "composable finance",
-        "symbol": "layr",
-        "precision": 12,
-        "priceId": "composable-finance-layr",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/LAYR.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-composable.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://rpc.composable.finance",
-        "name": "Composable node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/composable.svg",
-    "addressPrefix": 49
-  },
-  {
-    "disabled": false,
-    "chainId": "35a06bfec2edf0ff4be89a6428ccd9ff5bd0167d618c5a0d4341f9600a458d14",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2119",
-    "name": "Bajun Kusama",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-bajun-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "cbf84703-ba1d-4a39-ab5e-424756c91422",
-        "name": "bajun network",
-        "symbol": "baju",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/BAJU.svg",
-        "color": "69A6DA",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc-parachain.bajun.network",
-        "name": "AjunaNetwork node"
-      },
-      {
-        "url": "wss://bajun.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bajun.svg",
-    "addressPrefix": 1337
-  },
-  {
-    "disabled": false,
     "chainId": "feb426ca713f0f46c96465b8f039890370cf6bfd687c9076ea2843f58a6ae8a7",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2113",
     "name": "Kabocha",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-kabocha-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
     "assets": [
       {
         "id": "898eb0a1-ede6-437a-97b7-e92407db985f",
@@ -3614,472 +1801,6 @@
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kabocha.svg",
     "addressPrefix": 27
-  },
-  {
-    "disabled": true,
-    "chainId": "52149c30c1eb11460dce6c08b73df8d53bb93b4a15d0a2e7fd5dafe86a73c0da",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2107",
-    "name": "KICO",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/KICO-x-Fearless-Wallet"
-      }
-    },
-    "assets": [
-      {
-        "id": "3a11badb-fe19-4cf4-9651-4b635a49bb7e",
-        "name": "kico",
-        "symbol": "kico",
-        "precision": 14,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KICO.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc.kico.dico.io",
-        "name": "DICO Foundation node"
-      },
-      {
-        "url": "wss://rpc.api.kico.dico.io",
-        "name": "DICO Foundation 2 node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/KICO.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": true,
-    "chainId": "d611f22d291c5b7b69f1e105cca03352984c344c4421977efaa4cbdd1834e2aa",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2110",
-    "name": "Mangata Kusama Mainnet",
-    "assets": [
-      {
-        "id": "27ccf12f-3ae0-4c5e-b337-ee43b7c23928",
-        "name": "mangata x",
-        "symbol": "mgx",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MGX.svg",
-        "color": "10C5C5",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "f63730eb-9fe2-41e9-9ec3-3cc4e6f02d0a",
-        "type": "ormlChain",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "currencyId": "4",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "459f852b-665c-4743-8b2c-5bc5fc6abdda",
-        "type": "ormlChain",
-        "name": "bifrost native coin",
-        "symbol": "bnc",
-        "precision": 12,
-        "currencyId": "14",
-        "priceId": "bifrost-native-coin",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/BNC.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "8ef9ca57-f2e4-4edb-9365-2805c7143537",
-        "type": "ormlChain",
-        "name": "voucher ksm",
-        "symbol": "vksm",
-        "precision": 12,
-        "currencyId": "15",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/VKSM.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "31aef057-d42a-419c-b0c4-cd61dc7e96c5",
-        "type": "ormlChain",
-        "name": "zenlink network",
-        "symbol": "zlk",
-        "precision": 18,
-        "currencyId": "26",
-        "priceId": "zenlink-network-token",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ZLK.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "3b46e22a-f819-4b2b-9dca-23dec1b66f82",
-        "type": "ormlChain",
-        "name": "rmrk",
-        "symbol": "rmrk",
-        "precision": 10,
-        "currencyId": "31",
-        "priceId": "rmrk",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/RMRK.svg",
-        "color": "392B73"
-      },
-      {
-        "id": "2c28b884-dcbe-4653-91d2-934beefe4f2c",
-        "type": "ormlChain",
-        "name": "tether usd",
-        "symbol": "usdt",
-        "precision": 6,
-        "currencyId": "30",
-        "priceId": "tether",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDT.svg",
-        "color": "26A17B"
-      },
-      {
-        "id": "a4268819-dd67-45ba-a8f4-32277e3817b1",
-        "type": "ormlChain",
-        "name": "turing token",
-        "symbol": "tur",
-        "precision": 10,
-        "currencyId": "7",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/TUR.svg",
-        "color": "5DCBD0"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://prod-kusama-collator-01.mangatafinance.cloud",
-        "name": "Mangata node"
-      },
-      {
-        "url": "wss://kusama-archive.mangata.online",
-        "name": "Mangata Archive node"
-      },
-      {
-        "url": "wss://kusama-rpc.mangata.online",
-        "name": "Mangata RPC node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/MagnataX.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": true,
-    "chainId": "eacdd2d5b42de9769ccbb6e8d9013ab0d90ab105bf601d4aac53e874c145ec21",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2116",
-    "name": "DataHighway Tanganika",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/DataHighway-Tanganika-x-Fearless-Wallet"
-      }
-    },
-    "assets": [
-      {
-        "id": "15df9971-2e6a-4619-a5ca-9ad571655287",
-        "name": "datahighway",
-        "symbol": "dhx",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DHX.svg",
-        "color": "6C179F",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://tanganika.datahighway.com",
-        "name": "DataHighway node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/DataHighway.svg",
-    "addressPrefix": 33
-  },
-  {
-    "disabled": true,
-    "chainId": "89d3ec46d2fb43ef5a9713833373d5ea666b092fa8fd68fbc34596036571b907",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "name": "Equilibrium",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://equilibrium.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "47d1f5c5-c43d-4082-b577-ba0af91cb1a6",
-        "name": "equilibrium",
-        "symbol": "eq",
-        "currencyId": "25969",
-        "precision": 9,
-        "existentialDeposit": "1000000000",
-        "priceId": "equilibrium-token",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/EQ.svg",
-        "color": "5176E6",
-        "isUtility": true,
-        "type": "equilibrium"
-      },
-      {
-        "id": "50bb6d02-1aad-4a94-b41c-2a15b4aee0e8",
-        "name": "equilibrium dollar protocol",
-        "symbol": "eqd",
-        "currencyId": "6648164",
-        "precision": 9,
-        "existentialDeposit": "1000000000",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/EQD.svg",
-        "color": "4D8BED",
-        "type": "equilibrium"
-      },
-      {
-        "id": "6b21d130-7475-4f61-b893-799061fc05bf",
-        "name": "acala",
-        "symbol": "aca",
-        "currencyId": "6382433",
-        "precision": 9,
-        "priceId": "acala",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ACA.svg",
-        "color": "FFFFFF",
-        "type": "equilibrium"
-      },
-      {
-        "id": "9c67711c-7f0c-45fa-b7fc-66b655ba17e1",
-        "name": "bnb",
-        "symbol": "bnb",
-        "currencyId": "6450786",
-        "precision": 9,
-        "priceId": "binancecoin",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/BNB.svg",
-        "color": "F3BA2F",
-        "type": "equilibrium"
-      },
-      {
-        "id": "b62f4a0a-883f-496f-a797-fd2b24abe01b",
-        "name": "polkadot",
-        "symbol": "dot",
-        "currencyId": "6582132",
-        "precision": 9,
-        "priceId": "polkadot",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
-        "color": "FF0066",
-        "type": "equilibrium"
-      },
-      {
-        "id": "665c8d3d-a035-45fb-9c9c-7cfaf7da96c6",
-        "name": "astar",
-        "symbol": "astr",
-        "currencyId": "1634956402",
-        "precision": 9,
-        "priceId": "astar",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ASTR.svg",
-        "color": "0AE2FF",
-        "type": "equilibrium"
-      },
-      {
-        "id": "c98efbda-a452-4329-8199-fef32dc9307e",
-        "name": "acala dollar",
-        "symbol": "ausd",
-        "currencyId": "1635087204",
-        "precision": 9,
-        "priceId": "acala-dollar",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/AUSD.svg",
-        "color": "E40C5B",
-        "type": "equilibrium"
-      },
-      {
-        "id": "793fc038-c134-4d58-af6d-cb7c1be5a4ea",
-        "name": "binance usd",
-        "symbol": "busd",
-        "currencyId": "1651864420",
-        "precision": 9,
-        "priceId": "binance-usd",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/BUSD.svg",
-        "color": "F3BA2F",
-        "type": "equilibrium"
-      },
-      {
-        "id": "e8c17b03-a94c-4fd3-a599-189a1b5e8e32",
-        "name": "moonbeam",
-        "symbol": "glmr",
-        "currencyId": "1735159154",
-        "precision": 9,
-        "priceId": "moonbeam",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/GLMR.svg",
-        "color": "FFFFFF",
-        "type": "equilibrium"
-      },
-      {
-        "id": "a9d1b0b2-ad4e-4d86-88c5-72a8947099f0",
-        "name": "inter ibtc",
-        "symbol": "ibtc",
-        "currencyId": "1768060003",
-        "precision": 9,
-        "priceId": "interbtc",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/iBTC.svg",
-        "color": "F2AE7F",
-        "type": "equilibrium"
-      },
-      {
-        "id": "502acf71-3c1f-4f1c-91d9-179fd2987a34",
-        "name": "interlay",
-        "symbol": "intr",
-        "currencyId": "1768846450",
-        "precision": 9,
-        "priceId": "interlay",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/INTR.svg",
-        "color": "FFFFFF",
-        "type": "equilibrium"
-      },
-      {
-        "id": "f67bfaf7-e081-4355-abda-4f1faaeb3579",
-        "name": "parallel finance",
-        "symbol": "para",
-        "currencyId": "1885434465",
-        "precision": 9,
-        "priceId": "parallel-finance",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PARA.svg",
-        "color": "4C19E7",
-        "type": "equilibrium"
-      },
-      {
-        "id": "c1ad2bb4-701a-4711-bacb-59259ff3d57d",
-        "name": "tether usd",
-        "symbol": "usdt",
-        "currencyId": "1970496628",
-        "precision": 9,
-        "priceId": "tether",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDT.svg",
-        "color": "26A17B",
-        "type": "equilibrium"
-      },
-      {
-        "id": "26a16776-71c9-450d-bfaf-df3a8cd6d277",
-        "name": "fluid xdot",
-        "symbol": "xdot",
-        "currencyId": "2019848052",
-        "precision": 9,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
-        "color": "FF0066",
-        "type": "equilibrium"
-      },
-      {
-        "id": "1eb9d66e-a92d-49c5-95fc-fd7a844fc66d",
-        "name": "equilibrium dot",
-        "symbol": "eqdot",
-        "currencyId": "435694104436",
-        "precision": 9,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/eqDOT.svg",
-        "color": "FFFFFF",
-        "type": "equilibrium"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-equilibrium.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/equilibrium.svg",
-    "addressPrefix": 68,
-    "options": [
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "724c168d8e86b78b831c641e2cc822b8d1bf99fa0b4b28fe59985cd6fd580215",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2039",
-    "name": "Integritee Shell",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-integritee"
-      }
-    },
-    "assets": [
-      {
-        "id": "07c55d3a-b24e-410e-b9ca-7da0707fbd61",
-        "name": "integritee",
-        "symbol": "teer",
-        "precision": 12,
-        "priceId": "integritee",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/TEER.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-integritee.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/integritee.svg",
-    "addressPrefix": 13
-  },
-  {
-    "disabled": false,
-    "chainId": "0f62b701fb12d02237a33b84818c11f621653d2b1614c777973babf4652b535d",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2114",
-    "name": "Turing Network",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-turing"
-      }
-    },
-    "assets": [
-      {
-        "id": "148ce615-aea3-42fa-be45-5eb5606813b8",
-        "name": "turing token",
-        "symbol": "tur",
-        "precision": 10,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/TUR.svg",
-        "color": "5DCBD0",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "e8774037-c4a5-42b5-87a4-cf946a60a406",
-        "type": "assetId",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "currencyId": "1",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF",
-        "existentialDeposit": "100000000"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-turing.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://rpc.turing.oak.tech",
-        "name": "OAK node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/OAK.svg",
-    "addressPrefix": 51
   },
   {
     "disabled": false,
@@ -4110,409 +1831,12 @@
         "name": "Encointer Association node"
       },
       {
-        "url": "wss://sys.ibp.network/encointer-kusama",
-        "name": "IBP-GeoDNS1 node"
-      },
-      {
-        "url": "wss://sys.dotters.network/encointer-kusama",
-        "name": "IBP-GeoDNS2 node"
-      },
-      {
         "url": "wss://ksm-rpc.stakeworld.io/encointer",
         "name": "Stakeworld node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/encointer.svg",
     "addressPrefix": 2
-  },
-  {
-    "disabled": true,
-    "chainId": "0e06260459b4f9034aba0a75108c08ed73ea51d2763562749b1d3600986c4ea5",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2102",
-    "name": "Pichiu Network",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/Pichiu-x-Fearless-Wallet"
-      }
-    },
-    "assets": [
-      {
-        "id": "5b196f7c-475a-493e-abbf-9f808d6fb863",
-        "name": "pichu token",
-        "symbol": "pchu",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PCHU.svg",
-        "color": "AE4071",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://kusama.kylin-node.co.uk",
-        "name": "Kylin Network node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/pichiu.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": true,
-    "chainId": "19a3733beb9cb8a970a308d835599e9005e02dc007a35440e461a451466776f8",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2123",
-    "name": "GM Parachain",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid.subsquid.io/gs-main-gmordie/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "19763697-37d8-4643-b840-3fd8565f5d83",
-        "name": "gm parachain",
-        "symbol": "fren",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/FREN.svg",
-        "color": "F7D64D",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://leemo.gmordie.com",
-        "name": "leemo node"
-      },
-      {
-        "url": "wss://ws.gm.bldnodes.org",
-        "name": "bLd Nodes node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/GM%20Parachain.svg",
-    "addressPrefix": 7013
-  },
-  {
-    "disabled": true,
-    "chainId": "ca93a37c913a25fa8fdb33c7f738afc39379cb71d37874a16d4c091a5aef9f89",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2121",
-    "name": "Imbue Kusama",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/Imbue-x-Fearless-Wallet"
-      }
-    },
-    "assets": [
-      {
-        "id": "c01b37ab-eefa-427d-ba50-dd7a1cbe1798",
-        "name": "imbue network",
-        "symbol": "imbu",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/IMBU.svg",
-        "color": "C3FD51",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://imbue-kusama.imbue.network",
-        "name": "Imbue Network node node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Imbue.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": false,
-    "chainId": "cceae7f3b9947cdb67369c026ef78efa5f34a08fe5808d373c04421ecf4f1aaf",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2124",
-    "name": "Amplitude",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-amplitude-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
-    "assets": [
-      {
-        "id": "b2e6c029-ae73-46f9-9660-51d7034ddc53",
-        "name": "amplitude",
-        "symbol": "ampe",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/AMPE.svg",
-        "color": "7CE2A0",
-        "isUtility": true,
-        "type": "normal"
-      },
-      {
-        "id": "b2f80126-9b7f-4026-adc8-dd7fb39baf2c",
-        "type": "xcm",
-        "name": "kusama",
-        "symbol": "ksm",
-        "precision": 12,
-        "currencyId": "0",
-        "priceId": "kusama",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF"
-      },
-      {
-        "id": "dc34cadc-d448-4bd8-a484-af6e602fe08d",
-        "type": "xcm",
-        "name": "tether usd",
-        "symbol": "usdt",
-        "precision": 6,
-        "currencyId": "1",
-        "priceId": "tether",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDT.svg",
-        "color": "26A17B",
-        "existentialDeposit": "10000"
-      },
-      {
-        "id": "465b44c5-ab78-4283-960e-d3b834adb646",
-        "type": "xcm",
-        "name": "picasso",
-        "symbol": "pica",
-        "precision": 12,
-        "currencyId": "2",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PICA.svg",
-        "color": "FFFFFF"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://api-amplitude.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://rpc-amplitude.pendulumchain.tech",
-        "name": "PendulumChain node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Amplitude.svg",
-    "addressPrefix": 57
-  },
-  {
-    "disabled": true,
-    "chainId": "f0b8924b12e8108550d28870bc03f7b45a947e1b2b9abf81bfb0b89ecb60570e",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2046",
-    "name": "Darwinia2",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-darwinia-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://darwinia-parachain.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "b861f610-cf2c-43ad-a660-f6b809a05062",
-        "name": "darwinia",
-        "symbol": "ring",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/RING.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc.darwinia.network",
-        "name": "Darwinia Network node"
-      },
-      {
-        "url": "wss://darwinia-rpc.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://parachain-rpc.darwinia.network",
-        "name": "Darwinia Network 1 node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/darwinia.svg",
-    "addressPrefix": 18
-  },
-  {
-    "disabled": true,
-    "chainId": "f2584690455deda322214e97edfffaf4c1233b6e4625e39478496b3e2f5a44c5",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2052",
-    "name": "Kylin Network",
-    "assets": [
-      {
-        "id": "7512aeb7-7bdc-42dc-abe3-80ed764c80bd",
-        "name": "kylin network",
-        "symbol": "kyl",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KYL.svg",
-        "color": "AE4071",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://polkadot.kylin-node.co.uk",
-        "name": "Kylin Network node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kylin%20Network.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": false,
-    "chainId": "d4c0c08ca49dc7c680c3dac71a7c0703e5b222f4b6c03fe4c5219bb8f22c18dc",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "name": "Crust Shadow Parachain",
-    "paraId": "2012",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/fearless-wallet-crust_shadow_parachain"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://shadow.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "d1e3be8c-880e-46fe-97e3-761c0a58aed1",
-        "name": "crust shadow",
-        "symbol": "csm",
-        "precision": 12,
-        "priceId": "crust-storage-market",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/CSM_Crust_Shadow.svg",
-        "color": "F3AD56",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc-shadow.crust.network",
-        "name": "Crust node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/crustshadow.svg",
-    "addressPrefix": 66
-  },
-  {
-    "disabled": true,
-    "chainId": "6e938c4a786f8df6f38d0c06f00a8573f1f7aabeebf48aee5157a93cc5fe3271",
-    "name": "Kusama (test)",
-    "assets": [
-      {
-        "id": "03561957-3383-4f9f-8033-1b2c36d88db6",
-        "name": "kusama",
-        "symbol": "unit",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
-        "color": "FFFFFF",
-        "staking": "relaychain",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://ws.relaychain-node-1.k1.tst.fearless.soramitsu.co.jp",
-        "name": "SORA Kusama Test node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
-    "addressPrefix": 2,
-    "options": [
-      "poolStaking"
-    ]
-  },
-  {
-    "disabled": true,
-    "chainId": "fd4d46e9a51e16babf791b94d6dbf771ed1d7de8a11b310aa98c847890fa9ff3",
-    "name": "Polkadot (test)",
-    "assets": [
-      {
-        "id": "405e7e40-a2f1-45a3-a32f-7f271b2819d2",
-        "name": "polkadot",
-        "symbol": "unit",
-        "precision": 10,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
-        "color": "FF0066",
-        "staking": "relaychain",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://ws.relaychain-node-2.p1.tst.fearless.soramitsu.co.jp/",
-        "name": "SORA Polkadot Test node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polkadot.svg",
-    "addressPrefix": 2,
-    "options": [
-      "poolStaking"
-    ]
-  },
-  {
-    "disabled": true,
-    "chainId": "b34f6cd03a41f0fab38ba9fd5b11cce5f303633c46f39f0c6fdc7c3c602bafa9",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "name": "Snow Kusama",
-    "assets": [
-      {
-        "id": "e739d665-7af5-4e65-ab5f-93f54a5b70b3",
-        "name": "snow",
-        "symbol": "icz",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ICZ.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://snow-rpc.icenetwork.io",
-        "name": "Snow node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/SNOW.svg",
-    "addressPrefix": 2207
   },
   {
     "disabled": false,
@@ -5708,205 +3032,10 @@
       {
         "url": "wss://kusama-bridge-hub-rpc.polkadot.io",
         "name": "Parity node"
-      },
-      {
-        "url": "wss://sys.ibp.network/bridgehub-kusama",
-        "name": "IBP-GeoDNS1 node"
-      },
-      {
-        "url": "wss://sys.dotters.network/bridgehub-kusama",
-        "name": "IBP-GeoDNS2 node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bridgehub.svg",
     "addressPrefix": 2
-  },
-  {
-    "disabled": false,
-    "chainId": "6f0f071506de39058fe9a95bbca983ac0e9c5da3443909574e95d52eb078d348",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2222",
-    "name": "Ipci",
-    "assets": [
-      {
-        "id": "b20185e9-2f5c-4c3d-bd5a-c751cd76d439",
-        "name": "dao ipci",
-        "symbol": "mito",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MITO.svg",
-        "color": "0BF0A6",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://kusama.rpc.ipci.io",
-        "name": "Airalab node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/DAOIPCI.svg",
-    "addressPrefix": 32
-  },
-  {
-    "disabled": false,
-    "chainId": "cdedc8eadbfa209d3f207bba541e57c3c58a667b05a2e1d1e86353c9000758da",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2015",
-    "name": "Integritee Network (Kusama)",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://integritee.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "c8b67e07-8b3b-4b92-b23d-23b5bb1f8f42",
-        "name": "integritee",
-        "symbol": "teer",
-        "precision": 12,
-        "priceId": "integritee",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/TEER.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://kusama.api.integritee.network",
-        "name": "Integritee node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/integritee.svg",
-    "addressPrefix": 13
-  },
-  {
-    "disabled": false,
-    "chainId": "2991d4125ac465d64c4c0b915fedd7168b5961b7676480636e3747f1ad64cfb9",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2236",
-    "name": "Subzero",
-    "assets": [
-      {
-        "id": "3a1cc15e-903b-4102-9384-364c00e67283",
-        "name": "zero",
-        "symbol": "zero",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ZERO.svg",
-        "color": "FFFFFF",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc-1.kusama.node.zero.io",
-        "name": "ZeroNetwork node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Subzero.svg",
-    "addressPrefix": 25
-  },
-  {
-    "disabled": false,
-    "chainId": "e358eb1d11b31255a286c12e44fe6780b7edb171d657905a97e39f71d9c6c3ee",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2051",
-    "name": "Ajuna Polkadot",
-    "assets": [
-      {
-        "id": "b0afcb19-5d4c-442c-ac0f-53c64b1ea0ae",
-        "name": "ajuna network",
-        "symbol": "ajun",
-        "precision": 12,
-        "priceId": "ajuna-network",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/BAJU.svg",
-        "color": "69A6DA",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc-parachain.ajuna.network",
-        "name": "AjunaNetwork node"
-      },
-      {
-        "url": "wss://ajuna.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bajun.svg",
-    "addressPrefix": 1328
-  },
-  {
-    "disabled": false,
-    "chainId": "c14597baeccb232d662770d2d50ae832ca8c3192693d2b0814e6433f2888ddd6",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2048",
-    "name": "Bitgreen",
-    "assets": [
-      {
-        "id": "26c62511-6300-41ef-b760-c94dd6b0f8a5",
-        "name": "bitgreen",
-        "symbol": "bbb",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/BBB.svg",
-        "color": "C0FF00",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://mainnet.bitgreen.org",
-        "name": "Bitgreen node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bitgreen.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": false,
-    "chainId": "4319cc49ee79495b57a1fec4d2bd43f59052dcc690276de566c2691d6df4f7b8",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2008",
-    "name": "Crust",
-    "assets": [
-      {
-        "id": "07ad91ea-1cb6-47dd-bc57-0e884727c5bf",
-        "name": "crust network",
-        "symbol": "cru",
-        "precision": 12,
-        "priceId": "crust-network",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/CRU.svg",
-        "color": "FA8C16",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://crust-parachain.crustapps.net",
-        "name": "Crust node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Crust.svg",
-    "addressPrefix": 88
   },
   {
     "disabled": false,
@@ -5945,46 +3074,12 @@
     "addressPrefix": 90
   },
   {
-    "disabled": true,
-    "chainId": "7838c3c774e887c0a53bcba9e64f702361a1a852d5550b86b58cd73827fa1e1e",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2007",
-    "name": "Kapex",
-    "assets": [
-      {
-        "id": "a99dd750-0c15-49df-a86f-6caa577614bc",
-        "name": "kapex parachain",
-        "symbol": "kpx",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KPX.svg",
-        "color": "306EB6",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://kapex-rpc.dwellir.com",
-        "name": "Dwellir node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kapex%20(Totem).svg",
-    "addressPrefix": 2007
-  },
-  {
     "disabled": false,
     "chainId": "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "rank": 10,
     "paraId": "2094",
     "name": "Pendulum",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-pendulum-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
     "assets": [
       {
         "id": "ebf2822f-2dd4-4f59-aeb3-ae7defa53932",
@@ -6163,64 +3258,6 @@
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Ternoa.svg",
     "addressPrefix": 42
-  },
-  {
-    "disabled": true,
-    "chainId": "6d8d9f145c2177fa83512492cdd80a71e29f22473f4a8943a6292149ac319fb9",
-    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
-    "paraId": "2011",
-    "name": "SORA Kusama parachain",
-    "assets": [
-      {
-        "id": "2df458e8-c4a9-4026-986f-8962a36fe604",
-        "name": "sora",
-        "symbol": "xor",
-        "precision": 12,
-        "priceId": "sora",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/XOR.svg",
-        "color": "EE2233",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://ws.parachain-collator-1.c1.sora2.soramitsu.co.jp",
-        "name": "Soramitsu node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/SORA.svg",
-    "addressPrefix": 420
-  },
-  {
-    "disabled": false,
-    "chainId": "e92d165ad41e41e215d09713788173aecfdbe34d3bed29409d33a2ef03980738",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "2025",
-    "name": "SORA Polkadot parachain",
-    "assets": [
-      {
-        "id": "a7c696d7-42ce-4ed6-a036-4f0f76386c49",
-        "name": "sora",
-        "symbol": "xor",
-        "precision": 18,
-        "priceId": "sora",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/XOR.svg",
-        "color": "EE2233",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://ws.parachain-collator-1.pc1.sora2.soramitsu.co.jp",
-        "name": "Soramitsu node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/SORA.svg",
-    "addressPrefix": 81
   },
   {
     "disabled": false,
@@ -6500,81 +3537,6 @@
   },
   {
     "disabled": false,
-    "chainId": "5",
-    "rank": 101,
-    "name": "Ethereum Goerli",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "etherscan",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://goerli.etherscan.io/{type}/{value}"
-        }
-      ],
-      "history": {
-        "type": "etherscan",
-        "url": "https://api-goerli.etherscan.io/api"
-      }
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "a31e35a9-5026-4816-9b8b-08029627b256",
-        "name": "ethereum",
-        "symbol": "eth",
-        "precision": 18,
-        "priceId": "ethereum",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ETH.svg",
-        "color": "FF0066",
-        "ethereumType": "normal"
-      },
-      {
-        "isUtility": false,
-        "id": "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844",
-        "name": "dai stablecoin",
-        "symbol": "dai",
-        "precision": 18,
-        "priceId": "dai",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DAI.svg",
-        "color": "FF0066",
-        "ethereumType": "erc20"
-      },
-      {
-        "isUtility": false,
-        "id": "0x07865c6e87b9f70255377e024ace6630c1eaa37f",
-        "name": "usdc stablecoin",
-        "symbol": "usdc",
-        "precision": 6,
-        "priceId": "usd-coin",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDC.svg",
-        "color": "3E73C4",
-        "ethereumType": "erc20"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://eth-goerli.blastapi.io/",
-        "name": "Blast https"
-      },
-      {
-        "url": "wss://eth-goerli.blastapi.io/",
-        "name": "Blast wss"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/ETH.svg",
-    "addressPrefix": 0,
-    "options": [
-      "testnet",
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
     "chainId": "56",
     "rank": 2,
     "name": "BNB Smart Chain",
@@ -6743,14 +3705,6 @@
         "name": "Public wss"
       },
       {
-        "url": "https://bsc-mainnet.blastapi.io/",
-        "name": "Blast https"
-      },
-      {
-        "url": "wss://bsc-mainnet.blastapi.io/",
-        "name": "Blast wss"
-      },
-      {
         "url": "https://bsc-dataseed1.ninicoin.io/",
         "name": "Ninicoin"
       },
@@ -6814,12 +3768,8 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://bsc-testnet.blastapi.io/",
-        "name": "Blast https"
-      },
-      {
-        "url": "wss://bsc-testnet.blastapi.io/",
-        "name": "Blast wss"
+        "url": "https://bsc-testnet-rpc.publicnode.com",
+        "name": "PublicNode"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/bnbchain.svg",
@@ -6887,12 +3837,8 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://eth-sepolia.blastapi.io/",
-        "name": "Blast https"
-      },
-      {
-        "url": "wss://eth-sepolia.blastapi.io/",
-        "name": "Blast wss"
+        "url": "https://ethereum-sepolia-rpc.publicnode.com",
+        "name": "PublicNode"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ETH.svg",
@@ -7060,12 +4006,12 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://polygon-mainnet.blastapi.io/",
-        "name": "Blast https"
+        "url": "https://polygon-bor-rpc.publicnode.com",
+        "name": "Bor public https"
       },
       {
-        "url": "wss://polygon-mainnet.blastapi.io/",
-        "name": "Blast wss"
+        "url": "wss://polygon-bor-rpc.publicnode.com",
+        "name": "Bor public wss"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polygon.svg",
@@ -7074,156 +4020,6 @@
       "ethereum",
       "nft",
       "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "80001",
-    "rank": 103,
-    "name": "Polygon mumbai testnet",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "etherscan",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://mumbai.polygonscan.com/{type}/{value}"
-        }
-      ],
-      "history": {
-        "type": "etherscan",
-        "url": "https://api-testnet.polygonscan.com/api"
-      }
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "0x0000000000000000000000000000000000001010",
-        "name": "polygon",
-        "symbol": "matic",
-        "precision": 18,
-        "priceId": "matic",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MATIC.svg",
-        "color": "8247E5",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://polygon-testnet.blastapi.io/",
-        "name": "Blast https"
-      },
-      {
-        "url": "wss://polygon-testnet.blastapi.io/",
-        "name": "Blast wss"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polygon.svg",
-    "addressPrefix": 0,
-    "options": [
-      "testnet",
-      "ethereum",
-      "nft",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "6408de7737c59c238890533af25896a2c20608d8b380bb01029acb392781063e",
-    "rank": 109,
-    "name": "Rococo",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://rococo.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "xcm": {
-      "xcmVersion": "v3",
-      "availableAssets": [
-        {
-          "id": "4d6baa42-c8ba-4c47-9992-2af0d55123b2",
-          "symbol": "ROC"
-        }
-      ],
-      "availableDestinations": [
-      ]
-    },
-    "assets": [
-      {
-        "id": "4d6baa42-c8ba-4c47-9992-2af0d55123b2",
-        "name": "rococo",
-        "symbol": "roc",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ROC.svg",
-        "color": "FFFFFF",
-        "type": "normal",
-        "isUtility": true
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rococo-rpc.polkadot.io",
-        "name": "Parity node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Rococo.svg",
-    "addressPrefix": 42,
-    "options": [
-      "testnet"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "8685a8d3e57fa8024b91b8ead6cc97acf953889c6fb0a355602826a1e2db198f",
-    "parentId": "6408de7737c59c238890533af25896a2c20608d8b380bb01029acb392781063e",
-    "paraId": "2011",
-    "name": "SORA Rococo parachain",
-    "assets": [
-      {
-        "id": "b5a44630-920e-43ee-809f-61890d0888b0123",
-        "name": "sora",
-        "symbol": "rxor",
-        "currencyId": "0x0200000000000000000000000000000000000000000000000000000000000000",
-        "precision": 18,
-        "priceId": "sora",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/XOR.svg",
-        "color": "EE2233",
-        "isUtility": true,
-        "type": "soraAsset"
-      },
-      {
-        "id": "4d6baa42-c8ba-4c47-9992-2af0d55123b2123",
-        "name": "rococo",
-        "symbol": "roc",
-        "precision": 18,
-        "currencyId": "0x00dc9b4341fde46c9ac80b623d0d43afd9ac205baabdc087cadaa06f92b309c7",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/WND.svg",
-        "color": "FFFFFF",
-        "type": "soraAsset"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://ws.parachain-collator-1.c1.stg1.sora2.soramitsu.co.jp",
-        "name": "Soramitsu node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/SORA.svg",
-    "addressPrefix": 420,
-    "options": [
-      "testnet"
     ]
   },
   {
@@ -7428,14 +4224,6 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://optimism-mainnet.blastapi.io/",
-        "name": "Blast https node"
-      },
-      {
-        "url": "wss://optimism-mainnet.blastapi.io/",
-        "name": "Blast wss node"
-      },
-      {
         "url": "https://optimism.publicnode.com/",
         "name": "Public http node"
       },
@@ -7509,65 +4297,6 @@
   },
   {
     "disabled": false,
-    "chainId": "195",
-    "rank": 130,
-    "name": "X Layer Testnet",
-    "externalApi": {
-      "history": {
-        "type": "oklink",
-        "url": "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=XLAYER_TESTNET"
-      },
-      "explorers": [
-        {
-          "type": "oklink",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://www.okx.com/explorer/xlayer-test/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "a61b1842-30c0-431d-9bbc-fc3370562455",
-        "name": "okb",
-        "symbol": "okb",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/XLOKB.svg",
-        "color": "FFFFFF",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://testrpc.xlayer.tech/",
-        "name": "X Layer Test Tech https node"
-      },
-      {
-        "url": "wss://testws.xlayer.tech",
-        "name": "X Layer Test Tech wss node"
-      },
-      {
-        "url": "https://xlayertestrpc.okx.com/",
-        "name": "X Layer Test OKX https node"
-      },
-      {
-        "url": "wss://xlayertestws.okx.com",
-        "name": "X Layer Test OKX wss node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/xlayerchain.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
     "chainId": "196",
     "rank": 13,
     "name": "X Layer Mainnet",
@@ -7628,89 +4357,6 @@
   },
   {
     "disabled": false,
-    "chainId": "1101",
-    "rank": 7,
-    "name": "Polygon zkEVM",
-    "externalApi": {
-      "history": {
-        "type": "oklink",
-        "url": "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=POLYGON_ZKEVM"
-      },
-      "explorers": [
-        {
-          "type": "oklink",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://www.okx.com/web3/explorer/polygon-zkevm/{type}/{value}?channelID=flessw"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "8f85b561-18f5-4cf0-9077-305ebc84d015",
-        "name": "ethereum",
-        "symbol": "eth",
-        "precision": 18,
-        "priceId": "ethereum",
-        "purchaseProviders": [
-          "ramp"
-        ],
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ETH.svg",
-        "color": "FF0066",
-        "ethereumType": "normal"
-      },
-      {
-        "isUtility": false,
-        "id": "0xA8CE8aee21bC2A48a5EF670afCc9274C7bbbC035",
-        "name": "usd coin",
-        "symbol": "usdc",
-        "precision": 6,
-        "priceId": "usd-coin",
-        "purchaseProviders": [
-          "ramp"
-        ],
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/USDC.svg",
-        "color": "3E73C4",
-        "ethereumType": "erc20"
-      },
-      {
-        "isUtility": false,
-        "id": "0xa2036f0538221a77A3937F1379699f44945018d0",
-        "name": "polygon",
-        "symbol": "matic",
-        "precision": 18,
-        "priceId": "matic-network",
-        "purchaseProviders": [
-          "ramp"
-        ],
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MATIC.svg",
-        "color": "8247E5",
-        "ethereumType": "erc20"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://zkevm-rpc.com",
-        "name": "Zkevm https node"
-      },
-      {
-        "url": "https://polygon-zkevm-mainnet.public.blastapi.io",
-        "name": "Blast https node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polygon.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
     "chainId": "7001",
     "rank": 14,
     "name": "ZetaChain Testnet",
@@ -7735,10 +4381,6 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://rpc.ankr.com/zetachain_evm_athens_testnet",
-        "name": "Ankr https node"
-      },
-      {
         "url": "https://zetachain-athens-evm.blockpi.network/v1/rpc/public",
         "name": "Blockpi https node"
       },
@@ -7753,94 +4395,6 @@
       "ethereum",
       "utilityFeePayment"
     ]
-  },
-  {
-    "disabled": true,
-    "chainId": "7834781d38e4798d548e34ec947d19deea29df148a7bf32484b7b24dacf8d4b7",
-    "name": "Reef Mainnet",
-    "assets": [
-      {
-        "id": "55697eb0-ca77-47e3-a436-b05460ab1ead",
-        "name": "reef",
-        "symbol": "reef",
-        "precision": 18,
-        "priceId": "reef",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/REEF.svg",
-        "color": "C547CB",
-        "isUtility": true,
-        "type": "normal",
-        "staking": "relaychain"
-      }
-    ],
-    "externalApi": {
-      "history": {
-        "type": "reef",
-        "url": "https://squid.subsquid.io/reef-explorer/graphql"
-      },
-      "staking": {
-        "type": "reef",
-        "url": "https://squid.subsquid.io/reef-explorer/graphql"
-      },
-      "explorers": [
-        {
-          "type": "reef",
-          "types": [
-            "transfer",
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://reefscan.com/{type}/{value}"
-        }
-      ]
-    },
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc.reefscan.com/ws",
-        "name": "Reef Community node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/reefchain.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": false,
-    "chainId": "f3c7ad88f6a80f366c4be216691411ef0622e8b809b1046ea297ef106058d4eb",
-    "name": "Manta Parachain",
-    "assets": [
-      {
-        "id": "0c41f3da-3c42-413a-aca3-bfb19b717df7",
-        "name": "manta",
-        "symbol": "manta",
-        "precision": 18,
-        "priceId": "manta-network",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/MANTA.svg",
-        "color": "29CCB9",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://manta.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://ws.manta.systems",
-        "name": "Manta Community node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/mantachain.svg",
-    "addressPrefix": 77
   },
   {
     "disabled": false,
@@ -7893,45 +4447,6 @@
       "ethereum",
       "utilityFeePayment"
     ]
-  },
-  {
-    "disabled": true,
-    "chainId": "d8761d3c88f26dc12875c00d3165f7d67243d56fc85b4cf19937601a7916e5a9",
-    "name": "Enjin Relaychain",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://enjin.subscan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "id": "43748d94-90ba-41b2-8732-326cd943a501",
-        "name": "enjin coin",
-        "symbol": "enj",
-        "precision": 18,
-        "priceId": "enjincoin",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ENJ.svg",
-        "color": "5A27ED",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc.relay.blockchain.enjin.io",
-        "name": "Enjin Foundation node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Enjin.svg",
-    "addressPrefix": 2135
   },
   {
     "disabled": false,
@@ -8055,10 +4570,6 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://oasys.blockpi.network/v1/rpc/public/",
-        "name": "Blockpi https node"
-      },
-      {
         "url": "https://rpc.mainnet.oasys.games/",
         "name": "Oasys https node"
       }
@@ -8115,12 +4626,6 @@
     "disabled": false,
     "chainId": "50dd5d206917bf10502c68fb4d18a59fc8aa31586f4e8856b493e43544aa82aa",
     "name": "XX network",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-xx-network"
-      }
-    },
     "assets": [
       {
         "id": "526dca29-63ff-4683-88d6-852d1455b17b",
@@ -8158,120 +4663,6 @@
   },
   {
     "disabled": false,
-    "chainId": "6660",
-    "name": "Latest Testnet",
-    "externalApi": {
-      "history": {
-        "type": "blockscout",
-        "url": "https://testscan.latestchain.io/api/v2/"
-      }
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "1a31227d-c6fe-4c78-a3d6-353be70e56a6",
-        "name": "latest",
-        "symbol": "latest",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/LATEST.svg",
-        "color": "FC81EA",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://testnet-rpc.latestchain.io",
-        "name": "Latest https node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/latestchain.svg",
-    "addressPrefix": 0,
-    "options": [
-      "testnet",
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "9630",
-    "name": "Latest Mainnet",
-    "externalApi": {
-      "history": {
-        "type": "blockscout",
-        "url": "https://scan.latestchain.io/api/v2/"
-      }
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "e7094e62-d86d-4c08-8497-9ebc4c9011ea",
-        "name": "latest",
-        "symbol": "latest",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/LATEST.svg",
-        "color": "FC81EA",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://mainnet-rpc.latestchain.io",
-        "name": "Latest https node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/latestchain.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "72778",
-    "name": "CAGA Ankara Testnet",
-    "externalApi": {
-      "history": {
-        "type": "etherscan",
-        "url": "https://explorer.ankara-cagacrypto.com/api"
-      }
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "a9270ef5-379a-4228-8d72-e6efb2b5f7b4",
-        "name": "caga",
-        "symbol": "caga",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/CAGA.svg",
-        "color": "FFFFFF",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "wss://wss.ankara-cagacrypto.com",
-        "name": "Caga wss node"
-      },
-      {
-        "url": "https://www.ankara-cagacrypto.com",
-        "name": "Caga https node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/cagachain.svg",
-    "addressPrefix": 0,
-    "options": [
-      "testnet",
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
     "chainId": "b91746b45e0346cc2f815a520b9c6cb4d5c0902af848db0a80f85932d2e8276a",
     "name": "Avail DA Mainnet",
     "externalApi": {
@@ -8284,11 +4675,7 @@
           ],
           "url": "https://avail.subscan.io/{type}/{value}"
         }
-      ],
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-avail"
-      }
+      ]
     },
     "assets": [
       {
@@ -8306,28 +4693,12 @@
     "ecosystem": "substrate",
     "nodes": [
       {
-        "url": "wss://avail-mainnet.public.blastapi.io/",
-        "name": "Blastapi node"
-      },
-      {
-        "url": "wss://mainnet.avail-rpc.com/",
-        "name": " Ankr node"
-      },
-      {
-        "url": "wss://avail-rpc.rubynodes.io/",
-        "name": " Ruby node"
-      },
-      {
         "url": "wss://avail-us.brightlystake.com",
         "name": " BrightlyStake node"
       },
       {
         "url": "wss://rpc-avail.globalstake.io",
         "name": " GlobalStake node"
-      },
-      {
-        "url": "wss://avail.rpc.bountyblok.io",
-        "name": "Bountyblok node"
       },
       {
         "url": "wss://avail.public.curie.radiumblock.co/ws",
@@ -8346,78 +4717,6 @@
       "checkAppId"
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Avail.svg",
-    "addressPrefix": 42
-  },
-  {
-    "disabled": false,
-    "chainId": "0614f7b74a2e47f7c8d8e2a5335be84bdde9402a43f5decdec03200a87c8b943",
-    "name": "Analog Testnet",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/analog-testnet__c29yY"
-      }
-    },
-    "assets": [
-      {
-        "id": "9a8799db-a479-4a73-ae81-3b637c8624d8",
-        "name": "tanlog",
-        "symbol": "tanlog",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/TANLOG.svg",
-        "color": "9A74F7",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc.testnet.analog.one",
-        "name": "Analog Testnet node"
-      }
-    ],
-    "options": [
-      "testnet"
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Analog.svg",
-    "addressPrefix": 12850
-  },
-  {
-    "disabled": false,
-    "chainId": "7a0f5cf23f4cdf391e6adadb4f5193fed975b1b621afbc96a522234c56688adb",
-    "name": "Analog SORA Testnet",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/analog-bridge"
-      }
-    },
-    "assets": [
-      {
-        "id": "f307b6aa-61a8-4bef-97e8-64c79ecc640d",
-        "name": "danlog",
-        "symbol": "danlog",
-        "currencyId": "Balances",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/TANLOG.svg",
-        "color": "9A74F7",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "ecosystem": "substrate",
-    "nodes": [
-      {
-        "url": "wss://rpc-sora.development.analog.one",
-        "name": "Analog SORA Testnet node"
-      }
-    ],
-    "options": [
-      "testnet",
-      "utilityFeePayment"
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Analog.svg",
     "addressPrefix": 42
   },
   {
@@ -8548,10 +4847,6 @@
     "chainId": "1001",
     "name": "Kaia Kairos Testnet",
     "externalApi": {
-      "history": {
-        "type": "klaytn",
-        "url": "https://api-baobab.klaytnscope.com/v2/"
-      },
       "explorers": [
         {
           "type": "klaytn",
@@ -8579,12 +4874,8 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://public-en.kairos.node.kaia.io",
+        "url": "https://public-en-kairos.node.kaia.io",
         "name": "Kairos https node"
-      },
-      {
-        "url": "https://public-en-baobab.klaytn.net",
-        "name": "Klaytn Foundation https node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kaiachain.svg",
@@ -8631,10 +4922,6 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://viction.blockpi.network/v1/rpc/public",
-        "name": "Blockpi https node"
-      },
-      {
         "url": "https://rpc.viction.xyz",
         "name": "Viction https node"
       }
@@ -8644,107 +4931,6 @@
     "options": [
       "ethereum",
       "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "995",
-    "name": "5ire",
-    "externalApi": {
-      "history": {
-        "type": "fire",
-        "url": "https://api.evm.scan.5ire.network/5ire/"
-      },
-      "explorers": [
-        {
-          "type": "etherscan",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://5irescan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "f9e1d5bb-2402-45c3-9147-e8166e3a7c75",
-        "name": "5ire",
-        "symbol": "5fire",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/5IRE.svg",
-        "color": "071941",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://rpc.5ire.network",
-        "name": "5ire https node"
-      },
-      {
-        "url": "wss://rpc.5ire.network",
-        "name": "5ire wss node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/5irechain.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "997",
-    "name": "5ire Testnet",
-    "externalApi": {
-      "history": {
-        "type": "fire",
-        "url": "https://api.evm.testnet.5ire.network/5ire/"
-      },
-      "explorers": [
-        {
-          "type": "etherscan",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://testnet.5irescan.io/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "fe431ea5-8def-4b75-a013-2b01fe596a52",
-        "name": "5ire",
-        "symbol": "5fire",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/5IRE.svg",
-        "color": "071941",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://rpc.testnet.5ire.network",
-        "name": "5ire https node"
-      },
-      {
-        "url": "wss://rpc.testnet.5ire.network",
-        "name": "5ire wss node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/5irechain.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment",
-      "testnet"
     ]
   },
   {
@@ -8761,11 +4947,7 @@
           ],
           "url": "https://avail.subscan.io/{type}/{value}"
         }
-      ],
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-avail"
-      }
+      ]
     },
     "assets": [
       {
@@ -8783,28 +4965,12 @@
     "ecosystem": "substrate",
     "nodes": [
       {
-        "url": "wss://avail-mainnet.public.blastapi.io/",
-        "name": "Blastapi node"
-      },
-      {
-        "url": "wss://mainnet.avail-rpc.com/",
-        "name": " Ankr node"
-      },
-      {
-        "url": "wss://avail-rpc.rubynodes.io/",
-        "name": " Ruby node"
-      },
-      {
         "url": "wss://avail-us.brightlystake.com",
         "name": " BrightlyStake node"
       },
       {
         "url": "wss://rpc-avail.globalstake.io",
         "name": " GlobalStake node"
-      },
-      {
-        "url": "wss://avail.rpc.bountyblok.io",
-        "name": "Bountyblok node"
       },
       {
         "url": "wss://avail.public.curie.radiumblock.co/ws",
@@ -8856,24 +5022,12 @@
     "ecosystem": "substrate",
     "nodes": [
       {
-        "url": "wss://turing-testnet.avail-rpc.com",
-        "name": "Ankr node"
-      },
-      {
-        "url": "wss://avail-turing.public.blastapi.io",
-        "name": "Blast node"
-      },
-      {
         "url": "wss://avail-turing-rpc.publicnode.com",
         "name": "AllNode node"
       },
       {
         "url": "wss://turing.public.curie.radiumblock.co/ws",
         "name": "RadiumBlock node"
-      },
-      {
-        "url": "wss://avail-turing.bountyblok.io",
-        "name": "Bountyblok node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Avail.svg",
@@ -8918,156 +5072,15 @@
     "ecosystem": "ethereum",
     "nodes": [
       {
-        "url": "https://testnet-rpc.atleta.network:9944",
-        "name": "Atla https node"
+        "url": "https://testnet-rpc.atleta.network",
+        "name": "Atleta https node"
       },
       {
-        "url": "wss://testnet-rpc.atleta.network:9944",
-        "name": "Atla wss node"
+        "url": "wss://testnet-rpc.atleta.network",
+        "name": "Atleta wss node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Atleta.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment",
-      "testnet"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "168168",
-    "name": "ZChains",
-    "externalApi": {
-      "history": {
-        "type": "zchain",
-        "url": "https://mainnet-scan-api.zchains.com/api/v1/"
-      },
-      "explorers": [
-        {
-          "type": "etherscan",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://scan.zchains.com/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "a8b3e303-ded2-4d79-8bb4-1592e0b1230a",
-        "name": "ZCD",
-        "symbol": "ZCD",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/ZCD.svg",
-        "priceId": "zchains",
-        "color": "E10600",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://rpc.zchains.com",
-        "name": "ZChains https node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/zchain.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "2525",
-    "name": "inEVM",
-    "externalApi": {
-      "history": {
-        "type": "blockscout",
-        "url": "https://explorer.inevm.com/api/v2/"
-      },
-      "explorers": [
-        {
-          "type": "etherscan",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://explorer.inevm.com/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "d23263f5-1167-4eef-9a8d-a42df86c2647",
-        "name": "Injective",
-        "symbol": "INJ",
-        "precision": 18,
-        "priceId": "injective-protocol",
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/INJ.svg",
-        "color": "00F2FE",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://mainnet.rpc.inevm.com/http",
-        "name": "inEVM https node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/inevm.svg",
-    "addressPrefix": 0,
-    "options": [
-      "ethereum",
-      "utilityFeePayment"
-    ]
-  },
-  {
-    "disabled": false,
-    "chainId": "2424",
-    "name": "inEVM Testnet",
-    "externalApi": {
-      "history": {
-        "type": "blockscout",
-        "url": "https://testnet.explorer.inevm.com/api/v2/"
-      },
-      "explorers": [
-        {
-          "type": "etherscan",
-          "types": [
-            "tx",
-            "address"
-          ],
-          "url": "https://testnet.explorer.inevm.com/{type}/{value}"
-        }
-      ]
-    },
-    "assets": [
-      {
-        "isUtility": true,
-        "id": "cc6ddc82-e74f-4cc1-8630-67aa1141e896",
-        "name": "Injective",
-        "symbol": "INJ",
-        "precision": 18,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/INJ.svg",
-        "color": "00F2FE",
-        "ethereumType": "normal"
-      }
-    ],
-    "ecosystem": "ethereum",
-    "nodes": [
-      {
-        "url": "https://testnet.rpc.inevm.com/http",
-        "name": "inEVM https node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/inevm.svg",
     "addressPrefix": 0,
     "options": [
       "ethereum",
@@ -9189,11 +5202,7 @@
           ],
           "url": "https://bridgehub-polkadot/{type}/{value}"
         }
-      ],
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet---polkadot-bridgehub"
-      }
+      ]
     },
     "assets": [
       {
@@ -9216,14 +5225,6 @@
       {
         "url": "wss://polkadot-bridge-hub-rpc.polkadot.io",
         "name": "Parity node"
-      },
-      {
-        "url": "wss://sys.ibp.network/bridgehub-polkadot",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://bridge-hub-polkadot.dotters.network",
-        "name": "IBP2 node"
       },
       {
         "url": "wss://rpc-bridge-hub-polkadot.luckyfriday.io",
@@ -9279,10 +5280,6 @@
         "name": "Parity node"
       },
       {
-        "url": "wss://sys.ibp.network/collectives-polkadot",
-        "name": "IBP1 node"
-      },
-      {
         "url": "wss://collectives-polkadot.dotters.network",
         "name": "IBP2 node"
       },
@@ -9309,12 +5306,6 @@
     "paraId": "3366",
     "name": "AvN Polkadot",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-aventus"
-      }
-    },
     "assets": [
       {
         "id": "182cd6c0-864c-4ba5-96f1-89ea05ab7ac5",
@@ -9336,140 +5327,5 @@
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/aventus.svg",
     "addressPrefix": 42
-  },
-  {
-    "disabled": false,
-    "chainId": "61ea8a51fd4a058ee8c0e86df0a89cc85b8b67a0a66432893d09719050c9f540",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "3367",
-    "name": "Hyperbridge (Nexus)",
-    "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-hyperbridge"
-      }
-    },
-    "assets": [
-      {
-        "id": "a7ac5f36-2004-4c10-8efa-2fc0f9419532",
-        "name": "bridge",
-        "symbol": "bridge",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/BRIDGE.svg",
-        "color": "6D4185",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "nodes": [
-      {
-        "url": "wss://nexus.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://nexus.dotters.network",
-        "name": "IBP2 node"
-      },
-      {
-        "url": "wss://hyperbridge-nexus-rpc.blockops.network",
-        "name": "BlockOps node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/hyperbridge.svg",
-    "addressPrefix": 0
-  },
-  {
-    "disabled": false,
-    "chainId": "31a7d8914fb31c249b972f18c115f1e22b4b039abbcb03c73b6774c5642f9efe",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "3340",
-    "name": "InvArch Network",
-    "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet---invarch"
-      }
-    },
-    "assets": [
-      {
-        "id": "502b7bda-c8ce-458d-b1ff-afe4a80c0c60",
-        "name": "varch",
-        "symbol": "varch",
-        "precision": 12,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/VARCH.svg",
-        "color": "EA4683",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "nodes": [
-      {
-        "url": "wss://api-invarch.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
-        "url": "wss://invarch.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://invarch.dotters.network",
-        "name": "IBP2 node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/invarch.svg",
-    "addressPrefix": 117
-  },
-  {
-    "disabled": false,
-    "chainId": "7eb9354488318e7549c722669dcbdcdc526f1fef1420e7944667212f3601fdbd",
-    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-    "paraId": "3344",
-    "name": "Polimec",
-    "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet---polymec"
-      }
-    },
-    "assets": [
-      {
-        "id": "a988210e-474a-40bd-93e1-584f4800f3f3",
-        "name": "plmc",
-        "symbol": "plmc",
-        "precision": 10,
-        "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/PLMC.svg",
-        "color": "CAFFA0",
-        "priceId": "polimec",
-        "isUtility": true,
-        "type": "normal"
-      }
-    ],
-    "nodes": [
-      {
-        "url": "wss://polimec.rpc.amforc.com",
-        "name": "Amforc node"
-      },
-      {
-        "url": "wss://polimec.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://polimec.dotters.network",
-        "name": "IBP2 node"
-      },
-      {
-        "url": "wss://rpc.helikon.io/polimec",
-        "name": "Helikon node"
-      },
-      {
-        "url": "wss://rpc.polimec.org",
-        "name": "Polimec Foundation node"
-      }
-    ],
-    "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/polimec.svg",
-    "addressPrefix": 41
   }
 ]
