@@ -121,7 +121,7 @@ allprojects {
     // graph (see iroha-sdk-bridge/build.gradle); they are not part of the app.
     def resolvesStagedIrohaBridge = project.path in [':iroha-sdk-bridge', ':iroha-sdk-bridge-kotlin-smoke']
 
-    configurations.configureEach {
+    configurations.configureEach { configuration ->
         resolutionStrategy {
             // add dependency substitution rules
             eachDependency { DependencyResolveDetails details ->
@@ -176,8 +176,17 @@ allprojects {
                     details.because('CVE-2025-52999 and 2026 Jackson advisories: bound untrusted RPC JSON parsing')
                 }
                 if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
-                    // Keep the JVM tooling variant and Android runtime variant separate.
-                    details.useVersion(details.requested.version?.endsWith('-jre') ? '33.3.1-jre' : '33.3.1-android')
+                    // The Java API client requests Guava JRE. Select the Android variant
+                    // for Android compile/runtime graphs; compiler/plugin graphs stay separate.
+                    def androidClasspath = (
+                            project.plugins.hasPlugin('com.android.application') ||
+                                    project.plugins.hasPlugin('com.android.library')
+                    ) && (
+                            configuration.name.endsWith('CompileClasspath') ||
+                                    configuration.name.endsWith('RuntimeClasspath')
+                    )
+                    details.useVersion(androidClasspath ? '33.4.8-android' :
+                            (details.requested.version?.endsWith('-jre') ? '33.3.1-jre' : '33.3.1-android'))
                     details.because('CVE-2020-8908, CVE-2023-2976: private temporary files in Guava')
                 }
                 if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {

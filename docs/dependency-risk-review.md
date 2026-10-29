@@ -1,5 +1,13 @@
 # Android dependency review — 23 October 2026
 
+> Ported from the 4.2.0 build 231 line. On `master` the runtime library sources are owned in this
+> repository (`runtime-utils`, `runtime-websocket`); mentions of Utils and WebSocket source pins
+> describe that line. The dependency changes and their regression tests apply unchanged.
+
+## Historical review and integrated follow-up
+
+This is the retained takeover baseline. The [integration record](dependency-integration-20261023.md) supersedes its open Drive/OAuth and Utils-adoption items: the final 441-coordinate runtime graph retains only the EdDSA package match, and the app now pins the reviewed canonical-scalar guard. Native account/device qualification and the other maintenance risks below remain separate.
+
 ## Scope and source
 
 This review starts at vendor-cleanup commit `8207803efe281ecb58bf10127c7b8448fbba3432`.

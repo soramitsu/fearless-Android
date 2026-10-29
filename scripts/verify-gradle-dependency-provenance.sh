@@ -821,7 +821,7 @@ if len(entries) != len(set(entries)):
 
 required_entries = {
     "com.android.tools.build:gradle:8.10.1=classpath",
-    "com.google.firebase:firebase-appdistribution-gradle:4.2.0=classpath",
+    "com.google.firebase:firebase-appdistribution-gradle:5.3.1=classpath",
     "com.google.gms:google-services:4.4.1=classpath",
     "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.1.10=classpath",
     "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10=classpath",
